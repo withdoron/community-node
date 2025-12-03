@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import SearchBar from '@/components/search/SearchBar';
 import BusinessCard from '@/components/business/BusinessCard';
 import { Button } from "@/components/ui/button";
@@ -23,8 +23,33 @@ const categories = [
   { value: 'cleaning', label: 'Cleaning', icon: SprayCan, color: 'bg-purple-50 text-purple-600 hover:bg-purple-100' },
 ];
 
+const defaultCategoryOrder = [
+  'carpenter', 'mechanic', 'landscaper', 'farm', 
+  'bullion_dealer', 'electrician', 'plumber', 'cleaning'
+];
+
 export default function Home() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { data: categoryClicks = [] } = useQuery({
+    queryKey: ['categoryClicks'],
+    queryFn: () => base44.entities.CategoryClick.list('-click_count', 100)
+  });
+
+  const trackClick = useMutation({
+    mutationFn: async (category) => {
+      const existing = categoryClicks.find(c => c.category === category);
+      if (existing) {
+        await base44.entities.CategoryClick.update(existing.id, { 
+          click_count: (existing.click_count || 0) + 1 
+        });
+      } else {
+        await base44.entities.CategoryClick.create({ category, click_count: 1 });
+      }
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categoryClicks'] })
+  });
 
   const { data: featuredBusinesses = [], isLoading } = useQuery({
     queryKey: ['featured-businesses'],
@@ -59,8 +84,18 @@ export default function Home() {
   };
 
   const handleCategoryClick = (category) => {
+    trackClick.mutate(category);
     navigate(createPageUrl(`Search?category=${category}`));
   };
+
+  // Sort categories by popularity (click count), falling back to default order
+  const popularCategories = [...categories].sort((a, b) => {
+    const aClicks = categoryClicks.find(c => c.category === a.value)?.click_count || 0;
+    const bClicks = categoryClicks.find(c => c.category === b.value)?.click_count || 0;
+    if (aClicks !== bClicks) return bClicks - aClicks;
+    // Fall back to default order if no clicks
+    return defaultCategoryOrder.indexOf(a.value) - defaultCategoryOrder.indexOf(b.value);
+  }).slice(0, 8);
 
   return (
     <div className="min-h-screen bg-white">
@@ -134,10 +169,18 @@ export default function Home() {
             <h2 className="text-2xl font-bold text-slate-900">Browse by Category</h2>
             <p className="text-slate-600 mt-1">Find exactly what you need</p>
           </div>
+          <Button 
+            variant="ghost" 
+            className="text-slate-600 hover:text-slate-900"
+            onClick={() => navigate(createPageUrl('Categories'))}
+          >
+            View all categories
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {categories.map((category) => {
+          {popularCategories.map((category) => {
             const Icon = category.icon;
             return (
               <button
