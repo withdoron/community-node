@@ -19,7 +19,7 @@ export default function SearchBar({ onSearch, initialQuery = '', initialLocation
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
             type="text"
-            placeholder="What are you looking for?"
+            placeholder="What are you looking for? (e.g., carpenter, mechanic, farm…)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="pl-10 h-12 bg-white border-slate-200 focus:border-slate-400 focus:ring-slate-400"
