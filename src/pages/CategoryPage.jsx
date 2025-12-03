@@ -16,10 +16,7 @@ export default function CategoryPage() {
   const categoryId = urlParams.get('id');
   const initialSubcategory = urlParams.get('sub') || 'all';
 
-  // Scroll to top when page loads
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [categoryId]);
+
 
   const [selectedSubcategory, setSelectedSubcategory] = useState(initialSubcategory);
 
