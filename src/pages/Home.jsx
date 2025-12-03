@@ -67,6 +67,7 @@ export default function Home() {
 
   const handleCategoryClick = (categoryId) => {
     trackClick.mutate(categoryId);
+    window.scrollTo(0, 0);
     navigate(createPageUrl(`CategoryPage?id=${categoryId}`));
   };
 
@@ -156,7 +157,10 @@ export default function Home() {
           <Button 
             variant="ghost" 
             className="text-slate-600 hover:text-slate-900"
-            onClick={() => navigate(createPageUrl('Categories'))}
+            onClick={() => {
+              window.scrollTo(0, 0);
+              navigate(createPageUrl('Categories'));
+            }}
           >
             View all categories
             <ChevronRight className="h-4 w-4 ml-1" />
