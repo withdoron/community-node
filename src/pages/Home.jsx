@@ -32,9 +32,22 @@ export default function Home() {
       const businesses = await base44.entities.Business.filter(
         { is_active: true },
         '-average_rating',
-        6
+        20
       );
-      return businesses;
+      // Sort: active bumps first, then partners, then by rating
+      const now = new Date();
+      return businesses.sort((a, b) => {
+        const aIsBumped = a.is_bumped && a.bump_expires_at && new Date(a.bump_expires_at) > now;
+        const bIsBumped = b.is_bumped && b.bump_expires_at && new Date(b.bump_expires_at) > now;
+        
+        if (aIsBumped && !bIsBumped) return -1;
+        if (!aIsBumped && bIsBumped) return 1;
+        
+        if (a.subscription_tier === 'partner' && b.subscription_tier !== 'partner') return -1;
+        if (a.subscription_tier !== 'partner' && b.subscription_tier === 'partner') return 1;
+        
+        return (b.average_rating || 0) - (a.average_rating || 0);
+      }).slice(0, 6);
     }
   });
 
