@@ -12,23 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ChevronLeft, ChevronRight, Loader2, Upload, X, Plus, Trash2,
   Check, Star, Zap, Crown
 } from "lucide-react";
-
-const categories = [
-  { value: 'carpenter', label: 'Carpenter' },
-  { value: 'mechanic', label: 'Mechanic' },
-  { value: 'landscaper', label: 'Landscaper' },
-  { value: 'farm', label: 'Farm' },
-  { value: 'bullion_dealer', label: 'Bullion Dealer' },
-  { value: 'electrician', label: 'Electrician' },
-  { value: 'plumber', label: 'Plumber' },
-  { value: 'handyman', label: 'Handyman' },
-  { value: 'cleaning', label: 'Cleaning' },
-  { value: 'other', label: 'Other' }
-];
+import { mainCategories, getMainCategory } from '@/components/categories/categoryData';
 
 const tiers = [
   {
@@ -70,7 +59,8 @@ export default function BusinessOnboarding() {
   
   const [formData, setFormData] = useState({
     name: '',
-    category: '',
+    main_category: '',
+    subcategories: [],
     description: '',
     address: '',
     city: '',
@@ -83,6 +73,9 @@ export default function BusinessOnboarding() {
     services: [{ name: '', starting_price: '', description: '' }],
     subscription_tier: 'basic'
   });
+
+  const selectedMainCategory = getMainCategory(formData.main_category);
+  const availableSubcategories = selectedMainCategory?.subcategories.filter(s => !s.id.startsWith('all_')) || [];
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -156,10 +149,27 @@ export default function BusinessOnboarding() {
     setFormData({ ...formData, services: newServices });
   };
 
+  const handleMainCategoryChange = (value) => {
+    setFormData({ 
+      ...formData, 
+      main_category: value, 
+      subcategories: [] // Reset subcategories when main category changes
+    });
+  };
+
+  const handleSubcategoryToggle = (subId) => {
+    const current = formData.subcategories || [];
+    if (current.includes(subId)) {
+      setFormData({ ...formData, subcategories: current.filter(s => s !== subId) });
+    } else {
+      setFormData({ ...formData, subcategories: [...current, subId] });
+    }
+  };
+
   const canProceed = () => {
     switch (currentStep) {
       case 0:
-        return formData.name && formData.category && formData.city;
+        return formData.name && formData.main_category && formData.city;
       case 1:
         return true;
       case 2:
@@ -254,23 +264,47 @@ export default function BusinessOnboarding() {
                 </div>
 
                 <div>
-                  <Label htmlFor="category">Category <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="main_category">Category <span className="text-red-500">*</span></Label>
                   <Select
-                    value={formData.category}
-                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                    value={formData.main_category}
+                    onValueChange={handleMainCategoryChange}
                   >
                     <SelectTrigger className="mt-1.5">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value}>
+                      {mainCategories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
                           {cat.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
+
+                {formData.main_category && availableSubcategories.length > 0 && (
+                  <div>
+                    <Label>Subcategories (select all that apply)</Label>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {availableSubcategories.map((sub) => (
+                        <label
+                          key={sub.id}
+                          className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
+                            formData.subcategories.includes(sub.id)
+                              ? 'border-slate-900 bg-slate-50'
+                              : 'border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <Checkbox
+                            checked={formData.subcategories.includes(sub.id)}
+                            onCheckedChange={() => handleSubcategoryToggle(sub.id)}
+                          />
+                          <span className="text-sm">{sub.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <Label htmlFor="description">Description</Label>
@@ -540,7 +574,11 @@ export default function BusinessOnboarding() {
                   <h3 className="font-semibold text-slate-900">{formData.name}</h3>
                   <p className="text-sm text-slate-600 mt-1">{formData.description || 'No description'}</p>
                   <div className="flex flex-wrap gap-2 mt-3">
-                    <Badge variant="secondary">{formData.category}</Badge>
+                    <Badge variant="secondary">{selectedMainCategory?.label || formData.main_category}</Badge>
+                    {formData.subcategories.length > 0 && formData.subcategories.map(subId => {
+                      const sub = availableSubcategories.find(s => s.id === subId);
+                      return sub ? <Badge key={subId} variant="outline">{sub.label}</Badge> : null;
+                    })}
                     {formData.accepts_silver && <Badge variant="outline">Accepts Silver</Badge>}
                     <Badge>{tiers.find(t => t.id === formData.subscription_tier)?.name} Plan</Badge>
                   </div>
