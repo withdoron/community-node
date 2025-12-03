@@ -6,7 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, Phone, ChevronRight, Sparkles, CheckCircle } from "lucide-react";
 
-const categoryLabels = {
+import { mainCategories, getMainCategory, getSubcategoryLabel } from '@/components/categories/categoryData';
+
+const legacyCategoryLabels = {
   carpenter: 'Carpenter',
   mechanic: 'Mechanic',
   landscaper: 'Landscaper',
@@ -23,6 +25,15 @@ export default function BusinessCard({ business, featured = false }) {
   const minPrice = business.services?.length > 0 
     ? Math.min(...business.services.map(s => s.starting_price || 0))
     : null;
+
+  // Get category label (supports both new and legacy categories)
+  const getCategoryLabel = () => {
+    if (business.main_category) {
+      const mainCat = getMainCategory(business.main_category);
+      return mainCat?.label || business.main_category;
+    }
+    return legacyCategoryLabels[business.category] || business.category;
+  };
 
   return (
     <Card className={`group overflow-hidden transition-all duration-300 hover:shadow-lg ${featured ? 'ring-2 ring-amber-400 shadow-md' : 'border-slate-200'}`}>
@@ -58,8 +69,8 @@ export default function BusinessCard({ business, featured = false }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <Badge variant="secondary" className="text-xs bg-slate-100 text-slate-600">
-                  {categoryLabels[business.category] || business.category}
-                </Badge>
+                      {getCategoryLabel()}
+                    </Badge>
                 {business.accepts_silver && (
                   <Badge variant="outline" className="text-xs border-slate-300 text-slate-600">
                     Accepts Silver
