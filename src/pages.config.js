@@ -5,6 +5,7 @@ import WriteReview from './pages/WriteReview';
 import BusinessOnboarding from './pages/BusinessOnboarding';
 import BusinessDashboard from './pages/BusinessDashboard';
 import Categories from './pages/Categories';
+import CategoryPage from './pages/CategoryPage';
 import __Layout from './Layout.jsx';
 
 
@@ -16,6 +17,7 @@ export const PAGES = {
     "BusinessOnboarding": BusinessOnboarding,
     "BusinessDashboard": BusinessDashboard,
     "Categories": Categories,
+    "CategoryPage": CategoryPage,
 }
 
 export const pagesConfig = {
