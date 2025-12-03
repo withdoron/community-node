@@ -147,7 +147,7 @@ export default function Home() {
       </section>
 
       {/* Categories */}
-      <section className="max-w-6xl mx-auto px-4 py-16">
+      <section id="categories" className="max-w-6xl mx-auto px-4 py-16">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold text-slate-900">Browse by Category</h2>
