@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Wrench, Leaf, Tractor, Coins, Zap, Droplets, Hammer, SprayCan, 
-  ChevronRight, Shield, Users, Star
+  ChevronRight, Shield, Users, Star, Ban
 } from "lucide-react";
 
 const categories = [
@@ -75,35 +75,54 @@ export default function Home() {
           <div className="text-center max-w-3xl mx-auto">
             <Badge className="mb-6 bg-white/10 text-white border-white/20 hover:bg-white/20">
               <Shield className="h-3 w-3 mr-1" />
-              Ad-Free • Trusted • Local
+              Ad‑Free • Trusted • Local
             </Badge>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
               Find trusted local
               <span className="block text-amber-400">businesses near you</span>
             </h1>
             <p className="mt-6 text-lg text-slate-300 max-w-2xl mx-auto">
-              Connect with verified carpenters, mechanics, farms, and more. 
-              No ads, no spam—just real businesses serving your community.
+              Connect with trusted carpenters, mechanics, farms, and more. No ads, no spam—just real local businesses, with the option to support sound money with silver.
             </p>
           </div>
 
           <div className="mt-10 max-w-3xl mx-auto">
             <SearchBar onSearch={handleSearch} />
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4">
+              <Button 
+                size="lg"
+                className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold w-full sm:w-auto"
+                onClick={() => {
+                  const searchBar = document.querySelector('form');
+                  if (searchBar) searchBar.dispatchEvent(new Event('submit', { bubbles: true }));
+                }}
+              >
+                Search local businesses
+              </Button>
+              <Button 
+                size="lg"
+                variant="outline"
+                className="border-white/30 text-white hover:bg-white/10 w-full sm:w-auto"
+                onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
+              >
+                List your business
+              </Button>
+            </div>
           </div>
 
           {/* Stats */}
           <div className="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto">
             <div className="text-center">
               <p className="text-3xl font-bold text-white">100+</p>
-              <p className="text-sm text-slate-400 mt-1">Local Businesses</p>
+              <p className="text-sm text-slate-400 mt-1">Local Businesses Listed</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-white">4.8</p>
-              <p className="text-sm text-slate-400 mt-1">Avg. Rating</p>
+              <p className="text-sm text-slate-400 mt-1">Average Rating</p>
             </div>
             <div className="text-center">
               <p className="text-3xl font-bold text-white">1000+</p>
-              <p className="text-sm text-slate-400 mt-1">Happy Customers</p>
+              <p className="text-sm text-slate-400 mt-1">Local Customers Served</p>
             </div>
           </div>
         </div>
@@ -176,34 +195,35 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Value Props */}
+      {/* Why LocalConnect */}
       <section className="max-w-6xl mx-auto px-4 py-16">
+        <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">Why use LocalConnect?</h2>
         <div className="grid md:grid-cols-3 gap-8">
           <div className="text-center p-6">
             <div className="h-12 w-12 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Shield className="h-6 w-6 text-emerald-600" />
+              <Users className="h-6 w-6 text-emerald-600" />
             </div>
-            <h3 className="font-semibold text-lg text-slate-900">No Ads, Ever</h3>
+            <h3 className="font-semibold text-lg text-slate-900">Local & Trusted</h3>
             <p className="text-slate-600 mt-2 text-sm">
-              We're funded by business subscriptions, not advertisers. Your attention isn't for sale.
+              Every listing is a real local business, with reviews from people in your community.
             </p>
           </div>
           <div className="text-center p-6">
             <div className="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Star className="h-6 w-6 text-amber-600" />
+              <Ban className="h-6 w-6 text-amber-600" />
             </div>
-            <h3 className="font-semibold text-lg text-slate-900">Real Reviews</h3>
+            <h3 className="font-semibold text-lg text-slate-900">Ad‑Free & Simple</h3>
             <p className="text-slate-600 mt-2 text-sm">
-              All reviews come from real customers. No fake reviews, no paid endorsements.
+              No ads, no bidding for attention—just clear information to help you choose the right local pro.
             </p>
           </div>
           <div className="text-center p-6">
-            <div className="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Users className="h-6 w-6 text-blue-600" />
+            <div className="h-12 w-12 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <Coins className="h-6 w-6 text-yellow-600" />
             </div>
-            <h3 className="font-semibold text-lg text-slate-900">Local First</h3>
+            <h3 className="font-semibold text-lg text-slate-900">Sound Money Friendly</h3>
             <p className="text-slate-600 mt-2 text-sm">
-              Support your local economy. Every business is verified and community-focused.
+              See which businesses support sound money by choosing to accept silver. It's always optional for both sides.
             </p>
           </div>
         </div>
@@ -214,8 +234,10 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-white">Own a local business?</h2>
           <p className="text-slate-300 mt-4 max-w-xl mx-auto">
-            Join our marketplace and connect with customers who value quality and trust. 
-            No advertising fees—just honest visibility.
+            Join our local marketplace and connect with customers who value quality, trust, and community.
+          </p>
+          <p className="text-slate-400 mt-2 max-w-xl mx-auto">
+            No ad spend, no lead fees—just clear, honest visibility.
           </p>
           <Button 
             size="lg"
