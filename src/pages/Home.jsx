@@ -88,10 +88,10 @@ export default function Home() {
 
           <div className="mt-10 max-w-3xl mx-auto">
             <SearchBar onSearch={handleSearch} />
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6">
               <Button 
                 size="lg"
-                className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold w-full sm:w-auto"
+                className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold px-8"
                 onClick={() => {
                   const searchBar = document.querySelector('form');
                   if (searchBar) searchBar.dispatchEvent(new Event('submit', { bubbles: true }));
@@ -101,8 +101,7 @@ export default function Home() {
               </Button>
               <Button 
                 size="lg"
-                variant="outline"
-                className="border-white/30 text-white hover:bg-white/10 w-full sm:w-auto"
+                className="bg-white hover:bg-slate-100 text-slate-900 font-semibold px-8 border border-slate-200"
                 onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
               >
                 List your business
