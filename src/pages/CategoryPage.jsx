@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -11,9 +11,15 @@ import { ChevronLeft, Loader2, SearchX } from "lucide-react";
 
 export default function CategoryPage() {
   const navigate = useNavigate();
+  const topRef = useRef(null);
   const urlParams = new URLSearchParams(window.location.search);
   const categoryId = urlParams.get('id');
   const initialSubcategory = urlParams.get('sub') || 'all';
+
+  // Scroll to top when page loads
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [categoryId]);
 
   const [selectedSubcategory, setSelectedSubcategory] = useState(initialSubcategory);
 
