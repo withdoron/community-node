@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { mainCategories, getMainCategory, legacyCategoryMapping } from '@/components/categories/categoryData';
 import BusinessCard from '@/components/business/BusinessCard';
+import { rankBusinesses, isBoostActive } from '@/components/business/rankingUtils';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, Loader2, SearchX } from "lucide-react";
@@ -64,20 +65,8 @@ export default function CategoryPage() {
       });
     }
 
-    // Sort: bumped first, then partners, then by rating
-    const now = new Date();
-    return result.sort((a, b) => {
-      const aIsBumped = a.is_bumped && a.bump_expires_at && new Date(a.bump_expires_at) > now;
-      const bIsBumped = b.is_bumped && b.bump_expires_at && new Date(b.bump_expires_at) > now;
-      
-      if (aIsBumped && !bIsBumped) return -1;
-      if (!aIsBumped && bIsBumped) return 1;
-      
-      if (a.subscription_tier === 'partner' && b.subscription_tier !== 'partner') return -1;
-      if (a.subscription_tier !== 'partner' && b.subscription_tier === 'partner') return 1;
-      
-      return (b.average_rating || 0) - (a.average_rating || 0);
-    });
+    // Apply consistent ranking: Tier > Boost > Rating > Reviews > Date
+    return rankBusinesses(result);
   }, [businesses, categoryId, selectedSubcategory, category]);
 
   const handleSubcategoryClick = (subId) => {
@@ -179,16 +168,13 @@ export default function CategoryPage() {
           </div>
         ) : (
           <div className="grid gap-4">
-            {filteredBusinesses.map((business) => {
-              const isBumpActive = business.is_bumped && business.bump_expires_at && new Date(business.bump_expires_at) > new Date();
-              return (
-                <BusinessCard 
-                  key={business.id} 
-                  business={business}
-                  featured={isBumpActive || business.subscription_tier === 'partner'}
-                />
-              );
-            })}
+            {filteredBusinesses.map((business) => (
+              <BusinessCard 
+                key={business.id} 
+                business={business}
+                featured={isBoostActive(business) || business.subscription_tier === 'partner'}
+              />
+            ))}
           </div>
         )}
       </div>

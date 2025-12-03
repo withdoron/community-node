@@ -4,9 +4,10 @@ import { createPageUrl } from '@/utils';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Phone, ChevronRight, Sparkles, CheckCircle } from "lucide-react";
+import { Star, MapPin, Phone, ChevronRight, Sparkles, CheckCircle, Zap, Crown } from "lucide-react";
 
 import { mainCategories, getMainCategory, getSubcategoryLabel } from '@/components/categories/categoryData';
+import { isBoostActive, getTierLabel, getTierBadgeClasses } from '@/components/business/rankingUtils';
 
 const legacyCategoryLabels = {
   carpenter: 'Carpenter',
@@ -26,6 +27,11 @@ export default function BusinessCard({ business, featured = false }) {
     ? Math.min(...business.services.map(s => s.starting_price || 0))
     : null;
 
+  const isBoosted = isBoostActive(business);
+  const tier = business.subscription_tier || 'basic';
+  const tierLabel = getTierLabel(tier);
+  const tierBadgeClasses = getTierBadgeClasses(tier);
+
   // Get category label (supports both new and legacy categories)
   const getCategoryLabel = () => {
     if (business.main_category) {
@@ -35,8 +41,11 @@ export default function BusinessCard({ business, featured = false }) {
     return legacyCategoryLabels[business.category] || business.category;
   };
 
+  // Tier icon
+  const TierIcon = tier === 'partner' ? Crown : tier === 'standard' ? Zap : null;
+
   return (
-    <Card className={`group overflow-hidden transition-all duration-300 hover:shadow-lg ${featured ? 'ring-2 ring-amber-400 shadow-md' : 'border-slate-200'}`}>
+    <Card className={`group overflow-hidden transition-all duration-300 hover:shadow-lg ${featured || isBoosted ? 'ring-2 ring-amber-400 shadow-md' : 'border-slate-200'}`}>
       <div className="flex flex-col sm:flex-row">
         {/* Image */}
         <div className="relative sm:w-48 h-40 sm:h-auto flex-shrink-0">
@@ -45,22 +54,22 @@ export default function BusinessCard({ business, featured = false }) {
             alt={business.name}
             className="w-full h-full object-cover"
           />
-          {featured && (
+          {/* Boosted badge */}
+          {isBoosted && (
             <div className="absolute top-2 left-2">
               <Badge className="bg-amber-400 text-amber-900 font-medium">
                 <Sparkles className="h-3 w-3 mr-1" />
-                Featured
+                Boosted
               </Badge>
             </div>
           )}
-          {business.subscription_tier === 'partner' && (
-            <div className="absolute top-2 right-2">
-              <Badge className="bg-emerald-500 text-white font-medium">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Partner
-              </Badge>
-            </div>
-          )}
+          {/* Tier badge on image */}
+          <div className="absolute top-2 right-2">
+            <Badge className={`font-medium border ${tierBadgeClasses}`}>
+              {TierIcon && <TierIcon className="h-3 w-3 mr-1" />}
+              {tierLabel}
+            </Badge>
+          </div>
         </div>
 
         {/* Content */}

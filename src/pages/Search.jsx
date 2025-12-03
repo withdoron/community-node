@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import SearchBar from '@/components/search/SearchBar';
 import FilterBar from '@/components/search/FilterBar';
 import BusinessCard from '@/components/business/BusinessCard';
+import { rankBusinesses, isBoostActive, getTierPriority } from '@/components/business/rankingUtils';
 import { Button } from "@/components/ui/button";
 import { Loader2, SearchX } from "lucide-react";
 
@@ -65,43 +66,44 @@ export default function Search() {
       result = result.filter(b => b.accepts_silver);
     }
 
-    // Sorting
-    result.sort((a, b) => {
-      // Check if bumps are still active (not expired)
-      const now = new Date();
-      const aIsBumped = a.is_bumped && a.bump_expires_at && new Date(a.bump_expires_at) > now;
-      const bIsBumped = b.is_bumped && b.bump_expires_at && new Date(b.bump_expires_at) > now;
-      
-      // Bumped businesses always first
-      if (aIsBumped && !bIsBumped) return -1;
-      if (!aIsBumped && bIsBumped) return 1;
+    // Apply primary ranking: Tier > Boost > Rating > Reviews
+    result = rankBusinesses(result);
 
-      // Partner tier second
-      if (a.subscription_tier === 'partner' && b.subscription_tier !== 'partner') return -1;
-      if (a.subscription_tier !== 'partner' && b.subscription_tier === 'partner') return 1;
+    // Apply secondary sort within tier/boost groups if user selected a specific sort
+    if (sortBy !== 'rating') {
+      result.sort((a, b) => {
+        // First maintain tier grouping
+        const tierA = getTierPriority(a);
+        const tierB = getTierPriority(b);
+        if (tierA !== tierB) return tierB - tierA;
 
-      // Then by selected sort
-      switch (sortBy) {
-        case 'rating':
-          return (b.average_rating || 0) - (a.average_rating || 0);
-        case 'reviews':
-          return (b.review_count || 0) - (a.review_count || 0);
-        case 'price_low': {
-          const aMin = a.services?.length ? Math.min(...a.services.map(s => s.starting_price || Infinity)) : Infinity;
-          const bMin = b.services?.length ? Math.min(...b.services.map(s => s.starting_price || Infinity)) : Infinity;
-          return aMin - bMin;
+        // Then maintain boost grouping within tier
+        const boostA = isBoostActive(a);
+        const boostB = isBoostActive(b);
+        if (boostA && !boostB) return -1;
+        if (!boostA && boostB) return 1;
+
+        // Then apply user's sort preference
+        switch (sortBy) {
+          case 'reviews':
+            return (b.review_count || 0) - (a.review_count || 0);
+          case 'price_low': {
+            const aMin = a.services?.length ? Math.min(...a.services.map(s => s.starting_price || Infinity)) : Infinity;
+            const bMin = b.services?.length ? Math.min(...b.services.map(s => s.starting_price || Infinity)) : Infinity;
+            return aMin - bMin;
+          }
+          case 'price_high': {
+            const aMax = a.services?.length ? Math.max(...a.services.map(s => s.starting_price || 0)) : 0;
+            const bMax = b.services?.length ? Math.max(...b.services.map(s => s.starting_price || 0)) : 0;
+            return bMax - aMax;
+          }
+          case 'newest':
+            return new Date(b.created_date) - new Date(a.created_date);
+          default:
+            return 0;
         }
-        case 'price_high': {
-          const aMax = a.services?.length ? Math.max(...a.services.map(s => s.starting_price || 0)) : 0;
-          const bMax = b.services?.length ? Math.max(...b.services.map(s => s.starting_price || 0)) : 0;
-          return bMax - aMax;
-        }
-        case 'newest':
-          return new Date(b.created_date) - new Date(a.created_date);
-        default:
-          return 0;
-      }
-    });
+      });
+    }
 
     return result;
   }, [businesses, searchParams, filters, sortBy]);
@@ -163,16 +165,13 @@ export default function Search() {
           </div>
         ) : (
           <div className="grid gap-4 mt-6">
-            {filteredBusinesses.map((business) => {
-              const isBumpActive = business.is_bumped && business.bump_expires_at && new Date(business.bump_expires_at) > new Date();
-              return (
-                <BusinessCard 
-                  key={business.id} 
-                  business={business}
-                  featured={isBumpActive || business.subscription_tier === 'partner'}
-                />
-              );
-            })}
+            {filteredBusinesses.map((business) => (
+              <BusinessCard 
+                key={business.id} 
+                business={business}
+                featured={isBoostActive(business) || business.subscription_tier === 'partner'}
+              />
+            ))}
           </div>
         )}
       </div>
