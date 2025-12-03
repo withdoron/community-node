@@ -18,7 +18,7 @@ import ReviewCard from '@/components/reviews/ReviewCard';
 import {
   BarChart3, Star, Eye, Rocket, Settings, MessageSquare,
   Loader2, CheckCircle, Crown, Zap, ArrowUp, Upload, X, Plus, Trash2,
-  ExternalLink
+  ExternalLink, Check
 } from "lucide-react";
 import { format, addHours } from 'date-fns';
 
@@ -35,9 +35,41 @@ const categories = [
   { value: 'other', label: 'Other' }
 ];
 
+const tiers = [
+  {
+    id: 'basic',
+    name: 'Basic',
+    price: '$9',
+    period: '/month',
+    icon: Star,
+    features: ['Business listing', 'Basic profile', 'Contact info', 'Customer reviews'],
+    bumps: 0
+  },
+  {
+    id: 'standard',
+    name: 'Standard',
+    price: '$29',
+    period: '/month',
+    icon: Zap,
+    popular: true,
+    features: ['Everything in Basic', 'Photo gallery', 'Service listings', '3 bumps per month', 'Priority support'],
+    bumps: 3
+  },
+  {
+    id: 'partner',
+    name: 'Partner',
+    price: '$79',
+    period: '/month',
+    icon: Crown,
+    features: ['Everything in Standard', 'Partner badge', 'Featured placement', '10 bumps per month', 'Analytics dashboard'],
+    bumps: 10
+  }
+];
+
 export default function BusinessDashboard() {
   const queryClient = useQueryClient();
   const [bumpDialogOpen, setBumpDialogOpen] = useState(false);
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const { data: currentUser } = useQuery({
@@ -90,6 +122,20 @@ export default function BusinessDashboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['myBusiness']);
+    }
+  });
+
+  const upgradePlan = useMutation({
+    mutationFn: async (newTier) => {
+      const tier = tiers.find(t => t.id === newTier);
+      await base44.entities.Business.update(business.id, {
+        subscription_tier: newTier,
+        bumps_remaining: tier?.bumps || 0
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['myBusiness']);
+      setUpgradeDialogOpen(false);
     }
   });
 
@@ -233,6 +279,84 @@ export default function BusinessDashboard() {
                 </Button>
               </Link>
               
+              {/* Upgrade Plan Button */}
+              <Dialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <ArrowUp className="h-4 w-4 mr-2" />
+                    {business.subscription_tier === 'partner' ? 'Manage Plan' : 'Upgrade Plan'}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle>Choose Your Plan</DialogTitle>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {tiers.map((tier) => {
+                        const TierIconComponent = tier.icon;
+                        const isCurrentPlan = business.subscription_tier === tier.id;
+                        return (
+                          <div
+                            key={tier.id}
+                            className={`relative rounded-xl border-2 p-5 transition-all ${
+                              isCurrentPlan 
+                                ? 'border-slate-900 bg-slate-50' 
+                                : 'border-slate-200 hover:border-slate-300'
+                            }`}
+                          >
+                            {tier.popular && (
+                              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white">
+                                Popular
+                              </Badge>
+                            )}
+                            <div className="text-center mb-4">
+                              <div className={`h-12 w-12 rounded-lg flex items-center justify-center mx-auto mb-3 ${
+                                tier.id === 'partner' ? 'bg-amber-100' : 
+                                tier.id === 'standard' ? 'bg-blue-100' : 'bg-slate-100'
+                              }`}>
+                                <TierIconComponent className={`h-6 w-6 ${
+                                  tier.id === 'partner' ? 'text-amber-600' : 
+                                  tier.id === 'standard' ? 'text-blue-600' : 'text-slate-600'
+                                }`} />
+                              </div>
+                              <h3 className="font-semibold text-lg">{tier.name}</h3>
+                              <p className="text-2xl font-bold mt-1">
+                                {tier.price}
+                                <span className="text-sm font-normal text-slate-500">{tier.period}</span>
+                              </p>
+                            </div>
+                            <ul className="space-y-2 mb-4">
+                              {tier.features.map((feature) => (
+                                <li key={feature} className="flex items-center gap-2 text-sm text-slate-600">
+                                  <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                                  {feature}
+                                </li>
+                              ))}
+                            </ul>
+                            <Button
+                              className={`w-full ${isCurrentPlan 
+                                ? 'bg-slate-200 text-slate-600 cursor-default' 
+                                : 'bg-slate-900 hover:bg-slate-800'}`}
+                              disabled={isCurrentPlan || upgradePlan.isPending}
+                              onClick={() => upgradePlan.mutate(tier.id)}
+                            >
+                              {upgradePlan.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : isCurrentPlan ? (
+                                'Current Plan'
+                              ) : (
+                                'Select Plan'
+                              )}
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
               {/* Bump Button */}
               {(business.subscription_tier === 'standard' || business.subscription_tier === 'partner') && (
                 <Dialog open={bumpDialogOpen} onOpenChange={setBumpDialogOpen}>
