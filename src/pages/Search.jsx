@@ -67,9 +67,14 @@ export default function Search() {
 
     // Sorting
     result.sort((a, b) => {
+      // Check if bumps are still active (not expired)
+      const now = new Date();
+      const aIsBumped = a.is_bumped && a.bump_expires_at && new Date(a.bump_expires_at) > now;
+      const bIsBumped = b.is_bumped && b.bump_expires_at && new Date(b.bump_expires_at) > now;
+      
       // Bumped businesses always first
-      if (a.is_bumped && !b.is_bumped) return -1;
-      if (!a.is_bumped && b.is_bumped) return 1;
+      if (aIsBumped && !bIsBumped) return -1;
+      if (!aIsBumped && bIsBumped) return 1;
 
       // Partner tier second
       if (a.subscription_tier === 'partner' && b.subscription_tier !== 'partner') return -1;
@@ -158,13 +163,16 @@ export default function Search() {
           </div>
         ) : (
           <div className="grid gap-4 mt-6">
-            {filteredBusinesses.map((business) => (
-              <BusinessCard 
-                key={business.id} 
-                business={business}
-                featured={business.is_bumped || business.subscription_tier === 'partner'}
-              />
-            ))}
+            {filteredBusinesses.map((business) => {
+              const isBumpActive = business.is_bumped && business.bump_expires_at && new Date(business.bump_expires_at) > new Date();
+              return (
+                <BusinessCard 
+                  key={business.id} 
+                  business={business}
+                  featured={isBumpActive || business.subscription_tier === 'partner'}
+                />
+              );
+            })}
           </div>
         )}
       </div>
