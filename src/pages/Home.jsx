@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import SearchBar from '@/components/search/SearchBar';
 import BusinessCard from '@/components/business/BusinessCard';
+import { rankBusinesses, isBoostActive } from '@/components/business/rankingUtils';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, Shield, Users, Ban, Coins } from "lucide-react";
@@ -41,19 +42,8 @@ export default function Home() {
         '-average_rating',
         20
       );
-      const now = new Date();
-      return businesses.sort((a, b) => {
-        const aIsBumped = a.is_bumped && a.bump_expires_at && new Date(a.bump_expires_at) > now;
-        const bIsBumped = b.is_bumped && b.bump_expires_at && new Date(b.bump_expires_at) > now;
-        
-        if (aIsBumped && !bIsBumped) return -1;
-        if (!aIsBumped && bIsBumped) return 1;
-        
-        if (a.subscription_tier === 'partner' && b.subscription_tier !== 'partner') return -1;
-        if (a.subscription_tier !== 'partner' && b.subscription_tier === 'partner') return 1;
-        
-        return (b.average_rating || 0) - (a.average_rating || 0);
-      }).slice(0, 6);
+      // Apply consistent ranking and take top 6
+      return rankBusinesses(businesses).slice(0, 6);
     }
   });
 
@@ -203,16 +193,13 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {featuredBusinesses.map((business) => {
-                const isBumpActive = business.is_bumped && business.bump_expires_at && new Date(business.bump_expires_at) > new Date();
-                return (
-                  <BusinessCard 
-                    key={business.id} 
-                    business={business} 
-                    featured={isBumpActive || business.subscription_tier === 'partner'}
-                  />
-                );
-              })}
+              {featuredBusinesses.map((business) => (
+                <BusinessCard 
+                  key={business.id} 
+                  business={business} 
+                  featured={isBoostActive(business) || business.subscription_tier === 'partner'}
+                />
+              ))}
             </div>
           )}
         </div>
