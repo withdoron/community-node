@@ -15,25 +15,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import StarRating from '@/components/reviews/StarRating';
 import ReviewCard from '@/components/reviews/ReviewCard';
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   BarChart3, Star, Eye, Rocket, Settings, MessageSquare,
   Loader2, CheckCircle, Crown, Zap, ArrowUp, Upload, X, Plus, Trash2,
   ExternalLink, Check
 } from "lucide-react";
 import { format, addHours } from 'date-fns';
-
-const categories = [
-  { value: 'carpenter', label: 'Carpenter' },
-  { value: 'mechanic', label: 'Mechanic' },
-  { value: 'landscaper', label: 'Landscaper' },
-  { value: 'farm', label: 'Farm' },
-  { value: 'bullion_dealer', label: 'Bullion Dealer' },
-  { value: 'electrician', label: 'Electrician' },
-  { value: 'plumber', label: 'Plumber' },
-  { value: 'handyman', label: 'Handyman' },
-  { value: 'cleaning', label: 'Cleaning' },
-  { value: 'other', label: 'Other' }
-];
+import { mainCategories, getMainCategory } from '@/components/categories/categoryData';
 
 const tiers = [
   {
@@ -102,7 +91,8 @@ export default function BusinessDashboard() {
       setEditData({
         name: business.name || '',
         description: business.description || '',
-        category: business.category || '',
+        main_category: business.main_category || '',
+        subcategories: business.subcategories || [],
         address: business.address || '',
         city: business.city || '',
         phone: business.phone || '',
@@ -115,6 +105,26 @@ export default function BusinessDashboard() {
       });
     }
   }, [business]);
+
+  const selectedMainCategory = editData ? getMainCategory(editData.main_category) : null;
+  const availableSubcategories = selectedMainCategory?.subcategories.filter(s => !s.id.startsWith('all_')) || [];
+
+  const handleMainCategoryChange = (value) => {
+    setEditData({ 
+      ...editData, 
+      main_category: value, 
+      subcategories: []
+    });
+  };
+
+  const handleSubcategoryToggle = (subId) => {
+    const current = editData.subcategories || [];
+    if (current.includes(subId)) {
+      setEditData({ ...editData, subcategories: current.filter(s => s !== subId) });
+    } else {
+      setEditData({ ...editData, subcategories: [...current, subId] });
+    }
+  };
 
   const updateBusiness = useMutation({
     mutationFn: async (data) => {
@@ -510,17 +520,17 @@ export default function BusinessDashboard() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="category">Category</Label>
+                      <Label htmlFor="main_category">Category</Label>
                       <Select
-                        value={editData.category}
-                        onValueChange={(value) => setEditData({ ...editData, category: value })}
+                        value={editData.main_category}
+                        onValueChange={handleMainCategoryChange}
                       >
                         <SelectTrigger className="mt-1.5">
-                          <SelectValue />
+                          <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {categories.map((cat) => (
-                            <SelectItem key={cat.value} value={cat.value}>
+                          {mainCategories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
                               {cat.label}
                             </SelectItem>
                           ))}
@@ -528,6 +538,30 @@ export default function BusinessDashboard() {
                       </Select>
                     </div>
                   </div>
+
+                  {editData.main_category && availableSubcategories.length > 0 && (
+                    <div>
+                      <Label>Subcategories (select all that apply)</Label>
+                      <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {availableSubcategories.map((sub) => (
+                          <label
+                            key={sub.id}
+                            className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
+                              editData.subcategories?.includes(sub.id)
+                                ? 'border-slate-900 bg-slate-50'
+                                : 'border-slate-200 hover:border-slate-300'
+                            }`}
+                          >
+                            <Checkbox
+                              checked={editData.subcategories?.includes(sub.id)}
+                              onCheckedChange={() => handleSubcategoryToggle(sub.id)}
+                            />
+                            <span className="text-sm">{sub.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <Label htmlFor="description">Description</Label>
