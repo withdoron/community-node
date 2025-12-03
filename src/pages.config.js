@@ -1,4 +1,3 @@
-import Home from './pages/Home';
 import Search from './pages/Search';
 import BusinessProfile from './pages/BusinessProfile';
 import WriteReview from './pages/WriteReview';
@@ -10,7 +9,6 @@ import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Home": Home,
     "Search": Search,
     "BusinessProfile": BusinessProfile,
     "WriteReview": WriteReview,
@@ -21,7 +19,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "Home",
+    mainPage: "Search",
     Pages: PAGES,
     Layout: __Layout,
 };
