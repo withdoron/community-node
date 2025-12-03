@@ -7,26 +7,8 @@ import SearchBar from '@/components/search/SearchBar';
 import BusinessCard from '@/components/business/BusinessCard';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Wrench, Leaf, Tractor, Coins, Zap, Droplets, Hammer, SprayCan, 
-  ChevronRight, Shield, Users, Star, Ban
-} from "lucide-react";
-
-const categories = [
-  { value: 'carpenter', label: 'Carpenters', icon: Hammer, color: 'bg-amber-50 text-amber-600 hover:bg-amber-100' },
-  { value: 'mechanic', label: 'Mechanics', icon: Wrench, color: 'bg-slate-50 text-slate-600 hover:bg-slate-100' },
-  { value: 'landscaper', label: 'Landscapers', icon: Leaf, color: 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' },
-  { value: 'farm', label: 'Farms', icon: Tractor, color: 'bg-green-50 text-green-600 hover:bg-green-100' },
-  { value: 'bullion_dealer', label: 'Bullion Dealers', icon: Coins, color: 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100' },
-  { value: 'electrician', label: 'Electricians', icon: Zap, color: 'bg-blue-50 text-blue-600 hover:bg-blue-100' },
-  { value: 'plumber', label: 'Plumbers', icon: Droplets, color: 'bg-cyan-50 text-cyan-600 hover:bg-cyan-100' },
-  { value: 'cleaning', label: 'Cleaning', icon: SprayCan, color: 'bg-purple-50 text-purple-600 hover:bg-purple-100' },
-];
-
-const defaultCategoryOrder = [
-  'carpenter', 'mechanic', 'landscaper', 'farm', 
-  'bullion_dealer', 'electrician', 'plumber', 'cleaning'
-];
+import { ChevronRight, Shield, Users, Ban, Coins } from "lucide-react";
+import { mainCategories, defaultPopularCategoryIds } from '@/components/categories/categoryData';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -38,14 +20,14 @@ export default function Home() {
   });
 
   const trackClick = useMutation({
-    mutationFn: async (category) => {
-      const existing = categoryClicks.find(c => c.category === category);
+    mutationFn: async (categoryId) => {
+      const existing = categoryClicks.find(c => c.category === categoryId);
       if (existing) {
         await base44.entities.CategoryClick.update(existing.id, { 
           click_count: (existing.click_count || 0) + 1 
         });
       } else {
-        await base44.entities.CategoryClick.create({ category, click_count: 1 });
+        await base44.entities.CategoryClick.create({ category: categoryId, click_count: 1 });
       }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categoryClicks'] })
@@ -83,19 +65,21 @@ export default function Home() {
     navigate(createPageUrl(`Search?${params.toString()}`));
   };
 
-  const handleCategoryClick = (category) => {
-    trackClick.mutate(category);
-    navigate(createPageUrl(`Search?category=${category}`));
+  const handleCategoryClick = (categoryId) => {
+    trackClick.mutate(categoryId);
+    navigate(createPageUrl(`CategoryPage?id=${categoryId}`));
   };
 
-  // Sort categories by popularity (click count), falling back to default order
-  const popularCategories = [...categories].sort((a, b) => {
-    const aClicks = categoryClicks.find(c => c.category === a.value)?.click_count || 0;
-    const bClicks = categoryClicks.find(c => c.category === b.value)?.click_count || 0;
-    if (aClicks !== bClicks) return bClicks - aClicks;
-    // Fall back to default order if no clicks
-    return defaultCategoryOrder.indexOf(a.value) - defaultCategoryOrder.indexOf(b.value);
-  }).slice(0, 8);
+  // Sort main categories by popularity (click count), falling back to default order
+  const popularCategories = [...mainCategories]
+    .filter(c => defaultPopularCategoryIds.includes(c.id))
+    .sort((a, b) => {
+      const aClicks = categoryClicks.find(c => c.category === a.id)?.click_count || 0;
+      const bClicks = categoryClicks.find(c => c.category === b.id)?.click_count || 0;
+      if (aClicks !== bClicks) return bClicks - aClicks;
+      // Fall back to default order if no clicks
+      return defaultPopularCategoryIds.indexOf(a.id) - defaultPopularCategoryIds.indexOf(b.id);
+    }).slice(0, 8);
 
   return (
     <div className="min-h-screen bg-white">
@@ -184,9 +168,9 @@ export default function Home() {
             const Icon = category.icon;
             return (
               <button
-                key={category.value}
-                onClick={() => handleCategoryClick(category.value)}
-                className={`p-5 rounded-xl border border-slate-100 ${category.color} transition-all duration-200 hover:scale-[1.02] hover:shadow-sm`}
+                key={category.id}
+                onClick={() => handleCategoryClick(category.id)}
+                className={`p-5 rounded-xl border border-slate-100 ${category.color} transition-all duration-200 hover:scale-[1.02] hover:shadow-sm text-left`}
               >
                 <Icon className="h-8 w-8 mb-3" />
                 <p className="font-semibold text-slate-900">{category.label}</p>
