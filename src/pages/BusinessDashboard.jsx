@@ -287,7 +287,7 @@ export default function BusinessDashboard() {
                     {business.subscription_tier === 'partner' ? 'Manage Plan' : 'Upgrade Plan'}
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-3xl">
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Choose Your Plan</DialogTitle>
                   </DialogHeader>
