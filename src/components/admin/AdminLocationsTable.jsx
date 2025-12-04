@@ -2,9 +2,16 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Sparkles, MapPin, Building2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Sparkles, MapPin, Building2, Zap, Eye, Info } from "lucide-react";
 import { format } from 'date-fns';
 import { isLocationBoosted } from '@/components/locations/locationUtils';
+import { 
+  getAutoBoostStatus, 
+  countActiveAutoBoostsByCategory, 
+  countActiveAutoBoostsGlobal,
+  LOW_TRAFFIC_VIEW_THRESHOLD 
+} from '@/components/locations/autoBoostUtils';
 
 export default function AdminLocationsTable({ 
   locations, 
@@ -20,6 +27,10 @@ export default function AdminLocationsTable({
     return map;
   }, [businesses]);
 
+  // Calculate category and global counts for status
+  const categoryCounts = countActiveAutoBoostsByCategory(locations);
+  const globalCount = countActiveAutoBoostsGlobal(locations);
+
   return (
     <div className="border rounded-lg overflow-hidden">
       <Table>
@@ -28,8 +39,9 @@ export default function AdminLocationsTable({
             <TableHead>Business</TableHead>
             <TableHead>Location</TableHead>
             <TableHead>City</TableHead>
+            <TableHead className="text-center">Views (7d)</TableHead>
             <TableHead className="text-center">Boost Status</TableHead>
-            <TableHead className="text-center">Auto-Boost</TableHead>
+            <TableHead className="text-center">Smart Auto-Boost</TableHead>
             <TableHead className="text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -45,6 +57,9 @@ export default function AdminLocationsTable({
               const business = businessMap[location.business_id];
               const isBoosted = isLocationBoosted(location);
               const isUpdating = updatingId === location.id;
+              const autoBoostStatus = getAutoBoostStatus(location, categoryCounts, globalCount);
+              const views = location.views_last_7_days || 0;
+              const isLowViews = views < LOW_TRAFFIC_VIEW_THRESHOLD;
 
               return (
                 <TableRow key={location.id} className={isUpdating ? 'opacity-60' : ''}>
@@ -64,6 +79,14 @@ export default function AdminLocationsTable({
                   </TableCell>
                   <TableCell className="text-slate-600">{location.city}</TableCell>
                   <TableCell className="text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      <Eye className={`h-3 w-3 ${isLowViews ? 'text-amber-500' : 'text-slate-400'}`} />
+                      <span className={isLowViews ? 'text-amber-600 font-medium' : 'text-slate-600'}>
+                        {views}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">
                     {isBoosted ? (
                       <div className="inline-flex flex-col items-center">
                         <Badge className="bg-amber-100 text-amber-700 border-amber-200">
@@ -79,12 +102,45 @@ export default function AdminLocationsTable({
                     )}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Switch
-                      checked={!!location.is_auto_boost_enabled}
-                      onCheckedChange={(checked) => onToggleAutoBoost(location, checked)}
-                      disabled={isUpdating}
-                      className="data-[state=checked]:bg-emerald-500"
-                    />
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center gap-1">
+                        <Switch
+                          checked={!!location.is_auto_boost_enabled}
+                          onCheckedChange={(checked) => onToggleAutoBoost(location, checked)}
+                          disabled={isUpdating}
+                          className="data-[state=checked]:bg-emerald-500"
+                        />
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Info className="h-3 w-3 text-slate-400" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-[200px]">
+                              <p className="text-xs">{autoBoostStatus.message}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      {location.is_auto_boost_enabled && (
+                        <Badge 
+                          variant="outline" 
+                          className={`text-[10px] ${
+                            autoBoostStatus.status === 'active' ? 'border-amber-300 text-amber-700 bg-amber-50' :
+                            autoBoostStatus.status === 'eligible' ? 'border-emerald-300 text-emerald-700 bg-emerald-50' :
+                            'border-slate-200 text-slate-500'
+                          }`}
+                        >
+                          <Zap className="h-2 w-2 mr-0.5" />
+                          {autoBoostStatus.status === 'active' ? 'Running' :
+                           autoBoostStatus.status === 'eligible' ? 'Ready' :
+                           autoBoostStatus.status === 'not_underexposed' ? 'Good' :
+                           autoBoostStatus.status === 'outside_hours' ? 'Hours' :
+                           autoBoostStatus.status === 'category_limit' ? 'Cat.' :
+                           autoBoostStatus.status === 'global_limit' ? 'Queue' :
+                           'Wait'}
+                        </Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-center">
                     {isBoosted && (
