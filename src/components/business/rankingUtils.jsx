@@ -18,12 +18,26 @@ export const TIER_PRIORITY = {
 };
 
 /**
- * Check if a business has an active boost
- * Source of truth: bump_expires_at timestamp, not is_bumped boolean
+ * Check if a business has an active boost (legacy - for backward compatibility)
+ * Note: Boost is now per-location, use isLocationBoosted from locationUtils instead
  */
 export const isBoostActive = (business) => {
   if (!business.bump_expires_at) return false;
   return new Date(business.bump_expires_at) > new Date();
+};
+
+/**
+ * Check if any location of a business is currently boosted
+ * @param {Array} locations - Array of location objects for the business
+ * @returns {boolean}
+ */
+export const hasAnyLocationBoosted = (locations) => {
+  if (!locations || locations.length === 0) return false;
+  const now = new Date();
+  return locations.some(loc => {
+    if (!loc.boost_end_at) return false;
+    return new Date(loc.boost_end_at) > now;
+  });
 };
 
 /**

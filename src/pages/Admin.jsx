@@ -7,11 +7,12 @@ import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Building2, Settings, ShieldAlert, ChevronLeft } from "lucide-react";
+import { Loader2, Building2, Settings, ShieldAlert, ChevronLeft, MapPin } from "lucide-react";
 import AdminBusinessTable from '@/components/admin/AdminBusinessTable';
 import AdminFilters from '@/components/admin/AdminFilters';
 import BusinessEditDrawer from '@/components/admin/BusinessEditDrawer';
 import AdminSettingsPanel from '@/components/admin/AdminSettingsPanel';
+import AdminLocationsTable from '@/components/admin/AdminLocationsTable';
 
 export default function Admin() {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
@@ -38,6 +39,38 @@ export default function Admin() {
     queryKey: ['admin-businesses'],
     queryFn: () => base44.entities.Business.list('-created_date', 500),
     enabled: currentUser?.role === 'admin'
+  });
+
+  // Fetch all locations
+  const { data: locations = [], isLoading: locationsLoading } = useQuery({
+    queryKey: ['admin-locations'],
+    queryFn: () => base44.entities.Location.list('-created_date', 1000),
+    enabled: currentUser?.role === 'admin'
+  });
+
+  // Update location mutation
+  const updateLocation = useMutation({
+    mutationFn: async ({ id, data }) => {
+      await base44.entities.Location.update(id, data);
+    },
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries(['admin-locations']);
+      const previousLocations = queryClient.getQueryData(['admin-locations']);
+      queryClient.setQueryData(['admin-locations'], (old) =>
+        old?.map(l => l.id === id ? { ...l, ...data } : l)
+      );
+      return { previousLocations };
+    },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(['admin-locations'], context.previousLocations);
+      toast.error('Failed to update location');
+    },
+    onSuccess: () => {
+      toast.success('Location updated');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(['admin-locations']);
+    }
   });
 
   // Update business mutation
@@ -167,6 +200,10 @@ export default function Admin() {
               <Building2 className="h-4 w-4" />
               Businesses
             </TabsTrigger>
+            <TabsTrigger value="locations" className="gap-2">
+              <MapPin className="h-4 w-4" />
+              Locations
+            </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="h-4 w-4" />
               Settings
@@ -198,6 +235,35 @@ export default function Admin() {
                   onSelectBusiness={setSelectedBusiness}
                   onUpdateBusiness={(id, data) => updateBusiness.mutate({ id, data })}
                   updatingId={updateBusiness.isPending ? updateBusiness.variables?.id : null}
+                />
+              )}
+            </Card>
+          </TabsContent>
+
+          {/* Locations Tab */}
+          <TabsContent value="locations">
+            <Card className="p-6">
+              <div className="mb-4 text-sm text-slate-500">
+                Showing {locations.length} locations across all businesses
+              </div>
+
+              {locationsLoading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                </div>
+              ) : (
+                <AdminLocationsTable 
+                  locations={locations}
+                  businesses={businesses}
+                  onToggleAutoBoost={(loc, enabled) => updateLocation.mutate({ 
+                    id: loc.id, 
+                    data: { is_auto_boost_enabled: enabled } 
+                  })}
+                  onClearBoost={(loc) => updateLocation.mutate({ 
+                    id: loc.id, 
+                    data: { boost_start_at: null, boost_end_at: null } 
+                  })}
+                  updatingId={updateLocation.isPending ? updateLocation.variables?.id : null}
                 />
               )}
             </Card>

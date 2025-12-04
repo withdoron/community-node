@@ -21,7 +21,7 @@ import {
   Loader2, CheckCircle, Crown, Zap, ArrowUp, Upload, X, Plus, Trash2,
   ExternalLink, Check, ChevronLeft
 } from "lucide-react";
-import { format, addHours, isPast } from 'date-fns';
+import { format } from 'date-fns';
 import { mainCategories, getMainCategory } from '@/components/categories/categoryData';
 import LocationsSection from '@/components/dashboard/LocationsSection';
 
@@ -58,7 +58,7 @@ const tiers = [
 
 export default function BusinessDashboardDetail({ business, onBack }) {
   const queryClient = useQueryClient();
-  const [bumpDialogOpen, setBumpDialogOpen] = useState(false);
+
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editData, setEditData] = useState(null);
@@ -134,27 +134,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
     }
   });
 
-  const useBump = useMutation({
-    mutationFn: async () => {
-      const expiresAt = addHours(new Date(), 4);
-      
-      await base44.entities.Bump.create({
-        business_id: business.id,
-        activated_at: new Date().toISOString(),
-        expires_at: expiresAt.toISOString()
-      });
 
-      await base44.entities.Business.update(business.id, {
-        is_bumped: true,
-        bump_expires_at: expiresAt.toISOString(),
-        bumps_remaining: (business.bumps_remaining || 0) - 1
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['myBusinesses']);
-      setBumpDialogOpen(false);
-    }
-  });
 
   const handlePhotoUpload = async (e) => {
     const files = Array.from(e.target.files);
