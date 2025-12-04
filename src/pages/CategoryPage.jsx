@@ -108,7 +108,7 @@ export default function CategoryPage() {
             variant="ghost" 
             size="sm" 
             className="mb-4"
-            onClick={() => navigate(createPageUrl('Home') + '#categories')}
+            onClick={() => navigate(createPageUrl('Home#categories'))}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back
