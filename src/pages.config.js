@@ -6,6 +6,7 @@ import BusinessDashboard from './pages/BusinessDashboard';
 import Categories from './pages/Categories';
 import CategoryPage from './pages/CategoryPage';
 import Home from './pages/Home';
+import Admin from './pages/Admin';
 import __Layout from './Layout.jsx';
 
 
@@ -18,6 +19,7 @@ export const PAGES = {
     "Categories": Categories,
     "CategoryPage": CategoryPage,
     "Home": Home,
+    "Admin": Admin,
 }
 
 export const pagesConfig = {
