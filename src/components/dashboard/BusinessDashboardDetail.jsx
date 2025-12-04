@@ -17,12 +17,13 @@ import StarRating from '@/components/reviews/StarRating';
 import ReviewCard from '@/components/reviews/ReviewCard';
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Star, Eye, Rocket, Settings, MessageSquare,
+  Star, Eye, Rocket, Settings, MessageSquare, MapPin,
   Loader2, CheckCircle, Crown, Zap, ArrowUp, Upload, X, Plus, Trash2,
   ExternalLink, Check, ChevronLeft
 } from "lucide-react";
 import { format, addHours, isPast } from 'date-fns';
 import { mainCategories, getMainCategory } from '@/components/categories/categoryData';
+import LocationsSection from '@/components/dashboard/LocationsSection';
 
 const tiers = [
   {
@@ -335,62 +336,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                 </DialogContent>
               </Dialog>
 
-              {/* Bump Button */}
-              {(business.subscription_tier === 'standard' || business.subscription_tier === 'partner') && (() => {
-                const isCurrentlyBoosted = business.bump_expires_at && !isPast(new Date(business.bump_expires_at));
-                return (
-                <Dialog open={bumpDialogOpen} onOpenChange={setBumpDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
-                      disabled={business.bumps_remaining <= 0 || isCurrentlyBoosted}
-                    >
-                      <Rocket className="h-4 w-4 mr-2" />
-                      {isCurrentlyBoosted ? 'Already Bumped' : `Bump (${business.bumps_remaining} left)`}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Boost Your Listing</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-4">
-                      <div className="flex items-center gap-4 p-4 bg-amber-50 rounded-lg mb-4">
-                        <ArrowUp className="h-8 w-8 text-amber-600" />
-                        <div>
-                          <h4 className="font-semibold text-slate-900">What's a Bump?</h4>
-                          <p className="text-sm text-slate-600">
-                            Your listing will appear at the top of search results for 4 hours.
-                          </p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-slate-600 mb-4">
-                        You have <strong>{business.bumps_remaining}</strong> bumps remaining this month.
-                      </p>
-                      <div className="flex gap-3">
-                        <Button 
-                          variant="outline" 
-                          className="flex-1"
-                          onClick={() => setBumpDialogOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          className="flex-1 bg-amber-500 hover:bg-amber-600"
-                          onClick={() => useBump.mutate()}
-                          disabled={useBump.isPending}
-                        >
-                          {useBump.isPending ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            'Use Bump Now'
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              );
-              })()}
+
             </div>
           </div>
         </div>
@@ -447,24 +393,15 @@ export default function BusinessDashboardDetail({ business, onBack }) {
           </Card>
         </div>
 
-        {/* Bump Status - only show if boost is actually active by time */}
-        {business.bump_expires_at && !isPast(new Date(business.bump_expires_at)) && (
-          <Card className="p-4 mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
-            <div className="flex items-center gap-3">
-              <Rocket className="h-5 w-5 text-amber-600" />
-              <div>
-                <p className="font-medium text-slate-900">Your listing is currently boosted!</p>
-                <p className="text-sm text-slate-600">
-                  Expires {format(new Date(business.bump_expires_at), 'MMM d, h:mm a')}
-                </p>
-              </div>
-            </div>
-          </Card>
-        )}
+
 
         {/* Tabs */}
-        <Tabs defaultValue="profile" className="w-full">
+        <Tabs defaultValue="locations" className="w-full">
           <TabsList className="w-full justify-start bg-white border border-slate-200 p-1 mb-6">
+            <TabsTrigger value="locations">
+              <MapPin className="h-4 w-4 mr-2" />
+              Locations
+            </TabsTrigger>
             <TabsTrigger value="profile">
               <Settings className="h-4 w-4 mr-2" />
               Edit Profile
@@ -474,6 +411,13 @@ export default function BusinessDashboardDetail({ business, onBack }) {
               Reviews ({reviews.length})
             </TabsTrigger>
           </TabsList>
+
+          {/* Locations Tab */}
+          <TabsContent value="locations">
+            <Card className="p-6">
+              <LocationsSection business={business} />
+            </Card>
+          </TabsContent>
 
           {/* Edit Profile Tab */}
           <TabsContent value="profile">
