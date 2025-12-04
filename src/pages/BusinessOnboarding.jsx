@@ -87,17 +87,19 @@ export default function BusinessOnboarding() {
       const tier = tiers.find(t => t.id === data.subscription_tier);
       const business = await base44.entities.Business.create({
         ...data,
+        owner_user_id: currentUser?.id,
         owner_email: currentUser?.email,
         slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
         bumps_remaining: tier?.bumps || 0,
         is_active: true
       });
 
-      // Update user to be a business owner
-      await base44.auth.updateMe({
-        is_business_owner: true,
-        business_id: business.id
-      });
+      // Update user to be a business owner (if not already)
+      if (!currentUser?.is_business_owner) {
+        await base44.auth.updateMe({
+          is_business_owner: true
+        });
+      }
 
       return business;
     },
