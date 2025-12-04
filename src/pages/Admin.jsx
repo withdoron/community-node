@@ -16,6 +16,7 @@ export default function Admin() {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [filters, setFilters] = useState({
     search: '',
+    ownerSearch: '',
     tier: 'all',
     boosted: 'all',
     acceptsSilver: 'all',
@@ -39,12 +40,16 @@ export default function Admin() {
   // Filter businesses
   const filteredBusinesses = useMemo(() => {
     return businesses.filter(b => {
-      // Search filter
+      // Search filter by name
       if (filters.search) {
         const search = filters.search.toLowerCase();
-        const matchesName = b.name?.toLowerCase().includes(search);
-        const matchesEmail = b.owner_email?.toLowerCase().includes(search);
-        if (!matchesName && !matchesEmail) return false;
+        if (!b.name?.toLowerCase().includes(search)) return false;
+      }
+
+      // Search filter by owner
+      if (filters.ownerSearch) {
+        const ownerSearch = filters.ownerSearch.toLowerCase();
+        if (!b.owner_email?.toLowerCase().includes(ownerSearch)) return false;
       }
 
       // Tier filter

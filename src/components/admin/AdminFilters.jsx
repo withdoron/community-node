@@ -12,6 +12,7 @@ export default function AdminFilters({ filters, onFiltersChange }) {
   const clearFilters = () => {
     onFiltersChange({
       search: '',
+      ownerSearch: '',
       tier: 'all',
       boosted: 'all',
       acceptsSilver: 'all',
@@ -21,6 +22,7 @@ export default function AdminFilters({ filters, onFiltersChange }) {
   };
 
   const hasActiveFilters = filters.search || 
+    filters.ownerSearch ||
     filters.tier !== 'all' || 
     filters.boosted !== 'all' || 
     filters.acceptsSilver !== 'all' || 
@@ -30,14 +32,25 @@ export default function AdminFilters({ filters, onFiltersChange }) {
   return (
     <div className="space-y-4">
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-        <Input
-          placeholder="Search by name or owner email..."
-          value={filters.search}
-          onChange={(e) => updateFilter('search', e.target.value)}
-          className="pl-10"
-        />
+      <div className="flex gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            placeholder="Search by business name..."
+            value={filters.search}
+            onChange={(e) => updateFilter('search', e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            placeholder="Search by owner email..."
+            value={filters.ownerSearch || ''}
+            onChange={(e) => updateFilter('ownerSearch', e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </div>
 
       {/* Filter dropdowns */}
