@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Store, User, LogOut, LayoutDashboard, Plus, Menu } from "lucide-react";
+import { Store, User, LogOut, LayoutDashboard, Plus, Menu, Shield } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export default function Layout({ children, currentPageName }) {
@@ -88,14 +88,22 @@ export default function Layout({ children, currentPageName }) {
                     </div>
                     <DropdownMenuSeparator />
                     {currentUser.is_business_owner && (
-                      <DropdownMenuItem asChild>
-                        <Link to={createPageUrl('BusinessDashboard')}>
-                          <LayoutDashboard className="h-4 w-4 mr-2" />
-                          Business Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={handleLogout}>
+                                                <DropdownMenuItem asChild>
+                                                  <Link to={createPageUrl('BusinessDashboard')}>
+                                                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                                                    Business Dashboard
+                                                  </Link>
+                                                </DropdownMenuItem>
+                                              )}
+                                              {currentUser.role === 'admin' && (
+                                                <DropdownMenuItem asChild>
+                                                  <Link to={createPageUrl('Admin')}>
+                                                    <Shield className="h-4 w-4 mr-2" />
+                                                    Admin Panel
+                                                  </Link>
+                                                </DropdownMenuItem>
+                                              )}
+                                              <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="h-4 w-4 mr-2" />
                       Log Out
                     </DropdownMenuItem>
@@ -212,30 +220,38 @@ export default function Layout({ children, currentPageName }) {
                     </div>
                     <DropdownMenuSeparator />
                     {currentUser.is_business_owner && (
-                      <DropdownMenuItem asChild>
-                        <Link to={createPageUrl('BusinessDashboard')}>
-                          <LayoutDashboard className="h-4 w-4 mr-2" />
-                          Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Log Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button 
-                  className="ml-2 bg-white text-slate-900 hover:bg-white/90"
-                  onClick={() => base44.auth.redirectToLogin()}
-                >
-                  Sign In
-                </Button>
-              )}
-            </nav>
+                                              <DropdownMenuItem asChild>
+                                                <Link to={createPageUrl('BusinessDashboard')}>
+                                                  <LayoutDashboard className="h-4 w-4 mr-2" />
+                                                  Dashboard
+                                                </Link>
+                                              </DropdownMenuItem>
+                                            )}
+                                            {currentUser.role === 'admin' && (
+                                              <DropdownMenuItem asChild>
+                                                <Link to={createPageUrl('Admin')}>
+                                                  <Shield className="h-4 w-4 mr-2" />
+                                                  Admin Panel
+                                                </Link>
+                                              </DropdownMenuItem>
+                                            )}
+                                            <DropdownMenuItem onClick={handleLogout}>
+                                              <LogOut className="h-4 w-4 mr-2" />
+                                              Log Out
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      ) : (
+                                        <Button 
+                                          className="ml-2 bg-white text-slate-900 hover:bg-white/90"
+                                          onClick={() => base44.auth.redirectToLogin()}
+                                        >
+                                          Sign In
+                                        </Button>
+                                      )}
+                                    </nav>
 
-            {/* Mobile */}
+                                    {/* Mobile */}
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden text-white hover:bg-white/10">
