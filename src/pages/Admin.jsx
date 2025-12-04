@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,11 +31,45 @@ export default function Admin() {
     queryFn: () => base44.auth.me()
   });
 
+  const queryClient = useQueryClient();
+
   // Fetch all businesses
   const { data: businesses = [], isLoading: businessesLoading } = useQuery({
     queryKey: ['admin-businesses'],
     queryFn: () => base44.entities.Business.list('-created_date', 500),
     enabled: currentUser?.role === 'admin'
+  });
+
+  // Update business mutation
+  const updateBusiness = useMutation({
+    mutationFn: async ({ id, data }) => {
+      await base44.entities.Business.update(id, data);
+    },
+    onMutate: async ({ id, data }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries(['admin-businesses']);
+      
+      // Snapshot the previous value
+      const previousBusinesses = queryClient.getQueryData(['admin-businesses']);
+      
+      // Optimistically update
+      queryClient.setQueryData(['admin-businesses'], (old) =>
+        old?.map(b => b.id === id ? { ...b, ...data } : b)
+      );
+      
+      return { previousBusinesses };
+    },
+    onError: (err, variables, context) => {
+      // Rollback on error
+      queryClient.setQueryData(['admin-businesses'], context.previousBusinesses);
+      toast.error('Failed to update business');
+    },
+    onSuccess: () => {
+      toast.success('Business updated');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(['admin-businesses']);
+    }
   });
 
   // Filter businesses
@@ -161,6 +196,8 @@ export default function Admin() {
                 <AdminBusinessTable 
                   businesses={filteredBusinesses} 
                   onSelectBusiness={setSelectedBusiness}
+                  onUpdateBusiness={(id, data) => updateBusiness.mutate({ id, data })}
+                  updatingId={updateBusiness.isPending ? updateBusiness.variables?.id : null}
                 />
               )}
             </Card>
