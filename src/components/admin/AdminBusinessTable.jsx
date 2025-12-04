@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Star, Zap, Crown, Sparkles, Store, Coins, Loader2, ChevronDown } from "lucide-react";
+import { isBoostActive } from '@/components/business/rankingUtils';
 
 const tierConfig = {
   basic: { label: 'Basic', icon: Star, className: 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200' },
@@ -78,16 +79,30 @@ export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpd
                   </DropdownMenu>
                 </TableCell>
                 
-                {/* Boosted Toggle */}
+                {/* Boosted Toggle - based on actual time, not just is_bumped flag */}
                 <TableCell className="text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    <Switch
-                      checked={!!business.is_bumped}
-                      onCheckedChange={(checked) => onUpdateBusiness(business.id, { is_bumped: checked })}
-                      className="data-[state=checked]:bg-amber-500"
-                    />
-                    {business.is_bumped && <Sparkles className="h-3 w-3 text-amber-500" />}
-                  </div>
+                  {(() => {
+                    const isBoosted = isBoostActive(business);
+                    return (
+                      <div className="flex items-center justify-center gap-2">
+                        <Switch
+                          checked={isBoosted}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              // Set boost for 4 hours from now
+                              const expiresAt = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
+                              onUpdateBusiness(business.id, { is_bumped: true, bump_expires_at: expiresAt });
+                            } else {
+                              // Clear boost by setting expiry to past
+                              onUpdateBusiness(business.id, { is_bumped: false, bump_expires_at: null });
+                            }
+                          }}
+                          className="data-[state=checked]:bg-amber-500"
+                        />
+                        {isBoosted && <Sparkles className="h-3 w-3 text-amber-500" />}
+                      </div>
+                    );
+                  })()}
                 </TableCell>
                 
                 {/* Silver Toggle */}

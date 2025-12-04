@@ -21,7 +21,7 @@ import {
   Loader2, CheckCircle, Crown, Zap, ArrowUp, Upload, X, Plus, Trash2,
   ExternalLink, Check, ChevronLeft
 } from "lucide-react";
-import { format, addHours } from 'date-fns';
+import { format, addHours, isPast } from 'date-fns';
 import { mainCategories, getMainCategory } from '@/components/categories/categoryData';
 
 const tiers = [
@@ -336,15 +336,17 @@ export default function BusinessDashboardDetail({ business, onBack }) {
               </Dialog>
 
               {/* Bump Button */}
-              {(business.subscription_tier === 'standard' || business.subscription_tier === 'partner') && (
+              {(business.subscription_tier === 'standard' || business.subscription_tier === 'partner') && (() => {
+                const isCurrentlyBoosted = business.bump_expires_at && !isPast(new Date(business.bump_expires_at));
+                return (
                 <Dialog open={bumpDialogOpen} onOpenChange={setBumpDialogOpen}>
                   <DialogTrigger asChild>
                     <Button 
                       className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
-                      disabled={business.bumps_remaining <= 0 || business.is_bumped}
+                      disabled={business.bumps_remaining <= 0 || isCurrentlyBoosted}
                     >
                       <Rocket className="h-4 w-4 mr-2" />
-                      {business.is_bumped ? 'Already Bumped' : `Bump (${business.bumps_remaining} left)`}
+                      {isCurrentlyBoosted ? 'Already Bumped' : `Bump (${business.bumps_remaining} left)`}
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
@@ -387,7 +389,8 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                     </div>
                   </DialogContent>
                 </Dialog>
-              )}
+              );
+              })()}
             </div>
           </div>
         </div>
@@ -444,8 +447,8 @@ export default function BusinessDashboardDetail({ business, onBack }) {
           </Card>
         </div>
 
-        {/* Bump Status */}
-        {business.is_bumped && business.bump_expires_at && (
+        {/* Bump Status - only show if boost is actually active by time */}
+        {business.bump_expires_at && !isPast(new Date(business.bump_expires_at)) && (
           <Card className="p-4 mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
             <div className="flex items-center gap-3">
               <Rocket className="h-5 w-5 text-amber-600" />

@@ -19,9 +19,9 @@ export const TIER_PRIORITY = {
 
 /**
  * Check if a business has an active boost
+ * Source of truth: bump_expires_at timestamp, not is_bumped boolean
  */
 export const isBoostActive = (business) => {
-  if (!business.is_bumped) return false;
   if (!business.bump_expires_at) return false;
   return new Date(business.bump_expires_at) > new Date();
 };
