@@ -12,6 +12,14 @@ import {
   DEFAULT_TIMEZONE
 } from './autoBoostConfig';
 
+// Re-export config values for use in UI components
+export {
+  LOW_TRAFFIC_VIEW_THRESHOLD,
+  ALLOWED_AUTOBOOST_HOURS,
+  MAX_SIMULTANEOUS_AUTOBOOST_PER_CATEGORY,
+  MAX_SIMULTANEOUS_AUTOBOOST_GLOBAL
+} from './autoBoostConfig';
+
 /**
  * Check if a location is currently boosted
  */
