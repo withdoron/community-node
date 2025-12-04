@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Phone, ChevronRight, Sparkles, CheckCircle, Zap, Crown } from "lucide-react";
+import { Star, MapPin, Phone, ChevronRight, Sparkles, Zap, Crown, Coins } from "lucide-react";
 
 import { mainCategories, getMainCategory, getSubcategoryLabel } from '@/components/categories/categoryData';
 import { isBoostActive, getTierLabel, getTierBadgeClasses } from '@/components/business/rankingUtils';
@@ -54,22 +54,28 @@ export default function BusinessCard({ business, featured = false }) {
             alt={business.name}
             className="w-full h-full object-cover"
           />
-          {/* Boosted badge */}
-          {isBoosted && (
-            <div className="absolute top-2 left-2">
-              <Badge className="bg-amber-400 text-amber-900 font-medium">
+          {/* Top-left badges: Boosted and/or Tier */}
+          <div className="absolute top-2 left-2 flex flex-col gap-1.5">
+            {isBoosted && (
+              <Badge className="bg-amber-400 text-amber-900 font-medium shadow-sm">
                 <Sparkles className="h-3 w-3 mr-1" />
                 Boosted
               </Badge>
-            </div>
-          )}
-          {/* Tier badge on image */}
-          <div className="absolute top-2 right-2">
-            <Badge className={`font-medium border ${tierBadgeClasses}`}>
+            )}
+            <Badge className={`font-medium border shadow-sm ${tierBadgeClasses}`}>
               {TierIcon && <TierIcon className="h-3 w-3 mr-1" />}
               {tierLabel}
             </Badge>
           </div>
+          {/* Accepts Silver badge - top-right, secondary styling */}
+          {business.accepts_silver && (
+            <div className="absolute top-2 right-2">
+              <Badge className="bg-white/90 backdrop-blur-sm text-slate-600 border border-slate-200 text-[11px] font-normal shadow-sm">
+                <Coins className="h-3 w-3 mr-1 text-amber-500" />
+                Accepts Silver
+              </Badge>
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -78,13 +84,8 @@ export default function BusinessCard({ business, featured = false }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <Badge variant="secondary" className="text-xs bg-slate-100 text-slate-600">
-                      {getCategoryLabel()}
-                    </Badge>
-                {business.accepts_silver && (
-                  <Badge variant="outline" className="text-xs border-slate-300 text-slate-600">
-                    Accepts Silver
-                  </Badge>
-                )}
+                  {getCategoryLabel()}
+                </Badge>
               </div>
               <h3 className="font-semibold text-lg text-slate-900 truncate group-hover:text-slate-700 transition-colors">
                 {business.name}
