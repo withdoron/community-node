@@ -69,10 +69,10 @@ export default function BusinessCard({ business, featured = false }) {
               {tierLabel}
             </Badge>
             {business.accepts_silver && (
-              <Badge className="bg-white/80 text-slate-700 text-[10px] font-medium px-1.5 py-0.5 border-0">
-                <Coins className="h-2.5 w-2.5 mr-1 text-amber-500" />
+              <span className="inline-flex items-center bg-black/20 backdrop-blur-sm text-white/90 text-[9px] font-normal px-1.5 py-0.5 rounded">
+                <Coins className="h-2 w-2 mr-1 opacity-80" />
                 Accepts Silver
-              </Badge>
+              </span>
             )}
           </div>
         </div>
