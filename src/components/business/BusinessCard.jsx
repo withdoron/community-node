@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Phone, ChevronRight, Sparkles, Zap, Crown, Coins } from "lucide-react";
+import { Star, MapPin, Phone, ChevronRight, Sparkles, Zap, Crown, Coins, Store } from "lucide-react";
 
 import { mainCategories, getMainCategory, getSubcategoryLabel } from '@/components/categories/categoryData';
 import { isBoostActive, getTierLabel, getTierBadgeClasses } from '@/components/business/rankingUtils';
@@ -72,6 +72,12 @@ export default function BusinessCard({ business, featured = false }) {
               <span className="inline-flex items-center bg-black/20 backdrop-blur-sm text-white/90 text-[9px] font-normal px-1.5 py-0.5 rounded">
                 <Coins className="h-2 w-2 mr-1 opacity-80" />
                 Accepts Silver
+              </span>
+            )}
+            {business.is_locally_owned_franchise && (
+              <span className="inline-flex items-center bg-black/20 backdrop-blur-sm text-white/90 text-[9px] font-normal px-1.5 py-0.5 rounded">
+                <Store className="h-2 w-2 mr-1 opacity-80" />
+                Local Franchise
               </span>
             )}
           </div>
