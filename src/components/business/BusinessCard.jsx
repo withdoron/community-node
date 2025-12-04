@@ -54,28 +54,27 @@ export default function BusinessCard({ business, featured = false }) {
             alt={business.name}
             className="w-full h-full object-cover"
           />
-          {/* Top-left badges: Boosted and/or Tier */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1.5">
+          {/* Subtle gradient overlay for badge readability */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-transparent pointer-events-none" />
+          {/* Stacked badges: top-left */}
+          <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1">
             {isBoosted && (
-              <Badge className="bg-amber-400 text-amber-900 font-medium shadow-sm">
+              <Badge className="bg-amber-400 text-amber-900 text-xs font-semibold px-2 py-0.5">
                 <Sparkles className="h-3 w-3 mr-1" />
                 Boosted
               </Badge>
             )}
-            <Badge className={`font-medium border shadow-sm ${tierBadgeClasses}`}>
+            <Badge className={`text-xs font-semibold px-2 py-0.5 ${tierBadgeClasses}`}>
               {TierIcon && <TierIcon className="h-3 w-3 mr-1" />}
               {tierLabel}
             </Badge>
-          </div>
-          {/* Accepts Silver badge - top-right, secondary styling */}
-          {business.accepts_silver && (
-            <div className="absolute top-2 right-2">
-              <Badge className="bg-white/90 backdrop-blur-sm text-slate-600 border border-slate-200 text-[11px] font-normal shadow-sm">
-                <Coins className="h-3 w-3 mr-1 text-amber-500" />
+            {business.accepts_silver && (
+              <Badge className="bg-white/80 text-slate-700 text-[10px] font-medium px-1.5 py-0.5 border-0">
+                <Coins className="h-2.5 w-2.5 mr-1 text-amber-500" />
                 Accepts Silver
               </Badge>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Content */}
