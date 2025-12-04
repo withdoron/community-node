@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Sparkles, MapPin, Rocket, Loader2, Pencil, Zap, Info, Eye } from "lucide-react";
 import { format } from 'date-fns';
 import { isLocationBoosted } from './locationUtils';
-import { getAutoBoostStatus, countActiveAutoBoostsByCategory, countActiveAutoBoostsGlobal, LOW_TRAFFIC_VIEW_THRESHOLD } from './autoBoostUtils';
+import { getAutoBoostStatus, countActiveAutoBoostsByCategory, countActiveAutoBoostsGlobal, countActiveLocationsPerCategory, LOW_TRAFFIC_VIEW_THRESHOLD } from './autoBoostUtils';
 
 export default function LocationsTable({ 
   locations, 
@@ -20,8 +20,10 @@ export default function LocationsTable({
   updatingId
 }) {
   // Calculate category and global counts for status messages
-  const categoryCounts = countActiveAutoBoostsByCategory(allLocations.length > 0 ? allLocations : locations);
-  const globalCount = countActiveAutoBoostsGlobal(allLocations.length > 0 ? allLocations : locations);
+  const sourceLocations = allLocations.length > 0 ? allLocations : locations;
+  const categoryCounts = countActiveAutoBoostsByCategory(sourceLocations);
+  const globalCount = countActiveAutoBoostsGlobal(sourceLocations);
+  const categorySizeCounts = countActiveLocationsPerCategory(sourceLocations);
   return (
     <div className="border rounded-lg overflow-hidden">
       <Table>
@@ -47,7 +49,7 @@ export default function LocationsTable({
               const isBoosted = isLocationBoosted(location);
               const isUpdating = updatingId === location.id;
               const isBoosting = boostingId === location.id;
-              const autoBoostStatus = getAutoBoostStatus(location, categoryCounts, globalCount);
+              const autoBoostStatus = getAutoBoostStatus(location, categoryCounts, globalCount, categorySizeCounts);
               const views = location.views_last_7_days || 0;
               const isLowViews = views < LOW_TRAFFIC_VIEW_THRESHOLD;
 
@@ -131,7 +133,8 @@ export default function LocationsTable({
                            autoBoostStatus.status === 'outside_hours' ? 'Outside hours' :
                            autoBoostStatus.status === 'category_limit' ? 'Category full' :
                            autoBoostStatus.status === 'global_limit' ? 'Queue full' :
-                           autoBoostStatus.status === 'no_credits' ? 'No credits' : 'Waiting'}
+                           autoBoostStatus.status === 'no_credits' ? 'No credits' :
+                           autoBoostStatus.status === 'category_too_small' ? 'Category small' : 'Waiting'}
                         </Badge>
                       )}
                     </div>

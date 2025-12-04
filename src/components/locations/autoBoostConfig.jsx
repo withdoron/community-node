@@ -1,3 +1,4 @@
+
 /**
  * Smart Auto-Boost Configuration
  * These can be moved to AdminSettings for dynamic configuration later
@@ -18,6 +19,10 @@ export const MAX_SIMULTANEOUS_AUTOBOOST_PER_CATEGORY = 3;
 
 // Max auto-boosted locations platform-wide at once
 export const MAX_SIMULTANEOUS_AUTOBOOST_GLOBAL = 20;
+
+// Minimum number of active locations in a category to allow auto-boost
+// We don't auto-boost in "thin" categories with little competition
+export const MIN_CATEGORY_SIZE_FOR_AUTOBOOST = 8;
 
 // Boost duration in hours
 export const BOOST_DURATION_HOURS = 4;

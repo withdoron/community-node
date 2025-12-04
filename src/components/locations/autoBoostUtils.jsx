@@ -8,6 +8,7 @@ import {
   ALLOWED_AUTOBOOST_HOURS,
   MAX_SIMULTANEOUS_AUTOBOOST_PER_CATEGORY,
   MAX_SIMULTANEOUS_AUTOBOOST_GLOBAL,
+  MIN_CATEGORY_SIZE_FOR_AUTOBOOST,
   BOOST_DURATION_HOURS,
   DEFAULT_TIMEZONE
 } from './autoBoostConfig';
@@ -17,7 +18,8 @@ export {
   LOW_TRAFFIC_VIEW_THRESHOLD,
   ALLOWED_AUTOBOOST_HOURS,
   MAX_SIMULTANEOUS_AUTOBOOST_PER_CATEGORY,
-  MAX_SIMULTANEOUS_AUTOBOOST_GLOBAL
+  MAX_SIMULTANEOUS_AUTOBOOST_GLOBAL,
+  MIN_CATEGORY_SIZE_FOR_AUTOBOOST
 } from './autoBoostConfig';
 
 /**
@@ -120,9 +122,31 @@ export const isGlobalCapacityAvailable = (globalCount) => {
 };
 
 /**
+ * Count total active locations per category
+ */
+export const countActiveLocationsPerCategory = (locations) => {
+  const counts = {};
+  locations.forEach(loc => {
+    if (loc.is_active !== false) {
+      const categoryId = loc.category_id || 'uncategorized';
+      counts[categoryId] = (counts[categoryId] || 0) + 1;
+    }
+  });
+  return counts;
+};
+
+/**
+ * Check if category has enough locations to allow auto-boost
+ */
+export const isCategorySizeAdequate = (categoryId, categorySizeCounts) => {
+  const size = categorySizeCounts[categoryId] || 0;
+  return size >= MIN_CATEGORY_SIZE_FOR_AUTOBOOST;
+};
+
+/**
  * Determine the reason why auto-boost is not running (for UI display)
  */
-export const getAutoBoostStatus = (location, categoryCounts, globalCount) => {
+export const getAutoBoostStatus = (location, categoryCounts, globalCount, categorySizeCounts = {}) => {
   if (!location?.is_auto_boost_enabled) {
     return {
       status: 'disabled',
@@ -165,6 +189,15 @@ export const getAutoBoostStatus = (location, categoryCounts, globalCount) => {
   }
 
   const categoryId = location.category_id || 'uncategorized';
+  
+  if (!isCategorySizeAdequate(categoryId, categorySizeCounts)) {
+    return {
+      status: 'category_too_small',
+      message: `Smart Auto-Boost is on. This category needs at least ${MIN_CATEGORY_SIZE_FOR_AUTOBOOST} locations before auto-boost is available.`,
+      canAutoBoost: false
+    };
+  }
+
   if (!isCategoryCapacityAvailable(categoryId, categoryCounts)) {
     return {
       status: 'category_limit',
@@ -192,7 +225,7 @@ export const getAutoBoostStatus = (location, categoryCounts, globalCount) => {
 /**
  * Full check: can this location be auto-boosted right now?
  */
-export const canAutoBoostLocation = (location, categoryCounts, globalCount) => {
+export const canAutoBoostLocation = (location, categoryCounts, globalCount, categorySizeCounts = {}) => {
   if (!location?.is_auto_boost_enabled) return false;
   if (isLocationCurrentlyBoosted(location)) return false;
   if (!hasBoostCreditsRemaining(location)) return false;
@@ -200,6 +233,7 @@ export const canAutoBoostLocation = (location, categoryCounts, globalCount) => {
   if (!isWithinAllowedBoostWindow(location)) return false;
   
   const categoryId = location.category_id || 'uncategorized';
+  if (!isCategorySizeAdequate(categoryId, categorySizeCounts)) return false;
   if (!isCategoryCapacityAvailable(categoryId, categoryCounts)) return false;
   if (!isGlobalCapacityAvailable(globalCount)) return false;
   
@@ -224,11 +258,12 @@ export const calculateBoostWindow = (durationHours = BOOST_DURATION_HOURS) => {
  */
 export const processAutoBoosts = async (locations, updateLocationFn) => {
   const categoryCounts = countActiveAutoBoostsByCategory(locations);
+  const categorySizeCounts = countActiveLocationsPerCategory(locations);
   let globalCount = countActiveAutoBoostsGlobal(locations);
   const boostedLocations = [];
 
   for (const location of locations) {
-    if (canAutoBoostLocation(location, categoryCounts, globalCount)) {
+    if (canAutoBoostLocation(location, categoryCounts, globalCount, categorySizeCounts)) {
       const { startAt, endAt } = calculateBoostWindow();
       const categoryId = location.category_id || 'uncategorized';
       

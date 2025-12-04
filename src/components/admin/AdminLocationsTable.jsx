@@ -10,6 +10,7 @@ import {
   getAutoBoostStatus, 
   countActiveAutoBoostsByCategory, 
   countActiveAutoBoostsGlobal,
+  countActiveLocationsPerCategory,
   LOW_TRAFFIC_VIEW_THRESHOLD 
 } from '@/components/locations/autoBoostUtils';
 
@@ -30,6 +31,7 @@ export default function AdminLocationsTable({
   // Calculate category and global counts for status
   const categoryCounts = countActiveAutoBoostsByCategory(locations);
   const globalCount = countActiveAutoBoostsGlobal(locations);
+  const categorySizeCounts = countActiveLocationsPerCategory(locations);
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -57,7 +59,7 @@ export default function AdminLocationsTable({
               const business = businessMap[location.business_id];
               const isBoosted = isLocationBoosted(location);
               const isUpdating = updatingId === location.id;
-              const autoBoostStatus = getAutoBoostStatus(location, categoryCounts, globalCount);
+              const autoBoostStatus = getAutoBoostStatus(location, categoryCounts, globalCount, categorySizeCounts);
               const views = location.views_last_7_days || 0;
               const isLowViews = views < LOW_TRAFFIC_VIEW_THRESHOLD;
 
@@ -137,6 +139,7 @@ export default function AdminLocationsTable({
                            autoBoostStatus.status === 'outside_hours' ? 'Hours' :
                            autoBoostStatus.status === 'category_limit' ? 'Cat.' :
                            autoBoostStatus.status === 'global_limit' ? 'Queue' :
+                           autoBoostStatus.status === 'category_too_small' ? 'Small' :
                            'Wait'}
                         </Badge>
                       )}
