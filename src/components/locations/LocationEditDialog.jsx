@@ -119,8 +119,8 @@ export default function LocationEditDialog({
 
           <div className="flex items-center justify-between py-3 px-4 bg-emerald-50 rounded-lg border border-emerald-200">
             <div>
-              <Label htmlFor="auto-boost" className="font-medium text-slate-900">Auto-Boost</Label>
-              <p className="text-sm text-slate-600">Automatically renew boost when it expires</p>
+              <Label htmlFor="auto-boost" className="font-medium text-slate-900">Smart Auto-Boost</Label>
+              <p className="text-sm text-slate-600">Automatically boost when under-exposed during active hours</p>
             </div>
             <Switch
               id="auto-boost"

@@ -4,11 +4,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, MapPin, Rocket, Info } from "lucide-react";
+import { Plus, MapPin, Rocket, Info, Zap } from "lucide-react";
 import { toast } from "sonner";
 import LocationsTable from '@/components/locations/LocationsTable';
 import LocationEditDialog from '@/components/locations/LocationEditDialog';
-import { calculateBoostWindow, shouldAutoBoost } from '@/components/locations/locationUtils';
+import { 
+  calculateBoostWindow, 
+  processAutoBoosts,
+  countActiveAutoBoostsGlobal,
+  countActiveAutoBoostsByCategory,
+  MAX_SIMULTANEOUS_AUTOBOOST_GLOBAL,
+  MAX_SIMULTANEOUS_AUTOBOOST_PER_CATEGORY,
+  ALLOWED_AUTOBOOST_HOURS
+} from '@/components/locations/autoBoostUtils';
 
 export default function LocationsSection({ business }) {
   const queryClient = useQueryClient();
@@ -26,24 +34,36 @@ export default function LocationsSection({ business }) {
 
   // Check for auto-boost opportunities when locations load
   React.useEffect(() => {
-    if (locations.length > 0 && business?.bumps_remaining > 0) {
-      locations.forEach(async (loc) => {
-        if (shouldAutoBoost(loc, business.bumps_remaining)) {
-          // Auto-boost this location
-          const { startAt, endAt } = calculateBoostWindow(4);
-          await base44.entities.Location.update(loc.id, {
-            boost_start_at: startAt,
-            boost_end_at: endAt
-          });
-          await base44.entities.Business.update(business.id, {
-            bumps_remaining: business.bumps_remaining - 1
-          });
+    const runAutoBoost = async () => {
+      if (locations.length > 0 && business?.bumps_remaining > 0) {
+        // Add boost credits info to locations for the auto-boost check
+        const locationsWithCredits = locations.map(loc => ({
+          ...loc,
+          boost_credits_this_period: business.bumps_remaining + (loc.boosts_used_this_period || 0),
+          category_id: loc.category_id || business.main_category
+        }));
+        
+        const boostedLocations = await processAutoBoosts(
+          locationsWithCredits,
+          async (locId, data) => {
+            await base44.entities.Location.update(locId, data);
+            await base44.entities.Business.update(business.id, {
+              bumps_remaining: Math.max(0, (business.bumps_remaining || 0) - 1)
+            });
+          }
+        );
+        
+        if (boostedLocations.length > 0) {
           queryClient.invalidateQueries(['locations', business.id]);
           queryClient.invalidateQueries(['myBusinesses']);
-          toast.success(`Auto-boosted ${loc.name || loc.city}`);
+          boostedLocations.forEach(loc => {
+            toast.success(`Smart Auto-Boost activated for ${loc.name || loc.city}`);
+          });
         }
-      });
-    }
+      }
+    };
+    
+    runAutoBoost();
   }, [locations, business?.bumps_remaining]);
 
   // Create/update location mutation
@@ -160,18 +180,27 @@ export default function LocationsSection({ business }) {
         </Card>
       )}
 
-      {/* Auto-boost explanation */}
+      {/* Smart Auto-Boost explanation */}
       <Card className="p-3 bg-emerald-50 border-emerald-200">
         <div className="flex items-start gap-2 text-sm">
-          <Info className="h-4 w-4 text-emerald-600 mt-0.5" />
-          <p className="text-slate-600">
-            <strong className="text-slate-900">Auto-Boost:</strong> When enabled, we'll automatically boost a location as soon as its current boost expires (if you have bumps remaining).
-          </p>
+          <Zap className="h-4 w-4 text-emerald-600 mt-0.5" />
+          <div className="text-slate-600">
+            <p>
+              <strong className="text-slate-900">Smart Auto-Boost:</strong> When enabled, we'll only boost a location when:
+            </p>
+            <ul className="mt-1 ml-4 list-disc text-xs text-slate-500 space-y-0.5">
+              <li>It's under-exposed (low recent views)</li>
+              <li>It's during active hours ({ALLOWED_AUTOBOOST_HOURS.start}:00 AM – {ALLOWED_AUTOBOOST_HOURS.end > 12 ? ALLOWED_AUTOBOOST_HOURS.end - 12 : ALLOWED_AUTOBOOST_HOURS.end}:00 {ALLOWED_AUTOBOOST_HOURS.end >= 12 ? 'PM' : 'AM'})</li>
+              <li>There's room in its category (max {MAX_SIMULTANEOUS_AUTOBOOST_PER_CATEGORY} per category)</li>
+              <li>There's room platform-wide (max {MAX_SIMULTANEOUS_AUTOBOOST_GLOBAL} total)</li>
+            </ul>
+          </div>
         </div>
       </Card>
 
       <LocationsTable
         locations={locations}
+        allLocations={locations}
         bumpsRemaining={canBoost ? business.bumps_remaining : 0}
         onBoost={(loc) => boostLocation.mutate(loc)}
         onToggleAutoBoost={(loc, enabled) => toggleAutoBoost.mutate({ location: loc, enabled })}
