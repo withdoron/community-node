@@ -22,7 +22,10 @@ const legacyCategoryLabels = {
   other: 'Other'
 };
 
-export default function BusinessCard({ business, featured = false }) {
+export default function BusinessCard({ business, featured = false, badgeSettings = null }) {
+  // Badge visibility settings (default to showing if not provided)
+  const showSilverBadge = badgeSettings?.show_accepts_silver_badge !== false;
+  const showFranchiseBadge = badgeSettings?.show_locally_owned_franchise_badge !== false;
   const minPrice = business.services?.length > 0 
     ? Math.min(...business.services.map(s => s.starting_price || 0))
     : null;
@@ -68,13 +71,13 @@ export default function BusinessCard({ business, featured = false }) {
               {TierIcon && <TierIcon className="h-3 w-3 mr-1" />}
               {tierLabel}
             </Badge>
-            {business.accepts_silver && (
+            {business.accepts_silver && showSilverBadge && (
               <span className="inline-flex items-center bg-black/20 backdrop-blur-sm text-white/90 text-[9px] font-normal px-1.5 py-0.5 rounded">
                 <Coins className="h-2 w-2 mr-1 opacity-80" />
                 Accepts Silver
               </span>
             )}
-            {business.is_locally_owned_franchise && (
+            {business.is_locally_owned_franchise && showFranchiseBadge && (
               <span className="inline-flex items-center bg-black/20 backdrop-blur-sm text-white/90 text-[9px] font-normal px-1.5 py-0.5 rounded">
                 <Store className="h-2 w-2 mr-1 opacity-80" />
                 Local Franchise
