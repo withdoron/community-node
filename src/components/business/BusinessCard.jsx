@@ -23,7 +23,7 @@ const legacyCategoryLabels = {
   other: 'Other'
 };
 
-export default function BusinessCard({ business, featured = false, badgeSettings = null, trackingProps = null }) {
+export default function BusinessCard({ business, featured = false, badgeSettings = null, trackingProps = null, locationCount = null }) {
   // Badge visibility settings (default to showing if not provided)
   const showSilverBadge = badgeSettings?.show_accepts_silver_badge !== false;
   const showFranchiseBadge = badgeSettings?.show_locally_owned_franchise_badge !== false;
@@ -165,7 +165,10 @@ export default function BusinessCard({ business, featured = false, badgeSettings
             {business.city && (
               <span className="flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" />
-                {business.city}
+                {business.city}{business.state ? `, ${business.state}` : ''}
+                {locationCount && locationCount > 1 && (
+                  <span className="text-slate-400 ml-1">• {locationCount} locations</span>
+                )}
               </span>
             )}
             {minPrice !== null && minPrice > 0 && (
