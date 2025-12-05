@@ -167,10 +167,13 @@ export const getFeaturedAndOrganicLocations = (
   const ownerSliceCounts = {}; // { ownerSliceKey: count }
 
   for (const loc of boostedLocations) {
-    // Check eligibility rules
+    // Check eligibility rules (apply to ALL boosted locations)
     if (loc.rating < MIN_RATING_FOR_FEATURED) continue;
     if (loc.reviewCount < MIN_REVIEWS_FOR_FEATURED) continue;
-    if (categorySizes[loc.categoryId] < MIN_CATEGORY_SIZE_FOR_AUTOBOOST) continue;
+    
+    // Category size check ONLY applies to Auto-Boosted locations
+    // Manual boosts can appear in thin categories
+    if (loc.isAutoBoost && categorySizes[loc.categoryId] < MIN_CATEGORY_SIZE_FOR_AUTOBOOST) continue;
 
     const sliceKey = createSliceKey(loc.categoryId, loc.city, radiusMiles);
     const ownerSliceKey = createOwnerSliceKey(sliceKey, loc.ownerId);
