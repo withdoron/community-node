@@ -24,7 +24,7 @@ export default function Home() {
   // User location state - defaults to region center
   const [userLat, setUserLat] = useState(null);
   const [userLng, setUserLng] = useState(null);
-  const [searchRadius, setSearchRadius] = useState(5);
+  const [searchRadius, setSearchRadius] = useState(30);
   const [locationError, setLocationError] = useState(false);
 
   // Default to region center immediately, then try to get user's geolocation
