@@ -3,8 +3,9 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import SearchBar from '@/components/search/SearchBar';
 import FilterBar from '@/components/search/FilterBar';
-import BusinessCard from '@/components/business/BusinessCard';
+import SearchResultsSection from '@/components/search/SearchResultsSection';
 import { rankBusinesses, isBoostActive, getTierPriority } from '@/components/business/rankingUtils';
+import { processSearchResults } from '@/components/search/searchFeaturedUtils';
 import { Button } from "@/components/ui/button";
 import { Loader2, SearchX } from "lucide-react";
 
@@ -108,6 +109,19 @@ export default function Search() {
     return result;
   }, [businesses, searchParams, filters, sortBy]);
 
+  // Process into direct match, featured band, and results
+  const { directMatch, featuredBand, results } = useMemo(() => {
+    return processSearchResults(filteredBusinesses, searchParams.query);
+  }, [filteredBusinesses, searchParams.query]);
+
+  // Build search filters object for analytics
+  const searchFiltersForAnalytics = useMemo(() => ({
+    category: filters.category,
+    acceptsSilver: filters.acceptsSilver,
+    location: searchParams.location,
+    sortBy
+  }), [filters, searchParams.location, sortBy]);
+
   const handleSearch = ({ query, location }) => {
     setSearchParams({ query, location });
     // Update URL
@@ -164,14 +178,15 @@ export default function Search() {
             </Button>
           </div>
         ) : (
-          <div className="grid gap-4 mt-6">
-            {filteredBusinesses.map((business) => (
-              <BusinessCard 
-                key={business.id} 
-                business={business}
-                featured={isBoostActive(business) || business.subscription_tier === 'partner'}
-              />
-            ))}
+          <div className="mt-6">
+            <SearchResultsSection
+              directMatch={directMatch}
+              featuredBand={featuredBand}
+              results={results}
+              searchQuery={searchParams.query}
+              searchFilters={searchFiltersForAnalytics}
+              radiusMiles={null}
+            />
           </div>
         )}
       </div>

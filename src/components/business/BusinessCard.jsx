@@ -48,19 +48,42 @@ export default function BusinessCard({ business, featured = false, badgeSettings
   // Tier icon
   const TierIcon = tier === 'partner' ? Crown : tier === 'standard' ? Zap : null;
 
-  // Handle click tracking for Featured/Organic sections
+  // Handle click tracking for Featured/Organic sections (landing and search)
   const handleCardClick = () => {
-    if (trackingProps) {
-      const eventName = trackingProps.source === 'landing_featured' ? 'featured_click' : 'organic_click';
-      trackEvent(eventName, {
-        location_id: trackingProps.locationId,
-        owner_id: trackingProps.ownerId,
-        is_manual_boost: trackingProps.isManualBoost,
-        radius_miles: trackingProps.radiusMiles,
-        position_in_section: trackingProps.positionInSection,
-        source: trackingProps.source
-      });
+    if (!trackingProps) return;
+    
+    const isSearchContext = trackingProps.isSearchContext || false;
+    const isFeaturedSource = trackingProps.source === 'landing_featured' || 
+                            trackingProps.source === 'search_featured_band' ||
+                            trackingProps.source === 'search_direct_match';
+    
+    let eventName;
+    if (isSearchContext) {
+      // Search context: determine featured vs organic based on source
+      const isSearchFeatured = trackingProps.source === 'search_featured_band' || 
+                               trackingProps.source === 'search_direct_match';
+      eventName = isSearchFeatured ? 'search_featured_click' : 'search_organic_click';
+    } else {
+      // Landing context
+      eventName = trackingProps.source === 'landing_featured' ? 'featured_click' : 'organic_click';
     }
+    
+    const payload = {
+      location_id: trackingProps.locationId,
+      owner_id: trackingProps.ownerId,
+      is_manual_boost: trackingProps.isManualBoost,
+      radius_miles: trackingProps.radiusMiles,
+      position_in_section: trackingProps.positionInSection,
+      source: trackingProps.source
+    };
+    
+    // Add search-specific fields if in search context
+    if (isSearchContext) {
+      payload.search_query = trackingProps.searchQuery || '';
+      payload.search_filters = trackingProps.searchFilters || {};
+    }
+    
+    trackEvent(eventName, payload);
   };
 
   return (
