@@ -165,7 +165,7 @@ export default function BusinessProfile() {
                       <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                       <div>
                         {primaryLocation ? (
-                          formatAddress(primaryLocation, { multiline: true }).map((line, idx) => (
+                          formatAddress(primaryLocation, { multiline: true, forPublic: true }).map((line, idx) => (
                             <span key={idx} className="block">{line}</span>
                           ))
                         ) : (
@@ -351,7 +351,7 @@ export default function BusinessProfile() {
                     <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
                       {primaryLocation ? (
-                        formatAddress(primaryLocation, { multiline: true }).map((line, idx) => (
+                        formatAddress(primaryLocation, { multiline: true, forPublic: true }).map((line, idx) => (
                           <span key={idx} className="block text-sm">{line}</span>
                         ))
                       ) : (

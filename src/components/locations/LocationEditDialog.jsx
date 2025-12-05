@@ -42,6 +42,7 @@ export default function LocationEditDialog({
     state: '',
     zip_code: '',
     country: 'United States',
+    is_home_based: false,
     phone: '',
     email: '',
     is_auto_boost_enabled: false
@@ -57,6 +58,7 @@ export default function LocationEditDialog({
         state: location.state || '',
         zip_code: location.zip_code || '',
         country: location.country || 'United States',
+        is_home_based: location.is_home_based || false,
         phone: location.phone || '',
         email: location.email || '',
         is_auto_boost_enabled: location.is_auto_boost_enabled || false
@@ -70,6 +72,7 @@ export default function LocationEditDialog({
         state: '',
         zip_code: '',
         country: 'United States',
+        is_home_based: false,
         phone: '',
         email: '',
         is_auto_boost_enabled: false
@@ -180,6 +183,18 @@ export default function LocationEditDialog({
                 disabled
               />
             </div>
+          </div>
+
+          <div className="flex items-center justify-between py-3 px-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div>
+              <Label htmlFor="home-based" className="font-medium text-slate-900">Home-Based Business</Label>
+              <p className="text-sm text-slate-600">Don't show full street address publicly (only city, state)</p>
+            </div>
+            <Switch
+              id="home-based"
+              checked={formData.is_home_based}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_home_based: checked })}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
