@@ -27,5 +27,21 @@ export const MIN_CATEGORY_SIZE_FOR_AUTOBOOST = 8;
 // Boost duration in hours
 export const BOOST_DURATION_HOURS = 4;
 
+// ========================================
+// Featured Nearby / Slice Caps
+// ========================================
+
+// Max active boosts displayed per "slice" (category + city + radius)
+export const MAX_ACTIVE_BOOSTS_PER_SLICE = 3;
+
+// Max boosted locations a single owner can have in one slice
+export const MAX_BOOSTED_LOCATIONS_PER_OWNER_PER_SLICE = 1;
+
+// Minimum rating required for a location to be Featured (true average, not rounded)
+export const MIN_RATING_FOR_FEATURED = 3.0;
+
+// Minimum review count for Auto-Boosted locations to be Featured
+export const MIN_REVIEWS_FOR_FEATURED = 5;
+
 // Default timezone if location doesn't have one set
 export const DEFAULT_TIMEZONE = 'America/Chicago';

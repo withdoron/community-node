@@ -48,7 +48,7 @@ export default function BusinessCard({ business, featured = false, badgeSettings
   const TierIcon = tier === 'partner' ? Crown : tier === 'standard' ? Zap : null;
 
   return (
-    <Card className={`group overflow-hidden transition-all duration-300 hover:shadow-lg ${featured || isBoosted ? 'ring-2 ring-amber-400 shadow-md' : 'border-slate-200'}`}>
+    <Card className={`group overflow-hidden transition-all duration-300 hover:shadow-lg ${featured ? 'ring-2 ring-emerald-400 shadow-md' : isBoosted ? 'ring-2 ring-amber-400 shadow-md' : 'border-slate-200'}`}>
       <div className="flex flex-col sm:flex-row">
         {/* Image */}
         <div className="relative sm:w-48 h-40 sm:h-auto flex-shrink-0">
@@ -61,7 +61,13 @@ export default function BusinessCard({ business, featured = false, badgeSettings
           <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-transparent pointer-events-none" />
           {/* Stacked badges: top-left */}
           <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1">
-            {isBoosted && (
+            {/* Featured badge (user-facing term for boosted) - takes priority over internal "Boosted" */}
+            {featured ? (
+              <Badge className="bg-emerald-500 text-white text-xs font-semibold px-2 py-0.5">
+                <Sparkles className="h-3 w-3 mr-1" />
+                Featured
+              </Badge>
+            ) : isBoosted && (
               <Badge className="bg-amber-400 text-amber-900 text-xs font-semibold px-2 py-0.5">
                 <Sparkles className="h-3 w-3 mr-1" />
                 Boosted

@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import SearchBar from '@/components/search/SearchBar';
 import BusinessCard from '@/components/business/BusinessCard';
+import FeaturedNearbySection from '@/components/featured/FeaturedNearbySection';
+import { getFeaturedAndOrganicLocations } from '@/components/featured/featuredLocationsUtils';
 import { rankBusinesses, isBoostActive } from '@/components/business/rankingUtils';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +16,35 @@ import { mainCategories, defaultPopularCategoryIds } from '@/components/categori
 export default function Home() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // User location state
+  const [userLat, setUserLat] = useState(null);
+  const [userLng, setUserLng] = useState(null);
+  const [searchRadius, setSearchRadius] = useState(5);
+  const [locationError, setLocationError] = useState(false);
+
+  // Get user's geolocation on mount
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLat(position.coords.latitude);
+          setUserLng(position.coords.longitude);
+        },
+        () => {
+          // Fallback to Austin, TX if geolocation fails
+          setUserLat(30.2672);
+          setUserLng(-97.7431);
+          setLocationError(true);
+        }
+      );
+    } else {
+      // Fallback if geolocation not supported
+      setUserLat(30.2672);
+      setUserLng(-97.7431);
+      setLocationError(true);
+    }
+  }, []);
 
   const { data: categoryClicks = [] } = useQuery({
     queryKey: ['categoryClicks'],
@@ -32,6 +63,27 @@ export default function Home() {
       }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categoryClicks'] })
+  });
+
+  // Fetch all businesses and locations for Featured nearby logic
+  const { data: allBusinesses = [] } = useQuery({
+    queryKey: ['all-businesses'],
+    queryFn: () => base44.entities.Business.filter({ is_active: true }, '-average_rating', 100)
+  });
+
+  const { data: allLocations = [] } = useQuery({
+    queryKey: ['all-locations'],
+    queryFn: () => base44.entities.Location.list('-created_date', 500)
+  });
+
+  // Compute featured and organic lists
+  const { data: featuredData, isLoading: featuredLoading } = useQuery({
+    queryKey: ['featured-nearby', userLat, userLng, searchRadius, allBusinesses.length, allLocations.length],
+    queryFn: () => {
+      if (!userLat || !userLng) return { featured: [], organic: [] };
+      return getFeaturedAndOrganicLocations(allBusinesses, allLocations, userLat, userLng, searchRadius);
+    },
+    enabled: userLat !== null && userLng !== null && allBusinesses.length > 0
   });
 
   const { data: featuredBusinesses = [], isLoading } = useQuery({
@@ -132,6 +184,17 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Featured Nearby Section */}
+      {userLat && userLng && (
+        <FeaturedNearbySection
+          featured={featuredData?.featured || []}
+          organic={featuredData?.organic || []}
+          isLoading={featuredLoading}
+          searchRadius={searchRadius}
+          onRadiusChange={setSearchRadius}
+        />
+      )}
 
       {/* Categories */}
       <section id="categories" className="max-w-6xl mx-auto px-4 py-16">
