@@ -1,20 +1,16 @@
 import React, { useEffect, useRef } from 'react';
-import { Button } from "@/components/ui/button";
 import { Loader2, MapPin } from "lucide-react";
 import BusinessCard from '@/components/business/BusinessCard';
 import { toBusinessCardFormat } from './featuredLocationsUtils';
 import { trackEvent } from '@/components/analytics/trackEvent';
 
-const RADIUS_OPTIONS = [5, 10, 20];
-
 export default function FeaturedNearbySection({
   featured = [],
   organic = [],
   isLoading = false,
-  searchRadius = 5,
-  onRadiusChange,
   badgeSettings = null
 }) {
+  const searchRadius = 30; // Fixed radius for now
   const hasFeatured = featured.length > 0;
   const displayItems = hasFeatured ? featured : organic;
   const sectionTitle = hasFeatured ? "Featured Nearby" : "Recommended Nearby";
@@ -62,45 +58,16 @@ export default function FeaturedNearbySection({
 
   return (
     <section className="max-w-6xl mx-auto px-4 py-16">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">{sectionTitle}</h2>
-          <p className="text-slate-600 mt-1">{sectionSubtitle}</p>
-        </div>
-        
-        {/* Radius selector */}
-        {onRadiusChange && (
-          <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-slate-500" />
-            <span className="text-sm text-slate-500 mr-2">Radius:</span>
-            {RADIUS_OPTIONS.map(radius => (
-              <Button
-                key={radius}
-                variant={searchRadius === radius ? "default" : "outline"}
-                size="sm"
-                onClick={() => onRadiusChange(radius)}
-                className={searchRadius === radius ? "bg-slate-900" : ""}
-              >
-                {radius} mi
-              </Button>
-            ))}
-          </div>
-        )}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-slate-900">{sectionTitle}</h2>
+        <p className="text-slate-600 mt-1">{sectionSubtitle}</p>
       </div>
 
       {displayItems.length === 0 ? (
         <div className="text-center py-12 bg-slate-50 rounded-xl">
           <MapPin className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-          <p className="text-slate-500">No businesses found within {searchRadius} miles.</p>
-          {searchRadius < 20 && onRadiusChange && (
-            <Button 
-              variant="outline" 
-              className="mt-4"
-              onClick={() => onRadiusChange(searchRadius === 5 ? 10 : 20)}
-            >
-              Expand search to {searchRadius === 5 ? 10 : 20} miles
-            </Button>
-          )}
+          <p className="text-slate-500">No businesses found in the Greater Eugene area yet.</p>
+          <p className="text-slate-400 text-sm mt-2">Check back soon as we grow!</p>
         </div>
       ) : (
         <div className="grid gap-4">
