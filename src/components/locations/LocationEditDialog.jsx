@@ -245,7 +245,7 @@ export default function LocationEditDialog({
             <Button 
               type="submit" 
               className="flex-1 bg-slate-900 hover:bg-slate-800"
-              disabled={!formData.city || !formData.street_address || !formData.state || !formData.zip_code || isSaving}
+              disabled={!formData.city || !formData.street_address || isSaving}
             >
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
