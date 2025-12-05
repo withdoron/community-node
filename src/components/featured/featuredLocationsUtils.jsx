@@ -200,6 +200,7 @@ export const getFeaturedAndOrganicLocations = (
       reviewCount: loc.reviewCount,
       distanceMiles: Math.round(loc.distanceMiles * 10) / 10,
       isFeatured: true,
+      isManualBoost: loc.isManualBoost,
       boostEndAt: loc.boost_end_at || loc.business.bump_expires_at,
       photos: loc.business.photos,
       services: loc.business.services,
