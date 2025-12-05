@@ -204,9 +204,9 @@ export default function Home() {
       {/* Featured Nearby Section */}
       {userLat && userLng && (
         <FeaturedNearbySection
-          featured={featuredData?.featured || []}
-          organic={featuredData?.organic || []}
-          isLoading={featuredLoading}
+          featured={featuredData.featured}
+          organic={featuredData.organic}
+          isLoading={regionLoading}
           searchRadius={searchRadius}
           onRadiusChange={setSearchRadius}
         />
