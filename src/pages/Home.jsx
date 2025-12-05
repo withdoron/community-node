@@ -27,10 +27,15 @@ export default function Home() {
   const [searchRadius, setSearchRadius] = useState(5);
   const [locationError, setLocationError] = useState(false);
 
-  // Get user's geolocation on mount, fallback to region center
+  // Default to region center immediately, then try to get user's geolocation
   useEffect(() => {
     if (!region) return;
     
+    // Set region center as default immediately
+    setUserLat(region.center_lat);
+    setUserLng(region.center_lng);
+    
+    // Then try to get actual user location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -38,16 +43,11 @@ export default function Home() {
           setUserLng(position.coords.longitude);
         },
         () => {
-          // Fallback to region center if geolocation fails
-          setUserLat(region.center_lat);
-          setUserLng(region.center_lng);
+          // Keep using region center if geolocation fails
           setLocationError(true);
         }
       );
     } else {
-      // Fallback if geolocation not supported
-      setUserLat(region.center_lat);
-      setUserLng(region.center_lng);
       setLocationError(true);
     }
   }, [region]);
