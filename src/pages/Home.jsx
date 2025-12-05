@@ -8,7 +8,7 @@ import BusinessCard from '@/components/business/BusinessCard';
 import FeaturedNearbySection from '@/components/featured/FeaturedNearbySection';
 import { getFeaturedAndOrganicLocations } from '@/components/featured/featuredLocationsUtils';
 import { rankBusinesses, isBoostActive } from '@/components/business/rankingUtils';
-import { useActiveRegion, filterBusinessesByRegion, filterLocationsByRegion } from '@/components/region/useActiveRegion';
+import { useActiveRegion, filterBusinessesByRegion, filterLocationsByRegion, calculateDistance } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, Shield, Users, Ban, Coins } from "lucide-react";
