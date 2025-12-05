@@ -192,8 +192,8 @@ export default function LocationEditDialog({
             </div>
             <Switch
               id="home-based"
-              checked={formData.is_home_based}
-              onCheckedChange={(checked) => setFormData({ ...formData, is_home_based: checked })}
+              checked={formData.is_home_based === true}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_home_based: checked }))}
             />
           </div>
 
@@ -228,8 +228,8 @@ export default function LocationEditDialog({
             </div>
             <Switch
               id="auto-boost"
-              checked={formData.is_auto_boost_enabled}
-              onCheckedChange={(checked) => setFormData({ ...formData, is_auto_boost_enabled: checked })}
+              checked={formData.is_auto_boost_enabled === true}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_auto_boost_enabled: checked }))}
             />
           </div>
 
