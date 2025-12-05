@@ -194,6 +194,9 @@ export default function LocationsSection({ business }) {
               <li>There's room in its category (max {MAX_SIMULTANEOUS_AUTOBOOST_PER_CATEGORY} per category)</li>
               <li>There's room platform-wide (max {MAX_SIMULTANEOUS_AUTOBOOST_GLOBAL} total)</li>
             </ul>
+            <p className="mt-2 text-xs text-emerald-700 font-medium">
+              When this location is Boosted, customers will see it as "Featured" on the site.
+            </p>
           </div>
         </div>
       </Card>

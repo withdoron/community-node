@@ -230,7 +230,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Businesses */}
+      {/* Top Rated Businesses (organic, no Featured badge) */}
       <section className="bg-slate-50 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
@@ -260,7 +260,7 @@ export default function Home() {
                 <BusinessCard 
                   key={business.id} 
                   business={business} 
-                  featured={isBoostActive(business) || business.subscription_tier === 'partner'}
+                  featured={false}
                 />
               ))}
             </div>
