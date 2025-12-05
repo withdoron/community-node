@@ -93,12 +93,13 @@ export default function Home() {
 
   // Compute featured and organic lists
   const { data: featuredData, isLoading: featuredLoading } = useQuery({
-    queryKey: ['featured-nearby', userLat, userLng, searchRadius, allBusinesses.length, allLocations.length],
+    queryKey: ['featured-nearby', userLat, userLng, searchRadius, region?.id],
     queryFn: () => {
       if (!userLat || !userLng) return { featured: [], organic: [] };
       return getFeaturedAndOrganicLocations(allBusinesses, allLocations, userLat, userLng, searchRadius);
     },
-    enabled: userLat !== null && userLng !== null && allBusinesses.length > 0
+    enabled: userLat !== null && userLng !== null && allBusinesses.length > 0,
+    staleTime: 30000
   });
 
   // Top Rated Businesses - filtered by region
