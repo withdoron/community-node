@@ -35,7 +35,7 @@ export const BOOST_DURATION_HOURS = 4;
 export const MAX_ACTIVE_BOOSTS_PER_SLICE = 3;
 
 // Max boosted locations a single owner can have in one slice
-export const MAX_BOOSTED_LOCATIONS_PER_OWNER_PER_SLICE = 1;
+export const MAX_BOOSTED_LOCATIONS_PER_OWNER_PER_SLICE = 2;
 
 // Minimum rating required for a location to be Featured (true average, not rounded)
 export const MIN_RATING_FOR_FEATURED = 3.0;
