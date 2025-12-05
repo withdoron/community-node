@@ -14,6 +14,7 @@ import {
   Share2, Heart, CheckCircle, Coins, Navigation, ExternalLink,
   Loader2
 } from "lucide-react";
+import { formatAddress, buildMapsQuery } from '@/components/locations/formatAddress';
 
 const categoryLabels = {
   carpenter: 'Carpenter',
@@ -48,6 +49,18 @@ export default function BusinessProfile() {
     },
     enabled: !!businessId
   });
+
+  // Fetch locations for this business
+  const { data: locations = [] } = useQuery({
+    queryKey: ['business-locations', businessId],
+    queryFn: async () => {
+      return await base44.entities.Location.filter({ business_id: businessId, is_active: true }, '-created_date', 20);
+    },
+    enabled: !!businessId
+  });
+
+  // Primary location (first one, or use business-level address as fallback)
+  const primaryLocation = locations[0] || null;
 
   if (businessLoading) {
     return (
@@ -147,11 +160,19 @@ export default function BusinessProfile() {
                     </span>
                   </div>
 
-                  {business.city && (
-                    <p className="flex items-center gap-1.5 text-slate-600 mt-3">
-                      <MapPin className="h-4 w-4" />
-                      {business.address ? `${business.address}, ` : ''}{business.city}
-                    </p>
+                  {(primaryLocation || business.city) && (
+                    <div className="flex items-start gap-1.5 text-slate-600 mt-3">
+                      <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      <div>
+                        {primaryLocation ? (
+                          formatAddress(primaryLocation, { multiline: true }).map((line, idx) => (
+                            <span key={idx} className="block">{line}</span>
+                          ))
+                        ) : (
+                          <span>{business.address ? `${business.address}, ` : ''}{business.city}</span>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
@@ -320,16 +341,24 @@ export default function BusinessProfile() {
                   </a>
                 )}
 
-                {business.address && (
+                {(primaryLocation?.street_address || business.address) && (
                   <a 
-                    href={`https://maps.google.com/?q=${encodeURIComponent(business.address + ', ' + business.city)}`}
+                    href={`https://maps.google.com/?q=${primaryLocation ? buildMapsQuery(primaryLocation) : encodeURIComponent(business.address + ', ' + business.city)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
+                    className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
                   >
-                    <MapPin className="h-5 w-5" />
-                    <span className="flex-1">Get Directions</span>
-                    <ExternalLink className="h-4 w-4 flex-shrink-0" />
+                    <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      {primaryLocation ? (
+                        formatAddress(primaryLocation, { multiline: true }).map((line, idx) => (
+                          <span key={idx} className="block text-sm">{line}</span>
+                        ))
+                      ) : (
+                        <span>{business.address}, {business.city}</span>
+                      )}
+                    </div>
+                    <ExternalLink className="h-4 w-4 flex-shrink-0 mt-0.5" />
                   </a>
                 )}
               </div>

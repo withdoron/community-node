@@ -4,7 +4,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+
+const US_STATES = [
+  { code: 'AL', name: 'Alabama' }, { code: 'AK', name: 'Alaska' }, { code: 'AZ', name: 'Arizona' },
+  { code: 'AR', name: 'Arkansas' }, { code: 'CA', name: 'California' }, { code: 'CO', name: 'Colorado' },
+  { code: 'CT', name: 'Connecticut' }, { code: 'DE', name: 'Delaware' }, { code: 'FL', name: 'Florida' },
+  { code: 'GA', name: 'Georgia' }, { code: 'HI', name: 'Hawaii' }, { code: 'ID', name: 'Idaho' },
+  { code: 'IL', name: 'Illinois' }, { code: 'IN', name: 'Indiana' }, { code: 'IA', name: 'Iowa' },
+  { code: 'KS', name: 'Kansas' }, { code: 'KY', name: 'Kentucky' }, { code: 'LA', name: 'Louisiana' },
+  { code: 'ME', name: 'Maine' }, { code: 'MD', name: 'Maryland' }, { code: 'MA', name: 'Massachusetts' },
+  { code: 'MI', name: 'Michigan' }, { code: 'MN', name: 'Minnesota' }, { code: 'MS', name: 'Mississippi' },
+  { code: 'MO', name: 'Missouri' }, { code: 'MT', name: 'Montana' }, { code: 'NE', name: 'Nebraska' },
+  { code: 'NV', name: 'Nevada' }, { code: 'NH', name: 'New Hampshire' }, { code: 'NJ', name: 'New Jersey' },
+  { code: 'NM', name: 'New Mexico' }, { code: 'NY', name: 'New York' }, { code: 'NC', name: 'North Carolina' },
+  { code: 'ND', name: 'North Dakota' }, { code: 'OH', name: 'Ohio' }, { code: 'OK', name: 'Oklahoma' },
+  { code: 'OR', name: 'Oregon' }, { code: 'PA', name: 'Pennsylvania' }, { code: 'RI', name: 'Rhode Island' },
+  { code: 'SC', name: 'South Carolina' }, { code: 'SD', name: 'South Dakota' }, { code: 'TN', name: 'Tennessee' },
+  { code: 'TX', name: 'Texas' }, { code: 'UT', name: 'Utah' }, { code: 'VT', name: 'Vermont' },
+  { code: 'VA', name: 'Virginia' }, { code: 'WA', name: 'Washington' }, { code: 'WV', name: 'West Virginia' },
+  { code: 'WI', name: 'Wisconsin' }, { code: 'WY', name: 'Wyoming' }
+];
 
 export default function LocationEditDialog({ 
   location, 
@@ -15,8 +36,12 @@ export default function LocationEditDialog({
 }) {
   const [formData, setFormData] = useState({
     name: '',
-    address: '',
+    street_address: '',
+    address_line2: '',
     city: '',
+    state: '',
+    zip_code: '',
+    country: 'United States',
     phone: '',
     email: '',
     is_auto_boost_enabled: false
@@ -26,8 +51,12 @@ export default function LocationEditDialog({
     if (location) {
       setFormData({
         name: location.name || '',
-        address: location.address || '',
+        street_address: location.street_address || location.address || '',
+        address_line2: location.address_line2 || '',
         city: location.city || '',
+        state: location.state || '',
+        zip_code: location.zip_code || '',
+        country: location.country || 'United States',
         phone: location.phone || '',
         email: location.email || '',
         is_auto_boost_enabled: location.is_auto_boost_enabled || false
@@ -35,8 +64,12 @@ export default function LocationEditDialog({
     } else {
       setFormData({
         name: '',
-        address: '',
+        street_address: '',
+        address_line2: '',
         city: '',
+        state: '',
+        zip_code: '',
+        country: 'United States',
         phone: '',
         email: '',
         is_auto_boost_enabled: false
@@ -53,7 +86,7 @@ export default function LocationEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isNew ? 'Add New Location' : 'Edit Location'}</DialogTitle>
         </DialogHeader>
@@ -71,26 +104,82 @@ export default function LocationEditDialog({
           </div>
 
           <div>
-            <Label htmlFor="city">City <span className="text-red-500">*</span></Label>
+            <Label htmlFor="street_address">Street Address <span className="text-red-500">*</span></Label>
             <Input
-              id="city"
-              value={formData.city}
-              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              placeholder="City"
+              id="street_address"
+              value={formData.street_address}
+              onChange={(e) => setFormData({ ...formData, street_address: e.target.value })}
+              placeholder="123 Main Street"
               className="mt-1.5"
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address_line2">Apt, Suite, Unit (optional)</Label>
             <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              placeholder="Street address"
+              id="address_line2"
+              value={formData.address_line2}
+              onChange={(e) => setFormData({ ...formData, address_line2: e.target.value })}
+              placeholder="Suite 100"
               className="mt-1.5"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="city">City <span className="text-red-500">*</span></Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                placeholder="Eugene"
+                className="mt-1.5"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="state">State <span className="text-red-500">*</span></Label>
+              <Select
+                value={formData.state}
+                onValueChange={(value) => setFormData({ ...formData, state: value })}
+              >
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+                <SelectContent>
+                  {US_STATES.map((state) => (
+                    <SelectItem key={state.code} value={state.code}>
+                      {state.code} - {state.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="zip_code">ZIP Code <span className="text-red-500">*</span></Label>
+              <Input
+                id="zip_code"
+                value={formData.zip_code}
+                onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
+                placeholder="97401"
+                className="mt-1.5"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="country">Country</Label>
+              <Input
+                id="country"
+                value={formData.country}
+                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                className="mt-1.5"
+                disabled
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -100,7 +189,7 @@ export default function LocationEditDialog({
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="Phone"
+                placeholder="(541) 555-0100"
                 className="mt-1.5"
               />
             </div>
@@ -111,7 +200,7 @@ export default function LocationEditDialog({
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="Email"
+                placeholder="contact@business.com"
                 className="mt-1.5"
               />
             </div>
@@ -141,7 +230,7 @@ export default function LocationEditDialog({
             <Button 
               type="submit" 
               className="flex-1 bg-slate-900 hover:bg-slate-800"
-              disabled={!formData.city || isSaving}
+              disabled={!formData.city || !formData.street_address || !formData.state || !formData.zip_code || isSaving}
             >
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
