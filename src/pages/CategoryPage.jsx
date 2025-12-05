@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { mainCategories, getMainCategory, legacyCategoryMapping } from '@/components/categories/categoryData';
 import BusinessCard from '@/components/business/BusinessCard';
 import { rankBusinesses, isBoostActive } from '@/components/business/rankingUtils';
+import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, Loader2, SearchX } from "lucide-react";
@@ -27,12 +28,17 @@ export default function CategoryPage() {
 
   const category = getMainCategory(categoryId);
 
+  // Get active region for filtering
+  const { region, isLoading: regionLoading } = useActiveRegion();
+
   const { data: businesses = [], isLoading } = useQuery({
-    queryKey: ['businesses', categoryId],
+    queryKey: ['businesses', categoryId, region?.id],
     queryFn: async () => {
       const result = await base44.entities.Business.filter({ is_active: true }, '-created_date', 200);
-      return result;
-    }
+      // Filter by region
+      return filterBusinessesByRegion(result, region);
+    },
+    enabled: !!region
   });
 
   // Filter businesses by category
@@ -152,7 +158,7 @@ export default function CategoryPage() {
 
       {/* Results */}
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {isLoading ? (
+        {isLoading || regionLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
           </div>
