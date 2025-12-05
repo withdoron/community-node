@@ -68,6 +68,7 @@ export default function SearchResultsSection({
         business={business}
         featured={isFeatured}
         badgeSettings={badgeSettings}
+        locationCount={business._locationCount || null}
         trackingProps={{
           locationId: business.id,
           ownerId: business.owner_user_id || business.owner_email || null,
