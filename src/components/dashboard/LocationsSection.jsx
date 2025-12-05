@@ -66,14 +66,59 @@ export default function LocationsSection({ business }) {
     runAutoBoost();
   }, [locations, business?.bumps_remaining]);
 
+  // Geocode an address to get lat/lng
+  const geocodeAddress = async (locationData) => {
+    const addressParts = [
+      locationData.street_address,
+      locationData.address_line2,
+      locationData.city,
+      locationData.state,
+      locationData.zip_code,
+      locationData.country
+    ].filter(Boolean);
+    
+    if (addressParts.length < 2) return null;
+    
+    const fullAddress = addressParts.join(', ');
+    
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Return the latitude and longitude coordinates for this address: "${fullAddress}". Be precise.`,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            lat: { type: "number", description: "Latitude" },
+            lng: { type: "number", description: "Longitude" }
+          },
+          required: ["lat", "lng"]
+        }
+      });
+      
+      if (result?.lat && result?.lng) {
+        return { lat: result.lat, lng: result.lng };
+      }
+    } catch (err) {
+      console.error('Geocoding failed:', err);
+    }
+    return null;
+  };
+
   // Create/update location mutation
   const saveLocation = useMutation({
     mutationFn: async (data) => {
+      // Geocode the address to get lat/lng
+      const coords = await geocodeAddress(data);
+      const locationData = {
+        ...data,
+        ...(coords || {})
+      };
+      
       if (editingLocation?.id) {
-        await base44.entities.Location.update(editingLocation.id, data);
+        await base44.entities.Location.update(editingLocation.id, locationData);
       } else {
         await base44.entities.Location.create({
-          ...data,
+          ...locationData,
           business_id: business.id
         });
       }
