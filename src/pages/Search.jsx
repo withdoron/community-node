@@ -46,17 +46,23 @@ export default function Search() {
       // Build a map of business_id -> boosted location (if any)
       const now = new Date();
       const boostedLocationByBusiness = {};
+      const locationCountByBusiness = {};
+      
       for (const loc of regionalLocations) {
+        // Count locations per business
+        locationCountByBusiness[loc.business_id] = (locationCountByBusiness[loc.business_id] || 0) + 1;
+        
         if (loc.boost_end_at && new Date(loc.boost_end_at) > now) {
           boostedLocationByBusiness[loc.business_id] = loc;
         }
       }
       
-      // Enrich businesses with location boost info
+      // Enrich businesses with location boost info and count
       return regionalBusinesses.map(b => ({
         ...b,
         _hasLocationBoost: !!boostedLocationByBusiness[b.id],
-        _boostedLocation: boostedLocationByBusiness[b.id] || null
+        _boostedLocation: boostedLocationByBusiness[b.id] || null,
+        _locationCount: locationCountByBusiness[b.id] || 0
       }));
     },
     enabled: !!region
