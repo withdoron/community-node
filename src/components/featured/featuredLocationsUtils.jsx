@@ -233,6 +233,7 @@ export const getFeaturedAndOrganicLocations = (
       reviewCount: loc.reviewCount,
       distanceMiles: Math.round(loc.distanceMiles * 10) / 10,
       isFeatured: false,
+      isManualBoost: false, // Organic items are never boosted
       boostEndAt: null,
       photos: loc.business.photos,
       services: loc.business.services,
