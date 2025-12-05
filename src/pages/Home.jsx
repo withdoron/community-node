@@ -8,7 +8,7 @@ import BusinessCard from '@/components/business/BusinessCard';
 import FeaturedNearbySection from '@/components/featured/FeaturedNearbySection';
 import { getFeaturedAndOrganicLocations } from '@/components/featured/featuredLocationsUtils';
 import { rankBusinesses, isBoostActive } from '@/components/business/rankingUtils';
-import { useActiveRegion, filterBusinessesByRegion, filterLocationsByRegion, calculateDistance } from '@/components/region/useActiveRegion';
+import { useActiveRegion, filterBusinessesByRegion, filterLocationsByRegion } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, Shield, Users, Ban, Coins } from "lucide-react";
@@ -24,44 +24,14 @@ export default function Home() {
   // User location state - defaults to region center
   const [userLat, setUserLat] = useState(null);
   const [userLng, setUserLng] = useState(null);
-  const [searchRadius, setSearchRadius] = useState(30);
 
-  // Default to region center immediately, then try to get user's geolocation in background
+  // Default to region center - fixed 30 mile radius for now
   useEffect(() => {
     if (!region) return;
     
-    // Set region center as default immediately so results show right away
+    // Use region center for all users
     setUserLat(region.center_lat);
     setUserLng(region.center_lng);
-    
-    // Try to get actual user location in the background (non-blocking)
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userLatitude = position.coords.latitude;
-          const userLongitude = position.coords.longitude;
-          
-          // Only re-center if user is within the region
-          const distanceFromRegionCenter = calculateDistance(
-            region.center_lat,
-            region.center_lng,
-            userLatitude,
-            userLongitude
-          );
-          
-          if (distanceFromRegionCenter <= (region.default_radius_miles || 30)) {
-            setUserLat(userLatitude);
-            setUserLng(userLongitude);
-          }
-          // If outside region, keep using region center (already set)
-        },
-        () => {
-          // Geolocation denied/failed - silently keep using region center (already set)
-        },
-        { timeout: 10000, maximumAge: 300000 } // 10s timeout, cache for 5 min
-      );
-    }
-    // If no geolocation support, just keep using region center (already set)
   }, [region]);
 
   const { data: categoryClicks = [] } = useQuery({
@@ -104,12 +74,13 @@ export default function Home() {
   });
 
   // Compute featured and organic lists - memoized to prevent recalculations
+  // Fixed 30 mile radius around Eugene region center
   const featuredData = React.useMemo(() => {
     if (!userLat || !userLng || allBusinesses.length === 0) {
       return { featured: [], organic: [] };
     }
-    return getFeaturedAndOrganicLocations(allBusinesses, allLocations, userLat, userLng, searchRadius);
-  }, [userLat, userLng, searchRadius, allBusinesses, allLocations]);
+    return getFeaturedAndOrganicLocations(allBusinesses, allLocations, userLat, userLng, 30);
+  }, [userLat, userLng, allBusinesses, allLocations]);
 
   // Top Rated Businesses - filtered by region
   const { data: featuredBusinesses = [], isLoading } = useQuery({
@@ -219,8 +190,6 @@ export default function Home() {
           featured={featuredData.featured}
           organic={featuredData.organic}
           isLoading={regionLoading}
-          searchRadius={searchRadius}
-          onRadiusChange={setSearchRadius}
         />
       )}
 
