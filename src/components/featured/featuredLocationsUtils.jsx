@@ -95,12 +95,23 @@ export const getFeaturedAndOrganicLocations = (
 
       const distance = calculateDistanceMiles(userLat, userLng, loc.lat, loc.lng);
       
+      // Determine boost type: manual vs auto
+      const locationBoosted = isCurrentlyBoosted(loc);
+      const businessBoosted = isBusinessBoosted(business);
+      const isBoosted = locationBoosted || businessBoosted;
+      
+      // Manual boost = location is boosted but auto-boost is NOT enabled
+      // Auto boost = location is boosted AND auto-boost IS enabled
+      const isManualBoost = isBoosted && !loc.is_auto_boost_enabled;
+      const isAutoBoost = isBoosted && loc.is_auto_boost_enabled;
+
       return {
         ...loc,
         business,
         distanceMiles: distance,
-        // Determine boost status from location OR business
-        isBoosted: isCurrentlyBoosted(loc) || isBusinessBoosted(business),
+        isBoosted,
+        isManualBoost,
+        isAutoBoost,
         rating: business.average_rating || 0,
         reviewCount: business.review_count || 0,
         ownerId: business.owner_user_id || business.owner_email,
@@ -121,12 +132,21 @@ export const getFeaturedAndOrganicLocations = (
   });
 
   // Separate boosted vs non-boosted, then sort each group
+  // CRITICAL: Manual boosts get priority over auto-boosts when caps are hit
   const boostedLocations = locationsInRadius
     .filter(loc => loc.isBoosted)
     .sort((a, b) => {
-      // Sort boosted by rating desc, then distance asc, then boost start time asc
+      // 1. Manual boosts come before auto-boosts
+      if (a.isManualBoost && !b.isManualBoost) return -1;
+      if (!a.isManualBoost && b.isManualBoost) return 1;
+      
+      // 2. Then by rating desc
       if (b.rating !== a.rating) return b.rating - a.rating;
+      
+      // 3. Then by distance asc (closer first)
       if (a.distanceMiles !== b.distanceMiles) return a.distanceMiles - b.distanceMiles;
+      
+      // 4. Then by boost start time asc (earlier boost = higher priority)
       const aStart = a.boost_start_at ? new Date(a.boost_start_at).getTime() : 0;
       const bStart = b.boost_start_at ? new Date(b.boost_start_at).getTime() : 0;
       return aStart - bStart;
