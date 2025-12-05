@@ -25,31 +25,43 @@ export default function Home() {
   const [userLat, setUserLat] = useState(null);
   const [userLng, setUserLng] = useState(null);
   const [searchRadius, setSearchRadius] = useState(30);
-  const [locationError, setLocationError] = useState(false);
 
-  // Default to region center immediately, then try to get user's geolocation
+  // Default to region center immediately, then try to get user's geolocation in background
   useEffect(() => {
     if (!region) return;
     
-    // Set region center as default immediately
+    // Set region center as default immediately so results show right away
     setUserLat(region.center_lat);
     setUserLng(region.center_lng);
     
-    // Then try to get actual user location
+    // Try to get actual user location in the background (non-blocking)
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLat(position.coords.latitude);
-          setUserLng(position.coords.longitude);
+          const userLatitude = position.coords.latitude;
+          const userLongitude = position.coords.longitude;
+          
+          // Only re-center if user is within the region
+          const distanceFromRegionCenter = calculateDistance(
+            region.center_lat,
+            region.center_lng,
+            userLatitude,
+            userLongitude
+          );
+          
+          if (distanceFromRegionCenter <= (region.default_radius_miles || 30)) {
+            setUserLat(userLatitude);
+            setUserLng(userLongitude);
+          }
+          // If outside region, keep using region center (already set)
         },
         () => {
-          // Keep using region center if geolocation fails
-          setLocationError(true);
-        }
+          // Geolocation denied/failed - silently keep using region center (already set)
+        },
+        { timeout: 10000, maximumAge: 300000 } // 10s timeout, cache for 5 min
       );
-    } else {
-      setLocationError(true);
     }
+    // If no geolocation support, just keep using region center (already set)
   }, [region]);
 
   const { data: categoryClicks = [] } = useQuery({
