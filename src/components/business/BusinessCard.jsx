@@ -8,6 +8,7 @@ import { Star, MapPin, Phone, ChevronRight, Sparkles, Zap, Crown, Coins, Store }
 
 import { mainCategories, getMainCategory, getSubcategoryLabel } from '@/components/categories/categoryData';
 import { isBoostActive, getTierLabel, getTierBadgeClasses } from '@/components/business/rankingUtils';
+import { trackEvent } from '@/components/analytics/trackEvent';
 
 const legacyCategoryLabels = {
   carpenter: 'Carpenter',
@@ -22,7 +23,7 @@ const legacyCategoryLabels = {
   other: 'Other'
 };
 
-export default function BusinessCard({ business, featured = false, badgeSettings = null }) {
+export default function BusinessCard({ business, featured = false, badgeSettings = null, trackingProps = null }) {
   // Badge visibility settings (default to showing if not provided)
   const showSilverBadge = badgeSettings?.show_accepts_silver_badge !== false;
   const showFranchiseBadge = badgeSettings?.show_locally_owned_franchise_badge !== false;
@@ -46,6 +47,21 @@ export default function BusinessCard({ business, featured = false, badgeSettings
 
   // Tier icon
   const TierIcon = tier === 'partner' ? Crown : tier === 'standard' ? Zap : null;
+
+  // Handle click tracking for Featured/Organic sections
+  const handleCardClick = () => {
+    if (trackingProps) {
+      const eventName = trackingProps.source === 'landing_featured' ? 'featured_click' : 'organic_click';
+      trackEvent(eventName, {
+        location_id: trackingProps.locationId,
+        owner_id: trackingProps.ownerId,
+        is_manual_boost: trackingProps.isManualBoost,
+        radius_miles: trackingProps.radiusMiles,
+        position_in_section: trackingProps.positionInSection,
+        source: trackingProps.source
+      });
+    }
+  };
 
   return (
     <Card className={`group overflow-hidden transition-all duration-300 hover:shadow-lg ${featured ? 'ring-2 ring-emerald-400 shadow-md' : isBoosted ? 'ring-2 ring-amber-400 shadow-md' : 'border-slate-200'}`}>
@@ -151,7 +167,11 @@ export default function BusinessCard({ business, featured = false, badgeSettings
                 Call
               </Button>
             )}
-            <Link to={createPageUrl(`BusinessProfile?id=${business.id}`)} className="flex-1">
+            <Link 
+              to={createPageUrl(`BusinessProfile?id=${business.id}`)} 
+              className="flex-1"
+              onClick={handleCardClick}
+            >
               <Button 
                 variant="default" 
                 size="sm"

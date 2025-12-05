@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Loader2, MapPin } from "lucide-react";
 import BusinessCard from '@/components/business/BusinessCard';
 import { toBusinessCardFormat } from './featuredLocationsUtils';
+import { trackEvent } from '@/components/analytics/trackEvent';
 
 const RADIUS_OPTIONS = [5, 10, 20];
 
@@ -20,6 +21,34 @@ export default function FeaturedNearbySection({
   const sectionSubtitle = hasFeatured 
     ? "Businesses getting extra visibility in your area" 
     : "Top local businesses near you";
+  
+  const source = hasFeatured ? 'landing_featured' : 'landing_organic';
+  
+  // Track impressions fired (to prevent duplicates)
+  const impressionsFired = useRef(new Set());
+  
+  // Fire impressions once when items are rendered
+  useEffect(() => {
+    if (isLoading || displayItems.length === 0) return;
+    
+    displayItems.forEach((item, index) => {
+      const impressionKey = `${item.id}_${searchRadius}_${source}`;
+      
+      if (!impressionsFired.current.has(impressionKey)) {
+        impressionsFired.current.add(impressionKey);
+        
+        const eventName = hasFeatured ? 'featured_impression' : 'organic_impression';
+        trackEvent(eventName, {
+          location_id: item.id,
+          owner_id: item._business?.owner_user_id || item._business?.owner_email || null,
+          is_manual_boost: item.isManualBoost || false,
+          radius_miles: searchRadius,
+          position_in_section: index,
+          source
+        });
+      }
+    });
+  }, [displayItems, searchRadius, isLoading, hasFeatured, source]);
 
   if (isLoading) {
     return (
@@ -75,12 +104,20 @@ export default function FeaturedNearbySection({
         </div>
       ) : (
         <div className="grid gap-4">
-          {displayItems.map((item) => (
+          {displayItems.map((item, index) => (
             <BusinessCard
               key={item.id}
               business={toBusinessCardFormat(item)}
               featured={item.isFeatured}
               badgeSettings={badgeSettings}
+              trackingProps={{
+                locationId: item.id,
+                ownerId: item._business?.owner_user_id || item._business?.owner_email || null,
+                isManualBoost: item.isManualBoost || false,
+                radiusMiles: searchRadius,
+                positionInSection: index,
+                source
+              }}
             />
           ))}
         </div>
