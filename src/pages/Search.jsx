@@ -26,10 +26,29 @@ export default function Search() {
   const [sortBy, setSortBy] = useState('rating');
 
   const { data: businesses = [], isLoading } = useQuery({
-    queryKey: ['businesses'],
+    queryKey: ['businesses-with-locations'],
     queryFn: async () => {
-      const result = await base44.entities.Business.filter({ is_active: true }, '-created_date', 100);
-      return result;
+      const [businessList, locationList] = await Promise.all([
+        base44.entities.Business.filter({ is_active: true }, '-created_date', 100),
+        base44.entities.Location.filter({ is_active: true }, '-created_date', 500)
+      ]);
+      
+      // Build a map of business_id -> boosted location (if any)
+      const now = new Date();
+      const boostedLocationByBusiness = {};
+      for (const loc of locationList) {
+        if (loc.boost_end_at && new Date(loc.boost_end_at) > now) {
+          // This location is boosted - mark the business
+          boostedLocationByBusiness[loc.business_id] = loc;
+        }
+      }
+      
+      // Enrich businesses with location boost info
+      return businessList.map(b => ({
+        ...b,
+        _hasLocationBoost: !!boostedLocationByBusiness[b.id],
+        _boostedLocation: boostedLocationByBusiness[b.id] || null
+      }));
     }
   });
 

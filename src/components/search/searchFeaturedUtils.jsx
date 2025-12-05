@@ -15,9 +15,15 @@ export const MAX_PER_OWNER_IN_SEARCH_BAND = 2;
 
 /**
  * Check if a business is currently boosted (manual or auto)
+ * Checks both business-level boost (is_bumped) and location-level boost (_hasLocationBoost)
  */
 export const isBusinessBoosted = (business) => {
   if (!business) return false;
+  
+  // Check location-level boost (enriched from Search page)
+  if (business._hasLocationBoost) return true;
+  
+  // Check business-level boost (legacy)
   if (business.is_bumped) {
     if (!business.bump_expires_at) return true;
     return new Date(business.bump_expires_at) > new Date();
@@ -27,13 +33,19 @@ export const isBusinessBoosted = (business) => {
 
 /**
  * Determine if a business is manually boosted vs auto-boosted
- * Manual boost = boosted AND (no auto-boost flag OR auto-boost is disabled)
- * For businesses (not locations), we treat all boosts as manual since
- * the is_auto_boost_enabled flag is on locations, not businesses.
+ * Manual boost = boosted location with is_auto_boost_enabled = false
+ * Auto boost = boosted location with is_auto_boost_enabled = true
  */
 export const isManualBoost = (business) => {
-  // At the business level, if it's boosted via is_bumped, it's a manual boost
-  return isBusinessBoosted(business);
+  if (!isBusinessBoosted(business)) return false;
+  
+  // Check location-level auto-boost flag
+  if (business._boostedLocation) {
+    return !business._boostedLocation.is_auto_boost_enabled;
+  }
+  
+  // Legacy business-level boost is always manual
+  return true;
 };
 
 /**
