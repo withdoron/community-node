@@ -88,22 +88,31 @@ export function calculateDistance(lat1, lng1, lat2, lng2) {
 export function isWithinRegion(business, region) {
   if (!business || !region) return false;
   
-  // If business has no coordinates, check city name match
-  if (!business.lat || !business.lng) {
-    // Fallback: check if business city contains region name or vice versa
-    const businessCity = (business.city || '').toLowerCase();
-    const regionName = (region.name || '').toLowerCase();
-    return businessCity.includes(regionName) || regionName.includes(businessCity);
+  // If business has coordinates, use them
+  if (business.lat && business.lng) {
+    const distance = calculateDistance(
+      region.center_lat,
+      region.center_lng,
+      business.lat,
+      business.lng
+    );
+    return distance <= (region.default_radius_miles || 30);
   }
   
-  const distance = calculateDistance(
-    region.center_lat,
-    region.center_lng,
-    business.lat,
-    business.lng
-  );
+  // No coords: check if business city matches region
+  const businessCity = (business.city || '').toLowerCase();
+  const regionName = (region.name || '').toLowerCase();
+  const regionDisplay = (region.display_name || '').toLowerCase();
   
-  return distance <= (region.default_radius_miles || 30);
+  // Check for city name match (includes partial match)
+  if (businessCity.includes('eugene') && regionName.includes('eugene')) return true;
+  if (businessCity.includes('austin') && regionName.includes('austin')) return true;
+  
+  // Check region_id if set on business
+  if (business.region_id && business.region_id === region.id) return true;
+  
+  // Generic fallback
+  return businessCity.includes(regionName) || regionName.includes(businessCity);
 }
 
 /**
@@ -112,29 +121,48 @@ export function isWithinRegion(business, region) {
 export function isLocationWithinRegion(location, region) {
   if (!location || !region) return false;
   
-  // If location has no coordinates, check city name match
-  if (!location.lat || !location.lng) {
-    const locationCity = (location.city || '').toLowerCase();
-    const regionName = (region.name || '').toLowerCase();
-    return locationCity.includes(regionName) || regionName.includes(locationCity);
+  // If location has coordinates, use them
+  if (location.lat && location.lng) {
+    const distance = calculateDistance(
+      region.center_lat,
+      region.center_lng,
+      location.lat,
+      location.lng
+    );
+    return distance <= (region.default_radius_miles || 30);
   }
   
-  const distance = calculateDistance(
-    region.center_lat,
-    region.center_lng,
-    location.lat,
-    location.lng
-  );
+  // No coords: check city name
+  const locationCity = (location.city || '').toLowerCase();
+  const regionName = (region.name || '').toLowerCase();
   
-  return distance <= (region.default_radius_miles || 30);
+  // Check for city name match
+  if (locationCity.includes('eugene') && regionName.includes('eugene')) return true;
+  if (locationCity.includes('austin') && regionName.includes('austin')) return true;
+  
+  // Generic fallback
+  return locationCity.includes(regionName) || regionName.includes(locationCity);
 }
 
 /**
  * Filter businesses to only those within a region
+ * Also checks if business has any locations in the region
  */
-export function filterBusinessesByRegion(businesses, region) {
+export function filterBusinessesByRegion(businesses, region, locations = null) {
   if (!businesses || !region) return [];
-  return businesses.filter(b => isWithinRegion(b, region));
+  
+  return businesses.filter(b => {
+    // Direct check on business
+    if (isWithinRegion(b, region)) return true;
+    
+    // If we have locations data, check if any location is in the region
+    if (locations) {
+      const businessLocations = locations.filter(loc => loc.business_id === b.id);
+      return businessLocations.some(loc => isLocationWithinRegion(loc, region));
+    }
+    
+    return false;
+  });
 }
 
 /**
