@@ -91,16 +91,13 @@ export default function Home() {
     enabled: !!region
   });
 
-  // Compute featured and organic lists
-  const { data: featuredData, isLoading: featuredLoading } = useQuery({
-    queryKey: ['featured-nearby', userLat, userLng, searchRadius, region?.id],
-    queryFn: () => {
-      if (!userLat || !userLng) return { featured: [], organic: [] };
-      return getFeaturedAndOrganicLocations(allBusinesses, allLocations, userLat, userLng, searchRadius);
-    },
-    enabled: userLat !== null && userLng !== null && allBusinesses.length > 0,
-    staleTime: 30000
-  });
+  // Compute featured and organic lists - memoized to prevent recalculations
+  const featuredData = React.useMemo(() => {
+    if (!userLat || !userLng || allBusinesses.length === 0) {
+      return { featured: [], organic: [] };
+    }
+    return getFeaturedAndOrganicLocations(allBusinesses, allLocations, userLat, userLng, searchRadius);
+  }, [userLat, userLng, searchRadius, allBusinesses, allLocations]);
 
   // Top Rated Businesses - filtered by region
   const { data: featuredBusinesses = [], isLoading } = useQuery({
