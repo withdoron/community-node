@@ -120,10 +120,15 @@ export const getFeaturedAndOrganicLocations = (
     })
     .filter(Boolean);
 
-  // Filter to locations within radius
-  const locationsInRadius = enrichedLocations.filter(
-    loc => loc.distanceMiles <= radiusMiles
-  );
+  // Filter to locations within radius OR by matching city if no coordinates
+  const locationsInRadius = enrichedLocations.filter(loc => {
+    // If location has coordinates, use distance
+    if (loc.lat && loc.lng) {
+      return loc.distanceMiles <= radiusMiles;
+    }
+    // If no coordinates, include all locations (they passed region filter already)
+    return true;
+  });
 
   // Calculate category sizes within radius for MIN_CATEGORY_SIZE check
   const categorySizes = {};
