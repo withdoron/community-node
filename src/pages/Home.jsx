@@ -8,6 +8,7 @@ import BusinessCard from '@/components/business/BusinessCard';
 import FeaturedNearbySection from '@/components/featured/FeaturedNearbySection';
 import { getFeaturedAndOrganicLocations } from '@/components/featured/featuredLocationsUtils';
 import { rankBusinesses, isBoostActive } from '@/components/business/rankingUtils';
+import { useActiveRegion, filterBusinessesByRegion, filterLocationsByRegion } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, Shield, Users, Ban, Coins } from "lucide-react";
@@ -17,14 +18,19 @@ export default function Home() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // User location state
+  // Get active region for this instance
+  const { region, isLoading: regionLoading } = useActiveRegion();
+
+  // User location state - defaults to region center
   const [userLat, setUserLat] = useState(null);
   const [userLng, setUserLng] = useState(null);
   const [searchRadius, setSearchRadius] = useState(5);
   const [locationError, setLocationError] = useState(false);
 
-  // Get user's geolocation on mount
+  // Get user's geolocation on mount, fallback to region center
   useEffect(() => {
+    if (!region) return;
+    
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -32,19 +38,19 @@ export default function Home() {
           setUserLng(position.coords.longitude);
         },
         () => {
-          // Fallback to Austin, TX if geolocation fails
-          setUserLat(30.2672);
-          setUserLng(-97.7431);
+          // Fallback to region center if geolocation fails
+          setUserLat(region.center_lat);
+          setUserLng(region.center_lng);
           setLocationError(true);
         }
       );
     } else {
       // Fallback if geolocation not supported
-      setUserLat(30.2672);
-      setUserLng(-97.7431);
+      setUserLat(region.center_lat);
+      setUserLng(region.center_lng);
       setLocationError(true);
     }
-  }, []);
+  }, [region]);
 
   const { data: categoryClicks = [] } = useQuery({
     queryKey: ['categoryClicks'],
@@ -66,14 +72,23 @@ export default function Home() {
   });
 
   // Fetch all businesses and locations for Featured nearby logic
+  // Filter by region to keep content local
   const { data: allBusinesses = [] } = useQuery({
-    queryKey: ['all-businesses'],
-    queryFn: () => base44.entities.Business.filter({ is_active: true }, '-average_rating', 100)
+    queryKey: ['all-businesses', region?.id],
+    queryFn: async () => {
+      const businesses = await base44.entities.Business.filter({ is_active: true }, '-average_rating', 200);
+      return filterBusinessesByRegion(businesses, region);
+    },
+    enabled: !!region
   });
 
   const { data: allLocations = [] } = useQuery({
-    queryKey: ['all-locations'],
-    queryFn: () => base44.entities.Location.list('-created_date', 500)
+    queryKey: ['all-locations', region?.id],
+    queryFn: async () => {
+      const locations = await base44.entities.Location.list('-created_date', 500);
+      return filterLocationsByRegion(locations, region);
+    },
+    enabled: !!region
   });
 
   // Compute featured and organic lists
@@ -86,17 +101,20 @@ export default function Home() {
     enabled: userLat !== null && userLng !== null && allBusinesses.length > 0
   });
 
+  // Top Rated Businesses - filtered by region
   const { data: featuredBusinesses = [], isLoading } = useQuery({
-    queryKey: ['featured-businesses'],
+    queryKey: ['featured-businesses', region?.id],
     queryFn: async () => {
       const businesses = await base44.entities.Business.filter(
         { is_active: true },
         '-average_rating',
-        20
+        50
       );
-      // Apply consistent ranking and take top 6
-      return rankBusinesses(businesses).slice(0, 6);
-    }
+      // Filter by region, then rank and take top 6
+      const regionalBusinesses = filterBusinessesByRegion(businesses, region);
+      return rankBusinesses(regionalBusinesses).slice(0, 6);
+    },
+    enabled: !!region
   });
 
   const handleSearch = ({ query, location }) => {
@@ -137,7 +155,7 @@ export default function Home() {
             </Badge>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
               Find trusted local
-              <span className="block text-amber-400">businesses near you</span>
+              <span className="block text-amber-400">businesses in {region?.display_name || 'your area'}</span>
             </h1>
             <p className="mt-6 text-lg text-slate-300 max-w-2xl mx-auto">
               Connect with trusted carpenters, mechanics, farms, and more. No ads, no spam—just real local businesses, with the option to support sound money with silver.

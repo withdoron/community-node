@@ -6,14 +6,19 @@ import FilterBar from '@/components/search/FilterBar';
 import SearchResultsSection from '@/components/search/SearchResultsSection';
 import { rankBusinesses, isBoostActive, getTierPriority } from '@/components/business/rankingUtils';
 import { processSearchResults } from '@/components/search/searchFeaturedUtils';
+import { useActiveRegion, filterBusinessesByRegion, filterLocationsByRegion } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
-import { Loader2, SearchX } from "lucide-react";
+import { Loader2, SearchX, MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function Search() {
   const urlParams = new URLSearchParams(window.location.search);
   const initialQuery = urlParams.get('q') || '';
   const initialLocation = urlParams.get('location') || '';
   const initialCategory = urlParams.get('category') || 'all';
+
+  // Get active region for this instance
+  const { region, isLoading: regionLoading } = useActiveRegion();
 
   const [searchParams, setSearchParams] = useState({
     query: initialQuery,
@@ -25,31 +30,36 @@ export default function Search() {
   });
   const [sortBy, setSortBy] = useState('rating');
 
+  // Fetch businesses and locations, filtered by region
   const { data: businesses = [], isLoading } = useQuery({
-    queryKey: ['businesses-with-locations'],
+    queryKey: ['businesses-with-locations', region?.id],
     queryFn: async () => {
       const [businessList, locationList] = await Promise.all([
-        base44.entities.Business.filter({ is_active: true }, '-created_date', 100),
+        base44.entities.Business.filter({ is_active: true }, '-created_date', 200),
         base44.entities.Location.filter({ is_active: true }, '-created_date', 500)
       ]);
+      
+      // Filter by region first
+      const regionalBusinesses = filterBusinessesByRegion(businessList, region);
+      const regionalLocations = filterLocationsByRegion(locationList, region);
       
       // Build a map of business_id -> boosted location (if any)
       const now = new Date();
       const boostedLocationByBusiness = {};
-      for (const loc of locationList) {
+      for (const loc of regionalLocations) {
         if (loc.boost_end_at && new Date(loc.boost_end_at) > now) {
-          // This location is boosted - mark the business
           boostedLocationByBusiness[loc.business_id] = loc;
         }
       }
       
       // Enrich businesses with location boost info
-      return businessList.map(b => ({
+      return regionalBusinesses.map(b => ({
         ...b,
         _hasLocationBoost: !!boostedLocationByBusiness[b.id],
         _boostedLocation: boostedLocationByBusiness[b.id] || null
       }));
-    }
+    },
+    enabled: !!region
   });
 
   // Filter and sort businesses
@@ -166,6 +176,15 @@ export default function Search() {
 
       {/* Results */}
       <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Region indicator */}
+        {region && (
+          <div className="flex items-center gap-2 mb-4 text-sm text-slate-500">
+            <MapPin className="h-4 w-4" />
+            <span>Searching in <span className="font-medium text-slate-700">{region.display_name}</span></span>
+            <Badge variant="outline" className="text-xs">{region.default_radius_miles} mi radius</Badge>
+          </div>
+        )}
+        
         <FilterBar
           filters={filters}
           onFiltersChange={setFilters}
@@ -174,7 +193,7 @@ export default function Search() {
           resultCount={filteredBusinesses.length}
         />
 
-        {isLoading ? (
+        {isLoading || regionLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
           </div>
