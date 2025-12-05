@@ -341,26 +341,49 @@ export default function BusinessProfile() {
                   </a>
                 )}
 
-                {(primaryLocation?.street_address || business.address) && (
-                  <a 
-                    href={`https://maps.google.com/?q=${primaryLocation ? buildMapsQuery(primaryLocation) : encodeURIComponent(business.address + ', ' + business.city)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
-                    <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                    <div className="flex-1">
-                      {primaryLocation ? (
-                        formatAddress(primaryLocation, { multiline: true, forPublic: true }).map((line, idx) => (
-                          <span key={idx} className="block text-sm">{line}</span>
-                        ))
-                      ) : (
-                        <span>{business.address}, {business.city}</span>
-                      )}
-                    </div>
-                    <ExternalLink className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                  </a>
-                )}
+                {/* Locations Section */}
+              {locations.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-slate-100">
+                  <h4 className="text-sm font-medium text-slate-700 mb-3">
+                    {locations.length === 1 ? 'Location' : `${locations.length} Locations`}
+                  </h4>
+                  <div className="space-y-3">
+                    {locations.map((loc, idx) => (
+                      <a 
+                        key={loc.id || idx}
+                        href={`https://maps.google.com/?q=${buildMapsQuery(loc)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
+                      >
+                        <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0 text-slate-400" />
+                        <div className="flex-1">
+                          {loc.name && <span className="block text-sm font-medium text-slate-900">{loc.name}</span>}
+                          {formatAddress(loc, { multiline: true, forPublic: true }).map((line, lineIdx) => (
+                            <span key={lineIdx} className="block text-sm text-slate-600">{line}</span>
+                          ))}
+                          {loc.phone && <span className="block text-sm text-slate-500 mt-1">{loc.phone}</span>}
+                        </div>
+                        <ExternalLink className="h-4 w-4 flex-shrink-0 mt-0.5 text-slate-400" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Fallback if no locations but business has address */}
+              {locations.length === 0 && business.address && (
+                <a 
+                  href={`https://maps.google.com/?q=${encodeURIComponent(business.address + ', ' + business.city)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                  <span>{business.address}, {business.city}</span>
+                  <ExternalLink className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                </a>
+              )}
               </div>
 
               {business.accepts_silver && (
