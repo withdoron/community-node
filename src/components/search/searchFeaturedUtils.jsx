@@ -48,10 +48,18 @@ export const meetsFeaturedThresholds = (business) => {
 
 /**
  * Check if a business is Featured-eligible
- * Must be boosted AND meet rating/review thresholds
+ * Rules:
+ * - Manual boost: Always Featured (no rating/review thresholds)
+ * - Auto-boost: Must also meet rating/review thresholds
  */
 export const isFeaturedEligible = (business) => {
-  return isBusinessBoosted(business) && meetsFeaturedThresholds(business);
+  if (!isBusinessBoosted(business)) return false;
+  
+  // Manual boosts always qualify as Featured
+  if (isManualBoost(business)) return true;
+  
+  // Auto-boosts require rating/review thresholds
+  return meetsFeaturedThresholds(business);
 };
 
 /**
