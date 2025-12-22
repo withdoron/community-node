@@ -155,8 +155,8 @@ export default function Home() {
               Ad‑Free • Trusted • Local
             </Badge>
             <h1 className="font-bold text-white tracking-tight leading-tight">
-              <span className="block text-3xl sm:text-4xl">Find trusted local</span>
-              <span className="block text-5xl sm:text-6xl lg:text-7xl font-extrabold" style={{ minWidth: '400px', display: 'inline-block' }}>
+              <span className="block text-3xl sm:text-4xl">Find trusted</span>
+              <span className="block text-5xl sm:text-6xl lg:text-7xl font-extrabold bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" style={{ minWidth: '400px', display: 'inline-block' }}>
                 <TextTransition springConfig={presets.wobbly} inline className="text-amber-400">
                   {TEXTS[textIndex]}
                 </TextTransition>
@@ -176,19 +176,17 @@ export default function Home() {
               <Button 
                 size="lg"
                 className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold px-8"
-                onClick={() => {
-                  const searchBar = document.querySelector('form');
-                  if (searchBar) searchBar.dispatchEvent(new Event('submit', { bubbles: true }));
-                }}
+                onClick={() => navigate(createPageUrl('Search'))}
               >
-                Search local businesses
+                Browse Directory
               </Button>
               <Button 
                 size="lg"
-                className="bg-white hover:bg-slate-100 text-slate-900 font-semibold px-8 border border-slate-200"
-                onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
+                variant="outline"
+                className="bg-transparent hover:bg-white/10 text-white border-white/30 hover:border-white font-semibold px-8"
+                onClick={() => navigate(createPageUrl('Events'))}
               >
-                List your business
+                View Events
               </Button>
             </div>
           </div>
