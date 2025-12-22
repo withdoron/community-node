@@ -154,18 +154,18 @@ export default function Home() {
               <Shield className="h-3 w-3 mr-1" />
               Ad‑Free • Trusted • Local
             </Badge>
-            <h1 className="font-bold text-white tracking-tight leading-tight">
-              <span className="block text-3xl sm:text-4xl">Find trusted</span>
-              <span className="block text-5xl sm:text-6xl lg:text-7xl font-extrabold" style={{ minWidth: '400px', display: 'inline-block' }}>
+            <h1 className="text-white tracking-tight leading-tight">
+              <span className="block text-3xl sm:text-4xl font-semibold mb-3">Find trusted</span>
+              <span className="block text-5xl sm:text-6xl lg:text-7xl font-extrabold my-4" style={{ minWidth: '400px', display: 'inline-block' }}>
                 <TextTransition springConfig={presets.wobbly} inline className="text-amber-400">
                   {TEXTS[textIndex]}
                 </TextTransition>
               </span>
-              <span className="block text-2xl sm:text-3xl lg:text-4xl mt-2">
+              <span className="block text-2xl sm:text-3xl lg:text-4xl font-semibold mt-3">
                 in the Greater Eugene/Springfield Area
               </span>
             </h1>
-            <p className="mt-8 text-lg text-slate-300 max-w-2xl mx-auto">
+            <p className="mt-12 text-lg text-slate-300 max-w-2xl mx-auto">
               No ads, no spam—just real local community, with the option to support sound money with silver.
             </p>
           </div>
@@ -174,7 +174,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
               <Button 
                 size="lg"
-                className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold px-10 py-6 text-lg h-auto"
+                className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold px-10 py-6 text-lg h-auto w-64"
                 onClick={() => navigate(createPageUrl('Search'))}
               >
                 Browse Directory
@@ -182,7 +182,7 @@ export default function Home() {
               <Button 
                 size="lg"
                 variant="outline"
-                className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-10 py-6 text-lg h-auto"
+                className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-10 py-6 text-lg h-auto w-64"
                 onClick={() => navigate(createPageUrl('Events'))}
               >
                 View Events
