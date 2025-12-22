@@ -6,7 +6,6 @@ import Categories from './pages/Categories';
 import CategoryPage from './pages/CategoryPage';
 import Search from './pages/Search';
 import WriteReview from './pages/WriteReview';
-import homeV2 from './pages/Home.v2';
 import HomeV2 from './pages/HomeV2';
 import __Layout from './Layout.jsx';
 
@@ -20,7 +19,6 @@ export const PAGES = {
     "CategoryPage": CategoryPage,
     "Search": Search,
     "WriteReview": WriteReview,
-    "Home.v2": homeV2,
     "HomeV2": HomeV2,
 }
 
