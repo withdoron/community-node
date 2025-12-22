@@ -170,11 +170,11 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-12 max-w-3xl mx-auto">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+          <div className="mt-12 max-w-3xl mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-4">
               <Button 
                 size="lg"
-                className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold px-10 py-6 text-lg h-auto w-64"
+                className="bg-amber-400 hover:bg-amber-500 hover:brightness-110 text-slate-900 font-semibold px-10 py-4 text-lg h-auto w-full md:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
                 onClick={() => navigate(createPageUrl('Search'))}
               >
                 Browse Directory
@@ -182,7 +182,7 @@ export default function Home() {
               <Button 
                 size="lg"
                 variant="outline"
-                className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-10 py-6 text-lg h-auto w-64"
+                className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-10 py-4 text-lg h-auto w-full md:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
                 onClick={() => navigate(createPageUrl('Events'))}
               >
                 View Events
@@ -330,10 +330,10 @@ export default function Home() {
           <p className="text-slate-300 mt-4 max-w-xl mx-auto">
             Whether you run a business or host local events, LocalLane is your place to be seen without paying for ads.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-4 mt-8">
             <Button 
               size="lg"
-              className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold px-8 w-full sm:w-auto"
+              className="bg-amber-400 hover:bg-amber-500 hover:brightness-110 text-slate-900 font-semibold px-8 py-4 w-full md:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
               onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
             >
               List Your Business
@@ -342,7 +342,7 @@ export default function Home() {
             <Button 
               size="lg"
               variant="outline"
-              className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-8 w-full sm:w-auto"
+              className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-8 py-4 w-full md:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
               onClick={() => navigate(createPageUrl('Events'))}
             >
               Post an Event
