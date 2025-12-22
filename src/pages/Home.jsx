@@ -154,14 +154,14 @@ export default function Home() {
               <Shield className="h-3 w-3 mr-1" />
               Ad‑Free • Trusted • Local
             </Badge>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-tight">
-              <span className="block">Find trusted local</span>
-              <span className="block" style={{ minWidth: '400px', display: 'inline-block' }}>
+            <h1 className="font-bold text-white tracking-tight leading-tight">
+              <span className="block text-3xl sm:text-4xl">Find trusted local</span>
+              <span className="block text-5xl sm:text-6xl lg:text-7xl font-extrabold" style={{ minWidth: '400px', display: 'inline-block' }}>
                 <TextTransition springConfig={presets.wobbly} inline className="text-amber-400">
                   {TEXTS[textIndex]}
                 </TextTransition>
               </span>
-              <span className="block text-base sm:text-lg font-normal mt-2">
+              <span className="block text-2xl sm:text-3xl lg:text-4xl mt-2">
                 in the Greater Eugene/Springfield Area
               </span>
             </h1>
