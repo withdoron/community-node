@@ -11,7 +11,7 @@ import { rankBusinesses, isBoostActive } from '@/components/business/rankingUtil
 import { useActiveRegion, filterBusinessesByRegion, filterLocationsByRegion } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, Shield, Users, Ban, Coins } from "lucide-react";
+import { ChevronRight, Shield, Users, Ban, Coins, Calendar, Store } from "lucide-react";
 import { mainCategories, defaultPopularCategoryIds } from '@/components/categories/categoryData';
 import TextTransition, { presets } from 'react-text-transition';
 
@@ -289,26 +289,26 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why LocalConnect */}
+      {/* Why LocalLane */}
       <section className="max-w-6xl mx-auto px-4 py-16">
         <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">Why use LocalLane?</h2>
         <div className="grid md:grid-cols-3 gap-8">
           <div className="text-center p-6">
             <div className="h-12 w-12 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Users className="h-6 w-6 text-emerald-600" />
+              <Store className="h-6 w-6 text-emerald-600" />
             </div>
-            <h3 className="font-semibold text-lg text-slate-900">Local & Trusted</h3>
+            <h3 className="font-semibold text-lg text-slate-900">Trusted Local Pros</h3>
             <p className="text-slate-600 mt-2 text-sm">
-              Every listing is a real local business, with reviews from people in your community.
+              Every listing is a real local business, vetted by the community. No ads, just quality connections.
             </p>
           </div>
           <div className="text-center p-6">
             <div className="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Ban className="h-6 w-6 text-amber-600" />
+              <Calendar className="h-6 w-6 text-amber-600" />
             </div>
-            <h3 className="font-semibold text-lg text-slate-900">Ad‑Free & Simple</h3>
+            <h3 className="font-semibold text-lg text-slate-900">Events & Activities</h3>
             <p className="text-slate-600 mt-2 text-sm">
-              No ads, no bidding for attention—just clear information to help you choose the right local pro.
+              From family outings to community meetups—find out what's happening in Eugene/Springfield this weekend.
             </p>
           </div>
           <div className="text-center p-6">
@@ -317,30 +317,38 @@ export default function Home() {
             </div>
             <h3 className="font-semibold text-lg text-slate-900">Sound Money Friendly</h3>
             <p className="text-slate-600 mt-2 text-sm">
-              See which businesses support sound money by choosing to accept silver. It's always optional for both sides.
+              Support the local economy with the option to support sound money with silver. Always optional, always sound.
             </p>
           </div>
         </div>
       </section>
 
-      {/* CTA for Business Owners */}
+      {/* CTA for Business Owners & Event Organizers */}
       <section className="bg-slate-900 py-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-white">Own a local business?</h2>
+          <h2 className="text-3xl font-bold text-white">Be Part of the Community</h2>
           <p className="text-slate-300 mt-4 max-w-xl mx-auto">
-            Join our local marketplace and connect with customers who value quality, trust, and community.
+            Whether you run a business or host local events, LocalLane is your place to be seen without paying for ads.
           </p>
-          <p className="text-slate-400 mt-2 max-w-xl mx-auto">
-            No ad spend, no lead fees—just clear, honest visibility.
-          </p>
-          <Button 
-            size="lg"
-            className="mt-8 bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold"
-            onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
-          >
-            List Your Business
-            <ChevronRight className="h-4 w-4 ml-2" />
-          </Button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
+            <Button 
+              size="lg"
+              className="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold px-8 w-full sm:w-auto"
+              onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
+            >
+              List Your Business
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+            <Button 
+              size="lg"
+              variant="outline"
+              className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-8 w-full sm:w-auto"
+              onClick={() => navigate(createPageUrl('Events'))}
+            >
+              Post an Event
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
         </div>
       </section>
     </div>
