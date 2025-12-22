@@ -13,6 +13,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, Shield, Users, Ban, Coins } from "lucide-react";
 import { mainCategories, defaultPopularCategoryIds } from '@/components/categories/categoryData';
+import TextTransition, { presets } from 'react-text-transition';
+
+const TEXTS = [
+  "Businesses",
+  "Community Groups",
+  "Family Activities",
+  "Local Trades",
+  "Outings",
+  "Service Projects"
+];
 
 export default function Home() {
   const navigate = useNavigate();
@@ -24,6 +34,16 @@ export default function Home() {
   // User location state - defaults to region center
   const [userLat, setUserLat] = useState(null);
   const [userLng, setUserLng] = useState(null);
+
+  // Text transition for hero
+  const [textIndex, setTextIndex] = useState(0);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setTextIndex((index) => (index + 1) % TEXTS.length);
+    }, 3000);
+    return () => clearInterval(intervalId);
+  }, []);
 
   // Default to region center - fixed 30 mile radius for now
   useEffect(() => {
@@ -134,12 +154,19 @@ export default function Home() {
               <Shield className="h-3 w-3 mr-1" />
               Ad‑Free • Trusted • Local
             </Badge>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
-              Find trusted local
-              <span className="block text-amber-400">businesses in {region?.display_name || 'your area'}</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-tight">
+              <span className="block">Find trusted local</span>
+              <span className="block" style={{ minWidth: '400px', display: 'inline-block' }}>
+                <TextTransition springConfig={presets.wobbly} inline className="text-amber-400">
+                  {TEXTS[textIndex]}
+                </TextTransition>
+              </span>
+              <span className="block text-base sm:text-lg font-normal mt-2">
+                in the Greater Eugene/Springfield Area
+              </span>
             </h1>
             <p className="mt-6 text-lg text-slate-300 max-w-2xl mx-auto">
-              Connect with trusted carpenters, mechanics, farms, and more. No ads, no spam—just real local businesses, with the option to support sound money with silver.
+              No ads, no spam—just real local community, with the option to support sound money with silver.
             </p>
           </div>
 
