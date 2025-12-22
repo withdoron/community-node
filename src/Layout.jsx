@@ -65,7 +65,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="h-8 w-8 bg-slate-900 rounded-lg flex items-center justify-center">
                 <Store className="h-4 w-4 text-white" />
               </div>
-              <span className="font-bold text-slate-900 text-lg">LocalConnect</span>
+              <span className="font-bold text-slate-900 text-lg">LocalLane</span>
             </Link>
 
             {/* Desktop Nav */}
@@ -182,7 +182,7 @@ export default function Layout({ children, currentPageName }) {
               <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center">
                 <Store className="h-4 w-4 text-slate-900" />
               </div>
-              <span className="font-bold text-white text-lg">LocalConnect</span>
+              <span className="font-bold text-white text-lg">LocalLane</span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-2">
@@ -311,10 +311,10 @@ export default function Layout({ children, currentPageName }) {
               <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center">
                 <Store className="h-4 w-4 text-slate-900" />
               </div>
-              <span className="font-bold text-lg">LocalConnect</span>
+              <span className="font-bold text-lg">LocalLane</span>
             </div>
             <p className="text-sm text-slate-400">
-              © {new Date().getFullYear()} LocalConnect. Ad‑free, community‑focused local marketplace.
+              © {new Date().getFullYear()} LocalLane. Ad‑free, community‑focused local marketplace.
             </p>
           </div>
         </div>

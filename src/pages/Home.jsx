@@ -267,7 +267,7 @@ export default function Home() {
 
       {/* Why LocalConnect */}
       <section className="max-w-6xl mx-auto px-4 py-16">
-        <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">Why use LocalConnect?</h2>
+        <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">Why use LocalLane?</h2>
         <div className="grid md:grid-cols-3 gap-8">
           <div className="text-center p-6">
             <div className="h-12 w-12 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4">
