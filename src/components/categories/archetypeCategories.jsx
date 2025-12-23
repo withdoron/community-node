@@ -1,75 +1,63 @@
+
 export const ARCHETYPE_CATEGORIES = {
   venue: [
     {
       label: "Food & Drink",
       subCategories: [
-        { name: "American", keywords: ["burger", "fries", "wings", "diner", "bbq", "steak"] },
-        { name: "Italian", keywords: ["pizza", "pasta", "spaghetti", "lasagna", "ravioli"] },
-        { name: "Mexican", keywords: ["taco", "burrito", "quesadilla", "enchilada", "salsa"] },
-        { name: "Asian/Sushi", keywords: ["chinese", "japanese", "thai", "ramen", "noodle", "pho", "sushi", "teriyaki"] },
-        { name: "Cafe/Coffee", keywords: ["tea", "pastry", "breakfast", "espresso", "latte", "cappuccino"] },
-        { name: "Bakery", keywords: ["bread", "pastry", "cake", "cookie", "donut", "muffin"] },
-        { name: "Bar/Pub", keywords: ["drinks", "beer", "cocktails", "spirits", "wine", "taproom"] },
-        { name: "Brewery/Winery", keywords: ["craft beer", "ale", "wine", "tasting", "vineyard"] },
-        { name: "Fast Food", keywords: ["quick", "takeout", "drive-thru", "sandwich"] },
-        { name: "Dessert/Ice Cream", keywords: ["sweets", "gelato", "frozen yogurt", "sorbet", "treats"] }
+        { name: "Restaurant (Sit-down)", keywords: ["dinner", "lunch", "fine dining", "bistro"] },
+        { name: "Quick Service / Fast Food", keywords: ["burgers", "tacos", "takeout", "drive-thru"] },
+        { name: "Coffee Shop / Cafe", keywords: ["latte", "tea", "espresso", "bakery", "breakfast"] },
+        { name: "Bar / Pub / Nightlife", keywords: ["drinks", "beer", "cocktails", "club", "lounge"] },
+        { name: "Dessert / Ice Cream", keywords: ["gelato", "cakes", "sweets", "frozen yogurt"] },
+        { name: "Breweries & Wineries", keywords: ["beer", "wine", "tasting", "local brew"] }
       ]
     },
     {
-      label: "Retail",
+      label: "Retail & Shopping",
       subCategories: [
-        { name: "Clothing & Fashion", keywords: ["apparel", "boutique", "shoes", "fashion", "style", "dress"] },
-        { name: "Electronics", keywords: ["tech", "computers", "phones", "gadgets", "devices"] },
-        { name: "Home & Garden", keywords: ["furniture", "decor", "plants", "nursery", "patio"] },
-        { name: "Florist", keywords: ["flowers", "bouquet", "arrangements", "roses"] },
-        { name: "Jewelry", keywords: ["rings", "necklace", "bracelet", "gold", "silver", "diamonds"] },
-        { name: "Sporting Goods", keywords: ["sports", "equipment", "fitness", "athletic", "gear"] },
-        { name: "Thrift/Vintage", keywords: ["secondhand", "used", "consignment", "antique", "retro"] },
-        { name: "Grocery/Market", keywords: ["food", "produce", "supermarket", "fresh", "organic"] },
-        { name: "Pharmacy", keywords: ["medicine", "prescriptions", "drugstore", "health"] },
-        { name: "Convenience Store", keywords: ["snacks", "drinks", "quick stop", "mini mart"] }
+        { name: "Clothing & Apparel", keywords: ["fashion", "shoes", "boutique", "accessories"] },
+        { name: "Home & Garden", keywords: ["furniture", "decor", "plants", "hardware", "tools"] },
+        { name: "Grocery & Market", keywords: ["supermarket", "organic", "deli", "convenience"] },
+        { name: "Electronics & Hobbies", keywords: ["computers", "games", "toys", "books", "music"] },
+        { name: "Florist & Gifts", keywords: ["flowers", "presents", "souvenirs", "cards"] }
       ]
     },
     {
-      label: "Health & Beauty",
+      label: "Health, Beauty & Wellness",
       subCategories: [
-        { name: "Gym/Fitness Center", keywords: ["yoga", "pilates", "crossfit", "trainer", "workout", "weights", "cardio"] },
-        { name: "Hair Salon", keywords: ["haircut", "stylist", "color", "highlights", "blow dry"] },
-        { name: "Nail Salon", keywords: ["manicure", "pedicure", "nails", "polish", "gel"] },
-        { name: "Spa", keywords: ["massage", "facial", "relaxation", "wellness", "treatment"] },
-        { name: "Barbershop", keywords: ["haircut", "shave", "beard", "fade", "trim"] },
-        { name: "Yoga/Pilates", keywords: ["meditation", "stretching", "flexibility", "wellness", "mindfulness"] },
-        { name: "Tattoo/Piercing", keywords: ["ink", "body art", "tattoos", "piercings", "custom"] }
+        { name: "Hair Salon / Barbershop", keywords: ["haircut", "color", "fade", "stylist"] },
+        { name: "Nail Salon", keywords: ["manicure", "pedicure", "nails", "polish"] },
+        { name: "Spa & Massage", keywords: ["facial", "waxing", "relaxation", "therapy"] },
+        { name: "Gym / Fitness Center", keywords: ["workout", "weights", "training", "cardio"] },
+        { name: "Yoga / Pilates Studio", keywords: ["class", "stretch", "mat", "meditation"] },
+        { name: "Medical / Dental Office", keywords: ["doctor", "dentist", "clinic", "health"] }
       ]
     },
     {
-      label: "Automotive",
+      label: "Education & Childcare",
       subCategories: [
-        { name: "Auto Repair", keywords: ["mechanic", "fix", "maintenance", "oil change", "brake"] },
-        { name: "Dealership", keywords: ["cars", "vehicles", "new", "used", "sales"] },
-        { name: "Car Wash", keywords: ["detail", "clean", "wash", "wax"] },
-        { name: "Gas Station", keywords: ["fuel", "gasoline", "petrol", "convenience"] },
-        { name: "Auto Parts", keywords: ["parts", "accessories", "supplies", "components"] }
+        { name: "Daycare / Preschool", keywords: ["childcare", "nursery", "kids", "toddlers", "early learning"] },
+        { name: "School (K-12)", keywords: ["elementary", "high school", "private", "academy"] },
+        { name: "Tutoring & Test Prep", keywords: ["math", "reading", "SAT", "after school"] },
+        { name: "Art / Music / Dance School", keywords: ["piano", "ballet", "painting", "lessons"] }
       ]
     },
     {
-      label: "Entertainment",
+      label: "Entertainment & Activities",
       subCategories: [
-        { name: "Art Gallery", keywords: ["paintings", "exhibits", "artists", "sculptures", "fine art"] },
-        { name: "Museum", keywords: ["exhibits", "history", "culture", "artifacts", "collections"] },
-        { name: "Movie Theater", keywords: ["cinema", "films", "movies", "screening", "popcorn"] },
-        { name: "Bowling/Arcade", keywords: ["games", "fun", "entertainment", "family", "lanes"] },
-        { name: "Nightclub", keywords: ["dancing", "DJ", "party", "drinks", "music"] },
-        { name: "Music Venue", keywords: ["concerts", "live music", "bands", "shows", "performances"] }
+        { name: "Event Venue / Hall", keywords: ["wedding", "party", "conference", "banquet"] },
+        { name: "Arts & Culture", keywords: ["museum", "gallery", "theater", "cinema"] },
+        { name: "Active Entertainment", keywords: ["bowling", "arcade", "escape room", "mini golf"] },
+        { name: "Parks & Recreation", keywords: ["playground", "sports field", "pool", "hiking"] }
       ]
     },
     {
-      label: "Professional",
+      label: "Automotive & Services",
       subCategories: [
-        { name: "Coworking Space", keywords: ["office", "workspace", "desk", "shared", "business"] },
-        { name: "Office Building", keywords: ["commercial", "business", "corporate", "workspace"] },
-        { name: "Event Hall", keywords: ["venue", "reception", "meetings", "conferences", "banquet"] },
-        { name: "Hotel/Lodging", keywords: ["accommodation", "stay", "rooms", "inn", "motel"] }
+        { name: "Auto Repair / Mechanic", keywords: ["oil change", "brakes", "tires", "engine"] },
+        { name: "Car Wash / Detailing", keywords: ["cleaning", "interior", "exterior", "wax"] },
+        { name: "Gas Station / EV Charging", keywords: ["fuel", "convenience", "electric"] },
+        { name: "Dry Cleaner / Laundry", keywords: ["wash", "fold", "alterations", "clothes"] }
       ]
     }
   ],
@@ -78,253 +66,138 @@ export const ARCHETYPE_CATEGORIES = {
     {
       label: "Food & Drink",
       subCategories: [
-        { name: "American", keywords: ["burger", "fries", "wings", "diner", "bbq", "steak"] },
-        { name: "Italian", keywords: ["pizza", "pasta", "spaghetti", "lasagna", "ravioli"] },
-        { name: "Mexican", keywords: ["taco", "burrito", "quesadilla", "enchilada", "salsa"] },
-        { name: "Asian/Sushi", keywords: ["chinese", "japanese", "thai", "ramen", "noodle", "pho", "sushi", "teriyaki"] },
-        { name: "Cafe/Coffee", keywords: ["tea", "pastry", "breakfast", "espresso", "latte", "cappuccino"] },
-        { name: "Bakery", keywords: ["bread", "pastry", "cake", "cookie", "donut", "muffin"] },
-        { name: "Bar/Pub", keywords: ["drinks", "beer", "cocktails", "spirits", "wine", "taproom"] },
-        { name: "Brewery/Winery", keywords: ["craft beer", "ale", "wine", "tasting", "vineyard"] },
-        { name: "Fast Food", keywords: ["quick", "takeout", "drive-thru", "sandwich"] },
-        { name: "Dessert/Ice Cream", keywords: ["sweets", "gelato", "frozen yogurt", "sorbet", "treats"] }
+        { name: "Restaurant (Sit-down)", keywords: ["dinner", "lunch", "fine dining", "bistro"] },
+        { name: "Quick Service / Fast Food", keywords: ["burgers", "tacos", "takeout", "drive-thru"] },
+        { name: "Coffee Shop / Cafe", keywords: ["latte", "tea", "espresso", "bakery", "breakfast"] },
+        { name: "Bar / Pub / Nightlife", keywords: ["drinks", "beer", "cocktails", "club", "lounge"] },
+        { name: "Dessert / Ice Cream", keywords: ["gelato", "cakes", "sweets", "frozen yogurt"] },
+        { name: "Breweries & Wineries", keywords: ["beer", "wine", "tasting", "local brew"] }
       ]
     },
     {
-      label: "Retail",
+      label: "Retail & Shopping",
       subCategories: [
-        { name: "Clothing & Fashion", keywords: ["apparel", "boutique", "shoes", "fashion", "style", "dress"] },
-        { name: "Electronics", keywords: ["tech", "computers", "phones", "gadgets", "devices"] },
-        { name: "Home & Garden", keywords: ["furniture", "decor", "plants", "nursery", "patio"] },
-        { name: "Florist", keywords: ["flowers", "bouquet", "arrangements", "roses"] },
-        { name: "Jewelry", keywords: ["rings", "necklace", "bracelet", "gold", "silver", "diamonds"] },
-        { name: "Sporting Goods", keywords: ["sports", "equipment", "fitness", "athletic", "gear"] },
-        { name: "Thrift/Vintage", keywords: ["secondhand", "used", "consignment", "antique", "retro"] },
-        { name: "Grocery/Market", keywords: ["food", "produce", "supermarket", "fresh", "organic"] },
-        { name: "Pharmacy", keywords: ["medicine", "prescriptions", "drugstore", "health"] },
-        { name: "Convenience Store", keywords: ["snacks", "drinks", "quick stop", "mini mart"] }
+        { name: "Clothing & Apparel", keywords: ["fashion", "shoes", "boutique", "accessories"] },
+        { name: "Home & Garden", keywords: ["furniture", "decor", "plants", "hardware", "tools"] },
+        { name: "Grocery & Market", keywords: ["supermarket", "organic", "deli", "convenience"] },
+        { name: "Electronics & Hobbies", keywords: ["computers", "games", "toys", "books", "music"] },
+        { name: "Florist & Gifts", keywords: ["flowers", "presents", "souvenirs", "cards"] }
       ]
     },
     {
-      label: "Health & Beauty",
+      label: "Health, Beauty & Wellness",
       subCategories: [
-        { name: "Gym/Fitness Center", keywords: ["yoga", "pilates", "crossfit", "trainer", "workout", "weights", "cardio"] },
-        { name: "Hair Salon", keywords: ["haircut", "stylist", "color", "highlights", "blow dry"] },
-        { name: "Nail Salon", keywords: ["manicure", "pedicure", "nails", "polish", "gel"] },
-        { name: "Spa", keywords: ["massage", "facial", "relaxation", "wellness", "treatment"] },
-        { name: "Barbershop", keywords: ["haircut", "shave", "beard", "fade", "trim"] },
-        { name: "Yoga/Pilates", keywords: ["meditation", "stretching", "flexibility", "wellness", "mindfulness"] },
-        { name: "Tattoo/Piercing", keywords: ["ink", "body art", "tattoos", "piercings", "custom"] }
+        { name: "Hair Salon / Barbershop", keywords: ["haircut", "color", "fade", "stylist"] },
+        { name: "Nail Salon", keywords: ["manicure", "pedicure", "nails", "polish"] },
+        { name: "Spa & Massage", keywords: ["facial", "waxing", "relaxation", "therapy"] },
+        { name: "Gym / Fitness Center", keywords: ["workout", "weights", "training", "cardio"] },
+        { name: "Yoga / Pilates Studio", keywords: ["class", "stretch", "mat", "meditation"] },
+        { name: "Medical / Dental Office", keywords: ["doctor", "dentist", "clinic", "health"] }
       ]
     },
     {
-      label: "Automotive",
+      label: "Education & Childcare",
       subCategories: [
-        { name: "Auto Repair", keywords: ["mechanic", "fix", "maintenance", "oil change", "brake"] },
-        { name: "Dealership", keywords: ["cars", "vehicles", "new", "used", "sales"] },
-        { name: "Car Wash", keywords: ["detail", "clean", "wash", "wax"] },
-        { name: "Gas Station", keywords: ["fuel", "gasoline", "petrol", "convenience"] },
-        { name: "Auto Parts", keywords: ["parts", "accessories", "supplies", "components"] }
+        { name: "Daycare / Preschool", keywords: ["childcare", "nursery", "kids", "toddlers", "early learning"] },
+        { name: "School (K-12)", keywords: ["elementary", "high school", "private", "academy"] },
+        { name: "Tutoring & Test Prep", keywords: ["math", "reading", "SAT", "after school"] },
+        { name: "Art / Music / Dance School", keywords: ["piano", "ballet", "painting", "lessons"] }
       ]
     },
     {
-      label: "Entertainment",
+      label: "Entertainment & Activities",
       subCategories: [
-        { name: "Art Gallery", keywords: ["paintings", "exhibits", "artists", "sculptures", "fine art"] },
-        { name: "Museum", keywords: ["exhibits", "history", "culture", "artifacts", "collections"] },
-        { name: "Movie Theater", keywords: ["cinema", "films", "movies", "screening", "popcorn"] },
-        { name: "Bowling/Arcade", keywords: ["games", "fun", "entertainment", "family", "lanes"] },
-        { name: "Nightclub", keywords: ["dancing", "DJ", "party", "drinks", "music"] },
-        { name: "Music Venue", keywords: ["concerts", "live music", "bands", "shows", "performances"] }
+        { name: "Event Venue / Hall", keywords: ["wedding", "party", "conference", "banquet"] },
+        { name: "Arts & Culture", keywords: ["museum", "gallery", "theater", "cinema"] },
+        { name: "Active Entertainment", keywords: ["bowling", "arcade", "escape room", "mini golf"] },
+        { name: "Parks & Recreation", keywords: ["playground", "sports field", "pool", "hiking"] }
       ]
     },
     {
-      label: "Professional",
+      label: "Automotive & Services",
       subCategories: [
-        { name: "Coworking Space", keywords: ["office", "workspace", "desk", "shared", "business"] },
-        { name: "Office Building", keywords: ["commercial", "business", "corporate", "workspace"] },
-        { name: "Event Hall", keywords: ["venue", "reception", "meetings", "conferences", "banquet"] },
-        { name: "Hotel/Lodging", keywords: ["accommodation", "stay", "rooms", "inn", "motel"] }
-      ]
-    },
-    {
-      label: "Education & Care",
-      subCategories: [
-        { name: "Daycare Center", keywords: ["preschool", "childcare", "nursery", "kids"] },
-        { name: "Private School", keywords: ["education", "academy", "learning"] },
-        { name: "Tutoring Center", keywords: ["math", "reading", "sat", "prep"] },
-        { name: "Music/Art School", keywords: ["piano", "lessons", "painting", "dance"] },
-        { name: "Vocational School", keywords: ["trade", "technical", "training"] }
-      ]
-    },
-    {
-      label: "Local Services",
-      subCategories: [
-        { name: "Dry Cleaner", keywords: ["laundry", "wash", "clothes"] },
-        { name: "Tailor/Alterations", keywords: ["sewing", "hem", "repair"] },
-        { name: "Post Office/Shipping", keywords: ["mail", "fedex", "ups", "pack"] },
-        { name: "Pet Grooming/Boarding", keywords: ["dog", "cat", "kennel", "wash"] },
-        { name: "Veterinarian", keywords: ["animal", "doctor", "pet", "medical"] }
-      ]
-    }
-    ],
-
-    service: [
-    {
-      label: "Home Services",
-      subCategories: [
-        { name: "General Contractor", keywords: ["construction", "remodeling", "renovation", "building"] },
-        { name: "Handyman", keywords: ["repairs", "fix", "maintenance", "odd jobs"] },
-        { name: "Cleaning/Maid", keywords: ["housekeeping", "janitorial", "sanitize", "tidy"] },
-        { name: "Landscaping/Lawn", keywords: ["yard", "garden", "mowing", "trimming", "mulch"] },
-        { name: "Plumbing", keywords: ["pipes", "drains", "leaks", "faucets", "plumber"] },
-        { name: "Electrical", keywords: ["wiring", "electrician", "outlets", "lighting", "circuits"] },
-        { name: "HVAC", keywords: ["heating", "cooling", "air conditioning", "furnace", "ac"] },
-        { name: "Roofing", keywords: ["shingles", "roof repair", "gutters", "leak"] },
-        { name: "Pest Control", keywords: ["exterminator", "bugs", "insects", "rodents", "termites"] },
-        { name: "Moving & Storage", keywords: ["movers", "relocation", "packing", "transport"] },
-        { name: "Pool Service", keywords: ["pool cleaning", "maintenance", "chemicals", "filter"] }
-      ]
-    },
-    {
-      label: "Professional",
-      subCategories: [
-        { name: "Real Estate Agent", keywords: ["realtor", "property", "homes", "houses", "buying", "selling"] },
-        { name: "Legal/Attorney", keywords: ["lawyer", "law", "legal advice", "court", "counsel"] },
-        { name: "Accounting/Tax", keywords: ["accountant", "bookkeeping", "taxes", "cpa", "finance"] },
-        { name: "Insurance", keywords: ["coverage", "policy", "agent", "life", "auto", "health"] },
-        { name: "Financial Advisor", keywords: ["investment", "planning", "wealth", "retirement", "finance"] },
-        { name: "Consulting", keywords: ["business", "strategy", "advisor", "expert", "guidance"] },
-        { name: "Marketing/Web Design", keywords: ["digital", "seo", "website", "branding", "social media"] },
-        { name: "Notary", keywords: ["documents", "signatures", "certification", "legal"] }
-      ]
-    },
-    {
-      label: "Health & Wellness",
-      subCategories: [
-        { name: "Personal Trainer", keywords: ["fitness", "workout", "exercise", "gym", "coaching"] },
-        { name: "Massage Therapist", keywords: ["massage", "bodywork", "therapeutic", "relaxation"] },
-        { name: "Nutritionist", keywords: ["diet", "nutrition", "meal planning", "health", "wellness"] },
-        { name: "Mental Health/Therapy", keywords: ["counseling", "therapist", "psychologist", "therapy"] },
-        { name: "Chiropractor", keywords: ["adjustment", "spine", "back pain", "alignment"] },
-        { name: "Senior Care", keywords: ["elderly", "caregiver", "assisted living", "homecare"] }
-      ]
-    },
-    {
-      label: "Family & Education",
-      subCategories: [
-        { name: "Tutoring", keywords: ["tutor", "education", "learning", "homework", "teaching"] },
-        { name: "Childcare/Nanny", keywords: ["babysitter", "daycare", "kids", "children", "caregiver"] },
-        { name: "Music Lessons", keywords: ["piano", "guitar", "voice", "instrument", "teacher"] },
-        { name: "Driving School", keywords: ["driving lessons", "instructor", "license", "learner"] }
-      ]
-    },
-    {
-      label: "Pets",
-      subCategories: [
-        { name: "Dog Walking", keywords: ["pet care", "dogs", "exercise", "walker"] },
-        { name: "Pet Sitting", keywords: ["pet care", "boarding", "cats", "dogs", "animals"] },
-        { name: "Mobile Grooming", keywords: ["pet grooming", "bathing", "trimming", "nails"] },
-        { name: "Training", keywords: ["dog training", "obedience", "behavior", "puppy"] }
-      ]
-    },
-    {
-      label: "Events",
-      subCategories: [
-        { name: "Photographer", keywords: ["photography", "photos", "wedding", "portraits", "camera"] },
-        { name: "DJ/Musician", keywords: ["music", "entertainment", "party", "wedding", "live"] },
-        { name: "Caterer", keywords: ["catering", "food", "events", "menu", "party"] },
-        { name: "Planner", keywords: ["event planning", "coordinator", "wedding", "party"] },
-        { name: "Florist (Events)", keywords: ["flowers", "arrangements", "wedding", "decorations"] },
-        { name: "Makeup Artist (Events)", keywords: ["makeup", "beauty", "wedding", "hair", "styling"] }
-      ]
-    },
-    {
-      label: "Automotive",
-      subCategories: [
-        { name: "Mobile Mechanic", keywords: ["car repair", "on-site", "service", "maintenance"] },
-        { name: "Detailing", keywords: ["car cleaning", "polish", "wax", "interior"] },
-        { name: "Towing", keywords: ["tow truck", "roadside", "emergency", "transport"] }
+        { name: "Auto Repair / Mechanic", keywords: ["oil change", "brakes", "tires", "engine"] },
+        { name: "Car Wash / Detailing", keywords: ["cleaning", "interior", "exterior", "wax"] },
+        { name: "Gas Station / EV Charging", keywords: ["fuel", "convenience", "electric"] },
+        { name: "Dry Cleaner / Laundry", keywords: ["wash", "fold", "alterations", "clothes"] }
       ]
     }
   ],
   
+  service: [
+    {
+      label: "Home Services",
+      subCategories: [
+        { name: "Plumbing", keywords: ["leaks", "pipes", "water", "toilet"] },
+        { name: "Electrical", keywords: ["wiring", "lights", "outlets", "power"] },
+        { name: "HVAC / Heating & Cooling", keywords: ["ac", "furnace", "air conditioning"] },
+        { name: "Landscaping / Lawn Care", keywords: ["grass", "mowing", "garden", "tree"] },
+        { name: "House Cleaning", keywords: ["maid", "janitorial", "deep clean"] },
+        { name: "Handyman / General Repair", keywords: ["fix", "install", "maintenance"] }
+      ]
+    },
+    {
+      label: "Professional Services",
+      subCategories: [
+        { name: "Real Estate Agent", keywords: ["realtor", "buy", "sell", "homes"] },
+        { name: "Legal / Attorney", keywords: ["lawyer", "court", "advice", "contracts"] },
+        { name: "Accounting / Tax", keywords: ["cpa", "bookkeeping", "finance", "taxes"] },
+        { name: "Financial Planning", keywords: ["investing", "wealth", "advisor"] },
+        { name: "Insurance Agent", keywords: ["auto", "home", "life", "policy"] }
+      ]
+    },
+    {
+      label: "Personal Services",
+      subCategories: [
+        { name: "Personal Training", keywords: ["fitness", "coach", "health"] },
+        { name: "Pet Sitting / Walking", keywords: ["dog", "cat", "animals"] },
+        { name: "Photography / Videography", keywords: ["portraits", "events", "wedding", "camera"] },
+        { name: "Event Planning", keywords: ["party", "organizer", "wedding"] }
+      ]
+    }
+  ],
+
   talent: [
     {
       label: "Home Services",
       subCategories: [
-        { name: "General Contractor", keywords: ["construction", "remodeling", "renovation", "building"] },
-        { name: "Handyman", keywords: ["repairs", "fix", "maintenance", "odd jobs"] },
-        { name: "Cleaning/Maid", keywords: ["housekeeping", "janitorial", "sanitize", "tidy"] },
-        { name: "Landscaping/Lawn", keywords: ["yard", "garden", "mowing", "trimming", "mulch"] },
-        { name: "Plumbing", keywords: ["pipes", "drains", "leaks", "faucets", "plumber"] },
-        { name: "Electrical", keywords: ["wiring", "electrician", "outlets", "lighting", "circuits"] },
-        { name: "HVAC", keywords: ["heating", "cooling", "air conditioning", "furnace", "ac"] },
-        { name: "Roofing", keywords: ["shingles", "roof repair", "gutters", "leak"] },
-        { name: "Pest Control", keywords: ["exterminator", "bugs", "insects", "rodents", "termites"] },
-        { name: "Moving & Storage", keywords: ["movers", "relocation", "packing", "transport"] },
-        { name: "Pool Service", keywords: ["pool cleaning", "maintenance", "chemicals", "filter"] }
+        { name: "Plumbing", keywords: ["leaks", "pipes", "water", "toilet"] },
+        { name: "Electrical", keywords: ["wiring", "lights", "outlets", "power"] },
+        { name: "HVAC / Heating & Cooling", keywords: ["ac", "furnace", "air conditioning"] },
+        { name: "Landscaping / Lawn Care", keywords: ["grass", "mowing", "garden", "tree"] },
+        { name: "House Cleaning", keywords: ["maid", "janitorial", "deep clean"] },
+        { name: "Handyman / General Repair", keywords: ["fix", "install", "maintenance"] }
       ]
     },
     {
-      label: "Professional",
+      label: "Professional Services",
       subCategories: [
-        { name: "Real Estate Agent", keywords: ["realtor", "property", "homes", "houses", "buying", "selling"] },
-        { name: "Legal/Attorney", keywords: ["lawyer", "law", "legal advice", "court", "counsel"] },
-        { name: "Accounting/Tax", keywords: ["accountant", "bookkeeping", "taxes", "cpa", "finance"] },
-        { name: "Insurance", keywords: ["coverage", "policy", "agent", "life", "auto", "health"] },
-        { name: "Financial Advisor", keywords: ["investment", "planning", "wealth", "retirement", "finance"] },
-        { name: "Consulting", keywords: ["business", "strategy", "advisor", "expert", "guidance"] },
-        { name: "Marketing/Web Design", keywords: ["digital", "seo", "website", "branding", "social media"] },
-        { name: "Notary", keywords: ["documents", "signatures", "certification", "legal"] }
+        { name: "Real Estate Agent", keywords: ["realtor", "buy", "sell", "homes"] },
+        { name: "Legal / Attorney", keywords: ["lawyer", "court", "advice", "contracts"] },
+        { name: "Accounting / Tax", keywords: ["cpa", "bookkeeping", "finance", "taxes"] },
+        { name: "Financial Planning", keywords: ["investing", "wealth", "advisor"] },
+        { name: "Insurance Agent", keywords: ["auto", "home", "life", "policy"] }
       ]
     },
     {
-      label: "Health & Wellness",
+      label: "Personal Services",
       subCategories: [
-        { name: "Personal Trainer", keywords: ["fitness", "workout", "exercise", "gym", "coaching"] },
-        { name: "Massage Therapist", keywords: ["massage", "bodywork", "therapeutic", "relaxation"] },
-        { name: "Nutritionist", keywords: ["diet", "nutrition", "meal planning", "health", "wellness"] },
-        { name: "Mental Health/Therapy", keywords: ["counseling", "therapist", "psychologist", "therapy"] },
-        { name: "Chiropractor", keywords: ["adjustment", "spine", "back pain", "alignment"] },
-        { name: "Senior Care", keywords: ["elderly", "caregiver", "assisted living", "homecare"] }
+        { name: "Personal Training", keywords: ["fitness", "coach", "health"] },
+        { name: "Pet Sitting / Walking", keywords: ["dog", "cat", "animals"] },
+        { name: "Photography / Videography", keywords: ["portraits", "events", "wedding", "camera"] },
+        { name: "Event Planning", keywords: ["party", "organizer", "wedding"] }
       ]
-    },
+    }
+  ],
+
+  product: [
     {
-      label: "Family & Education",
+      label: "Goods",
       subCategories: [
-        { name: "Tutoring", keywords: ["tutor", "education", "learning", "homework", "teaching"] },
-        { name: "Childcare/Nanny", keywords: ["babysitter", "daycare", "kids", "children", "caregiver"] },
-        { name: "Music Lessons", keywords: ["piano", "guitar", "voice", "instrument", "teacher"] },
-        { name: "Driving School", keywords: ["driving lessons", "instructor", "license", "learner"] }
-      ]
-    },
-    {
-      label: "Pets",
-      subCategories: [
-        { name: "Dog Walking", keywords: ["pet care", "dogs", "exercise", "walker"] },
-        { name: "Pet Sitting", keywords: ["pet care", "boarding", "cats", "dogs", "animals"] },
-        { name: "Mobile Grooming", keywords: ["pet grooming", "bathing", "trimming", "nails"] },
-        { name: "Training", keywords: ["dog training", "obedience", "behavior", "puppy"] }
-      ]
-    },
-    {
-      label: "Events",
-      subCategories: [
-        { name: "Photographer", keywords: ["photography", "photos", "wedding", "portraits", "camera"] },
-        { name: "DJ/Musician", keywords: ["music", "entertainment", "party", "wedding", "live"] },
-        { name: "Caterer", keywords: ["catering", "food", "events", "menu", "party"] },
-        { name: "Planner", keywords: ["event planning", "coordinator", "wedding", "party"] },
-        { name: "Florist (Events)", keywords: ["flowers", "arrangements", "wedding", "decorations"] },
-        { name: "Makeup Artist (Events)", keywords: ["makeup", "beauty", "wedding", "hair", "styling"] }
-      ]
-    },
-    {
-      label: "Automotive",
-      subCategories: [
-        { name: "Mobile Mechanic", keywords: ["car repair", "on-site", "service", "maintenance"] },
-        { name: "Detailing", keywords: ["car cleaning", "polish", "wax", "interior"] },
-        { name: "Towing", keywords: ["tow truck", "roadside", "emergency", "transport"] }
+        { name: "Handmade / Artisan", keywords: ["crafts", "jewelry", "art", "custom"] },
+        { name: "Vintage / Resale", keywords: ["thrift", "antique", "used", "retro"] },
+        { name: "Food Product / CPG", keywords: ["sauce", "snacks", "drinks", "packaged"] },
+        { name: "Digital Products", keywords: ["ebook", "course", "software", "templates"] }
       ]
     }
   ],
