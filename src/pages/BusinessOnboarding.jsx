@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ChevronLeft, ChevronRight, Loader2, Upload, X, Plus, Trash2,
-  Check, Star, Zap, Crown, Store, UserCircle, Heart, Ticket
+  Check, Star, Zap, Crown, Store, UserCircle, Heart, Ticket, User
 } from "lucide-react";
 import { ARCHETYPE_CATEGORIES } from '@/components/categories/archetypeCategories';
 import Step2Details from '@/components/onboarding/Step2Details';
@@ -80,6 +80,14 @@ const archetypes = [
     title: 'Event Organizer',
     description: 'I host pop-ups, festivals, markets, or meetups.',
     examples: 'Concerts, Markets, Meetups, Nightlife'
+  },
+  {
+    id: 'community_member',
+    icon: User,
+    title: 'Community Member',
+    description: 'I want to support local businesses and attend events.',
+    examples: 'Skip the setup and start exploring immediately.',
+    isHelperText: true
   }
 ];
 
@@ -324,7 +332,9 @@ export default function BusinessOnboarding() {
                         </div>
                         <h3 className={`font-bold text-lg mb-2 transition-colors ${formData.archetype === archetype.id ? '!text-amber-500' : 'text-slate-100 group-hover:!text-amber-500'}`}>{archetype.title}</h3>
                         <p className="text-sm text-slate-400 mb-3">{archetype.description}</p>
-                        <p className="text-xs text-slate-500">Examples: {archetype.examples}</p>
+                        <p className={`text-xs ${archetype.isHelperText ? 'text-slate-500 italic' : 'text-slate-500'}`}>
+                          {archetype.isHelperText ? archetype.examples : `Examples: ${archetype.examples}`}
+                        </p>
                       </div>
                     </div>
                   );
