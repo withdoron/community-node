@@ -32,23 +32,28 @@ export default function Layout({ children, currentPageName }) {
 
   const NavContent = () => (
     <>
-      <Link to={createPageUrl('Search')}>
-        <Button variant="ghost" className="text-slate-600 hover:text-slate-900">
-          Browse
+      <Link to={createPageUrl('Events')}>
+        <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
+          Browse Events
+        </Button>
+      </Link>
+      <Link to={createPageUrl('Home')}>
+        <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
+          Personal Dashboard
         </Button>
       </Link>
       {currentUser?.is_business_owner ? (
         <Link to={createPageUrl('BusinessDashboard')}>
-          <Button variant="ghost" className="text-slate-600 hover:text-slate-900">
+          <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
             <LayoutDashboard className="h-4 w-4 mr-2" />
-            Dashboard
+            Host Dashboard
           </Button>
         </Link>
       ) : (
         <Link to={createPageUrl('BusinessOnboarding')}>
-          <Button variant="ghost" className="text-slate-600 hover:text-slate-900">
+          <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
             <Plus className="h-4 w-4 mr-2" />
-            List Your Business
+            Start Hosting
           </Button>
         </Link>
       )}
