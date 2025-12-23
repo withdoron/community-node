@@ -174,32 +174,34 @@ export default function Layout({ children, currentPageName }) {
         </header>
       )}
 
-      {/* Home page header (transparent overlay) */}
+      {/* Home page header - now consistent with other pages */}
       {isHomePage && (
-        <header className="absolute top-0 left-0 right-0 z-20">
-          <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+        <header className="bg-white border-b border-slate-200">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
             <Link to={createPageUrl('Home')} className="flex items-center gap-2">
-              <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center">
-                <Store className="h-4 w-4 text-slate-900" />
+              <div className="h-8 w-8 bg-slate-900 rounded-lg flex items-center justify-center">
+                <Store className="h-4 w-4 text-white" />
               </div>
-              <span className="font-bold text-white text-lg">Local Lane</span>
+              <span className="font-bold text-slate-900 text-lg">Local Lane</span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-2">
               <Link to={createPageUrl('Search')}>
-                <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10">
+                <Button variant="ghost" className="text-slate-600 hover:text-slate-900">
                   Browse
                 </Button>
               </Link>
               {currentUser?.is_business_owner ? (
                 <Link to={createPageUrl('BusinessDashboard')}>
-                  <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10">
+                  <Button variant="ghost" className="text-slate-600 hover:text-slate-900">
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
                     Dashboard
                   </Button>
                 </Link>
               ) : (
                 <Link to={createPageUrl('BusinessOnboarding')}>
-                  <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10">
+                  <Button variant="ghost" className="text-slate-600 hover:text-slate-900">
+                    <Plus className="h-4 w-4 mr-2" />
                     List Your Business
                   </Button>
                 </Link>
@@ -207,9 +209,9 @@ export default function Layout({ children, currentPageName }) {
               {currentUser ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="ml-2 hover:bg-white/10">
-                      <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center">
-                        <User className="h-4 w-4 text-white" />
+                    <Button variant="ghost" className="ml-2">
+                      <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center">
+                        <User className="h-4 w-4 text-slate-600" />
                       </div>
                     </Button>
                   </DropdownMenuTrigger>
@@ -220,41 +222,41 @@ export default function Layout({ children, currentPageName }) {
                     </div>
                     <DropdownMenuSeparator />
                     {currentUser.is_business_owner && (
-                                              <DropdownMenuItem asChild>
-                                                <Link to={createPageUrl('BusinessDashboard')}>
-                                                  <LayoutDashboard className="h-4 w-4 mr-2" />
-                                                  Dashboard
-                                                </Link>
-                                              </DropdownMenuItem>
-                                            )}
-                                            {currentUser.role === 'admin' && (
-                                              <DropdownMenuItem asChild>
-                                                <Link to={createPageUrl('Admin')}>
-                                                  <Shield className="h-4 w-4 mr-2" />
-                                                  Admin Panel
-                                                </Link>
-                                              </DropdownMenuItem>
-                                            )}
-                                            <DropdownMenuItem onClick={handleLogout}>
-                                              <LogOut className="h-4 w-4 mr-2" />
-                                              Log Out
-                                            </DropdownMenuItem>
-                                          </DropdownMenuContent>
-                                        </DropdownMenu>
-                                      ) : (
-                                        <Button 
-                                          className="ml-2 bg-white text-slate-900 hover:bg-white/90"
-                                          onClick={() => base44.auth.redirectToLogin()}
-                                        >
-                                          Sign In
-                                        </Button>
-                                      )}
-                                    </nav>
+                      <DropdownMenuItem asChild>
+                        <Link to={createPageUrl('BusinessDashboard')}>
+                          <LayoutDashboard className="h-4 w-4 mr-2" />
+                          Business Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    {currentUser.role === 'admin' && (
+                      <DropdownMenuItem asChild>
+                        <Link to={createPageUrl('Admin')}>
+                          <Shield className="h-4 w-4 mr-2" />
+                          Admin Panel
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Log Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button 
+                  className="ml-2 bg-slate-900 hover:bg-slate-800"
+                  onClick={() => base44.auth.redirectToLogin()}
+                >
+                  Sign In
+                </Button>
+              )}
+            </nav>
 
-                                    {/* Mobile */}
+            {/* Mobile */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-white hover:bg-white/10">
+                <Button variant="ghost" size="icon" className="md:hidden">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
@@ -269,7 +271,7 @@ export default function Layout({ children, currentPageName }) {
                     <Link to={createPageUrl('BusinessDashboard')}>
                       <Button variant="ghost" className="w-full justify-start">
                         <LayoutDashboard className="h-4 w-4 mr-2" />
-                        Dashboard
+                        Business Dashboard
                       </Button>
                     </Link>
                   ) : (
@@ -281,10 +283,16 @@ export default function Layout({ children, currentPageName }) {
                     </Link>
                   )}
                   {currentUser ? (
-                    <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Log Out
-                    </Button>
+                    <>
+                      <div className="px-4 py-2 border-t">
+                        <p className="text-sm font-medium">{currentUser.full_name}</p>
+                        <p className="text-xs text-slate-500">{currentUser.email}</p>
+                      </div>
+                      <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Log Out
+                      </Button>
+                    </>
                   ) : (
                     <Button 
                       className="w-full bg-slate-900 hover:bg-slate-800"
