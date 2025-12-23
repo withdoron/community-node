@@ -141,9 +141,9 @@ export default function Home() {
     }).slice(0, 8);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-slate-950">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-hidden">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-20 left-20 w-72 h-72 bg-amber-400 rounded-full blur-[120px]" />
           <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500 rounded-full blur-[150px]" />
@@ -222,12 +222,12 @@ export default function Home() {
       <section id="categories" className="max-w-6xl mx-auto px-4 py-16">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Browse by Category</h2>
-            <p className="text-slate-600 mt-1">Find exactly what you need</p>
+            <h2 className="text-2xl font-bold text-slate-100">Browse by Category</h2>
+            <p className="text-slate-400 mt-1">Find exactly what you need</p>
           </div>
           <Button 
             variant="ghost" 
-            className="text-slate-600 hover:text-slate-900"
+            className="text-slate-400 hover:text-amber-500"
             onClick={() => navigate(createPageUrl('Categories'))}
           >
             View all categories
@@ -242,10 +242,10 @@ export default function Home() {
               <button
                 key={category.id}
                 onClick={() => handleCategoryClick(category.id)}
-                className={`p-5 rounded-xl border border-slate-100 ${category.color} transition-all duration-200 hover:scale-[1.02] hover:shadow-sm text-left`}
+                className={`p-5 rounded-xl border border-slate-800 ${category.color} transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:border-amber-500/50 text-left bg-slate-900`}
               >
-                <Icon className="h-8 w-8 mb-3" />
-                <p className="font-semibold text-slate-900">{category.label}</p>
+                <Icon className="h-8 w-8 mb-3 text-slate-200" />
+                <p className="font-semibold text-slate-100">{category.label}</p>
               </button>
             );
           })}
@@ -253,16 +253,16 @@ export default function Home() {
       </section>
 
       {/* Top Rated Businesses (organic, no Featured badge) */}
-      <section className="bg-slate-50 py-16">
+      <section className="bg-slate-900 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">Top Rated Businesses</h2>
-              <p className="text-slate-600 mt-1">Highly recommended by your neighbors</p>
+              <h2 className="text-2xl font-bold text-slate-100">Top Rated Businesses</h2>
+              <p className="text-slate-400 mt-1">Highly recommended by your neighbors</p>
             </div>
             <Button 
               variant="ghost" 
-              className="text-slate-600 hover:text-slate-900"
+              className="text-slate-400 hover:text-amber-500"
               onClick={() => navigate(createPageUrl('Search'))}
             >
               View all
@@ -273,7 +273,7 @@ export default function Home() {
           {isLoading ? (
             <div className="grid gap-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-40 bg-white rounded-xl animate-pulse" />
+                <div key={i} className="h-40 bg-slate-800 rounded-xl animate-pulse" />
               ))}
             </div>
           ) : (
@@ -292,7 +292,7 @@ export default function Home() {
 
       {/* Why LocalLane */}
       <section className="max-w-6xl mx-auto px-4 py-16">
-        <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">Why use Local Lane?</h2>
+        <h2 className="text-2xl font-bold text-slate-100 text-center mb-10">Why use Local Lane?</h2>
         <div className="grid md:grid-cols-3 gap-8">
           <motion.div 
             className="text-center p-6"
@@ -301,11 +301,11 @@ export default function Home() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0 }}
           >
-            <div className="h-12 w-12 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Store className="h-6 w-6 text-emerald-600" />
+            <div className="h-12 w-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <Store className="h-6 w-6 text-emerald-400" />
             </div>
-            <h3 className="font-semibold text-lg text-slate-900">Trusted Local Pros</h3>
-            <p className="text-slate-600 mt-2 text-sm">
+            <h3 className="font-semibold text-lg text-slate-100">Trusted Local Pros</h3>
+            <p className="text-slate-400 mt-2 text-sm">
               Every listing is a real local business, vetted by the community. No ads, just quality connections.
             </p>
           </motion.div>
@@ -316,11 +316,11 @@ export default function Home() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <div className="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Calendar className="h-6 w-6 text-amber-600" />
+            <div className="h-12 w-12 bg-amber-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <Calendar className="h-6 w-6 text-amber-400" />
             </div>
-            <h3 className="font-semibold text-lg text-slate-900">Events & Activities</h3>
-            <p className="text-slate-600 mt-2 text-sm">
+            <h3 className="font-semibold text-lg text-slate-100">Events & Activities</h3>
+            <p className="text-slate-400 mt-2 text-sm">
               From family outings to community meetups—find out what's happening in Eugene/Springfield this weekend.
             </p>
           </motion.div>
@@ -331,11 +331,11 @@ export default function Home() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <div className="h-12 w-12 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Coins className="h-6 w-6 text-yellow-600" />
+            <div className="h-12 w-12 bg-yellow-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <Coins className="h-6 w-6 text-yellow-400" />
             </div>
-            <h3 className="font-semibold text-lg text-slate-900">Sound Money Friendly</h3>
-            <p className="text-slate-600 mt-2 text-sm">
+            <h3 className="font-semibold text-lg text-slate-100">Sound Money Friendly</h3>
+            <p className="text-slate-400 mt-2 text-sm">
               Support the local economy with the option to support sound money with silver. Always optional, always sound.
             </p>
           </motion.div>
@@ -343,7 +343,7 @@ export default function Home() {
       </section>
 
       {/* CTA for Business Owners & Event Organizers */}
-      <section className="bg-slate-900 py-16">
+      <section className="bg-slate-900/50 py-16 border-t border-slate-800">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-white">Be Part of the Community</h2>
           <p className="text-slate-300 mt-4 max-w-xl mx-auto">
