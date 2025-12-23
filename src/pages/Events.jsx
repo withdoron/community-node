@@ -9,6 +9,60 @@ import FilterModal from '@/components/events/FilterModal';
 import { Search, SlidersHorizontal, Map, List, Loader2 } from "lucide-react";
 import { isToday, isThisWeek, startOfDay, endOfDay, startOfWeek, endOfWeek } from 'date-fns';
 
+const DUMMY_EVENTS = [
+  {
+    id: '1',
+    title: 'Eugene Saturday Market',
+    date: '2025-06-15T10:00:00',
+    location: '8th & Oak, Eugene',
+    category: 'community',
+    lat: 44.0521,
+    lng: -123.0868,
+    thumbnail_url: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&q=80',
+    is_trusted: true,
+    accepts_silver: true,
+    setting: 'outdoor',
+    audience: ['family', 'all_ages'],
+    price: 0,
+    is_volunteer: false,
+    is_active: true
+  },
+  {
+    id: '2',
+    title: 'Silver Stacking Workshop',
+    date: '2025-06-16T18:00:00',
+    location: 'Springfield Library',
+    category: 'education',
+    lat: 44.0462,
+    lng: -123.0220,
+    thumbnail_url: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&q=80',
+    is_trusted: true,
+    accepts_silver: false,
+    setting: 'indoor',
+    audience: ['adults'],
+    price: 10,
+    is_volunteer: false,
+    is_active: true
+  },
+  {
+    id: '3',
+    title: 'River Road Community Garden',
+    date: '2025-06-17T09:00:00',
+    location: 'River Road',
+    category: 'community',
+    lat: 44.0935,
+    lng: -123.1465,
+    thumbnail_url: 'https://images.unsplash.com/photo-1592419044706-39796d40f98c?auto=format&fit=crop&q=80',
+    is_trusted: false,
+    accepts_silver: false,
+    setting: 'outdoor',
+    audience: ['family', 'all_ages'],
+    price: 0,
+    is_volunteer: true,
+    is_active: true
+  }
+];
+
 export default function Events() {
   const [searchQuery, setSearchQuery] = useState('');
   const [quickFilter, setQuickFilter] = useState('all');
@@ -22,10 +76,9 @@ export default function Events() {
     isVolunteer: false
   });
 
-  const { data: events = [], isLoading } = useQuery({
-    queryKey: ['events'],
-    queryFn: () => base44.entities.Event.filter({ is_active: true }, '-date', 100)
-  });
+  // Use dummy data for now
+  const events = DUMMY_EVENTS;
+  const isLoading = false;
 
   const filteredEvents = useMemo(() => {
     let result = [...events];

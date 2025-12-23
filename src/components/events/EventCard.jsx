@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Coins, Trees, Handshake, Clock } from "lucide-react";
+import { Calendar, MapPin, Coins, Trees, Handshake, Clock, ShieldCheck } from "lucide-react";
 import { format } from 'date-fns';
 
 export default function EventCard({ event, onClick }) {
@@ -34,9 +34,14 @@ export default function EventCard({ event, onClick }) {
         <div className="flex-1 min-w-0">
           {/* Title & Category */}
           <div className="flex items-start justify-between gap-2 mb-2">
-            <h3 className="font-semibold text-white text-base line-clamp-1">
-              {event.title}
-            </h3>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <h3 className="font-semibold text-white text-base line-clamp-1">
+                {event.title}
+              </h3>
+              {event.is_trusted && (
+                <ShieldCheck className="h-4 w-4 text-amber-500 flex-shrink-0" />
+              )}
+            </div>
             {isFree && (
               <Badge className="bg-emerald-500/20 text-emerald-400 border-0 text-xs flex-shrink-0">
                 FREE
