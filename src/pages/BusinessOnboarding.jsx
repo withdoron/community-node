@@ -89,6 +89,8 @@ export default function BusinessOnboarding() {
   const [uploading, setUploading] = useState(false);
   const [categorySearch, setCategorySearch] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = React.useRef(null);
   
   const [formData, setFormData] = useState({
     archetype: '',
@@ -140,6 +142,32 @@ export default function BusinessOnboarding() {
         cat.label.toLowerCase().includes(search) || cat.subCategories.length > 0
       );
   }, [categorySearch, availablePrimaryCategories]);
+
+  // Click outside to close dropdown
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleCategorySearchChange = (e) => {
+    const value = e.target.value;
+    setCategorySearch(value);
+    setIsDropdownOpen(value.length > 0);
+  };
+
+  const getDisplayValue = () => {
+    if (categorySearch) return categorySearch;
+    if (formData.primary_category && formData.sub_category) {
+      return `${formData.primary_category} > ${formData.sub_category}`;
+    }
+    if (formData.primary_category) return formData.primary_category;
+    return '';
+  };
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -441,54 +469,50 @@ export default function BusinessOnboarding() {
                     />
                   </div>
 
-                  <div>
-                    <Label className="text-slate-200">Category Search</Label>
+                  <div className="relative" ref={dropdownRef}>
+                    <Label htmlFor="category_search" className="text-slate-200">Category <span className="text-amber-500">*</span></Label>
                     <Input
-                      value={categorySearch}
-                      onChange={(e) => setCategorySearch(e.target.value)}
-                      placeholder="Type to search categories (e.g., Gym, Plumber)..."
+                      id="category_search"
+                      value={getDisplayValue()}
+                      onChange={handleCategorySearchChange}
+                      onFocus={() => setIsDropdownOpen(true)}
+                      placeholder="Search your category (e.g. Gym, Plumber, Cafe)..."
                       className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
                     />
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="primary_category" className="text-slate-200">Primary Category <span className="text-amber-500">*</span></Label>
-                      <Select
-                        value={formData.primary_category}
-                        onValueChange={handlePrimaryCategoryChange}
-                      >
-                        <SelectTrigger className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {filteredCategories.map((cat) => (
-                            <SelectItem key={cat.label} value={cat.label}>
-                              {cat.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {formData.primary_category && availableSubCategories.length > 0 && (
-                      <div>
-                        <Label htmlFor="sub_category" className="text-slate-200">Sub-Category</Label>
-                        <Select
-                          value={formData.sub_category}
-                          onValueChange={(value) => setFormData({ ...formData, sub_category: value })}
-                        >
-                          <SelectTrigger className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100">
-                            <SelectValue placeholder="Select sub-category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableSubCategories.map((sub) => (
-                              <SelectItem key={sub} value={sub}>
-                                {sub}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                    
+                    {isDropdownOpen && (
+                      <div className="absolute z-50 w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                        {filteredCategories.length > 0 ? (
+                          filteredCategories.map((cat) => (
+                            <div key={cat.label} className="py-2">
+                              <div className="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                {cat.label}
+                              </div>
+                              {cat.subCategories.map((sub) => (
+                                <button
+                                  key={sub}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData({ 
+                                      ...formData, 
+                                      primary_category: cat.label, 
+                                      sub_category: sub 
+                                    });
+                                    setCategorySearch('');
+                                    setIsDropdownOpen(false);
+                                  }}
+                                  className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 hover:text-amber-500 transition-colors"
+                                >
+                                  {sub}
+                                </button>
+                              ))}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="px-3 py-4 text-sm text-slate-500 text-center">
+                            No categories found
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
