@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ChevronLeft, ChevronRight, Loader2, Upload, X, Plus, Trash2,
-  Check, Star, Zap, Crown
+  Check, Star, Zap, Crown, Store, UserCircle, Heart, Ticket
 } from "lucide-react";
 import { mainCategories, getMainCategory } from '@/components/categories/categoryData';
 
@@ -50,7 +50,38 @@ const tiers = [
   }
 ];
 
-const steps = ['Business Info', 'Services', 'Choose Plan', 'Review'];
+const archetypes = [
+  {
+    id: 'location',
+    icon: Store,
+    title: 'Location / Venue',
+    description: 'I have a physical space for customers to visit.',
+    examples: 'Gym, Restaurant, Shop, Gallery'
+  },
+  {
+    id: 'service',
+    icon: UserCircle,
+    title: 'Service / Talent',
+    description: 'I offer services or classes at various locations.',
+    examples: 'Instructor, Artist, Consultant, Trainer'
+  },
+  {
+    id: 'community',
+    icon: Heart,
+    title: 'Community / Non-Profit',
+    description: 'I lead a group, cause, or congregation.',
+    examples: 'Church, Club, HOA, Charity'
+  },
+  {
+    id: 'organizer',
+    icon: Ticket,
+    title: 'Event Organizer',
+    description: 'I host pop-ups, festivals, or markets.',
+    examples: 'Concerts, Farmers Markets, Pop-ups'
+  }
+];
+
+const steps = ['Archetype', 'Details', 'Goals', 'Choose Plan', 'Review'];
 
 export default function BusinessOnboarding() {
   const navigate = useNavigate();
@@ -58,6 +89,7 @@ export default function BusinessOnboarding() {
   const [uploading, setUploading] = useState(false);
   
   const [formData, setFormData] = useState({
+    archetype: '',
     name: '',
     main_category: '',
     subcategories: [],
@@ -68,6 +100,15 @@ export default function BusinessOnboarding() {
     email: '',
     website: '',
     service_area: '',
+    primary_skill: '',
+    organization_type: '',
+    typical_event_size: '',
+    goals: {
+      sell_tickets: false,
+      accept_silver: false,
+      grow_membership: false,
+      manage_staff: false
+    },
     accepts_silver: false,
     photos: [],
     services: [{ name: '', starting_price: '', description: '' }],
@@ -171,12 +212,14 @@ export default function BusinessOnboarding() {
   const canProceed = () => {
     switch (currentStep) {
       case 0:
-        return formData.name && formData.main_category && formData.city;
+        return formData.archetype;
       case 1:
-        return true;
+        return formData.name && formData.main_category && formData.city;
       case 2:
-        return formData.subscription_tier;
+        return true;
       case 3:
+        return formData.subscription_tier;
+      case 4:
         return true;
       default:
         return false;
@@ -198,11 +241,11 @@ export default function BusinessOnboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-950">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
+      <div className="bg-slate-900 border-b border-slate-800">
         <div className="max-w-3xl mx-auto px-4 py-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl('Home'))}>
+          <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl('Home'))} className="text-slate-300 hover:text-slate-100">
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back to Home
           </Button>
@@ -221,22 +264,22 @@ export default function BusinessOnboarding() {
                 <div className={`
                   h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium
                   ${idx <= currentStep 
-                    ? 'bg-slate-900 text-white' 
-                    : 'bg-slate-200 text-slate-500'}
+                    ? 'bg-amber-500 text-black' 
+                    : 'bg-slate-800 text-slate-500'}
                 `}>
                   {idx < currentStep ? <Check className="h-4 w-4" /> : idx + 1}
                 </div>
                 {idx < steps.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-2 ${idx < currentStep ? 'bg-slate-900' : 'bg-slate-200'}`} />
+                  <div className={`flex-1 h-0.5 mx-2 ${idx < currentStep ? 'bg-amber-500' : 'bg-slate-800'}`} />
                 )}
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-xs">
             {steps.map((step, idx) => (
               <span 
                 key={step}
-                className={idx <= currentStep ? 'text-slate-900 font-medium' : 'text-slate-500'}
+                className={idx <= currentStep ? 'text-slate-100 font-medium' : 'text-slate-500'}
               >
                 {step}
               </span>
@@ -244,34 +287,120 @@ export default function BusinessOnboarding() {
           </div>
         </div>
 
-        <Card className="p-6 sm:p-8">
-          {/* Step 1: Business Info */}
+        <Card className="p-6 sm:p-8 bg-slate-900 border-slate-800">
+          {/* Step 0: Archetype Selector */}
           {currentStep === 0 && (
             <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-slate-100">How do you serve the community?</h2>
+                <p className="text-slate-400 mt-2">Choose the option that best describes your organization</p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 mt-8">
+                {archetypes.map((archetype) => {
+                  const Icon = archetype.icon;
+                  return (
+                    <div
+                      key={archetype.id}
+                      onClick={() => setFormData({ ...formData, archetype: archetype.id })}
+                      className={`
+                        p-6 rounded-lg border-2 cursor-pointer transition-all
+                        ${formData.archetype === archetype.id
+                          ? 'border-amber-500 bg-amber-500/10'
+                          : 'border-slate-800 bg-slate-900 hover:border-amber-500/50'}
+                      `}
+                    >
+                      <div className="flex flex-col items-center text-center">
+                        <div className={`
+                          h-16 w-16 rounded-lg flex items-center justify-center mb-4
+                          ${formData.archetype === archetype.id ? 'bg-amber-500/20' : 'bg-amber-500/10'}
+                        `}>
+                          <Icon className="h-8 w-8 text-amber-500" />
+                        </div>
+                        <h3 className="font-bold text-lg text-slate-100 mb-2">{archetype.title}</h3>
+                        <p className="text-sm text-slate-400 mb-3">{archetype.description}</p>
+                        <p className="text-xs text-slate-500">Examples: {archetype.examples}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Step 1: Details */}
+          {currentStep === 1 && (
+            <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Tell us about your business</h2>
-                <p className="text-slate-600 mt-1">Basic information to get started</p>
+                <h2 className="text-2xl font-bold text-slate-100">Tell us about your organization</h2>
+                <p className="text-slate-400 mt-1">Basic information to get started</p>
               </div>
 
               <div className="grid gap-4">
                 <div>
-                  <Label htmlFor="name">Business Name <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="name" className="text-slate-200">Organization Name <span className="text-amber-500">*</span></Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Your business name"
-                    className="mt-1.5"
+                    placeholder="Your organization name"
+                    className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
                   />
                 </div>
 
+                {/* Dynamic Fields Based on Archetype */}
+                {formData.archetype === 'service' && (
+                  <div>
+                    <Label htmlFor="primary_skill" className="text-slate-200">Primary Skill/Service</Label>
+                    <Input
+                      id="primary_skill"
+                      value={formData.primary_skill}
+                      onChange={(e) => setFormData({ ...formData, primary_skill: e.target.value })}
+                      placeholder="e.g., Yoga Instruction, Personal Training"
+                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                    />
+                  </div>
+                )}
+
+                {formData.archetype === 'community' && (
+                  <div>
+                    <Label htmlFor="organization_type" className="text-slate-200">Organization Type</Label>
+                    <Select
+                      value={formData.organization_type}
+                      onValueChange={(value) => setFormData({ ...formData, organization_type: value })}
+                    >
+                      <SelectTrigger className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="501c3">501(c)(3) Non-Profit</SelectItem>
+                        <SelectItem value="religious">Religious Organization</SelectItem>
+                        <SelectItem value="informal">Informal Community Group</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {formData.archetype === 'organizer' && (
+                  <div>
+                    <Label htmlFor="typical_event_size" className="text-slate-200">Typical Event Size</Label>
+                    <Input
+                      id="typical_event_size"
+                      value={formData.typical_event_size}
+                      onChange={(e) => setFormData({ ...formData, typical_event_size: e.target.value })}
+                      placeholder="e.g., 50-100 attendees"
+                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                    />
+                  </div>
+                )}
+
                 <div>
-                  <Label htmlFor="main_category">Category <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="main_category" className="text-slate-200">Category <span className="text-amber-500">*</span></Label>
                   <Select
                     value={formData.main_category}
                     onValueChange={handleMainCategoryChange}
                   >
-                    <SelectTrigger className="mt-1.5">
+                    <SelectTrigger className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -286,22 +415,22 @@ export default function BusinessOnboarding() {
 
                 {formData.main_category && availableSubcategories.length > 0 && (
                   <div>
-                    <Label>Subcategories (select all that apply)</Label>
+                    <Label className="text-slate-200">Subcategories (select all that apply)</Label>
                     <div className="mt-2 grid grid-cols-2 gap-2">
                       {availableSubcategories.map((sub) => (
                         <label
                           key={sub.id}
                           className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
                             formData.subcategories.includes(sub.id)
-                              ? 'border-slate-900 bg-slate-50'
-                              : 'border-slate-200 hover:border-slate-300'
+                              ? 'border-amber-500 bg-amber-500/10'
+                              : 'border-slate-700 hover:border-slate-600'
                           }`}
                         >
                           <Checkbox
                             checked={formData.subcategories.includes(sub.id)}
                             onCheckedChange={() => handleSubcategoryToggle(sub.id)}
                           />
-                          <span className="text-sm">{sub.label}</span>
+                          <span className="text-sm text-slate-200">{sub.label}</span>
                         </label>
                       ))}
                     </div>
@@ -309,89 +438,81 @@ export default function BusinessOnboarding() {
                 )}
 
                 <div>
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description" className="text-slate-200">Description</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Tell customers about your business..."
-                    className="mt-1.5 min-h-[100px]"
+                    placeholder="Tell customers about your organization..."
+                    className="mt-1.5 min-h-[100px] bg-slate-800 border-slate-700 text-slate-100"
                   />
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="city">City <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="city" className="text-slate-200">City <span className="text-amber-500">*</span></Label>
                     <Input
                       id="city"
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                       placeholder="City"
-                      className="mt-1.5"
+                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="address">Address</Label>
+                    <Label htmlFor="address" className="text-slate-200">
+                      {formData.archetype === 'location' ? 'Address (Required)' : 'Address (Optional)'}
+                    </Label>
                     <Input
                       id="address"
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                       placeholder="Street address"
-                      className="mt-1.5"
+                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
                     />
                   </div>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="phone">Phone</Label>
+                    <Label htmlFor="phone" className="text-slate-200">Phone</Label>
                     <Input
                       id="phone"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       placeholder="(555) 123-4567"
-                      className="mt-1.5"
+                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email" className="text-slate-200">Email</Label>
                     <Input
                       id="email"
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="contact@business.com"
-                      className="mt-1.5"
+                      placeholder="contact@organization.com"
+                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="service_area">Service Area</Label>
-                  <Input
-                    id="service_area"
-                    value={formData.service_area}
-                    onChange={(e) => setFormData({ ...formData, service_area: e.target.value })}
-                    placeholder="e.g., 25 mile radius, Greater Austin Area"
-                    className="mt-1.5"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between py-3 px-4 bg-amber-50 rounded-lg border border-amber-200">
+                {formData.archetype === 'service' && (
                   <div>
-                    <Label htmlFor="silver" className="font-medium text-slate-900">Accept Silver Payment</Label>
-                    <p className="text-sm text-slate-600">Let customers know you accept silver/precious metals</p>
+                    <Label htmlFor="service_area" className="text-slate-200">Service Radius</Label>
+                    <Input
+                      id="service_area"
+                      value={formData.service_area}
+                      onChange={(e) => setFormData({ ...formData, service_area: e.target.value })}
+                      placeholder="e.g., 25 mile radius"
+                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                    />
                   </div>
-                  <Switch
-                    id="silver"
-                    checked={formData.accepts_silver}
-                    onCheckedChange={(checked) => setFormData({ ...formData, accepts_silver: checked })}
-                  />
-                </div>
+                )}
 
                 {/* Photos */}
                 <div>
-                  <Label>Photos</Label>
+                  <Label className="text-slate-200">Photos</Label>
                   <div className="mt-2 flex flex-wrap gap-3">
                     {formData.photos.map((photo, idx) => (
                       <div key={idx} className="relative group">
@@ -430,19 +551,88 @@ export default function BusinessOnboarding() {
             </div>
           )}
 
-          {/* Step 2: Services */}
-          {currentStep === 1 && (
+          {/* Step 2: Goals */}
+          {currentStep === 2 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Add your services</h2>
-                <p className="text-slate-600 mt-1">List the services you offer with starting prices</p>
+                <h2 className="text-2xl font-bold text-slate-100">What are you looking to do?</h2>
+                <p className="text-slate-400 mt-1">Select all that apply</p>
+              </div>
+
+              <div className="space-y-3">
+                <label className="flex items-center justify-between p-4 bg-slate-800 border border-slate-700 rounded-lg cursor-pointer hover:border-amber-500/50 transition-colors">
+                  <div>
+                    <p className="font-medium text-slate-100">Sell Tickets</p>
+                    <p className="text-sm text-slate-400">Accept payments for events and classes</p>
+                  </div>
+                  <Checkbox
+                    checked={formData.goals.sell_tickets}
+                    onCheckedChange={(checked) => setFormData({
+                      ...formData,
+                      goals: { ...formData.goals, sell_tickets: checked }
+                    })}
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-4 bg-slate-800 border border-slate-700 rounded-lg cursor-pointer hover:border-amber-500/50 transition-colors">
+                  <div>
+                    <p className="font-medium text-slate-100">Accept Local Currency (Silver)</p>
+                    <p className="text-sm text-slate-400">Let customers pay with silver or precious metals</p>
+                  </div>
+                  <Checkbox
+                    checked={formData.goals.accept_silver}
+                    onCheckedChange={(checked) => setFormData({
+                      ...formData,
+                      goals: { ...formData.goals, accept_silver: checked },
+                      accepts_silver: checked
+                    })}
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-4 bg-slate-800 border border-slate-700 rounded-lg cursor-pointer hover:border-amber-500/50 transition-colors">
+                  <div>
+                    <p className="font-medium text-slate-100">Grow Membership</p>
+                    <p className="text-sm text-slate-400">Build and manage a community of members</p>
+                  </div>
+                  <Checkbox
+                    checked={formData.goals.grow_membership}
+                    onCheckedChange={(checked) => setFormData({
+                      ...formData,
+                      goals: { ...formData.goals, grow_membership: checked }
+                    })}
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-4 bg-slate-800 border border-slate-700 rounded-lg cursor-pointer hover:border-amber-500/50 transition-colors">
+                  <div>
+                    <p className="font-medium text-slate-100">Manage Staff/Volunteers</p>
+                    <p className="text-sm text-slate-400">Coordinate team members and track activities</p>
+                  </div>
+                  <Checkbox
+                    checked={formData.goals.manage_staff}
+                    onCheckedChange={(checked) => setFormData({
+                      ...formData,
+                      goals: { ...formData.goals, manage_staff: checked }
+                    })}
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Services */}
+          {currentStep === 3 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-100">Add your services</h2>
+                <p className="text-slate-400 mt-1">List the services you offer with starting prices (optional)</p>
               </div>
 
               <div className="space-y-4">
                 {formData.services.map((service, idx) => (
-                  <div key={idx} className="p-4 border border-slate-200 rounded-lg">
+                  <div key={idx} className="p-4 border border-slate-700 rounded-lg bg-slate-800">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="font-medium text-slate-700">Service {idx + 1}</span>
+                      <span className="font-medium text-slate-200">Service {idx + 1}</span>
                       {formData.services.length > 1 && (
                         <Button
                           variant="ghost"
@@ -459,6 +649,7 @@ export default function BusinessOnboarding() {
                         value={service.name}
                         onChange={(e) => updateService(idx, 'name', e.target.value)}
                         placeholder="Service name"
+                        className="bg-slate-900 border-slate-700 text-slate-100"
                       />
                       <div className="grid sm:grid-cols-2 gap-3">
                         <Input
@@ -466,11 +657,13 @@ export default function BusinessOnboarding() {
                           value={service.starting_price}
                           onChange={(e) => updateService(idx, 'starting_price', e.target.value)}
                           placeholder="Starting price ($)"
+                          className="bg-slate-900 border-slate-700 text-slate-100"
                         />
                         <Input
                           value={service.description}
                           onChange={(e) => updateService(idx, 'description', e.target.value)}
                           placeholder="Brief description"
+                          className="bg-slate-900 border-slate-700 text-slate-100"
                         />
                       </div>
                     </div>
@@ -489,12 +682,12 @@ export default function BusinessOnboarding() {
             </div>
           )}
 
-          {/* Step 3: Choose Plan */}
-          {currentStep === 2 && (
+          {/* Step 4: Choose Plan */}
+          {currentStep === 3 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Choose your plan</h2>
-                <p className="text-slate-600 mt-1">Select the tier that works best for your business</p>
+                <h2 className="text-2xl font-bold text-slate-100">Choose your plan</h2>
+                <p className="text-slate-400 mt-1">Select the tier that works best for your organization</p>
               </div>
 
               <RadioGroup
@@ -510,8 +703,8 @@ export default function BusinessOnboarding() {
                       className={`
                         relative flex cursor-pointer rounded-xl border-2 p-5 transition-all
                         ${formData.subscription_tier === tier.id 
-                          ? 'border-slate-900 bg-slate-50' 
-                          : 'border-slate-200 hover:border-slate-300'}
+                          ? 'border-amber-500 bg-amber-500/10' 
+                          : 'border-slate-700 hover:border-slate-600'}
                       `}
                     >
                       <RadioGroupItem value={tier.id} className="sr-only" />
@@ -529,21 +722,21 @@ export default function BusinessOnboarding() {
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <h3 className="font-semibold text-slate-900">{tier.name}</h3>
+                              <h3 className="font-semibold text-slate-100">{tier.name}</h3>
                               {tier.popular && (
-                                <Badge className="bg-blue-100 text-blue-700 border-0">Popular</Badge>
+                                <Badge className="bg-amber-500 text-black border-0">Popular</Badge>
                               )}
                             </div>
-                            <p className="text-2xl font-bold text-slate-900">
+                            <p className="text-2xl font-bold text-slate-100">
                               {tier.price}
-                              <span className="text-sm font-normal text-slate-500">{tier.period}</span>
+                              <span className="text-sm font-normal text-slate-400">{tier.period}</span>
                             </p>
                           </div>
                         </div>
                         <ul className="mt-4 space-y-2">
                           {tier.features.map((feature) => (
-                            <li key={feature} className="flex items-center gap-2 text-sm text-slate-600">
-                              <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                            <li key={feature} className="flex items-center gap-2 text-sm text-slate-300">
+                              <Check className="h-4 w-4 text-amber-500 flex-shrink-0" />
                               {feature}
                             </li>
                           ))}
@@ -551,8 +744,8 @@ export default function BusinessOnboarding() {
                       </div>
                       {formData.subscription_tier === tier.id && (
                         <div className="absolute top-4 right-4">
-                          <div className="h-6 w-6 bg-slate-900 rounded-full flex items-center justify-center">
-                            <Check className="h-4 w-4 text-white" />
+                          <div className="h-6 w-6 bg-amber-500 rounded-full flex items-center justify-center">
+                            <Check className="h-4 w-4 text-black" />
                           </div>
                         </div>
                       )}
@@ -563,18 +756,18 @@ export default function BusinessOnboarding() {
             </div>
           )}
 
-          {/* Step 4: Review */}
-          {currentStep === 3 && (
+          {/* Step 5: Review */}
+          {currentStep === 4 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Review your listing</h2>
-                <p className="text-slate-600 mt-1">Make sure everything looks good</p>
+                <h2 className="text-2xl font-bold text-slate-100">Review your listing</h2>
+                <p className="text-slate-400 mt-1">Make sure everything looks good</p>
               </div>
 
               <div className="space-y-4">
-                <div className="p-4 bg-slate-50 rounded-lg">
-                  <h3 className="font-semibold text-slate-900">{formData.name}</h3>
-                  <p className="text-sm text-slate-600 mt-1">{formData.description || 'No description'}</p>
+                <div className="p-4 bg-slate-800 rounded-lg border border-slate-700">
+                  <h3 className="font-semibold text-slate-100">{formData.name}</h3>
+                  <p className="text-sm text-slate-400 mt-1">{formData.description || 'No description'}</p>
                   <div className="flex flex-wrap gap-2 mt-3">
                     <Badge variant="secondary">{selectedMainCategory?.label || formData.main_category}</Badge>
                     {formData.subcategories.length > 0 && formData.subcategories.map(subId => {
@@ -589,19 +782,19 @@ export default function BusinessOnboarding() {
                 <div className="grid sm:grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-slate-500">Location:</span>
-                    <p className="font-medium">{formData.city}{formData.address ? `, ${formData.address}` : ''}</p>
+                    <p className="font-medium text-slate-200">{formData.city}{formData.address ? `, ${formData.address}` : ''}</p>
                   </div>
                   <div>
                     <span className="text-slate-500">Service Area:</span>
-                    <p className="font-medium">{formData.service_area || 'Not specified'}</p>
+                    <p className="font-medium text-slate-200">{formData.service_area || 'Not specified'}</p>
                   </div>
                   <div>
                     <span className="text-slate-500">Phone:</span>
-                    <p className="font-medium">{formData.phone || 'Not provided'}</p>
+                    <p className="font-medium text-slate-200">{formData.phone || 'Not provided'}</p>
                   </div>
                   <div>
                     <span className="text-slate-500">Email:</span>
-                    <p className="font-medium">{formData.email || 'Not provided'}</p>
+                    <p className="font-medium text-slate-200">{formData.email || 'Not provided'}</p>
                   </div>
                 </div>
 
@@ -611,7 +804,7 @@ export default function BusinessOnboarding() {
                     <div className="mt-2 space-y-2">
                       {formData.services.filter(s => s.name).map((service, idx) => (
                         <div key={idx} className="flex justify-between text-sm">
-                          <span>{service.name}</span>
+                          <span className="text-slate-200">{service.name}</span>
                           {service.starting_price && (
                             <span className="font-medium">From ${service.starting_price}</span>
                           )}
@@ -636,11 +829,12 @@ export default function BusinessOnboarding() {
           )}
 
           {/* Navigation */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-slate-200">
+          <div className="flex justify-between mt-8 pt-6 border-t border-slate-700">
             <Button
               variant="outline"
               onClick={() => setCurrentStep(currentStep - 1)}
               disabled={currentStep === 0}
+              className="bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
               Back
@@ -650,7 +844,7 @@ export default function BusinessOnboarding() {
               <Button
                 onClick={() => setCurrentStep(currentStep + 1)}
                 disabled={!canProceed()}
-                className="bg-slate-900 hover:bg-slate-800"
+                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
               >
                 Continue
                 <ChevronRight className="h-4 w-4 ml-1" />
@@ -659,7 +853,7 @@ export default function BusinessOnboarding() {
               <Button
                 onClick={handleSubmit}
                 disabled={createBusiness.isPending}
-                className="bg-slate-900 hover:bg-slate-800"
+                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
               >
                 {createBusiness.isPending ? (
                   <>
@@ -667,7 +861,7 @@ export default function BusinessOnboarding() {
                     Creating...
                   </>
                 ) : (
-                  'Create Listing'
+                  'Create Organization'
                 )}
               </Button>
             )}
