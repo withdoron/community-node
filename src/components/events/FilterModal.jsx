@@ -21,6 +21,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
     const cleared = {
       priceRange: [0, 100],
       eventType: [],
+      networks: [],
       audience: [],
       setting: [],
       acceptsSilver: false,
@@ -37,6 +38,15 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
       setLocalFilters({ ...localFilters, eventType: current.filter(t => t !== value) });
     } else {
       setLocalFilters({ ...localFilters, eventType: [...current, value] });
+    }
+  };
+
+  const toggleNetwork = (value) => {
+    const current = localFilters.networks || [];
+    if (current.includes(value)) {
+      setLocalFilters({ ...localFilters, networks: current.filter(n => n !== value) });
+    } else {
+      setLocalFilters({ ...localFilters, networks: [...current, value] });
     }
   };
 
@@ -114,6 +124,35 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
                   <span className="text-sm text-slate-300">{type.label}</span>
                 </label>
               ))}
+            </div>
+          </div>
+
+          {/* Networks */}
+          <div>
+            <Label className="text-white font-bold mb-3 block">Networks</Label>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={localFilters.networks?.includes('recess')}
+                  onCheckedChange={() => toggleNetwork('recess')}
+                  className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                />
+                <div className="flex flex-col">
+                  <span className="text-sm text-slate-300">Recess</span>
+                  <span className="text-xs text-slate-500">Movement & Play (Punch Pass)</span>
+                </div>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={localFilters.networks?.includes('tca')}
+                  onCheckedChange={() => toggleNetwork('tca')}
+                  className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                />
+                <div className="flex flex-col">
+                  <span className="text-sm text-slate-300">TCA</span>
+                  <span className="text-xs text-slate-500">Creative Alliance (Punch Pass)</span>
+                </div>
+              </label>
             </div>
           </div>
 

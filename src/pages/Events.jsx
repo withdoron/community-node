@@ -105,6 +105,7 @@ export default function Events() {
   const [advancedFilters, setAdvancedFilters] = useState({
     priceRange: [0, 100],
     eventType: [],
+    networks: [],
     audience: [],
     setting: [],
     acceptsSilver: false,
@@ -149,6 +150,12 @@ export default function Events() {
       );
     }
 
+    if (advancedFilters.networks?.length > 0) {
+      result = result.filter(e => 
+        e.network && advancedFilters.networks.includes(e.network)
+      );
+    }
+
     if (advancedFilters.audience?.length > 0) {
       result = result.filter(e => 
         e.audience_tags && e.audience_tags.some(a => advancedFilters.audience.includes(a))
@@ -183,6 +190,7 @@ export default function Events() {
     let count = 0;
     if (advancedFilters.priceRange[1] < 100) count++;
     if (advancedFilters.eventType?.length > 0) count += advancedFilters.eventType.length;
+    if (advancedFilters.networks?.length > 0) count += advancedFilters.networks.length;
     if (advancedFilters.audience?.length > 0) count += advancedFilters.audience.length;
     if (advancedFilters.setting?.length > 0) count += advancedFilters.setting.length;
     if (advancedFilters.acceptsSilver) count++;
