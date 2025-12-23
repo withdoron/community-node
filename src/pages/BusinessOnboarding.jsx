@@ -87,6 +87,7 @@ export default function BusinessOnboarding() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [categorySearch, setCategorySearch] = useState('');
   
   const [formData, setFormData] = useState({
     archetype: '',
@@ -121,6 +122,23 @@ export default function BusinessOnboarding() {
   const availablePrimaryCategories = ARCHETYPE_CATEGORIES[formData.archetype] || [];
   const selectedPrimaryCategory = availablePrimaryCategories.find(cat => cat.label === formData.primary_category);
   const availableSubCategories = selectedPrimaryCategory?.subCategories || [];
+
+  // Filter categories based on search
+  const filteredCategories = React.useMemo(() => {
+    if (!categorySearch) return availablePrimaryCategories;
+    
+    const search = categorySearch.toLowerCase();
+    return availablePrimaryCategories
+      .map(cat => ({
+        ...cat,
+        subCategories: cat.subCategories.filter(sub => 
+          sub.toLowerCase().includes(search) || cat.label.toLowerCase().includes(search)
+        )
+      }))
+      .filter(cat => 
+        cat.label.toLowerCase().includes(search) || cat.subCategories.length > 0
+      );
+  }, [categorySearch, availablePrimaryCategories]);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -390,6 +408,16 @@ export default function BusinessOnboarding() {
                     />
                   </div>
 
+                  <div>
+                    <Label className="text-slate-200">Category Search</Label>
+                    <Input
+                      value={categorySearch}
+                      onChange={(e) => setCategorySearch(e.target.value)}
+                      placeholder="Type to search categories (e.g., Gym, Plumber)..."
+                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                    />
+                  </div>
+
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="primary_category" className="text-slate-200">Primary Category <span className="text-amber-500">*</span></Label>
@@ -401,7 +429,7 @@ export default function BusinessOnboarding() {
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {availablePrimaryCategories.map((cat) => (
+                          {filteredCategories.map((cat) => (
                             <SelectItem key={cat.label} value={cat.label}>
                               {cat.label}
                             </SelectItem>
@@ -444,47 +472,6 @@ export default function BusinessOnboarding() {
                   </div>
                 </div>
 
-                {/* Contact Info Section */}
-                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
-                  <h3 className="text-sm font-semibold text-slate-100 uppercase tracking-wide">Contact Information</h3>
-
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="phone" className="text-slate-200">Phone <span className="text-amber-500">*</span></Label>
-                      <Input
-                        id="phone"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
-                        placeholder="(555) 123-4567"
-                        className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="email" className="text-slate-200">Email <span className="text-amber-500">*</span></Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        placeholder="contact@organization.com"
-                        className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
-                      />
-                      <p className="text-xs text-slate-500 mt-1">This will be visible to customers</p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="website" className="text-slate-200">Website</Label>
-                    <Input
-                      id="website"
-                      value={formData.website}
-                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                      placeholder="https://yourwebsite.com"
-                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
-                    />
-                  </div>
-                </div>
-
                 {/* Location Section */}
                 <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
                   <h3 className="text-sm font-semibold text-slate-100 uppercase tracking-wide">Location</h3>
@@ -495,6 +482,7 @@ export default function BusinessOnboarding() {
                       <Switch
                         checked={formData.display_full_address}
                         onCheckedChange={(checked) => setFormData({ ...formData, display_full_address: checked })}
+                        className="data-[state=checked]:bg-amber-500"
                       />
                       <div className="flex-1">
                         <p className="text-sm font-medium text-slate-200">Display full address on map?</p>
@@ -574,9 +562,50 @@ export default function BusinessOnboarding() {
                       />
                     </div>
                   )}
-                </div>
+                  </div>
 
-                {/* Brand/Profile Image */}
+                  {/* Contact Info Section */}
+                  <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
+                  <h3 className="text-sm font-semibold text-slate-100 uppercase tracking-wide">Contact Information</h3>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="phone" className="text-slate-200">Phone <span className="text-amber-500">*</span></Label>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
+                        placeholder="(555) 123-4567"
+                        className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="email" className="text-slate-200">Email <span className="text-amber-500">*</span></Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="contact@organization.com"
+                        className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">This will be visible to customers</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="website" className="text-slate-200">Website</Label>
+                    <Input
+                      id="website"
+                      value={formData.website}
+                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                      placeholder="https://yourwebsite.com"
+                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                    />
+                  </div>
+                  </div>
+
+                  {/* Brand/Profile Image */}
                 <div>
                   <Label className="text-slate-200">Brand/Profile Image</Label>
                   <p className="text-xs text-slate-500 mt-1 mb-2">This is what customers will see first</p>
