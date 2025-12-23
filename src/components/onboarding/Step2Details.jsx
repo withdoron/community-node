@@ -254,7 +254,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                                       setIsDropdownOpen(false);
                                       setExpandedCategory(null);
                                     }}
-                                    className="w-full text-left px-6 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-amber-500 transition-colors"
+                                    className="w-full text-left px-6 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition-colors"
                                   >
                                     {subName}
                                   </button>
@@ -294,7 +294,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                                 setIsEditing(false);
                                 setIsDropdownOpen(false);
                               }}
-                              className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 hover:text-amber-500 transition-colors"
+                              className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 hover:text-emerald-400 transition-colors"
                             >
                               {subName}
                             </button>
