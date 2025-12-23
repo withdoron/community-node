@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import EventCard from '@/components/events/EventCard';
 import FilterModal from '@/components/events/FilterModal';
 import { Search, SlidersHorizontal, Map, List, Loader2 } from "lucide-react";
-import { isToday, isThisWeek, startOfDay, endOfDay, startOfWeek, endOfWeek } from 'date-fns';
+import { isToday, isThisWeek, startOfDay, endOfDay, startOfWeek, endOfWeek, format } from 'date-fns';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
