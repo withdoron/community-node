@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronRight, Shield, Users, Ban, Coins, Calendar, Store } from "lucide-react";
 import { mainCategories, defaultPopularCategoryIds } from '@/components/categories/categoryData';
 import TextTransition, { presets } from 'react-text-transition';
+import { motion } from 'framer-motion';
 
 const TEXTS = [
   "Businesses",
@@ -171,10 +172,10 @@ export default function Home() {
           </div>
 
           <div className="mt-12 max-w-3xl mx-auto px-4">
-            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-4">
+            <div className="flex flex-row items-center justify-center gap-3 sm:gap-4">
               <Button 
                 size="lg"
-                className="bg-amber-400 hover:bg-amber-500 hover:brightness-110 text-slate-900 font-semibold px-10 py-4 text-lg h-auto w-full md:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
+                className="bg-amber-400 hover:bg-amber-500 hover:brightness-110 text-slate-900 font-semibold px-6 sm:px-10 py-4 text-base sm:text-lg h-auto flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
                 onClick={() => navigate(createPageUrl('Search'))}
               >
                 Browse Directory
@@ -182,7 +183,7 @@ export default function Home() {
               <Button 
                 size="lg"
                 variant="outline"
-                className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-10 py-4 text-lg h-auto w-full md:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
+                className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-6 sm:px-10 py-4 text-base sm:text-lg h-auto flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
                 onClick={() => navigate(createPageUrl('Events'))}
               >
                 View Events
@@ -293,7 +294,13 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-4 py-16">
         <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">Why use LocalLane?</h2>
         <div className="grid md:grid-cols-3 gap-8">
-          <div className="text-center p-6">
+          <motion.div 
+            className="text-center p-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0 }}
+          >
             <div className="h-12 w-12 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4">
               <Store className="h-6 w-6 text-emerald-600" />
             </div>
@@ -301,8 +308,14 @@ export default function Home() {
             <p className="text-slate-600 mt-2 text-sm">
               Every listing is a real local business, vetted by the community. No ads, just quality connections.
             </p>
-          </div>
-          <div className="text-center p-6">
+          </motion.div>
+          <motion.div 
+            className="text-center p-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
             <div className="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
               <Calendar className="h-6 w-6 text-amber-600" />
             </div>
@@ -310,8 +323,14 @@ export default function Home() {
             <p className="text-slate-600 mt-2 text-sm">
               From family outings to community meetups—find out what's happening in Eugene/Springfield this weekend.
             </p>
-          </div>
-          <div className="text-center p-6">
+          </motion.div>
+          <motion.div 
+            className="text-center p-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
             <div className="h-12 w-12 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-4">
               <Coins className="h-6 w-6 text-yellow-600" />
             </div>
@@ -319,7 +338,7 @@ export default function Home() {
             <p className="text-slate-600 mt-2 text-sm">
               Support the local economy with the option to support sound money with silver. Always optional, always sound.
             </p>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -330,10 +349,10 @@ export default function Home() {
           <p className="text-slate-300 mt-4 max-w-xl mx-auto">
             Whether you run a business or host local events, LocalLane is your place to be seen without paying for ads.
           </p>
-          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-4 mt-8">
+          <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 mt-8">
             <Button 
               size="lg"
-              className="bg-amber-400 hover:bg-amber-500 hover:brightness-110 text-slate-900 font-semibold px-8 py-4 w-full md:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
+              className="bg-amber-400 hover:bg-amber-500 hover:brightness-110 text-slate-900 font-semibold px-6 sm:px-8 py-4 flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
               onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
             >
               List Your Business
@@ -342,7 +361,7 @@ export default function Home() {
             <Button 
               size="lg"
               variant="outline"
-              className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-8 py-4 w-full md:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
+              className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-6 sm:px-8 py-4 flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
               onClick={() => navigate(createPageUrl('Events'))}
             >
               Post an Event
