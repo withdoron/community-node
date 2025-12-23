@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Plus, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import EventEditor from '../EventEditor';
+import EventEditor from '@/components/dashboard/EventEditor';
 
 export default function EventsWidget({ business, allowEdit, userRole }) {
   const [showEditor, setShowEditor] = useState(false);
