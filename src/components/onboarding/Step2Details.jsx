@@ -140,6 +140,16 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
 
   return (
     <div className="space-y-6">
+      <style>{`
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0 30px #0f172a inset !important;
+          -webkit-text-fill-color: white !important;
+          transition: background-color 5000s ease-in-out 0s;
+        }
+      `}</style>
       <div>
         <h2 className="text-2xl font-bold text-slate-100">Tell us about your organization</h2>
         <p className="text-slate-400 mt-1">Professional information customers will see</p>
@@ -408,7 +418,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
 
         {/* Contact Info Section */}
         <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
-          <h3 className="text-sm font-semibold text-slate-100 uppercase tracking-wide">Contact Information</h3>
+          <h3 className="text-lg font-semibold text-white">Contact Information</h3>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
@@ -418,7 +428,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
                 placeholder="(555) 123-4567"
-                className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
               />
             </div>
             <div>
@@ -429,7 +439,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="contact@organization.com"
-                className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
               />
               <p className="text-xs text-slate-500 mt-1">This will be visible to customers</p>
             </div>
@@ -442,7 +452,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
               value={formData.website}
               onChange={(e) => setFormData({ ...formData, website: e.target.value })}
               placeholder="https://yourwebsite.com"
-              className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+              className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
             />
           </div>
         </div>
