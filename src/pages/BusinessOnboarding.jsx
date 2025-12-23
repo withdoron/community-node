@@ -92,7 +92,9 @@ const archetypes = [
   }
 ];
 
-const steps = ['Archetype', 'Details', 'Goals', 'Choose Plan', 'Review'];
+// Define the two onboarding paths
+const BUSINESS_STEPS = ['Archetype', 'Details', 'Goals', 'Plan', 'Review'];
+const EXPLORER_STEPS = ['Archetype', 'Interests', 'Ready'];
 
 export default function BusinessOnboarding() {
   const navigate = useNavigate();
@@ -222,6 +224,10 @@ export default function BusinessOnboarding() {
     }
   };
 
+  // Determine which path based on archetype
+  const isExplorer = formData.archetype === 'explorer';
+  const currentPath = isExplorer ? EXPLORER_STEPS : BUSINESS_STEPS;
+
   const handleSubmit = () => {
     const cleanedServices = formData.services
       .filter(s => s.name)
@@ -264,13 +270,14 @@ export default function BusinessOnboarding() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-8">
-        {/* Progress */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            {steps.map((step, idx) => (
+        {/* Progress - Hidden on Step 1 (Archetype) */}
+        {currentStep > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-2">
+              {currentPath.map((step, idx) => (
               <div 
                 key={step}
-                className={`flex items-center ${idx < steps.length - 1 ? 'flex-1' : ''}`}
+                className={`flex items-center ${idx < currentPath.length - 1 ? 'flex-1' : ''}`}
               >
                 <div className={`
                   h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium
@@ -280,23 +287,24 @@ export default function BusinessOnboarding() {
                 `}>
                   {idx < currentStep ? <Check className="h-4 w-4" /> : idx + 1}
                 </div>
-                {idx < steps.length - 1 && (
+                {idx < currentPath.length - 1 && (
                   <div className={`flex-1 h-0.5 mx-2 ${idx < currentStep ? 'bg-amber-500' : 'bg-slate-800'}`} />
                 )}
               </div>
-            ))}
-          </div>
-          <div className="flex justify-between text-xs">
-            {steps.map((step, idx) => (
+              ))}
+              </div>
+              <div className="flex justify-between text-xs">
+              {currentPath.map((step, idx) => (
               <span 
                 key={step}
                 className={idx <= currentStep ? 'text-slate-100 font-medium' : 'text-slate-500'}
               >
                 {step}
               </span>
-            ))}
-          </div>
-        </div>
+              ))}
+              </div>
+              </div>
+              )}
 
         <Card className="p-6 sm:p-8 bg-slate-900 border-slate-800">
           {/* Step 0: Archetype Selector */}
@@ -594,7 +602,7 @@ export default function BusinessOnboarding() {
               Back
             </Button>
 
-            {currentStep < steps.length - 1 ? (
+            {currentStep < currentPath.length - 1 ? (
               <Button
                 onClick={() => setCurrentStep(currentStep + 1)}
                 disabled={!canProceed()}
