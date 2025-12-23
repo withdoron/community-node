@@ -60,6 +60,23 @@ const DUMMY_EVENTS = [
     price: 0,
     is_volunteer: true,
     is_active: true
+  },
+  {
+    id: '4',
+    title: 'Local Music Night',
+    date: '2025-06-18T19:00:00',
+    location: 'Whirled Pies',
+    category: 'social',
+    lat: 44.0487,
+    lng: -123.0956,
+    thumbnail_url: 'https://images.unsplash.com/photo-1514525253440-b393452e8d26?auto=format&fit=crop&q=80',
+    is_trusted: true,
+    accepts_silver: true,
+    setting: 'indoor',
+    audience: ['adults'],
+    price: 5,
+    is_volunteer: false,
+    is_active: true
   }
 ];
 
