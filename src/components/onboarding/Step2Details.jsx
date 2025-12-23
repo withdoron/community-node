@@ -163,26 +163,46 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
             <Label htmlFor="category_search" className="text-slate-200">
               Category <span className="text-amber-500">*</span>
             </Label>
-            {formData.primary_category && formData.sub_category && !isDropdownOpen && (
-              <div className="mt-1 text-xs text-slate-400">
-                Selected: {formData.primary_category} → {formData.sub_category}
-              </div>
-            )}
-            <Input
-              id="category_search"
-              type="text"
-              value={searchTerm}
-              onChange={handleCategorySearchChange}
-              onFocus={() => {
-                setIsEditing(true);
-                setIsDropdownOpen(true);
-              }}
-              placeholder={getDynamicPlaceholder()}
-              autoComplete="off"
-              data-lpignore="true"
-              name="category_search_custom"
-              className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
-            />
+            <div className="relative">
+              <Input
+                id="category_search"
+                type="text"
+                value={
+                  isEditing || isDropdownOpen
+                    ? searchTerm
+                    : formData.primary_category && formData.sub_category
+                    ? `${formData.primary_category} → ${formData.sub_category}`
+                    : searchTerm
+                }
+                onChange={handleCategorySearchChange}
+                onFocus={() => {
+                  setSearchTerm('');
+                  setIsEditing(true);
+                  setIsDropdownOpen(true);
+                }}
+                placeholder={getDynamicPlaceholder()}
+                autoComplete="off"
+                data-lpignore="true"
+                name="category_search_custom"
+                className={`mt-1.5 bg-slate-800 text-slate-100 pr-10 ${
+                  formData.primary_category && formData.sub_category && !isDropdownOpen
+                    ? 'border-emerald-500 text-emerald-400'
+                    : 'border-slate-700'
+                }`}
+              />
+              {formData.primary_category && formData.sub_category && !isDropdownOpen && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({ ...formData, primary_category: '', sub_category: '' });
+                    setSearchTerm('');
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-400 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
             
             {isDropdownOpen && (
               <div className="absolute z-50 w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-xl max-h-80 overflow-y-auto">
