@@ -121,8 +121,8 @@ export default function Layout({ children, currentPageName }) {
             {/* Mobile Nav */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-slate-400 hover:text-slate-100">
-                  <Menu className="h-5 w-5" />
+                <Button variant="ghost" className="md:hidden p-4 -mr-4 text-slate-400 hover:text-amber-400 transition-colors z-50 cursor-pointer">
+                  <Menu className="w-8 h-8" />
                 </Button>
               </SheetTrigger>
               <SheetContent className="bg-slate-950 border-l border-slate-800 [&>button]:hidden">
@@ -291,8 +291,8 @@ export default function Layout({ children, currentPageName }) {
             {/* Mobile */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-slate-400 hover:text-slate-100">
-                  <Menu className="h-5 w-5" />
+                <Button variant="ghost" className="md:hidden p-4 -mr-4 text-slate-400 hover:text-amber-400 transition-colors z-50 cursor-pointer">
+                  <Menu className="w-8 h-8" />
                 </Button>
               </SheetTrigger>
               <SheetContent className="bg-slate-950 border-l border-slate-800 [&>button]:hidden">
