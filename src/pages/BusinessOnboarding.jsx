@@ -250,7 +250,7 @@ export default function BusinessOnboarding() {
                 }
               }
             }}
-            className="bg-slate-800 text-slate-200 border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors duration-200"
+            className="px-6 py-2 rounded-lg border border-slate-600 text-slate-300 bg-transparent hover:border-amber-500 hover:text-amber-500 hover:bg-slate-800/50 transition-all duration-200"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back
@@ -641,7 +641,7 @@ export default function BusinessOnboarding() {
                 }
               }}
               disabled={currentStep === 0}
-              className="bg-slate-800 text-slate-200 border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors duration-200"
+              className="px-6 py-2 rounded-lg border border-slate-600 text-slate-300 bg-transparent hover:border-amber-500 hover:text-amber-500 hover:bg-slate-800/50 transition-all duration-200"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
               Back
