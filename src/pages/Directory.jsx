@@ -25,7 +25,7 @@ const TEXTS = [
   "Service Projects"
 ];
 
-export default function Home() {
+export default function Directory() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -176,7 +176,7 @@ export default function Home() {
               <Button 
                 size="lg"
                 className="bg-amber-400 hover:bg-amber-500 hover:brightness-110 text-slate-900 font-semibold px-6 sm:px-10 py-4 text-base sm:text-lg h-auto flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
-                onClick={() => navigate(createPageUrl('Directory'))}
+                onClick={() => navigate(createPageUrl('Search'))}
               >
                 Browse Directory
               </Button>

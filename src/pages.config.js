@@ -7,6 +7,7 @@ import CategoryPage from './pages/CategoryPage';
 import Home from './pages/Home';
 import Search from './pages/Search';
 import WriteReview from './pages/WriteReview';
+import Directory from './pages/Directory';
 import __Layout from './Layout.jsx';
 
 
@@ -20,6 +21,7 @@ export const PAGES = {
     "Home": Home,
     "Search": Search,
     "WriteReview": WriteReview,
+    "Directory": Directory,
 }
 
 export const pagesConfig = {
