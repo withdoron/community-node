@@ -186,7 +186,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 name="category_search_custom"
                 className={`mt-1.5 pr-10 ${
                   formData.primary_category && formData.sub_category && !isDropdownOpen
-                    ? 'bg-slate-800/50 border-indigo-500/50 text-white font-bold'
+                    ? 'bg-slate-800/50 border-indigo-500/50 text-emerald-400 font-bold'
                     : 'bg-slate-800/50 border-slate-700 text-slate-300 placeholder-slate-500'
                 }`}
               />
