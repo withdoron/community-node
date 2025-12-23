@@ -76,7 +76,7 @@ const DUMMY_EVENTS = [
     category: 'social',
     lat: 44.0487,
     lng: -123.0956,
-    thumbnail_url: 'https://images.unsplash.com/photo-1514525253440-b393452e8d26?auto=format&fit=crop&q=80',
+    thumbnail_url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80',
     is_trusted: true,
     accepts_silver: true,
     setting: 'indoor',
