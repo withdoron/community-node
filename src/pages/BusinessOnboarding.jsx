@@ -63,21 +63,21 @@ const archetypes = [
     icon: UserCircle,
     title: 'Service / Talent',
     description: 'I offer services or classes at various locations.',
-    examples: 'Instructor, Artist, Consultant, Trainer'
+    examples: 'Instructor, Guide, Artist, Consultant'
   },
   {
     id: 'community',
     icon: Heart,
     title: 'Community / Non-Profit',
     description: 'I lead a group, cause, or congregation.',
-    examples: 'Church, Club, HOA, Charity'
+    examples: 'Social Club, Church, HOA, Charity'
   },
   {
     id: 'organizer',
     icon: Ticket,
     title: 'Event Organizer',
-    description: 'I host pop-ups, festivals, or markets.',
-    examples: 'Concerts, Farmers Markets, Pop-ups'
+    description: 'I host pop-ups, festivals, markets, or meetups.',
+    examples: 'Concerts, Markets, Meetups, Nightlife'
   }
 ];
 
@@ -315,9 +315,9 @@ export default function BusinessOnboarding() {
                           h-16 w-16 rounded-lg flex items-center justify-center mb-4
                           ${formData.archetype === archetype.id ? 'bg-amber-500/20' : 'bg-amber-500/10'}
                         `}>
-                          <Icon className="h-8 w-8 text-amber-500" />
+                          <Icon className={`h-8 w-8 ${formData.archetype === archetype.id ? 'text-amber-500' : 'text-amber-500'}`} />
                         </div>
-                        <h3 className="font-bold text-lg text-slate-100 mb-2">{archetype.title}</h3>
+                        <h3 className={`font-bold text-lg mb-2 ${formData.archetype === archetype.id ? 'text-amber-500' : 'text-slate-100'}`}>{archetype.title}</h3>
                         <p className="text-sm text-slate-400 mb-3">{archetype.description}</p>
                         <p className="text-xs text-slate-500">Examples: {archetype.examples}</p>
                       </div>
