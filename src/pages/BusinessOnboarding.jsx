@@ -302,7 +302,10 @@ export default function BusinessOnboarding() {
                   return (
                     <div
                       key={archetype.id}
-                      onClick={() => setFormData({ ...formData, archetype: archetype.id })}
+                      onClick={() => {
+                        setFormData({ ...formData, archetype: archetype.id });
+                        setTimeout(() => setCurrentStep(1), 500);
+                      }}
                       className={`
                         group p-6 rounded-lg border-2 cursor-pointer transition-all
                         ${formData.archetype === archetype.id
