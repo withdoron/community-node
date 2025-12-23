@@ -18,21 +18,16 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
 
   const currentArchetypeCategories = ARCHETYPE_CATEGORIES[formData.archetype] || [];
 
-  // Dynamic placeholder based on archetype
-  const getPlaceholder = () => {
-    if (formData.archetype === 'service' || formData.archetype === 'talent') {
-      return "e.g. Plumber, Electrician, Tutor...";
-    }
-    if (formData.archetype === 'location' || formData.archetype === 'venue') {
-      return "e.g. Cafe, Burger Joint, Bakery...";
-    }
-    if (formData.archetype === 'community') {
-      return "e.g. Book Club, HOA, Church...";
-    }
-    if (formData.archetype === 'organizer') {
-      return "e.g. Festival Host, Wedding Planner...";
-    }
-    return "e.g. Gym, Plumber, Cafe...";
+  // Dynamic placeholder from ACTUAL data
+  const getDynamicPlaceholder = () => {
+    // Flatten all subcategories into one list
+    const allSubs = currentArchetypeCategories
+      .flatMap(cat => cat.subCategories || []);
+    
+    // Take the first 3 as examples
+    const examples = allSubs.slice(0, 3).join(', ');
+    
+    return examples ? `e.g. ${examples}...` : 'Search categories...';
   };
 
   // Toggle accordion category
@@ -83,7 +78,10 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
   };
 
   const getDisplayValue = () => {
-    if (isEditing) return searchTerm;
+    // When editing, show search term
+    if (isEditing || isDropdownOpen) return searchTerm;
+    
+    // When not editing and dropdown closed, show selected category
     if (formData.primary_category && formData.sub_category) {
       return `${formData.primary_category} > ${formData.sub_category}`;
     }
@@ -172,10 +170,11 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
               value={getDisplayValue()}
               onChange={handleCategorySearchChange}
               onFocus={() => {
+                setSearchTerm('');
                 setIsEditing(true);
                 setIsDropdownOpen(true);
               }}
-              placeholder={getPlaceholder()}
+              placeholder={getDynamicPlaceholder()}
               autoComplete="off"
               data-lpignore="true"
               name="category_search_custom"
