@@ -29,7 +29,7 @@ export default function EventCard({ event, onClick }) {
             </div>
           )}
           {event.featured && (
-            <div className="absolute top-1 left-1 bg-amber-400 text-amber-900 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-md z-10 flex items-center gap-0.5">
+            <div className="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm z-10 flex items-center gap-1 tracking-wide">
               <Star className="w-2.5 h-2.5 fill-current" />
               FEATURED
             </div>
