@@ -203,7 +203,7 @@ export default function BusinessOnboarding() {
         }
         return true;
       case 2:
-        return true;
+        return formData.goals && formData.goals.length > 0;
       case 3:
         return formData.subscription_tier;
       case 4:
