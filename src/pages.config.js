@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import Search from './pages/Search';
 import WriteReview from './pages/WriteReview';
 import Directory from './pages/Directory';
+import Events from './pages/Events';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +23,7 @@ export const PAGES = {
     "Search": Search,
     "WriteReview": WriteReview,
     "Directory": Directory,
+    "Events": Events,
 }
 
 export const pagesConfig = {
