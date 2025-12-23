@@ -146,10 +146,30 @@ export const ARCHETYPE_CATEGORIES = {
         { name: "Event Hall", keywords: ["venue", "reception", "meetings", "conferences", "banquet"] },
         { name: "Hotel/Lodging", keywords: ["accommodation", "stay", "rooms", "inn", "motel"] }
       ]
+    },
+    {
+      label: "Education & Care",
+      subCategories: [
+        { name: "Daycare Center", keywords: ["preschool", "childcare", "nursery", "kids"] },
+        { name: "Private School", keywords: ["education", "academy", "learning"] },
+        { name: "Tutoring Center", keywords: ["math", "reading", "sat", "prep"] },
+        { name: "Music/Art School", keywords: ["piano", "lessons", "painting", "dance"] },
+        { name: "Vocational School", keywords: ["trade", "technical", "training"] }
+      ]
+    },
+    {
+      label: "Local Services",
+      subCategories: [
+        { name: "Dry Cleaner", keywords: ["laundry", "wash", "clothes"] },
+        { name: "Tailor/Alterations", keywords: ["sewing", "hem", "repair"] },
+        { name: "Post Office/Shipping", keywords: ["mail", "fedex", "ups", "pack"] },
+        { name: "Pet Grooming/Boarding", keywords: ["dog", "cat", "kennel", "wash"] },
+        { name: "Veterinarian", keywords: ["animal", "doctor", "pet", "medical"] }
+      ]
     }
-  ],
-  
-  service: [
+    ],
+
+    service: [
     {
       label: "Home Services",
       subCategories: [
