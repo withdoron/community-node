@@ -131,7 +131,7 @@ export default function Layout({ children, currentPageName }) {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="bg-slate-950 border-l border-slate-800">
+              <SheetContent className="bg-slate-950 border-l border-slate-800 [&>button]:hidden">
                 <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950 -m-6 mb-6">
                   <div className="font-bold text-lg text-slate-100 tracking-tight">
                     Menu
@@ -308,7 +308,7 @@ export default function Layout({ children, currentPageName }) {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="bg-slate-950 border-l border-slate-800">
+              <SheetContent className="bg-slate-950 border-l border-slate-800 [&>button]:hidden">
                 <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950 -m-6 mb-6">
                   <div className="font-bold text-lg text-slate-100 tracking-tight">
                     Menu
