@@ -88,6 +88,7 @@ export default function BusinessOnboarding() {
   const [currentStep, setCurrentStep] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [categorySearch, setCategorySearch] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
   
   const [formData, setFormData] = useState({
     archetype: '',
@@ -173,6 +174,38 @@ export default function BusinessOnboarding() {
 
   const handlePhotoUpload = async (e) => {
     const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setUploading(true);
+    const uploadedUrls = [];
+
+    for (const file of files) {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      uploadedUrls.push(file_url);
+    }
+
+    setFormData({ ...formData, photos: [...formData.photos, ...uploadedUrls] });
+    setUploading(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
     if (files.length === 0) return;
 
     setUploading(true);
@@ -606,43 +639,54 @@ export default function BusinessOnboarding() {
                   </div>
 
                   {/* Brand/Profile Image */}
-                <div>
-                  <Label className="text-slate-200">Brand/Profile Image</Label>
-                  <p className="text-xs text-slate-500 mt-1 mb-2">This is what customers will see first</p>
-                  <div className="flex flex-wrap gap-3">
-                    {formData.photos.map((photo, idx) => (
-                      <div key={idx} className="relative group">
-                        <img
-                          src={photo}
-                          alt={`Upload ${idx + 1}`}
-                          className="h-24 w-24 rounded-lg object-cover border-2 border-slate-700"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removePhoto(idx)}
-                          className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
+                  <div>
+                    <Label className="text-slate-200">Brand/Profile Image</Label>
+                    <p className="text-xs text-slate-500 mt-1 mb-2">Drag & drop or click to upload</p>
+                    <div 
+                      className={`p-4 rounded-lg border-2 border-dashed transition-all ${
+                        isDragging 
+                          ? 'border-amber-500 bg-amber-500/10' 
+                          : 'border-slate-700 bg-slate-800/50'
+                      }`}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                    >
+                      <div className="flex flex-wrap gap-3">
+                        {formData.photos.map((photo, idx) => (
+                          <div key={idx} className="relative group">
+                            <img
+                              src={photo}
+                              alt={`Upload ${idx + 1}`}
+                              className="h-24 w-24 rounded-lg object-cover border-2 border-slate-700"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removePhoto(idx)}
+                              className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                        <label className="h-24 w-24 rounded-lg border-2 border-dashed border-slate-600 flex items-center justify-center cursor-pointer hover:border-amber-500 hover:bg-amber-500/10 transition-all">
+                          {uploading ? (
+                            <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                          ) : (
+                            <Upload className="h-5 w-5 text-slate-400" />
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handlePhotoUpload}
+                            className="hidden"
+                            disabled={uploading}
+                          />
+                        </label>
                       </div>
-                    ))}
-                    <label className="h-24 w-24 rounded-lg border-2 border-dashed border-slate-700 flex items-center justify-center cursor-pointer hover:border-amber-500 hover:bg-slate-800 transition-colors">
-                      {uploading ? (
-                        <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
-                      ) : (
-                        <Upload className="h-5 w-5 text-slate-400" />
-                      )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handlePhotoUpload}
-                        className="hidden"
-                        disabled={uploading}
-                      />
-                    </label>
+                    </div>
                   </div>
-                </div>
               </div>
             </div>
           )}
@@ -941,7 +985,7 @@ export default function BusinessOnboarding() {
                 }
               }}
               disabled={currentStep === 0}
-              className="bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
+              className="bg-slate-800 text-slate-200 border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors duration-200"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
               Back
