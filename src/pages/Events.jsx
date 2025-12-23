@@ -92,11 +92,11 @@ export default function Events() {
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <div className="flex h-screen">
+      <div className="grid grid-cols-1 lg:grid-cols-5 h-screen">
         {/* List Section */}
-        <div className={`${showMap ? 'hidden lg:flex lg:w-[40%]' : 'w-full'} flex flex-col border-r border-slate-700`}>
+        <div className={`${showMap ? 'hidden' : 'flex'} lg:flex lg:col-span-2 flex-col border-r border-slate-700 overflow-hidden`}>
           {/* Sticky Header */}
-          <div className="sticky top-0 z-10 bg-slate-900 border-b border-slate-700 p-4 space-y-4">
+          <div className="flex-shrink-0 bg-slate-900 border-b border-slate-700 p-4 space-y-4">
             {/* Title & View Toggle */}
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-bold text-white">Events</h1>
@@ -211,7 +211,7 @@ export default function Events() {
         </div>
 
         {/* Map Section */}
-        <div className={`${showMap ? 'w-full lg:w-[60%]' : 'hidden lg:block lg:w-[60%]'} bg-slate-800`}>
+        <div className={`${showMap ? 'flex' : 'hidden'} lg:flex lg:col-span-3 bg-slate-800 sticky top-0 h-screen`}>
           <div className="w-full h-full flex items-center justify-center">
             <div className="text-center text-slate-400">
               <Map className="h-16 w-16 mx-auto mb-4 opacity-50" />
