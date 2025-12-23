@@ -245,9 +245,9 @@ export default function BusinessOnboarding() {
       {/* Header */}
       <div className="bg-slate-900 border-b border-slate-800">
         <div className="max-w-3xl mx-auto px-4 py-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl('Home'))} className="text-slate-300 hover:text-slate-100">
+          <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl('BusinessDashboard'))} className="text-slate-300 hover:text-slate-100">
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Home
+            Back
           </Button>
         </div>
       </div>
@@ -832,7 +832,8 @@ export default function BusinessOnboarding() {
           )}
 
           {/* Navigation */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-slate-700">
+          {currentStep !== 0 && (
+            <div className="flex justify-between mt-8 pt-6 border-t border-slate-700">
             <Button
               variant="outline"
               onClick={() => {
@@ -873,10 +874,11 @@ export default function BusinessOnboarding() {
                   'Create Organization'
                 )}
               </Button>
-            )}
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
-}
+              )}
+              </div>
+              )}
+              </Card>
+              </div>
+              </div>
+              );
+              }
