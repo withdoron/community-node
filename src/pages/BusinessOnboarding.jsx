@@ -304,7 +304,7 @@ export default function BusinessOnboarding() {
                       key={archetype.id}
                       onClick={() => setFormData({ ...formData, archetype: archetype.id })}
                       className={`
-                        p-6 rounded-lg border-2 cursor-pointer transition-all
+                        group p-6 rounded-lg border-2 cursor-pointer transition-all
                         ${formData.archetype === archetype.id
                           ? 'border-amber-500 bg-amber-500/10'
                           : 'border-slate-800 bg-slate-900 hover:border-amber-500/50'}
@@ -317,7 +317,7 @@ export default function BusinessOnboarding() {
                         `}>
                           <Icon className={`h-8 w-8 ${formData.archetype === archetype.id ? 'text-amber-500' : 'text-amber-500'}`} />
                         </div>
-                        <h3 className={`font-bold text-lg mb-2 transition-colors ${formData.archetype === archetype.id ? '!text-amber-500' : 'text-slate-100'}`}>{archetype.title}</h3>
+                        <h3 className={`font-bold text-lg mb-2 transition-colors ${formData.archetype === archetype.id ? '!text-amber-500' : 'text-slate-100 group-hover:!text-amber-500'}`}>{archetype.title}</h3>
                         <p className="text-sm text-slate-400 mb-3">{archetype.description}</p>
                         <p className="text-xs text-slate-500">Examples: {archetype.examples}</p>
                       </div>
