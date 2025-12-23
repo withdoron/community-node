@@ -32,7 +32,7 @@ export default function PersonalDashboard() {
             </div>
             <h3 className="font-semibold text-lg mb-2 text-slate-100">Browse Events</h3>
             <p className="text-sm text-slate-400 mb-4">Discover local events and activities in your area.</p>
-            <Button className="mt-4 w-full bg-slate-800 text-slate-200 hover:bg-slate-700">
+            <Button className="mt-4 w-full bg-slate-800 text-slate-200 font-medium border border-transparent hover:border-amber-500 hover:text-amber-400 hover:shadow-[0_0_15px_rgba(245,158,11,0.15)] transition-all duration-300">
               View Events
             </Button>
           </Card>
@@ -43,7 +43,7 @@ export default function PersonalDashboard() {
             </div>
             <h3 className="font-semibold text-lg mb-2 text-slate-100">Saved Businesses</h3>
             <p className="text-sm text-slate-400 mb-4">View your favorite local businesses.</p>
-            <Button className="mt-4 w-full bg-slate-800 text-slate-200 hover:bg-slate-700">
+            <Button className="mt-4 w-full bg-slate-800 text-slate-200 font-medium border border-transparent hover:border-amber-500 hover:text-amber-400 hover:shadow-[0_0_15px_rgba(245,158,11,0.15)] transition-all duration-300">
               View Saved
             </Button>
           </Card>
