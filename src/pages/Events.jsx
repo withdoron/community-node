@@ -212,7 +212,7 @@ export default function Events() {
               <Button
                 variant="outline"
                 size="sm"
-                className="lg:hidden bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+                className="lg:hidden bg-slate-800 border-slate-700 text-white hover:border-amber-500 hover:text-amber-500 transition-colors"
                 onClick={() => setShowMap(!showMap)}
               >
                 {showMap ? (
@@ -249,7 +249,7 @@ export default function Events() {
                 onClick={() => setQuickFilter('all')}
                 className={quickFilter === 'all' 
                   ? 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold' 
-                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors'
                 }
               >
                 All
@@ -260,7 +260,7 @@ export default function Events() {
                 onClick={() => setQuickFilter('weekend')}
                 className={quickFilter === 'weekend'
                   ? 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold'
-                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors'
                 }
               >
                 This Weekend
@@ -271,7 +271,7 @@ export default function Events() {
                 onClick={() => setQuickFilter('today')}
                 className={quickFilter === 'today'
                   ? 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold'
-                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors'
                 }
               >
                 Today
@@ -280,7 +280,7 @@ export default function Events() {
                 variant="outline"
                 size="sm"
                 onClick={() => setFilterModalOpen(true)}
-                className="ml-auto bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 relative"
+                className="ml-auto bg-slate-800 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors relative"
               >
                 <SlidersHorizontal className="h-4 w-4 mr-2" />
                 Filters
