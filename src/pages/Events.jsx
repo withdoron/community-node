@@ -104,10 +104,12 @@ export default function Events() {
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState({
     priceRange: [0, 100],
+    eventType: [],
     audience: [],
     setting: [],
     acceptsSilver: false,
-    isVolunteer: false
+    wheelchairAccessible: false,
+    freeParking: false
   });
 
   // Use dummy data for now
@@ -141,9 +143,15 @@ export default function Events() {
       result = result.filter(e => (e.price || 0) <= advancedFilters.priceRange[1]);
     }
 
+    if (advancedFilters.eventType?.length > 0) {
+      result = result.filter(e => 
+        e.event_type && advancedFilters.eventType.includes(e.event_type)
+      );
+    }
+
     if (advancedFilters.audience?.length > 0) {
       result = result.filter(e => 
-        e.audience?.some(a => advancedFilters.audience.includes(a))
+        e.audience_tags && e.audience_tags.some(a => advancedFilters.audience.includes(a))
       );
     }
 
@@ -157,8 +165,12 @@ export default function Events() {
       result = result.filter(e => e.accepts_silver);
     }
 
-    if (advancedFilters.isVolunteer) {
-      result = result.filter(e => e.is_volunteer);
+    if (advancedFilters.wheelchairAccessible) {
+      result = result.filter(e => e.wheelchair_accessible);
+    }
+
+    if (advancedFilters.freeParking) {
+      result = result.filter(e => e.free_parking);
     }
 
     // Filter out past events
@@ -170,10 +182,12 @@ export default function Events() {
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (advancedFilters.priceRange[1] < 100) count++;
+    if (advancedFilters.eventType?.length > 0) count += advancedFilters.eventType.length;
     if (advancedFilters.audience?.length > 0) count += advancedFilters.audience.length;
     if (advancedFilters.setting?.length > 0) count += advancedFilters.setting.length;
     if (advancedFilters.acceptsSilver) count++;
-    if (advancedFilters.isVolunteer) count++;
+    if (advancedFilters.wheelchairAccessible) count++;
+    if (advancedFilters.freeParking) count++;
     return count;
   }, [advancedFilters]);
 

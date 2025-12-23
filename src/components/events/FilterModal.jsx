@@ -20,13 +20,24 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
   const handleClear = () => {
     const cleared = {
       priceRange: [0, 100],
+      eventType: [],
       audience: [],
       setting: [],
       acceptsSilver: false,
-      isVolunteer: false
+      wheelchairAccessible: false,
+      freeParking: false
     };
     setLocalFilters(cleared);
     onFiltersChange(cleared);
+  };
+
+  const toggleEventType = (value) => {
+    const current = localFilters.eventType || [];
+    if (current.includes(value)) {
+      setLocalFilters({ ...localFilters, eventType: current.filter(t => t !== value) });
+    } else {
+      setLocalFilters({ ...localFilters, eventType: [...current, value] });
+    }
   };
 
   const toggleAudience = (value) => {
@@ -66,7 +77,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
         <div className="p-6 overflow-y-auto max-h-[70vh] space-y-6">
           {/* Price Range */}
           <div>
-            <Label className="text-white font-semibold mb-3 block">Price Range</Label>
+            <Label className="text-white font-bold mb-3 block">Price</Label>
             <div className="px-2">
               <Slider
                 value={localFilters.priceRange || [0, 100]}
@@ -82,18 +93,47 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
             </div>
           </div>
 
-          {/* Audience */}
+          {/* Event Type */}
           <div>
-            <Label className="text-white font-semibold mb-3 block">Audience</Label>
+            <Label className="text-white font-bold mb-3 block">Event Type</Label>
             <div className="space-y-2">
-              {['family', 'adults', 'teens', 'kids', 'all_ages'].map((aud) => (
-                <label key={aud} className="flex items-center gap-2 cursor-pointer">
+              {[
+                { id: 'markets_fairs', label: 'Markets & Fairs' },
+                { id: 'live_music', label: 'Live Music' },
+                { id: 'food_drink', label: 'Food & Drink' },
+                { id: 'workshops_classes', label: 'Workshops & Classes' },
+                { id: 'sports_active', label: 'Sports & Active' },
+                { id: 'art_culture', label: 'Art & Culture' }
+              ].map((type) => (
+                <label key={type.id} className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
-                    checked={localFilters.audience?.includes(aud)}
-                    onCheckedChange={() => toggleAudience(aud)}
+                    checked={localFilters.eventType?.includes(type.id)}
+                    onCheckedChange={() => toggleEventType(type.id)}
                     className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
                   />
-                  <span className="text-sm text-slate-300 capitalize">{aud.replace('_', ' ')}</span>
+                  <span className="text-sm text-slate-300">{type.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Audience */}
+          <div>
+            <Label className="text-white font-bold mb-3 block">Audience</Label>
+            <div className="space-y-2">
+              {[
+                { id: 'family_friendly', label: 'Family Friendly' },
+                { id: 'adults_only', label: '21+ / Adults Only' },
+                { id: 'pet_friendly', label: 'Pet Friendly' },
+                { id: 'seniors', label: 'Seniors' }
+              ].map((aud) => (
+                <label key={aud.id} className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={localFilters.audience?.includes(aud.id)}
+                    onCheckedChange={() => toggleAudience(aud.id)}
+                    className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                  />
+                  <span className="text-sm text-slate-300">{aud.label}</span>
                 </label>
               ))}
             </div>
@@ -101,9 +141,9 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
 
           {/* Setting */}
           <div>
-            <Label className="text-white font-semibold mb-3 block">Setting</Label>
+            <Label className="text-white font-bold mb-3 block">Setting</Label>
             <div className="space-y-2">
-              {['indoor', 'outdoor', 'both'].map((set) => (
+              {['indoor', 'outdoor'].map((set) => (
                 <label key={set} className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
                     checked={localFilters.setting?.includes(set)}
@@ -116,25 +156,33 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
             </div>
           </div>
 
-          {/* Economy Options */}
+          {/* Amenities */}
           <div>
-            <Label className="text-white font-semibold mb-3 block">Economy</Label>
+            <Label className="text-white font-bold mb-3 block">Amenities</Label>
             <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={localFilters.wheelchairAccessible}
+                  onCheckedChange={(checked) => setLocalFilters({ ...localFilters, wheelchairAccessible: checked })}
+                  className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                />
+                <span className="text-sm text-slate-300">♿ Wheelchair Accessible</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={localFilters.freeParking}
+                  onCheckedChange={(checked) => setLocalFilters({ ...localFilters, freeParking: checked })}
+                  className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                />
+                <span className="text-sm text-slate-300">🅿️ Free Parking</span>
+              </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox
                   checked={localFilters.acceptsSilver}
                   onCheckedChange={(checked) => setLocalFilters({ ...localFilters, acceptsSilver: checked })}
                   className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
                 />
-                <span className="text-sm text-slate-300">🪙 Accepts Silver</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <Checkbox
-                  checked={localFilters.isVolunteer}
-                  onCheckedChange={(checked) => setLocalFilters({ ...localFilters, isVolunteer: checked })}
-                  className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
-                />
-                <span className="text-sm text-slate-300">🤝 Volunteer Opportunity</span>
+                <span className="text-sm text-slate-300">🪙 Silver Accepted</span>
               </label>
             </div>
           </div>
