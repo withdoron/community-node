@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Plus, Pencil, Trash2 } from "lucide-react";
+import { Calendar, Plus, Pencil, Trash2, PlusCircle } from "lucide-react";
 import { format } from "date-fns";
 
 export default function EventsWidget({ business, allowEdit, userRole }) {
@@ -101,16 +101,16 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
   }
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 bg-slate-900 border-slate-800">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Events</h2>
-          <p className="text-sm text-slate-600">Manage your upcoming events</p>
+          <h2 className="text-xl font-bold text-slate-100">Events</h2>
+          <p className="text-sm text-slate-400">Manage your upcoming events</p>
         </div>
         {allowEdit && (
           <Button 
             onClick={() => setShowEditor(true)}
-            className="bg-amber-500 hover:bg-amber-600 text-slate-900"
+            className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Event
@@ -119,39 +119,51 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
       </div>
 
       {isLoading ? (
-        <p className="text-slate-500">Loading events...</p>
+        <p className="text-slate-400">Loading events...</p>
       ) : events.length === 0 ? (
-        <div className="text-center py-12">
-          <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-500">No events yet</p>
-          {allowEdit && (
-            <Button 
-              variant="outline" 
-              onClick={() => setShowEditor(true)}
-              className="mt-4"
-            >
-              Create Your First Event
-            </Button>
-          )}
+        <div 
+          className="border-2 border-dashed border-slate-700 hover:border-amber-500/50 rounded-lg p-12 text-center cursor-pointer transition-all group"
+          onClick={allowEdit ? () => setShowEditor(true) : undefined}
+        >
+          <div className="flex flex-col items-center">
+            <div className="h-16 w-16 bg-amber-500/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-amber-500/20 transition-colors">
+              <PlusCircle className="h-8 w-8 text-amber-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-100 mb-2">Schedule your first event</h3>
+            <p className="text-sm text-slate-400 mb-4">Create classes, workshops, or gatherings for your community</p>
+            {allowEdit && (
+              <Button 
+                variant="outline" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowEditor(true);
+                }}
+                className="bg-slate-800 border-slate-700 text-slate-200 hover:border-amber-500 hover:text-amber-400"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Event
+              </Button>
+            )}
+          </div>
         </div>
       ) : (
         <div className="space-y-3">
           {events.map((event) => (
-            <div key={event.id} className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+            <div key={event.id} className="border border-slate-700 rounded-lg p-4 bg-slate-800 hover:border-amber-500/30 transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-slate-900">{event.title}</h3>
+                    <h3 className="font-semibold text-slate-100">{event.title}</h3>
                     {event.network && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs border-slate-600 text-slate-300">
                         {event.network === 'recess' ? 'Recess' : 'TCA'}
                       </Badge>
                     )}
                     {event.boost_end_at && new Date(event.boost_end_at) > new Date() && (
-                      <Badge className="bg-amber-500/10 text-amber-600 text-xs">Boosted</Badge>
+                      <Badge className="bg-amber-500/10 text-amber-500 text-xs border-amber-500/30">Boosted</Badge>
                     )}
                   </div>
-                  <p className="text-sm text-slate-600 mb-2">{event.description}</p>
+                  <p className="text-sm text-slate-400 mb-2">{event.description}</p>
                   <div className="flex items-center gap-4 text-xs text-slate-500">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
@@ -160,7 +172,7 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
                     {event.price > 0 ? (
                       <span>${event.price}</span>
                     ) : (
-                      <span className="text-emerald-600 font-semibold">FREE</span>
+                      <span className="text-emerald-400 font-semibold">FREE</span>
                     )}
                   </div>
                 </div>
@@ -170,6 +182,7 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
                       size="sm" 
                       variant="ghost"
                       onClick={() => handleEdit(event)}
+                      className="text-slate-400 hover:text-slate-100"
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -177,7 +190,7 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
                       size="sm" 
                       variant="ghost"
                       onClick={() => handleDelete(event.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

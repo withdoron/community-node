@@ -341,7 +341,15 @@ export default function BusinessDashboard() {
               <Store className="h-5 w-5 text-amber-500" />
               <h2 className="text-xl font-bold text-slate-100">Check-In System</h2>
             </div>
-            <p className="text-sm text-slate-400">Customer check-in coming soon...</p>
+            <div className="border-2 border-dashed border-slate-700 rounded-lg p-8 text-center">
+              <div className="flex flex-col items-center">
+                <div className="h-14 w-14 bg-emerald-500/10 rounded-full flex items-center justify-center mb-4">
+                  <div className="h-3 w-3 bg-emerald-500 rounded-full animate-pulse" />
+                </div>
+                <h3 className="text-base font-semibold text-slate-100 mb-1">Scanner Ready</h3>
+                <p className="text-sm text-slate-400">Waiting for next event to start...</p>
+              </div>
+            </div>
           </Card>
         )}
 
