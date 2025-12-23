@@ -1,504 +1,497 @@
-import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Coins, Zap, AlertCircle, CheckCircle2, Info } from "lucide-react";
-import { format } from 'date-fns';
-import { toast } from 'sonner';
+import { Calendar, Zap } from "lucide-react";
+import { format } from "date-fns";
 
 interface EventEditorProps {
-  event?: any;
-  businessId: string;
-  currentUser: any;
-  onSave?: () => void;
-  onCancel?: () => void;
+  business: any;
+  existingEvent?: any;
+  onSave: (event: any) => void;
+  onCancel: () => void;
+  instructors?: any[];
+  locations?: any[];
 }
 
-export default function EventEditor({ event, businessId, currentUser, onSave, onCancel }: EventEditorProps) {
-  const queryClient = useQueryClient();
-  const isEditing = !!event;
-  const isOwner = currentUser?.role === 'admin' || currentUser?.is_business_owner;
-
-  // Fetch business details to check add-ons and tier
-  const { data: business } = useQuery({
-    queryKey: ['business', businessId],
-    queryFn: () => base44.entities.Business.filter({ id: businessId }, '-created_date', 1).then(r => r[0])
-  });
-
-  // Fetch business locations
-  const { data: locations = [] } = useQuery({
-    queryKey: ['locations', businessId],
-    queryFn: () => base44.entities.Location.filter({ business_id: businessId, is_active: true }, '-created_date', 50)
-  });
-
-  // Calculate boost credits
-  const boostsRemaining = business ? (business.boost_credits_this_period || 0) - (business.boosts_used_this_period || 0) : 0;
-  const hasRecessAddon = business?.add_ons?.includes('recess') || false;
-  const hasTCAAddon = business?.add_ons?.includes('tca') || false;
-
-  // Form state
+export default function EventEditor({ 
+  business, 
+  existingEvent, 
+  onSave, 
+  onCancel,
+  instructors = [],
+  locations = []
+}: EventEditorProps) {
   const [formData, setFormData] = useState({
-    title: event?.title || '',
-    description: event?.description || '',
-    date: event?.date ? format(new Date(event.date), "yyyy-MM-dd'T'HH:mm") : '',
-    end_date: event?.end_date ? format(new Date(event.end_date), "yyyy-MM-dd'T'HH:mm") : '',
-    location_id: event?.location_id || '',
-    instructor_id: event?.instructor_id || '',
-    network: event?.network || '',
-    pricing_type: event?.price === 0 ? 'free' : event?.first_visit_free ? 'first_free' : 'paid',
-    price: event?.price || 0,
-    accepts_silver: event?.accepts_silver || false,
-    enable_boost: false,
-    pet_friendly: event?.pet_friendly || false,
-    mats_provided: event?.mats_provided || false,
-    wheelchair_accessible: event?.wheelchair_accessible || false,
-    free_parking: event?.free_parking || false,
-    instructor_note: event?.instructor_note || ''
+    title: existingEvent?.title || '',
+    description: existingEvent?.description || '',
+    date: existingEvent?.date ? format(new Date(existingEvent.date), "yyyy-MM-dd'T'HH:mm") : '',
+    end_date: existingEvent?.end_date ? format(new Date(existingEvent.end_date), "yyyy-MM-dd'T'HH:mm") : '',
+    instructor_id: existingEvent?.instructor_id || '',
+    location_id: existingEvent?.location_id || '',
+    location: existingEvent?.location || '',
+    price: existingEvent?.price || 0,
+    pricing_type: existingEvent?.first_visit_free ? 'first_free' : (existingEvent?.price > 0 ? 'paid' : 'free'),
+    network: existingEvent?.network || '',
+    punch_pass_accepted: existingEvent?.punch_pass_accepted || false,
+    accepts_silver: existingEvent?.accepts_silver || false,
+    pet_friendly: existingEvent?.pet_friendly || false,
+    mats_provided: existingEvent?.mats_provided || false,
+    wheelchair_accessible: existingEvent?.wheelchair_accessible || false,
+    free_parking: existingEvent?.free_parking || false,
+    setting: existingEvent?.setting || 'both',
+    event_type: existingEvent?.event_type || '',
+    audience_tags: existingEvent?.audience_tags || [],
+    instructor_note: existingEvent?.instructor_note || '',
+    boost_enabled: false
   });
 
-  const updateField = (field: string, value: any) => {
-    setFormData(prev => {
-      const updated = { ...prev, [field]: value };
-      
-      // Auto-enable punch pass if network is selected
-      if (field === 'network' && value) {
-        updated.punch_pass_accepted = true;
-      }
-      
-      return updated;
-    });
+  const boostCreditsAvailable = (business?.boost_credits_this_period || 0) - (business?.boosts_used_this_period || 0);
+  const hasRecessPartnership = business?.add_ons?.includes('recess');
+  const hasTCAPartnership = business?.add_ons?.includes('tca');
+
+  // Auto-enable punch pass when network is selected
+  useEffect(() => {
+    if (formData.network === 'recess' || formData.network === 'tca') {
+      setFormData(prev => ({ ...prev, punch_pass_accepted: true }));
+    }
+  }, [formData.network]);
+
+  const handlePricingTypeChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      pricing_type: value,
+      price: value === 'free' ? 0 : prev.price,
+      first_visit_free: value === 'first_free'
+    }));
   };
 
-  // Save mutation
-  const saveMutation = useMutation({
-    mutationFn: async (data: any) => {
-      if (isEditing) {
-        return base44.entities.Event.update(event.id, data);
-      } else {
-        return base44.entities.Event.create(data);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events'] });
-      toast.success(isEditing ? 'Event updated successfully' : 'Event created successfully');
-      onSave?.();
-    },
-    onError: () => {
-      toast.error('Failed to save event');
-    }
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validation
-    if (!formData.title || !formData.date || !formData.location_id) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
-    if (formData.pricing_type === 'paid' && (!formData.price || formData.price <= 0)) {
-      toast.error('Please enter a valid price');
-      return;
-    }
-
-    // Prepare data for submission
-    const submitData: any = {
-      business_id: businessId,
+    
+    const eventData = {
+      ...existingEvent,
+      business_id: business.id,
       title: formData.title,
       description: formData.description,
       date: new Date(formData.date).toISOString(),
-      end_date: formData.end_date ? new Date(formData.end_date).toISOString() : null,
-      location_id: formData.location_id,
-      instructor_id: formData.instructor_id || null,
-      network: formData.network || null,
-      price: formData.pricing_type === 'free' ? 0 : parseFloat(formData.price.toString()),
+      end_date: formData.end_date ? new Date(formData.end_date).toISOString() : undefined,
+      instructor_id: formData.instructor_id || undefined,
+      location_id: formData.location_id || undefined,
+      location: formData.location,
+      price: formData.pricing_type === 'free' ? 0 : formData.price,
       first_visit_free: formData.pricing_type === 'first_free',
+      network: formData.network || undefined,
+      punch_pass_accepted: formData.punch_pass_accepted,
       accepts_silver: formData.accepts_silver,
       pet_friendly: formData.pet_friendly,
       mats_provided: formData.mats_provided,
       wheelchair_accessible: formData.wheelchair_accessible,
       free_parking: formData.free_parking,
-      instructor_note: formData.instructor_note,
+      setting: formData.setting,
+      event_type: formData.event_type || undefined,
+      audience_tags: formData.audience_tags,
+      instructor_note: formData.instructor_note || undefined,
+      boost_start_at: formData.boost_enabled ? new Date().toISOString() : undefined,
+      boost_end_at: formData.boost_enabled ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : undefined,
       is_active: true
     };
 
-    // Handle boost
-    if (formData.enable_boost && boostsRemaining > 0) {
-      submitData.boost_start_at = new Date().toISOString();
-      submitData.boost_end_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
-      
-      // Update business boost usage
-      await base44.entities.Business.update(businessId, {
-        boosts_used_this_period: (business?.boosts_used_this_period || 0) + 1
-      });
-    }
-
-    saveMutation.mutate(submitData);
+    onSave(eventData);
   };
 
-  // Role-based rendering
-  const canEditBasicInfo = isOwner;
-  const canEditInstructorNote = true; // Everyone can edit instructor notes
+  const toggleAudienceTag = (tag: string) => {
+    setFormData(prev => ({
+      ...prev,
+      audience_tags: prev.audience_tags.includes(tag)
+        ? prev.audience_tags.filter(t => t !== tag)
+        : [...prev.audience_tags, tag]
+    }));
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* SECTION A: BASIC INFO */}
-      <Card className="p-6 bg-white border-slate-200">
-        <div className="flex items-center gap-2 mb-4">
-          <Calendar className="h-5 w-5 text-slate-600" />
-          <h3 className="text-lg font-semibold text-slate-900">Basic Information</h3>
+    <div className="bg-slate-800 border border-slate-700 rounded-lg">
+      {/* Header */}
+      <div className="flex items-center justify-between p-6 border-b border-slate-700">
+        <div>
+          <h2 className="text-2xl font-bold text-white">
+            {existingEvent ? 'Edit Event' : 'Create New Event'}
+          </h2>
+          <p className="text-sm text-slate-400 mt-1">
+            {business?.name}
+          </p>
         </div>
-        
+        <Badge 
+          variant="outline" 
+          className="bg-amber-500/10 border-amber-500/50 text-amber-400"
+        >
+          <Zap className="h-3 w-3 mr-1" />
+          {boostCreditsAvailable} Boost Credits
+        </Badge>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        {/* Basic Info */}
         <div className="space-y-4">
           <div>
-            <Label htmlFor="title" className="text-slate-700">Event Title *</Label>
+            <Label htmlFor="title" className="text-slate-200">Event Title *</Label>
             <Input
               id="title"
               value={formData.title}
-              onChange={(e) => updateField('title', e.target.value)}
-              placeholder="e.g., Morning Yoga Flow"
-              disabled={!canEditBasicInfo}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              className="bg-slate-900 border-slate-700 text-white"
+              placeholder="e.g., Morning Yoga Class"
               required
-              className="mt-1.5"
             />
           </div>
 
           <div>
-            <Label htmlFor="description" className="text-slate-700">Description</Label>
+            <Label htmlFor="description" className="text-slate-200">Description</Label>
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => updateField('description', e.target.value)}
-              placeholder="Tell attendees what to expect..."
-              disabled={!canEditBasicInfo}
-              rows={4}
-              className="mt-1.5"
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              className="bg-slate-900 border-slate-700 text-white min-h-[100px]"
+              placeholder="Describe your event..."
             />
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="date" className="text-slate-700">Start Date & Time *</Label>
-              <Input
-                id="date"
-                type="datetime-local"
-                value={formData.date}
-                onChange={(e) => updateField('date', e.target.value)}
-                disabled={!canEditBasicInfo}
-                required
-                className="mt-1.5"
-              />
-            </div>
-            <div>
-              <Label htmlFor="end_date" className="text-slate-700">End Date & Time</Label>
-              <Input
-                id="end_date"
-                type="datetime-local"
-                value={formData.end_date}
-                onChange={(e) => updateField('end_date', e.target.value)}
-                disabled={!canEditBasicInfo}
-                className="mt-1.5"
-              />
-            </div>
+        {/* Date & Time */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="date" className="text-slate-200">Start Date & Time *</Label>
+            <Input
+              id="date"
+              type="datetime-local"
+              value={formData.date}
+              onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+              className="bg-slate-900 border-slate-700 text-white"
+              required
+            />
           </div>
+          <div>
+            <Label htmlFor="end_date" className="text-slate-200">End Date & Time</Label>
+            <Input
+              id="end_date"
+              type="datetime-local"
+              value={formData.end_date}
+              onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
+              className="bg-slate-900 border-slate-700 text-white"
+            />
+          </div>
+        </div>
 
-          {isOwner && (
+        {/* Instructor & Location */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {instructors.length > 0 && (
             <div>
-              <Label htmlFor="instructor" className="text-slate-700">Instructor</Label>
-              <Select value={formData.instructor_id} onValueChange={(value) => updateField('instructor_id', value)}>
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue placeholder="Select instructor (optional)" />
+              <Label htmlFor="instructor" className="text-slate-200">Instructor</Label>
+              <Select
+                value={formData.instructor_id}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, instructor_id: value }))}
+              >
+                <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                  <SelectValue placeholder="Select instructor" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No instructor assigned</SelectItem>
-                  <SelectItem value="invite_new">+ Invite New Instructor</SelectItem>
+                <SelectContent className="bg-slate-900 border-slate-700">
+                  <SelectItem value={null}>None</SelectItem>
+                  {instructors.map((instructor) => (
+                    <SelectItem key={instructor.id} value={instructor.id}>
+                      {instructor.full_name || instructor.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {locations.length > 0 && (
+            <div>
+              <Label htmlFor="location_id" className="text-slate-200">Location</Label>
+              <Select
+                value={formData.location_id}
+                onValueChange={(value) => {
+                  const selectedLocation = locations.find(l => l.id === value);
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    location_id: value,
+                    location: selectedLocation ? `${selectedLocation.name || ''} ${selectedLocation.street_address || ''}`.trim() : prev.location
+                  }));
+                }}
+              >
+                <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-700">
+                  {locations.map((location) => (
+                    <SelectItem key={location.id} value={location.id}>
+                      {location.name || location.street_address}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           )}
         </div>
-      </Card>
 
-      {/* SECTION B: LOCATION & NETWORK */}
-      <Card className="p-6 bg-white border-slate-200">
-        <div className="flex items-center gap-2 mb-4">
-          <MapPin className="h-5 w-5 text-slate-600" />
-          <h3 className="text-lg font-semibold text-slate-900">Location & Network</h3>
+        {!locations.length && (
+          <div>
+            <Label htmlFor="location" className="text-slate-200">Location *</Label>
+            <Input
+              id="location"
+              value={formData.location}
+              onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+              className="bg-slate-900 border-slate-700 text-white"
+              placeholder="Enter event location"
+              required
+            />
+          </div>
+        )}
+
+        {/* Network Partnership */}
+        {(hasRecessPartnership || hasTCAPartnership) && (
+          <div className="space-y-3">
+            <Label className="text-slate-200">Network Partnership</Label>
+            <div className="space-y-2">
+              {hasRecessPartnership && (
+                <label className="flex items-start gap-3 p-3 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer hover:border-amber-500/50 transition-colors">
+                  <Checkbox
+                    checked={formData.network === 'recess'}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({ ...prev, network: checked ? 'recess' : '' }))
+                    }
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <p className="text-white font-medium">Recess</p>
+                    <p className="text-xs text-slate-400">Punch Pass automatically accepted</p>
+                  </div>
+                </label>
+              )}
+              {hasTCAPartnership && (
+                <label className="flex items-start gap-3 p-3 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer hover:border-amber-500/50 transition-colors">
+                  <Checkbox
+                    checked={formData.network === 'tca'}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({ ...prev, network: checked ? 'tca' : '' }))
+                    }
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <p className="text-white font-medium">The Creative Alliance (TCA)</p>
+                    <p className="text-xs text-slate-400">Punch Pass automatically accepted</p>
+                  </div>
+                </label>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Pricing */}
+        <div className="space-y-4">
+          <Label className="text-slate-200">Pricing *</Label>
+          <RadioGroup
+            value={formData.pricing_type}
+            onValueChange={handlePricingTypeChange}
+            className="space-y-2"
+          >
+            <label className="flex items-center gap-3 p-3 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer hover:border-amber-500/50 transition-colors">
+              <RadioGroupItem value="free" />
+              <span className="text-white">Free</span>
+            </label>
+            <label className="flex items-center gap-3 p-3 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer hover:border-amber-500/50 transition-colors">
+              <RadioGroupItem value="paid" />
+              <span className="text-white">Paid</span>
+            </label>
+            <label className="flex items-center gap-3 p-3 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer hover:border-amber-500/50 transition-colors">
+              <RadioGroupItem value="first_free" />
+              <div>
+                <p className="text-white">First Visit Free</p>
+                <p className="text-xs text-slate-400">Special intro offer for new attendees</p>
+              </div>
+            </label>
+          </RadioGroup>
+
+          {formData.pricing_type === 'paid' && (
+            <div className="space-y-3 ml-6">
+              <div>
+                <Label htmlFor="price" className="text-slate-200">Price ($)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                  className="bg-slate-900 border-slate-700 text-white"
+                  placeholder="0.00"
+                />
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={formData.accepts_silver}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, accepts_silver: checked }))}
+                />
+                <span className="text-sm text-slate-300">Accepts Silver Payment</span>
+              </label>
+            </div>
+          )}
         </div>
 
-        <div className="space-y-4">
+        {/* Event Type & Setting */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="location" className="text-slate-700">Location *</Label>
-            <Select value={formData.location_id} onValueChange={(value) => updateField('location_id', value)} disabled={!canEditBasicInfo}>
-              <SelectTrigger className="mt-1.5">
-                <SelectValue placeholder="Select location" />
+            <Label htmlFor="event_type" className="text-slate-200">Event Type</Label>
+            <Select
+              value={formData.event_type}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, event_type: value }))}
+            >
+              <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                <SelectValue placeholder="Select type" />
               </SelectTrigger>
-              <SelectContent>
-                {locations.map((loc: any) => (
-                  <SelectItem key={loc.id} value={loc.id}>
-                    {loc.name || loc.city}
-                  </SelectItem>
-                ))}
+              <SelectContent className="bg-slate-900 border-slate-700">
+                <SelectItem value="workshops_classes">Workshops & Classes</SelectItem>
+                <SelectItem value="sports_active">Sports & Active</SelectItem>
+                <SelectItem value="markets_fairs">Markets & Fairs</SelectItem>
+                <SelectItem value="live_music">Live Music</SelectItem>
+                <SelectItem value="food_drink">Food & Drink</SelectItem>
+                <SelectItem value="art_culture">Art & Culture</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {isOwner && (hasRecessAddon || hasTCAAddon) && (
-            <div>
-              <Label className="text-slate-700 mb-2 block">Network Partnership</Label>
-              <div className="space-y-2">
-                {hasRecessAddon && (
-                  <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-slate-200 hover:bg-slate-50">
-                    <Checkbox
-                      checked={formData.network === 'recess'}
-                      onCheckedChange={(checked) => updateField('network', checked ? 'recess' : '')}
-                    />
-                    <div className="flex-1">
-                      <span className="text-sm font-medium text-slate-900">Recess</span>
-                      <p className="text-xs text-slate-500">Punch Pass Accepted</p>
-                    </div>
-                  </label>
-                )}
-                {hasTCAAddon && (
-                  <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-slate-200 hover:bg-slate-50">
-                    <Checkbox
-                      checked={formData.network === 'tca'}
-                      onCheckedChange={(checked) => updateField('network', checked ? 'tca' : '')}
-                    />
-                    <div className="flex-1">
-                      <span className="text-sm font-medium text-slate-900">The Creative Alliance</span>
-                      <p className="text-xs text-slate-500">Punch Pass Accepted</p>
-                    </div>
-                  </label>
-                )}
-              </div>
-              {formData.network && (
-                <div className="mt-2 flex items-start gap-2 text-xs text-amber-600 bg-amber-50 p-2 rounded">
-                  <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                  <span>Network events automatically accept Punch Pass</span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </Card>
-
-      {/* SECTION C: PRICING & ECONOMY */}
-      {isOwner && (
-        <Card className="p-6 bg-white border-slate-200">
-          <div className="flex items-center gap-2 mb-4">
-            <Coins className="h-5 w-5 text-slate-600" />
-            <h3 className="text-lg font-semibold text-slate-900">Pricing & Economy</h3>
+          <div>
+            <Label htmlFor="setting" className="text-slate-200">Setting</Label>
+            <Select
+              value={formData.setting}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, setting: value }))}
+            >
+              <SelectTrigger className="bg-slate-900 border-slate-700 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 border-slate-700">
+                <SelectItem value="indoor">Indoor</SelectItem>
+                <SelectItem value="outdoor">Outdoor</SelectItem>
+                <SelectItem value="both">Both/Flexible</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-
-          <div className="space-y-4">
-            <div>
-              <Label className="text-slate-700 mb-2 block">Pricing Type</Label>
-              <div className="grid grid-cols-3 gap-2">
-                <Button
-                  type="button"
-                  variant={formData.pricing_type === 'free' ? 'default' : 'outline'}
-                  className={formData.pricing_type === 'free' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}
-                  onClick={() => updateField('pricing_type', 'free')}
-                >
-                  Free
-                </Button>
-                <Button
-                  type="button"
-                  variant={formData.pricing_type === 'paid' ? 'default' : 'outline'}
-                  className={formData.pricing_type === 'paid' ? 'bg-slate-900 hover:bg-slate-800' : ''}
-                  onClick={() => updateField('pricing_type', 'paid')}
-                >
-                  Paid
-                </Button>
-                <Button
-                  type="button"
-                  variant={formData.pricing_type === 'first_free' ? 'default' : 'outline'}
-                  className={formData.pricing_type === 'first_free' ? 'bg-amber-500 hover:bg-amber-600' : ''}
-                  onClick={() => updateField('pricing_type', 'first_free')}
-                >
-                  First Free
-                </Button>
-              </div>
-            </div>
-
-            {formData.pricing_type !== 'free' && (
-              <div>
-                <Label htmlFor="price" className="text-slate-700">Price per Person *</Label>
-                <div className="relative mt-1.5">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.price}
-                    onChange={(e) => updateField('price', parseFloat(e.target.value))}
-                    className="pl-7"
-                    required
-                  />
-                </div>
-              </div>
-            )}
-
-            <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-slate-200 hover:bg-slate-50">
-              <Checkbox
-                checked={formData.accepts_silver}
-                onCheckedChange={(checked) => updateField('accepts_silver', checked)}
-              />
-              <div className="flex-1">
-                <span className="text-sm font-medium text-slate-900">🪙 Accepts Silver</span>
-                <p className="text-xs text-slate-500">Allow customers to pay with silver</p>
-              </div>
-            </label>
-          </div>
-        </Card>
-      )}
-
-      {/* SECTION D: MARKETING & BOOSTS */}
-      {isOwner && (
-        <Card className="p-6 bg-white border-slate-200">
-          <div className="flex items-center gap-2 mb-4">
-            <Zap className="h-5 w-5 text-amber-500" />
-            <h3 className="text-lg font-semibold text-slate-900">Marketing & Boosts</h3>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-              <div>
-                <p className="text-sm font-medium text-slate-900">Boost Credits</p>
-                <p className="text-xs text-slate-500">Available this month</p>
-              </div>
-              <Badge variant={boostsRemaining > 0 ? 'default' : 'secondary'} className="text-lg px-3 py-1">
-                {boostsRemaining} / {business?.boost_credits_this_period || 0}
-              </Badge>
-            </div>
-
-            {boostsRemaining > 0 && !isEditing && (
-              <label className="flex items-start gap-3 cursor-pointer p-4 rounded-lg border-2 border-amber-200 bg-amber-50 hover:bg-amber-100">
-                <Checkbox
-                  checked={formData.enable_boost}
-                  onCheckedChange={(checked) => updateField('enable_boost', checked)}
-                  className="mt-0.5"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-slate-900">Boost This Event</span>
-                    <Badge variant="outline" className="text-xs">-1 Credit</Badge>
-                  </div>
-                  <p className="text-xs text-slate-600 mt-1">
-                    Featured placement for 7 days • Higher visibility in search results
-                  </p>
-                </div>
-              </label>
-            )}
-
-            {boostsRemaining === 0 && (
-              <div className="flex items-start gap-2 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                <AlertCircle className="h-4 w-4 text-slate-500 mt-0.5" />
-                <div className="flex-1 text-xs text-slate-600">
-                  <p className="font-medium">No boost credits remaining</p>
-                  <p className="mt-1">Credits reset monthly based on your subscription tier. Consider upgrading for more boosts.</p>
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <Info className="h-3 w-3" />
-              <span>Enable Auto-Boost in your business settings for automatic event promotion</span>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* SECTION E: AMENITIES */}
-      <Card className="p-6 bg-white border-slate-200">
-        <div className="flex items-center gap-2 mb-4">
-          <CheckCircle2 className="h-5 w-5 text-slate-600" />
-          <h3 className="text-lg font-semibold text-slate-900">Amenities & Details</h3>
         </div>
 
-        <div className="space-y-4">
+        {/* Audience Tags */}
+        <div className="space-y-3">
+          <Label className="text-slate-200">Audience</Label>
           <div className="grid grid-cols-2 gap-2">
-            <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-slate-200 hover:bg-slate-50">
+            {['family_friendly', 'adults_only', 'pet_friendly', 'seniors'].map((tag) => (
+              <label key={tag} className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={formData.audience_tags.includes(tag)}
+                  onCheckedChange={() => toggleAudienceTag(tag)}
+                />
+                <span className="text-sm text-slate-300 capitalize">
+                  {tag.replace('_', ' ')}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Amenities */}
+        <div className="space-y-3">
+          <Label className="text-slate-200">Amenities</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="flex items-center gap-2 cursor-pointer">
               <Checkbox
                 checked={formData.pet_friendly}
-                onCheckedChange={(checked) => updateField('pet_friendly', checked)}
-                disabled={!canEditBasicInfo}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, pet_friendly: checked }))}
               />
-              <span className="text-sm text-slate-700">🐕 Pet Friendly</span>
+              <span className="text-sm text-slate-300">Pet Friendly</span>
             </label>
-
-            <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-slate-200 hover:bg-slate-50">
+            <label className="flex items-center gap-2 cursor-pointer">
               <Checkbox
                 checked={formData.mats_provided}
-                onCheckedChange={(checked) => updateField('mats_provided', checked)}
-                disabled={!canEditBasicInfo}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, mats_provided: checked }))}
               />
-              <span className="text-sm text-slate-700">🧘 Mats Provided</span>
+              <span className="text-sm text-slate-300">Mats Provided</span>
             </label>
-
-            <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-slate-200 hover:bg-slate-50">
+            <label className="flex items-center gap-2 cursor-pointer">
               <Checkbox
                 checked={formData.wheelchair_accessible}
-                onCheckedChange={(checked) => updateField('wheelchair_accessible', checked)}
-                disabled={!canEditBasicInfo}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, wheelchair_accessible: checked }))}
               />
-              <span className="text-sm text-slate-700">♿ Wheelchair Accessible</span>
+              <span className="text-sm text-slate-300">Wheelchair Accessible</span>
             </label>
-
-            <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-slate-200 hover:bg-slate-50">
+            <label className="flex items-center gap-2 cursor-pointer">
               <Checkbox
                 checked={formData.free_parking}
-                onCheckedChange={(checked) => updateField('free_parking', checked)}
-                disabled={!canEditBasicInfo}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, free_parking: checked }))}
               />
-              <span className="text-sm text-slate-700">🅿️ Free Parking</span>
+              <span className="text-sm text-slate-300">Free Parking</span>
             </label>
           </div>
+        </div>
 
-          {canEditInstructorNote && (
+        {/* Instructor Note */}
+        <div>
+          <Label htmlFor="instructor_note" className="text-slate-200">Instructor Note</Label>
+          <Textarea
+            id="instructor_note"
+            value={formData.instructor_note}
+            onChange={(e) => setFormData(prev => ({ ...prev, instructor_note: e.target.value }))}
+            className="bg-slate-900 border-slate-700 text-white"
+            placeholder="Personal message from the instructor..."
+            rows={3}
+          />
+        </div>
+
+        {/* Marketing Boost */}
+        <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+          <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="instructor_note" className="text-slate-700">Instructor Note</Label>
-              <Textarea
-                id="instructor_note"
-                value={formData.instructor_note}
-                onChange={(e) => updateField('instructor_note', e.target.value)}
-                placeholder="Add a personal message or special instructions..."
-                rows={3}
-                className="mt-1.5"
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                Share special tips, what to bring, or personal insights about this session
+              <p className="font-semibold text-white">Marketing Boost</p>
+              <p className="text-xs text-slate-400 mt-1">
+                Featured placement for 7 days (1 credit)
               </p>
             </div>
+            <Switch
+              checked={formData.boost_enabled}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, boost_enabled: checked }))}
+              disabled={boostCreditsAvailable < 1}
+            />
+          </div>
+          {boostCreditsAvailable < 1 && (
+            <p className="text-xs text-amber-400 mt-2">
+              No boost credits available. Upgrade your plan to get more.
+            </p>
           )}
         </div>
-      </Card>
 
-      {/* ACTION BUTTONS */}
-      <div className="flex items-center justify-end gap-3 pt-4">
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+        {/* Actions */}
+        <div className="flex gap-3 pt-4 border-t border-slate-700">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="flex-1 bg-transparent border-slate-600 text-slate-300 hover:bg-slate-700"
+          >
             Cancel
           </Button>
-        )}
-        <Button 
-          type="submit" 
-          className="bg-slate-900 hover:bg-slate-800"
-          disabled={saveMutation.isPending}
-        >
-          {saveMutation.isPending ? 'Saving...' : isEditing ? 'Update Event' : 'Create Event'}
-        </Button>
-      </div>
-    </form>
+          <Button
+            type="submit"
+            className="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold"
+          >
+            Save Event
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
