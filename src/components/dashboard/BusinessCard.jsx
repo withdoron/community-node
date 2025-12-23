@@ -8,22 +8,22 @@ export default function BusinessCard({ business, userRole, eventCount = 0, onCli
     Owner: { 
       label: 'OWNER', 
       icon: Crown, 
-      className: 'bg-amber-500/20 text-amber-400 border-amber-500/50' 
+      className: 'bg-amber-500 text-black font-bold border-amber-500' 
     },
     Manager: { 
       label: 'MANAGER', 
       icon: Shield, 
-      className: 'bg-blue-500/20 text-blue-400 border-blue-500/50' 
+      className: 'bg-slate-700 text-slate-300 border-slate-700' 
     },
     Instructor: { 
       label: 'STAFF', 
       icon: UserCircle, 
-      className: 'bg-purple-500/20 text-purple-400 border-purple-500/50' 
+      className: 'bg-slate-700 text-slate-300 border-slate-700' 
     },
     Editor: { 
       label: 'STAFF', 
       icon: UserCircle, 
-      className: 'bg-purple-500/20 text-purple-400 border-purple-500/50' 
+      className: 'bg-slate-700 text-slate-300 border-slate-700' 
     }
   };
 
@@ -32,7 +32,7 @@ export default function BusinessCard({ business, userRole, eventCount = 0, onCli
 
   return (
     <Card 
-      className="bg-slate-800 border-slate-700 hover:border-slate-600 hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden group"
+      className="bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-colors duration-300 cursor-pointer overflow-hidden group"
       onClick={onClick}
     >
       <div className="p-6">
@@ -46,8 +46,8 @@ export default function BusinessCard({ business, userRole, eventCount = 0, onCli
                 className="w-14 h-14 rounded-lg object-cover"
               />
             ) : (
-              <div className="w-14 h-14 rounded-lg bg-slate-700 flex items-center justify-center">
-                <Store className="h-6 w-6 text-slate-400" />
+              <div className="w-14 h-14 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <Store className="h-6 w-6 text-amber-500" />
               </div>
             )}
           </div>
@@ -55,7 +55,7 @@ export default function BusinessCard({ business, userRole, eventCount = 0, onCli
           {/* Business Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-2">
-              <h3 className="font-bold text-lg text-white truncate">
+              <h3 className="font-bold text-lg text-slate-100 truncate">
                 {business.name}
               </h3>
               <Badge variant="outline" className={role.className}>
@@ -82,7 +82,7 @@ export default function BusinessCard({ business, userRole, eventCount = 0, onCli
           </div>
 
           {/* Arrow */}
-          <ChevronRight className="h-5 w-5 text-slate-500 group-hover:text-slate-300 transition-colors flex-shrink-0" />
+          <ChevronRight className="h-5 w-5 text-slate-600 group-hover:text-amber-500 transition-colors flex-shrink-0" />
         </div>
       </div>
     </Card>

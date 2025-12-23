@@ -68,7 +68,7 @@ export default function BusinessDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-900">
+      <div className="flex items-center justify-center min-h-screen bg-slate-950">
         <div className="animate-spin h-8 w-8 border-4 border-amber-500 border-t-transparent rounded-full" />
       </div>
     );
@@ -82,29 +82,28 @@ export default function BusinessDashboard() {
   // STEP 2: Has businesses but none selected - Show Smart Dashboard Hub
   if (!selectedBusinessId) {
     return (
-      <div className="min-h-screen bg-slate-900">
+      <div className="min-h-screen bg-slate-950">
         {/* Personal Header - "Wallet Strip" */}
-        <div className="bg-gradient-to-r from-slate-800 via-slate-800 to-slate-700 border-b border-slate-700">
+        <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 border-b border-slate-800">
           <div className="max-w-7xl mx-auto px-6 py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-white">
+                <h1 className="text-2xl font-bold text-slate-100">
                   Hello, {currentUser?.full_name || 'User'}
                 </h1>
                 <p className="text-slate-400 text-sm mt-1">Welcome back to your dashboard</p>
               </div>
               <div className="flex items-center gap-3">
-                <Badge variant="outline" className="bg-slate-700/50 border-slate-600 text-white px-4 py-2">
-                  <Wallet className="h-4 w-4 mr-2" />
+                <Badge variant="outline" className="bg-slate-800 border-slate-700 text-slate-200 px-4 py-2">
+                  <Wallet className="h-4 w-4 mr-2 text-amber-500" />
                   Silver: 0 oz
                 </Badge>
-                <Badge variant="outline" className="bg-slate-700/50 border-slate-600 text-white px-4 py-2">
-                  <Ticket className="h-4 w-4 mr-2" />
+                <Badge variant="outline" className="bg-slate-800 border-slate-700 text-slate-200 px-4 py-2">
+                  <Ticket className="h-4 w-4 mr-2 text-amber-500" />
                   0 Passes
                 </Badge>
                 <Button 
-                  variant="outline" 
-                  className="bg-slate-700/50 border-slate-600 text-white hover:bg-slate-700"
+                  className="bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700"
                   onClick={() => navigate(createPageUrl('Events'))}
                 >
                   <Ticket className="h-4 w-4 mr-2" />
@@ -119,14 +118,14 @@ export default function BusinessDashboard() {
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-white">My Businesses & Workspaces</h2>
+              <h2 className="text-2xl font-bold text-slate-100">My Businesses & Workspaces</h2>
               <p className="text-slate-400 text-sm mt-1">
                 Manage your business listings and team workspaces
               </p>
             </div>
             <Button 
               onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
-              className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold"
+              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Business
