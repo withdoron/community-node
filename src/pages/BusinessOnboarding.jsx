@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ChevronLeft, ChevronRight, Loader2, Upload, X, Plus, Trash2,
-  Check, Star, Zap, Crown, Store, UserCircle, Heart, Ticket, User
+  Check, Star, Zap, Crown, Store, Briefcase, Heart, Ticket, Compass
 } from "lucide-react";
 import { ARCHETYPE_CATEGORIES } from '@/components/categories/archetypeCategories';
 import Step2Details from '@/components/onboarding/Step2Details';
@@ -54,7 +54,16 @@ const tiers = [
 
 const archetypes = [
   {
-    id: 'location',
+    id: 'explorer',
+    icon: Compass,
+    title: 'Local Explorer',
+    description: 'I want to support local and discover hidden gems.',
+    examples: 'Tailor your feed to your interests.',
+    isHelperText: true,
+    featured: true
+  },
+  {
+    id: 'venue',
     icon: Store,
     title: 'Location / Venue',
     description: 'I have a physical space for customers to visit.',
@@ -62,17 +71,10 @@ const archetypes = [
   },
   {
     id: 'service',
-    icon: UserCircle,
-    title: 'Service / Talent',
-    description: 'I offer services or classes at various locations.',
-    examples: 'Instructor, Guide, Artist, Consultant'
-  },
-  {
-    id: 'community',
-    icon: Heart,
-    title: 'Community / Non-Profit',
-    description: 'I lead a group, cause, or congregation.',
-    examples: 'Social Club, Church, HOA, Charity'
+    icon: Briefcase,
+    title: 'Service Provider',
+    description: 'I offer mobile services or professional skills.',
+    examples: 'Instructor, Plumber, Consultant, Artist'
   },
   {
     id: 'organizer',
@@ -82,12 +84,11 @@ const archetypes = [
     examples: 'Concerts, Markets, Meetups, Nightlife'
   },
   {
-    id: 'community_member',
-    icon: User,
-    title: 'Community Member',
-    description: 'I want to discover local gems and events.',
-    examples: 'Tailor your feed to your interests.',
-    isHelperText: true
+    id: 'non_profit',
+    icon: Heart,
+    title: 'Community / Non-Profit',
+    description: 'I lead a group, cause, church, or congregation.',
+    examples: 'Social Club, Church, HOA, Charity'
   }
 ];
 
@@ -306,7 +307,7 @@ export default function BusinessOnboarding() {
                 <p className="text-slate-400 mt-2">Choose the option that best describes your organization</p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4 mt-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                 {archetypes.map((archetype) => {
                   const Icon = archetype.icon;
                   return (
@@ -318,6 +319,7 @@ export default function BusinessOnboarding() {
                       }}
                       className={`
                         group p-6 rounded-lg border-2 cursor-pointer transition-all
+                        ${archetype.featured ? 'md:col-span-2' : ''}
                         ${formData.archetype === archetype.id
                           ? 'border-amber-500 bg-amber-500/10'
                           : 'border-slate-800 bg-slate-900 hover:border-amber-500/50'}
