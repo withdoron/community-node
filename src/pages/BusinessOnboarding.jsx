@@ -174,6 +174,11 @@ export default function BusinessOnboarding() {
     queryFn: () => base44.auth.me()
   });
 
+  // Scroll to top when step changes
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentStep]);
+
   const createBusiness = useMutation({
     mutationFn: async (data) => {
       const tier = tiers.find(t => t.id === data.subscription_tier);
@@ -360,7 +365,7 @@ export default function BusinessOnboarding() {
                 }
               }
             }}
-            className="bg-slate-800/50 hover:bg-slate-800/50 active:bg-slate-800/50 text-slate-400 border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors"
+            className="bg-slate-800 text-slate-200 border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors duration-200"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back
