@@ -186,6 +186,16 @@ export default function BusinessOnboarding() {
     });
   };
 
+  const formatPhoneNumber = (value) => {
+    const phoneNumber = value.replace(/[^\d]/g, '');
+    const phoneNumberLength = phoneNumber.length;
+    if (phoneNumberLength < 4) return phoneNumber;
+    if (phoneNumberLength < 7) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+    }
+    return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+  };
+
   const updateService = (index, field, value) => {
     const newServices = [...formData.services];
     newServices[index] = { ...newServices[index], [field]: value };
@@ -497,7 +507,7 @@ export default function BusinessOnboarding() {
                     <Input
                       id="phone"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
                       placeholder="(555) 123-4567"
                       className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
                     />
