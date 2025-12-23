@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, Eye, Calendar, Handshake, Coins, Briefcase } from "lucide-react";
+import { CheckCircle2, Circle, Eye, Calendar, Handshake, Coins, Briefcase } from "lucide-react";
 
 const GOALS = [
   { 
@@ -53,7 +53,7 @@ export default function Step3Goals({ formData, setFormData }) {
         <p className="text-slate-400 mt-1">Select all that apply (choose at least one)</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="flex flex-col gap-3">
         {GOALS.map((goal) => {
           const isSelected = selectedGoals.includes(goal.id);
           const Icon = goal.icon;
@@ -63,34 +63,39 @@ export default function Step3Goals({ formData, setFormData }) {
               key={goal.id}
               onClick={() => toggleGoal(goal.id)}
               className={`
-                relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200
+                flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
                 ${isSelected
-                  ? 'bg-teal-500/10 border-teal-500 shadow-lg'
-                  : 'bg-white border-slate-300 hover:border-teal-400'
+                  ? 'bg-slate-800 border-teal-500 shadow-lg'
+                  : 'bg-slate-800 border-slate-700 hover:bg-slate-800/80 hover:border-slate-600'
                 }
               `}
             >
-              {isSelected && (
-                <div className="absolute top-3 right-3">
-                  <CheckCircle2 className="h-5 w-5 text-teal-500" />
-                </div>
-              )}
-              
-              <div className="mb-3">
-                <div className={`
-                  h-12 w-12 rounded-lg flex items-center justify-center
-                  ${isSelected ? 'bg-teal-500/20' : 'bg-slate-100'}
-                `}>
-                  <Icon className={`h-6 w-6 ${isSelected ? 'text-teal-600' : 'text-slate-600'}`} />
-                </div>
+              {/* Icon */}
+              <div className={`
+                h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0
+                ${isSelected ? 'bg-teal-500/20' : 'bg-slate-700'}
+              `}>
+                <Icon className={`h-5 w-5 ${isSelected ? 'text-teal-400' : 'text-slate-400'}`} />
               </div>
               
-              <h3 className={`font-semibold text-base mb-1 ${isSelected ? 'text-slate-900' : 'text-slate-700'}`}>
-                {goal.label}
-              </h3>
-              <p className="text-sm text-slate-500">
-                {goal.subtitle}
-              </p>
+              {/* Title & Subtitle */}
+              <div className="flex-1">
+                <h3 className={`font-semibold text-base mb-0.5 ${isSelected ? 'text-slate-100' : 'text-slate-300'}`}>
+                  {goal.label}
+                </h3>
+                <p className="text-sm text-slate-400">
+                  {goal.subtitle}
+                </p>
+              </div>
+              
+              {/* Checkmark */}
+              <div className="flex-shrink-0">
+                {isSelected ? (
+                  <CheckCircle2 className="h-6 w-6 text-teal-500" />
+                ) : (
+                  <Circle className="h-6 w-6 text-slate-600" />
+                )}
+              </div>
             </div>
           );
         })}
