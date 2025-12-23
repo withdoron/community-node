@@ -112,6 +112,7 @@ export default function Events() {
   const filteredEvents = useMemo(() => {
     let result = [...events];
     const now = new Date();
+    console.log('Total events:', events.length, 'Now:', now);
 
     // Search filter
     if (searchQuery) {
@@ -158,6 +159,7 @@ export default function Events() {
 
     // Filter out past events
     result = result.filter(e => new Date(e.date) >= now);
+    console.log('Filtered events:', result.length);
 
     return result;
   }, [events, searchQuery, quickFilter, advancedFilters]);
