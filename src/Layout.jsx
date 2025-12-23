@@ -37,19 +37,13 @@ export default function Layout({ children, currentPageName }) {
           Browse Events
         </Button>
       </Link>
-      <Link to={createPageUrl('Home')}>
+      <Link to={createPageUrl('BusinessDashboard')}>
         <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
-          Personal Dashboard
+          <LayoutDashboard className="h-4 w-4 mr-2" />
+          Dashboard
         </Button>
       </Link>
-      {currentUser?.is_business_owner ? (
-        <Link to={createPageUrl('BusinessDashboard')}>
-          <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
-            <LayoutDashboard className="h-4 w-4 mr-2" />
-            Host Dashboard
-          </Button>
-        </Link>
-      ) : (
+      {!currentUser?.is_business_owner && (
         <Link to={createPageUrl('BusinessOnboarding')}>
           <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
             <Plus className="h-4 w-4 mr-2" />
