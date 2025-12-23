@@ -132,7 +132,30 @@ export default function Layout({ children, currentPageName }) {
                 </Button>
               </SheetTrigger>
               <SheetContent className="bg-slate-950 border-l border-slate-800">
-                <div className="flex flex-col h-full py-6">
+                <div className="flex justify-end mb-4">
+                  <SheetClose asChild>
+                    <button 
+                      className="p-2 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-slate-800"
+                      aria-label="Close menu"
+                    >
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="24" 
+                        height="24" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      >
+                        <path d="M18 6 6 18"/>
+                        <path d="m6 6 12 12"/>
+                      </svg>
+                    </button>
+                  </SheetClose>
+                </div>
+                <div className="flex flex-col h-full">
                   <div className="flex flex-col gap-2 flex-1">
                     <Link to={createPageUrl('Events')}>
                       <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
@@ -283,7 +306,30 @@ export default function Layout({ children, currentPageName }) {
                 </Button>
               </SheetTrigger>
               <SheetContent className="bg-slate-950 border-l border-slate-800">
-                <div className="flex flex-col h-full py-6">
+                <div className="flex justify-end mb-4">
+                  <SheetClose asChild>
+                    <button 
+                      className="p-2 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-slate-800"
+                      aria-label="Close menu"
+                    >
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="24" 
+                        height="24" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      >
+                        <path d="M18 6 6 18"/>
+                        <path d="m6 6 12 12"/>
+                      </svg>
+                    </button>
+                  </SheetClose>
+                </div>
+                <div className="flex flex-col h-full">
                   <div className="flex flex-col gap-2 flex-1">
                     <Link to={createPageUrl('Events')}>
                       <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
