@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Store, User, LogOut, LayoutDashboard, Plus, Menu, Shield, Calendar, X } from "lucide-react";
+import { Store, User, LogOut, LayoutDashboard, Plus, Menu, Shield, Calendar, X, Building2 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 export default function Layout({ children, currentPageName }) {
@@ -35,6 +35,11 @@ export default function Layout({ children, currentPageName }) {
       <Link to={createPageUrl('Events')}>
         <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
           Browse Events
+        </Button>
+      </Link>
+      <Link to={createPageUrl('Directory')}>
+        <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
+          Browse Directory
         </Button>
       </Link>
       <Link to={createPageUrl('BusinessDashboard')}>
