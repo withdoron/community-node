@@ -12,7 +12,41 @@ import FinancialWidget from '@/components/dashboard/widgets/FinancialWidget';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Store, Wallet, Ticket, Plus } from "lucide-react";
+import { ArrowLeft, Store, Wallet, Ticket, Plus, Palette, Users, TrendingUp } from "lucide-react";
+
+// DASHBOARD CONFIGURATION BY ARCHETYPE
+const DASHBOARD_CONFIG = {
+  location: {
+    title: 'Storefront Management',
+    widgets: ['Overview', 'Events', 'Staff', 'Financials', 'CheckIn']
+  },
+  venue: {
+    title: 'Storefront Management',
+    widgets: ['Overview', 'Events', 'Staff', 'Financials', 'CheckIn']
+  },
+  service: {
+    title: 'Artist Command Center',
+    widgets: ['Overview', 'Schedule', 'Portfolio', 'Reviews']
+  },
+  talent: {
+    title: 'Artist Command Center',
+    widgets: ['Overview', 'Schedule', 'Portfolio', 'Reviews']
+  },
+  community: {
+    title: 'Group Hub',
+    widgets: ['Overview', 'Events', 'Members', 'Donations']
+  },
+  organizer: {
+    title: 'Event Command Center',
+    widgets: ['Overview', 'Ticketing', 'Marketing', 'Team']
+  }
+};
+
+// Fallback for unspecified archetypes
+const DEFAULT_CONFIG = {
+  title: 'Business Dashboard',
+  widgets: ['Overview', 'Events', 'Staff', 'Financials']
+};
 
 export default function BusinessDashboard() {
   const navigate = useNavigate();
@@ -156,29 +190,36 @@ export default function BusinessDashboard() {
   }
 
   const userRole = getUserRole(selectedBusiness);
+  const archetype = selectedBusiness.archetype || 'location';
+  const config = DASHBOARD_CONFIG[archetype] || DEFAULT_CONFIG;
+  const isOwner = userRole === 'Owner';
+  const isManager = userRole === 'Manager';
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-950">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
+      <div className="bg-slate-900 border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSelectedBusinessId(null)}
-              className="text-slate-600 hover:text-slate-900"
+              className="text-slate-400 hover:text-slate-100"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Businesses
             </Button>
-            <div className="h-4 w-px bg-slate-200" />
+            <div className="h-4 w-px bg-slate-700" />
             <div className="flex items-center gap-3">
-              <Store className="h-5 w-5 text-slate-600" />
+              <Store className="h-5 w-5 text-amber-500" />
               <div>
-                <h1 className="text-lg font-bold text-slate-900">{selectedBusiness.name}</h1>
-                <p className="text-xs text-slate-500">{userRole} Dashboard</p>
+                <h1 className="text-lg font-bold text-slate-100">{selectedBusiness.name}</h1>
+                <p className="text-xs text-slate-400">{config.title}</p>
               </div>
+              <Badge className="ml-2 bg-amber-500/10 text-amber-500 border-amber-500/30">
+                {userRole}
+              </Badge>
             </div>
           </div>
         </div>
@@ -187,22 +228,125 @@ export default function BusinessDashboard() {
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
         {/* Overview - Everyone can see */}
-        <OverviewWidget business={selectedBusiness} />
+        {config.widgets.includes('Overview') && (
+          <OverviewWidget business={selectedBusiness} />
+        )}
 
-        {/* Events - Everyone can see and edit */}
-        <EventsWidget 
-          business={selectedBusiness} 
-          allowEdit={true}
-          userRole={userRole}
-        />
+        {/* Events - Venue, Community, Organizer */}
+        {config.widgets.includes('Events') && (
+          <EventsWidget 
+            business={selectedBusiness} 
+            allowEdit={true}
+            userRole={userRole}
+          />
+        )}
 
-        {/* Staff - Only Managers and Owners */}
-        {(userRole === 'Manager' || userRole === 'Owner') && (
+        {/* Schedule - Talent/Service */}
+        {config.widgets.includes('Schedule') && (
+          <Card className="p-6 bg-slate-900 border-slate-800">
+            <div className="flex items-center gap-3 mb-4">
+              <TrendingUp className="h-5 w-5 text-amber-500" />
+              <h2 className="text-xl font-bold text-slate-100">Schedule</h2>
+            </div>
+            <p className="text-sm text-slate-400">Booking calendar coming soon...</p>
+          </Card>
+        )}
+
+        {/* Portfolio - Talent/Service */}
+        {config.widgets.includes('Portfolio') && (
+          <Card className="p-6 bg-slate-900 border-slate-800">
+            <div className="flex items-center gap-3 mb-4">
+              <Palette className="h-5 w-5 text-amber-500" />
+              <h2 className="text-xl font-bold text-slate-100">Portfolio</h2>
+            </div>
+            <p className="text-sm text-slate-400">Showcase your work - coming soon...</p>
+          </Card>
+        )}
+
+        {/* Reviews - Talent/Service */}
+        {config.widgets.includes('Reviews') && (
+          <Card className="p-6 bg-slate-900 border-slate-800">
+            <div className="flex items-center gap-3 mb-4">
+              <Store className="h-5 w-5 text-amber-500" />
+              <h2 className="text-xl font-bold text-slate-100">Reviews</h2>
+            </div>
+            <p className="text-sm text-slate-400">Client testimonials coming soon...</p>
+          </Card>
+        )}
+
+        {/* Members - Community */}
+        {config.widgets.includes('Members') && (
+          <Card className="p-6 bg-slate-900 border-slate-800">
+            <div className="flex items-center gap-3 mb-4">
+              <Users className="h-5 w-5 text-amber-500" />
+              <h2 className="text-xl font-bold text-slate-100">Members</h2>
+            </div>
+            <p className="text-sm text-slate-400">Membership management coming soon...</p>
+          </Card>
+        )}
+
+        {/* Donations - Community */}
+        {config.widgets.includes('Donations') && (
+          <Card className="p-6 bg-slate-900 border-slate-800">
+            <div className="flex items-center gap-3 mb-4">
+              <Wallet className="h-5 w-5 text-amber-500" />
+              <h2 className="text-xl font-bold text-slate-100">Donations</h2>
+            </div>
+            <p className="text-sm text-slate-400">Fundraising tools coming soon...</p>
+          </Card>
+        )}
+
+        {/* Ticketing - Organizer */}
+        {config.widgets.includes('Ticketing') && (
+          <Card className="p-6 bg-slate-900 border-slate-800">
+            <div className="flex items-center gap-3 mb-4">
+              <Ticket className="h-5 w-5 text-amber-500" />
+              <h2 className="text-xl font-bold text-slate-100">Ticketing</h2>
+            </div>
+            <p className="text-sm text-slate-400">Ticket sales & check-ins coming soon...</p>
+          </Card>
+        )}
+
+        {/* Marketing - Organizer */}
+        {config.widgets.includes('Marketing') && (
+          <Card className="p-6 bg-slate-900 border-slate-800">
+            <div className="flex items-center gap-3 mb-4">
+              <TrendingUp className="h-5 w-5 text-amber-500" />
+              <h2 className="text-xl font-bold text-slate-100">Marketing</h2>
+            </div>
+            <p className="text-sm text-slate-400">Promotion tools coming soon...</p>
+          </Card>
+        )}
+
+        {/* Team - Organizer */}
+        {config.widgets.includes('Team') && (
+          <Card className="p-6 bg-slate-900 border-slate-800">
+            <div className="flex items-center gap-3 mb-4">
+              <Users className="h-5 w-5 text-amber-500" />
+              <h2 className="text-xl font-bold text-slate-100">Team</h2>
+            </div>
+            <p className="text-sm text-slate-400">Staff coordination coming soon...</p>
+          </Card>
+        )}
+
+        {/* Staff - Only Managers and Owners (Venue/Location) */}
+        {config.widgets.includes('Staff') && (isManager || isOwner) && (
           <StaffWidget business={selectedBusiness} />
         )}
 
+        {/* CheckIn - Venue/Location */}
+        {config.widgets.includes('CheckIn') && (
+          <Card className="p-6 bg-slate-900 border-slate-800">
+            <div className="flex items-center gap-3 mb-4">
+              <Store className="h-5 w-5 text-amber-500" />
+              <h2 className="text-xl font-bold text-slate-100">Check-In System</h2>
+            </div>
+            <p className="text-sm text-slate-400">Customer check-in coming soon...</p>
+          </Card>
+        )}
+
         {/* Financials - Only Owners */}
-        {userRole === 'Owner' && (
+        {config.widgets.includes('Financials') && isOwner && (
           <FinancialWidget business={selectedBusiness} />
         )}
       </div>
