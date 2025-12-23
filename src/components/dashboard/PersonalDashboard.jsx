@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Store, Calendar, Heart } from "lucide-react";
+import { Rocket, Calendar, Heart } from "lucide-react";
 
 export default function PersonalDashboard() {
   const navigate = useNavigate();
@@ -17,12 +17,12 @@ export default function PersonalDashboard() {
         <div className="grid md:grid-cols-3 gap-6">
           <Card className="p-6 bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-colors cursor-pointer" onClick={() => navigate(createPageUrl('BusinessOnboarding'))}>
             <div className="h-12 w-12 bg-amber-500/10 rounded-lg flex items-center justify-center mb-4">
-              <Store className="h-6 w-6 text-amber-500" />
+              <Rocket className="h-6 w-6 text-amber-500" />
             </div>
-            <h3 className="font-semibold text-lg mb-2 text-slate-100">List Your Business</h3>
-            <p className="text-sm text-slate-400 mb-4">Create a business profile and start reaching local customers.</p>
+            <h3 className="font-semibold text-lg mb-2 text-slate-100">Start Hosting & Earning</h3>
+            <p className="text-sm text-slate-400 mb-4">Launch a profile for your business, event group, or personal brand. Manage tickets, staff, and analytics in one place.</p>
             <Button className="mt-4 w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold">
-              Get Started
+              Create Organization
             </Button>
           </Card>
 
