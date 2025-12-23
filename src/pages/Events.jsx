@@ -16,7 +16,7 @@ const DUMMY_EVENTS = [
   {
     id: '1',
     title: 'Eugene Saturday Market',
-    date: '2025-12-28T10:00:00Z',
+    date: '2026-01-10T10:00:00Z',
     location: '8th & Oak, Eugene',
     category: 'community',
     lat: 44.0521,
@@ -33,7 +33,7 @@ const DUMMY_EVENTS = [
   {
     id: '2',
     title: 'Silver Stacking Workshop',
-    date: '2025-12-29T18:00:00Z',
+    date: '2026-01-12T18:00:00Z',
     location: 'Springfield Library',
     category: 'education',
     lat: 44.0462,
@@ -50,7 +50,7 @@ const DUMMY_EVENTS = [
   {
     id: '3',
     title: 'River Road Community Garden',
-    date: '2026-01-03T09:00:00Z',
+    date: '2026-01-15T09:00:00Z',
     location: 'River Road',
     category: 'community',
     lat: 44.0935,
@@ -67,7 +67,7 @@ const DUMMY_EVENTS = [
   {
     id: '4',
     title: 'Local Music Night',
-    date: '2026-01-04T19:00:00Z',
+    date: '2026-01-18T19:00:00Z',
     location: 'Whirled Pies',
     category: 'social',
     lat: 44.0487,
