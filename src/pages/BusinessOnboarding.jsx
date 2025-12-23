@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { ARCHETYPE_CATEGORIES } from '@/components/categories/archetypeCategories';
 import Step2Details from '@/components/onboarding/Step2Details';
+import Step3Goals from '@/components/onboarding/Step3Goals';
 
 const tiers = [
   {
@@ -107,12 +108,7 @@ export default function BusinessOnboarding() {
     primary_skill: '',
     organization_type: '',
     typical_event_size: '',
-    goals: {
-      sell_tickets: false,
-      accept_silver: false,
-      grow_membership: false,
-      manage_staff: false
-    },
+    selected_goals: [],
     accepts_silver: false,
     photos: [],
     services: [{ name: '', starting_price: '', description: '' }],
@@ -349,71 +345,10 @@ export default function BusinessOnboarding() {
 
           {/* Step 2: Goals */}
           {currentStep === 2 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-100">What are you looking to do?</h2>
-                <p className="text-slate-400 mt-1">Select all that apply</p>
-              </div>
-
-              <div className="space-y-3">
-                <label className="flex items-center justify-between p-4 bg-slate-800 border border-slate-700 rounded-lg cursor-pointer hover:border-amber-500/50 transition-colors">
-                  <div>
-                    <p className="font-medium text-slate-100">Sell Tickets</p>
-                    <p className="text-sm text-slate-400">Accept payments for events and classes</p>
-                  </div>
-                  <Checkbox
-                    checked={formData.goals.sell_tickets}
-                    onCheckedChange={(checked) => setFormData({
-                      ...formData,
-                      goals: { ...formData.goals, sell_tickets: checked }
-                    })}
-                  />
-                </label>
-
-                <label className="flex items-center justify-between p-4 bg-slate-800 border border-slate-700 rounded-lg cursor-pointer hover:border-amber-500/50 transition-colors">
-                  <div>
-                    <p className="font-medium text-slate-100">Accept Local Currency (Silver)</p>
-                    <p className="text-sm text-slate-400">Let customers pay with silver or precious metals</p>
-                  </div>
-                  <Checkbox
-                    checked={formData.goals.accept_silver}
-                    onCheckedChange={(checked) => setFormData({
-                      ...formData,
-                      goals: { ...formData.goals, accept_silver: checked },
-                      accepts_silver: checked
-                    })}
-                  />
-                </label>
-
-                <label className="flex items-center justify-between p-4 bg-slate-800 border border-slate-700 rounded-lg cursor-pointer hover:border-amber-500/50 transition-colors">
-                  <div>
-                    <p className="font-medium text-slate-100">Grow Membership</p>
-                    <p className="text-sm text-slate-400">Build and manage a community of members</p>
-                  </div>
-                  <Checkbox
-                    checked={formData.goals.grow_membership}
-                    onCheckedChange={(checked) => setFormData({
-                      ...formData,
-                      goals: { ...formData.goals, grow_membership: checked }
-                    })}
-                  />
-                </label>
-
-                <label className="flex items-center justify-between p-4 bg-slate-800 border border-slate-700 rounded-lg cursor-pointer hover:border-amber-500/50 transition-colors">
-                  <div>
-                    <p className="font-medium text-slate-100">Manage Staff/Volunteers</p>
-                    <p className="text-sm text-slate-400">Coordinate team members and track activities</p>
-                  </div>
-                  <Checkbox
-                    checked={formData.goals.manage_staff}
-                    onCheckedChange={(checked) => setFormData({
-                      ...formData,
-                      goals: { ...formData.goals, manage_staff: checked }
-                    })}
-                  />
-                </label>
-              </div>
-            </div>
+            <Step3Goals 
+              formData={formData}
+              setFormData={setFormData}
+            />
           )}
 
           {/* Step 3: Services */}
