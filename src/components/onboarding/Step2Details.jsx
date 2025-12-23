@@ -22,7 +22,8 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
   const getDynamicPlaceholder = () => {
     // Flatten all subcategories into one list
     const allSubs = currentArchetypeCategories
-      .flatMap(cat => cat.subCategories || []);
+      .flatMap(cat => cat.subCategories || [])
+      .map(sub => typeof sub === 'string' ? sub : sub.name);
     
     // Take the first 3 as examples
     const examples = allSubs.slice(0, 3).join(', ');
@@ -35,7 +36,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
     setExpandedCategory(expandedCategory === key ? null : key);
   };
 
-  // Smart Filter Logic
+  // Smart Filter Logic with keyword matching
   const filteredCategories = useMemo(() => {
     if (!searchTerm) return currentArchetypeCategories;
 
@@ -43,9 +44,14 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
     return currentArchetypeCategories
       .map(category => {
         const labelMatch = category.label.toLowerCase().includes(term);
-        const matchingSubs = category.subCategories.filter(sub => 
-          sub.toLowerCase().includes(term)
-        );
+        const matchingSubs = category.subCategories.filter(sub => {
+          const name = typeof sub === 'string' ? sub : sub.name;
+          const keywords = typeof sub === 'string' ? [] : sub.keywords || [];
+          
+          // Match on name or any keyword
+          return name.toLowerCase().includes(term) || 
+                 keywords.some(keyword => keyword.toLowerCase().includes(term));
+        });
 
         if (labelMatch) {
           return { ...category };
@@ -200,26 +206,29 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                           </button>
                           {expandedCategory === cat.label && (
                             <div className="bg-slate-800/30">
-                              {cat.subCategories.map((sub) => (
-                                <button
-                                  key={sub}
-                                  type="button"
-                                  onClick={() => {
-                                    setFormData({ 
-                                      ...formData, 
-                                      primary_category: cat.label, 
-                                      sub_category: sub 
-                                    });
-                                    setSearchTerm('');
-                                    setIsEditing(false);
-                                    setIsDropdownOpen(false);
-                                    setExpandedCategory(null);
-                                  }}
-                                  className="w-full text-left px-6 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-amber-500 transition-colors"
-                                >
-                                  {sub}
-                                </button>
-                              ))}
+                              {cat.subCategories.map((sub) => {
+                                const subName = typeof sub === 'string' ? sub : sub.name;
+                                return (
+                                  <button
+                                    key={subName}
+                                    type="button"
+                                    onClick={() => {
+                                      setFormData({ 
+                                        ...formData, 
+                                        primary_category: cat.label, 
+                                        sub_category: subName 
+                                      });
+                                      setSearchTerm('');
+                                      setIsEditing(false);
+                                      setIsDropdownOpen(false);
+                                      setExpandedCategory(null);
+                                    }}
+                                    className="w-full text-left px-6 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-amber-500 transition-colors"
+                                  >
+                                    {subName}
+                                  </button>
+                                );
+                              })}
                             </div>
                           )}
                         </div>
@@ -238,25 +247,28 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                         <div className="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                           {cat.label}
                         </div>
-                        {cat.subCategories.map((sub) => (
-                          <button
-                            key={sub}
-                            type="button"
-                            onClick={() => {
-                              setFormData({ 
-                                ...formData, 
-                                primary_category: cat.label, 
-                                sub_category: sub 
-                              });
-                              setSearchTerm('');
-                              setIsEditing(false);
-                              setIsDropdownOpen(false);
-                            }}
-                            className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 hover:text-amber-500 transition-colors"
-                          >
-                            {sub}
-                          </button>
-                        ))}
+                        {cat.subCategories.map((sub) => {
+                          const subName = typeof sub === 'string' ? sub : sub.name;
+                          return (
+                            <button
+                              key={subName}
+                              type="button"
+                              onClick={() => {
+                                setFormData({ 
+                                  ...formData, 
+                                  primary_category: cat.label, 
+                                  sub_category: subName 
+                                });
+                                setSearchTerm('');
+                                setIsEditing(false);
+                                setIsDropdownOpen(false);
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 hover:text-amber-500 transition-colors"
+                            >
+                              {subName}
+                            </button>
+                          );
+                        })}
                       </div>
                     ))
                   ) : (
