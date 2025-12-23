@@ -77,17 +77,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
     setIsDropdownOpen(true);
   };
 
-  const getDisplayValue = () => {
-    // When editing, show search term
-    if (isEditing || isDropdownOpen) return searchTerm;
-    
-    // When not editing and dropdown closed, show selected category
-    if (formData.primary_category && formData.sub_category) {
-      return `${formData.primary_category} > ${formData.sub_category}`;
-    }
-    if (formData.primary_category) return formData.primary_category;
-    return '';
-  };
+
 
   const formatPhoneNumber = (value) => {
     const phoneNumber = value.replace(/[^\d]/g, '');
@@ -164,13 +154,20 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
           </div>
 
           <div className="relative" ref={dropdownRef}>
-            <Label htmlFor="category_search" className="text-slate-200">Category <span className="text-amber-500">*</span></Label>
+            <Label htmlFor="category_search" className="text-slate-200">
+              Category <span className="text-amber-500">*</span>
+            </Label>
+            {formData.primary_category && formData.sub_category && !isDropdownOpen && (
+              <div className="mt-1 text-xs text-slate-400">
+                Selected: {formData.primary_category} → {formData.sub_category}
+              </div>
+            )}
             <Input
               id="category_search"
-              value={getDisplayValue()}
+              type="text"
+              value={searchTerm}
               onChange={handleCategorySearchChange}
               onFocus={() => {
-                setSearchTerm('');
                 setIsEditing(true);
                 setIsDropdownOpen(true);
               }}
