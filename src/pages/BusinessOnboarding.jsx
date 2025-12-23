@@ -85,8 +85,8 @@ const archetypes = [
     id: 'community_member',
     icon: User,
     title: 'Community Member',
-    description: 'I want to support local businesses and attend events.',
-    examples: 'Skip the setup and start exploring immediately.',
+    description: 'I want to discover local gems and events.',
+    examples: 'Tailor your feed to your interests.',
     isHelperText: true
   }
 ];
