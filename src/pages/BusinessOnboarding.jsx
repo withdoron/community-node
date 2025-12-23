@@ -651,7 +651,7 @@ export default function BusinessOnboarding() {
               <Button
                 onClick={() => setCurrentStep(currentStep + 1)}
                 disabled={!canProceed()}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                className="bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
                 Continue
                 <ChevronRight className="h-4 w-4 ml-1" />
@@ -660,7 +660,7 @@ export default function BusinessOnboarding() {
               <Button
                 onClick={handleSubmit}
                 disabled={createBusiness.isPending}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                className="bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
                 {createBusiness.isPending ? (
                   <>
