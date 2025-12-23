@@ -292,7 +292,7 @@ export default function Home() {
 
       {/* Why LocalLane */}
       <section className="max-w-6xl mx-auto px-4 py-16">
-        <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">Why use LocalLane?</h2>
+        <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">Why use Local Lane?</h2>
         <div className="grid md:grid-cols-3 gap-8">
           <motion.div 
             className="text-center p-6"
@@ -347,7 +347,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-white">Be Part of the Community</h2>
           <p className="text-slate-300 mt-4 max-w-xl mx-auto">
-            Whether you run a business or host local events, LocalLane is your place to be seen without paying for ads.
+            Whether you run a business or host local events, Local Lane is your place to be seen without paying for ads.
           </p>
           <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 mt-8">
             <Button 
