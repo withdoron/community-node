@@ -2,122 +2,150 @@ export const ARCHETYPE_CATEGORIES = {
   venue: [
     {
       label: "Food & Drink",
-      subCategories: ["Restaurant", "Cafe", "Brewery/Winery", "Bar/Nightclub", "Bakery", "Food Truck"]
+      subCategories: ["American", "Italian", "Mexican", "Asian/Sushi", "Cafe/Coffee", "Bakery", "Bar/Pub", "Brewery/Winery", "Fast Food", "Dessert/Ice Cream"]
     },
     {
-      label: "Health & Fitness",
-      subCategories: ["Gym", "Yoga/Pilates Studio", "Martial Arts", "Spa/Salon", "Sports Center"]
+      label: "Retail",
+      subCategories: ["Clothing & Fashion", "Electronics", "Home & Garden", "Florist", "Jewelry", "Sporting Goods", "Thrift/Vintage", "Grocery/Market", "Pharmacy", "Convenience Store"]
     },
     {
-      label: "Retail & Shopping",
-      subCategories: ["Clothing/Fashion", "Home & Garden", "Electronics", "Grocery", "Bookstore", "Art Gallery"]
+      label: "Health & Beauty",
+      subCategories: ["Gym/Fitness Center", "Hair Salon", "Nail Salon", "Spa", "Barbershop", "Yoga/Pilates", "Tattoo/Piercing"]
     },
     {
       label: "Automotive",
-      subCategories: ["Repair Shop", "Dealership", "Car Wash", "Parts Store"]
+      subCategories: ["Auto Repair", "Dealership", "Car Wash", "Gas Station", "Auto Parts"]
     },
     {
-      label: "Professional Space",
-      subCategories: ["Coworking", "Event Venue", "Conference Center"]
+      label: "Entertainment",
+      subCategories: ["Art Gallery", "Museum", "Movie Theater", "Bowling/Arcade", "Nightclub", "Music Venue"]
+    },
+    {
+      label: "Professional",
+      subCategories: ["Coworking Space", "Office Building", "Event Hall", "Hotel/Lodging"]
     }
   ],
   
   location: [
     {
       label: "Food & Drink",
-      subCategories: ["Restaurant", "Cafe", "Brewery/Winery", "Bar/Nightclub", "Bakery", "Food Truck"]
+      subCategories: ["American", "Italian", "Mexican", "Asian/Sushi", "Cafe/Coffee", "Bakery", "Bar/Pub", "Brewery/Winery", "Fast Food", "Dessert/Ice Cream"]
     },
     {
-      label: "Health & Fitness",
-      subCategories: ["Gym", "Yoga/Pilates Studio", "Martial Arts", "Spa/Salon", "Sports Center"]
+      label: "Retail",
+      subCategories: ["Clothing & Fashion", "Electronics", "Home & Garden", "Florist", "Jewelry", "Sporting Goods", "Thrift/Vintage", "Grocery/Market", "Pharmacy", "Convenience Store"]
     },
     {
-      label: "Retail & Shopping",
-      subCategories: ["Clothing/Fashion", "Home & Garden", "Electronics", "Grocery", "Bookstore", "Art Gallery"]
+      label: "Health & Beauty",
+      subCategories: ["Gym/Fitness Center", "Hair Salon", "Nail Salon", "Spa", "Barbershop", "Yoga/Pilates", "Tattoo/Piercing"]
     },
     {
       label: "Automotive",
-      subCategories: ["Repair Shop", "Dealership", "Car Wash", "Parts Store"]
+      subCategories: ["Auto Repair", "Dealership", "Car Wash", "Gas Station", "Auto Parts"]
     },
     {
-      label: "Professional Space",
-      subCategories: ["Coworking", "Event Venue", "Conference Center"]
+      label: "Entertainment",
+      subCategories: ["Art Gallery", "Museum", "Movie Theater", "Bowling/Arcade", "Nightclub", "Music Venue"]
+    },
+    {
+      label: "Professional",
+      subCategories: ["Coworking Space", "Office Building", "Event Hall", "Hotel/Lodging"]
     }
   ],
   
   service: [
     {
       label: "Home Services",
-      subCategories: ["Cleaning", "Landscaping/Lawn", "Plumbing/HVAC", "General Contractor", "Moving", "Interior Design"]
+      subCategories: ["General Contractor", "Handyman", "Cleaning/Maid", "Landscaping/Lawn", "Plumbing", "Electrical", "HVAC", "Roofing", "Pest Control", "Moving & Storage", "Pool Service"]
     },
     {
-      label: "Wellness & Beauty",
-      subCategories: ["Mobile Massage", "Personal Trainer", "Makeup Artist", "Stylist", "Nutritionist"]
+      label: "Professional",
+      subCategories: ["Real Estate Agent", "Legal/Attorney", "Accounting/Tax", "Insurance", "Financial Advisor", "Consulting", "Marketing/Web Design", "Notary"]
     },
     {
-      label: "Events & Weddings",
-      subCategories: ["Photographer", "DJ/Musician", "Caterer", "Event Planner", "Florist"]
+      label: "Health & Wellness",
+      subCategories: ["Personal Trainer", "Massage Therapist", "Nutritionist", "Mental Health/Therapy", "Chiropractor", "Senior Care"]
     },
     {
-      label: "Professional Services",
-      subCategories: ["Legal", "Accounting", "Marketing/Web", "Tech Support", "Tutor/Education"]
+      label: "Family & Education",
+      subCategories: ["Tutoring", "Childcare/Nanny", "Music Lessons", "Driving School"]
+    },
+    {
+      label: "Pets",
+      subCategories: ["Dog Walking", "Pet Sitting", "Mobile Grooming", "Training"]
+    },
+    {
+      label: "Events",
+      subCategories: ["Photographer", "DJ/Musician", "Caterer", "Planner", "Florist (Events)", "Makeup Artist (Events)"]
     },
     {
       label: "Automotive",
-      subCategories: ["Mobile Mechanic", "Detailing"]
+      subCategories: ["Mobile Mechanic", "Detailing", "Towing"]
     }
   ],
   
   talent: [
     {
       label: "Home Services",
-      subCategories: ["Cleaning", "Landscaping/Lawn", "Plumbing/HVAC", "General Contractor", "Moving", "Interior Design"]
+      subCategories: ["General Contractor", "Handyman", "Cleaning/Maid", "Landscaping/Lawn", "Plumbing", "Electrical", "HVAC", "Roofing", "Pest Control", "Moving & Storage", "Pool Service"]
     },
     {
-      label: "Wellness & Beauty",
-      subCategories: ["Mobile Massage", "Personal Trainer", "Makeup Artist", "Stylist", "Nutritionist"]
+      label: "Professional",
+      subCategories: ["Real Estate Agent", "Legal/Attorney", "Accounting/Tax", "Insurance", "Financial Advisor", "Consulting", "Marketing/Web Design", "Notary"]
     },
     {
-      label: "Events & Weddings",
-      subCategories: ["Photographer", "DJ/Musician", "Caterer", "Event Planner", "Florist"]
+      label: "Health & Wellness",
+      subCategories: ["Personal Trainer", "Massage Therapist", "Nutritionist", "Mental Health/Therapy", "Chiropractor", "Senior Care"]
     },
     {
-      label: "Professional Services",
-      subCategories: ["Legal", "Accounting", "Marketing/Web", "Tech Support", "Tutor/Education"]
+      label: "Family & Education",
+      subCategories: ["Tutoring", "Childcare/Nanny", "Music Lessons", "Driving School"]
+    },
+    {
+      label: "Pets",
+      subCategories: ["Dog Walking", "Pet Sitting", "Mobile Grooming", "Training"]
+    },
+    {
+      label: "Events",
+      subCategories: ["Photographer", "DJ/Musician", "Caterer", "Planner", "Florist (Events)", "Makeup Artist (Events)"]
     },
     {
       label: "Automotive",
-      subCategories: ["Mobile Mechanic", "Detailing"]
+      subCategories: ["Mobile Mechanic", "Detailing", "Towing"]
     }
   ],
   
   community: [
     {
-      label: "Social & Hobby",
-      subCategories: ["Social Club", "Gaming", "Book Club", "Gardening", "Sports League"]
+      label: "Interest Groups",
+      subCategories: ["Book Club", "Gaming/Hobby", "Gardening", "Hiking/Outdoors", "Sports League", "Arts & Crafts"]
     },
     {
-      label: "Civic & Non-Profit",
-      subCategories: ["Charity", "Volunteer Group", "HOA", "Political Organization"]
+      label: "Civic & Support",
+      subCategories: ["Non-Profit/Charity", "Volunteer Group", "HOA/Neighborhood", "Support Group", "Youth Organization"]
     },
     {
-      label: "Spiritual & Faith",
-      subCategories: ["Church", "Meditation Group", "Study Group"]
+      label: "Spiritual",
+      subCategories: ["Church", "Mosque", "Synagogue", "Meditation Center", "Bible Study"]
     }
   ],
   
   organizer: [
     {
-      label: "Nightlife & Entertainment",
-      subCategories: ["Club Promoter", "Concert Host", "Comedy Troupe"]
+      label: "Nightlife",
+      subCategories: ["Club Promoter", "VIP Host", "Bar Crawl Organizer"]
     },
     {
-      label: "Markets & Fairs",
-      subCategories: ["Farmers Market", "Flea Market", "Art Fair", "Street Festival"]
+      label: "Public Events",
+      subCategories: ["Festival Host", "Market Organizer", "Parade/Street Fair"]
     },
     {
-      label: "Education & Workshops",
-      subCategories: ["Class Instructor", "Speaker Series", "Networking Host"]
+      label: "Private Events",
+      subCategories: ["Wedding Planner", "Corporate Event Planner", "Party Planner"]
+    },
+    {
+      label: "Culture",
+      subCategories: ["Concert Promoter", "Art Fair Organizer", "Comedy Show Host"]
     }
   ]
 };
