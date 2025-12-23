@@ -173,8 +173,8 @@ export default function Layout({ children, currentPageName }) {
                     {!currentUser?.is_business_owner && (
                       <SheetClose asChild>
                         <Link to={createPageUrl('BusinessOnboarding')}>
-                          <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                            <Plus className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
+                          <Button variant="ghost" className="w-full justify-start items-center text-amber-400 hover:text-amber-300 hover:bg-slate-900 group">
+                            <Plus className="h-5 w-5 mr-3 text-amber-500 group-hover:text-amber-400" strokeWidth={2} />
                             Start Hosting
                           </Button>
                         </Link>
@@ -349,8 +349,8 @@ export default function Layout({ children, currentPageName }) {
                     {!currentUser?.is_business_owner && (
                       <SheetClose asChild>
                         <Link to={createPageUrl('BusinessOnboarding')}>
-                          <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                            <Plus className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
+                          <Button variant="ghost" className="w-full justify-start items-center text-amber-400 hover:text-amber-300 hover:bg-slate-900 group">
+                            <Plus className="h-5 w-5 mr-3 text-amber-500 group-hover:text-amber-400" strokeWidth={2} />
                             Start Hosting
                           </Button>
                         </Link>
