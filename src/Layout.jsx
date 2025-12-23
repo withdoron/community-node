@@ -154,25 +154,31 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 <div className="flex flex-col h-full">
                   <div className="flex flex-col gap-2 flex-1">
-                    <Link to={createPageUrl('Events')}>
-                      <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                        <Calendar className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                        Browse Events
-                      </Button>
-                    </Link>
-                    <Link to={createPageUrl('BusinessDashboard')}>
-                      <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                        <LayoutDashboard className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                        Dashboard
-                      </Button>
-                    </Link>
-                    {!currentUser?.is_business_owner && (
-                      <Link to={createPageUrl('BusinessOnboarding')}>
+                    <SheetClose asChild>
+                      <Link to={createPageUrl('Events')}>
                         <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                          <Plus className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                          Start Hosting
+                          <Calendar className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
+                          Browse Events
                         </Button>
                       </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link to={createPageUrl('BusinessDashboard')}>
+                        <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                          <LayoutDashboard className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
+                          Dashboard
+                        </Button>
+                      </Link>
+                    </SheetClose>
+                    {!currentUser?.is_business_owner && (
+                      <SheetClose asChild>
+                        <Link to={createPageUrl('BusinessOnboarding')}>
+                          <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                            <Plus className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
+                            Start Hosting
+                          </Button>
+                        </Link>
+                      </SheetClose>
                     )}
                   </div>
                   
@@ -324,25 +330,31 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 <div className="flex flex-col h-full">
                   <div className="flex flex-col gap-2 flex-1">
-                    <Link to={createPageUrl('Events')}>
-                      <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                        <Calendar className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                        Browse Events
-                      </Button>
-                    </Link>
-                    <Link to={createPageUrl('BusinessDashboard')}>
-                      <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                        <LayoutDashboard className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                        Dashboard
-                      </Button>
-                    </Link>
-                    {!currentUser?.is_business_owner && (
-                      <Link to={createPageUrl('BusinessOnboarding')}>
+                    <SheetClose asChild>
+                      <Link to={createPageUrl('Events')}>
                         <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                          <Plus className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                          Start Hosting
+                          <Calendar className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
+                          Browse Events
                         </Button>
                       </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link to={createPageUrl('BusinessDashboard')}>
+                        <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                          <LayoutDashboard className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
+                          Dashboard
+                        </Button>
+                      </Link>
+                    </SheetClose>
+                    {!currentUser?.is_business_owner && (
+                      <SheetClose asChild>
+                        <Link to={createPageUrl('BusinessOnboarding')}>
+                          <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                            <Plus className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
+                            Start Hosting
+                          </Button>
+                        </Link>
+                      </SheetClose>
                     )}
                   </div>
                   
