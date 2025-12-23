@@ -9,41 +9,41 @@ export default function PersonalDashboard() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="min-h-screen bg-slate-950 p-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Personal Dashboard</h1>
-        <p className="text-slate-600 mb-8">Welcome! You don't have any business associations yet.</p>
+        <h1 className="text-3xl font-bold text-slate-100 mb-2">Personal Dashboard</h1>
+        <p className="text-slate-400 mb-8">Welcome! You don't have any business associations yet.</p>
 
         <div className="grid md:grid-cols-3 gap-6">
-          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('BusinessOnboarding'))}>
-            <div className="h-12 w-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4">
-              <Store className="h-6 w-6 text-amber-600" />
+          <Card className="p-6 bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-colors cursor-pointer" onClick={() => navigate(createPageUrl('BusinessOnboarding'))}>
+            <div className="h-12 w-12 bg-amber-500/10 rounded-lg flex items-center justify-center mb-4">
+              <Store className="h-6 w-6 text-amber-500" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">List Your Business</h3>
-            <p className="text-sm text-slate-600">Create a business profile and start reaching local customers.</p>
-            <Button className="mt-4 w-full bg-amber-500 hover:bg-amber-600 text-slate-900">
+            <h3 className="font-semibold text-lg mb-2 text-slate-100">List Your Business</h3>
+            <p className="text-sm text-slate-400 mb-4">Create a business profile and start reaching local customers.</p>
+            <Button className="mt-4 w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold">
               Get Started
             </Button>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('Events'))}>
-            <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-              <Calendar className="h-6 w-6 text-blue-600" />
+          <Card className="p-6 bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-colors cursor-pointer" onClick={() => navigate(createPageUrl('Events'))}>
+            <div className="h-12 w-12 bg-amber-500/10 rounded-lg flex items-center justify-center mb-4">
+              <Calendar className="h-6 w-6 text-amber-500" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Browse Events</h3>
-            <p className="text-sm text-slate-600">Discover local events and activities in your area.</p>
-            <Button variant="outline" className="mt-4 w-full">
+            <h3 className="font-semibold text-lg mb-2 text-slate-100">Browse Events</h3>
+            <p className="text-sm text-slate-400 mb-4">Discover local events and activities in your area.</p>
+            <Button className="mt-4 w-full bg-slate-800 text-slate-200 hover:bg-slate-700">
               View Events
             </Button>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('Search'))}>
-            <div className="h-12 w-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
-              <Heart className="h-6 w-6 text-emerald-600" />
+          <Card className="p-6 bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-colors cursor-pointer" onClick={() => navigate(createPageUrl('Search'))}>
+            <div className="h-12 w-12 bg-amber-500/10 rounded-lg flex items-center justify-center mb-4">
+              <Heart className="h-6 w-6 text-amber-500" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Saved Businesses</h3>
-            <p className="text-sm text-slate-600">View your favorite local businesses.</p>
-            <Button variant="outline" className="mt-4 w-full">
+            <h3 className="font-semibold text-lg mb-2 text-slate-100">Saved Businesses</h3>
+            <p className="text-sm text-slate-400 mb-4">View your favorite local businesses.</p>
+            <Button className="mt-4 w-full bg-slate-800 text-slate-200 hover:bg-slate-700">
               View Saved
             </Button>
           </Card>
