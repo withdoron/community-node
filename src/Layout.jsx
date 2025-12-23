@@ -322,7 +322,7 @@ export default function Layout({ children, currentPageName }) {
               <span className="font-bold text-lg">Local Lane</span>
             </div>
             <p className="text-sm text-slate-400">
-              © {new Date().getFullYear()} Local Lane. Ad‑free, community‑focused local marketplace.
+              © {new Date().getFullYear()} Local Lane. Ad‑free, community‑focused discovery platform.
             </p>
           </div>
         </div>
