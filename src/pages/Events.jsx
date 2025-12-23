@@ -294,12 +294,12 @@ export default function Events() {
 
         {/* Map Section */}
         <div className={`${showMap ? 'flex' : 'hidden'} lg:flex lg:col-span-3 bg-slate-800 sticky top-0 h-screen`}>
-          <div className="relative h-full w-full">
+          <div className="h-full min-h-[500px] w-full relative">
             <MapContainer
               key={showMap ? 'mobile' : 'desktop'}
               center={[44.0521, -123.0868]}
               zoom={13}
-              className="h-[calc(100vh-140px)] w-full z-0 relative"
+              className="h-full w-full z-0"
             >
               <TileLayer
                 url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
@@ -323,7 +323,7 @@ export default function Events() {
             </MapContainer>
 
             {/* Mobile Toggle Button - Only shows when Map is active on mobile */}
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-[1000] lg:hidden">
+            <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 z-[1000] lg:hidden">
               <Button
                 onClick={() => setShowMap(false)}
                 className="bg-slate-900 text-white px-6 py-3 rounded-full shadow-lg font-semibold flex items-center gap-2 hover:scale-105 transition-transform"
