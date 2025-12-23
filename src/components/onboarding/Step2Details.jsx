@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2, ChevronDown } from "lucide-react";
 import { base44 } from '@/api/base44Client';
 
 export default function Step2Details({ formData, setFormData, uploading, setUploading }) {
@@ -13,9 +13,32 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [expandedCategory, setExpandedCategory] = useState(null);
   const dropdownRef = useRef(null);
 
   const currentArchetypeCategories = ARCHETYPE_CATEGORIES[formData.archetype] || [];
+
+  // Dynamic placeholder based on archetype
+  const getPlaceholder = () => {
+    if (formData.archetype === 'service' || formData.archetype === 'talent') {
+      return "e.g. Plumber, Electrician, Tutor...";
+    }
+    if (formData.archetype === 'location' || formData.archetype === 'venue') {
+      return "e.g. Cafe, Burger Joint, Bakery...";
+    }
+    if (formData.archetype === 'community') {
+      return "e.g. Book Club, HOA, Church...";
+    }
+    if (formData.archetype === 'organizer') {
+      return "e.g. Festival Host, Wedding Planner...";
+    }
+    return "e.g. Gym, Plumber, Cafe...";
+  };
+
+  // Toggle accordion category
+  const toggleCategory = (key) => {
+    setExpandedCategory(expandedCategory === key ? null : key);
+  };
 
   // Smart Filter Logic
   const filteredCategories = useMemo(() => {
@@ -152,43 +175,99 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 setIsEditing(true);
                 setIsDropdownOpen(true);
               }}
-              placeholder="Search your category (e.g. Gym, Plumber, Cafe)..."
+              placeholder={getPlaceholder()}
+              autoComplete="off"
+              data-lpignore="true"
+              name="category_search_custom"
               className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
             />
             
             {isDropdownOpen && (
-              <div className="absolute z-50 w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
-                {filteredCategories.length > 0 ? (
-                  filteredCategories.map((cat) => (
-                    <div key={cat.label} className="py-2">
-                      <div className="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        {cat.label}
-                      </div>
-                      {cat.subCategories.map((sub) => (
-                        <button
-                          key={sub}
-                          type="button"
-                          onClick={() => {
-                            setFormData({ 
-                              ...formData, 
-                              primary_category: cat.label, 
-                              sub_category: sub 
-                            });
-                            setSearchTerm('');
-                            setIsEditing(false);
-                            setIsDropdownOpen(false);
-                          }}
-                          className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 hover:text-amber-500 transition-colors"
-                        >
-                          {sub}
-                        </button>
+              <div className="absolute z-50 w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+                {!searchTerm ? (
+                  /* Browse Mode - Accordion Style */
+                  currentArchetypeCategories.length > 0 ? (
+                    <div>
+                      {currentArchetypeCategories.map((cat) => (
+                        <div key={cat.label}>
+                          <button
+                            type="button"
+                            onClick={() => toggleCategory(cat.label)}
+                            className="w-full flex justify-between items-center p-3 hover:bg-slate-800 cursor-pointer transition-colors border-b border-slate-800"
+                          >
+                            <span className="text-sm font-semibold text-slate-200">{cat.label}</span>
+                            <ChevronDown 
+                              className={`h-4 w-4 text-slate-400 transition-transform ${
+                                expandedCategory === cat.label ? 'rotate-180' : ''
+                              }`}
+                            />
+                          </button>
+                          {expandedCategory === cat.label && (
+                            <div className="bg-slate-800/30">
+                              {cat.subCategories.map((sub) => (
+                                <button
+                                  key={sub}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData({ 
+                                      ...formData, 
+                                      primary_category: cat.label, 
+                                      sub_category: sub 
+                                    });
+                                    setSearchTerm('');
+                                    setIsEditing(false);
+                                    setIsDropdownOpen(false);
+                                    setExpandedCategory(null);
+                                  }}
+                                  className="w-full text-left px-6 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-amber-500 transition-colors"
+                                >
+                                  {sub}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
-                  ))
+                  ) : (
+                    <div className="px-3 py-4 text-sm text-slate-500 text-center">
+                      No categories available
+                    </div>
+                  )
                 ) : (
-                  <div className="px-3 py-4 text-sm text-slate-500 text-center">
-                    No categories found
-                  </div>
+                  /* Search Mode - Flat List */
+                  filteredCategories.length > 0 ? (
+                    filteredCategories.map((cat) => (
+                      <div key={cat.label} className="py-2">
+                        <div className="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          {cat.label}
+                        </div>
+                        {cat.subCategories.map((sub) => (
+                          <button
+                            key={sub}
+                            type="button"
+                            onClick={() => {
+                              setFormData({ 
+                                ...formData, 
+                                primary_category: cat.label, 
+                                sub_category: sub 
+                              });
+                              setSearchTerm('');
+                              setIsEditing(false);
+                              setIsDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 hover:text-amber-500 transition-colors"
+                          >
+                            {sub}
+                          </button>
+                        ))}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-3 py-4 text-sm text-slate-500 text-center">
+                      No categories found
+                    </div>
+                  )
                 )}
               </div>
             )}
