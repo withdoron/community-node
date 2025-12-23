@@ -11,6 +11,7 @@ import { isToday, isThisWeek, startOfDay, endOfDay, startOfWeek, endOfWeek, form
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { motion } from 'framer-motion';
 
 const DUMMY_EVENTS = [
   {
@@ -288,8 +289,16 @@ export default function Events() {
               </div>
             ) : (
               <div className="space-y-3">
-                {filteredEvents.map((event) => (
-                  <EventCard key={event.id} event={event} onClick={() => {}} />
+                {filteredEvents.map((event, index) => (
+                  <motion.div
+                    key={event.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                  >
+                    <EventCard event={event} onClick={() => {}} />
+                  </motion.div>
                 ))}
               </div>
             )}
