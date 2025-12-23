@@ -203,6 +203,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 </button>
               )}
             </div>
+            <p className="text-xs text-slate-500 mt-1">Choose your primary category now. You can add more categories later in your dashboard.</p>
             
             {isDropdownOpen && (
               <div className="absolute z-50 w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-xl max-h-80 overflow-y-auto">
