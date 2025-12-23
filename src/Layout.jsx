@@ -131,46 +131,60 @@ export default function Layout({ children, currentPageName }) {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent>
-                <div className="flex flex-col gap-4 mt-8">
-                  <Link to={createPageUrl('Search')}>
-                    <Button variant="ghost" className="w-full justify-start">
-                      Browse Businesses
-                    </Button>
-                  </Link>
-                  {currentUser?.is_business_owner ? (
-                    <Link to={createPageUrl('BusinessDashboard')}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        <LayoutDashboard className="h-4 w-4 mr-2" />
-                        Business Dashboard
+              <SheetContent className="bg-slate-950 border-l border-slate-800">
+                <div className="flex flex-col h-full">
+                  <div className="flex flex-col gap-3 mt-8 flex-1">
+                    <Link to={createPageUrl('Events')}>
+                      <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900">
+                        Browse Events
                       </Button>
                     </Link>
-                  ) : (
-                    <Link to={createPageUrl('BusinessOnboarding')}>
-                      <Button variant="ghost" className="w-full justify-start">
-                        <Plus className="h-4 w-4 mr-2" />
-                        List Your Business
+                    <Link to={createPageUrl('Home')}>
+                      <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900">
+                        Personal Dashboard
                       </Button>
                     </Link>
-                  )}
+                    {currentUser?.is_business_owner ? (
+                      <Link to={createPageUrl('BusinessDashboard')}>
+                        <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900">
+                          <LayoutDashboard className="h-4 w-4 mr-2" />
+                          Host Dashboard
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Link to={createPageUrl('BusinessOnboarding')}>
+                        <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Start Hosting
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                  
                   {currentUser ? (
-                    <>
-                      <div className="px-4 py-2 border-t">
-                        <p className="text-sm font-medium">{currentUser.full_name}</p>
+                    <div className="border-t border-slate-800 pt-4 pb-6">
+                      <div className="px-4 py-3 bg-slate-900 rounded-lg mb-3">
+                        <p className="text-sm font-medium text-slate-100">{currentUser.full_name}</p>
                         <p className="text-xs text-slate-500">{currentUser.email}</p>
                       </div>
-                      <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start text-slate-300 hover:text-red-400 hover:bg-slate-900" 
+                        onClick={handleLogout}
+                      >
                         <LogOut className="h-4 w-4 mr-2" />
                         Log Out
                       </Button>
-                    </>
+                    </div>
                   ) : (
-                    <Button 
-                      className="w-full bg-slate-900 hover:bg-slate-800"
-                      onClick={() => base44.auth.redirectToLogin()}
-                    >
-                      Sign In
-                    </Button>
+                    <div className="border-t border-slate-800 pt-4 pb-6">
+                      <Button 
+                        className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                        onClick={() => base44.auth.redirectToLogin()}
+                      >
+                        Sign In
+                      </Button>
+                    </div>
                   )}
                 </div>
               </SheetContent>
