@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Coins, Trees, Handshake, Clock, ShieldCheck } from "lucide-react";
+import { Calendar, MapPin, Coins, Trees, Handshake, Clock, ShieldCheck, Star } from "lucide-react";
 import { format } from 'date-fns';
 
 export default function EventCard({ event, onClick }) {
@@ -16,7 +16,7 @@ export default function EventCard({ event, onClick }) {
     >
       <div className="flex gap-4 p-4">
         {/* Thumbnail */}
-        <div className="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-slate-700">
+        <div className="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-slate-700 relative">
           {event.thumbnail_url ? (
             <img 
               src={event.thumbnail_url} 
@@ -26,6 +26,12 @@ export default function EventCard({ event, onClick }) {
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <Calendar className="h-8 w-8 text-slate-500" />
+            </div>
+          )}
+          {event.featured && (
+            <div className="absolute top-1 left-1 bg-amber-400 text-amber-900 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-md z-10 flex items-center gap-0.5">
+              <Star className="w-2.5 h-2.5 fill-current" />
+              FEATURED
             </div>
           )}
         </div>

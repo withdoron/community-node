@@ -28,7 +28,8 @@ const DUMMY_EVENTS = [
     audience: ['family', 'all_ages'],
     price: 0,
     is_volunteer: false,
-    is_active: true
+    is_active: true,
+    featured: true
   },
   {
     id: '2',
@@ -45,7 +46,8 @@ const DUMMY_EVENTS = [
     audience: ['adults'],
     price: 10,
     is_volunteer: false,
-    is_active: true
+    is_active: true,
+    featured: false
   },
   {
     id: '3',
@@ -62,7 +64,8 @@ const DUMMY_EVENTS = [
     audience: ['family', 'all_ages'],
     price: 0,
     is_volunteer: true,
-    is_active: true
+    is_active: true,
+    featured: true
   },
   {
     id: '4',
@@ -79,7 +82,8 @@ const DUMMY_EVENTS = [
     audience: ['adults'],
     price: 5,
     is_volunteer: false,
-    is_active: true
+    is_active: true,
+    featured: false
   }
 ];
 
