@@ -184,10 +184,10 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 autoComplete="off"
                 data-lpignore="true"
                 name="category_search_custom"
-                className={`mt-1.5 bg-slate-800 text-slate-100 pr-10 ${
+                className={`mt-1.5 pr-10 ${
                   formData.primary_category && formData.sub_category && !isDropdownOpen
-                    ? 'border-emerald-500 text-emerald-400'
-                    : 'border-slate-700'
+                    ? 'bg-slate-800 border-indigo-500/50 text-white font-medium'
+                    : 'bg-slate-800 border-slate-700 text-slate-300'
                 }`}
               />
               {formData.primary_category && formData.sub_category && !isDropdownOpen && (
