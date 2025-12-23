@@ -132,29 +132,31 @@ export default function Layout({ children, currentPageName }) {
                 </Button>
               </SheetTrigger>
               <SheetContent className="bg-slate-950 border-l border-slate-800">
-                <div className="flex flex-col h-full">
-                  <div className="flex flex-col gap-3 mt-8 flex-1">
+                <div className="flex flex-col h-full py-6">
+                  <div className="flex flex-col gap-2 flex-1">
                     <Link to={createPageUrl('Events')}>
-                      <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900">
+                      <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                        <Calendar className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
                         Browse Events
                       </Button>
                     </Link>
                     <Link to={createPageUrl('Home')}>
-                      <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900">
+                      <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                        <LayoutDashboard className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
                         Personal Dashboard
                       </Button>
                     </Link>
                     {currentUser?.is_business_owner ? (
                       <Link to={createPageUrl('BusinessDashboard')}>
-                        <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900">
-                          <LayoutDashboard className="h-4 w-4 mr-2" />
+                        <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                          <Store className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
                           Host Dashboard
                         </Button>
                       </Link>
                     ) : (
                       <Link to={createPageUrl('BusinessOnboarding')}>
-                        <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900">
-                          <Plus className="h-4 w-4 mr-2" />
+                        <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                          <Plus className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
                           Start Hosting
                         </Button>
                       </Link>
@@ -162,8 +164,8 @@ export default function Layout({ children, currentPageName }) {
                   </div>
                   
                   {currentUser ? (
-                    <div className="border-t border-slate-800 pt-4 pb-6">
-                      <div className="px-4 py-3 bg-slate-900 rounded-lg mb-3">
+                    <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 mt-auto">
+                      <div className="mb-3">
                         <p className="text-sm font-medium text-slate-100">{currentUser.full_name}</p>
                         <p className="text-xs text-slate-500">{currentUser.email}</p>
                       </div>
@@ -177,7 +179,7 @@ export default function Layout({ children, currentPageName }) {
                       </Button>
                     </div>
                   ) : (
-                    <div className="border-t border-slate-800 pt-4 pb-6">
+                    <div className="mt-auto">
                       <Button 
                         className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold"
                         onClick={() => base44.auth.redirectToLogin()}
@@ -280,29 +282,31 @@ export default function Layout({ children, currentPageName }) {
                 </Button>
               </SheetTrigger>
               <SheetContent className="bg-slate-950 border-l border-slate-800">
-                <div className="flex flex-col h-full">
-                  <div className="flex flex-col gap-3 mt-8 flex-1">
+                <div className="flex flex-col h-full py-6">
+                  <div className="flex flex-col gap-2 flex-1">
                     <Link to={createPageUrl('Events')}>
-                      <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900">
+                      <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                        <Calendar className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
                         Browse Events
                       </Button>
                     </Link>
                     <Link to={createPageUrl('Home')}>
-                      <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900">
+                      <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                        <LayoutDashboard className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
                         Personal Dashboard
                       </Button>
                     </Link>
                     {currentUser?.is_business_owner ? (
                       <Link to={createPageUrl('BusinessDashboard')}>
-                        <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900">
-                          <LayoutDashboard className="h-4 w-4 mr-2" />
+                        <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                          <Store className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
                           Host Dashboard
                         </Button>
                       </Link>
                     ) : (
                       <Link to={createPageUrl('BusinessOnboarding')}>
-                        <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900">
-                          <Plus className="h-4 w-4 mr-2" />
+                        <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                          <Plus className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
                           Start Hosting
                         </Button>
                       </Link>
@@ -310,8 +314,8 @@ export default function Layout({ children, currentPageName }) {
                   </div>
                   
                   {currentUser ? (
-                    <div className="border-t border-slate-800 pt-4 pb-6">
-                      <div className="px-4 py-3 bg-slate-900 rounded-lg mb-3">
+                    <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 mt-auto">
+                      <div className="mb-3">
                         <p className="text-sm font-medium text-slate-100">{currentUser.full_name}</p>
                         <p className="text-xs text-slate-500">{currentUser.email}</p>
                       </div>
@@ -325,7 +329,7 @@ export default function Layout({ children, currentPageName }) {
                       </Button>
                     </div>
                   ) : (
-                    <div className="border-t border-slate-800 pt-4 pb-6">
+                    <div className="mt-auto">
                       <Button 
                         className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold"
                         onClick={() => base44.auth.redirectToLogin()}
