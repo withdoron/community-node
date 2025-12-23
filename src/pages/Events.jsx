@@ -8,6 +8,9 @@ import EventCard from '@/components/events/EventCard';
 import FilterModal from '@/components/events/FilterModal';
 import { Search, SlidersHorizontal, Map, List, Loader2 } from "lucide-react";
 import { isToday, isThisWeek, startOfDay, endOfDay, startOfWeek, endOfWeek } from 'date-fns';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const DUMMY_EVENTS = [
   {
@@ -79,6 +82,15 @@ const DUMMY_EVENTS = [
     is_active: true
   }
 ];
+
+// Custom gold dot marker icon
+const goldDotIcon = L.divIcon({
+  className: 'custom-marker',
+  html: '<div class="bg-amber-500 rounded-full border-2 border-white shadow-lg w-4 h-4"></div>',
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+  popupAnchor: [0, -8]
+});
 
 export default function Events() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -282,13 +294,32 @@ export default function Events() {
 
         {/* Map Section */}
         <div className={`${showMap ? 'flex' : 'hidden'} lg:flex lg:col-span-3 bg-slate-800 sticky top-0 h-screen`}>
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-center text-slate-400">
-              <Map className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-semibold">Map View</p>
-              <p className="text-sm mt-2">Interactive map coming soon</p>
-            </div>
-          </div>
+          <MapContainer
+            center={[44.0521, -123.0868]}
+            zoom={13}
+            style={{ height: '100%', width: '100%' }}
+            className="z-0"
+          >
+            <TileLayer
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            />
+            {filteredEvents.map((event) => (
+              event.lat && event.lng && (
+                <Marker
+                  key={event.id}
+                  position={[event.lat, event.lng]}
+                  icon={goldDotIcon}
+                >
+                  <Popup>
+                    <div className="text-slate-900 font-semibold">
+                      {event.title}
+                    </div>
+                  </Popup>
+                </Marker>
+              )
+            ))}
+          </MapContainer>
         </div>
       </div>
 
