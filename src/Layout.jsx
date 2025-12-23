@@ -437,13 +437,13 @@ export default function Layout({ children, currentPageName }) {
       <footer className="bg-slate-900 text-white py-12">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 cursor-default">
               <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center">
                 <Store className="h-4 w-4 text-slate-900" />
               </div>
-              <span className="font-bold text-lg">Local Lane</span>
+              <span className="text-white font-bold text-xl tracking-tight ml-3">Local Lane</span>
             </div>
-            <p className="text-sm text-slate-400">
+            <p className="text-slate-500 text-sm mt-4 font-medium">
               © {new Date().getFullYear()} Local Lane. Ad‑free, community‑focused discovery platform.
             </p>
           </div>
