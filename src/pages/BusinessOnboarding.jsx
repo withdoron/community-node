@@ -17,16 +17,7 @@ import {
   ChevronLeft, ChevronRight, Loader2, Upload, X, Plus, Trash2,
   Check, Star, Zap, Crown, Store, UserCircle, Heart, Ticket
 } from "lucide-react";
-import { mainCategories, getMainCategory } from '@/components/categories/categoryData';
-
-const ARCHETYPE_CATEGORIES = {
-  location: ['Restaurant', 'Cafe', 'Gym/Fitness', 'Retail', 'Art Gallery', 'Event Venue', 'Coworking'],
-  venue: ['Restaurant', 'Cafe', 'Gym/Fitness', 'Retail', 'Art Gallery', 'Event Venue', 'Coworking'],
-  service: ['Photographer', 'DJ/Music', 'Personal Trainer', 'Caterer', 'Consultant', 'Home Services'],
-  talent: ['Photographer', 'DJ/Music', 'Personal Trainer', 'Caterer', 'Consultant', 'Home Services'],
-  community: ['Non-Profit', 'Social Club', 'HOA', 'Religious/Spiritual', 'Volunteer Group'],
-  organizer: ['Concert Promoter', 'Festival Host', 'Market Organizer', 'Nightlife', 'Workshop Host']
-};
+import { ARCHETYPE_CATEGORIES } from '@/components/categories/archetypeCategories';
 
 const tiers = [
   {
@@ -100,11 +91,12 @@ export default function BusinessOnboarding() {
   const [formData, setFormData] = useState({
     archetype: '',
     name: '',
-    main_category: '',
-    subcategories: [],
+    primary_category: '',
+    sub_category: '',
     description: '',
     address: '',
     city: '',
+    state: 'OR',
     zip_code: '',
     phone: '',
     email: '',
@@ -126,8 +118,9 @@ export default function BusinessOnboarding() {
     subscription_tier: 'basic'
   });
 
-  const selectedMainCategory = getMainCategory(formData.main_category);
-  const availableSubcategories = selectedMainCategory?.subcategories.filter(s => !s.id.startsWith('all_')) || [];
+  const availablePrimaryCategories = ARCHETYPE_CATEGORIES[formData.archetype] || [];
+  const selectedPrimaryCategory = availablePrimaryCategories.find(cat => cat.label === formData.primary_category);
+  const availableSubCategories = selectedPrimaryCategory?.subCategories || [];
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -213,21 +206,12 @@ export default function BusinessOnboarding() {
     setFormData({ ...formData, services: newServices });
   };
 
-  const handleMainCategoryChange = (value) => {
+  const handlePrimaryCategoryChange = (value) => {
     setFormData({ 
       ...formData, 
-      main_category: value, 
-      subcategories: [] // Reset subcategories when main category changes
+      primary_category: value, 
+      sub_category: '' // Reset sub-category when primary changes
     });
-  };
-
-  const handleSubcategoryToggle = (subId) => {
-    const current = formData.subcategories || [];
-    if (current.includes(subId)) {
-      setFormData({ ...formData, subcategories: current.filter(s => s !== subId) });
-    } else {
-      setFormData({ ...formData, subcategories: [...current, subId] });
-    }
   };
 
   const canProceed = () => {
@@ -236,7 +220,7 @@ export default function BusinessOnboarding() {
         return formData.archetype;
       case 1:
         // Required: name, category, city, zip, phone, email
-        if (!formData.name || !formData.main_category || !formData.city || !formData.zip_code || !formData.phone || !formData.email) {
+        if (!formData.name || !formData.primary_category || !formData.city || !formData.zip_code || !formData.phone || !formData.email) {
           return false;
         }
         // Email validation
@@ -244,12 +228,12 @@ export default function BusinessOnboarding() {
         if (!emailRegex.test(formData.email)) {
           return false;
         }
-        // Venue: full address required
-        if ((formData.archetype === 'location' || formData.archetype === 'venue') && !formData.address) {
+        // Venue: full address required (street + state)
+        if ((formData.archetype === 'location' || formData.archetype === 'venue') && (!formData.address || !formData.state)) {
           return false;
         }
-        // Others: if display_full_address is true, address is required
-        if (formData.display_full_address && !formData.address) {
+        // Others: if display_full_address is true, address and state are required
+        if (formData.display_full_address && (!formData.address || !formData.state)) {
           return false;
         }
         return true;
@@ -406,23 +390,46 @@ export default function BusinessOnboarding() {
                     />
                   </div>
 
-                  <div>
-                    <Label htmlFor="main_category" className="text-slate-200">Category <span className="text-amber-500">*</span></Label>
-                    <Select
-                      value={formData.main_category}
-                      onValueChange={(value) => setFormData({ ...formData, main_category: value })}
-                    >
-                      <SelectTrigger className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100">
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ARCHETYPE_CATEGORIES[formData.archetype]?.map((cat) => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="primary_category" className="text-slate-200">Primary Category <span className="text-amber-500">*</span></Label>
+                      <Select
+                        value={formData.primary_category}
+                        onValueChange={handlePrimaryCategoryChange}
+                      >
+                        <SelectTrigger className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100">
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availablePrimaryCategories.map((cat) => (
+                            <SelectItem key={cat.label} value={cat.label}>
+                              {cat.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {formData.primary_category && availableSubCategories.length > 0 && (
+                      <div>
+                        <Label htmlFor="sub_category" className="text-slate-200">Sub-Category</Label>
+                        <Select
+                          value={formData.sub_category}
+                          onValueChange={(value) => setFormData({ ...formData, sub_category: value })}
+                        >
+                          <SelectTrigger className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100">
+                            <SelectValue placeholder="Select sub-category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableSubCategories.map((sub) => (
+                              <SelectItem key={sub} value={sub}>
+                                {sub}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -512,7 +519,7 @@ export default function BusinessOnboarding() {
                     </div>
                   )}
 
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="city" className="text-slate-200">City <span className="text-amber-500">*</span></Label>
                       <Input
@@ -523,6 +530,24 @@ export default function BusinessOnboarding() {
                         className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
                       />
                     </div>
+                    {(formData.archetype === 'location' || formData.archetype === 'venue' || formData.display_full_address) && (
+                      <div>
+                        <Label htmlFor="state" className="text-slate-200">State <span className="text-amber-500">*</span></Label>
+                        <Select
+                          value={formData.state}
+                          onValueChange={(value) => setFormData({ ...formData, state: value })}
+                        >
+                          <SelectTrigger className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100">
+                            <SelectValue placeholder="State" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="OR">Oregon</SelectItem>
+                            <SelectItem value="WA">Washington</SelectItem>
+                            <SelectItem value="CA">California</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     <div>
                       <Label htmlFor="zip_code" className="text-slate-200">Zip Code <span className="text-amber-500">*</span></Label>
                       <Input
@@ -811,11 +836,8 @@ export default function BusinessOnboarding() {
                   <h3 className="font-semibold text-slate-100">{formData.name}</h3>
                   <p className="text-sm text-slate-400 mt-1">{formData.description || 'No description'}</p>
                   <div className="flex flex-wrap gap-2 mt-3">
-                    <Badge variant="secondary">{selectedMainCategory?.label || formData.main_category}</Badge>
-                    {formData.subcategories.length > 0 && formData.subcategories.map(subId => {
-                      const sub = availableSubcategories.find(s => s.id === subId);
-                      return sub ? <Badge key={subId} variant="outline">{sub.label}</Badge> : null;
-                    })}
+                    <Badge variant="secondary">{formData.primary_category}</Badge>
+                    {formData.sub_category && <Badge variant="outline">{formData.sub_category}</Badge>}
                     {formData.accepts_silver && <Badge variant="outline">Accepts Silver</Badge>}
                     <Badge>{tiers.find(t => t.id === formData.subscription_tier)?.name} Plan</Badge>
                   </div>
@@ -824,20 +846,27 @@ export default function BusinessOnboarding() {
                 <div className="grid sm:grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-slate-500">Location:</span>
-                    <p className="font-medium text-slate-200">{formData.city}{formData.address ? `, ${formData.address}` : ''}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Service Area:</span>
-                    <p className="font-medium text-slate-200">{formData.service_area || 'Not specified'}</p>
+                    <p className="font-medium text-slate-200">
+                      {formData.address && `${formData.address}, `}
+                      {formData.city}
+                      {formData.state && `, ${formData.state}`}
+                      {formData.zip_code && ` ${formData.zip_code}`}
+                    </p>
                   </div>
                   <div>
                     <span className="text-slate-500">Phone:</span>
-                    <p className="font-medium text-slate-200">{formData.phone || 'Not provided'}</p>
+                    <p className="font-medium text-slate-200">{formData.phone}</p>
                   </div>
                   <div>
                     <span className="text-slate-500">Email:</span>
-                    <p className="font-medium text-slate-200">{formData.email || 'Not provided'}</p>
+                    <p className="font-medium text-slate-200">{formData.email}</p>
                   </div>
+                  {formData.website && (
+                    <div>
+                      <span className="text-slate-500">Website:</span>
+                      <p className="font-medium text-slate-200">{formData.website}</p>
+                    </div>
+                  )}
                 </div>
 
                 {formData.services.filter(s => s.name).length > 0 && (
