@@ -139,7 +139,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
                 />
                 <div className="flex flex-col">
                   <span className="text-sm text-slate-300">Recess</span>
-                  <span className="text-xs text-slate-500">Movement & Play (Punch Pass)</span>
+                  <span className="text-xs text-slate-500">Punch Pass Accepted</span>
                 </div>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
@@ -149,8 +149,8 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
                   className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
                 />
                 <div className="flex flex-col">
-                  <span className="text-sm text-slate-300">TCA</span>
-                  <span className="text-xs text-slate-500">Creative Alliance (Punch Pass)</span>
+                  <span className="text-sm text-slate-300">The Creative Alliance</span>
+                  <span className="text-xs text-slate-500">Punch Pass Accepted</span>
                 </div>
               </label>
             </div>
