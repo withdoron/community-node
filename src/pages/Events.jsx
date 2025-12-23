@@ -295,10 +295,10 @@ export default function Events() {
         {/* Map Section */}
         <div className={`${showMap ? 'flex' : 'hidden'} lg:flex lg:col-span-3 bg-slate-800 sticky top-0 h-screen`}>
           <MapContainer
+            key={showMap ? 'mobile' : 'desktop'}
             center={[44.0521, -123.0868]}
             zoom={13}
-            style={{ height: '100%', width: '100%' }}
-            className="z-0"
+            className="h-[calc(100vh-140px)] w-full z-0 relative"
           >
             <TileLayer
               url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
