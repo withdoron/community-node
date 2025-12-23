@@ -244,33 +244,33 @@ export default function Events() {
             {/* Quick Filters & Advanced Button */}
             <div className="flex items-center gap-2 flex-wrap">
               <Button
-                variant={quickFilter === 'all' ? 'default' : 'outline'}
+                variant="outline"
                 size="sm"
                 onClick={() => setQuickFilter('all')}
                 className={quickFilter === 'all' 
-                  ? 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold' 
+                  ? 'bg-slate-800 border-amber-500 text-amber-500 font-semibold' 
                   : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors'
                 }
               >
                 All
               </Button>
               <Button
-                variant={quickFilter === 'weekend' ? 'default' : 'outline'}
+                variant="outline"
                 size="sm"
                 onClick={() => setQuickFilter('weekend')}
                 className={quickFilter === 'weekend'
-                  ? 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold'
+                  ? 'bg-slate-800 border-amber-500 text-amber-500 font-semibold'
                   : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors'
                 }
               >
                 This Weekend
               </Button>
               <Button
-                variant={quickFilter === 'today' ? 'default' : 'outline'}
+                variant="outline"
                 size="sm"
                 onClick={() => setQuickFilter('today')}
                 className={quickFilter === 'today'
-                  ? 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold'
+                  ? 'bg-slate-800 border-amber-500 text-amber-500 font-semibold'
                   : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors'
                 }
               >
