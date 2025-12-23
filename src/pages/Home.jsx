@@ -183,7 +183,7 @@ export default function Home() {
               <Button 
                 size="lg"
                 variant="outline"
-                className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-6 sm:px-10 py-4 text-base sm:text-lg h-auto flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
+                className="bg-transparent hover:bg-transparent text-white border-2 border-white/30 hover:border-amber-500 hover:text-amber-500 font-semibold px-6 sm:px-10 py-4 text-base sm:text-lg h-auto flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
                 onClick={() => navigate(createPageUrl('Events'))}
               >
                 View Events
