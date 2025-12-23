@@ -60,7 +60,7 @@ export default function Layout({ children, currentPageName }) {
       {!isHomePage && (
         <header className="bg-white border-b border-slate-200">
           <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <Link to={createPageUrl('Home')} className="flex items-center gap-2 cursor-pointer select-none">
+            <Link to={createPageUrl('Home')} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer py-2 -ml-2 pl-2 pr-4">
               <div className="h-8 w-8 bg-slate-900 rounded-lg flex items-center justify-center">
                 <Store className="h-4 w-4 text-white" />
               </div>
@@ -213,7 +213,7 @@ export default function Layout({ children, currentPageName }) {
       {isHomePage && (
         <header className="bg-white border-b border-slate-200">
           <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <Link to={createPageUrl('Home')} className="flex items-center gap-2 cursor-pointer select-none">
+            <Link to={createPageUrl('Home')} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer py-2 -ml-2 pl-2 pr-4">
               <div className="h-8 w-8 bg-slate-900 rounded-lg flex items-center justify-center">
                 <Store className="h-4 w-4 text-white" />
               </div>
