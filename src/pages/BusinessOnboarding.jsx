@@ -303,8 +303,8 @@ export default function BusinessOnboarding() {
           {currentStep === 0 && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-3xl font-bold text-slate-100">How do you serve the community?</h2>
-                <p className="text-slate-400 mt-2">Choose the option that best describes your organization</p>
+                <h2 className="text-3xl font-bold text-slate-100">How will you use Local Lane?</h2>
+                <p className="text-slate-400 mt-2">Choose the option that best describes you.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
