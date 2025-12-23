@@ -249,7 +249,7 @@ export default function BusinessOnboarding() {
             variant="outline" 
             size="sm" 
             onClick={() => navigate(createPageUrl('BusinessDashboard'))} 
-            className="bg-slate-800/50 text-slate-400 border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors"
+            className="bg-slate-800/50 hover:bg-slate-800/50 active:bg-slate-800/50 text-slate-400 border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back
