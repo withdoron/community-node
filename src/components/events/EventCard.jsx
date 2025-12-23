@@ -29,8 +29,8 @@ export default function EventCard({ event, onClick }) {
             </div>
           )}
           {event.featured && (
-            <div className="absolute top-2 left-2 bg-amber-400 text-amber-950 text-[10px] font-extrabold px-2 py-0.5 rounded shadow-sm z-10 flex items-center gap-1 uppercase tracking-wider">
-              <Star className="w-3 h-3 fill-current" />
+            <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md border border-amber-400/50 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg z-10 flex items-center gap-1 uppercase tracking-wider">
+              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
               FEATURED
             </div>
           )}
