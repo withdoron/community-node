@@ -312,9 +312,26 @@ export default function Events() {
                     position={[event.lat, event.lng]}
                     icon={goldDotIcon}
                   >
-                    <Popup>
-                      <div className="text-slate-900 font-semibold">
-                        {event.title}
+                    <Popup className="rounded-lg shadow-xl">
+                      <div className="min-w-[200px] p-1">
+                        {event.thumbnail_url && (
+                          <div className="h-24 w-full relative mb-2 rounded-md overflow-hidden">
+                            <img 
+                              src={event.thumbnail_url} 
+                              alt={event.title} 
+                              className="object-cover w-full h-full"
+                            />
+                            {(!event.price || event.price === 0) && (
+                              <span className="absolute top-1 right-1 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                FREE
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        <h3 className="font-bold text-sm text-slate-900 leading-tight mb-1">{event.title}</h3>
+                        <p className="text-xs text-slate-600 flex items-center gap-1">
+                          📅 {format(new Date(event.date), 'MMM d, h:mm a')}
+                        </p>
                       </div>
                     </Popup>
                   </Marker>
