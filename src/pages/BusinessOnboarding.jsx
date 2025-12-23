@@ -248,7 +248,17 @@ export default function BusinessOnboarding() {
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => navigate(createPageUrl('BusinessDashboard'))} 
+            onClick={() => {
+              if (currentStep === 0) {
+                navigate(createPageUrl('BusinessDashboard'));
+              } else {
+                const newStep = currentStep - 1;
+                setCurrentStep(newStep);
+                if (newStep === 0) {
+                  setFormData({ ...formData, archetype: '' });
+                }
+              }
+            }}
             className="bg-slate-800/50 hover:bg-slate-800/50 active:bg-slate-800/50 text-slate-400 border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
