@@ -135,28 +135,28 @@ export default function Layout({ children, currentPageName }) {
                 <div className="flex flex-col h-full py-6">
                   <div className="flex flex-col gap-2 flex-1">
                     <Link to={createPageUrl('Events')}>
-                      <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                        <Calendar className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
+                      <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                        <Calendar className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
                         Browse Events
                       </Button>
                     </Link>
                     <Link to={createPageUrl('Home')}>
-                      <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                        <LayoutDashboard className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
+                      <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                        <LayoutDashboard className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
                         Personal Dashboard
                       </Button>
                     </Link>
                     {currentUser?.is_business_owner ? (
                       <Link to={createPageUrl('BusinessDashboard')}>
-                        <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                          <Store className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
+                        <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                          <Store className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
                           Host Dashboard
                         </Button>
                       </Link>
                     ) : (
                       <Link to={createPageUrl('BusinessOnboarding')}>
-                        <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                          <Plus className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
+                        <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                          <Plus className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
                           Start Hosting
                         </Button>
                       </Link>
@@ -165,18 +165,19 @@ export default function Layout({ children, currentPageName }) {
                   
                   {currentUser ? (
                     <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 mt-auto">
-                      <div className="mb-3">
+                      <div>
                         <p className="text-sm font-medium text-slate-100">{currentUser.full_name}</p>
                         <p className="text-xs text-slate-500">{currentUser.email}</p>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        className="w-full justify-start text-slate-300 hover:text-red-400 hover:bg-slate-900" 
-                        onClick={handleLogout}
-                      >
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Log Out
-                      </Button>
+                      <div className="mt-3 pt-3 border-t border-slate-800">
+                        <button 
+                          onClick={handleLogout}
+                          className="flex items-center gap-2 text-sm text-slate-400 hover:text-red-400 transition-colors"
+                        >
+                          <LogOut className="h-4 w-4" strokeWidth={2} />
+                          Log Out
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div className="mt-auto">
@@ -285,28 +286,28 @@ export default function Layout({ children, currentPageName }) {
                 <div className="flex flex-col h-full py-6">
                   <div className="flex flex-col gap-2 flex-1">
                     <Link to={createPageUrl('Events')}>
-                      <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                        <Calendar className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
+                      <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                        <Calendar className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
                         Browse Events
                       </Button>
                     </Link>
                     <Link to={createPageUrl('Home')}>
-                      <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                        <LayoutDashboard className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
+                      <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                        <LayoutDashboard className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
                         Personal Dashboard
                       </Button>
                     </Link>
                     {currentUser?.is_business_owner ? (
                       <Link to={createPageUrl('BusinessDashboard')}>
-                        <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                          <Store className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
+                        <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                          <Store className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
                           Host Dashboard
                         </Button>
                       </Link>
                     ) : (
                       <Link to={createPageUrl('BusinessOnboarding')}>
-                        <Button variant="ghost" className="w-full justify-start text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                          <Plus className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" />
+                        <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
+                          <Plus className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
                           Start Hosting
                         </Button>
                       </Link>
@@ -315,18 +316,19 @@ export default function Layout({ children, currentPageName }) {
                   
                   {currentUser ? (
                     <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 mt-auto">
-                      <div className="mb-3">
+                      <div>
                         <p className="text-sm font-medium text-slate-100">{currentUser.full_name}</p>
                         <p className="text-xs text-slate-500">{currentUser.email}</p>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        className="w-full justify-start text-slate-300 hover:text-red-400 hover:bg-slate-900" 
-                        onClick={handleLogout}
-                      >
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Log Out
-                      </Button>
+                      <div className="mt-3 pt-3 border-t border-slate-800">
+                        <button 
+                          onClick={handleLogout}
+                          className="flex items-center gap-2 text-sm text-slate-400 hover:text-red-400 transition-colors"
+                        >
+                          <LogOut className="h-4 w-4" strokeWidth={2} />
+                          Log Out
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div className="mt-auto">
