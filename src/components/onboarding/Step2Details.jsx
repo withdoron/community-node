@@ -12,6 +12,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const dropdownRef = useRef(null);
 
   const currentArchetypeCategories = ARCHETYPE_CATEGORIES[formData.archetype] || [];
@@ -43,6 +44,8 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
+        setIsEditing(false);
+        setSearchTerm('');
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -52,11 +55,12 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
   const handleCategorySearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-    setIsDropdownOpen(value.length > 0);
+    setIsEditing(true);
+    setIsDropdownOpen(true);
   };
 
   const getDisplayValue = () => {
-    if (searchTerm) return searchTerm;
+    if (isEditing) return searchTerm;
     if (formData.primary_category && formData.sub_category) {
       return `${formData.primary_category} > ${formData.sub_category}`;
     }
@@ -144,7 +148,10 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
               id="category_search"
               value={getDisplayValue()}
               onChange={handleCategorySearchChange}
-              onFocus={() => setIsDropdownOpen(true)}
+              onFocus={() => {
+                setIsEditing(true);
+                setIsDropdownOpen(true);
+              }}
               placeholder="Search your category (e.g. Gym, Plumber, Cafe)..."
               className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
             />
@@ -168,6 +175,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                               sub_category: sub 
                             });
                             setSearchTerm('');
+                            setIsEditing(false);
                             setIsDropdownOpen(false);
                           }}
                           className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 hover:text-amber-500 transition-colors"
