@@ -138,7 +138,7 @@ export default function Layout({ children, currentPageName }) {
                   </div>
                   <SheetClose asChild>
                     <button 
-                      className="p-2 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-slate-800"
+                      className="p-2 text-slate-400 hover:text-amber-400 transition-colors rounded-full hover:bg-slate-900"
                       aria-label="Close menu"
                     >
                       <svg 
@@ -315,7 +315,7 @@ export default function Layout({ children, currentPageName }) {
                   </div>
                   <SheetClose asChild>
                     <button 
-                      className="p-2 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-slate-800"
+                      className="p-2 text-slate-400 hover:text-amber-400 transition-colors rounded-full hover:bg-slate-900"
                       aria-label="Close menu"
                     >
                       <svg 
