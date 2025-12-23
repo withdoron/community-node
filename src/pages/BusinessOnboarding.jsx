@@ -476,6 +476,19 @@ export default function BusinessOnboarding() {
                   />
                 </div>
 
+                <div>
+                  <Label htmlFor="address" className="text-slate-200">
+                    {formData.archetype === 'location' ? 'Address (Required)' : 'Address (Optional)'}
+                  </Label>
+                  <Input
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    placeholder="Street address"
+                    className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                  />
+                </div>
+
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="city" className="text-slate-200">City <span className="text-amber-500">*</span></Label>
@@ -488,14 +501,14 @@ export default function BusinessOnboarding() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="address" className="text-slate-200">
-                      {formData.archetype === 'location' ? 'Address (Required)' : 'Address (Optional)'}
-                    </Label>
+                    <Label htmlFor="zip_code" className="text-slate-200">Zip Code</Label>
                     <Input
-                      id="address"
-                      value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      placeholder="Street address"
+                      id="zip_code"
+                      type="tel"
+                      value={formData.zip_code || ''}
+                      onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
+                      placeholder="e.g. 12345"
+                      maxLength={10}
                       className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
                     />
                   </div>
