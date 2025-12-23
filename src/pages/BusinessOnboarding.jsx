@@ -835,7 +835,13 @@ export default function BusinessOnboarding() {
           <div className="flex justify-between mt-8 pt-6 border-t border-slate-700">
             <Button
               variant="outline"
-              onClick={() => setCurrentStep(currentStep - 1)}
+              onClick={() => {
+                const newStep = currentStep - 1;
+                setCurrentStep(newStep);
+                if (newStep === 0) {
+                  setFormData({ ...formData, archetype: '' });
+                }
+              }}
               disabled={currentStep === 0}
               className="bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700"
             >
