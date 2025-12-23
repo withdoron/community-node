@@ -106,7 +106,7 @@ export default function Events() {
   });
 
   // Use dummy data for now
-  const events = DUMMY_EVENTS;
+  const [events] = useState(DUMMY_EVENTS);
   const isLoading = false;
 
   const filteredEvents = useMemo(() => {
