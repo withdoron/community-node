@@ -49,7 +49,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-md p-0">
+      <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-md p-0 [&>button]:hidden">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-slate-700">
           <h2 className="text-xl font-bold text-white">Filters</h2>
