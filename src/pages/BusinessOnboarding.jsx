@@ -19,6 +19,15 @@ import {
 } from "lucide-react";
 import { mainCategories, getMainCategory } from '@/components/categories/categoryData';
 
+const ARCHETYPE_CATEGORIES = {
+  location: ['Restaurant', 'Cafe', 'Gym/Fitness', 'Retail', 'Art Gallery', 'Event Venue', 'Coworking'],
+  venue: ['Restaurant', 'Cafe', 'Gym/Fitness', 'Retail', 'Art Gallery', 'Event Venue', 'Coworking'],
+  service: ['Photographer', 'DJ/Music', 'Personal Trainer', 'Caterer', 'Consultant', 'Home Services'],
+  talent: ['Photographer', 'DJ/Music', 'Personal Trainer', 'Caterer', 'Consultant', 'Home Services'],
+  community: ['Non-Profit', 'Social Club', 'HOA', 'Religious/Spiritual', 'Volunteer Group'],
+  organizer: ['Concert Promoter', 'Festival Host', 'Market Organizer', 'Nightlife', 'Workshop Host']
+};
+
 const tiers = [
   {
     id: 'basic',
@@ -96,9 +105,11 @@ export default function BusinessOnboarding() {
     description: '',
     address: '',
     city: '',
+    zip_code: '',
     phone: '',
     email: '',
     website: '',
+    display_full_address: false,
     service_area: '',
     primary_skill: '',
     organization_type: '',
@@ -224,7 +235,24 @@ export default function BusinessOnboarding() {
       case 0:
         return formData.archetype;
       case 1:
-        return formData.name && formData.main_category && formData.city;
+        // Required: name, category, city, zip, phone, email
+        if (!formData.name || !formData.main_category || !formData.city || !formData.zip_code || !formData.phone || !formData.email) {
+          return false;
+        }
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+          return false;
+        }
+        // Venue: full address required
+        if ((formData.archetype === 'location' || formData.archetype === 'venue') && !formData.address) {
+          return false;
+        }
+        // Others: if display_full_address is true, address is required
+        if (formData.display_full_address && !formData.address) {
+          return false;
+        }
+        return true;
       case 2:
         return true;
       case 3:
@@ -361,206 +389,179 @@ export default function BusinessOnboarding() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-slate-100">Tell us about your organization</h2>
-                <p className="text-slate-400 mt-1">Basic information to get started</p>
+                <p className="text-slate-400 mt-1">Professional information customers will see</p>
               </div>
 
-              <div className="grid gap-4">
-                <div>
-                  <Label htmlFor="name" className="text-slate-200">Organization Name <span className="text-amber-500">*</span></Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Your organization name"
-                    className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
-                  />
-                </div>
-
-                {/* Dynamic Fields Based on Archetype */}
-                {formData.archetype === 'service' && (
+              <div className="grid gap-6">
+                {/* Basic Info */}
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="primary_skill" className="text-slate-200">Primary Skill/Service</Label>
+                    <Label htmlFor="name" className="text-slate-200">Organization Name <span className="text-amber-500">*</span></Label>
                     <Input
-                      id="primary_skill"
-                      value={formData.primary_skill}
-                      onChange={(e) => setFormData({ ...formData, primary_skill: e.target.value })}
-                      placeholder="e.g., Yoga Instruction, Personal Training"
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Your organization name"
                       className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
                     />
                   </div>
-                )}
 
-                {formData.archetype === 'community' && (
                   <div>
-                    <Label htmlFor="organization_type" className="text-slate-200">Organization Type</Label>
+                    <Label htmlFor="main_category" className="text-slate-200">Category <span className="text-amber-500">*</span></Label>
                     <Select
-                      value={formData.organization_type}
-                      onValueChange={(value) => setFormData({ ...formData, organization_type: value })}
+                      value={formData.main_category}
+                      onValueChange={(value) => setFormData({ ...formData, main_category: value })}
                     >
                       <SelectTrigger className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100">
-                        <SelectValue placeholder="Select type" />
+                        <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="501c3">501(c)(3) Non-Profit</SelectItem>
-                        <SelectItem value="religious">Religious Organization</SelectItem>
-                        <SelectItem value="informal">Informal Community Group</SelectItem>
+                        {ARCHETYPE_CATEGORIES[formData.archetype]?.map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
-                )}
 
-                {formData.archetype === 'organizer' && (
                   <div>
-                    <Label htmlFor="typical_event_size" className="text-slate-200">Typical Event Size</Label>
-                    <Input
-                      id="typical_event_size"
-                      value={formData.typical_event_size}
-                      onChange={(e) => setFormData({ ...formData, typical_event_size: e.target.value })}
-                      placeholder="e.g., 50-100 attendees"
-                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                    <Label htmlFor="description" className="text-slate-200">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Tell customers about your organization..."
+                      className="mt-1.5 min-h-[100px] bg-slate-800 border-slate-700 text-slate-100"
                     />
                   </div>
-                )}
-
-                <div>
-                  <Label htmlFor="main_category" className="text-slate-200">Category <span className="text-amber-500">*</span></Label>
-                  <Select
-                    value={formData.main_category}
-                    onValueChange={handleMainCategoryChange}
-                  >
-                    <SelectTrigger className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100">
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mainCategories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
 
-                {formData.main_category && availableSubcategories.length > 0 && (
-                  <div>
-                    <Label className="text-slate-200">Subcategories (select all that apply)</Label>
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      {availableSubcategories.map((sub) => (
-                        <label
-                          key={sub.id}
-                          className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
-                            formData.subcategories.includes(sub.id)
-                              ? 'border-amber-500 bg-amber-500/10'
-                              : 'border-slate-700 hover:border-slate-600'
-                          }`}
-                        >
-                          <Checkbox
-                            checked={formData.subcategories.includes(sub.id)}
-                            onCheckedChange={() => handleSubcategoryToggle(sub.id)}
-                          />
-                          <span className="text-sm text-slate-200">{sub.label}</span>
-                        </label>
-                      ))}
+                {/* Contact Info Section */}
+                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
+                  <h3 className="text-sm font-semibold text-slate-100 uppercase tracking-wide">Contact Information</h3>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="phone" className="text-slate-200">Phone <span className="text-amber-500">*</span></Label>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
+                        placeholder="(555) 123-4567"
+                        className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="email" className="text-slate-200">Email <span className="text-amber-500">*</span></Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="contact@organization.com"
+                        className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">This will be visible to customers</p>
                     </div>
                   </div>
-                )}
 
+                  <div>
+                    <Label htmlFor="website" className="text-slate-200">Website</Label>
+                    <Input
+                      id="website"
+                      value={formData.website}
+                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                      placeholder="https://yourwebsite.com"
+                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                    />
+                  </div>
+                </div>
+
+                {/* Location Section */}
+                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
+                  <h3 className="text-sm font-semibold text-slate-100 uppercase tracking-wide">Location</h3>
+
+                  {/* Non-venue archetypes: show toggle */}
+                  {formData.archetype !== 'location' && formData.archetype !== 'venue' && (
+                    <label className="flex items-center gap-3 p-3 bg-slate-900 rounded-lg cursor-pointer">
+                      <Switch
+                        checked={formData.display_full_address}
+                        onCheckedChange={(checked) => setFormData({ ...formData, display_full_address: checked })}
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-200">Display full address on map?</p>
+                        <p className="text-xs text-slate-500">Off by default to protect privacy</p>
+                      </div>
+                    </label>
+                  )}
+
+                  {/* Street Address - show if venue OR if toggle is on */}
+                  {(formData.archetype === 'location' || formData.archetype === 'venue' || formData.display_full_address) && (
+                    <div>
+                      <Label htmlFor="address" className="text-slate-200">
+                        Street Address <span className="text-amber-500">*</span>
+                      </Label>
+                      <Input
+                        id="address"
+                        value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        placeholder="123 Main Street"
+                        className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                      />
+                    </div>
+                  )}
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="city" className="text-slate-200">City <span className="text-amber-500">*</span></Label>
+                      <Input
+                        id="city"
+                        value={formData.city}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        placeholder="Eugene"
+                        className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="zip_code" className="text-slate-200">Zip Code <span className="text-amber-500">*</span></Label>
+                      <Input
+                        id="zip_code"
+                        type="tel"
+                        value={formData.zip_code || ''}
+                        onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
+                        placeholder="97401"
+                        maxLength={10}
+                        className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                      />
+                    </div>
+                  </div>
+
+                  {formData.archetype === 'service' && (
+                    <div>
+                      <Label htmlFor="service_area" className="text-slate-200">Service Radius</Label>
+                      <Input
+                        id="service_area"
+                        value={formData.service_area}
+                        onChange={(e) => setFormData({ ...formData, service_area: e.target.value })}
+                        placeholder="e.g., 25 mile radius"
+                        className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Brand/Profile Image */}
                 <div>
-                  <Label htmlFor="description" className="text-slate-200">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Tell customers about your organization..."
-                    className="mt-1.5 min-h-[100px] bg-slate-800 border-slate-700 text-slate-100"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="address" className="text-slate-200">
-                    {formData.archetype === 'location' ? 'Address (Required)' : 'Address (Optional)'}
-                  </Label>
-                  <Input
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    placeholder="Street address"
-                    className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
-                  />
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="city" className="text-slate-200">City <span className="text-amber-500">*</span></Label>
-                    <Input
-                      id="city"
-                      value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      placeholder="City"
-                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="zip_code" className="text-slate-200">Zip Code</Label>
-                    <Input
-                      id="zip_code"
-                      type="tel"
-                      value={formData.zip_code || ''}
-                      onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
-                      placeholder="e.g. 12345"
-                      maxLength={10}
-                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="phone" className="text-slate-200">Phone</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
-                      placeholder="(555) 123-4567"
-                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email" className="text-slate-200">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="contact@organization.com"
-                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
-                    />
-                  </div>
-                </div>
-
-                {formData.archetype === 'service' && (
-                  <div>
-                    <Label htmlFor="service_area" className="text-slate-200">Service Radius</Label>
-                    <Input
-                      id="service_area"
-                      value={formData.service_area}
-                      onChange={(e) => setFormData({ ...formData, service_area: e.target.value })}
-                      placeholder="e.g., 25 mile radius"
-                      className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
-                    />
-                  </div>
-                )}
-
-                {/* Photos */}
-                <div>
-                  <Label className="text-slate-200">Photos</Label>
-                  <div className="mt-2 flex flex-wrap gap-3">
+                  <Label className="text-slate-200">Brand/Profile Image</Label>
+                  <p className="text-xs text-slate-500 mt-1 mb-2">This is what customers will see first</p>
+                  <div className="flex flex-wrap gap-3">
                     {formData.photos.map((photo, idx) => (
                       <div key={idx} className="relative group">
                         <img
                           src={photo}
                           alt={`Upload ${idx + 1}`}
-                          className="h-24 w-24 rounded-lg object-cover"
+                          className="h-24 w-24 rounded-lg object-cover border-2 border-slate-700"
                         />
                         <button
                           type="button"
@@ -571,7 +572,7 @@ export default function BusinessOnboarding() {
                         </button>
                       </div>
                     ))}
-                    <label className="h-24 w-24 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-slate-400 hover:bg-slate-50 transition-colors">
+                    <label className="h-24 w-24 rounded-lg border-2 border-dashed border-slate-700 flex items-center justify-center cursor-pointer hover:border-amber-500 hover:bg-slate-800 transition-colors">
                       {uploading ? (
                         <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
                       ) : (
