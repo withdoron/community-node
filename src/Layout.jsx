@@ -60,11 +60,11 @@ export default function Layout({ children, currentPageName }) {
       {!isHomePage && (
         <header className="bg-white border-b border-slate-200">
           <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <Link to={createPageUrl('Home')} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer py-2 -ml-2 pl-2 pr-4">
-              <div className="h-8 w-8 bg-slate-900 rounded-lg flex items-center justify-center">
-                <Store className="h-4 w-4 text-white" />
+            <Link to={createPageUrl('Home')} className="group flex items-center gap-2 py-2 -ml-2 pl-2 pr-4 cursor-pointer transition-all">
+              <div className="h-8 w-8 bg-slate-900 rounded-lg flex items-center justify-center border border-slate-800 group-hover:border-amber-500/50 group-hover:bg-slate-800 transition-colors">
+                <Store className="h-4 w-4 text-white group-hover:text-amber-400 transition-colors" />
               </div>
-              <span className="font-bold text-slate-900 text-lg">Local Lane</span>
+              <span className="font-bold text-slate-900 text-lg group-hover:text-amber-500 transition-colors">Local Lane</span>
             </Link>
 
             {/* Desktop Nav */}
@@ -213,11 +213,11 @@ export default function Layout({ children, currentPageName }) {
       {isHomePage && (
         <header className="bg-white border-b border-slate-200">
           <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <Link to={createPageUrl('Home')} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer py-2 -ml-2 pl-2 pr-4">
-              <div className="h-8 w-8 bg-slate-900 rounded-lg flex items-center justify-center">
-                <Store className="h-4 w-4 text-white" />
+            <Link to={createPageUrl('Home')} className="group flex items-center gap-2 py-2 -ml-2 pl-2 pr-4 cursor-pointer transition-all">
+              <div className="h-8 w-8 bg-slate-900 rounded-lg flex items-center justify-center border border-slate-800 group-hover:border-amber-500/50 group-hover:bg-slate-800 transition-colors">
+                <Store className="h-4 w-4 text-white group-hover:text-amber-400 transition-colors" />
               </div>
-              <span className="font-bold text-slate-900 text-lg">Local Lane</span>
+              <span className="font-bold text-slate-900 text-lg group-hover:text-amber-500 transition-colors">Local Lane</span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-2">
