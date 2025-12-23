@@ -35,7 +35,7 @@ export default function BusinessDashboard() {
 
   const isLoading = userLoading || businessesLoading;
 
-  const getUserRole = (business: any): string => {
+  const getUserRole = (business) => {
     if (business.owner_user_id === currentUser?.id) return 'Owner';
     if (business.instructors?.includes(currentUser?.id)) return 'Instructor';
     return 'Editor';
