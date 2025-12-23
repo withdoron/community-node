@@ -245,7 +245,12 @@ export default function BusinessOnboarding() {
       {/* Header */}
       <div className="bg-slate-900 border-b border-slate-800">
         <div className="max-w-3xl mx-auto px-4 py-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl('BusinessDashboard'))} className="text-slate-300 hover:text-slate-100">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate(createPageUrl('BusinessDashboard'))} 
+            className="bg-slate-800/50 text-slate-400 border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors"
+          >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back
           </Button>
