@@ -316,7 +316,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
 
         {/* Location Section */}
         <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
-          <h3 className="text-sm font-semibold text-slate-100 uppercase tracking-wide">Location</h3>
+          <h3 className="text-lg font-semibold text-white">Location</h3>
 
           {/* Non-venue archetypes: show toggle */}
           {formData.archetype !== 'location' && formData.archetype !== 'venue' && (
@@ -344,7 +344,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 placeholder="123 Main Street"
-                className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
               />
             </div>
           )}
@@ -357,7 +357,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 value={formData.city}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                 placeholder="Eugene"
-                className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
               />
             </div>
             {(formData.archetype === 'location' || formData.archetype === 'venue' || formData.display_full_address) && (
@@ -367,7 +367,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                   value={formData.state}
                   onValueChange={(value) => setFormData({ ...formData, state: value })}
                 >
-                  <SelectTrigger className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100">
+                  <SelectTrigger className="mt-1.5 bg-slate-900 border-slate-700 text-white">
                     <SelectValue placeholder="State" />
                   </SelectTrigger>
                   <SelectContent>
@@ -387,7 +387,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
                 placeholder="97401"
                 maxLength={10}
-                className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
               />
             </div>
           </div>
@@ -400,7 +400,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 value={formData.service_area}
                 onChange={(e) => setFormData({ ...formData, service_area: e.target.value })}
                 placeholder="e.g., 25 mile radius"
-                className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100"
+                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
               />
             </div>
           )}
