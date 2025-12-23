@@ -52,19 +52,21 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-md p-6">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-white">Filters</DialogTitle>
+      <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-md p-0">
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b border-slate-700">
+          <h2 className="text-xl font-bold text-white">Filters</h2>
           <button
             onClick={() => onOpenChange(false)}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+            className="text-slate-400 hover:text-white transition-colors"
           >
-            <X className="h-4 w-4 text-slate-400" />
+            <X className="h-5 w-5" />
             <span className="sr-only">Close</span>
           </button>
-        </DialogHeader>
+        </div>
 
-        <div className="space-y-6 py-4">
+        {/* Body */}
+        <div className="p-6 overflow-y-auto max-h-[70vh] space-y-6">
           {/* Price Range */}
           <div>
             <Label className="text-white font-semibold mb-3 block">Price Range</Label>
@@ -141,21 +143,22 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
+        {/* Footer */}
+        <div className="p-6 border-t border-slate-700 bg-slate-900 flex gap-2">
           <Button
             variant="outline"
             onClick={handleClear}
-            className="bg-transparent border-slate-600 text-slate-300 hover:bg-slate-700"
+            className="flex-1 bg-transparent border-slate-600 text-slate-300 hover:bg-slate-700"
           >
             Clear All
           </Button>
           <Button
             onClick={handleApply}
-            className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold"
+            className="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold"
           >
             Show Results
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
