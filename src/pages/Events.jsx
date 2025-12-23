@@ -157,8 +157,8 @@ export default function Events() {
       result = result.filter(e => e.is_volunteer);
     }
 
-    // Filter out past events
-    result = result.filter(e => new Date(e.date) >= now);
+    // Filter out past events - TEMPORARILY DISABLED FOR TESTING
+    // result = result.filter(e => new Date(e.date) >= now);
     console.log('Filtered events:', result.length);
 
     return result;
