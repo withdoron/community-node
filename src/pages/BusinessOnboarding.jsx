@@ -255,9 +255,8 @@ export default function BusinessOnboarding() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-8">
-        {/* Progress - Hidden on Step 1 (Archetype) */}
-        {currentStep > 0 && (
-          <div className="mb-8">
+        {/* Progress */}
+        <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               {steps.map((step, idx) => (
               <div 
@@ -289,9 +288,9 @@ export default function BusinessOnboarding() {
               ))}
               </div>
               </div>
-              )}
+              </div>
 
-        <Card className="p-6 sm:p-8 bg-slate-900 border-slate-800">
+              <Card className="p-6 sm:p-8 bg-slate-900 border-slate-800">
           {/* Step 0: Archetype Selector */}
           {currentStep === 0 && (
             <div className="space-y-6">
