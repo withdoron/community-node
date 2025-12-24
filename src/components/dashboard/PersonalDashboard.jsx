@@ -23,7 +23,7 @@ export default function PersonalDashboard() {
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Personalize Your Feed - Primary CTA */}
-          <Card className="p-8 bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/30 hover:border-amber-500/50 transition-all">
+          <Card className="p-8 bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/30 hover:border-amber-500 hover:bg-amber-900/20 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300">
             <div className="flex flex-col">
               <div className="flex items-start justify-between mb-4">
                 <div className="h-14 w-14 bg-amber-500/20 rounded-xl flex items-center justify-center">
@@ -46,7 +46,7 @@ export default function PersonalDashboard() {
           </Card>
 
           {/* My Saved Items */}
-          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-white/20 transition-all duration-300">
+          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-amber-900/20 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300">
             <div className="flex flex-col">
               <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center mb-4">
                 <Heart className="h-7 w-7 text-amber-500" />
@@ -67,7 +67,7 @@ export default function PersonalDashboard() {
           </Card>
 
           {/* Membership Status */}
-          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-white/20 transition-all duration-300">
+          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-amber-900/20 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300">
             <div className="flex flex-col">
               <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center mb-4">
                 <Star className="h-7 w-7 text-amber-500" />
@@ -88,7 +88,7 @@ export default function PersonalDashboard() {
           </Card>
 
           {/* Host Center */}
-          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-white/20 transition-all duration-300">
+          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-amber-900/20 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300">
             <div className="flex flex-col">
               <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center mb-4">
                 <Store className="h-7 w-7 text-amber-500" />
