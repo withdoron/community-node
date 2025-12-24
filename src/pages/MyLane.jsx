@@ -213,7 +213,7 @@ export default function MyLane() {
                     w-full py-2 rounded-lg text-sm font-medium transition-all duration-300
                     ${item.type === 'perk' 
                       ? 'bg-amber-500 text-black hover:bg-amber-400 hover:shadow-[0_0_15px_rgba(245,158,11,0.6)]' 
-                      : 'border border-white/20 text-gray-300 hover:border-amber-500 hover:bg-amber-500 hover:text-black hover:shadow-[0_0_15px_rgba(245,158,11,0.5)]'}
+                      : 'border border-white/20 bg-transparent text-gray-300 hover:border-amber-500 hover:text-amber-500'}
                   `}
                 >
                   {item.type === 'perk' ? 'Claim Offer' : 'More Info'}
