@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -10,6 +9,7 @@ import { Sliders, Heart, Star, Store, X } from "lucide-react";
 export default function PersonalDashboard() {
   const navigate = useNavigate();
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [hasPreferences, setHasPreferences] = useState(false);
   const [interests, setInterests] = useState({
     liveMusic: false,
     foodDrink: false,
@@ -22,8 +22,8 @@ export default function PersonalDashboard() {
     setInterests(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const savePreferences = () => {
-    // TODO: Save to backend or local storage
+  const handleSavePreferences = () => {
+    setHasPreferences(true);
     setIsCustomizeOpen(false);
   };
 
@@ -40,33 +40,55 @@ export default function PersonalDashboard() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Personalize Your Feed - Primary CTA */}
-          <Card 
-            className="group p-8 bg-slate-900 border border-amber-500/30 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300 cursor-pointer"
-            onClick={() => setIsCustomizeOpen(true)}
-          >
-            <div className="flex flex-col">
-              <div className="flex items-start justify-between mb-4">
-                <div className="h-14 w-14 bg-amber-500/20 rounded-xl flex items-center justify-center">
+          {/* Card 1: Personalize/Settings - Dynamic based on hasPreferences */}
+          {!hasPreferences ? (
+            /* NEW USER MODE */
+            <Card 
+              className="group relative p-8 bg-slate-900 border border-amber-500/50 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300 cursor-pointer"
+              onClick={() => setIsCustomizeOpen(true)}
+            >
+              <div className="absolute top-4 right-4 bg-amber-500/20 text-amber-500 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30 animate-pulse">
+                Recommended
+              </div>
+              <div className="flex flex-col">
+                <div className="h-14 w-14 bg-amber-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <Sliders className="h-7 w-7 text-amber-500" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-100 group-hover:text-amber-500 mb-2 transition-colors">
+                  Build Your Local Lane
+                </h3>
+                <p className="text-slate-400 mb-6 flex-1">
+                  Start here! Select your interests to unlock hidden gems.
+                </p>
+                <div className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-2 rounded-lg text-center transition-colors">
+                  Get Started
+                </div>
+              </div>
+            </Card>
+          ) : (
+            /* ESTABLISHED USER MODE */
+            <Card 
+              className="group p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300 cursor-pointer"
+              onClick={() => setIsCustomizeOpen(true)}
+            >
+              <div className="flex flex-col">
+                <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center mb-4">
                   <Sliders className="h-7 w-7 text-amber-500 group-hover:text-amber-500" />
                 </div>
-                <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
-                  Recommended
-                </Badge>
+                <h3 className="text-xl font-bold text-slate-100 group-hover:text-amber-500 mb-2 transition-colors">
+                  My Lane Settings
+                </h3>
+                <p className="text-slate-400 mb-6 flex-1">
+                  Adjust your interests and search radius anytime.
+                </p>
+                <div className="w-full bg-white/5 border border-white/10 hover:border-amber-500 hover:text-amber-500 text-white transition-all duration-300 py-2 rounded-lg text-center font-medium">
+                  Edit Preferences
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-slate-100 group-hover:text-amber-500 mb-2 transition-colors">
-                Personalize Your Feed
-              </h3>
-              <p className="text-slate-400 mb-6 flex-1">
-                Tailor your experience. Set your interests and local radius.
-              </p>
-              <div className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-2 rounded-lg text-center">
-                Customize
-              </div>
-            </div>
-          </Card>
+            </Card>
+          )}
 
-          {/* My Saved Items */}
+          {/* Card 2: My Saved Items */}
           <Card 
             className="group p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300 cursor-pointer"
             onClick={() => navigate(createPageUrl('Directory'))}
@@ -87,7 +109,7 @@ export default function PersonalDashboard() {
             </div>
           </Card>
 
-          {/* Membership Status */}
+          {/* Card 3: Membership Status */}
           <Card 
             className="group p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300 cursor-pointer"
             onClick={() => navigate(createPageUrl('Home'))}
@@ -111,7 +133,7 @@ export default function PersonalDashboard() {
             </div>
           </Card>
 
-          {/* Host Center */}
+          {/* Card 4: Host Center */}
           <Card 
             className="group p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300 cursor-pointer"
             onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
@@ -166,7 +188,7 @@ export default function PersonalDashboard() {
                       <Checkbox
                         checked={interests.liveMusic}
                         onCheckedChange={() => toggleInterest('liveMusic')}
-                        className="accent-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                        className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
                       />
                       <span className="text-white">Live Music</span>
                     </label>
@@ -174,7 +196,7 @@ export default function PersonalDashboard() {
                       <Checkbox
                         checked={interests.foodDrink}
                         onCheckedChange={() => toggleInterest('foodDrink')}
-                        className="accent-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                        className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
                       />
                       <span className="text-white">Food & Drink</span>
                     </label>
@@ -182,7 +204,7 @@ export default function PersonalDashboard() {
                       <Checkbox
                         checked={interests.artCulture}
                         onCheckedChange={() => toggleInterest('artCulture')}
-                        className="accent-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                        className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
                       />
                       <span className="text-white">Art & Culture</span>
                     </label>
@@ -190,7 +212,7 @@ export default function PersonalDashboard() {
                       <Checkbox
                         checked={interests.workshops}
                         onCheckedChange={() => toggleInterest('workshops')}
-                        className="accent-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                        className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
                       />
                       <span className="text-white">Workshops</span>
                     </label>
@@ -221,7 +243,7 @@ export default function PersonalDashboard() {
               {/* Footer */}
               <div className="mt-6">
                 <Button
-                  onClick={savePreferences}
+                  onClick={handleSavePreferences}
                   className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-2 rounded-lg"
                 >
                   Save Preferences
