@@ -109,7 +109,7 @@ export default function MyLane() {
       {/* Filter Pills */}
       <div className="bg-slate-900/50 border-b border-slate-800 sticky top-0 z-10 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex flex-wrap gap-3 pb-2">
+          <div className="flex overflow-x-auto md:flex-wrap gap-3 pb-2 scrollbar-hide">
             {FILTER_PILLS.map((filter) => {
               const Icon = filter.icon;
               const isActive = activeFilter === filter.id;
@@ -118,8 +118,8 @@ export default function MyLane() {
                   key={filter.id}
                   onClick={() => setActiveFilter(filter.id)}
                   className={`
-                    flex items-center gap-2 px-4 py-2 rounded-full border whitespace-nowrap
-                    transition-all duration-200 flex-shrink-0 cursor-pointer
+                    flex items-center gap-2 px-4 py-1.5 md:py-2 rounded-full border whitespace-nowrap
+                    transition-all duration-200 flex-shrink-0 cursor-pointer text-xs md:text-sm
                     ${isActive 
                       ? 'border-amber-500 bg-amber-500/10 text-amber-500' 
                       : 'border-white/20 bg-transparent text-gray-300 hover:border-amber-500 hover:text-amber-500'}
