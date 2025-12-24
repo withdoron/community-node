@@ -237,13 +237,12 @@ export default function MyLane() {
       {/* Floating Action Button */}
       <button
         onClick={() => console.log('Open Itinerary Builder')}
-        className="fixed bottom-6 right-6 px-6 py-4 bg-gradient-to-r from-amber-500 to-amber-600 
-          rounded-full text-black shadow-[0_0_20px_rgba(245,158,11,0.5)] 
-          hover:shadow-[0_0_30px_rgba(245,158,11,0.7)] hover:scale-105
-          transition-all duration-300 flex items-center z-50 cursor-pointer"
+        className="fixed bottom-6 right-6 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 
+          rounded-full text-black text-sm font-bold shadow-lg 
+          hover:scale-105 transition-all duration-300 flex items-center gap-2 z-50 cursor-pointer"
       >
-        <Sparkles className="h-5 w-5 text-black" />
-        <span className="ml-2 font-semibold">Plan My Weekend</span>
+        <Sparkles className="h-4 w-4 text-black" />
+        <span>Plan My Weekend</span>
       </button>
     </div>
   );
