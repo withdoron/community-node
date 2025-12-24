@@ -1,13 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Sliders, Heart, Star, Store } from "lucide-react";
+import { Sliders, Heart, Star, Store, X } from "lucide-react";
 
 export default function PersonalDashboard() {
   const navigate = useNavigate();
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [interests, setInterests] = useState({
+    liveMusic: false,
+    foodDrink: false,
+    artCulture: false,
+    workshops: false
+  });
+  const [radius, setRadius] = useState(25);
+
+  const toggleInterest = (key) => {
+    setInterests(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const savePreferences = () => {
+    // TODO: Save to backend or local storage
+    setIsCustomizeOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 p-6">
@@ -23,7 +41,10 @@ export default function PersonalDashboard() {
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Personalize Your Feed - Primary CTA */}
-          <Card className="group p-8 bg-slate-900 border border-amber-500/30 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300">
+          <Card 
+            className="group p-8 bg-slate-900 border border-amber-500/30 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300 cursor-pointer"
+            onClick={() => setIsCustomizeOpen(true)}
+          >
             <div className="flex flex-col">
               <div className="flex items-start justify-between mb-4">
                 <div className="h-14 w-14 bg-amber-500/20 rounded-xl flex items-center justify-center">
@@ -39,9 +60,9 @@ export default function PersonalDashboard() {
               <p className="text-slate-400 mb-6 flex-1">
                 Tailor your experience. Set your interests and local radius.
               </p>
-              <Button className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold">
+              <div className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-2 rounded-lg text-center">
                 Customize
-              </Button>
+              </div>
             </div>
           </Card>
 
@@ -108,6 +129,104 @@ export default function PersonalDashboard() {
             </div>
           </Card>
         </div>
+
+        {/* Preferences Modal */}
+        {isCustomizeOpen && (
+          <div 
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setIsCustomizeOpen(false)}
+          >
+            <div 
+              className="bg-slate-900 border border-amber-500/20 rounded-xl shadow-2xl w-full max-w-md p-6 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white">Customize Your Feed</h2>
+                <button
+                  onClick={() => setIsCustomizeOpen(false)}
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="space-y-6">
+                {/* Interests Section */}
+                <div>
+                  <label className="text-sm font-semibold text-slate-300 mb-3 block">
+                    Interests
+                  </label>
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <Checkbox
+                        checked={interests.liveMusic}
+                        onCheckedChange={() => toggleInterest('liveMusic')}
+                        className="accent-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                      />
+                      <span className="text-white">Live Music</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <Checkbox
+                        checked={interests.foodDrink}
+                        onCheckedChange={() => toggleInterest('foodDrink')}
+                        className="accent-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                      />
+                      <span className="text-white">Food & Drink</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <Checkbox
+                        checked={interests.artCulture}
+                        onCheckedChange={() => toggleInterest('artCulture')}
+                        className="accent-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                      />
+                      <span className="text-white">Art & Culture</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <Checkbox
+                        checked={interests.workshops}
+                        onCheckedChange={() => toggleInterest('workshops')}
+                        className="accent-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                      />
+                      <span className="text-white">Workshops</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Distance Section */}
+                <div>
+                  <label className="text-sm font-semibold text-slate-300 mb-3 block">
+                    Distance: {radius} miles
+                  </label>
+                  <input
+                    type="range"
+                    min="5"
+                    max="50"
+                    step="5"
+                    value={radius}
+                    onChange={(e) => setRadius(Number(e.target.value))}
+                    className="w-full accent-amber-500"
+                  />
+                  <div className="flex justify-between text-xs text-slate-500 mt-1">
+                    <span>5 mi</span>
+                    <span>50 mi</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="mt-6">
+                <Button
+                  onClick={savePreferences}
+                  className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-2 rounded-lg"
+                >
+                  Save Preferences
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
