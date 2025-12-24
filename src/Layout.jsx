@@ -368,7 +368,7 @@ export default function Layout({ children, currentPageName }) {
                 <div className="flex flex-col h-full">
                   <div className="flex flex-col gap-2 flex-1">
                     <SheetClose asChild>
-                      <Link to={createPageUrl('BusinessDashboard')}>
+                      <Link to={createPageUrl('MyLane')}>
                         <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
                           <Sparkles className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
                           My Lane
