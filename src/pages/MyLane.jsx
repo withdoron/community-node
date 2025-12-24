@@ -235,22 +235,16 @@ export default function MyLane() {
       </div>
 
       {/* Floating Action Button */}
-      <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
-        {/* Label */}
-        <div className="hidden md:block bg-gradient-to-r from-amber-500 to-amber-600 text-black px-4 py-2 rounded-full font-semibold text-sm shadow-lg">
-          ✨ Plan My Weekend
-        </div>
-        {/* FAB Button */}
-        <button
-          onClick={() => console.log('Open Itinerary Builder')}
-          className="h-14 w-14 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 
-            flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.5)]
-            hover:shadow-[0_0_30px_rgba(245,158,11,0.7)] hover:scale-110
-            transition-all duration-300 cursor-pointer"
-        >
-          <Sparkles className="h-6 w-6 text-white" />
-        </button>
-      </div>
+      <button
+        onClick={() => console.log('Open Itinerary Builder')}
+        className="fixed bottom-6 right-6 px-6 py-4 bg-gradient-to-r from-amber-500 to-amber-600 
+          rounded-full text-black shadow-[0_0_20px_rgba(245,158,11,0.5)] 
+          hover:shadow-[0_0_30px_rgba(245,158,11,0.7)] hover:scale-105
+          transition-all duration-300 flex items-center z-50 cursor-pointer"
+      >
+        <Sparkles className="h-5 w-5 text-black" />
+        <span className="ml-2 font-semibold">Plan My Weekend</span>
+      </button>
     </div>
   );
 }
