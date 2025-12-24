@@ -45,7 +45,7 @@ export default function PersonalDashboard() {
             /* NEW USER MODE */
             <Card 
               className="group relative p-8 bg-slate-900 border border-amber-500/50 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300 cursor-pointer"
-              onClick={() => setIsCustomizeOpen(true)}
+              onClick={() => navigate(createPageUrl('BuildLane'))}
             >
               <div className="absolute top-4 right-4 bg-amber-500/20 text-amber-500 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30 animate-pulse">
                 Recommended
