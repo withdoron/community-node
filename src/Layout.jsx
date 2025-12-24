@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Store, User, LogOut, LayoutDashboard, Plus, Menu, Shield, Calendar, X, Building2 } from "lucide-react";
+import { Store, User, LogOut, LayoutDashboard, Plus, Menu, Shield, Calendar, X, Building2, Sparkles } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import Footer from '@/components/layout/Footer';
 
@@ -33,6 +33,12 @@ export default function Layout({ children, currentPageName }) {
 
   const NavContent = () => (
     <>
+      <Link to={createPageUrl('BusinessDashboard')}>
+        <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
+          <Sparkles className="h-4 w-4 mr-2" />
+          My Lane
+        </Button>
+      </Link>
       <Link to={createPageUrl('Events')}>
         <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
           Browse Events
