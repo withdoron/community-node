@@ -68,21 +68,30 @@ export default function PersonalDashboard() {
           ) : (
             /* ESTABLISHED USER MODE */
             <Card 
-              className="group p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300 cursor-pointer"
+              className="group relative p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300 cursor-pointer"
               onClick={() => setIsCustomizeOpen(true)}
             >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsCustomizeOpen(true);
+                }}
+                className="absolute top-4 right-4 text-xs text-amber-500 hover:text-amber-400 font-medium underline-offset-4 hover:underline cursor-pointer flex items-center gap-1"
+              >
+                Update My Lane
+              </button>
               <div className="flex flex-col">
                 <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center mb-4">
                   <Sliders className="h-7 w-7 text-amber-500 group-hover:text-amber-500" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-100 group-hover:text-amber-500 mb-2 transition-colors">
-                  My Lane Settings
+                  Your Local Lane
                 </h3>
                 <p className="text-slate-400 mb-6 flex-1">
-                  Adjust your interests and search radius anytime.
+                  Your feed is active. 12 new events match your interests.
                 </p>
-                <div className="w-full bg-white/5 border border-white/10 hover:border-amber-500 hover:text-amber-500 text-white transition-all duration-300 py-2 rounded-lg text-center font-medium">
-                  Edit Preferences
+                <div className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-2 rounded-lg text-center transition-colors">
+                  View My Feed
                 </div>
               </div>
             </Card>
