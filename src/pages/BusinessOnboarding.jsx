@@ -276,21 +276,20 @@ export default function BusinessOnboarding() {
                 )}
               </div>
               ))}
-              </div>
-              <div className="flex justify-between text-xs">
+            </div>
+            <div className="flex justify-between text-xs">
               {steps.map((step, idx) => (
-              <span 
-                key={step}
-                className={idx <= currentStep ? 'text-slate-100 font-medium' : 'text-slate-500'}
-              >
-                {step}
-              </span>
+                <span 
+                  key={step}
+                  className={idx <= currentStep ? 'text-slate-100 font-medium' : 'text-slate-500'}
+                >
+                  {step}
+                </span>
               ))}
-              </div>
-              </div>
-              </div>
+            </div>
+          </div>
 
-              <Card className="p-6 sm:p-8 bg-slate-900 border-slate-800">
+        <Card className="p-6 sm:p-8 bg-slate-900 border-slate-800">
           {/* Step 0: Archetype Selector */}
           {currentStep === 0 && (
             <div className="space-y-6">
@@ -609,11 +608,11 @@ export default function BusinessOnboarding() {
                   'Create Organization'
                 )}
               </Button>
-              )}
-              </div>
-              )}
-              </Card>
-              </div>
-              </div>
-              );
-              }
+            )}
+          </div>
+          )}
+        </Card>
+      </div>
+    </div>
+  );
+}
