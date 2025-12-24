@@ -90,9 +90,12 @@ export default function PersonalDashboard() {
                 <p className="text-slate-400 mb-6 flex-1">
                   Your feed is active. 12 new events match your interests.
                 </p>
-                <div className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-2 rounded-lg text-center transition-colors">
+                <Button
+                  onClick={() => navigate(createPageUrl('MyLane'))}
+                  className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-2 rounded-lg text-center transition-colors"
+                >
                   View My Feed
-                </div>
+                </Button>
               </div>
             </Card>
           )}

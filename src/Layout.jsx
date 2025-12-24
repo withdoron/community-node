@@ -33,7 +33,7 @@ export default function Layout({ children, currentPageName }) {
 
   const NavContent = () => (
     <>
-      <Link to={createPageUrl('BusinessDashboard')}>
+      <Link to={createPageUrl('MyLane')}>
         <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
           <Sparkles className="h-4 w-4 mr-2" />
           My Lane
