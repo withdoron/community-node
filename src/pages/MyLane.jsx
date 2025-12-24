@@ -118,11 +118,11 @@ export default function MyLane() {
                   key={filter.id}
                   onClick={() => setActiveFilter(filter.id)}
                   className={`
-                    flex items-center gap-2 px-4 py-2 rounded-full border-2 whitespace-nowrap
-                    transition-all duration-200 flex-shrink-0
+                    flex items-center gap-2 px-4 py-2 rounded-full border whitespace-nowrap
+                    transition-all duration-200 flex-shrink-0 cursor-pointer
                     ${isActive 
                       ? 'border-amber-500 bg-amber-500/10 text-amber-500' 
-                      : 'border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-600'}
+                      : 'border-white/20 bg-transparent text-gray-300 hover:border-amber-500 hover:text-amber-500'}
                   `}
                 >
                   <Icon className="h-4 w-4" />
@@ -141,8 +141,7 @@ export default function MyLane() {
             <Card
               key={item.id}
               className={`
-                group relative overflow-hidden bg-slate-900 border-slate-800 
-                hover:border-slate-700 transition-all duration-300 cursor-pointer
+                group relative overflow-hidden bg-white/5 border border-white/10 rounded-xl cursor-pointer
                 ${item.type === 'perk' ? 'border-2 border-amber-500/30 bg-gradient-to-br from-slate-900 via-slate-900 to-amber-900/10' : ''}
               `}
             >
@@ -209,16 +208,16 @@ export default function MyLane() {
                 )}
 
                 {/* Action Button */}
-                <Button
+                <button
                   className={`
-                    w-full font-semibold transition-all duration-300
+                    w-full py-2 rounded-lg text-sm font-medium transition-all duration-300
                     ${item.type === 'perk' 
-                      ? 'bg-amber-500 hover:bg-amber-400 text-black hover:shadow-[0_0_15px_rgba(245,158,11,0.6)]' 
-                      : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500 hover:bg-amber-500 hover:text-black hover:shadow-[0_0_15px_rgba(245,158,11,0.4)]'}
+                      ? 'bg-amber-500 text-black hover:bg-amber-400 hover:shadow-[0_0_15px_rgba(245,158,11,0.6)]' 
+                      : 'border border-white/20 text-gray-300 hover:border-amber-500 hover:bg-amber-500 hover:text-black hover:shadow-[0_0_15px_rgba(245,158,11,0.5)]'}
                   `}
                 >
                   {item.type === 'perk' ? 'Claim Offer' : 'More Info'}
-                </Button>
+                </button>
               </div>
             </Card>
           ))}
