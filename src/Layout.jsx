@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Store, User, LogOut, LayoutDashboard, Plus, Menu, Shield, Calendar, X, Building2 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import Footer from '@/components/layout/Footer';
 
 export default function Layout({ children, currentPageName }) {
   const { data: currentUser } = useQuery({
@@ -434,21 +435,7 @@ export default function Layout({ children, currentPageName }) {
       <main>{children}</main>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white py-12">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 cursor-default">
-              <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center">
-                <Store className="h-4 w-4 text-slate-900" />
-              </div>
-              <span className="text-white font-bold text-xl tracking-tight ml-3">Local Lane</span>
-            </div>
-            <p className="text-slate-500 text-sm mt-4 font-medium">
-              © {new Date().getFullYear()} Local Lane. Ad‑free, community‑focused discovery platform.
-            </p>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-}
+      <Footer />
+      </div>
+      );
+      }
