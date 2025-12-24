@@ -57,9 +57,12 @@ export default function PersonalDashboard() {
                 <h3 className="text-xl font-bold text-slate-100 group-hover:text-amber-500 mb-2 transition-colors">
                   Build Your Local Lane
                 </h3>
-                <p className="text-slate-400 mb-6 flex-1">
-                  Start here! Select your interests to unlock hidden gems.
+                <p className="text-slate-400 mb-4 flex-1">
+                  Select your interests to unlock hidden gems and enable the Magic Planner.
                 </p>
+                <div className="bg-amber-500/20 text-amber-500 text-xs font-bold px-3 py-1.5 rounded-full border border-amber-500/30 mb-4 text-center">
+                  ✨ Unlocks: AI Weekend Planner
+                </div>
                 <div className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-2 rounded-lg text-center transition-colors">
                   Get Started
                 </div>
