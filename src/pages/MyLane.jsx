@@ -242,7 +242,7 @@ export default function MyLane() {
           hover:scale-105 transition-all duration-300 flex items-center gap-2 z-50 cursor-pointer"
       >
         <Sparkles className="h-4 w-4 text-black" />
-        <span>Plan My Weekend</span>
+        <span>Open Magic Planner</span>
       </button>
     </div>
   );

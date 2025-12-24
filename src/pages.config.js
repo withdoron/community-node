@@ -7,9 +7,9 @@ import CategoryPage from './pages/CategoryPage';
 import Directory from './pages/Directory';
 import Events from './pages/Events';
 import Home from './pages/Home';
+import MyLane from './pages/MyLane';
 import Search from './pages/Search';
 import WriteReview from './pages/WriteReview';
-import MyLane from './pages/MyLane';
 import __Layout from './Layout.jsx';
 
 
@@ -23,9 +23,9 @@ export const PAGES = {
     "Directory": Directory,
     "Events": Events,
     "Home": Home,
+    "MyLane": MyLane,
     "Search": Search,
     "WriteReview": WriteReview,
-    "MyLane": MyLane,
 }
 
 export const pagesConfig = {
