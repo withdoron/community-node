@@ -46,7 +46,7 @@ export default function PersonalDashboard() {
           </Card>
 
           {/* My Saved Items */}
-          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-amber-500/50 transition-all">
+          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-white/20 transition-all duration-300">
             <div className="flex flex-col">
               <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center mb-4">
                 <Heart className="h-7 w-7 text-amber-500" />
@@ -58,7 +58,7 @@ export default function PersonalDashboard() {
                 Access your saved events and favorite businesses.
               </p>
               <Button 
-                className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white"
+                className="w-full bg-white/5 border border-white/10 hover:border-amber-500 hover:text-amber-500 text-white transition-all duration-300"
                 onClick={() => navigate(createPageUrl('Directory'))}
               >
                 View Saved
@@ -67,7 +67,7 @@ export default function PersonalDashboard() {
           </Card>
 
           {/* Membership Status */}
-          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-amber-500/50 transition-all">
+          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-white/20 transition-all duration-300">
             <div className="flex flex-col">
               <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center mb-4">
                 <Star className="h-7 w-7 text-amber-500" />
@@ -81,14 +81,14 @@ export default function PersonalDashboard() {
               <p className="text-sm text-slate-500 mb-6 flex-1">
                 Upgrade for exclusive perks and benefits
               </p>
-              <Button className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white">
+              <Button className="w-full bg-white/5 border border-white/10 hover:border-amber-500 hover:text-amber-500 text-white transition-all duration-300">
                 Upgrade Membership
               </Button>
             </div>
           </Card>
 
           {/* Host Center */}
-          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-amber-500/50 transition-all">
+          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-white/20 transition-all duration-300">
             <div className="flex flex-col">
               <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center mb-4">
                 <Store className="h-7 w-7 text-amber-500" />
@@ -100,7 +100,7 @@ export default function PersonalDashboard() {
                 Want to list a business or event?
               </p>
               <Button 
-                className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white"
+                className="w-full bg-white/5 border border-white/10 hover:border-amber-500 hover:text-amber-500 text-white transition-all duration-300"
                 onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
               >
                 Create Organization
