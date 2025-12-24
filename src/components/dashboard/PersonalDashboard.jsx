@@ -67,7 +67,10 @@ export default function PersonalDashboard() {
           </Card>
 
           {/* My Saved Items */}
-          <Card className="group p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300">
+          <Card 
+            className="group p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300 cursor-pointer"
+            onClick={() => navigate(createPageUrl('Directory'))}
+          >
             <div className="flex flex-col">
               <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center mb-4">
                 <Heart className="h-7 w-7 text-amber-500 group-hover:text-amber-500" />
@@ -78,17 +81,17 @@ export default function PersonalDashboard() {
               <p className="text-slate-400 mb-6 flex-1">
                 Access your saved events and favorite businesses.
               </p>
-              <Button 
-                className="w-full bg-white/5 border border-white/10 hover:border-amber-500 hover:text-amber-500 text-white transition-all duration-300"
-                onClick={() => navigate(createPageUrl('Directory'))}
-              >
+              <div className="w-full bg-white/5 border border-white/10 hover:border-amber-500 hover:text-amber-500 text-white transition-all duration-300 py-2 rounded-lg text-center font-medium">
                 View Saved
-              </Button>
+              </div>
             </div>
           </Card>
 
           {/* Membership Status */}
-          <Card className="group p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300">
+          <Card 
+            className="group p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300 cursor-pointer"
+            onClick={() => navigate(createPageUrl('Home'))}
+          >
             <div className="flex flex-col">
               <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center mb-4">
                 <Star className="h-7 w-7 text-amber-500 group-hover:text-amber-500" />
@@ -102,14 +105,17 @@ export default function PersonalDashboard() {
               <p className="text-sm text-slate-500 mb-6 flex-1">
                 Upgrade for exclusive perks and benefits
               </p>
-              <Button className="w-full bg-white/5 border border-white/10 hover:border-amber-500 hover:text-amber-500 text-white transition-all duration-300">
+              <div className="w-full bg-white/5 border border-white/10 hover:border-amber-500 hover:text-amber-500 text-white transition-all duration-300 py-2 rounded-lg text-center font-medium">
                 Upgrade Membership
-              </Button>
+              </div>
             </div>
           </Card>
 
           {/* Host Center */}
-          <Card className="group p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300">
+          <Card 
+            className="group p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300 cursor-pointer"
+            onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
+          >
             <div className="flex flex-col">
               <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center mb-4">
                 <Store className="h-7 w-7 text-amber-500 group-hover:text-amber-500" />
@@ -120,12 +126,9 @@ export default function PersonalDashboard() {
               <p className="text-slate-400 mb-6 flex-1">
                 Want to list a business or event?
               </p>
-              <Button 
-                className="w-full bg-white/5 border border-white/10 hover:border-amber-500 hover:text-amber-500 text-white transition-all duration-300"
-                onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
-              >
+              <div className="w-full bg-white/5 border border-white/10 hover:border-amber-500 hover:text-amber-500 text-white transition-all duration-300 py-2 rounded-lg text-center font-medium">
                 Create Organization
-              </Button>
+              </div>
             </div>
           </Card>
         </div>
