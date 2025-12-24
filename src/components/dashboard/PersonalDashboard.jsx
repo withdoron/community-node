@@ -23,17 +23,17 @@ export default function PersonalDashboard() {
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Personalize Your Feed - Primary CTA */}
-          <Card className="p-8 bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/30 hover:border-amber-500 hover:bg-amber-900/20 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300">
+          <Card className="group p-8 bg-slate-900 border border-amber-500/30 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300">
             <div className="flex flex-col">
               <div className="flex items-start justify-between mb-4">
                 <div className="h-14 w-14 bg-amber-500/20 rounded-xl flex items-center justify-center">
-                  <Sliders className="h-7 w-7 text-amber-500" />
+                  <Sliders className="h-7 w-7 text-amber-500 group-hover:text-amber-500" />
                 </div>
                 <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
                   Recommended
                 </Badge>
               </div>
-              <h3 className="text-xl font-bold text-slate-100 mb-2">
+              <h3 className="text-xl font-bold text-slate-100 group-hover:text-amber-500 mb-2 transition-colors">
                 Personalize Your Feed
               </h3>
               <p className="text-slate-400 mb-6 flex-1">
@@ -46,12 +46,12 @@ export default function PersonalDashboard() {
           </Card>
 
           {/* My Saved Items */}
-          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-amber-900/20 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300">
+          <Card className="group p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300">
             <div className="flex flex-col">
               <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center mb-4">
-                <Heart className="h-7 w-7 text-amber-500" />
+                <Heart className="h-7 w-7 text-amber-500 group-hover:text-amber-500" />
               </div>
-              <h3 className="text-xl font-bold text-slate-100 mb-2">
+              <h3 className="text-xl font-bold text-slate-100 group-hover:text-amber-500 mb-2 transition-colors">
                 My Saved Items
               </h3>
               <p className="text-slate-400 mb-6 flex-1">
@@ -67,12 +67,12 @@ export default function PersonalDashboard() {
           </Card>
 
           {/* Membership Status */}
-          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-amber-900/20 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300">
+          <Card className="group p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300">
             <div className="flex flex-col">
               <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center mb-4">
-                <Star className="h-7 w-7 text-amber-500" />
+                <Star className="h-7 w-7 text-amber-500 group-hover:text-amber-500" />
               </div>
-              <h3 className="text-xl font-bold text-slate-100 mb-2">
+              <h3 className="text-xl font-bold text-slate-100 group-hover:text-amber-500 mb-2 transition-colors">
                 Membership Status
               </h3>
               <p className="text-slate-400 mb-2">
@@ -88,12 +88,12 @@ export default function PersonalDashboard() {
           </Card>
 
           {/* Host Center */}
-          <Card className="p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-amber-900/20 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300">
+          <Card className="group p-8 bg-slate-900 border border-white/10 hover:border-amber-500 hover:bg-slate-800 transition-all duration-300">
             <div className="flex flex-col">
               <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center mb-4">
-                <Store className="h-7 w-7 text-amber-500" />
+                <Store className="h-7 w-7 text-amber-500 group-hover:text-amber-500" />
               </div>
-              <h3 className="text-xl font-bold text-slate-100 mb-2">
+              <h3 className="text-xl font-bold text-slate-100 group-hover:text-amber-500 mb-2 transition-colors">
                 Host Center
               </h3>
               <p className="text-slate-400 mb-6 flex-1">
