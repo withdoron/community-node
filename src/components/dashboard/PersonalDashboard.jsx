@@ -60,8 +60,8 @@ export default function PersonalDashboard() {
                 <p className="text-slate-400 mb-4 flex-1">
                   Select your interests to unlock hidden gems and enable the Magic Planner.
                 </p>
-                <div className="bg-amber-500/20 text-amber-500 text-xs font-bold px-3 py-1.5 rounded-full border border-amber-500/30 mb-4 text-center">
-                  ✨ Unlocks: AI Weekend Planner
+                <div className="bg-transparent text-amber-400 text-xs font-medium uppercase tracking-wide px-3 py-1.5 rounded-full border border-dashed border-amber-500/50 mb-2 text-center cursor-default">
+                  ✨ Unlocks Weekend Planner
                 </div>
                 <div className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-2 rounded-lg text-center transition-colors">
                   Get Started
