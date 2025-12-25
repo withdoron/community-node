@@ -20,23 +20,30 @@ const ARCHETYPE_DEFINITIONS = {
   organizer: { name: 'Event Organizer', description: 'I host pop-ups, festivals, markets, or meetups.' }
 };
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 export async function migrateCategories() {
   console.log('🚀 Starting category migration...');
 
   try {
-    // Step 1: Create Archetypes
-    const archetypeMap = {};
-    for (const [slug, definition] of Object.entries(ARCHETYPE_DEFINITIONS)) {
-      const archetype = await base44.entities.Archetype.create({
-        slug,
-        name: definition.name,
-        description: definition.description
-      });
-      archetypeMap[slug] = archetype.id;
-      console.log(`✅ Created Archetype: ${slug} (${archetype.id})`);
-    }
+    // Step 1: Create Archetypes (batch create)
+    const archetypeEntries = Object.entries(ARCHETYPE_DEFINITIONS);
+    const archetypesToCreate = archetypeEntries.map(([slug, definition]) => ({
+      slug,
+      name: definition.name,
+      description: definition.description
+    }));
 
-    // Step 2: Create CategoryGroups and SubCategories
+    const createdArchetypes = await base44.entities.Archetype.bulkCreate(archetypesToCreate);
+    const archetypeMap = {};
+    createdArchetypes.forEach((archetype, idx) => {
+      archetypeMap[archetypeEntries[idx][0]] = archetype.id;
+      console.log(`✅ Created Archetype: ${archetype.slug} (${archetype.id})`);
+    });
+
+    await sleep(500); // Delay between archetype and group creation
+
+    // Step 2: Create CategoryGroups and SubCategories with rate limiting
     for (const [archetypeSlug, categoryGroups] of Object.entries(ARCHETYPE_CATEGORIES)) {
       const archetypeId = archetypeMap[archetypeSlug];
       if (!archetypeId) {
@@ -44,24 +51,44 @@ export async function migrateCategories() {
         continue;
       }
 
-      for (const group of categoryGroups) {
-        // Create CategoryGroup
-        const categoryGroup = await base44.entities.CategoryGroup.create({
-          archetype_id: archetypeId,
-          label: group.label
-        });
-        console.log(`  ✅ Created CategoryGroup: ${group.label} (${categoryGroup.id})`);
+      // Batch create category groups for this archetype
+      const groupsToCreate = categoryGroups.map(group => ({
+        archetype_id: archetypeId,
+        label: group.label
+      }));
 
-        // Create SubCategories
-        for (const subCat of group.subCategories) {
-          const subCategory = await base44.entities.SubCategory.create({
-            group_id: categoryGroup.id,
-            name: subCat.name,
-            keywords: subCat.keywords || []
-          });
-          console.log(`    ✅ Created SubCategory: ${subCat.name} (${subCategory.id})`);
+      const createdGroups = await base44.entities.CategoryGroup.bulkCreate(groupsToCreate);
+      console.log(`✅ Created ${createdGroups.length} CategoryGroups for ${archetypeSlug}`);
+
+      await sleep(300); // Delay between groups
+
+      // Create subcategories for each group with small delays
+      for (let i = 0; i < categoryGroups.length; i++) {
+        const group = categoryGroups[i];
+        const categoryGroup = createdGroups[i];
+
+        const subCategoriesToCreate = group.subCategories.map(subCat => ({
+          group_id: categoryGroup.id,
+          name: subCat.name,
+          keywords: subCat.keywords || []
+        }));
+
+        // Process in smaller batches to avoid rate limiting
+        const batchSize = 10;
+        for (let j = 0; j < subCategoriesToCreate.length; j += batchSize) {
+          const batch = subCategoriesToCreate.slice(j, j + batchSize);
+          await base44.entities.SubCategory.bulkCreate(batch);
+          console.log(`  ✅ Created ${batch.length} SubCategories for ${group.label}`);
+          
+          if (j + batchSize < subCategoriesToCreate.length) {
+            await sleep(200); // Small delay between batches
+          }
         }
+
+        await sleep(200); // Delay between groups
       }
+
+      await sleep(300); // Delay between archetypes
     }
 
     console.log('🎉 Migration complete!');
