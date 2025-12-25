@@ -10,14 +10,24 @@ import { ARCHETYPE_CATEGORIES } from './archetypeCategories';
  * Usage: Call `migrateCategories()` from a component or admin page.
  */
 
-const ARCHETYPE_DEFINITIONS = {
-  venue: { name: 'Location / Venue', description: 'I have a physical space for customers to visit.' },
-  location: { name: 'Location / Venue', description: 'I have a physical space for customers to visit.' },
-  service: { name: 'Service Provider', description: 'I offer mobile services or professional skills.' },
-  talent: { name: 'Service Provider', description: 'I offer mobile services or professional skills.' },
-  product: { name: 'Product Seller', description: 'I sell physical or digital products.' },
-  community: { name: 'Community / Non-Profit', description: 'I lead a group, cause, church, or congregation.' },
-  organizer: { name: 'Event Organizer', description: 'I host pop-ups, festivals, markets, or meetups.' }
+// Define unique archetypes (deduplicated by slug)
+const UNIQUE_ARCHETYPE_DEFINITIONS = [
+  { slug: 'venue', name: 'Location / Venue', description: 'I have a physical space for customers to visit.' },
+  { slug: 'service', name: 'Service Provider', description: 'I offer mobile services or professional skills.' },
+  { slug: 'product', name: 'Product Seller', description: 'I sell physical or digital products.' },
+  { slug: 'community', name: 'Community / Non-Profit', description: 'I lead a group, cause, church, or congregation.' },
+  { slug: 'organizer', name: 'Event Organizer', description: 'I host pop-ups, festivals, markets, or meetups.' }
+];
+
+// Map legacy slugs to their canonical versions
+const SLUG_ALIASES = {
+  venue: 'venue',
+  location: 'venue',
+  service: 'service',
+  talent: 'service',
+  product: 'product',
+  community: 'community',
+  organizer: 'organizer'
 };
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -26,18 +36,13 @@ export async function migrateCategories() {
   console.log('🚀 Starting category migration...');
 
   try {
-    // Step 1: Create Archetypes (batch create)
-    const archetypeEntries = Object.entries(ARCHETYPE_DEFINITIONS);
-    const archetypesToCreate = archetypeEntries.map(([slug, definition]) => ({
-      slug,
-      name: definition.name,
-      description: definition.description
-    }));
-
-    const createdArchetypes = await base44.entities.Archetype.bulkCreate(archetypesToCreate);
+    // Step 1: Create unique Archetypes only
+    const createdArchetypes = await base44.entities.Archetype.bulkCreate(UNIQUE_ARCHETYPE_DEFINITIONS);
+    
+    // Build map using canonical slugs
     const archetypeMap = {};
-    createdArchetypes.forEach((archetype, idx) => {
-      archetypeMap[archetypeEntries[idx][0]] = archetype.id;
+    createdArchetypes.forEach((archetype) => {
+      archetypeMap[archetype.slug] = archetype.id;
       console.log(`✅ Created Archetype: ${archetype.slug} (${archetype.id})`);
     });
 
@@ -45,7 +50,10 @@ export async function migrateCategories() {
 
     // Step 2: Create CategoryGroups and SubCategories with rate limiting
     for (const [archetypeSlug, categoryGroups] of Object.entries(ARCHETYPE_CATEGORIES)) {
-      const archetypeId = archetypeMap[archetypeSlug];
+      // Map legacy slug to canonical slug
+      const canonicalSlug = SLUG_ALIASES[archetypeSlug];
+      const archetypeId = archetypeMap[canonicalSlug];
+      
       if (!archetypeId) {
         console.warn(`⚠️ Skipping unknown archetype: ${archetypeSlug}`);
         continue;
