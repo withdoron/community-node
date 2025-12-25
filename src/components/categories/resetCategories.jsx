@@ -9,27 +9,42 @@ export async function resetAllCategories() {
   console.log('🔥 Starting hard reset of all category data...');
 
   try {
-    // Step 1: Delete all SubCategories
+    // Step 1: Bulk delete all SubCategories
     const allSubs = await base44.entities.SubCategory.list();
     console.log(`Found ${allSubs.length} SubCategories to delete`);
-    for (const sub of allSubs) {
-      await base44.entities.SubCategory.delete(sub.id);
+    if (allSubs.length > 0) {
+      const subIds = allSubs.map(sub => sub.id);
+      // Delete in batches of 50 to avoid overwhelming the API
+      for (let i = 0; i < subIds.length; i += 50) {
+        const batch = subIds.slice(i, i + 50);
+        await Promise.all(batch.map(id => base44.entities.SubCategory.delete(id)));
+      }
     }
     console.log('✅ Deleted all SubCategories');
 
-    // Step 2: Delete all CategoryGroups
+    // Step 2: Bulk delete all CategoryGroups
     const allGroups = await base44.entities.CategoryGroup.list();
     console.log(`Found ${allGroups.length} CategoryGroups to delete`);
-    for (const group of allGroups) {
-      await base44.entities.CategoryGroup.delete(group.id);
+    if (allGroups.length > 0) {
+      const groupIds = allGroups.map(group => group.id);
+      // Delete in batches of 50
+      for (let i = 0; i < groupIds.length; i += 50) {
+        const batch = groupIds.slice(i, i + 50);
+        await Promise.all(batch.map(id => base44.entities.CategoryGroup.delete(id)));
+      }
     }
     console.log('✅ Deleted all CategoryGroups');
 
-    // Step 3: Delete all Archetypes
+    // Step 3: Bulk delete all Archetypes
     const allArchetypes = await base44.entities.Archetype.list();
     console.log(`Found ${allArchetypes.length} Archetypes to delete`);
-    for (const archetype of allArchetypes) {
-      await base44.entities.Archetype.delete(archetype.id);
+    if (allArchetypes.length > 0) {
+      const archetypeIds = allArchetypes.map(archetype => archetype.id);
+      // Delete in batches of 50
+      for (let i = 0; i < archetypeIds.length; i += 50) {
+        const batch = archetypeIds.slice(i, i + 50);
+        await Promise.all(batch.map(id => base44.entities.Archetype.delete(id)));
+      }
     }
     console.log('✅ Deleted all Archetypes');
 
