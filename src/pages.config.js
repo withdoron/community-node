@@ -8,10 +8,10 @@ import CategoryPage from './pages/CategoryPage';
 import Directory from './pages/Directory';
 import Events from './pages/Events';
 import Home from './pages/Home';
+import MigrateCategories from './pages/MigrateCategories';
 import MyLane from './pages/MyLane';
 import Search from './pages/Search';
 import WriteReview from './pages/WriteReview';
-import MigrateCategories from './pages/MigrateCategories';
 import __Layout from './Layout.jsx';
 
 
@@ -26,10 +26,10 @@ export const PAGES = {
     "Directory": Directory,
     "Events": Events,
     "Home": Home,
+    "MigrateCategories": MigrateCategories,
     "MyLane": MyLane,
     "Search": Search,
     "WriteReview": WriteReview,
-    "MigrateCategories": MigrateCategories,
 }
 
 export const pagesConfig = {
