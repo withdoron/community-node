@@ -103,7 +103,7 @@ export default function BusinessOnboarding() {
   });
 
   // Fetch archetypes from database
-  const { data: rawArchetypes = [], isLoading: archetypesLoading } = useQuery({
+  const { data: archetypes = [], isLoading: archetypesLoading } = useQuery({
     queryKey: ['archetypes'],
     queryFn: async () => {
       const data = await base44.entities.Archetype.list();
@@ -114,18 +114,6 @@ export default function BusinessOnboarding() {
       }));
     }
   });
-
-  // Deduplicate archetypes by slug (safety measure)
-  const archetypes = React.useMemo(() => {
-    const seen = new Set();
-    return rawArchetypes.filter(arch => {
-      if (seen.has(arch.slug)) {
-        return false;
-      }
-      seen.add(arch.slug);
-      return true;
-    });
-  }, [rawArchetypes]);
 
   // Scroll to top when step changes
   React.useEffect(() => {
