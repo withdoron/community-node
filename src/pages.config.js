@@ -1,4 +1,5 @@
 import Admin from './pages/Admin';
+import BuildLane from './pages/BuildLane';
 import BusinessDashboard from './pages/BusinessDashboard';
 import BusinessOnboarding from './pages/BusinessOnboarding';
 import BusinessProfile from './pages/BusinessProfile';
@@ -10,12 +11,13 @@ import Home from './pages/Home';
 import MyLane from './pages/MyLane';
 import Search from './pages/Search';
 import WriteReview from './pages/WriteReview';
-import BuildLane from './pages/BuildLane';
+import MigrateCategories from './pages/MigrateCategories';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Admin": Admin,
+    "BuildLane": BuildLane,
     "BusinessDashboard": BusinessDashboard,
     "BusinessOnboarding": BusinessOnboarding,
     "BusinessProfile": BusinessProfile,
@@ -27,7 +29,7 @@ export const PAGES = {
     "MyLane": MyLane,
     "Search": Search,
     "WriteReview": WriteReview,
-    "BuildLane": BuildLane,
+    "MigrateCategories": MigrateCategories,
 }
 
 export const pagesConfig = {
