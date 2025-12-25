@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { ARCHETYPE_CATEGORIES } from '@/components/categories/archetypeCategories';
+import { useQuery } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,34 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
   const [expandedCategory, setExpandedCategory] = useState(null);
   const dropdownRef = useRef(null);
 
-  const currentArchetypeCategories = ARCHETYPE_CATEGORIES[formData.archetype] || [];
+  // Fetch categories from database
+  const { data: categoryGroups = [] } = useQuery({
+    queryKey: ['categoryGroups', formData.archetype_id],
+    queryFn: async () => {
+      if (!formData.archetype_id) return [];
+      return await base44.entities.CategoryGroup.filter({ archetype_id: formData.archetype_id });
+    },
+    enabled: !!formData.archetype_id
+  });
+
+  const { data: allSubCategories = [] } = useQuery({
+    queryKey: ['subCategories'],
+    queryFn: async () => await base44.entities.SubCategory.list()
+  });
+
+  // Transform database data to match the old structure
+  const currentArchetypeCategories = useMemo(() => {
+    return categoryGroups.map(group => ({
+      label: group.label,
+      subCategories: allSubCategories
+        .filter(sub => sub.group_id === group.id)
+        .map(sub => ({
+          name: sub.name,
+          keywords: sub.keywords || [],
+          id: sub.id
+        }))
+    }));
+  }, [categoryGroups, allSubCategories]);
 
   // Dynamic placeholder from ACTUAL data
   const getDynamicPlaceholder = () => {
@@ -244,10 +271,12 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                                     key={subName}
                                     type="button"
                                     onClick={() => {
+                                      const subObj = typeof sub === 'object' ? sub : null;
                                       setFormData({ 
                                         ...formData, 
                                         primary_category: cat.label, 
-                                        sub_category: subName 
+                                        sub_category: subName,
+                                        sub_category_id: subObj?.id || ''
                                       });
                                       setSearchTerm('');
                                       setIsEditing(false);
@@ -285,10 +314,12 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                               key={subName}
                               type="button"
                               onClick={() => {
+                                const subObj = typeof sub === 'object' ? sub : null;
                                 setFormData({ 
                                   ...formData, 
                                   primary_category: cat.label, 
-                                  sub_category: subName 
+                                  sub_category: subName,
+                                  sub_category_id: subObj?.id || ''
                                 });
                                 setSearchTerm('');
                                 setIsEditing(false);
