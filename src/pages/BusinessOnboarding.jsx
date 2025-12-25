@@ -292,12 +292,22 @@ export default function BusinessOnboarding() {
                 <p className="text-slate-400 mt-2">Choose the option that best fits your business or group.</p>
               </div>
 
-              {archetypesLoading ? (
+{archetypesLoading ? (
                 <div className="flex justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
                 </div>
+              ) : archetypes.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-slate-400 mb-4">No archetypes found. Please run the migration first.</p>
+                  <Button
+                    onClick={() => navigate(createPageUrl('MigrateCategories'))}
+                    className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+                  >
+                    Run Migration
+                  </Button>
+                </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                <div className="grid grid-cols-1 gap-4 mt-8">
                   {archetypes.map((archetype) => {
                     const Icon = archetype.icon;
                     return (
@@ -312,21 +322,21 @@ export default function BusinessOnboarding() {
                           setTimeout(() => setCurrentStep(1), 500);
                         }}
                         className={`
-                          group p-6 rounded-lg border-2 cursor-pointer transition-all
+                          group p-6 rounded-xl border-2 cursor-pointer transition-all
                           ${formData.archetype_id === archetype.id
                             ? 'border-amber-500 bg-amber-500/10'
-                            : 'border-slate-800 bg-slate-900 hover:border-amber-500/50'}
+                            : 'border-slate-700 bg-slate-800/50 hover:border-amber-500/50 hover:bg-slate-800'}
                         `}
                       >
                         <div className="flex flex-col items-center text-center">
                           <div className={`
-                            h-16 w-16 rounded-lg flex items-center justify-center mb-4
-                            ${formData.archetype_id === archetype.id ? 'bg-amber-500/20' : 'bg-amber-500/10'}
+                            h-20 w-20 rounded-xl flex items-center justify-center mb-4
+                            ${formData.archetype_id === archetype.id ? 'bg-amber-500/20' : 'bg-slate-700/50'}
                           `}>
-                            <Icon className={`h-8 w-8 ${formData.archetype_id === archetype.id ? 'text-amber-500' : 'text-amber-500'}`} />
+                            <Icon className={`h-10 w-10 ${formData.archetype_id === archetype.id ? 'text-amber-500' : 'text-amber-500'}`} />
                           </div>
-                          <h3 className={`font-bold text-lg mb-2 transition-colors ${formData.archetype_id === archetype.id ? '!text-amber-500' : 'text-slate-100 group-hover:!text-amber-500'}`}>{archetype.name}</h3>
-                          <p className="text-sm text-slate-400 mb-3">{archetype.description}</p>
+                          <h3 className={`font-bold text-xl mb-2 transition-colors ${formData.archetype_id === archetype.id ? 'text-amber-500' : 'text-slate-100 group-hover:text-amber-500'}`}>{archetype.name}</h3>
+                          <p className="text-sm text-slate-400 mb-3 max-w-md">{archetype.description}</p>
                           {archetype.examples && (
                             <p className="text-xs text-slate-500">
                               Examples: {archetype.examples}
