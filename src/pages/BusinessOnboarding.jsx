@@ -17,7 +17,6 @@ import {
   ChevronLeft, ChevronRight, Loader2, Upload, X, Plus, Trash2,
   Check, Star, Zap, Crown, Store, Briefcase, Heart, Ticket
 } from "lucide-react";
-import { ARCHETYPE_CATEGORIES } from '@/components/categories/archetypeCategories';
 import Step2Details from '@/components/onboarding/Step2Details';
 import Step3Goals from '@/components/onboarding/Step3Goals';
 
@@ -52,36 +51,15 @@ const tiers = [
   }
 ];
 
-const archetypes = [
-  {
-    id: 'venue',
-    icon: Store,
-    title: 'Location / Venue',
-    description: 'I have a physical space for customers to visit.',
-    examples: 'Gym, Restaurant, Shop, Gallery'
-  },
-  {
-    id: 'service',
-    icon: Briefcase,
-    title: 'Service Provider',
-    description: 'I offer mobile services or professional skills.',
-    examples: 'Instructor, Plumber, Consultant, Artist'
-  },
-  {
-    id: 'organizer',
-    icon: Ticket,
-    title: 'Event Organizer',
-    description: 'I host pop-ups, festivals, markets, or meetups.',
-    examples: 'Concerts, Markets, Meetups, Nightlife'
-  },
-  {
-    id: 'non_profit',
-    icon: Heart,
-    title: 'Community / Non-Profit',
-    description: 'I lead a group, cause, church, or congregation.',
-    examples: 'Social Club, Church, HOA, Charity'
-  }
-];
+const ARCHETYPE_ICONS = {
+  venue: Store,
+  location: Store,
+  service: Briefcase,
+  talent: Briefcase,
+  product: Store,
+  community: Heart,
+  organizer: Ticket
+};
 
 const steps = ['Archetype', 'Details', 'Goals', 'Plan', 'Review'];
 
@@ -92,9 +70,11 @@ export default function BusinessOnboarding() {
   
   const [formData, setFormData] = useState({
     archetype: '',
+    archetype_id: '',
     name: '',
     primary_category: '',
     sub_category: '',
+    sub_category_id: '',
     description: '',
     address: '',
     city: '',
@@ -122,6 +102,19 @@ export default function BusinessOnboarding() {
     queryFn: () => base44.auth.me()
   });
 
+  // Fetch archetypes from database
+  const { data: archetypes = [], isLoading: archetypesLoading } = useQuery({
+    queryKey: ['archetypes'],
+    queryFn: async () => {
+      const data = await base44.entities.Archetype.list();
+      return data.map(arch => ({
+        ...arch,
+        icon: ARCHETYPE_ICONS[arch.slug] || Store,
+        examples: '' // Can be added to Archetype entity if needed
+      }));
+    }
+  });
+
   // Scroll to top when step changes
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -136,7 +129,8 @@ export default function BusinessOnboarding() {
         owner_email: currentUser?.email,
         slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
         bumps_remaining: tier?.bumps || 0,
-        is_active: true
+        is_active: true,
+        sub_category_id: data.sub_category_id || null
       });
 
       // Update user to be a business owner (if not already)
@@ -298,40 +292,52 @@ export default function BusinessOnboarding() {
                 <p className="text-slate-400 mt-2">Choose the option that best fits your business or group.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                {archetypes.map((archetype) => {
-                  const Icon = archetype.icon;
-                  return (
-                    <div
-                      key={archetype.id}
-                      onClick={() => {
-                        setFormData({ ...formData, archetype: archetype.id });
-                        setTimeout(() => setCurrentStep(1), 500);
-                      }}
-                      className={`
-                        group p-6 rounded-lg border-2 cursor-pointer transition-all
-                        ${formData.archetype === archetype.id
-                          ? 'border-amber-500 bg-amber-500/10'
-                          : 'border-slate-800 bg-slate-900 hover:border-amber-500/50'}
-                      `}
-                    >
-                      <div className="flex flex-col items-center text-center">
-                        <div className={`
-                          h-16 w-16 rounded-lg flex items-center justify-center mb-4
-                          ${formData.archetype === archetype.id ? 'bg-amber-500/20' : 'bg-amber-500/10'}
-                        `}>
-                          <Icon className={`h-8 w-8 ${formData.archetype === archetype.id ? 'text-amber-500' : 'text-amber-500'}`} />
+              {archetypesLoading ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                  {archetypes.map((archetype) => {
+                    const Icon = archetype.icon;
+                    return (
+                      <div
+                        key={archetype.id}
+                        onClick={() => {
+                          setFormData({ 
+                            ...formData, 
+                            archetype: archetype.slug,
+                            archetype_id: archetype.id
+                          });
+                          setTimeout(() => setCurrentStep(1), 500);
+                        }}
+                        className={`
+                          group p-6 rounded-lg border-2 cursor-pointer transition-all
+                          ${formData.archetype_id === archetype.id
+                            ? 'border-amber-500 bg-amber-500/10'
+                            : 'border-slate-800 bg-slate-900 hover:border-amber-500/50'}
+                        `}
+                      >
+                        <div className="flex flex-col items-center text-center">
+                          <div className={`
+                            h-16 w-16 rounded-lg flex items-center justify-center mb-4
+                            ${formData.archetype_id === archetype.id ? 'bg-amber-500/20' : 'bg-amber-500/10'}
+                          `}>
+                            <Icon className={`h-8 w-8 ${formData.archetype_id === archetype.id ? 'text-amber-500' : 'text-amber-500'}`} />
+                          </div>
+                          <h3 className={`font-bold text-lg mb-2 transition-colors ${formData.archetype_id === archetype.id ? '!text-amber-500' : 'text-slate-100 group-hover:!text-amber-500'}`}>{archetype.name}</h3>
+                          <p className="text-sm text-slate-400 mb-3">{archetype.description}</p>
+                          {archetype.examples && (
+                            <p className="text-xs text-slate-500">
+                              Examples: {archetype.examples}
+                            </p>
+                          )}
                         </div>
-                        <h3 className={`font-bold text-lg mb-2 transition-colors ${formData.archetype === archetype.id ? '!text-amber-500' : 'text-slate-100 group-hover:!text-amber-500'}`}>{archetype.title}</h3>
-                        <p className="text-sm text-slate-400 mb-3">{archetype.description}</p>
-                        <p className="text-xs text-slate-500">
-                          Examples: {archetype.examples}
-                        </p>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
