@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Building2, Settings, ShieldAlert, ChevronLeft, MapPin } from "lucide-react";
+import { Loader2, Building2, Settings, ShieldAlert, ChevronLeft, MapPin, Network } from "lucide-react";
 import AdminBusinessTable from '@/components/admin/AdminBusinessTable';
 import AdminFilters from '@/components/admin/AdminFilters';
 import BusinessEditDrawer from '@/components/admin/BusinessEditDrawer';
@@ -45,6 +45,13 @@ export default function Admin() {
   const { data: locations = [], isLoading: locationsLoading } = useQuery({
     queryKey: ['admin-locations'],
     queryFn: () => base44.entities.Location.list('-created_date', 1000),
+    enabled: currentUser?.role === 'admin'
+  });
+
+  // Fetch all spokes
+  const { data: spokes = [], isLoading: spokesLoading } = useQuery({
+    queryKey: ['admin-spokes'],
+    queryFn: () => base44.entities.Spoke.list('-created_date', 100),
     enabled: currentUser?.role === 'admin'
   });
 
@@ -208,6 +215,10 @@ export default function Admin() {
               <Settings className="h-4 w-4" />
               Settings
             </TabsTrigger>
+            <TabsTrigger value="spokes" className="gap-2">
+              <Network className="h-4 w-4" />
+              Spokes
+            </TabsTrigger>
           </TabsList>
 
           {/* Businesses Tab */}
@@ -272,6 +283,85 @@ export default function Admin() {
           {/* Settings Tab */}
           <TabsContent value="settings">
             <AdminSettingsPanel />
+          </TabsContent>
+
+          {/* Spokes Tab */}
+          <TabsContent value="spokes">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">Spoke Apps</h2>
+                  <p className="text-sm text-slate-600 mt-1">Manage connected spoke applications</p>
+                </div>
+                <Link to={createPageUrl('SpokeDetails')}>
+                  <Button className="bg-amber-500 hover:bg-amber-400 text-black">
+                    Add New Spoke
+                  </Button>
+                </Link>
+              </div>
+
+              {spokesLoading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                </div>
+              ) : spokes.length === 0 ? (
+                <div className="text-center py-12">
+                  <Network className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <p className="text-slate-600">No spoke apps configured yet</p>
+                  <Link to={createPageUrl('SpokeDetails')}>
+                    <Button className="mt-4 bg-amber-500 hover:bg-amber-400 text-black">
+                      Create Your First Spoke
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-slate-200">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-700">Organization</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-700">Spoke ID</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-700">Status</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-700">API Key</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-slate-700">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {spokes.map((spoke) => (
+                        <tr key={spoke.id} className="border-b border-slate-100 hover:bg-slate-50">
+                          <td className="py-3 px-4">
+                            <div className="font-medium text-slate-900">{spoke.organization_name}</div>
+                            {spoke.description && (
+                              <div className="text-xs text-slate-500 mt-0.5">{spoke.description}</div>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-slate-600 font-mono">{spoke.spoke_id}</td>
+                          <td className="py-3 px-4">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              spoke.is_active 
+                                ? 'bg-green-100 text-green-700' 
+                                : 'bg-slate-100 text-slate-600'
+                            }`}>
+                              {spoke.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-xs text-slate-500 font-mono">
+                            {spoke.api_key?.substring(0, 20)}...
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <Link to={createPageUrl('SpokeDetails') + `?spokeId=${spoke.id}`}>
+                              <Button variant="outline" size="sm">
+                                Edit
+                              </Button>
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
