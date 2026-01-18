@@ -333,16 +333,15 @@ export default function Events() {
                     />
                   </motion.div>
                 ))}
-            </div>
-
-            <EventDetailModal
-              event={filteredEvents.find(e => e.id === expandedEventId)}
-              isOpen={!!expandedEventId}
-              onClose={() => setExpandedEventId(null)}
-            
               </div>
             )}
           </div>
+
+          <EventDetailModal
+            event={filteredEvents.find(e => e.id === expandedEventId)}
+            isOpen={!!expandedEventId}
+            onClose={() => setExpandedEventId(null)}
+          />
         </div>
 
         {/* Map Section */}
