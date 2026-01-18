@@ -25,20 +25,38 @@ Deno.serve(async (req) => {
       spoke_event_id,
       title,
       description,
+      status,
       start_date,
       end_date,
+      duration_minutes,
+      is_all_day,
       location,
+      is_location_tbd,
+      lat,
+      lng,
+      is_virtual,
+      virtual_url,
+      virtual_platform,
       images,
+      pricing_type,
       is_free,
       price,
+      is_pay_what_you_wish,
+      min_price,
+      ticket_types,
+      accepts_rsvps,
+      is_recurring,
+      recurring_pattern,
+      recurring_days,
+      recurring_end_date,
+      recurring_series_id,
       event_types,
       networks,
       age_info,
       capacity,
       punch_pass_eligible,
       additional_notes,
-      lat,
-      lng
+      accessibility_features
     } = payload;
 
     // Validate required fields
@@ -63,18 +81,36 @@ Deno.serve(async (req) => {
     const updateData = {};
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
+    if (status !== undefined) updateData.status = status;
     if (start_date !== undefined) updateData.date = start_date;
     if (end_date !== undefined) updateData.end_date = end_date;
+    if (duration_minutes !== undefined) updateData.duration_minutes = duration_minutes;
+    if (is_all_day !== undefined) updateData.is_all_day = is_all_day;
     if (location !== undefined) updateData.location = location;
+    if (is_location_tbd !== undefined) updateData.is_location_tbd = is_location_tbd;
     if (lat !== undefined) updateData.lat = lat;
     if (lng !== undefined) updateData.lng = lng;
+    if (is_virtual !== undefined) updateData.is_virtual = is_virtual;
+    if (virtual_url !== undefined) updateData.virtual_url = virtual_url;
+    if (virtual_platform !== undefined) updateData.virtual_platform = virtual_platform;
     if (images !== undefined && images.length > 0) updateData.thumbnail_url = images[0];
+    if (pricing_type !== undefined) updateData.pricing_type = pricing_type;
     if (is_free !== undefined || price !== undefined) {
       updateData.price = is_free ? 0 : (price || 0);
     }
+    if (is_pay_what_you_wish !== undefined) updateData.is_pay_what_you_wish = is_pay_what_you_wish;
+    if (min_price !== undefined) updateData.min_price = min_price;
+    if (ticket_types !== undefined) updateData.ticket_types = ticket_types;
+    if (accepts_rsvps !== undefined) updateData.accepts_rsvps = accepts_rsvps;
+    if (is_recurring !== undefined) updateData.is_recurring = is_recurring;
+    if (recurring_pattern !== undefined) updateData.recurring_pattern = recurring_pattern;
+    if (recurring_days !== undefined) updateData.recurring_days = recurring_days;
+    if (recurring_end_date !== undefined) updateData.recurring_end_date = recurring_end_date;
+    if (recurring_series_id !== undefined) updateData.recurring_series_id = recurring_series_id;
     if (event_types !== undefined && event_types.length > 0) updateData.event_type = event_types[0];
     if (networks !== undefined && networks.length > 0) updateData.network = networks[0];
     if (punch_pass_eligible !== undefined) updateData.punch_pass_accepted = punch_pass_eligible;
+    if (accessibility_features !== undefined) updateData.accessibility_features = accessibility_features;
     if (additional_notes !== undefined) updateData.instructor_note = additional_notes;
 
     // Update Event in Local Lane

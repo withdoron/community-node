@@ -27,25 +27,48 @@ Deno.serve(async (req) => {
       organization_name,
       title,
       description,
+      status,
       start_date,
       end_date,
+      duration_minutes,
+      is_all_day,
       location,
+      is_location_tbd,
+      lat,
+      lng,
+      is_virtual,
+      virtual_url,
+      virtual_platform,
       images,
+      pricing_type,
       is_free,
       price,
+      is_pay_what_you_wish,
+      min_price,
+      ticket_types,
+      accepts_rsvps,
+      is_recurring,
+      recurring_pattern,
+      recurring_days,
+      recurring_end_date,
+      recurring_series_id,
       event_types,
       networks,
       age_info,
       capacity,
       punch_pass_eligible,
       additional_notes,
-      lat,
-      lng
+      accessibility_features
     } = payload;
 
     // Validate required fields
     if (!spoke_event_id || !title || !start_date || !location) {
       return Response.json({ error: 'Missing required fields: spoke_event_id, title, start_date, location' }, { status: 400 });
+    }
+
+    // Only sync published events
+    if (status && status !== 'published') {
+      return Response.json({ error: 'Only published events can be synced to Local Lane Hub' }, { status: 400 });
     }
 
     // Check if this spoke event already exists
@@ -62,17 +85,35 @@ Deno.serve(async (req) => {
     const eventData = {
       title,
       description: description || '',
+      status: status || 'published',
       date: start_date,
       end_date: end_date || null,
+      duration_minutes: duration_minutes || null,
+      is_all_day: is_all_day || false,
       location,
+      is_location_tbd: is_location_tbd || false,
       lat: lat || null,
       lng: lng || null,
+      is_virtual: is_virtual || false,
+      virtual_url: virtual_url || null,
+      virtual_platform: virtual_platform || null,
       thumbnail_url: images && images.length > 0 ? images[0] : null,
+      pricing_type: pricing_type || (is_free ? 'free' : 'single_price'),
       price: is_free ? 0 : (price || 0),
+      is_pay_what_you_wish: is_pay_what_you_wish || false,
+      min_price: min_price || null,
+      ticket_types: ticket_types || [],
+      accepts_rsvps: accepts_rsvps || false,
+      is_recurring: is_recurring || false,
+      recurring_pattern: recurring_pattern || null,
+      recurring_days: recurring_days || [],
+      recurring_end_date: recurring_end_date || null,
+      recurring_series_id: recurring_series_id || null,
       organizer_name: organization_name || spoke.organization_name,
       event_type: event_types && event_types.length > 0 ? event_types[0] : 'community',
       network: networks && networks.length > 0 ? networks[0] : null,
       punch_pass_accepted: punch_pass_eligible || false,
+      accessibility_features: accessibility_features || [],
       instructor_note: additional_notes || '',
       is_active: true
     };
