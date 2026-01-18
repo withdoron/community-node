@@ -363,6 +363,79 @@ export default function SpokeDetails() {
               />
             </div>
 
+            {/* Environment Variables Instructions */}
+            {formData.spoke_id && formData.api_key && (
+              <div className="p-6 bg-slate-800 rounded-lg border-2 border-amber-500/20">
+                <h3 className="text-lg font-semibold text-slate-100 mb-3">
+                  Environment Variables for Spoke App
+                </h3>
+                <p className="text-sm text-slate-400 mb-4">
+                  Add these three keys as environment variables in your Base44 dashboard:
+                </p>
+                <div className="space-y-3 font-mono text-sm">
+                  <div className="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
+                    <div>
+                      <div className="text-amber-500 font-semibold">1. LOCAL_LANE_API_KEY</div>
+                      <div className="text-slate-500 text-xs mt-1 break-all">{formData.api_key}</div>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleCopy('env_api_key', formData.api_key)}
+                      className="border-slate-700 ml-3"
+                    >
+                      {copiedField === 'env_api_key' ? (
+                        <Check className="h-3 w-3 text-green-500" />
+                      ) : (
+                        <Copy className="h-3 w-3" />
+                      )}
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
+                    <div>
+                      <div className="text-amber-500 font-semibold">2. SPOKE_ID</div>
+                      <div className="text-slate-500 text-xs mt-1">{formData.spoke_id}</div>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleCopy('env_spoke_id', formData.spoke_id)}
+                      className="border-slate-700 ml-3"
+                    >
+                      {copiedField === 'env_spoke_id' ? (
+                        <Check className="h-3 w-3 text-green-500" />
+                      ) : (
+                        <Copy className="h-3 w-3" />
+                      )}
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
+                    <div>
+                      <div className="text-amber-500 font-semibold">3. SPOKE_WEBHOOK_SECRET</div>
+                      <div className="text-slate-500 text-xs mt-1 break-all">{formData.webhook_secret || '(generate one above)'}</div>
+                    </div>
+                    {formData.webhook_secret && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleCopy('env_webhook_secret', formData.webhook_secret)}
+                        className="border-slate-700 ml-3"
+                      >
+                        {copiedField === 'env_webhook_secret' ? (
+                          <Check className="h-3 w-3 text-green-500" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
               <Button

@@ -11,8 +11,8 @@ import Home from './pages/Home';
 import MigrateCategories from './pages/MigrateCategories';
 import MyLane from './pages/MyLane';
 import Search from './pages/Search';
-import WriteReview from './pages/WriteReview';
 import SpokeDetails from './pages/SpokeDetails';
+import WriteReview from './pages/WriteReview';
 import __Layout from './Layout.jsx';
 
 
@@ -30,8 +30,8 @@ export const PAGES = {
     "MigrateCategories": MigrateCategories,
     "MyLane": MyLane,
     "Search": Search,
-    "WriteReview": WriteReview,
     "SpokeDetails": SpokeDetails,
+    "WriteReview": WriteReview,
 }
 
 export const pagesConfig = {
