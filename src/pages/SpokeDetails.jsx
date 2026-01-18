@@ -365,72 +365,142 @@ export default function SpokeDetails() {
 
             {/* Environment Variables Instructions */}
             {formData.spoke_id && formData.api_key && (
-              <div className="p-6 bg-slate-800 rounded-lg border-2 border-amber-500/20">
-                <h3 className="text-lg font-semibold text-slate-100 mb-3">
-                  Environment Variables for Spoke App
-                </h3>
-                <p className="text-sm text-slate-400 mb-4">
-                  Add these three keys as environment variables in your Base44 dashboard:
-                </p>
-                <div className="space-y-3 font-mono text-sm">
-                  <div className="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
-                    <div>
-                      <div className="text-amber-500 font-semibold">1. LOCAL_LANE_API_KEY</div>
-                      <div className="text-slate-500 text-xs mt-1 break-all">{formData.api_key}</div>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleCopy('env_api_key', formData.api_key)}
-                      className="border-slate-700 ml-3"
-                    >
-                      {copiedField === 'env_api_key' ? (
-                        <Check className="h-3 w-3 text-green-500" />
-                      ) : (
-                        <Copy className="h-3 w-3" />
-                      )}
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
-                    <div>
-                      <div className="text-amber-500 font-semibold">2. SPOKE_ID</div>
-                      <div className="text-slate-500 text-xs mt-1">{formData.spoke_id}</div>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleCopy('env_spoke_id', formData.spoke_id)}
-                      className="border-slate-700 ml-3"
-                    >
-                      {copiedField === 'env_spoke_id' ? (
-                        <Check className="h-3 w-3 text-green-500" />
-                      ) : (
-                        <Copy className="h-3 w-3" />
-                      )}
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
-                    <div>
-                      <div className="text-amber-500 font-semibold">3. SPOKE_WEBHOOK_SECRET</div>
-                      <div className="text-slate-500 text-xs mt-1 break-all">{formData.webhook_secret || '(generate one above)'}</div>
-                    </div>
-                    {formData.webhook_secret && (
+              <div className="space-y-6">
+                <div className="p-6 bg-slate-800 rounded-lg border-2 border-amber-500/20">
+                  <h3 className="text-lg font-semibold text-slate-100 mb-3">
+                    Environment Variables for Spoke App
+                  </h3>
+                  <p className="text-sm text-slate-400 mb-4">
+                    Add these three keys as environment variables in your Base44 dashboard:
+                  </p>
+                  <div className="space-y-3 font-mono text-sm">
+                    <div className="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
+                      <div>
+                        <div className="text-amber-500 font-semibold">1. LOCAL_LANE_API_KEY</div>
+                        <div className="text-slate-500 text-xs mt-1 break-all">{formData.api_key}</div>
+                      </div>
                       <Button
                         type="button"
                         size="sm"
                         variant="outline"
-                        onClick={() => handleCopy('env_webhook_secret', formData.webhook_secret)}
+                        onClick={() => handleCopy('env_api_key', formData.api_key)}
                         className="border-slate-700 ml-3"
                       >
-                        {copiedField === 'env_webhook_secret' ? (
+                        {copiedField === 'env_api_key' ? (
                           <Check className="h-3 w-3 text-green-500" />
                         ) : (
                           <Copy className="h-3 w-3" />
                         )}
                       </Button>
-                    )}
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
+                      <div>
+                        <div className="text-amber-500 font-semibold">2. SPOKE_ID</div>
+                        <div className="text-slate-500 text-xs mt-1">{formData.spoke_id}</div>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleCopy('env_spoke_id', formData.spoke_id)}
+                        className="border-slate-700 ml-3"
+                      >
+                        {copiedField === 'env_spoke_id' ? (
+                          <Check className="h-3 w-3 text-green-500" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
+                      <div>
+                        <div className="text-amber-500 font-semibold">3. SPOKE_WEBHOOK_SECRET</div>
+                        <div className="text-slate-500 text-xs mt-1 break-all">{formData.webhook_secret || '(generate one above)'}</div>
+                      </div>
+                      {formData.webhook_secret && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleCopy('env_webhook_secret', formData.webhook_secret)}
+                          className="border-slate-700 ml-3"
+                        >
+                          {copiedField === 'env_webhook_secret' ? (
+                            <Check className="h-3 w-3 text-green-500" />
+                          ) : (
+                            <Copy className="h-3 w-3" />
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* API Documentation */}
+                <div className="p-6 bg-slate-800 rounded-lg border-2 border-blue-500/20">
+                  <h3 className="text-lg font-semibold text-slate-100 mb-3">
+                    Local Lane Hub API Endpoints
+                  </h3>
+                  <p className="text-sm text-slate-400 mb-4">
+                    Use these endpoints to send events to the Local Lane Hub:
+                  </p>
+                  <div className="space-y-4">
+                    {/* Create Event */}
+                    <div className="border border-slate-700 rounded-lg overflow-hidden">
+                      <div className="bg-slate-900 px-4 py-2 border-b border-slate-700">
+                        <div className="flex items-center gap-3">
+                          <span className="px-2 py-1 bg-green-600 text-white text-xs font-bold rounded">POST</span>
+                          <code className="text-sm text-slate-300">https://preview--local-connect-c9b011d3.base44.app/functions/receiveEvent</code>
+                        </div>
+                      </div>
+                      <div className="p-4 space-y-2 text-sm">
+                        <div className="text-slate-400">Create a new event in Local Lane Hub</div>
+                        <div className="text-slate-500 text-xs">
+                          <strong>Headers:</strong> Authorization: Bearer {'{LOCAL_LANE_API_KEY}'}
+                        </div>
+                        <div className="text-slate-500 text-xs">
+                          <strong>Required:</strong> spoke_event_id, title, start_date, location
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Update Event */}
+                    <div className="border border-slate-700 rounded-lg overflow-hidden">
+                      <div className="bg-slate-900 px-4 py-2 border-b border-slate-700">
+                        <div className="flex items-center gap-3">
+                          <span className="px-2 py-1 bg-blue-600 text-white text-xs font-bold rounded">PATCH</span>
+                          <code className="text-sm text-slate-300">https://preview--local-connect-c9b011d3.base44.app/functions/updateEvent</code>
+                        </div>
+                      </div>
+                      <div className="p-4 space-y-2 text-sm">
+                        <div className="text-slate-400">Update an existing event</div>
+                        <div className="text-slate-500 text-xs">
+                          <strong>Headers:</strong> Authorization: Bearer {'{LOCAL_LANE_API_KEY}'}
+                        </div>
+                        <div className="text-slate-500 text-xs">
+                          <strong>Required:</strong> spoke_event_id
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Delete Event */}
+                    <div className="border border-slate-700 rounded-lg overflow-hidden">
+                      <div className="bg-slate-900 px-4 py-2 border-b border-slate-700">
+                        <div className="flex items-center gap-3">
+                          <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded">DELETE</span>
+                          <code className="text-sm text-slate-300">https://preview--local-connect-c9b011d3.base44.app/functions/deleteEvent</code>
+                        </div>
+                      </div>
+                      <div className="p-4 space-y-2 text-sm">
+                        <div className="text-slate-400">Delete an event from Local Lane Hub</div>
+                        <div className="text-slate-500 text-xs">
+                          <strong>Headers:</strong> Authorization: Bearer {'{LOCAL_LANE_API_KEY}'}
+                        </div>
+                        <div className="text-slate-500 text-xs">
+                          <strong>Required:</strong> spoke_event_id
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
