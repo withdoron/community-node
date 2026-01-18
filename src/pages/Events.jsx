@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { createPageUrl } from '@/utils';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -324,7 +325,10 @@ export default function Events() {
                     viewport={{ once: true, margin: "-50px" }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
-                    <EventCard event={event} onClick={() => {}} />
+                    <EventCard 
+                      event={event} 
+                      onClick={() => window.open(createPageUrl('EventDetails') + `?eventId=${event.id}`, '_blank')} 
+                    />
                   </motion.div>
                 ))}
               </div>
