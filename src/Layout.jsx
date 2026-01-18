@@ -107,12 +107,20 @@ export default function Layout({ children, currentPageName }) {
                                                 </DropdownMenuItem>
                                               )}
                                               {currentUser.role === 'admin' && (
-                                                <DropdownMenuItem asChild>
-                                                  <Link to={createPageUrl('Admin')}>
-                                                    <Shield className="h-4 w-4 mr-2" />
-                                                    Admin Panel
-                                                  </Link>
-                                                </DropdownMenuItem>
+                                                <>
+                                                  <DropdownMenuItem asChild>
+                                                    <Link to={createPageUrl('Admin')}>
+                                                      <Shield className="h-4 w-4 mr-2" />
+                                                      Admin Panel
+                                                    </Link>
+                                                  </DropdownMenuItem>
+                                                  <DropdownMenuItem asChild>
+                                                    <Link to={createPageUrl('Admin') + '&tab=spokes'}>
+                                                      <Store className="h-4 w-4 mr-2" />
+                                                      Spokes
+                                                    </Link>
+                                                  </DropdownMenuItem>
+                                                </>
                                               )}
                                               <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="h-4 w-4 mr-2" />

@@ -12,6 +12,7 @@ import MigrateCategories from './pages/MigrateCategories';
 import MyLane from './pages/MyLane';
 import Search from './pages/Search';
 import WriteReview from './pages/WriteReview';
+import SpokeDetails from './pages/SpokeDetails';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +31,7 @@ export const PAGES = {
     "MyLane": MyLane,
     "Search": Search,
     "WriteReview": WriteReview,
+    "SpokeDetails": SpokeDetails,
 }
 
 export const pagesConfig = {
