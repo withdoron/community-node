@@ -113,9 +113,14 @@ export default function Events() {
     freeParking: false
   });
 
-  // Use dummy data for now
-  const [events] = useState(DUMMY_EVENTS);
-  const isLoading = false;
+  // Fetch real events from database
+  const { data: events = [], isLoading } = useQuery({
+    queryKey: ['events'],
+    queryFn: async () => {
+      const allEvents = await base44.entities.Event.filter({ is_active: true }, '-date', 200);
+      return allEvents;
+    }
+  });
 
   const filteredEvents = useMemo(() => {
     let result = [...events];
