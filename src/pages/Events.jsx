@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import EventCard from '@/components/events/EventCard';
+import EventDetailModal from '@/components/events/EventDetailModal';
 import FilterModal from '@/components/events/FilterModal';
 import { Search, SlidersHorizontal, Map, List, Loader2 } from "lucide-react";
 import { isToday, isThisWeek, startOfDay, endOfDay, startOfWeek, endOfWeek, format } from 'date-fns';
@@ -328,63 +329,17 @@ export default function Events() {
                   >
                     <EventCard 
                       event={event} 
-                      onClick={() => setExpandedEventId(expandedEventId === event.id ? null : event.id)} 
+                      onClick={() => setExpandedEventId(event.id)} 
                     />
-                    {expandedEventId === event.id && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="bg-slate-800 border border-slate-700 border-t-0 rounded-b-lg p-4 -mt-2"
-                      >
-                        <div className="space-y-4">
-                          {event.description && (
-                            <div>
-                              <h4 className="text-sm font-semibold text-slate-300 mb-2">About</h4>
-                              <p className="text-sm text-slate-400">{event.description}</p>
-                            </div>
-                          )}
-                          
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            {event.organizer_name && (
-                              <div>
-                                <span className="text-slate-500">Organizer:</span>
-                                <p className="text-slate-300">{event.organizer_name}</p>
-                              </div>
-                            )}
-                            {event.organizer_phone && (
-                              <div>
-                                <span className="text-slate-500">Phone:</span>
-                                <p className="text-slate-300">{event.organizer_phone}</p>
-                              </div>
-                            )}
-                            {event.organizer_email && (
-                              <div>
-                                <span className="text-slate-500">Email:</span>
-                                <p className="text-slate-300">{event.organizer_email}</p>
-                              </div>
-                            )}
-                            {event.website && (
-                              <div>
-                                <span className="text-slate-500">Website:</span>
-                                <a href={event.website} target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline">
-                                  Visit Site
-                                </a>
-                              </div>
-                            )}
-                          </div>
-
-                          {event.instructor_note && (
-                            <div>
-                              <h4 className="text-sm font-semibold text-slate-300 mb-2">Additional Notes</h4>
-                              <p className="text-sm text-slate-400">{event.instructor_note}</p>
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
                   </motion.div>
                 ))}
+            </div>
+
+            <EventDetailModal
+              event={filteredEvents.find(e => e.id === expandedEventId)}
+              isOpen={!!expandedEventId}
+              onClose={() => setExpandedEventId(null)}
+            
               </div>
             )}
           </div>
