@@ -13,6 +13,7 @@ import MyLane from './pages/MyLane';
 import Search from './pages/Search';
 import SpokeDetails from './pages/SpokeDetails';
 import WriteReview from './pages/WriteReview';
+import PunchPass from './pages/PunchPass';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +33,7 @@ export const PAGES = {
     "Search": Search,
     "SpokeDetails": SpokeDetails,
     "WriteReview": WriteReview,
+    "PunchPass": PunchPass,
 }
 
 export const pagesConfig = {
