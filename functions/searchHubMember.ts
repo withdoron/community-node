@@ -42,21 +42,13 @@ Deno.serve(async (req) => {
     
     const { query, spoke_id } = body;
 
-    // Authenticate spoke using Bearer token or api_key header
-    let apiKey;
-    const authHeader = req.headers.get('authorization');
-    if (authHeader?.startsWith('Bearer ')) {
-      apiKey = authHeader.substring(7);
-    } else {
-      apiKey = req.headers.get('api_key');
-    }
+    // Authenticate spoke using x-spoke-api-key header (not Authorization - that's for user auth)
+    const apiKey = req.headers.get('x-spoke-api-key');
 
     // DEBUG: Log received headers and payload
     console.log('=== DEBUG: Incoming Request ===');
     console.log('Payload:', { query, spoke_id });
-    console.log('Authorization header:', authHeader);
-    console.log('api_key header:', req.headers.get('api_key'));
-    console.log('Extracted apiKey:', apiKey);
+    console.log('x-spoke-api-key header:', apiKey);
     console.log('===============================');
 
     if (!apiKey) {
