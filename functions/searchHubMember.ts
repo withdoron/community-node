@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     console.log('===============================');
 
     if (!apiKey) {
-      return Response.json({ error: 'Missing API key in Authorization or api_key header' }, { status: 401 });
+      return Response.json({ error: 'Missing API key in x-spoke-api-key header' }, { status: 401 });
     }
 
     // Look up spoke by API key
