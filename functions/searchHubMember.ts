@@ -24,6 +24,14 @@ Deno.serve(async (req) => {
       apiKey = req.headers.get('api_key');
     }
 
+    // DEBUG: Log received headers and payload
+    console.log('=== DEBUG: Incoming Request ===');
+    console.log('Payload:', { query, spoke_id });
+    console.log('Authorization header:', authHeader);
+    console.log('api_key header:', req.headers.get('api_key'));
+    console.log('Extracted apiKey:', apiKey);
+    console.log('===============================');
+
     if (!apiKey) {
       return Response.json({ error: 'Missing API key in Authorization or api_key header' }, { status: 401 });
     }
