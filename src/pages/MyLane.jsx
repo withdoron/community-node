@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Sparkles, Calendar, MapPin, Tag, TrendingUp, Music } from "lucide-react";
+import { Heart, Sparkles, Calendar, MapPin, Tag, TrendingUp, Music, Ticket, Star, Store, Settings } from "lucide-react";
 
 const FILTER_PILLS = [
   { id: 'for-you', label: 'For You', icon: Sparkles },
@@ -103,6 +105,79 @@ export default function MyLane() {
           <p className="text-slate-400">
             Personalized events, offers, and experiences just for you
           </p>
+
+          {/* Dashboard Tiles */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+            {/* Build Your Lane */}
+            <Link to={createPageUrl('BuildLane')}>
+              <Card className="group bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:border-amber-500/50 transition-all cursor-pointer p-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Settings className="h-5 w-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white mb-1">Build Your Local Lane</h3>
+                    <p className="text-xs text-slate-400">Select your interests to unlock hidden gems</p>
+                    <Badge className="mt-2 bg-amber-500/20 text-amber-400 border-0 text-xs">
+                      ✨ UNLOCKS MAGIC PLANNER
+                    </Badge>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+
+            {/* Saved Items */}
+            <Card className="bg-slate-800 border-slate-700 hover:border-amber-500/50 transition-all cursor-pointer p-4">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 bg-pink-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Heart className="h-5 w-5 text-pink-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white mb-1">My Saved Items</h3>
+                  <p className="text-xs text-slate-400">Access your saved events and favorite businesses</p>
+                  <Button variant="outline" className="mt-2 h-7 text-xs border-slate-600 text-slate-300 hover:border-pink-500 hover:text-pink-400">
+                    View Saved
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
+            {/* Punch Pass Network */}
+            <Link to={createPageUrl('PunchPass')}>
+              <Card className="bg-gradient-to-br from-amber-900/30 to-amber-500/10 border-2 border-amber-500/30 hover:border-amber-500 transition-all cursor-pointer p-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Ticket className="h-5 w-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white mb-1">Punch Pass Network</h3>
+                    <p className="text-xs text-amber-300/80">Recess & The Creative Alliance</p>
+                    <Badge className="mt-2 bg-amber-500 text-slate-900 border-0 text-xs font-bold">
+                      💎 MEMBER NETWORK
+                    </Badge>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+
+            {/* Host Center */}
+            <Link to={createPageUrl('BusinessDashboard')}>
+              <Card className="bg-slate-800 border-slate-700 hover:border-amber-500/50 transition-all cursor-pointer p-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Store className="h-5 w-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white mb-1">Host Center</h3>
+                    <p className="text-xs text-slate-400">Want to list a business or event?</p>
+                    <Button variant="outline" className="mt-2 h-7 text-xs border-slate-600 text-slate-300 hover:border-blue-500 hover:text-blue-400">
+                      Create Organization
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          </div>
         </div>
       </div>
 
