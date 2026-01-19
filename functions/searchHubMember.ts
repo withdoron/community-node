@@ -27,6 +27,11 @@ Deno.serve(async (req) => {
   }
   
   try {
+    console.log('=== FUNCTION START ===');
+    console.log('Request method:', req.method);
+    console.log('Request URL:', req.url);
+    console.log('All headers:', Object.fromEntries(req.headers.entries()));
+    
     const base44 = createClientFromRequest(req);
 
     // Parse request body first
