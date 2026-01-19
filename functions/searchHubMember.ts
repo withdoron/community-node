@@ -12,6 +12,19 @@ Deno.serve(async (req) => {
   console.log('=== FUNCTION START ===');
   console.log('Request method:', req.method);
   console.log('Request URL:', req.url);
+  console.log('Headers:', Object.fromEntries(req.headers.entries()));
+  
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, api_key',
+      }
+    });
+  }
   
   try {
     const base44 = createClientFromRequest(req);
