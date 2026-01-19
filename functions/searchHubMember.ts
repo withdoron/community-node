@@ -128,7 +128,12 @@ Deno.serve(async (req) => {
       })
     );
 
-    return Response.json({ members });
+    return Response.json({ members }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      }
+    });
 
   } catch (error) {
     console.error('Search member error:', error);
@@ -136,6 +141,12 @@ Deno.serve(async (req) => {
       error: error.message,
       stack: error.stack,
       details: error.toString()
-    }, { status: 500 });
+    }, { 
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      }
+    });
   }
 });
