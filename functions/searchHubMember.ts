@@ -9,11 +9,25 @@ async function hashPin(pin) {
 }
 
 Deno.serve(async (req) => {
+  console.log('=== FUNCTION START ===');
+  console.log('Request method:', req.method);
+  console.log('Request URL:', req.url);
+  
   try {
     const base44 = createClientFromRequest(req);
 
     // Parse request body first
-    const { query, spoke_id } = await req.json();
+    let body;
+    try {
+      const text = await req.text();
+      console.log('Raw body:', text);
+      body = JSON.parse(text);
+    } catch (parseError) {
+      console.error('Body parse error:', parseError);
+      return Response.json({ error: 'Invalid JSON in request body', details: parseError.message }, { status: 400 });
+    }
+    
+    const { query, spoke_id } = body;
 
     // Authenticate spoke using Bearer token or api_key header
     let apiKey;
