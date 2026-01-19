@@ -15,13 +15,18 @@ Deno.serve(async (req) => {
     // Parse request body first
     const { query, spoke_id } = await req.json();
 
-    // Authenticate spoke using Bearer token
+    // Authenticate spoke using Bearer token or api_key header
+    let apiKey;
     const authHeader = req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return Response.json({ error: 'Missing or invalid authorization header' }, { status: 401 });
+    if (authHeader?.startsWith('Bearer ')) {
+      apiKey = authHeader.substring(7);
+    } else {
+      apiKey = req.headers.get('api_key');
     }
 
-    const apiKey = authHeader.substring(7);
+    if (!apiKey) {
+      return Response.json({ error: 'Missing API key in Authorization or api_key header' }, { status: 401 });
+    }
 
     // Look up spoke by API key
     let spokes;
