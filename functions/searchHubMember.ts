@@ -31,12 +31,16 @@ Deno.serve(async (req) => {
     const spokes = await base44.asServiceRole.entities.Spoke.filter({ spoke_id, is_active: true });
     
     if (!spokes || spokes.length === 0) {
-      return Response.json({ error: 'Spoke not found' }, { status: 404 });
+      return Response.json({ error: 'Spoke not found', spoke_id }, { status: 404 });
     }
 
     const spoke = spokes[0];
+    
+    // Log for debugging
+    console.log('Spoke lookup:', { spoke_id, found: spoke.spoke_id, api_key_match: spoke.api_key === apiKey });
+    
     if (spoke.api_key !== apiKey) {
-      return Response.json({ error: 'Invalid API key for this spoke' }, { status: 401 });
+      return Response.json({ error: 'Invalid API key for this spoke', spoke_id }, { status: 401 });
     }
 
     if (!query) {
