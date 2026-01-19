@@ -92,6 +92,10 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Search member error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ 
+      error: error.message,
+      stack: error.stack,
+      details: error.toString()
+    }, { status: 500 });
   }
 });
