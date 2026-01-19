@@ -12,6 +12,13 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
+    // Parse request body first
+    const { query, spoke_id } = await req.json();
+
+    if (!spoke_id) {
+      return Response.json({ error: 'spoke_id is required' }, { status: 400 });
+    }
+
     // Authenticate spoke using Bearer token
     const authHeader = req.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -19,13 +26,18 @@ Deno.serve(async (req) => {
     }
 
     const apiKey = authHeader.substring(7);
-    const spokes = await base44.asServiceRole.entities.Spoke.filter({ api_key: apiKey, is_active: true });
+
+    // Look up spoke by spoke_id and verify API key
+    const spokes = await base44.asServiceRole.entities.Spoke.filter({ spoke_id, is_active: true });
     
     if (!spokes || spokes.length === 0) {
-      return Response.json({ error: 'Invalid API key' }, { status: 401 });
+      return Response.json({ error: 'Spoke not found' }, { status: 404 });
     }
 
-    const { query, spoke_id } = await req.json();
+    const spoke = spokes[0];
+    if (spoke.api_key !== apiKey) {
+      return Response.json({ error: 'Invalid API key for this spoke' }, { status: 401 });
+    }
 
     if (!query) {
       return Response.json({ error: 'Query parameter is required' }, { status: 400 });
