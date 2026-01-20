@@ -133,33 +133,37 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 )}
 
                 {/* Pricing */}
-                {!isFree && (
+                {(!isFree || event.first_visit_free || event.ticket_types?.length > 0) && (
                   <div className="bg-slate-800/50 rounded-xl p-5">
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-2 mb-4">
                       <DollarSign className="h-5 w-5 text-amber-500" />
                       <h4 className="font-semibold text-white text-lg">Pricing</h4>
                     </div>
-                    {event.first_visit_free && (
-                      <div className="mb-3 text-emerald-400 font-medium">First Time: $0</div>
-                    )}
-                    {event.ticket_types && event.ticket_types.length > 0 ? (
-                      <div className="space-y-2">
-                        {event.ticket_types.map((ticket, idx) => (
+                    <div className="space-y-2">
+                      {event.first_visit_free && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-300">First Time</span>
+                          <span className="text-white font-medium">$0</span>
+                        </div>
+                      )}
+                      {event.ticket_types && event.ticket_types.length > 0 ? (
+                        event.ticket_types.map((ticket, idx) => (
                           <div key={idx} className="flex justify-between items-center">
                             <span className="text-slate-300">{ticket.name}</span>
                             <span className="text-white font-medium">${ticket.price}</span>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-slate-300">
-                        {event.is_pay_what_you_wish ? (
-                          <span>Pay what you wish {event.min_price && `(min $${event.min_price})`}</span>
-                        ) : (
-                          <span>30 Day Trial: ${event.price}</span>
-                        )}
-                      </div>
-                    )}
+                        ))
+                      ) : event.price > 0 ? (
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-300">
+                            {event.is_pay_what_you_wish ? 
+                              `Pay what you wish${event.min_price ? ` (min $${event.min_price})` : ''}` : 
+                              '30 Day Trial'}
+                          </span>
+                          <span className="text-white font-medium">${event.price}</span>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 )}
 
