@@ -13,6 +13,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
   const isFree = !event.price || event.price === 0;
   const punchPassEligible = event.punch_pass_accepted;
   const punchCount = punchPassEligible ? Math.max(1, Math.round((event.price || 0) / 10)) : 0;
+  const isCancelled = event.status === 'cancelled';
 
   // Fetch spoke information if this is a spoke event
   const { data: spokeEvent } = useQuery({
@@ -51,7 +52,16 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
             <div className="bg-slate-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-800">
               {/* Header with close button */}
               <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/95 backdrop-blur-sm">
-                <h1 className="text-2xl font-bold text-white pr-8">{event.title}</h1>
+                <div className="flex-1 pr-8">
+                  <h1 className={`text-2xl font-bold ${isCancelled ? 'text-red-400 line-through' : 'text-white'}`}>
+                    {event.title}
+                  </h1>
+                  {isCancelled && (
+                    <Badge className="mt-2 bg-red-500 text-white border-0 rounded-full px-3 py-1 font-semibold">
+                      EVENT CANCELLED
+                    </Badge>
+                  )}
+                </div>
                 <button
                   onClick={onClose}
                   className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-slate-100"
@@ -71,20 +81,28 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute top-4 right-4 flex flex-col gap-2">
-                      {punchPassEligible && (
-                        <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-                          {punchCount === 1 ? '1 Punch' : `${punchCount} Punches`}
+                      {isCancelled ? (
+                        <Badge className="bg-red-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
+                          CANCELLED
                         </Badge>
-                      )}
-                      {!punchPassEligible && !isFree && (
-                        <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-                          ${event.price.toFixed(2)}
-                        </Badge>
-                      )}
-                      {isFree && (
-                        <Badge className="bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-                          FREE
-                        </Badge>
+                      ) : (
+                        <>
+                          {punchPassEligible && (
+                            <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
+                              {punchCount === 1 ? '1 Punch' : `${punchCount} Punches`}
+                            </Badge>
+                          )}
+                          {!punchPassEligible && !isFree && (
+                            <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
+                              ${event.price.toFixed(2)}
+                            </Badge>
+                          )}
+                          {isFree && (
+                            <Badge className="bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
+                              FREE
+                            </Badge>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>

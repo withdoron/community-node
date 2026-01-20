@@ -8,6 +8,7 @@ export default function EventCard({ event, onClick }) {
   const eventDate = new Date(event.date);
   const isFree = !event.price || event.price === 0;
   const punchPassEligible = event.punch_pass_accepted;
+  const isCancelled = event.status === 'cancelled';
   
   // Calculate punch count (assuming 1 punch per $10, or use a fixed amount)
   const punchCount = punchPassEligible ? Math.max(1, Math.round((event.price || 0) / 10)) : 0;
@@ -24,7 +25,9 @@ export default function EventCard({ event, onClick }) {
 
   return (
     <Card 
-      className="bg-slate-900 border-slate-800 hover:border-amber-500/50 transition-all cursor-pointer overflow-hidden"
+      className={`bg-slate-900 border-slate-800 transition-all cursor-pointer overflow-hidden ${
+        isCancelled ? 'opacity-60 hover:border-red-500/50' : 'hover:border-amber-500/50'
+      }`}
       onClick={onClick}
     >
       {/* Hero Image */}
@@ -43,20 +46,28 @@ export default function EventCard({ event, onClick }) {
         
         {/* Price/Punch Badges - Top Right */}
         <div className="absolute top-3 right-3 flex flex-col gap-2">
-          {punchPassEligible && (
-            <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-              {punchCount === 1 ? '1 Punch' : `${punchCount} Punches`}
+          {isCancelled ? (
+            <Badge className="bg-red-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
+              CANCELLED
             </Badge>
-          )}
-          {!punchPassEligible && !isFree && (
-            <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-              ${event.price.toFixed(2)}
-            </Badge>
-          )}
-          {isFree && (
-            <Badge className="bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-              FREE
-            </Badge>
+          ) : (
+            <>
+              {punchPassEligible && (
+                <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
+                  {punchCount === 1 ? '1 Punch' : `${punchCount} Punches`}
+                </Badge>
+              )}
+              {!punchPassEligible && !isFree && (
+                <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
+                  ${event.price.toFixed(2)}
+                </Badge>
+              )}
+              {isFree && (
+                <Badge className="bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
+                  FREE
+                </Badge>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -64,7 +75,9 @@ export default function EventCard({ event, onClick }) {
       {/* Content */}
       <div className="p-4 space-y-3">
         {/* Event Title */}
-        <h3 className="font-bold text-slate-100 text-lg line-clamp-2 leading-tight">
+        <h3 className={`font-bold text-slate-100 text-lg line-clamp-2 leading-tight ${
+          isCancelled ? 'line-through text-slate-400' : ''
+        }`}>
           {event.title}
         </h3>
 
