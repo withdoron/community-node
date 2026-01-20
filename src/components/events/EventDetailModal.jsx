@@ -190,6 +190,37 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                   </div>
                 )}
 
+                {/* Recurring */}
+                {event.is_recurring && (
+                  <div className="bg-slate-800/50 rounded-xl p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Repeat2 className="h-5 w-5 text-amber-500" />
+                      <h4 className="font-semibold text-white text-lg">Recurring Event</h4>
+                    </div>
+                    <div className="text-slate-300">
+                      Repeats {event.recurring_pattern || 'weekly'} on {event.recurring_days?.join(', ') || 'specific days'}
+                    </div>
+                  </div>
+                )}
+
+                {/* Accessibility & Inclusion */}
+                {event.accessibility_features && event.accessibility_features.length > 0 && (
+                  <div className="bg-slate-800/50 rounded-xl p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Users className="h-5 w-5 text-amber-500" />
+                      <h4 className="font-semibold text-white text-lg">Accessibility & Inclusion</h4>
+                    </div>
+                    <div className="space-y-2">
+                      {event.accessibility_features.map((feature) => (
+                        <div key={feature} className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-amber-500" />
+                          <span className="text-slate-300 capitalize">{feature.replace(/_/g, ' ')}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Age & Audience */}
                 {(event.audience && event.audience.length > 0) || punchPassEligible && (
                   <div className="bg-slate-800/50 rounded-xl p-5 space-y-3">
@@ -205,6 +236,50 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                       <Badge className="bg-amber-500/20 text-amber-500 border border-amber-500/30 rounded-lg px-3 py-1 font-medium">
                         Punch Pass Eligible
                       </Badge>
+                    )}
+                  </div>
+                )}
+
+                {/* Accept RSVPs */}
+                {event.accepts_rsvps && (
+                  <div className="bg-slate-800/50 rounded-xl p-5 flex items-center gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-amber-500 flex-shrink-0" />
+                    <div className="text-white font-medium">Accept RSVPs for this event</div>
+                  </div>
+                )}
+
+                {/* Additional Notes */}
+                {event.instructor_note && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-white text-lg">Additional Notes</h4>
+                    <div className="bg-slate-800/50 rounded-xl p-5 text-slate-300">
+                      {event.instructor_note}
+                    </div>
+                  </div>
+                )}
+
+                {/* Organizer Info */}
+                {(event.organizer_name || event.organizer_email || event.organizer_phone || event.website) && (
+                  <div className="bg-slate-800/50 rounded-xl p-5 space-y-3">
+                    <h4 className="font-semibold text-white text-lg">Organizer</h4>
+                    {event.organizer_name && (
+                      <div className="text-slate-300 font-medium">{event.organizer_name}</div>
+                    )}
+                    {event.organizer_email && (
+                      <div className="text-slate-400 text-sm">{event.organizer_email}</div>
+                    )}
+                    {event.organizer_phone && (
+                      <div className="text-slate-400 text-sm">{event.organizer_phone}</div>
+                    )}
+                    {event.website && !spokeEvent && (
+                      <a
+                        href={event.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-amber-500 hover:text-amber-400 text-sm flex items-center gap-1 inline-flex transition-colors"
+                      >
+                        Visit Website <ExternalLink className="h-3 w-3" />
+                      </a>
                     )}
                   </div>
                 )}
