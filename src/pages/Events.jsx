@@ -120,7 +120,7 @@ export default function Events() {
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['events'],
     queryFn: async () => {
-      const allEvents = await base44.entities.Event.filter({ is_active: true }, '-date', 200);
+      const allEvents = await base44.entities.Event.filter({ is_active: true, is_deleted: false }, '-date', 200);
       return allEvents;
     }
   });
