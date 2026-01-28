@@ -141,7 +141,7 @@ export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpd
                     variant="outline" 
                     size="sm"
                     onClick={() => onSelectBusiness(business)}
-                    className="bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500"
+                    className="bg-transparent border-slate-600 text-slate-300 hover:bg-transparent hover:border-amber-500 hover:text-amber-500"
                   >
                     Edit
                   </Button>

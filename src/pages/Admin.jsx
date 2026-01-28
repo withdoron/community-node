@@ -173,7 +173,7 @@ export default function Admin() {
             You don't have permission to access the admin panel.
           </p>
           <Link to={createPageUrl('Home')}>
-            <Button className="mt-4 bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500" variant="outline">
+            <Button className="mt-4 bg-transparent border-slate-600 text-slate-300 hover:bg-transparent hover:border-amber-500 hover:text-amber-500" variant="outline">
               <ChevronLeft className="h-4 w-4 mr-2" />
               Back to Home
             </Button>
@@ -353,7 +353,7 @@ export default function Admin() {
                           </td>
                           <td className="py-3 px-4 text-right">
                             <Link to={createPageUrl('SpokeDetails') + `?spokeId=${spoke.id}`}>
-                              <Button variant="outline" size="sm" className="bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500">
+                              <Button variant="outline" size="sm" className="bg-transparent border-slate-600 text-slate-300 hover:bg-transparent hover:border-amber-500 hover:text-amber-500">
                                 Edit
                               </Button>
                             </Link>
