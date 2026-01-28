@@ -159,11 +159,20 @@ button:focus-visible {
 
 /* Override Radix UI Tabs hover states to prevent white background flash */
 @layer components {
-  button[data-state="inactive"]:hover {
+  /* Target all possible Radix UI tab trigger variations */
+  button[data-state="inactive"]:hover,
+  [role="tab"][data-state="inactive"]:hover,
+  [data-radix-tabs-trigger][data-state="inactive"]:hover,
+  button[data-state="inactive"]:hover[class*="TabsTrigger"],
+  [data-state="inactive"]:hover[class*="TabsTrigger"] {
     background-color: transparent !important;
+    background: transparent !important;
   }
   
-  [role="tab"][data-state="inactive"]:hover {
-    background-color: transparent !important;
+  /* Ensure active tabs maintain dark background */
+  button[data-state="active"],
+  [role="tab"][data-state="active"],
+  [data-radix-tabs-trigger][data-state="active"] {
+    background-color: rgb(15 23 42) !important; /* slate-900 */
   }
 }
