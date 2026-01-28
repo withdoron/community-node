@@ -205,20 +205,20 @@ export default function Admin() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <Tabs defaultValue="businesses" className="w-full">
-          <TabsList className="bg-slate-800 border border-slate-700 p-1 mb-6">
-            <TabsTrigger value="businesses" className="gap-2 data-[state=active]:bg-slate-900 data-[state=active]:text-white text-slate-400 hover:text-amber-500 hover:bg-transparent transition-colors">
+          <TabsList className="mb-6">
+            <TabsTrigger value="businesses" className="gap-2 data-[state=active]:bg-slate-900 data-[state=active]:text-white text-slate-400 hover:text-amber-500 hover:bg-transparent data-[state=inactive]:hover:text-amber-500 data-[state=inactive]:hover:bg-transparent transition-colors">
               <Building2 className="h-4 w-4" />
               Businesses
             </TabsTrigger>
-            <TabsTrigger value="locations" className="gap-2 data-[state=active]:bg-slate-900 data-[state=active]:text-white text-slate-400 hover:text-amber-500 hover:bg-transparent transition-colors">
+            <TabsTrigger value="locations" className="gap-2 data-[state=active]:bg-slate-900 data-[state=active]:text-white text-slate-400 hover:text-amber-500 hover:bg-transparent data-[state=inactive]:hover:text-amber-500 data-[state=inactive]:hover:bg-transparent transition-colors">
               <MapPin className="h-4 w-4" />
               Locations
             </TabsTrigger>
-            <TabsTrigger value="settings" className="gap-2 data-[state=active]:bg-slate-900 data-[state=active]:text-white text-slate-400 hover:text-amber-500 hover:bg-transparent transition-colors">
+            <TabsTrigger value="settings" className="gap-2 data-[state=active]:bg-slate-900 data-[state=active]:text-white text-slate-400 hover:text-amber-500 hover:bg-transparent data-[state=inactive]:hover:text-amber-500 data-[state=inactive]:hover:bg-transparent transition-colors">
               <Settings className="h-4 w-4" />
               Settings
             </TabsTrigger>
-            <TabsTrigger value="spokes" className="gap-2 data-[state=active]:bg-slate-900 data-[state=active]:text-white text-slate-400 hover:text-amber-500 hover:bg-transparent transition-colors">
+            <TabsTrigger value="spokes" className="gap-2 data-[state=active]:bg-slate-900 data-[state=active]:text-white text-slate-400 hover:text-amber-500 hover:bg-transparent data-[state=inactive]:hover:text-amber-500 data-[state=inactive]:hover:bg-transparent transition-colors">
               <Network className="h-4 w-4" />
               Spokes
             </TabsTrigger>
