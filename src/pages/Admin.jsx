@@ -153,8 +153,11 @@ export default function Admin() {
   // Loading state
   if (userLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-slate-400 mx-auto mb-4" />
+          <p className="text-slate-400">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -162,15 +165,15 @@ export default function Admin() {
   // Access denied
   if (currentUser?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full p-8 text-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800">
           <ShieldAlert className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-900">Access Denied</h2>
-          <p className="text-slate-600 mt-2">
+          <h2 className="text-xl font-bold text-slate-100">Access Denied</h2>
+          <p className="text-slate-400 mt-2">
             You don't have permission to access the admin panel.
           </p>
           <Link to={createPageUrl('Home')}>
-            <Button className="mt-4" variant="outline">
+            <Button className="mt-4 bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500" variant="outline">
               <ChevronLeft className="h-4 w-4 mr-2" />
               Back to Home
             </Button>
@@ -181,17 +184,17 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-950">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
+      <div className="bg-slate-900 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Admin Panel</h1>
-              <p className="text-slate-600 mt-1">Manage businesses, tiers, and settings</p>
+              <h1 className="text-2xl font-bold text-slate-100">Admin Panel</h1>
+              <p className="text-slate-400 mt-1">Manage businesses, tiers, and settings</p>
             </div>
             <Link to={createPageUrl('Home')}>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500">
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Back to Site
               </Button>
@@ -202,20 +205,20 @@ export default function Admin() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <Tabs defaultValue="businesses" className="w-full">
-          <TabsList className="bg-white border border-slate-200 p-1 mb-6">
-            <TabsTrigger value="businesses" className="gap-2">
+          <TabsList className="bg-slate-800 border border-slate-700 p-1 mb-6">
+            <TabsTrigger value="businesses" className="gap-2 data-[state=active]:bg-slate-900 data-[state=active]:text-white text-slate-400 hover:text-white">
               <Building2 className="h-4 w-4" />
               Businesses
             </TabsTrigger>
-            <TabsTrigger value="locations" className="gap-2">
+            <TabsTrigger value="locations" className="gap-2 data-[state=active]:bg-slate-900 data-[state=active]:text-white text-slate-400 hover:text-white">
               <MapPin className="h-4 w-4" />
               Locations
             </TabsTrigger>
-            <TabsTrigger value="settings" className="gap-2">
+            <TabsTrigger value="settings" className="gap-2 data-[state=active]:bg-slate-900 data-[state=active]:text-white text-slate-400 hover:text-white">
               <Settings className="h-4 w-4" />
               Settings
             </TabsTrigger>
-            <TabsTrigger value="spokes" className="gap-2">
+            <TabsTrigger value="spokes" className="gap-2 data-[state=active]:bg-slate-900 data-[state=active]:text-white text-slate-400 hover:text-white">
               <Network className="h-4 w-4" />
               Spokes
             </TabsTrigger>
@@ -223,12 +226,12 @@ export default function Admin() {
 
           {/* Businesses Tab */}
           <TabsContent value="businesses">
-            <Card className="p-6">
+            <Card className="p-6 bg-slate-900 border-slate-800">
               <div className="mb-6">
                 <AdminFilters filters={filters} onFiltersChange={setFilters} />
               </div>
 
-              <div className="mb-4 text-sm text-slate-500">
+              <div className="mb-4 text-sm text-slate-400">
                 Showing {filteredBusinesses.length} of {businesses.length} businesses
               </div>
 
@@ -237,7 +240,7 @@ export default function Admin() {
                   <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
                 </div>
               ) : filteredBusinesses.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
+                <div className="text-center py-12 text-slate-400">
                   No businesses match your filters
                 </div>
               ) : (
@@ -253,8 +256,8 @@ export default function Admin() {
 
           {/* Locations Tab */}
           <TabsContent value="locations">
-            <Card className="p-6">
-              <div className="mb-4 text-sm text-slate-500">
+            <Card className="p-6 bg-slate-900 border-slate-800">
+              <div className="mb-4 text-sm text-slate-400">
                 Showing {locations.length} locations across all businesses
               </div>
 
@@ -287,14 +290,14 @@ export default function Admin() {
 
           {/* Spokes Tab */}
           <TabsContent value="spokes">
-            <Card className="p-6">
+            <Card className="p-6 bg-slate-900 border-slate-800">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Spoke Apps</h2>
-                  <p className="text-sm text-slate-600 mt-1">Manage connected spoke applications</p>
+                  <h2 className="text-lg font-semibold text-slate-100">Spoke Apps</h2>
+                  <p className="text-sm text-slate-400 mt-1">Manage connected spoke applications</p>
                 </div>
                 <Link to={createPageUrl('SpokeDetails')}>
-                  <Button className="bg-amber-500 hover:bg-amber-400 text-black">
+                  <Button className="bg-amber-500 hover:bg-amber-400 text-black font-bold">
                     Add New Spoke
                   </Button>
                 </Link>
@@ -306,10 +309,10 @@ export default function Admin() {
                 </div>
               ) : spokes.length === 0 ? (
                 <div className="text-center py-12">
-                  <Network className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                  <p className="text-slate-600">No spoke apps configured yet</p>
+                  <Network className="h-12 w-12 text-slate-500 mx-auto mb-4" />
+                  <p className="text-slate-400">No spoke apps configured yet</p>
                   <Link to={createPageUrl('SpokeDetails')}>
-                    <Button className="mt-4 bg-amber-500 hover:bg-amber-400 text-black">
+                    <Button className="mt-4 bg-amber-500 hover:bg-amber-400 text-black font-bold">
                       Create Your First Spoke
                     </Button>
                   </Link>
@@ -318,29 +321,29 @@ export default function Admin() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-slate-200">
-                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-700">Organization</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-700">Spoke ID</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-700">Status</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-700">API Key</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium text-slate-700">Actions</th>
+                      <tr className="border-b border-slate-700">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Organization</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Spoke ID</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Status</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">API Key</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-slate-400">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {spokes.map((spoke) => (
-                        <tr key={spoke.id} className="border-b border-slate-100 hover:bg-slate-50">
+                        <tr key={spoke.id} className="border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
                           <td className="py-3 px-4">
-                            <div className="font-medium text-slate-900">{spoke.organization_name}</div>
+                            <div className="font-medium text-slate-100">{spoke.organization_name}</div>
                             {spoke.description && (
                               <div className="text-xs text-slate-500 mt-0.5">{spoke.description}</div>
                             )}
                           </td>
-                          <td className="py-3 px-4 text-sm text-slate-600 font-mono">{spoke.spoke_id}</td>
+                          <td className="py-3 px-4 text-sm text-slate-300 font-mono">{spoke.spoke_id}</td>
                           <td className="py-3 px-4">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                               spoke.is_active 
-                                ? 'bg-green-100 text-green-700' 
-                                : 'bg-slate-100 text-slate-600'
+                                ? 'bg-emerald-500/20 text-emerald-500' 
+                                : 'bg-slate-800 text-slate-500'
                             }`}>
                               {spoke.is_active ? 'Active' : 'Inactive'}
                             </span>
@@ -350,7 +353,7 @@ export default function Admin() {
                           </td>
                           <td className="py-3 px-4 text-right">
                             <Link to={createPageUrl('SpokeDetails') + `?spokeId=${spoke.id}`}>
-                              <Button variant="outline" size="sm">
+                              <Button variant="outline" size="sm" className="bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500">
                                 Edit
                               </Button>
                             </Link>

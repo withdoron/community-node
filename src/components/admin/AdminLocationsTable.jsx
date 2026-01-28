@@ -34,23 +34,23 @@ export default function AdminLocationsTable({
   const categorySizeCounts = countActiveLocationsPerCategory(locations);
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border border-slate-800 rounded-xl overflow-hidden bg-slate-900">
       <Table>
         <TableHeader>
-          <TableRow className="bg-slate-50">
-            <TableHead>Business</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>City</TableHead>
-            <TableHead className="text-center">Views (7d)</TableHead>
-            <TableHead className="text-center">Boost Status</TableHead>
-            <TableHead className="text-center">Smart Auto-Boost</TableHead>
-            <TableHead className="text-center">Actions</TableHead>
+          <TableRow className="bg-slate-800/50 border-b border-slate-700">
+            <TableHead className="text-slate-400">Business</TableHead>
+            <TableHead className="text-slate-400">Location</TableHead>
+            <TableHead className="text-slate-400">City</TableHead>
+            <TableHead className="text-center text-slate-400">Views (7d)</TableHead>
+            <TableHead className="text-center text-slate-400">Boost Status</TableHead>
+            <TableHead className="text-center text-slate-400">Smart Auto-Boost</TableHead>
+            <TableHead className="text-center text-slate-400">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {locations.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+              <TableCell colSpan={7} className="text-center py-8 text-slate-400">
                 No locations found
               </TableCell>
             </TableRow>
@@ -64,26 +64,26 @@ export default function AdminLocationsTable({
               const isLowViews = views < LOW_TRAFFIC_VIEW_THRESHOLD;
 
               return (
-                <TableRow key={location.id} className={isUpdating ? 'opacity-60' : ''}>
+                <TableRow key={location.id} className={`border-b border-slate-800 hover:bg-slate-800/50 transition-colors ${isUpdating ? 'opacity-60' : ''}`}>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-slate-400" />
-                      <span className="font-medium truncate max-w-[150px]">
+                      <Building2 className="h-4 w-4 text-slate-500" />
+                      <span className="font-medium text-slate-100 truncate max-w-[150px]">
                         {business?.name || 'Unknown'}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-slate-400" />
-                      <span>{location.name || 'Main'}</span>
+                      <MapPin className="h-4 w-4 text-slate-500" />
+                      <span className="text-slate-300">{location.name || 'Main'}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-slate-600">{location.city}</TableCell>
+                  <TableCell className="text-slate-300">{location.city}</TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
-                      <Eye className={`h-3 w-3 ${isLowViews ? 'text-amber-500' : 'text-slate-400'}`} />
-                      <span className={isLowViews ? 'text-amber-600 font-medium' : 'text-slate-600'}>
+                      <Eye className={`h-3 w-3 ${isLowViews ? 'text-amber-500' : 'text-slate-500'}`} />
+                      <span className={isLowViews ? 'text-amber-500 font-medium' : 'text-slate-300'}>
                         {views}
                       </span>
                     </div>
@@ -91,7 +91,7 @@ export default function AdminLocationsTable({
                   <TableCell className="text-center">
                     {isBoosted ? (
                       <div className="inline-flex flex-col items-center">
-                        <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+                        <Badge className="bg-amber-500/20 text-amber-500 border-0">
                           <Sparkles className="h-3 w-3 mr-1" />
                           Boosted
                         </Badge>
@@ -100,7 +100,7 @@ export default function AdminLocationsTable({
                         </span>
                       </div>
                     ) : (
-                      <span className="text-slate-400">—</span>
+                      <span className="text-slate-500">—</span>
                     )}
                   </TableCell>
                   <TableCell className="text-center">
@@ -110,14 +110,14 @@ export default function AdminLocationsTable({
                           checked={!!location.is_auto_boost_enabled}
                           onCheckedChange={(checked) => onToggleAutoBoost(location, checked)}
                           disabled={isUpdating}
-                          className="data-[state=checked]:bg-emerald-500"
+                          className="data-[state=checked]:bg-amber-500"
                         />
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger>
-                              <Info className="h-3 w-3 text-slate-400" />
+                              <Info className="h-3 w-3 text-slate-500" />
                             </TooltipTrigger>
-                            <TooltipContent className="max-w-[200px]">
+                            <TooltipContent className="max-w-[200px] bg-slate-900 border-slate-800 text-white">
                               <p className="text-xs">{autoBoostStatus.message}</p>
                             </TooltipContent>
                           </Tooltip>
@@ -126,10 +126,10 @@ export default function AdminLocationsTable({
                       {location.is_auto_boost_enabled && (
                         <Badge 
                           variant="outline" 
-                          className={`text-[10px] ${
-                            autoBoostStatus.status === 'active' ? 'border-amber-300 text-amber-700 bg-amber-50' :
-                            autoBoostStatus.status === 'eligible' ? 'border-emerald-300 text-emerald-700 bg-emerald-50' :
-                            'border-slate-200 text-slate-500'
+                          className={`text-[10px] border-slate-700 ${
+                            autoBoostStatus.status === 'active' ? 'border-amber-500/50 text-amber-500 bg-amber-500/10' :
+                            autoBoostStatus.status === 'eligible' ? 'border-emerald-500/50 text-emerald-500 bg-emerald-500/10' :
+                            'text-slate-500'
                           }`}
                         >
                           <Zap className="h-2 w-2 mr-0.5" />
@@ -149,7 +149,7 @@ export default function AdminLocationsTable({
                     {isBoosted && (
                       <button
                         onClick={() => onClearBoost(location)}
-                        className="text-xs text-red-600 hover:text-red-700 underline"
+                        className="text-xs text-red-500 hover:text-red-400 underline transition-colors"
                       >
                         Clear Boost
                       </button>

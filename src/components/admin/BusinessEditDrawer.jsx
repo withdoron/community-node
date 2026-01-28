@@ -84,53 +84,53 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   if (!business || !editData) return null;
 
   const tierLabels = {
-    basic: { label: 'Basic', icon: Star, color: 'bg-slate-100 text-slate-700' },
-    standard: { label: 'Standard', icon: Zap, color: 'bg-blue-100 text-blue-700' },
-    partner: { label: 'Partner', icon: Crown, color: 'bg-amber-100 text-amber-700' },
+    basic: { label: 'Basic', icon: Star, color: 'bg-slate-700 text-slate-300' },
+    standard: { label: 'Standard', icon: Zap, color: 'bg-slate-700 text-slate-300' },
+    partner: { label: 'Partner', icon: Crown, color: 'bg-amber-500 text-black' },
   };
 
   return (
     <>
       <Sheet open={open} onOpenChange={onClose}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto bg-slate-900 border-slate-800">
           <SheetHeader>
-            <SheetTitle className="text-xl">{business.name}</SheetTitle>
+            <SheetTitle className="text-xl text-slate-100">{business.name}</SheetTitle>
           </SheetHeader>
 
           <div className="mt-6 space-y-6">
             {/* Read-only Info */}
-            <div className="space-y-3 p-4 bg-slate-50 rounded-lg">
-              <h3 className="font-medium text-slate-900 flex items-center gap-2">
-                <Shield className="h-4 w-4" />
+            <div className="space-y-3 p-4 bg-slate-800 rounded-lg border border-slate-700">
+              <h3 className="font-medium text-slate-100 flex items-center gap-2">
+                <Shield className="h-4 w-4 text-amber-500" />
                 Business Info
               </h3>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <span className="text-slate-500">ID:</span>
-                  <p className="font-mono text-xs text-slate-700 truncate">{business.id}</p>
+                  <span className="text-slate-400">ID:</span>
+                  <p className="font-mono text-xs text-slate-300 truncate">{business.id}</p>
                 </div>
                 <div>
-                  <span className="text-slate-500">Owner:</span>
-                  <p className="text-slate-700 truncate">{business.owner_email}</p>
+                  <span className="text-slate-400">Owner:</span>
+                  <p className="text-slate-300 truncate">{business.owner_email}</p>
                 </div>
                 <div>
-                  <span className="text-slate-500">Created:</span>
-                  <p className="text-slate-700">{format(new Date(business.created_date), 'MMM d, yyyy')}</p>
+                  <span className="text-slate-400">Created:</span>
+                  <p className="text-slate-300">{format(new Date(business.created_date), 'MMM d, yyyy')}</p>
                 </div>
                 <div>
-                  <span className="text-slate-500">Updated:</span>
-                  <p className="text-slate-700">{format(new Date(business.updated_date), 'MMM d, yyyy')}</p>
+                  <span className="text-slate-400">Updated:</span>
+                  <p className="text-slate-300">{format(new Date(business.updated_date), 'MMM d, yyyy')}</p>
                 </div>
                 <div>
-                  <span className="text-slate-500">Rating:</span>
-                  <p className="text-slate-700 flex items-center gap-1">
-                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                  <span className="text-slate-400">Rating:</span>
+                  <p className="text-slate-300 flex items-center gap-1">
+                    <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
                     {(business.average_rating || 0).toFixed(1)} ({business.review_count || 0} reviews)
                   </p>
                 </div>
                 <div>
-                  <span className="text-slate-500">City:</span>
-                  <p className="text-slate-700">{business.city || '—'}</p>
+                  <span className="text-slate-400">City:</span>
+                  <p className="text-slate-300">{business.city || '—'}</p>
                 </div>
               </div>
             </div>
@@ -139,7 +139,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
             {/* Tier Selection */}
             <div className="space-y-3">
-              <Label className="text-base font-medium">Subscription Tier</Label>
+              <Label className="text-base font-medium text-slate-100">Subscription Tier</Label>
               <Select
                 value={editData.subscription_tier}
                 onValueChange={(value) => handleFieldChange(
@@ -150,23 +150,23 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 )}
                 disabled={updateMutation.isPending}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-300">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="basic">
+                <SelectContent className="bg-slate-900 border-slate-800">
+                  <SelectItem value="basic" className="text-slate-300 focus:bg-slate-800">
                     <div className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-slate-500" />
+                      <Star className="h-4 w-4 text-slate-400" />
                       Basic
                     </div>
                   </SelectItem>
-                  <SelectItem value="standard">
+                  <SelectItem value="standard" className="text-slate-300 focus:bg-slate-800">
                     <div className="flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-blue-500" />
+                      <Zap className="h-4 w-4 text-amber-500" />
                       Standard
                     </div>
                   </SelectItem>
-                  <SelectItem value="partner">
+                  <SelectItem value="partner" className="text-slate-300 focus:bg-slate-800">
                     <div className="flex items-center gap-2">
                       <Crown className="h-4 w-4 text-amber-500" />
                       Partner
@@ -181,8 +181,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
             {/* Boost Toggle */}
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-base font-medium">Boosted</Label>
-                <p className="text-sm text-slate-500">Listing appears at top of search results</p>
+                <Label className="text-base font-medium text-slate-100">Boosted</Label>
+                <p className="text-sm text-slate-400">Listing appears at top of search results</p>
               </div>
               <Switch
                 checked={editData.is_bumped}
@@ -193,22 +193,23 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   checked ? 'Boost this listing?' : 'Remove boost from this listing?'
                 )}
                 disabled={updateMutation.isPending}
+                className="data-[state=checked]:bg-amber-500"
               />
             </div>
 
-            <Separator />
+            <Separator className="bg-slate-700" />
 
             {/* Badges/Flags Section */}
             <div className="space-y-4">
-              <h3 className="font-medium text-slate-900">Badges & Flags</h3>
+              <h3 className="font-medium text-slate-100">Badges & Flags</h3>
               
               {/* Accepts Silver */}
-              <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-100">
+              <div className="flex items-center justify-between p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
                 <div className="flex items-center gap-3">
-                  <Coins className="h-5 w-5 text-amber-600" />
+                  <Coins className="h-5 w-5 text-amber-500" />
                   <div>
-                    <Label className="font-medium">Accepts Silver</Label>
-                    <p className="text-xs text-slate-500">Business accepts silver/precious metals</p>
+                    <Label className="font-medium text-slate-100">Accepts Silver</Label>
+                    <p className="text-xs text-slate-400">Business accepts silver/precious metals</p>
                   </div>
                 </div>
                 <Switch
@@ -219,16 +220,17 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     'accepts_silver_toggle'
                   )}
                   disabled={updateMutation.isPending}
+                  className="data-[state=checked]:bg-amber-500"
                 />
               </div>
 
               {/* Locally Owned Franchise */}
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
+              <div className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-700">
                 <div className="flex items-center gap-3">
-                  <Store className="h-5 w-5 text-blue-600" />
+                  <Store className="h-5 w-5 text-amber-500" />
                   <div>
-                    <Label className="font-medium">Locally Owned Franchise</Label>
-                    <p className="text-xs text-slate-500">Part of a franchise but majority-owned and operated locally</p>
+                    <Label className="font-medium text-slate-100">Locally Owned Franchise</Label>
+                    <p className="text-xs text-slate-400">Part of a franchise but majority-owned and operated locally</p>
                   </div>
                 </div>
                 <Switch
@@ -240,17 +242,18 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     checked ? 'Mark this as a Locally Owned Franchise?' : 'Remove Locally Owned Franchise status?'
                   )}
                   disabled={updateMutation.isPending}
+                  className="data-[state=checked]:bg-amber-500"
                 />
               </div>
             </div>
 
-            <Separator />
+            <Separator className="bg-slate-700" />
 
             {/* Visibility */}
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-base font-medium">Active / Visible</Label>
-                <p className="text-sm text-slate-500">Listing is visible to the public</p>
+                <Label className="text-base font-medium text-slate-100">Active / Visible</Label>
+                <p className="text-sm text-slate-400">Listing is visible to the public</p>
               </div>
               <Switch
                 checked={editData.is_active}
@@ -261,12 +264,13 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   checked ? 'Make this listing visible?' : 'Hide this listing from the public?'
                 )}
                 disabled={updateMutation.isPending}
+                className="data-[state=checked]:bg-amber-500"
               />
             </div>
 
             {/* Save indicator */}
             {updateMutation.isPending && (
-              <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+              <div className="flex items-center justify-center gap-2 text-sm text-slate-400">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Saving...
               </div>
@@ -277,14 +281,14 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
       {/* Confirmation Dialog */}
       <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ ...confirmDialog, open: false })}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-slate-900 border-slate-800">
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Change</AlertDialogTitle>
-            <AlertDialogDescription>{confirmDialog.message}</AlertDialogDescription>
+            <AlertDialogTitle className="text-slate-100">Confirm Change</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">{confirmDialog.message}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmChange}>Confirm</AlertDialogAction>
+            <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmChange} className="bg-amber-500 hover:bg-amber-400 text-black font-bold">Confirm</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

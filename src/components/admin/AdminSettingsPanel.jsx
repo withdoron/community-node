@@ -83,20 +83,20 @@ export default function AdminSettingsPanel() {
   return (
     <div className="space-y-6">
       {/* Badge Visibility Settings */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Badge Visibility</h2>
-        <p className="text-sm text-slate-500 mb-6">
+      <Card className="p-6 bg-slate-900 border-slate-800">
+        <h2 className="text-lg font-semibold text-slate-100 mb-4">Badge Visibility</h2>
+        <p className="text-sm text-slate-400 mb-6">
           Control which badges are displayed on business listings in the public UI.
         </p>
 
         <div className="space-y-4">
           {/* Accepts Silver Badge */}
-          <div className="flex items-center justify-between p-4 bg-amber-50 rounded-lg border border-amber-100">
+          <div className="flex items-center justify-between p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
             <div className="flex items-center gap-3">
-              <Coins className="h-5 w-5 text-amber-600" />
+              <Coins className="h-5 w-5 text-amber-500" />
               <div>
-                <Label className="font-medium">Show "Accepts Silver" Badges</Label>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <Label className="font-medium text-slate-100">Show "Accepts Silver" Badges</Label>
+                <p className="text-xs text-slate-400 mt-0.5">
                   Display the silver acceptance badge on eligible listings
                 </p>
               </div>
@@ -104,16 +104,17 @@ export default function AdminSettingsPanel() {
             <Switch
               checked={settings.show_accepts_silver_badge}
               onCheckedChange={(checked) => updateSetting('show_accepts_silver_badge', checked)}
+              className="data-[state=checked]:bg-amber-500"
             />
           </div>
 
           {/* Locally Owned Franchise Badge */}
-          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-100">
+          <div className="flex items-center justify-between p-4 bg-slate-800 rounded-lg border border-slate-700">
             <div className="flex items-center gap-3">
-              <Store className="h-5 w-5 text-blue-600" />
+              <Store className="h-5 w-5 text-amber-500" />
               <div>
-                <Label className="font-medium">Show "Locally Owned Franchise" Badges</Label>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <Label className="font-medium text-slate-100">Show "Locally Owned Franchise" Badges</Label>
+                <p className="text-xs text-slate-400 mt-0.5">
                   Display the local franchise badge on eligible listings
                 </p>
               </div>
@@ -121,16 +122,17 @@ export default function AdminSettingsPanel() {
             <Switch
               checked={settings.show_locally_owned_franchise_badge}
               onCheckedChange={(checked) => updateSetting('show_locally_owned_franchise_badge', checked)}
+              className="data-[state=checked]:bg-amber-500"
             />
           </div>
 
           {/* Future: Accepts Payments Badge */}
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 opacity-60">
+          <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700 opacity-60">
             <div className="flex items-center gap-3">
-              <CreditCard className="h-5 w-5 text-slate-400" />
+              <CreditCard className="h-5 w-5 text-slate-500" />
               <div>
                 <Label className="font-medium text-slate-500">Show "Accepts Online Payments" Badges</Label>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5">
                   Coming soon — Display when businesses accept online payments
                 </p>
               </div>
@@ -145,9 +147,9 @@ export default function AdminSettingsPanel() {
       </Card>
 
       {/* Boost Configuration */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Boost Configuration</h2>
-        <p className="text-sm text-slate-500 mb-6">
+      <Card className="p-6 bg-slate-900 border-slate-800">
+        <h2 className="text-lg font-semibold text-slate-100 mb-4">Boost Configuration</h2>
+        <p className="text-sm text-slate-400 mb-6">
           Configure default settings for listing boosts.
         </p>
 
@@ -155,7 +157,7 @@ export default function AdminSettingsPanel() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
               <Zap className="h-5 w-5 text-amber-500" />
-              <Label className="font-medium">Default Boost Duration</Label>
+              <Label className="font-medium text-slate-100">Default Boost Duration</Label>
             </div>
             <div className="flex items-center gap-2">
               <Input
@@ -164,9 +166,9 @@ export default function AdminSettingsPanel() {
                 max="30"
                 value={settings.default_boost_duration_days}
                 onChange={(e) => updateSetting('default_boost_duration_days', parseInt(e.target.value) || 1)}
-                className="w-20"
+                className="w-20 bg-slate-800 border-slate-700 text-white focus:ring-2 focus:ring-amber-500"
               />
-              <span className="text-sm text-slate-500">days</span>
+              <span className="text-sm text-slate-400">days</span>
             </div>
           </div>
         </div>
@@ -177,7 +179,7 @@ export default function AdminSettingsPanel() {
         <Button
           onClick={() => saveMutation.mutate()}
           disabled={!hasChanges || saveMutation.isPending}
-          className="bg-slate-900 hover:bg-slate-800"
+          className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
         >
           {saveMutation.isPending ? (
             <>
