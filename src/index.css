@@ -156,3 +156,14 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
+
+/* Override Radix UI Tabs hover states to prevent white background flash */
+@layer components {
+  button[data-state="inactive"]:hover {
+    background-color: transparent !important;
+  }
+  
+  [role="tab"][data-state="inactive"]:hover {
+    background-color: transparent !important;
+  }
+}
