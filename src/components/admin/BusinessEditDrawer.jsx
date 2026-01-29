@@ -66,22 +66,24 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     }
   });
 
-  // Soft delete: try both is_deleted and status so either schema works
+  // Hard delete: remove record permanently (Business.delete). Fallback to soft delete if delete not available.
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const businessId = business.id;
       console.log('[Admin Delete] Starting delete for business id:', businessId, business?.name);
       try {
-        // Try is_deleted first; if schema only has status, try status: 'deleted'
-        try {
-          await base44.entities.Business.update(businessId, { is_deleted: true });
-          console.log('[Admin Delete] Business.update(is_deleted: true) succeeded');
-        } catch (e) {
-          console.warn('[Admin Delete] is_deleted failed, trying status:', e?.message);
-          await base44.entities.Business.update(businessId, { status: 'deleted' });
-          console.log('[Admin Delete] Business.update(status: deleted) succeeded');
+        if (typeof base44.entities.Business.delete === 'function') {
+          await base44.entities.Business.delete(businessId);
+          console.log('[Admin Delete] Business.delete(id) succeeded');
+        } else {
+          try {
+            await base44.entities.Business.update(businessId, { is_deleted: true });
+            console.log('[Admin Delete] Business.update(is_deleted: true) succeeded');
+          } catch (e) {
+            await base44.entities.Business.update(businessId, { status: 'deleted' });
+            console.log('[Admin Delete] Business.update(status: deleted) succeeded');
+          }
         }
-        console.log('[Admin Delete] Business.update succeeded for id:', businessId);
         await base44.entities.AdminAuditLog.create({
           admin_email: adminEmail,
           business_id: business.id,

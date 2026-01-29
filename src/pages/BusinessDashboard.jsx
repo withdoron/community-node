@@ -177,20 +177,24 @@ export default function BusinessDashboard() {
     enabled: associatedBusinesses.length > 0
   });
 
-  // Soft delete: try is_deleted first; if schema only has status, use status: 'deleted'
+  // Hard delete: Business.delete(id) removes record permanently. Fallback to soft delete if delete not available.
   const deleteMutation = useMutation({
     mutationFn: async (businessId) => {
       console.log('[Dashboard Delete] Starting delete for business id:', businessId);
       try {
-        try {
-          await base44.entities.Business.update(businessId, { is_deleted: true });
-          console.log('[Dashboard Delete] Business.update(is_deleted: true) succeeded');
-        } catch (e) {
-          console.warn('[Dashboard Delete] is_deleted failed, trying status:', e?.message);
-          await base44.entities.Business.update(businessId, { status: 'deleted' });
-          console.log('[Dashboard Delete] Business.update(status: deleted) succeeded');
+        if (typeof base44.entities.Business.delete === 'function') {
+          await base44.entities.Business.delete(businessId);
+          console.log('[Dashboard Delete] Business.delete(id) succeeded');
+        } else {
+          try {
+            await base44.entities.Business.update(businessId, { is_deleted: true });
+            console.log('[Dashboard Delete] Business.update(is_deleted: true) succeeded');
+          } catch (e) {
+            await base44.entities.Business.update(businessId, { status: 'deleted' });
+            console.log('[Dashboard Delete] Business.update(status: deleted) succeeded');
+          }
         }
-        console.log('[Dashboard Delete] Business.update succeeded for id:', businessId);
+        console.log('[Dashboard Delete] Delete succeeded for id:', businessId);
       } catch (err) {
         console.error('[Dashboard Delete] Error in deleteMutation:', err);
         throw err;

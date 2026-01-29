@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -40,6 +40,23 @@ export default function Admin() {
     queryFn: () => base44.entities.Business.list('-created_date', 500),
     enabled: currentUser?.role === 'admin'
   });
+
+  // Debug: log raw business list to verify is_deleted/status in API response
+  useEffect(() => {
+    if (!businesses?.length) return;
+    console.log(
+      '[Admin] Raw businesses:',
+      businesses.map((b) => ({ id: b.id, name: b.name, is_deleted: b.is_deleted, status: b.status }))
+    );
+    const deletedOne = businesses.find((b) => b.id === '6930907c2d4c4488d37140c1');
+    if (deletedOne) {
+      console.log('[Admin] Deleted business 6930907c2d4c4488d37140c1:', {
+        ...deletedOne,
+        is_deleted: deletedOne.is_deleted,
+        status: deletedOne.status,
+      });
+    }
+  }, [businesses]);
 
   // Fetch all locations
   const { data: locations = [], isLoading: locationsLoading } = useQuery({
