@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import BusinessCard from '@/components/dashboard/BusinessCard';
@@ -11,7 +11,18 @@ import FinancialWidget from '@/components/dashboard/widgets/FinancialWidget';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Store, Wallet, Ticket, Plus, Palette, Users, TrendingUp } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { ArrowLeft, Store, Wallet, Ticket, Plus, Palette, Users, TrendingUp, Trash2, Settings, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 // DASHBOARD CONFIGURATION BY ARCHETYPE
 const DASHBOARD_CONFIG = {
@@ -49,7 +60,9 @@ const DEFAULT_CONFIG = {
 
 export default function BusinessDashboard() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [selectedBusinessId, setSelectedBusinessId] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -118,15 +131,18 @@ export default function BusinessDashboard() {
         }
       }
 
+      // Don't show soft-deleted businesses
+      const filtered = merged.filter((b) => !b?.is_deleted);
+
       console.log('[BusinessDashboard] businesses by associated_businesses count:', byLinked?.length ?? 0);
-      console.log('[BusinessDashboard] merged businesses count:', merged.length);
+      console.log('[BusinessDashboard] merged businesses count:', filtered.length);
       console.log(
         '[BusinessDashboard] merged (id, name) — check for duplicate names e.g. two "Recess":',
-        merged.map((b) => ({ id: b?.id, name: b?.name }))
+        filtered.map((b) => ({ id: b?.id, name: b?.name }))
       );
       // If Admin shows more businesses for this email: Admin filters by owner_email; Dashboard uses owner_user_id.
       // Check each business in the table above: if owner_user_id !== currentUser.id, they won't appear in byOwner.
-      if (merged.length < 3 && userEmail) {
+      if (filtered.length < 3 && userEmail) {
         console.log(
           '[BusinessDashboard] Tip: If Admin shows 3 businesses for',
           userEmail,
@@ -134,7 +150,7 @@ export default function BusinessDashboard() {
         );
       }
 
-      return merged;
+      return filtered;
     },
     enabled: !!currentUser
   });
@@ -157,6 +173,23 @@ export default function BusinessDashboard() {
       return counts;
     },
     enabled: associatedBusinesses.length > 0
+  });
+
+  // Soft delete: prefer is_deleted: true; backend may use status: 'deleted'
+  const deleteMutation = useMutation({
+    mutationFn: async (businessId) => {
+      await base44.entities.Business.update(businessId, { is_deleted: true });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['associatedBusinesses']);
+      setSelectedBusinessId(null);
+      setDeleteDialogOpen(false);
+      toast.success('Business deleted');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete business');
+      console.error(error);
+    },
   });
 
   const isLoading = userLoading || businessesLoading;
@@ -469,7 +502,54 @@ export default function BusinessDashboard() {
         {config.widgets.includes('Financials') && isOwner && (
           <FinancialWidget business={selectedBusiness} />
         )}
+
+        {/* Business settings - Owner only: Delete Business */}
+        {isOwner && (
+          <Card className="p-6 bg-slate-900 border-slate-800">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Settings className="h-5 w-5 text-slate-400" />
+                <h2 className="text-xl font-bold text-slate-100">Business settings</h2>
+              </div>
+            </div>
+            <p className="text-sm text-slate-400 mb-4">
+              Permanently remove this business and its data. This action uses a soft delete (business is marked deleted).
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+              onClick={() => setDeleteDialogOpen(true)}
+              disabled={deleteMutation.isPending}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Business
+            </Button>
+          </Card>
+        )}
       </div>
+
+      {/* Delete Business confirmation - Owner only */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-slate-900 border-slate-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-slate-100">Delete Business?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              Are you sure? This will remove all events and data associated with this business.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteMutation.mutate(selectedBusiness.id)}
+              className="bg-red-600 hover:bg-red-500 text-white"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

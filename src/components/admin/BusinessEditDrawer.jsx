@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown } from "lucide-react";
+import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown, Trash2, Link2 } from "lucide-react";
 import { format } from 'date-fns';
 import { toast } from "sonner";
 
@@ -26,6 +26,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const queryClient = useQueryClient();
   const [editData, setEditData] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, field: '', value: null, message: '' });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     if (business) {
@@ -63,6 +64,73 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       toast.error('Failed to update business');
       console.error(error);
     }
+  });
+
+  // Soft delete: prefer is_deleted: true; backend may use status: 'deleted'
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await base44.entities.Business.update(business.id, { is_deleted: true });
+      await base44.entities.AdminAuditLog.create({
+        admin_email: adminEmail,
+        business_id: business.id,
+        business_name: business.name,
+        action_type: 'business_delete',
+        field_changed: 'is_deleted',
+        old_value: 'false',
+        new_value: 'true',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-businesses']);
+      toast.success('Business deleted');
+      setDeleteDialogOpen(false);
+      onClose();
+    },
+    onError: (error) => {
+      toast.error('Failed to delete business');
+      console.error(error);
+    },
+  });
+
+  // Link owner: look up user by owner_email and set owner_user_id
+  const linkOwnerMutation = useMutation({
+    mutationFn: async () => {
+      const ownerEmail = business?.owner_email?.trim();
+      if (!ownerEmail) {
+        throw new Error('No owner email set');
+      }
+      const users = await base44.entities.User.filter({ email: ownerEmail }, '', 1);
+      const foundUser = users?.[0];
+      if (!foundUser?.id) {
+        throw new Error('No user found with that email');
+      }
+      await base44.entities.Business.update(business.id, { owner_user_id: foundUser.id });
+      await base44.entities.AdminAuditLog.create({
+        admin_email: adminEmail,
+        business_id: business.id,
+        business_name: business.name,
+        action_type: 'owner_link',
+        field_changed: 'owner_user_id',
+        old_value: String(business.owner_user_id ?? ''),
+        new_value: String(foundUser.id),
+      });
+      return foundUser;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-businesses']);
+      toast.success('Owner linked successfully');
+    },
+    onError: (error) => {
+      const message = error?.message || 'Failed to link owner';
+      if (message.includes('No user found')) {
+        toast.error('No user found with that email');
+      } else if (message.includes('No owner email')) {
+        toast.error('No owner email set on this business');
+      } else {
+        toast.error(message);
+      }
+      console.error(error);
+    },
   });
 
   const handleFieldChange = (field, value, actionType, confirmMessage) => {
@@ -110,8 +178,14 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   <p className="font-mono text-xs text-slate-300 truncate">{business.id}</p>
                 </div>
                 <div>
-                  <span className="text-slate-400">Owner:</span>
-                  <p className="text-slate-300 truncate">{business.owner_email}</p>
+                  <span className="text-slate-400">Owner email:</span>
+                  <p className="text-slate-300 truncate">{business.owner_email || '—'}</p>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-slate-400">Owner user ID:</span>
+                  <p className="font-mono text-xs text-slate-300 truncate">
+                    {business.owner_user_id ?? 'Not set'}
+                  </p>
                 </div>
                 <div>
                   <span className="text-slate-400">Created:</span>
@@ -132,6 +206,27 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   <span className="text-slate-400">City:</span>
                   <p className="text-slate-300">{business.city || '—'}</p>
                 </div>
+              </div>
+              {/* Link owner by email: set owner_user_id from user lookup */}
+              <div className="mt-4 pt-3 border-t border-slate-700">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+                  onClick={() => linkOwnerMutation.mutate()}
+                  disabled={linkOwnerMutation.isPending || !business.owner_email?.trim()}
+                >
+                  {linkOwnerMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Link2 className="h-4 w-4 mr-2" />
+                  )}
+                  Link Owner by Email
+                </Button>
+                {!business.owner_email?.trim() && (
+                  <p className="text-xs text-slate-500 mt-2">Set owner email first to link.</p>
+                )}
               </div>
             </div>
 
@@ -275,9 +370,48 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 Saving...
               </div>
             )}
+
+            <Separator className="bg-slate-700" />
+
+            {/* Delete Business */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-slate-400">Danger zone</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                onClick={() => setDeleteDialogOpen(true)}
+                disabled={updateMutation.isPending || deleteMutation.isPending}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Business
+              </Button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-slate-900 border-slate-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-slate-100">Delete Business?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              Are you sure? This will remove all events and data associated with this business.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteMutation.mutate()}
+              className="bg-red-600 hover:bg-red-500 text-white"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ ...confirmDialog, open: false })}>

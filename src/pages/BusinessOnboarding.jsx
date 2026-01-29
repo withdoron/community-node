@@ -125,6 +125,7 @@ export default function BusinessOnboarding() {
       const tier = tiers.find(t => t.id === data.subscription_tier);
       const business = await base44.entities.Business.create({
         ...data,
+        // Link business to current user so it appears on Business Dashboard (owner_user_id filter)
         owner_user_id: currentUser?.id,
         owner_email: currentUser?.email,
         slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
