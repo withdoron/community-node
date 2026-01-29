@@ -66,27 +66,46 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     }
   });
 
-  // Soft delete: prefer is_deleted: true; backend may use status: 'deleted'
+  // Soft delete: try both is_deleted and status so either schema works
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await base44.entities.Business.update(business.id, { is_deleted: true });
-      await base44.entities.AdminAuditLog.create({
-        admin_email: adminEmail,
-        business_id: business.id,
-        business_name: business.name,
-        action_type: 'business_delete',
-        field_changed: 'is_deleted',
-        old_value: 'false',
-        new_value: 'true',
-      });
+      const businessId = business.id;
+      console.log('[Admin Delete] Starting delete for business id:', businessId, business?.name);
+      try {
+        // Try is_deleted first; if schema only has status, try status: 'deleted'
+        try {
+          await base44.entities.Business.update(businessId, { is_deleted: true });
+          console.log('[Admin Delete] Business.update(is_deleted: true) succeeded');
+        } catch (e) {
+          console.warn('[Admin Delete] is_deleted failed, trying status:', e?.message);
+          await base44.entities.Business.update(businessId, { status: 'deleted' });
+          console.log('[Admin Delete] Business.update(status: deleted) succeeded');
+        }
+        console.log('[Admin Delete] Business.update succeeded for id:', businessId);
+        await base44.entities.AdminAuditLog.create({
+          admin_email: adminEmail,
+          business_id: business.id,
+          business_name: business.name,
+          action_type: 'business_delete',
+          field_changed: 'is_deleted',
+          old_value: 'false',
+          new_value: 'true',
+        });
+        console.log('[Admin Delete] Audit log created');
+      } catch (err) {
+        console.error('[Admin Delete] Error in deleteMutation:', err);
+        throw err;
+      }
     },
     onSuccess: () => {
+      console.log('[Admin Delete] onSuccess');
       queryClient.invalidateQueries(['admin-businesses']);
       toast.success('Business deleted');
       setDeleteDialogOpen(false);
       onClose();
     },
     onError: (error) => {
+      console.error('[Admin Delete] onError:', error?.message, error);
       toast.error('Failed to delete business');
       console.error(error);
     },
@@ -403,7 +422,10 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
           <AlertDialogFooter>
             <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteMutation.mutate()}
+              onClick={() => {
+                console.log('[Admin Delete] Confirmation clicked, calling mutate()');
+                deleteMutation.mutate();
+              }}
               className="bg-red-600 hover:bg-red-500 text-white"
               disabled={deleteMutation.isPending}
             >

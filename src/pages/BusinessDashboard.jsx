@@ -131,8 +131,10 @@ export default function BusinessDashboard() {
         }
       }
 
-      // Don't show soft-deleted businesses
-      const filtered = merged.filter((b) => !b?.is_deleted);
+      // Don't show soft-deleted businesses (is_deleted or status === 'deleted')
+      const filtered = merged.filter(
+        (b) => !b?.is_deleted && b?.status !== 'deleted'
+      );
 
       console.log('[BusinessDashboard] businesses by associated_businesses count:', byLinked?.length ?? 0);
       console.log('[BusinessDashboard] merged businesses count:', filtered.length);
@@ -175,18 +177,34 @@ export default function BusinessDashboard() {
     enabled: associatedBusinesses.length > 0
   });
 
-  // Soft delete: prefer is_deleted: true; backend may use status: 'deleted'
+  // Soft delete: try is_deleted first; if schema only has status, use status: 'deleted'
   const deleteMutation = useMutation({
     mutationFn: async (businessId) => {
-      await base44.entities.Business.update(businessId, { is_deleted: true });
+      console.log('[Dashboard Delete] Starting delete for business id:', businessId);
+      try {
+        try {
+          await base44.entities.Business.update(businessId, { is_deleted: true });
+          console.log('[Dashboard Delete] Business.update(is_deleted: true) succeeded');
+        } catch (e) {
+          console.warn('[Dashboard Delete] is_deleted failed, trying status:', e?.message);
+          await base44.entities.Business.update(businessId, { status: 'deleted' });
+          console.log('[Dashboard Delete] Business.update(status: deleted) succeeded');
+        }
+        console.log('[Dashboard Delete] Business.update succeeded for id:', businessId);
+      } catch (err) {
+        console.error('[Dashboard Delete] Error in deleteMutation:', err);
+        throw err;
+      }
     },
     onSuccess: () => {
+      console.log('[Dashboard Delete] onSuccess');
       queryClient.invalidateQueries(['associatedBusinesses']);
       setSelectedBusinessId(null);
       setDeleteDialogOpen(false);
       toast.success('Business deleted');
     },
     onError: (error) => {
+      console.error('[Dashboard Delete] onError:', error?.message, error);
       toast.error('Failed to delete business');
       console.error(error);
     },
@@ -541,7 +559,10 @@ export default function BusinessDashboard() {
           <AlertDialogFooter>
             <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteMutation.mutate(selectedBusiness.id)}
+              onClick={() => {
+                console.log('[Dashboard Delete] Confirmation clicked, calling mutate(', selectedBusiness?.id, ')');
+                deleteMutation.mutate(selectedBusiness.id);
+              }}
               className="bg-red-600 hover:bg-red-500 text-white"
               disabled={deleteMutation.isPending}
             >
