@@ -3,7 +3,6 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import PersonalDashboard from '@/components/dashboard/PersonalDashboard';
 import BusinessCard from '@/components/dashboard/BusinessCard';
 import OverviewWidget from '@/components/dashboard/widgets/OverviewWidget';
 import EventsWidget from '@/components/dashboard/widgets/EventsWidget';
@@ -108,9 +107,50 @@ export default function BusinessDashboard() {
     );
   }
 
-  // STEP 1: No business associations - Show Personal Dashboard
+  // STEP 1: No business associations - Show empty state with CTA to create business
   if (!associatedBusinesses || associatedBusinesses.length === 0) {
-    return <PersonalDashboard />;
+    return (
+      <div className="min-h-screen bg-slate-950">
+        {/* Header */}
+        <div className="bg-slate-900 border-b border-slate-800">
+          <div className="max-w-6xl mx-auto px-6 py-4">
+            <div className="flex items-center gap-3">
+              <Store className="h-5 w-5 text-amber-500" />
+              <div>
+                <h1 className="text-lg font-bold text-slate-100">Business Dashboard</h1>
+                <p className="text-xs text-slate-400">Manage your businesses and events</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Empty State */}
+        <div className="max-w-2xl mx-auto px-6 py-16">
+          <div className="text-center">
+            <div className="h-20 w-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Store className="h-10 w-10 text-amber-500" />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-100 mb-3">
+              No Businesses Yet
+            </h2>
+            <p className="text-slate-400 mb-8 max-w-md mx-auto">
+              Create your first business or organization to start managing events, accepting bookings, and connecting with your community.
+            </p>
+            <Button 
+              onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
+              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-8 py-6 text-lg"
+              size="lg"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Create Your First Business
+            </Button>
+            <p className="text-sm text-slate-500 mt-6">
+              Or <Link to={createPageUrl('MyLane')} className="text-amber-500 hover:text-amber-400 underline">go to your personal dashboard</Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // STEP 2: Has businesses but none selected - Show Smart Dashboard Hub

@@ -8,8 +8,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Zap } from "lucide-react";
+import { Calendar, Zap, Lock } from "lucide-react";
 import { format } from "date-fns";
+import { useOrganization } from "@/hooks/useOrganization";
 
 interface EventEditorProps {
   business: any;
@@ -52,18 +53,29 @@ export default function EventEditor({
     boost_enabled: false
   });
 
+  // Get tier information
+  const { tier, tierLevel, canUsePunchPass, canUseMultipleTickets, canAutoPublish } = useOrganization(business);
+
   const boostCreditsAvailable = (business?.boost_credits_this_period || 0) - (business?.boosts_used_this_period || 0);
   const hasRecessPartnership = business?.add_ons?.includes('recess');
   const hasTCAPartnership = business?.add_ons?.includes('tca');
 
-  // Auto-enable punch pass when network is selected
+  // Auto-enable punch pass when network is selected (only if tier allows)
   useEffect(() => {
-    if (formData.network === 'recess' || formData.network === 'tca') {
+    if ((formData.network === 'recess' || formData.network === 'tca') && canUsePunchPass) {
       setFormData(prev => ({ ...prev, punch_pass_accepted: true }));
+    } else if (!canUsePunchPass) {
+      // Disable punch pass if tier doesn't allow it
+      setFormData(prev => ({ ...prev, punch_pass_accepted: false }));
     }
-  }, [formData.network]);
+  }, [formData.network, canUsePunchPass]);
 
   const handlePricingTypeChange = (value: string) => {
+    // Prevent selecting multiple_tickets if tier doesn't allow it
+    if (value === 'multiple_tickets' && !canUseMultipleTickets) {
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       pricing_type: value,
@@ -72,8 +84,18 @@ export default function EventEditor({
     }));
   };
 
+  // Reset pricing type if user doesn't have access to multiple_tickets
+  useEffect(() => {
+    if (formData.pricing_type === 'multiple_tickets' && !canUseMultipleTickets) {
+      setFormData(prev => ({ ...prev, pricing_type: 'paid' }));
+    }
+  }, [canUseMultipleTickets]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Set event status based on tier
+    const eventStatus = tier === 'basic' ? 'pending_review' : 'published';
     
     const eventData = {
       ...existingEvent,
@@ -88,7 +110,7 @@ export default function EventEditor({
       price: formData.pricing_type === 'free' ? 0 : formData.price,
       first_visit_free: formData.pricing_type === 'first_free',
       network: formData.network || undefined,
-      punch_pass_accepted: formData.punch_pass_accepted,
+      punch_pass_accepted: canUsePunchPass ? formData.punch_pass_accepted : false,
       accepts_silver: formData.accepts_silver,
       pet_friendly: formData.pet_friendly,
       mats_provided: formData.mats_provided,
@@ -100,6 +122,7 @@ export default function EventEditor({
       instructor_note: formData.instructor_note || undefined,
       boost_start_at: formData.boost_enabled ? new Date().toISOString() : undefined,
       boost_end_at: formData.boost_enabled ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : undefined,
+      status: eventStatus,
       is_active: true
     };
 
@@ -311,6 +334,19 @@ export default function EventEditor({
               <RadioGroupItem value="paid" />
               <span className="text-white">Paid</span>
             </label>
+            <label 
+              className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                canUseMultipleTickets
+                  ? 'bg-slate-900 border-slate-700 cursor-pointer hover:border-amber-500/50'
+                  : 'bg-slate-900/50 border-slate-700 opacity-50 cursor-not-allowed'
+              }`}
+            >
+              <RadioGroupItem value="multiple_tickets" disabled={!canUseMultipleTickets} />
+              <div className="flex items-center gap-2">
+                <span className="text-white">Multiple Tickets</span>
+                {!canUseMultipleTickets && <Lock className="h-4 w-4 text-amber-500" />}
+              </div>
+            </label>
             <label className="flex items-center gap-3 p-3 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer hover:border-amber-500/50 transition-colors">
               <RadioGroupItem value="first_free" />
               <div>
@@ -319,6 +355,19 @@ export default function EventEditor({
               </div>
             </label>
           </RadioGroup>
+
+          {!canUseMultipleTickets && formData.pricing_type !== 'multiple_tickets' && (
+            <p className="text-xs text-slate-400">
+              Multiple ticket types require Standard tier.{' '}
+              <button
+                type="button"
+                onClick={() => window.open('https://hub.locallane.com/pricing?target=standard', '_blank')}
+                className="text-amber-500 hover:underline"
+              >
+                Upgrade
+              </button>
+            </p>
+          )}
 
           {formData.pricing_type === 'paid' && (
             <div className="space-y-3 ml-6">
@@ -342,6 +391,50 @@ export default function EventEditor({
                 />
                 <span className="text-sm text-slate-300">Accepts Silver Payment</span>
               </label>
+            </div>
+          )}
+        </div>
+
+        {/* Punch Pass Eligible */}
+        <div className="space-y-3">
+          <Label className="text-slate-200">Punch Pass</Label>
+          {canUsePunchPass ? (
+            <div className="p-4 bg-slate-900 border border-slate-700 rounded-xl">
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={formData.punch_pass_accepted}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, punch_pass_accepted: checked }))}
+                />
+                <div>
+                  <Label className="text-slate-200 cursor-pointer">Punch Pass Eligible</Label>
+                  <p className="text-slate-400 text-sm">This event accepts Punch Pass payments</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="relative">
+              <div className="p-4 bg-slate-900/50 border border-slate-700 rounded-xl opacity-50">
+                <div className="flex items-center gap-3">
+                  <Switch disabled />
+                  <div>
+                    <Label className="text-slate-400">Punch Pass Eligible</Label>
+                    <p className="text-slate-500 text-sm">This event accepts Punch Pass payments</p>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <Lock className="h-6 w-6 text-amber-500 mx-auto mb-1" />
+                  <p className="text-xs text-slate-300 font-medium">Standard tier required</p>
+                  <button
+                    type="button"
+                    onClick={() => window.open('https://hub.locallane.com/pricing?target=standard', '_blank')}
+                    className="text-xs text-amber-500 hover:underline mt-1"
+                  >
+                    Upgrade now
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

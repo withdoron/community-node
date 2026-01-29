@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Plus, Pencil, Trash2, PlusCircle } from "lucide-react";
 import { format } from "date-fns";
+import EventEditor from '@/components/dashboard/EventEditor';
 
 export default function EventsWidget({ business, allowEdit, userRole }) {
   const [showEditor, setShowEditor] = useState(false);
@@ -67,6 +68,11 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
     }
   };
 
+  const handleCancel = () => {
+    setShowEditor(false);
+    setEditingEvent(null);
+  };
+
   const handleEdit = (event) => {
     setEditingEvent(event);
     setShowEditor(true);
@@ -80,23 +86,14 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
 
   if (showEditor) {
     return (
-      <Card className="p-6">
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-slate-900">
-            {editingEvent ? 'Edit Event' : 'Create New Event'}
-          </h2>
-          <p className="text-sm text-slate-600">Event editor coming soon</p>
-        </div>
-        <Button 
-          variant="outline" 
-          onClick={() => {
-            setShowEditor(false);
-            setEditingEvent(null);
-          }}
-        >
-          Back to Events
-        </Button>
-      </Card>
+      <EventEditor
+        business={business}
+        existingEvent={editingEvent}
+        onSave={handleSave}
+        onCancel={handleCancel}
+        instructors={instructors}
+        locations={locations}
+      />
     );
   }
 
