@@ -12,15 +12,6 @@ import { Calendar, Zap, Lock } from "lucide-react";
 import { format } from "date-fns";
 import { useOrganization } from "@/hooks/useOrganization";
 
-interface EventEditorProps {
-  business: any;
-  existingEvent?: any;
-  onSave: (event: any) => void;
-  onCancel: () => void;
-  instructors?: any[];
-  locations?: any[];
-}
-
 export default function EventEditor({ 
   business, 
   existingEvent, 
@@ -28,7 +19,7 @@ export default function EventEditor({
   onCancel,
   instructors = [],
   locations = []
-}: EventEditorProps) {
+}) {
   const [formData, setFormData] = useState({
     title: existingEvent?.title || '',
     description: existingEvent?.description || '',
@@ -70,7 +61,7 @@ export default function EventEditor({
     }
   }, [formData.network, canUsePunchPass]);
 
-  const handlePricingTypeChange = (value: string) => {
+  const handlePricingTypeChange = (value) => {
     // Prevent selecting multiple_tickets if tier doesn't allow it
     if (value === 'multiple_tickets' && !canUseMultipleTickets) {
       return;
@@ -91,7 +82,7 @@ export default function EventEditor({
     }
   }, [canUseMultipleTickets]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     
     // Set event status based on tier
@@ -129,7 +120,7 @@ export default function EventEditor({
     onSave(eventData);
   };
 
-  const toggleAudienceTag = (tag: string) => {
+  const toggleAudienceTag = (tag) => {
     setFormData(prev => ({
       ...prev,
       audience_tags: prev.audience_tags.includes(tag)
