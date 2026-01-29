@@ -60,10 +60,12 @@ export default function BusinessDashboard() {
     queryKey: ['associatedBusinesses', currentUser?.id],
     queryFn: async () => {
       const userId = currentUser?.id;
+      const userEmail = currentUser?.email;
       const linkedIds = currentUser?.associated_businesses || [];
 
-      // Debug: see what the backend returns for the current user
+      // Debug: current user
       console.log('[BusinessDashboard] currentUser.id:', userId);
+      console.log('[BusinessDashboard] currentUser.email:', userEmail);
       console.log('[BusinessDashboard] currentUser.associated_businesses:', linkedIds);
 
       // 1) Fetch businesses where current user is owner (source of truth for "my businesses")
@@ -74,6 +76,19 @@ export default function BusinessDashboard() {
             100
           )
         : [];
+
+      // Debug: how many returned by owner_user_id filter, and each business's owner fields
+      console.log('[BusinessDashboard] owner_user_id filter returned count:', byOwner?.length ?? 0);
+      console.log(
+        '[BusinessDashboard] businesses by owner_user_id (id, name, owner_user_id, owner_email):',
+        (byOwner || []).map((b) => ({
+          id: b?.id,
+          name: b?.name,
+          owner_user_id: b?.owner_user_id,
+          owner_email: b?.owner_email,
+          matches_current_user: b?.owner_user_id === userId
+        }))
+      );
 
       // 2) Fetch by linked IDs (user.associated_businesses) for any extra associations
       const byLinked =
@@ -103,9 +118,21 @@ export default function BusinessDashboard() {
         }
       }
 
-      console.log('[BusinessDashboard] businesses by owner_user_id:', byOwner?.length ?? 0, byOwner);
-      console.log('[BusinessDashboard] businesses by associated_businesses:', byLinked?.length ?? 0, byLinked);
-      console.log('[BusinessDashboard] merged businesses:', merged.length, merged);
+      console.log('[BusinessDashboard] businesses by associated_businesses count:', byLinked?.length ?? 0);
+      console.log('[BusinessDashboard] merged businesses count:', merged.length);
+      console.log(
+        '[BusinessDashboard] merged (id, name) — check for duplicate names e.g. two "Recess":',
+        merged.map((b) => ({ id: b?.id, name: b?.name }))
+      );
+      // If Admin shows more businesses for this email: Admin filters by owner_email; Dashboard uses owner_user_id.
+      // Check each business in the table above: if owner_user_id !== currentUser.id, they won't appear in byOwner.
+      if (merged.length < 3 && userEmail) {
+        console.log(
+          '[BusinessDashboard] Tip: If Admin shows 3 businesses for',
+          userEmail,
+          'but Dashboard shows fewer, the others may have owner_email set but owner_user_id different or null. Update them in Admin (e.g. ensure owner_user_id matches current user) or clean up duplicate/test entries.'
+        );
+      }
 
       return merged;
     },
