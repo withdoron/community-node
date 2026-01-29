@@ -59,14 +59,55 @@ export default function BusinessDashboard() {
   const { data: associatedBusinesses = [], isLoading: businessesLoading } = useQuery({
     queryKey: ['associatedBusinesses', currentUser?.id],
     queryFn: async () => {
-      if (!currentUser?.associated_businesses?.length) return [];
-      
-      const businesses = await Promise.all(
-        currentUser.associated_businesses.map(businessId => 
-          base44.entities.Business.filter({ id: businessId }, '', 1)
-        )
-      );
-      return businesses.flat();
+      const userId = currentUser?.id;
+      const linkedIds = currentUser?.associated_businesses || [];
+
+      // Debug: see what the backend returns for the current user
+      console.log('[BusinessDashboard] currentUser.id:', userId);
+      console.log('[BusinessDashboard] currentUser.associated_businesses:', linkedIds);
+
+      // 1) Fetch businesses where current user is owner (source of truth for "my businesses")
+      const byOwner = userId
+        ? await base44.entities.Business.filter(
+            { owner_user_id: userId },
+            '-created_date',
+            100
+          )
+        : [];
+
+      // 2) Fetch by linked IDs (user.associated_businesses) for any extra associations
+      const byLinked =
+        linkedIds.length > 0
+          ? (
+              await Promise.all(
+                linkedIds.map((businessId) =>
+                  base44.entities.Business.filter({ id: businessId }, '', 1)
+                )
+              )
+            ).flat()
+          : [];
+
+      // Merge and dedupe by id (owner list takes precedence for order)
+      const seen = new Set();
+      const merged = [];
+      for (const b of byOwner) {
+        if (b?.id && !seen.has(b.id)) {
+          seen.add(b.id);
+          merged.push(b);
+        }
+      }
+      for (const b of byLinked) {
+        if (b?.id && !seen.has(b.id)) {
+          seen.add(b.id);
+          merged.push(b);
+        }
+      }
+
+      console.log('[BusinessDashboard] businesses by owner_user_id:', byOwner?.length ?? 0, byOwner);
+      console.log('[BusinessDashboard] businesses by associated_businesses:', byLinked?.length ?? 0, byLinked);
+      console.log('[BusinessDashboard] merged businesses:', merged.length, merged);
+
+      return merged;
     },
     enabled: !!currentUser
   });
