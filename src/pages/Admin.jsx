@@ -112,9 +112,12 @@ export default function Admin() {
     }
   });
 
-  // Filter businesses
+  // Filter businesses (exclude soft-deleted; then apply admin filters)
   const filteredBusinesses = useMemo(() => {
     return businesses.filter(b => {
+      // Exclude soft-deleted businesses (is_deleted or status === 'deleted')
+      if (b.is_deleted === true || b.status === 'deleted') return false;
+
       // Search filter by name
       if (filters.search) {
         const search = filters.search.toLowerCase();

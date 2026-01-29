@@ -198,7 +198,7 @@ export default function BusinessDashboard() {
     },
     onSuccess: () => {
       console.log('[Dashboard Delete] onSuccess');
-      queryClient.invalidateQueries(['associatedBusinesses']);
+      queryClient.invalidateQueries({ queryKey: ['associatedBusinesses'] });
       setSelectedBusinessId(null);
       setDeleteDialogOpen(false);
       toast.success('Business deleted');

@@ -99,7 +99,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     },
     onSuccess: () => {
       console.log('[Admin Delete] onSuccess');
-      queryClient.invalidateQueries(['admin-businesses']);
+      queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
       toast.success('Business deleted');
       setDeleteDialogOpen(false);
       onClose();
