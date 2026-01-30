@@ -20,52 +20,40 @@ export default function StaffWidget({ business }) {
   const [isSearching, setIsSearching] = useState(false);
   const [selectedRole, setSelectedRole] = useState('instructor');
 
-  // Merge old instructors with new staff format (include status for invites)
+  // Active staff: from business.instructors only (Business.staff not in schema)
   const staffList = useMemo(() => {
-    const fromStaff = (business?.staff || []).map((s) => ({
-      user_id: s.user_id,
-      email: s.email,
-      role: s.role || 'instructor',
-      status: s.status || 'active',
-      added_at: s.added_at,
-      invited_at: s.invited_at,
+    return (business?.instructors || []).map((id) => ({
+      user_id: id,
+      role: 'instructor',
+      status: 'active',
     }));
-    const staffUserIds = fromStaff.map((s) => s.user_id).filter(Boolean);
-    const fromInstructors = (business?.instructors || [])
-      .filter((id) => !staffUserIds.includes(id))
-      .map((id) => ({ user_id: id, role: 'instructor', status: 'active' }));
-    return [...fromStaff, ...fromInstructors];
-  }, [business?.staff, business?.instructors]);
+  }, [business?.instructors]);
 
-  const activeStaff = useMemo(
-    () => staffList.filter((s) => s.user_id && s.status !== 'invited'),
-    [staffList]
-  );
-  const pendingInvites = useMemo(
-    () => staffList.filter((s) => !s.user_id || s.status === 'invited'),
-    [staffList]
-  );
-  const activeStaffIds = useMemo(
-    () => staffList.filter((s) => s.user_id && s.status !== 'invited').map((s) => s.user_id),
-    [staffList]
-  );
-
-  // Debug: verify staff data for pending invites
-  console.log('[StaffWidget] staffList:', staffList);
-  console.log('[StaffWidget] pendingInvites:', pendingInvites);
-  console.log('[StaffWidget] business.staff:', business?.staff);
-
-  const staffUserIds = useMemo(
-    () => staffList.filter((s) => s.user_id).map((s) => s.user_id),
-    [staffList]
-  );
+  const staffUserIds = useMemo(() => staffList.map((s) => s.user_id), [staffList]);
   const roleByUserId = useMemo(
-    () => Object.fromEntries(staffList.filter((s) => s.user_id).map((s) => [s.user_id, s.role])),
+    () => Object.fromEntries(staffList.map((s) => [s.user_id, s.role])),
     [staffList]
   );
+
+  // Pending invites: stored in AdminSettings (key: staff_invites:{business_id})
+  const { data: pendingInvites = [] } = useQuery({
+    queryKey: ['staffInvites', business?.id],
+    queryFn: async () => {
+      if (!business?.id) return [];
+      const key = `staff_invites:${business.id}`;
+      const settings = await base44.entities.AdminSettings.filter({ key });
+      if (!settings?.length) return [];
+      try {
+        return JSON.parse(settings[0].value) || [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!business?.id,
+  });
 
   const { data: staffUsers = [], isLoading: staffLoading } = useQuery({
-    queryKey: ['staff', business?.id, business?.staff, business?.instructors],
+    queryKey: ['staff', business?.id, business?.instructors],
     queryFn: async () => {
       if (!staffUserIds.length) return [];
       const users = await Promise.all(
@@ -79,16 +67,11 @@ export default function StaffWidget({ business }) {
   });
 
   const addStaffMutation = useMutation({
-    mutationFn: async ({ userId, email, role }) => {
-      const currentStaff = business.staff || [];
-      const newStaff = {
-        user_id: userId,
-        email: email,
-        role: role,
-        added_at: new Date().toISOString(),
-      };
+    mutationFn: async ({ userId }) => {
+      const currentInstructors = business.instructors || [];
+      if (currentInstructors.includes(userId)) return;
       return base44.entities.Business.update(business.id, {
-        staff: [...currentStaff, newStaff],
+        instructors: [...currentInstructors, userId],
       });
     },
     onSuccess: () => {
@@ -108,65 +91,87 @@ export default function StaffWidget({ business }) {
     },
   });
 
-  // If business.staff is undefined after invite, Base44 Business schema may not define staff.
-  // Fallback: store invites in a separate field (e.g. staff_invites) or use instructors with a convention.
+  // Pending invites stored in AdminSettings (Business.staff not in schema)
   const inviteStaffMutation = useMutation({
     mutationFn: async ({ email, role }) => {
-      const currentStaff = business.staff || [];
+      const key = `staff_invites:${business.id}`;
+      const existing = await base44.entities.AdminSettings.filter({ key });
+      let currentInvites = [];
+      if (existing.length > 0) {
+        try {
+          currentInvites = JSON.parse(existing[0].value) || [];
+        } catch {}
+      }
+      if (currentInvites.some((inv) => (inv.email || '').toLowerCase() === email.toLowerCase())) {
+        throw new Error('Already invited');
+      }
       const newInvite = {
-        user_id: null,
         email: email,
         role: role,
         status: 'invited',
         invited_at: new Date().toISOString(),
-        added_at: new Date().toISOString(),
       };
-      const updatedStaff = [...currentStaff, newInvite];
-      console.log('[StaffWidget] Saving staff:', updatedStaff);
-      const result = await base44.entities.Business.update(business.id, {
-        staff: updatedStaff,
-      });
-      console.log('[StaffWidget] Update result:', result);
-      return result;
+      const updatedInvites = [...currentInvites, newInvite];
+      const value = JSON.stringify(updatedInvites);
+      if (existing.length > 0) {
+        return base44.entities.AdminSettings.update(existing[0].id, { value });
+      }
+      return base44.entities.AdminSettings.create({ key, value });
     },
-    onSuccess: (data) => {
-      console.log('[StaffWidget] Invite success, returned data:', data);
-      queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
-      queryClient.invalidateQueries({ queryKey: ['associatedBusinesses'] });
-      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses'] });
-      queryClient.invalidateQueries({ queryKey: ['staffBusinesses'] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffInvites', business.id] });
       setAddStaffOpen(false);
       setSearchEmail('');
       setSearchResult(null);
       setSelectedRole('instructor');
-      toast.success('Invitation sent! They will appear in your staff list when they create an account.');
+      toast.success('Invitation sent!');
     },
     onError: (error) => {
-      console.error('[StaffWidget] Invite error:', error);
-      toast.error('Failed to send invitation');
+      if (error?.message === 'Already invited') {
+        toast.error('This email has already been invited');
+      } else {
+        toast.error('Failed to send invitation');
+      }
     },
   });
 
   const removeStaffMutation = useMutation({
     mutationFn: async (identifier) => {
-      const updatedStaff = (business.staff || []).filter(
-        (s) => s.user_id !== identifier && s.email !== identifier
+      const isPendingInvite = pendingInvites.some(
+        (inv) => (inv.email || '').toLowerCase() === String(identifier).toLowerCase()
       );
-      const updatedInstructors = (business.instructors || []).filter((id) => id !== identifier);
-      return base44.entities.Business.update(business.id, {
-        staff: updatedStaff,
-        instructors: updatedInstructors,
-      });
+      if (isPendingInvite) {
+        const key = `staff_invites:${business.id}`;
+        const existing = await base44.entities.AdminSettings.filter({ key });
+        if (existing.length > 0) {
+          let currentInvites = [];
+          try {
+            currentInvites = JSON.parse(existing[0].value) || [];
+          } catch {}
+          const updatedInvites = currentInvites.filter(
+            (inv) => (inv.email || '').toLowerCase() !== String(identifier).toLowerCase()
+          );
+          await base44.entities.AdminSettings.update(existing[0].id, {
+            value: JSON.stringify(updatedInvites),
+          });
+        }
+      } else {
+        const updatedInstructors = (business.instructors || []).filter((id) => id !== identifier);
+        await base44.entities.Business.update(business.id, {
+          instructors: updatedInstructors,
+        });
+      }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffInvites', business.id] });
       queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
       queryClient.invalidateQueries({ queryKey: ['associatedBusinesses'] });
       queryClient.invalidateQueries({ queryKey: ['ownedBusinesses'] });
       queryClient.invalidateQueries({ queryKey: ['staffBusinesses'] });
-      toast.success('Staff member removed');
+      toast.success('Removed');
     },
     onError: () => {
-      toast.error('Failed to remove staff member');
+      toast.error('Failed to remove');
     },
   });
 
@@ -195,11 +200,11 @@ export default function StaffWidget({ business }) {
 
       if (!users?.length) {
         const email = searchEmail.trim().toLowerCase();
-        const alreadyInvitedOrAdded = (business?.staff || []).some(
-          (s) => (s.email || '').toLowerCase() === email
+        const alreadyInvited = (pendingInvites || []).some(
+          (inv) => (inv.email || '').toLowerCase() === email
         );
-        if (alreadyInvitedOrAdded) {
-          setSearchError('This email has already been invited or added.');
+        if (alreadyInvited) {
+          setSearchError('This email has already been invited.');
           return;
         }
         setSearchResult({ notFound: true, email: searchEmail.trim() });
@@ -208,10 +213,8 @@ export default function StaffWidget({ business }) {
       }
 
       const user = users[0];
-
-      const alreadyInStaff = (business?.staff || []).some((s) => s.user_id === user.id);
       const alreadyInInstructors = (business?.instructors || []).includes(user.id);
-      if (alreadyInStaff || alreadyInInstructors) {
+      if (alreadyInInstructors) {
         setSearchError('This user is already a staff member.');
         return;
       }
@@ -343,8 +346,8 @@ export default function StaffWidget({ business }) {
           </div>
         )}
 
-        {/* Empty state when no staff */}
-        {!staffLoading && staffList.length === 0 && (
+        {/* Empty state when no staff and no pending invites */}
+        {!staffLoading && staffList.length === 0 && pendingInvites.length === 0 && (
           <div className="text-center py-6 border border-dashed border-slate-700 rounded-lg">
             <UserPlus className="w-10 h-10 text-slate-600 mx-auto mb-2" />
             <p className="text-slate-400">Invite your team</p>
