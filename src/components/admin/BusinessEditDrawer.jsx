@@ -232,7 +232,15 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     try {
       const users = await base44.entities.User.filter({ email: addStaffEmail.trim() }, '', 1);
       if (!users?.length) {
-        setStaffSearchError('No user found with that email.');
+        const alreadyInvited = (pendingInvites || []).some(
+          (inv) => (inv.email || '').toLowerCase() === addStaffEmail.trim().toLowerCase()
+        );
+        if (alreadyInvited) {
+          setStaffSearchError('This email has already been invited.');
+          return;
+        }
+        setStaffSearchResult({ notFound: true, email: addStaffEmail.trim() });
+        setStaffSearchError('');
         return;
       }
       const user = users[0];
@@ -308,8 +316,9 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
-      queryClient.invalidateQueries({ queryKey: ['staffRoles', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({ queryKey: ['staffRoles'] });
+      queryClient.invalidateQueries({ queryKey: ['staffInvites'] });
       queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
       toast.success('Staff removed');
     },
@@ -331,7 +340,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staffInvites', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['staffInvites'] });
       queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
       toast.success('Invite removed');
     },
@@ -367,7 +376,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       return base44.entities.AdminSettings.create({ key, value });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staffInvites', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['staffInvites'] });
       queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
       setAddStaffEmail('');
       setStaffSearchResult(null);
@@ -642,7 +651,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     <p className="text-slate-400 text-xs">{user.email}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="border-slate-600 text-slate-300 text-xs">Staff</Badge>
+                    {getRoleBadge(getRoleForUser(user.id))}
                     <Button
                       variant="ghost"
                       size="icon"
@@ -735,7 +744,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                       size="sm"
                       className="bg-amber-500 hover:bg-amber-600 text-black"
                     >
-                      {addStaffMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add'}
+                      {addStaffMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : `Add as ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)}`}
                     </Button>
                   </div>
                 </div>
@@ -743,7 +752,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
               {staffSearchResult?.notFound && (
                 <div className="space-y-3 p-3 bg-slate-700 rounded-lg">
-                  <p className="text-slate-300 text-sm">{staffSearchResult.email} — not yet a user</p>
+                  <p className="text-white text-sm">{staffSearchResult.email}</p>
+                  <p className="text-amber-500 text-xs">No account found — send invite</p>
                   <div className="flex items-center gap-2">
                     <Label className="text-slate-400 text-xs shrink-0">Role:</Label>
                     <Select
