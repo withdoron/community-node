@@ -1,11 +1,25 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Plus, Mail, UserPlus } from "lucide-react";
+import { User, Plus, UserPlus } from "lucide-react";
 
 export default function StaffWidget({ business }) {
-  const instructorCount = business.instructors?.length || 0;
+  const { data: staffUsers = [], isLoading: staffLoading } = useQuery({
+    queryKey: ['staff', business?.id, business?.instructors],
+    queryFn: async () => {
+      if (!business?.instructors?.length) return [];
+      const users = await Promise.all(
+        business.instructors.map((id) =>
+          base44.entities.User.get(id).catch(() => null)
+        )
+      );
+      return users.filter(Boolean);
+    },
+    enabled: !!business?.id && !!business?.instructors?.length,
+  });
 
   return (
     <Card className="p-6 bg-slate-900 border-slate-800">
@@ -21,39 +35,54 @@ export default function StaffWidget({ business }) {
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between p-4 bg-slate-800 border border-slate-700 rounded-lg">
+        {/* Owner row */}
+        <div className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-amber-500/20 rounded-full flex items-center justify-center">
-              <Users className="h-5 w-5 text-amber-500" />
+            <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
+              <User className="w-5 h-5 text-slate-400" />
             </div>
             <div>
-              <p className="font-medium text-slate-100">{business.owner_email}</p>
-              <p className="text-xs text-slate-500">Owner</p>
+              <p className="text-white font-medium">{business?.owner_email}</p>
+              <p className="text-slate-400 text-sm">Owner</p>
             </div>
           </div>
-          <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/30">Owner</Badge>
+          <Badge className="bg-amber-500 text-black">Owner</Badge>
         </div>
 
-        {instructorCount === 0 ? (
-          <div className="border-2 border-dashed border-slate-700 hover:border-amber-500/50 rounded-lg p-8 text-center transition-all group">
-            <div className="flex flex-col items-center">
-              <div className="h-14 w-14 bg-amber-500/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-amber-500/20 transition-colors">
-                <UserPlus className="h-7 w-7 text-amber-500" />
+        {/* Staff list */}
+        {staffUsers.map((user) => (
+          <div key={user.id} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-slate-400" />
               </div>
-              <h3 className="text-base font-semibold text-slate-100 mb-1">Invite your team</h3>
-              <p className="text-sm text-slate-400 mb-4">Give permissions to managers or door staff</p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="bg-slate-800 border-slate-700 text-slate-200 hover:border-amber-500 hover:text-amber-400"
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                Send Invite
-              </Button>
+              <div>
+                <p className="text-white font-medium">{user.full_name || user.email}</p>
+                <p className="text-slate-400 text-sm">{user.email}</p>
+              </div>
+            </div>
+            <Badge variant="outline" className="border-slate-600 text-slate-300">Instructor</Badge>
+          </div>
+        ))}
+
+        {/* Loading state */}
+        {staffLoading && business?.instructors?.length > 0 && (
+          <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
+            <div className="w-10 h-10 bg-slate-700 rounded-full animate-pulse" />
+            <div className="flex-1 space-y-1">
+              <div className="h-4 bg-slate-700 rounded w-32 animate-pulse" />
+              <div className="h-3 bg-slate-700 rounded w-48 animate-pulse" />
             </div>
           </div>
-        ) : (
-          <p className="text-sm text-slate-400">{instructorCount} instructor(s) registered</p>
+        )}
+
+        {/* Empty state when no instructors */}
+        {!staffLoading && staffUsers.length === 0 && business?.instructors?.length === 0 && (
+          <div className="text-center py-6 border border-dashed border-slate-700 rounded-lg">
+            <UserPlus className="w-10 h-10 text-slate-600 mx-auto mb-2" />
+            <p className="text-slate-400">Invite your team</p>
+            <p className="text-slate-500 text-sm">Give permissions to managers or door staff</p>
+          </div>
         )}
       </div>
     </Card>
