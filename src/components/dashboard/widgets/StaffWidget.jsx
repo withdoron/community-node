@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, UserPlus, Plus, X } from "lucide-react";
+import { User, UserPlus, Plus, X, Mail } from "lucide-react";
 
 export default function StaffWidget({ business }) {
   const queryClient = useQueryClient();
@@ -20,24 +20,38 @@ export default function StaffWidget({ business }) {
   const [isSearching, setIsSearching] = useState(false);
   const [selectedRole, setSelectedRole] = useState('instructor');
 
-  // Merge old instructors with new staff format
+  // Merge old instructors with new staff format (include status for invites)
   const staffList = useMemo(() => {
     const fromStaff = (business?.staff || []).map((s) => ({
       user_id: s.user_id,
       email: s.email,
       role: s.role || 'instructor',
+      status: s.status || 'active',
       added_at: s.added_at,
+      invited_at: s.invited_at,
     }));
-    const staffUserIds = fromStaff.map((s) => s.user_id);
+    const staffUserIds = fromStaff.map((s) => s.user_id).filter(Boolean);
     const fromInstructors = (business?.instructors || [])
       .filter((id) => !staffUserIds.includes(id))
-      .map((id) => ({ user_id: id, role: 'instructor' }));
+      .map((id) => ({ user_id: id, role: 'instructor', status: 'active' }));
     return [...fromStaff, ...fromInstructors];
   }, [business?.staff, business?.instructors]);
 
-  const staffUserIds = useMemo(() => staffList.map((s) => s.user_id), [staffList]);
+  const activeStaff = useMemo(
+    () => staffList.filter((s) => s.user_id && s.status !== 'invited'),
+    [staffList]
+  );
+  const pendingInvites = useMemo(
+    () => staffList.filter((s) => !s.user_id || s.status === 'invited'),
+    [staffList]
+  );
+
+  const staffUserIds = useMemo(
+    () => staffList.filter((s) => s.user_id).map((s) => s.user_id),
+    [staffList]
+  );
   const roleByUserId = useMemo(
-    () => Object.fromEntries(staffList.map((s) => [s.user_id, s.role])),
+    () => Object.fromEntries(staffList.filter((s) => s.user_id).map((s) => [s.user_id, s.role])),
     [staffList]
   );
 
@@ -130,7 +144,16 @@ export default function StaffWidget({ business }) {
       const users = await base44.entities.User.filter({ email: searchEmail.trim() }, '', 1);
 
       if (!users?.length) {
-        setSearchError('No user found with that email. They may need to create an account first.');
+        const email = searchEmail.trim().toLowerCase();
+        const alreadyInvitedOrAdded = (business?.staff || []).some(
+          (s) => (s.email || '').toLowerCase() === email
+        );
+        if (alreadyInvitedOrAdded) {
+          setSearchError('This email has already been invited or added.');
+          return;
+        }
+        setSearchResult({ notFound: true, email: searchEmail.trim() });
+        setSearchError('');
         return;
       }
 
@@ -233,8 +256,8 @@ export default function StaffWidget({ business }) {
           </div>
         )}
 
-        {/* Empty state when no instructors */}
-        {!staffLoading && staffUsers.length === 0 && business?.instructors?.length === 0 && (
+        {/* Empty state when no staff */}
+        {!staffLoading && staffList.length === 0 && (
           <div className="text-center py-6 border border-dashed border-slate-700 rounded-lg">
             <UserPlus className="w-10 h-10 text-slate-600 mx-auto mb-2" />
             <p className="text-slate-400">Invite your team</p>
@@ -277,52 +300,92 @@ export default function StaffWidget({ business }) {
           )}
 
           {searchResult && (
-            <>
-              <div className="space-y-2">
-                <Label className="text-slate-300">Role</Label>
-                <Select value={selectedRole} onValueChange={setSelectedRole}>
-                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="manager" className="text-slate-300 focus:bg-slate-700">Manager</SelectItem>
-                    <SelectItem value="instructor" className="text-slate-300 focus:bg-slate-700">Instructor</SelectItem>
-                    <SelectItem value="staff" className="text-slate-300 focus:bg-slate-700">Staff</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-slate-500 text-xs">
-                  {selectedRole === 'manager' && 'Full access: create events, manage staff, view analytics'}
-                  {selectedRole === 'instructor' && 'Can edit assigned events and use check-in'}
-                  {selectedRole === 'staff' && 'Check-in access only'}
-                </p>
-              </div>
-              <div className="p-3 bg-slate-800 rounded-lg">
-                <div className="flex items-center justify-between">
+            <div className="p-3 bg-slate-800 rounded-lg">
+              {searchResult.notFound ? (
+                <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
-                      <User className="w-5 h-5 text-slate-400" />
+                      <Mail className="w-5 h-5 text-slate-400" />
                     </div>
                     <div>
-                      <p className="text-white font-medium">{searchResult.full_name || searchResult.email}</p>
-                      <p className="text-slate-400 text-sm">{searchResult.email}</p>
+                      <p className="text-white font-medium">{searchResult.email}</p>
+                      <p className="text-amber-500 text-sm">No account found — send invite</p>
                     </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-300 text-sm">Role</Label>
+                    <Select value={selectedRole} onValueChange={setSelectedRole}>
+                      <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-slate-700">
+                        <SelectItem value="manager" className="text-slate-300 focus:bg-slate-700">Manager</SelectItem>
+                        <SelectItem value="instructor" className="text-slate-300 focus:bg-slate-700">Instructor</SelectItem>
+                        <SelectItem value="staff" className="text-slate-300 focus:bg-slate-700">Staff</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <Button
                     onClick={() =>
-                      addStaffMutation.mutate({
-                        userId: searchResult.id,
+                      inviteStaffMutation.mutate({
                         email: searchResult.email,
                         role: selectedRole,
                       })
                     }
-                    disabled={addStaffMutation.isPending}
-                    className="bg-amber-500 hover:bg-amber-600 text-black"
+                    disabled={inviteStaffMutation.isPending}
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-black"
                   >
-                    {addStaffMutation.isPending ? 'Adding...' : 'Add'}
+                    <Mail className="w-4 h-4 mr-2" />
+                    {inviteStaffMutation.isPending ? 'Sending...' : 'Send Invite'}
                   </Button>
                 </div>
-              </div>
-            </>
+              ) : (
+                <>
+                  <div className="space-y-2 mb-3">
+                    <Label className="text-slate-300">Role</Label>
+                    <Select value={selectedRole} onValueChange={setSelectedRole}>
+                      <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-slate-700">
+                        <SelectItem value="manager" className="text-slate-300 focus:bg-slate-700">Manager</SelectItem>
+                        <SelectItem value="instructor" className="text-slate-300 focus:bg-slate-700">Instructor</SelectItem>
+                        <SelectItem value="staff" className="text-slate-300 focus:bg-slate-700">Staff</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-slate-500 text-xs">
+                      {selectedRole === 'manager' && 'Full access: create events, manage staff, view analytics'}
+                      {selectedRole === 'instructor' && 'Can edit assigned events and use check-in'}
+                      {selectedRole === 'staff' && 'Check-in access only'}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
+                        <User className="w-5 h-5 text-slate-400" />
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">{searchResult.full_name || searchResult.email}</p>
+                        <p className="text-slate-400 text-sm">{searchResult.email}</p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() =>
+                        addStaffMutation.mutate({
+                          userId: searchResult.id,
+                          email: searchResult.email,
+                          role: selectedRole,
+                        })
+                      }
+                      disabled={addStaffMutation.isPending}
+                      className="bg-amber-500 hover:bg-amber-600 text-black"
+                    >
+                      {addStaffMutation.isPending ? 'Adding...' : 'Add'}
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
           )}
 
           <p className="text-slate-500 text-sm">
