@@ -4,12 +4,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar, Plus, Pencil, Trash2, PlusCircle } from "lucide-react";
 import { format } from "date-fns";
 import EventEditor from '../EventEditor';
 
 export default function EventsWidget({ business, allowEdit, userRole }) {
-  const [showEditor, setShowEditor] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const queryClient = useQueryClient();
 
@@ -39,7 +40,7 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
     mutationFn: (eventData) => base44.entities.Event.create(eventData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-events', business.id] });
-      setShowEditor(false);
+      setEditorOpen(false);
       setEditingEvent(null);
     }
   });
@@ -48,7 +49,7 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
     mutationFn: ({ id, data }) => base44.entities.Event.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-events', business.id] });
-      setShowEditor(false);
+      setEditorOpen(false);
       setEditingEvent(null);
     }
   });
@@ -67,14 +68,19 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
     return createMutation.mutateAsync(eventData);
   };
 
-  const handleCancel = () => {
-    setShowEditor(false);
+  const handleAddEvent = () => {
     setEditingEvent(null);
+    setEditorOpen(true);
   };
 
-  const handleEdit = (event) => {
+  const handleEditEvent = (event) => {
     setEditingEvent(event);
-    setShowEditor(true);
+    setEditorOpen(true);
+  };
+
+  const handleEditorClose = () => {
+    setEditorOpen(false);
+    setEditingEvent(null);
   };
 
   const handleDelete = (eventId) => {
@@ -83,20 +89,8 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
     }
   };
 
-  if (showEditor) {
-    return (
-      <EventEditor
-        business={business}
-        existingEvent={editingEvent}
-        onSave={handleSave}
-        onCancel={handleCancel}
-        instructors={instructors}
-        locations={locations}
-      />
-    );
-  }
-
   return (
+    <>
     <Card className="p-6 bg-slate-900 border-slate-800">
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -105,7 +99,7 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
         </div>
         {allowEdit && (
           <Button 
-            onClick={() => setShowEditor(true)}
+            onClick={handleAddEvent}
             className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -119,7 +113,7 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
       ) : events.length === 0 ? (
         <div 
           className="border-2 border-dashed border-slate-700 hover:border-amber-500/50 rounded-lg p-12 text-center cursor-pointer transition-all group"
-          onClick={allowEdit ? () => setShowEditor(true) : undefined}
+          onClick={allowEdit ? handleAddEvent : undefined}
         >
           <div className="flex flex-col items-center">
             <div className="h-16 w-16 bg-amber-500/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-amber-500/20 transition-colors">
@@ -132,7 +126,7 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
                 variant="outline" 
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowEditor(true);
+                  handleAddEvent();
                 }}
                 className="bg-slate-800 border-slate-700 text-slate-200 hover:border-amber-500 hover:text-amber-400"
               >
@@ -177,7 +171,7 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
                     <Button 
                       size="sm" 
                       variant="ghost"
-                      onClick={() => handleEdit(event)}
+                      onClick={() => handleEditEvent(event)}
                       className="text-slate-400 hover:text-slate-100"
                     >
                       <Pencil className="h-4 w-4" />
@@ -198,5 +192,24 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
         </div>
       )}
     </Card>
+
+    <Dialog open={editorOpen} onOpenChange={(open) => { setEditorOpen(open); if (!open) setEditingEvent(null); }}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700">
+        <DialogHeader>
+          <DialogTitle className="text-white">
+            {editingEvent ? 'Edit Event' : 'Create Event'}
+          </DialogTitle>
+        </DialogHeader>
+        <EventEditor
+          business={business}
+          existingEvent={editingEvent}
+          onSave={handleSave}
+          onCancel={handleEditorClose}
+          instructors={instructors}
+          locations={locations}
+        />
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

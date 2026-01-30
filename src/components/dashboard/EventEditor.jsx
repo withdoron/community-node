@@ -245,15 +245,7 @@ export default function EventEditor({
   };
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-lg">
-      <div className="flex items-center justify-between p-6 border-b border-slate-700">
-        <h2 className="text-2xl font-bold text-white">
-          {existingEvent ? "Edit Event" : "Create New Event"}
-        </h2>
-        <p className="text-sm text-slate-400">{business?.name}</p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="p-6 space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 pt-2">
         {/* Basic info */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
@@ -703,6 +695,5 @@ export default function EventEditor({
           </Button>
         </div>
       </form>
-    </div>
   );
 }
