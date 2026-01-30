@@ -32,6 +32,63 @@ export default function StaffWidget({ business }) {
     enabled: !!business?.id && !!business?.instructors?.length,
   });
 
+  const addStaffMutation = useMutation({
+    mutationFn: async (userId) => {
+      const currentInstructors = business.instructors || [];
+      const updatedInstructors = [...currentInstructors, userId];
+      return base44.entities.Business.update(business.id, {
+        instructors: updatedInstructors,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['associatedBusinesses'] });
+      setAddStaffOpen(false);
+      setSearchEmail('');
+      setSearchResult(null);
+      setSearchError('');
+      toast.success('Staff member added successfully');
+    },
+    onError: () => {
+      toast.error('Failed to add staff member');
+    },
+  });
+
+  const handleSearchUser = async () => {
+    if (!searchEmail.trim()) return;
+
+    setIsSearching(true);
+    setSearchError('');
+    setSearchResult(null);
+
+    try {
+      const users = await base44.entities.User.filter({ email: searchEmail.trim() }, '', 1);
+
+      if (!users?.length) {
+        setSearchError('No user found with that email. They may need to create an account first.');
+        return;
+      }
+
+      const user = users[0];
+
+      if (business.instructors?.includes(user.id)) {
+        setSearchError('This user is already a staff member.');
+        return;
+      }
+
+      if (user.id === business.owner_user_id) {
+        setSearchError('This user is already the owner.');
+        return;
+      }
+
+      setSearchResult(user);
+    } catch (err) {
+      setSearchError('Failed to search. Please try again.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   return (
     <>
     <Card className="p-6 bg-slate-900 border-slate-800">
