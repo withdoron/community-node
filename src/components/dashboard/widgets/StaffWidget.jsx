@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, UserPlus, Plus, X } from "lucide-react";
 
 export default function StaffWidget({ business }) {
@@ -17,36 +18,66 @@ export default function StaffWidget({ business }) {
   const [searchResult, setSearchResult] = useState(null);
   const [searchError, setSearchError] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('instructor');
+
+  // Merge old instructors with new staff format
+  const staffList = useMemo(() => {
+    const fromStaff = (business?.staff || []).map((s) => ({
+      user_id: s.user_id,
+      email: s.email,
+      role: s.role || 'instructor',
+      added_at: s.added_at,
+    }));
+    const staffUserIds = fromStaff.map((s) => s.user_id);
+    const fromInstructors = (business?.instructors || [])
+      .filter((id) => !staffUserIds.includes(id))
+      .map((id) => ({ user_id: id, role: 'instructor' }));
+    return [...fromStaff, ...fromInstructors];
+  }, [business?.staff, business?.instructors]);
+
+  const staffUserIds = useMemo(() => staffList.map((s) => s.user_id), [staffList]);
+  const roleByUserId = useMemo(
+    () => Object.fromEntries(staffList.map((s) => [s.user_id, s.role])),
+    [staffList]
+  );
 
   const { data: staffUsers = [], isLoading: staffLoading } = useQuery({
-    queryKey: ['staff', business?.id, business?.instructors],
+    queryKey: ['staff', business?.id, business?.staff, business?.instructors],
     queryFn: async () => {
-      if (!business?.instructors?.length) return [];
+      if (!staffUserIds.length) return [];
       const users = await Promise.all(
-        business.instructors.map((id) =>
-          base44.entities.User.get(id).catch(() => null)
+        staffUserIds.map((id) =>
+          base44.entities.User.filter({ id }, '', 1).then((r) => r?.[0] ?? null)
         )
       );
       return users.filter(Boolean);
     },
-    enabled: !!business?.id && !!business?.instructors?.length,
+    enabled: !!business?.id && staffUserIds.length > 0,
   });
 
   const addStaffMutation = useMutation({
-    mutationFn: async (userId) => {
-      const currentInstructors = business.instructors || [];
-      const updatedInstructors = [...currentInstructors, userId];
+    mutationFn: async ({ userId, email, role }) => {
+      const currentStaff = business.staff || [];
+      const newStaff = {
+        user_id: userId,
+        email: email,
+        role: role,
+        added_at: new Date().toISOString(),
+      };
       return base44.entities.Business.update(business.id, {
-        instructors: updatedInstructors,
+        staff: [...currentStaff, newStaff],
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
       queryClient.invalidateQueries({ queryKey: ['associatedBusinesses'] });
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', business.id] });
       setAddStaffOpen(false);
       setSearchEmail('');
       setSearchResult(null);
       setSearchError('');
+      setSelectedRole('instructor');
       toast.success('Staff member added successfully');
     },
     onError: () => {
@@ -56,21 +87,37 @@ export default function StaffWidget({ business }) {
 
   const removeStaffMutation = useMutation({
     mutationFn: async (userId) => {
-      const currentInstructors = business.instructors || [];
-      const updatedInstructors = currentInstructors.filter((id) => id !== userId);
+      const updatedStaff = (business.staff || []).filter((s) => s.user_id !== userId);
+      const updatedInstructors = (business.instructors || []).filter((id) => id !== userId);
       return base44.entities.Business.update(business.id, {
+        staff: updatedStaff,
         instructors: updatedInstructors,
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
       queryClient.invalidateQueries({ queryKey: ['associatedBusinesses'] });
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', business.id] });
       toast.success('Staff member removed');
     },
     onError: () => {
       toast.error('Failed to remove staff member');
     },
   });
+
+  const getRoleBadge = (role) => {
+    switch (role) {
+      case 'manager':
+        return <Badge className="bg-purple-500 text-white">Manager</Badge>;
+      case 'instructor':
+        return <Badge className="bg-blue-500 text-white">Instructor</Badge>;
+      case 'staff':
+        return <Badge variant="outline" className="border-slate-500 text-slate-300">Staff</Badge>;
+      default:
+        return <Badge variant="outline" className="border-slate-600 text-slate-400">Unknown</Badge>;
+    }
+  };
 
   const handleSearchUser = async () => {
     if (!searchEmail.trim()) return;
@@ -89,7 +136,9 @@ export default function StaffWidget({ business }) {
 
       const user = users[0];
 
-      if (business.instructors?.includes(user.id)) {
+      const alreadyInStaff = (business?.staff || []).some((s) => s.user_id === user.id);
+      const alreadyInInstructors = (business?.instructors || []).includes(user.id);
+      if (alreadyInStaff || alreadyInInstructors) {
         setSearchError('This user is already a staff member.');
         return;
       }
@@ -123,6 +172,7 @@ export default function StaffWidget({ business }) {
             setSearchEmail('');
             setSearchResult(null);
             setSearchError('');
+            setSelectedRole('instructor');
           }}
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -158,7 +208,7 @@ export default function StaffWidget({ business }) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="border-slate-600 text-slate-300">Instructor</Badge>
+              {getRoleBadge(roleByUserId[user.id] || 'instructor')}
               <Button
                 variant="ghost"
                 size="icon"
@@ -173,7 +223,7 @@ export default function StaffWidget({ business }) {
         ))}
 
         {/* Loading state */}
-        {staffLoading && business?.instructors?.length > 0 && (
+        {staffLoading && staffList.length > 0 && (
           <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
             <div className="w-10 h-10 bg-slate-700 rounded-full animate-pulse" />
             <div className="flex-1 space-y-1">
@@ -227,26 +277,52 @@ export default function StaffWidget({ business }) {
           )}
 
           {searchResult && (
-            <div className="p-3 bg-slate-800 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-slate-400" />
-                  </div>
-                  <div>
-                    <p className="text-white font-medium">{searchResult.full_name || searchResult.email}</p>
-                    <p className="text-slate-400 text-sm">{searchResult.email}</p>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => addStaffMutation.mutate(searchResult.id)}
-                  disabled={addStaffMutation.isPending}
-                  className="bg-amber-500 hover:bg-amber-600 text-black"
-                >
-                  {addStaffMutation.isPending ? 'Adding...' : 'Add'}
-                </Button>
+            <>
+              <div className="space-y-2">
+                <Label className="text-slate-300">Role</Label>
+                <Select value={selectedRole} onValueChange={setSelectedRole}>
+                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem value="manager" className="text-slate-300 focus:bg-slate-700">Manager</SelectItem>
+                    <SelectItem value="instructor" className="text-slate-300 focus:bg-slate-700">Instructor</SelectItem>
+                    <SelectItem value="staff" className="text-slate-300 focus:bg-slate-700">Staff</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-slate-500 text-xs">
+                  {selectedRole === 'manager' && 'Full access: create events, manage staff, view analytics'}
+                  {selectedRole === 'instructor' && 'Can edit assigned events and use check-in'}
+                  {selectedRole === 'staff' && 'Check-in access only'}
+                </p>
               </div>
-            </div>
+              <div className="p-3 bg-slate-800 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-slate-400" />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">{searchResult.full_name || searchResult.email}</p>
+                      <p className="text-slate-400 text-sm">{searchResult.email}</p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() =>
+                      addStaffMutation.mutate({
+                        userId: searchResult.id,
+                        email: searchResult.email,
+                        role: selectedRole,
+                      })
+                    }
+                    disabled={addStaffMutation.isPending}
+                    className="bg-amber-500 hover:bg-amber-600 text-black"
+                  >
+                    {addStaffMutation.isPending ? 'Adding...' : 'Add'}
+                  </Button>
+                </div>
+              </div>
+            </>
           )}
 
           <p className="text-slate-500 text-sm">
