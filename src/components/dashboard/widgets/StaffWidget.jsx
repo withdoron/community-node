@@ -108,6 +108,8 @@ export default function StaffWidget({ business }) {
     },
   });
 
+  // If business.staff is undefined after invite, Base44 Business schema may not define staff.
+  // Fallback: store invites in a separate field (e.g. staff_invites) or use instructors with a convention.
   const inviteStaffMutation = useMutation({
     mutationFn: async ({ email, role }) => {
       const currentStaff = business.staff || [];
@@ -119,11 +121,16 @@ export default function StaffWidget({ business }) {
         invited_at: new Date().toISOString(),
         added_at: new Date().toISOString(),
       };
-      return base44.entities.Business.update(business.id, {
-        staff: [...currentStaff, newInvite],
+      const updatedStaff = [...currentStaff, newInvite];
+      console.log('[StaffWidget] Saving staff:', updatedStaff);
+      const result = await base44.entities.Business.update(business.id, {
+        staff: updatedStaff,
       });
+      console.log('[StaffWidget] Update result:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('[StaffWidget] Invite success, returned data:', data);
       queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
       queryClient.invalidateQueries({ queryKey: ['associatedBusinesses'] });
       queryClient.invalidateQueries({ queryKey: ['ownedBusinesses'] });
@@ -134,7 +141,8 @@ export default function StaffWidget({ business }) {
       setSelectedRole('instructor');
       toast.success('Invitation sent! They will appear in your staff list when they create an account.');
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('[StaffWidget] Invite error:', error);
       toast.error('Failed to send invitation');
     },
   });
