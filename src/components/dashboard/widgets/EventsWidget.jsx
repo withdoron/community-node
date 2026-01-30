@@ -62,10 +62,9 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
 
   const handleSave = (eventData) => {
     if (editingEvent) {
-      updateMutation.mutate({ id: editingEvent.id, data: eventData });
-    } else {
-      createMutation.mutate(eventData);
+      return updateMutation.mutateAsync({ id: editingEvent.id, data: eventData });
     }
+    return createMutation.mutateAsync(eventData);
   };
 
   const handleCancel = () => {
