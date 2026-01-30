@@ -45,6 +45,15 @@ export default function StaffWidget({ business }) {
     () => staffList.filter((s) => !s.user_id || s.status === 'invited'),
     [staffList]
   );
+  const activeStaffIds = useMemo(
+    () => staffList.filter((s) => s.user_id && s.status !== 'invited').map((s) => s.user_id),
+    [staffList]
+  );
+
+  // Debug: verify staff data for pending invites
+  console.log('[StaffWidget] staffList:', staffList);
+  console.log('[StaffWidget] pendingInvites:', pendingInvites);
+  console.log('[StaffWidget] business.staff:', business?.staff);
 
   const staffUserIds = useMemo(
     () => staffList.filter((s) => s.user_id).map((s) => s.user_id),
@@ -85,8 +94,8 @@ export default function StaffWidget({ business }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
       queryClient.invalidateQueries({ queryKey: ['associatedBusinesses'] });
-      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', business.id] });
-      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses'] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses'] });
       setAddStaffOpen(false);
       setSearchEmail('');
       setSearchResult(null);
@@ -117,8 +126,8 @@ export default function StaffWidget({ business }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
       queryClient.invalidateQueries({ queryKey: ['associatedBusinesses'] });
-      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', business.id] });
-      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses'] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses'] });
       setAddStaffOpen(false);
       setSearchEmail('');
       setSearchResult(null);
@@ -144,8 +153,8 @@ export default function StaffWidget({ business }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
       queryClient.invalidateQueries({ queryKey: ['associatedBusinesses'] });
-      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', business.id] });
-      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses'] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses'] });
       toast.success('Staff member removed');
     },
     onError: () => {
@@ -277,6 +286,43 @@ export default function StaffWidget({ business }) {
             </div>
           </div>
         ))}
+
+        {/* Pending Invites */}
+        {pendingInvites.length > 0 && (
+          <div className="space-y-2 pt-4 mt-4 border-t border-slate-700">
+            <p className="text-slate-400 text-xs uppercase tracking-wide">Pending Invites</p>
+            {pendingInvites.map((invite, idx) => (
+              <div
+                key={(invite.email || 'invite') + idx}
+                className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
+                    <Mail className="w-5 h-5 text-slate-500" />
+                  </div>
+                  <div>
+                    <p className="text-slate-300">{invite.email}</p>
+                    <p className="text-slate-500 text-sm">Invited as {invite.role}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="border-amber-500/50 text-amber-500">
+                    Pending
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeStaffMutation.mutate(invite.email)}
+                    disabled={removeStaffMutation.isPending}
+                    className="text-slate-400 hover:text-red-400 hover:bg-slate-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Loading state */}
         {staffLoading && staffList.length > 0 && (
