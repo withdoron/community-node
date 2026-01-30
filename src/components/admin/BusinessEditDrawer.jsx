@@ -32,6 +32,23 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const [staffSearchResult, setStaffSearchResult] = useState(null);
   const [staffSearchError, setStaffSearchError] = useState('');
   const [isSearchingStaff, setIsSearchingStaff] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('instructor');
+
+  const { data: pendingInvites = [] } = useQuery({
+    queryKey: ['staffInvites', business?.id],
+    queryFn: async () => {
+      if (!business?.id) return [];
+      const key = `staff_invites:${business.id}`;
+      const settings = await base44.entities.AdminSettings.filter({ key });
+      if (settings.length === 0) return [];
+      try {
+        return JSON.parse(settings[0].value) || [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!business?.id,
+  });
 
   const { data: staffUsers = [] } = useQuery({
     queryKey: ['staff', business?.id, business?.instructors],
@@ -230,6 +247,71 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     },
     onError: () => {
       toast.error('Failed to remove staff');
+    },
+  });
+
+  const removeInviteMutation = useMutation({
+    mutationFn: async (email) => {
+      const key = `staff_invites:${business.id}`;
+      const existing = await base44.entities.AdminSettings.filter({ key });
+      if (existing.length > 0) {
+        const currentInvites = JSON.parse(existing[0].value) || [];
+        const updatedInvites = currentInvites.filter((inv) => (inv.email || '').toLowerCase() !== String(email).toLowerCase());
+        await base44.entities.AdminSettings.update(existing[0].id, {
+          value: JSON.stringify(updatedInvites),
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffInvites', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
+      toast.success('Invite removed');
+    },
+    onError: () => {
+      toast.error('Failed to remove invite');
+    },
+  });
+
+  const inviteStaffMutation = useMutation({
+    mutationFn: async ({ email, role }) => {
+      const key = `staff_invites:${business.id}`;
+      const existing = await base44.entities.AdminSettings.filter({ key });
+      let currentInvites = [];
+      if (existing.length > 0) {
+        try {
+          currentInvites = JSON.parse(existing[0].value) || [];
+        } catch {}
+      }
+      if (currentInvites.some((inv) => (inv.email || '').toLowerCase() === email.toLowerCase())) {
+        throw new Error('Already invited');
+      }
+      const newInvite = {
+        email: email,
+        role: role,
+        status: 'invited',
+        invited_at: new Date().toISOString(),
+      };
+      const updatedInvites = [...currentInvites, newInvite];
+      const value = JSON.stringify(updatedInvites);
+      if (existing.length > 0) {
+        return base44.entities.AdminSettings.update(existing[0].id, { value });
+      }
+      return base44.entities.AdminSettings.create({ key, value });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffInvites', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
+      setAddStaffEmail('');
+      setStaffSearchResult(null);
+      setSelectedRole('instructor');
+      toast.success('Invitation sent!');
+    },
+    onError: (error) => {
+      if (error?.message === 'Already invited') {
+        toast.error('This email has already been invited');
+      } else {
+        toast.error('Failed to send invitation');
+      }
     },
   });
 
@@ -505,6 +587,33 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 </div>
               ))}
 
+              {/* Pending Invites */}
+              {pendingInvites.length > 0 && (
+                <div className="space-y-2 pt-3 mt-3 border-t border-slate-700">
+                  <p className="text-slate-400 text-xs uppercase tracking-wide">Pending Invites</p>
+                  {pendingInvites.map((invite, idx) => (
+                    <div key={invite.email + idx} className="flex items-center justify-between p-2 bg-slate-800/50 rounded">
+                      <div>
+                        <p className="text-slate-300 text-sm">{invite.email}</p>
+                        <p className="text-slate-500 text-xs">Invited as {invite.role}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="border-amber-500/50 text-amber-500 text-xs">Pending</Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeInviteMutation.mutate(invite.email)}
+                          disabled={removeInviteMutation.isPending}
+                          className="h-6 w-6 text-slate-400 hover:text-red-400"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <Input
                   type="email"
@@ -528,7 +637,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <p className="text-red-400 text-xs">{staffSearchError}</p>
               )}
 
-              {staffSearchResult && (
+              {staffSearchResult && !staffSearchResult.notFound && (
                 <div className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
                   <div>
                     <p className="text-white text-sm">{staffSearchResult.full_name || staffSearchResult.email}</p>
@@ -542,6 +651,37 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   >
                     Add
                   </Button>
+                </div>
+              )}
+
+              {staffSearchResult?.notFound && (
+                <div className="space-y-3 p-3 bg-slate-700 rounded-lg">
+                  <p className="text-slate-300 text-sm">{staffSearchResult.email} — not yet a user</p>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-slate-400 text-xs shrink-0">Role:</Label>
+                    <Select
+                      value={selectedRole}
+                      onValueChange={setSelectedRole}
+                      disabled={inviteStaffMutation.isPending}
+                    >
+                      <SelectTrigger className="h-8 bg-slate-800 border-slate-600 text-slate-300 text-sm w-[140px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-slate-800">
+                        <SelectItem value="manager" className="text-slate-300 focus:bg-slate-800">Manager</SelectItem>
+                        <SelectItem value="instructor" className="text-slate-300 focus:bg-slate-800">Instructor</SelectItem>
+                        <SelectItem value="staff" className="text-slate-300 focus:bg-slate-800">Staff</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={() => inviteStaffMutation.mutate({ email: staffSearchResult.email, role: selectedRole })}
+                      disabled={inviteStaffMutation.isPending}
+                      size="sm"
+                      className="bg-amber-500 hover:bg-amber-600 text-black"
+                    >
+                      {inviteStaffMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send Invite'}
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
