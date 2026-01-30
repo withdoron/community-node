@@ -1,12 +1,23 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { User, Plus, UserPlus } from "lucide-react";
 
 export default function StaffWidget({ business }) {
+  const queryClient = useQueryClient();
+  const [addStaffOpen, setAddStaffOpen] = useState(false);
+  const [searchEmail, setSearchEmail] = useState('');
+  const [searchResult, setSearchResult] = useState(null);
+  const [searchError, setSearchError] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+
   const { data: staffUsers = [], isLoading: staffLoading } = useQuery({
     queryKey: ['staff', business?.id, business?.instructors],
     queryFn: async () => {
@@ -22,14 +33,24 @@ export default function StaffWidget({ business }) {
   });
 
   return (
+    <>
     <Card className="p-6 bg-slate-900 border-slate-800">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-bold text-slate-100">Staff & Instructors</h2>
           <p className="text-sm text-slate-400">Manage your team members</p>
         </div>
-        <Button className="bg-amber-500 hover:bg-amber-400 text-black font-semibold">
-          <Plus className="h-4 w-4 mr-2" />
+        <Button
+          variant="outline"
+          className="border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-black"
+          onClick={() => {
+            setAddStaffOpen(true);
+            setSearchEmail('');
+            setSearchResult(null);
+            setSearchError('');
+          }}
+        >
+          <Plus className="w-4 h-4 mr-2" />
           Add Staff
         </Button>
       </div>
@@ -86,5 +107,68 @@ export default function StaffWidget({ business }) {
         )}
       </div>
     </Card>
+
+    <Dialog open={addStaffOpen} onOpenChange={setAddStaffOpen}>
+      <DialogContent className="bg-slate-900 border-slate-700">
+        <DialogHeader>
+          <DialogTitle className="text-white">Add Staff Member</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div>
+            <Label className="text-slate-300">Search by email</Label>
+            <div className="flex gap-2 mt-1">
+              <Input
+                type="email"
+                placeholder="staff@example.com"
+                value={searchEmail}
+                onChange={(e) => setSearchEmail(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearchUser()}
+                className="bg-slate-800 border-slate-700 text-white"
+              />
+              <Button
+                onClick={handleSearchUser}
+                disabled={isSearching || !searchEmail.trim()}
+                className="bg-amber-500 hover:bg-amber-600 text-black"
+              >
+                {isSearching ? 'Searching...' : 'Search'}
+              </Button>
+            </div>
+          </div>
+
+          {searchError && (
+            <p className="text-red-400 text-sm">{searchError}</p>
+          )}
+
+          {searchResult && (
+            <div className="p-3 bg-slate-800 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
+                    <User className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">{searchResult.full_name || searchResult.email}</p>
+                    <p className="text-slate-400 text-sm">{searchResult.email}</p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => addStaffMutation.mutate(searchResult.id)}
+                  disabled={addStaffMutation.isPending}
+                  className="bg-amber-500 hover:bg-amber-600 text-black"
+                >
+                  {addStaffMutation.isPending ? 'Adding...' : 'Add'}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <p className="text-slate-500 text-sm">
+            The person must have a LocalLane account. They'll appear in your staff list and can be assigned to events.
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
