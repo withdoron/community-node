@@ -33,43 +33,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-const EVENT_TYPES = [
-  { value: "markets_fairs", label: "Markets & Fairs" },
-  { value: "live_music", label: "Live Music" },
-  { value: "food_drink", label: "Food & Drink" },
-  { value: "workshops_classes", label: "Workshops & Classes" },
-  { value: "sports_active", label: "Sports & Active" },
-  { value: "art_culture", label: "Art & Culture" },
-  { value: "meetings_gatherings", label: "Meetings & Gatherings" },
-  { value: "other", label: "Other" },
-];
-
-const NETWORKS = [
-  "Homeschool Community",
-  "Recess",
-  "Creative Alliance",
-  "Local Parents Network",
-  "Arts Council",
-  "Fitness Coalition",
-];
-
-const AGE_PRESETS = [
-  "All Ages",
-  "5-12",
-  "13-17",
-  "Adults (18+)",
-  "Seniors (65+)",
-  "Custom",
-];
-
-const DURATION_PRESETS = [
-  { label: "30 min", minutes: 30 },
-  { label: "1 hr", minutes: 60 },
-  { label: "1.5 hrs", minutes: 90 },
-  { label: "2 hrs", minutes: 120 },
-  { label: "3 hrs", minutes: 180 },
-];
+import { useConfig } from "@/hooks/useConfig";
 
 export default function EventEditor({
   business,
@@ -80,6 +44,11 @@ export default function EventEditor({
   locations = [],
 }) {
   const { tier, canUsePunchPass, canUseMultipleTickets } = useOrganization(business);
+
+  const { data: eventTypes = [] } = useConfig("events", "event_types");
+  const { data: networks = [] } = useConfig("platform", "networks");
+  const { data: ageGroups = [] } = useConfig("events", "age_groups");
+  const { data: durationPresets = [] } = useConfig("events", "duration_presets");
 
   const [formData, setFormData] = useState({
     title: "",
@@ -143,16 +112,24 @@ export default function EventEditor({
           existingEvent.event_type ||
           (Array.isArray(existingEvent.event_types) ? existingEvent.event_types[0] : "") ||
           "",
-        networks: Array.isArray(existingEvent.networks)
-          ? existingEvent.networks
-          : existingEvent.network
-          ? [existingEvent.network]
-          : [],
-        age_info: existingEvent.age_info || "",
+        networks: (() => {
+          const n = existingEvent.network;
+          const arr = Array.isArray(existingEvent.networks) ? existingEvent.networks : n ? [n] : [];
+          return arr.map((v) => {
+            const found = networks.find((net) => net.value === v || net.label === v);
+            return found ? found.value : v;
+          });
+        })(),
+        age_info: (() => {
+          const a = existingEvent.age_info;
+          if (!a) return "";
+          const found = ageGroups.find((ag) => ag.value === a || ag.label === a);
+          return found ? found.value : a;
+        })(),
         capacity: existingEvent.capacity ? String(existingEvent.capacity) : "",
       });
     }
-  }, [existingEvent]);
+  }, [existingEvent, networks, ageGroups]);
 
   const validate = () => {
     const e = {};
@@ -382,15 +359,17 @@ export default function EventEditor({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-900 border-slate-700">
-                  {DURATION_PRESETS.map((p) => (
-                    <SelectItem
-                      key={p.minutes}
-                      value={String(p.minutes)}
-                      className="text-slate-300"
-                    >
-                      {p.label}
-                    </SelectItem>
-                  ))}
+                  {durationPresets
+                    .filter((d) => d.active !== false)
+                    .map((duration) => (
+                      <SelectItem
+                        key={duration.value ?? duration.minutes}
+                        value={String(duration.minutes ?? duration.value)}
+                        className="text-slate-300"
+                      >
+                        {duration.label}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -611,15 +590,17 @@ export default function EventEditor({
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-700">
-              {EVENT_TYPES.map((t) => (
-                <SelectItem
-                  key={t.value}
-                  value={t.value}
-                  className="text-slate-300"
-                >
-                  {t.label}
-                </SelectItem>
-              ))}
+              {eventTypes
+                .filter((t) => t.active !== false)
+                .map((type) => (
+                  <SelectItem
+                    key={type.value}
+                    value={type.value}
+                    className="text-slate-300"
+                  >
+                    {type.label}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
           {errors.event_type && (
@@ -631,21 +612,23 @@ export default function EventEditor({
         <div>
           <Label className="text-slate-300">Networks / Communities (optional)</Label>
           <div className="flex flex-wrap gap-2 mt-2">
-            {NETWORKS.map((name) => (
-              <button
-                key={name}
-                type="button"
-                onClick={() => toggleNetwork(name)}
-                className={cn(
-                  "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-                  formData.networks.includes(name)
-                    ? "bg-amber-500 text-black"
-                    : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
-                )}
-              >
-                {name}
-              </button>
-            ))}
+            {networks
+              .filter((n) => n.active !== false)
+              .map((network) => (
+                <button
+                  key={network.value}
+                  type="button"
+                  onClick={() => toggleNetwork(network.value)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                    formData.networks.includes(network.value)
+                      ? "bg-amber-500 text-black"
+                      : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+                  )}
+                >
+                  {network.label}
+                </button>
+              ))}
           </div>
         </div>
 
@@ -668,15 +651,17 @@ export default function EventEditor({
               <SelectItem value="none" className="text-slate-300">
                 —
               </SelectItem>
-              {AGE_PRESETS.map((preset) => (
-                <SelectItem
-                  key={preset}
-                  value={preset}
-                  className="text-slate-300"
-                >
-                  {preset}
-                </SelectItem>
-              ))}
+              {ageGroups
+                .filter((a) => a.active !== false)
+                .map((age) => (
+                  <SelectItem
+                    key={age.value}
+                    value={age.value}
+                    className="text-slate-300"
+                  >
+                    {age.label}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </div>
