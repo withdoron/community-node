@@ -50,6 +50,40 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     enabled: !!business?.id,
   });
 
+  const { data: staffRoles = [] } = useQuery({
+    queryKey: ['staffRoles', business?.id],
+    queryFn: async () => {
+      if (!business?.id) return [];
+      const key = `staff_roles:${business.id}`;
+      const settings = await base44.entities.AdminSettings.filter({ key });
+      if (settings.length === 0) return [];
+      try {
+        return JSON.parse(settings[0].value) || [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!business?.id,
+  });
+
+  const getRoleForUser = (userId) => {
+    const roleData = staffRoles.find((r) => r.user_id === userId);
+    return roleData?.role || 'instructor';
+  };
+
+  const getRoleBadge = (role) => {
+    switch (role) {
+      case 'manager':
+        return <Badge className="bg-purple-500 text-white text-xs">Manager</Badge>;
+      case 'instructor':
+        return <Badge className="bg-blue-500 text-white text-xs">Instructor</Badge>;
+      case 'staff':
+        return <Badge variant="outline" className="border-slate-500 text-slate-300 text-xs">Staff</Badge>;
+      default:
+        return <Badge variant="outline" className="border-slate-600 text-slate-400 text-xs">Staff</Badge>;
+    }
+  };
+
   const { data: staffUsers = [] } = useQuery({
     queryKey: ['staff', business?.id, business?.instructors],
     queryFn: async () => {
@@ -219,12 +253,32 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   };
 
   const addStaffMutation = useMutation({
-    mutationFn: async (userId) => {
-      const updated = [...(business.instructors || []), userId];
-      return base44.entities.Business.update(business.id, { instructors: updated });
+    mutationFn: async ({ userId, role }) => {
+      const currentInstructors = business.instructors || [];
+      await base44.entities.Business.update(business.id, {
+        instructors: [...currentInstructors, userId],
+      });
+
+      const key = `staff_roles:${business.id}`;
+      const existing = await base44.entities.AdminSettings.filter({ key });
+      let currentRoles = [];
+      if (existing.length > 0) {
+        try {
+          currentRoles = JSON.parse(existing[0].value) || [];
+        } catch {}
+      }
+      const newRole = { user_id: userId, role, added_at: new Date().toISOString() };
+      const updatedRoles = [...currentRoles.filter((r) => r.user_id !== userId), newRole];
+      const value = JSON.stringify(updatedRoles);
+      if (existing.length > 0) {
+        await base44.entities.AdminSettings.update(existing[0].id, { value });
+      } else {
+        await base44.entities.AdminSettings.create({ key, value });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['staffRoles', business.id] });
       queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
       setAddStaffEmail('');
       setStaffSearchResult(null);
@@ -238,10 +292,24 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const removeStaffMutation = useMutation({
     mutationFn: async (userId) => {
       const updated = (business.instructors || []).filter((id) => id !== userId);
-      return base44.entities.Business.update(business.id, { instructors: updated });
+      await base44.entities.Business.update(business.id, { instructors: updated });
+
+      const key = `staff_roles:${business.id}`;
+      const existing = await base44.entities.AdminSettings.filter({ key });
+      if (existing.length > 0) {
+        let currentRoles = [];
+        try {
+          currentRoles = JSON.parse(existing[0].value) || [];
+        } catch {}
+        const updatedRoles = currentRoles.filter((r) => r.user_id !== userId);
+        await base44.entities.AdminSettings.update(existing[0].id, {
+          value: JSON.stringify(updatedRoles),
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['staffRoles', business.id] });
       queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
       toast.success('Staff removed');
     },
@@ -638,19 +706,38 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
               )}
 
               {staffSearchResult && !staffSearchResult.notFound && (
-                <div className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
-                  <div>
-                    <p className="text-white text-sm">{staffSearchResult.full_name || staffSearchResult.email}</p>
-                    <p className="text-slate-400 text-xs">{staffSearchResult.email}</p>
+                <div className="space-y-3 p-3 bg-slate-700 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-white text-sm">{staffSearchResult.full_name || staffSearchResult.email}</p>
+                      <p className="text-slate-400 text-xs">{staffSearchResult.email}</p>
+                    </div>
                   </div>
-                  <Button
-                    onClick={() => addStaffMutation.mutate(staffSearchResult.id)}
-                    disabled={addStaffMutation.isPending}
-                    size="sm"
-                    className="bg-amber-500 hover:bg-amber-600 text-black"
-                  >
-                    Add
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-slate-400 text-xs shrink-0">Role:</Label>
+                    <Select
+                      value={selectedRole}
+                      onValueChange={setSelectedRole}
+                      disabled={addStaffMutation.isPending}
+                    >
+                      <SelectTrigger className="h-8 bg-slate-800 border-slate-600 text-slate-300 text-sm w-[140px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-slate-800">
+                        <SelectItem value="manager" className="text-slate-300 focus:bg-slate-800">Manager</SelectItem>
+                        <SelectItem value="instructor" className="text-slate-300 focus:bg-slate-800">Instructor</SelectItem>
+                        <SelectItem value="staff" className="text-slate-300 focus:bg-slate-800">Staff</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={() => addStaffMutation.mutate({ userId: staffSearchResult.id, role: selectedRole })}
+                      disabled={addStaffMutation.isPending}
+                      size="sm"
+                      className="bg-amber-500 hover:bg-amber-600 text-black"
+                    >
+                      {addStaffMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add'}
+                    </Button>
+                  </div>
                 </div>
               )}
 

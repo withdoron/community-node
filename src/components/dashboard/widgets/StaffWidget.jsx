@@ -30,10 +30,6 @@ export default function StaffWidget({ business }) {
   }, [business?.instructors]);
 
   const staffUserIds = useMemo(() => staffList.map((s) => s.user_id), [staffList]);
-  const roleByUserId = useMemo(
-    () => Object.fromEntries(staffList.map((s) => [s.user_id, s.role])),
-    [staffList]
-  );
 
   // Pending invites: stored in AdminSettings (key: staff_invites:{business_id})
   const { data: pendingInvites = [] } = useQuery({
@@ -51,6 +47,28 @@ export default function StaffWidget({ business }) {
     },
     enabled: !!business?.id,
   });
+
+  // Active staff roles: stored in AdminSettings (key: staff_roles:{business_id})
+  const { data: staffRoles = [] } = useQuery({
+    queryKey: ['staffRoles', business?.id],
+    queryFn: async () => {
+      if (!business?.id) return [];
+      const key = `staff_roles:${business.id}`;
+      const settings = await base44.entities.AdminSettings.filter({ key });
+      if (settings.length === 0) return [];
+      try {
+        return JSON.parse(settings[0].value) || [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!business?.id,
+  });
+
+  const getRoleForUser = (userId) => {
+    const roleData = staffRoles.find((r) => r.user_id === userId);
+    return roleData?.role || 'instructor';
+  };
 
   const { data: staffUsers = [], isLoading: staffLoading } = useQuery({
     queryKey: ['staff', business?.id, business?.instructors],
@@ -160,6 +178,18 @@ export default function StaffWidget({ business }) {
         await base44.entities.Business.update(business.id, {
           instructors: updatedInstructors,
         });
+        const rolesKey = `staff_roles:${business.id}`;
+        const rolesExisting = await base44.entities.AdminSettings.filter({ key: rolesKey });
+        if (rolesExisting.length > 0) {
+          let currentRoles = [];
+          try {
+            currentRoles = JSON.parse(rolesExisting[0].value) || [];
+          } catch {}
+          const updatedRoles = currentRoles.filter((r) => r.user_id !== identifier);
+          await base44.entities.AdminSettings.update(rolesExisting[0].id, {
+            value: JSON.stringify(updatedRoles),
+          });
+        }
       }
     },
     onSuccess: () => {
@@ -284,7 +314,7 @@ export default function StaffWidget({ business }) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {getRoleBadge(roleByUserId[user.id] || 'instructor')}
+              {getRoleBadge(getRoleForUser(user.id))}
               <Button
                 variant="ghost"
                 size="icon"
