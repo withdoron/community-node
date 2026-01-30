@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Plus, UserPlus } from "lucide-react";
+import { User, UserPlus, Plus, X } from "lucide-react";
 
 export default function StaffWidget({ business }) {
   const queryClient = useQueryClient();
@@ -51,6 +51,24 @@ export default function StaffWidget({ business }) {
     },
     onError: () => {
       toast.error('Failed to add staff member');
+    },
+  });
+
+  const removeStaffMutation = useMutation({
+    mutationFn: async (userId) => {
+      const currentInstructors = business.instructors || [];
+      const updatedInstructors = currentInstructors.filter((id) => id !== userId);
+      return base44.entities.Business.update(business.id, {
+        instructors: updatedInstructors,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['associatedBusinesses'] });
+      toast.success('Staff member removed');
+    },
+    onError: () => {
+      toast.error('Failed to remove staff member');
     },
   });
 
@@ -139,7 +157,18 @@ export default function StaffWidget({ business }) {
                 <p className="text-slate-400 text-sm">{user.email}</p>
               </div>
             </div>
-            <Badge variant="outline" className="border-slate-600 text-slate-300">Instructor</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="border-slate-600 text-slate-300">Instructor</Badge>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => removeStaffMutation.mutate(user.id)}
+                disabled={removeStaffMutation.isPending}
+                className="text-slate-400 hover:text-red-400 hover:bg-slate-700"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         ))}
 

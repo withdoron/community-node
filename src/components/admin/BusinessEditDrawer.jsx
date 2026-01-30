@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -18,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown, Trash2, Link2 } from "lucide-react";
+import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown, Trash2, Link2, X } from "lucide-react";
 import { format } from 'date-fns';
 import { toast } from "sonner";
 
@@ -27,6 +28,24 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const [editData, setEditData] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, field: '', value: null, message: '' });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [addStaffEmail, setAddStaffEmail] = useState('');
+  const [staffSearchResult, setStaffSearchResult] = useState(null);
+  const [staffSearchError, setStaffSearchError] = useState('');
+  const [isSearchingStaff, setIsSearchingStaff] = useState(false);
+
+  const { data: staffUsers = [] } = useQuery({
+    queryKey: ['staff', business?.id, business?.instructors],
+    queryFn: async () => {
+      if (!business?.instructors?.length) return [];
+      const users = await Promise.all(
+        business.instructors.map((id) =>
+          base44.entities.User.get(id).catch(() => null)
+        )
+      );
+      return users.filter(Boolean);
+    },
+    enabled: !!business?.id && !!business?.instructors?.length,
+  });
 
   useEffect(() => {
     if (business) {
@@ -151,6 +170,66 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         toast.error(message);
       }
       console.error(error);
+    },
+  });
+
+  const handleSearchStaff = async () => {
+    if (!addStaffEmail.trim()) return;
+    setIsSearchingStaff(true);
+    setStaffSearchError('');
+    setStaffSearchResult(null);
+    try {
+      const users = await base44.entities.User.filter({ email: addStaffEmail.trim() }, '', 1);
+      if (!users?.length) {
+        setStaffSearchError('No user found with that email.');
+        return;
+      }
+      const user = users[0];
+      if (business.instructors?.includes(user.id)) {
+        setStaffSearchError('Already a staff member.');
+        return;
+      }
+      if (user.id === business.owner_user_id) {
+        setStaffSearchError('This is the owner.');
+        return;
+      }
+      setStaffSearchResult(user);
+    } catch (err) {
+      setStaffSearchError('Search failed.');
+    } finally {
+      setIsSearchingStaff(false);
+    }
+  };
+
+  const addStaffMutation = useMutation({
+    mutationFn: async (userId) => {
+      const updated = [...(business.instructors || []), userId];
+      return base44.entities.Business.update(business.id, { instructors: updated });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
+      setAddStaffEmail('');
+      setStaffSearchResult(null);
+      toast.success('Staff added');
+    },
+    onError: () => {
+      toast.error('Failed to add staff');
+    },
+  });
+
+  const removeStaffMutation = useMutation({
+    mutationFn: async (userId) => {
+      const updated = (business.instructors || []).filter((id) => id !== userId);
+      return base44.entities.Business.update(business.id, { instructors: updated });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
+      toast.success('Staff removed');
+    },
+    onError: () => {
+      toast.error('Failed to remove staff');
     },
   });
 
@@ -391,6 +470,81 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 Saving...
               </div>
             )}
+
+            <Separator className="bg-slate-700" />
+
+            {/* Staff Management */}
+            <div className="space-y-4">
+              <h3 className="text-white font-semibold">Staff & Instructors</h3>
+
+              <div className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+                <div>
+                  <p className="text-white text-sm">{business.owner_email}</p>
+                  <p className="text-slate-400 text-xs">Owner</p>
+                </div>
+                <Badge className="bg-amber-500 text-black">Owner</Badge>
+              </div>
+
+              {staffUsers.map((user) => (
+                <div key={user.id} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+                  <div>
+                    <p className="text-white text-sm">{user.full_name || user.email}</p>
+                    <p className="text-slate-400 text-xs">{user.email}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="border-slate-600 text-slate-300 text-xs">Staff</Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeStaffMutation.mutate(user.id)}
+                      className="h-6 w-6 text-slate-400 hover:text-red-400"
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="staff@example.com"
+                  value={addStaffEmail}
+                  onChange={(e) => setAddStaffEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearchStaff()}
+                  className="bg-slate-800 border-slate-700 text-white text-sm"
+                />
+                <Button
+                  onClick={handleSearchStaff}
+                  disabled={isSearchingStaff || !addStaffEmail.trim()}
+                  size="sm"
+                  className="bg-amber-500 hover:bg-amber-600 text-black"
+                >
+                  Search
+                </Button>
+              </div>
+
+              {staffSearchError && (
+                <p className="text-red-400 text-xs">{staffSearchError}</p>
+              )}
+
+              {staffSearchResult && (
+                <div className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                  <div>
+                    <p className="text-white text-sm">{staffSearchResult.full_name || staffSearchResult.email}</p>
+                    <p className="text-slate-400 text-xs">{staffSearchResult.email}</p>
+                  </div>
+                  <Button
+                    onClick={() => addStaffMutation.mutate(staffSearchResult.id)}
+                    disabled={addStaffMutation.isPending}
+                    size="sm"
+                    className="bg-amber-500 hover:bg-amber-600 text-black"
+                  >
+                    Add
+                  </Button>
+                </div>
+              )}
+            </div>
 
             <Separator className="bg-slate-700" />
 
