@@ -39,10 +39,10 @@ export default function ConfigSection({ domain, configType, title }) {
   };
 
   const handleDelete = (item) => {
-    const next = items.filter(
-      (i) => (i.value !== item.value && i.id !== item.id)
-    );
-    mutation.mutate(next, {
+    // Remove only the selected item (by value; id may be absent on config items)
+    const valueToDelete = item.value ?? item.id;
+    const updatedItems = items.filter((i) => (i.value ?? i.id) !== valueToDelete);
+    mutation.mutate(updatedItems, {
       onSuccess: () => toast.success('Removed'),
       onError: () => toast.error('Failed to remove'),
     });
