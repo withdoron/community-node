@@ -69,93 +69,54 @@ export default function BusinessDashboard() {
     queryFn: () => base44.auth.me()
   });
 
-  const { data: associatedBusinesses = [], isLoading: businessesLoading } = useQuery({
-    queryKey: ['associatedBusinesses', currentUser?.id],
+  // Fetch businesses where user is owner
+  const { data: ownedBusinesses = [], isLoading: ownedLoading } = useQuery({
+    queryKey: ['ownedBusinesses', currentUser?.id],
     queryFn: async () => {
-      const userId = currentUser?.id;
-      const userEmail = currentUser?.email;
-      const linkedIds = currentUser?.associated_businesses || [];
+      if (!currentUser?.id) return [];
+      return base44.entities.Business.filter(
+        { owner_user_id: currentUser.id },
+        '-created_date',
+        100
+      );
+    },
+    enabled: !!currentUser?.id,
+  });
 
-      // Debug: current user
-      console.log('[BusinessDashboard] currentUser.id:', userId);
-      console.log('[BusinessDashboard] currentUser.email:', userEmail);
-      console.log('[BusinessDashboard] currentUser.associated_businesses:', linkedIds);
-
-      // 1) Fetch businesses where current user is owner (source of truth for "my businesses")
-      const byOwner = userId
-        ? await base44.entities.Business.filter(
-            { owner_user_id: userId },
-            '-created_date',
-            100
+  // Fetch businesses where user is staff (in instructors array)
+  const { data: staffBusinesses = [], isLoading: staffLoading } = useQuery({
+    queryKey: ['staffBusinesses', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      if (currentUser.associated_businesses?.length) {
+        const businesses = await Promise.all(
+          currentUser.associated_businesses.map((id) =>
+            base44.entities.Business.filter({ id }, '', 1).then((r) => r?.[0] ?? null)
           )
-        : [];
-
-      // Debug: how many returned by owner_user_id filter, and each business's owner fields
-      console.log('[BusinessDashboard] owner_user_id filter returned count:', byOwner?.length ?? 0);
-      console.log(
-        '[BusinessDashboard] businesses by owner_user_id (id, name, owner_user_id, owner_email):',
-        (byOwner || []).map((b) => ({
-          id: b?.id,
-          name: b?.name,
-          owner_user_id: b?.owner_user_id,
-          owner_email: b?.owner_email,
-          matches_current_user: b?.owner_user_id === userId
-        }))
-      );
-
-      // 2) Fetch by linked IDs (user.associated_businesses) for any extra associations
-      const byLinked =
-        linkedIds.length > 0
-          ? (
-              await Promise.all(
-                linkedIds.map((businessId) =>
-                  base44.entities.Business.filter({ id: businessId }, '', 1)
-                )
-              )
-            ).flat()
-          : [];
-
-      // Merge and dedupe by id (owner list takes precedence for order)
-      const seen = new Set();
-      const merged = [];
-      for (const b of byOwner) {
-        if (b?.id && !seen.has(b.id)) {
-          seen.add(b.id);
-          merged.push(b);
-        }
-      }
-      for (const b of byLinked) {
-        if (b?.id && !seen.has(b.id)) {
-          seen.add(b.id);
-          merged.push(b);
-        }
-      }
-
-      // Don't show soft-deleted businesses (is_deleted or status === 'deleted')
-      const filtered = merged.filter(
-        (b) => !b?.is_deleted && b?.status !== 'deleted'
-      );
-
-      console.log('[BusinessDashboard] businesses by associated_businesses count:', byLinked?.length ?? 0);
-      console.log('[BusinessDashboard] merged businesses count:', filtered.length);
-      console.log(
-        '[BusinessDashboard] merged (id, name) — check for duplicate names e.g. two "Recess":',
-        filtered.map((b) => ({ id: b?.id, name: b?.name }))
-      );
-      // If Admin shows more businesses for this email: Admin filters by owner_email; Dashboard uses owner_user_id.
-      // Check each business in the table above: if owner_user_id !== currentUser.id, they won't appear in byOwner.
-      if (filtered.length < 3 && userEmail) {
-        console.log(
-          '[BusinessDashboard] Tip: If Admin shows 3 businesses for',
-          userEmail,
-          'but Dashboard shows fewer, the others may have owner_email set but owner_user_id different or null. Update them in Admin (e.g. ensure owner_user_id matches current user) or clean up duplicate/test entries.'
+        );
+        const found = businesses.filter(Boolean);
+        return found.filter(
+          (b) =>
+            b.instructors?.includes(currentUser.id) &&
+            b.owner_user_id !== currentUser.id
         );
       }
-
-      return filtered;
+      const allBusinesses = await base44.entities.Business.list('-created_date', 500);
+      return (allBusinesses || []).filter(
+        (b) =>
+          b.instructors?.includes(currentUser.id) &&
+          b.owner_user_id !== currentUser.id
+      );
     },
-    enabled: !!currentUser
+    enabled: !!currentUser?.id,
   });
+
+  // Merge and dedupe (owner list first, then staff)
+  const associatedBusinesses = [...(ownedBusinesses || []), ...(staffBusinesses || [])].filter(
+    (b, i, arr) => b?.id && !b?.is_deleted && b?.status !== 'deleted' && arr.findIndex((x) => x.id === b.id) === i
+  );
+
+  const businessesLoading = ownedLoading || staffLoading;
 
   // Fetch event counts for each business
   const { data: eventCounts = {} } = useQuery({
@@ -202,7 +163,8 @@ export default function BusinessDashboard() {
     },
     onSuccess: () => {
       console.log('[Dashboard Delete] onSuccess');
-      queryClient.invalidateQueries({ queryKey: ['associatedBusinesses'] });
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUser?.id] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUser?.id] });
       setSelectedBusinessId(null);
       setDeleteDialogOpen(false);
       toast.success('Business deleted');
@@ -217,9 +179,9 @@ export default function BusinessDashboard() {
   const isLoading = userLoading || businessesLoading;
 
   const getUserRole = (business) => {
-    if (business.owner_user_id === currentUser?.id) return 'Owner';
-    if (business.instructors?.includes(currentUser?.id)) return 'Instructor';
-    return 'Editor';
+    if (business?.owner_user_id === currentUser?.id) return 'owner';
+    if (business?.instructors?.includes(currentUser?.id)) return 'staff';
+    return 'none';
   };
 
   if (isLoading) {
@@ -359,8 +321,8 @@ export default function BusinessDashboard() {
   const userRole = getUserRole(selectedBusiness);
   const archetype = selectedBusiness.archetype || 'location';
   const config = DASHBOARD_CONFIG[archetype] || DEFAULT_CONFIG;
-  const isOwner = userRole === 'Owner';
-  const isManager = userRole === 'Manager';
+  const isOwner = userRole === 'owner';
+  const isStaff = userRole === 'staff';
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -384,9 +346,11 @@ export default function BusinessDashboard() {
                 <h1 className="text-lg font-bold text-slate-100">{selectedBusiness.name}</h1>
                 <p className="text-xs text-slate-400">{config.title}</p>
               </div>
-              <Badge className="ml-2 bg-amber-500/10 text-amber-500 border-amber-500/30">
-                {userRole}
-              </Badge>
+              {userRole === 'owner' ? (
+                <Badge className="ml-2 bg-amber-500 text-black">OWNER</Badge>
+              ) : (
+                <Badge variant="outline" className="ml-2 border-amber-500 text-amber-500">STAFF</Badge>
+              )}
             </div>
           </div>
         </div>
@@ -496,8 +460,8 @@ export default function BusinessDashboard() {
           </Card>
         )}
 
-        {/* Staff - Only Managers and Owners (Venue/Location) */}
-        {config.widgets.includes('Staff') && (isManager || isOwner) && (
+        {/* Staff - Owners and Staff (Venue/Location) */}
+        {config.widgets.includes('Staff') && (isOwner || isStaff) && (
           <StaffWidget business={selectedBusiness} />
         )}
 

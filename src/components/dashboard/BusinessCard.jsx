@@ -5,29 +5,29 @@ import { Store, ChevronRight, Calendar, Users, Crown, Shield, UserCircle } from 
 
 export default function BusinessCard({ business, userRole, eventCount = 0, onClick }) {
   const roleConfig = {
-    Owner: { 
-      label: 'OWNER', 
-      icon: Crown, 
-      className: 'bg-amber-500 text-black font-bold border-amber-500' 
+    owner: {
+      label: 'OWNER',
+      icon: Crown,
+      className: 'bg-amber-500 text-black font-bold border-amber-500',
     },
-    Manager: { 
-      label: 'MANAGER', 
-      icon: Shield, 
-      className: 'bg-slate-700 text-slate-300 border-slate-700' 
+    staff: {
+      label: 'STAFF',
+      icon: UserCircle,
+      className: 'border-amber-500 text-amber-500',
     },
-    Instructor: { 
-      label: 'STAFF', 
-      icon: UserCircle, 
-      className: 'bg-slate-700 text-slate-300 border-slate-700' 
+    none: {
+      label: 'STAFF',
+      icon: UserCircle,
+      className: 'bg-slate-700 text-slate-300 border-slate-700',
     },
-    Editor: { 
-      label: 'STAFF', 
-      icon: UserCircle, 
-      className: 'bg-slate-700 text-slate-300 border-slate-700' 
-    }
+    // Legacy keys for backward compatibility
+    Owner: { label: 'OWNER', icon: Crown, className: 'bg-amber-500 text-black font-bold border-amber-500' },
+    Manager: { label: 'MANAGER', icon: Shield, className: 'bg-slate-700 text-slate-300 border-slate-700' },
+    Instructor: { label: 'STAFF', icon: UserCircle, className: 'bg-slate-700 text-slate-300 border-slate-700' },
+    Editor: { label: 'STAFF', icon: UserCircle, className: 'bg-slate-700 text-slate-300 border-slate-700' },
   };
 
-  const role = roleConfig[userRole] || roleConfig.Editor;
+  const role = roleConfig[userRole] || roleConfig.staff;
   const RoleIcon = role.icon;
 
   return (
@@ -58,7 +58,7 @@ export default function BusinessCard({ business, userRole, eventCount = 0, onCli
               <h3 className="font-bold text-lg text-slate-100 truncate">
                 {business.name}
               </h3>
-              <Badge variant="outline" className={role.className}>
+              <Badge variant={userRole === 'staff' ? 'outline' : undefined} className={role.className}>
                 <RoleIcon className="h-3 w-3 mr-1" />
                 {role.label}
               </Badge>
