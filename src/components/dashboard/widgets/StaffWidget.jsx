@@ -99,10 +99,43 @@ export default function StaffWidget({ business }) {
     },
   });
 
+  const inviteStaffMutation = useMutation({
+    mutationFn: async ({ email, role }) => {
+      const currentStaff = business.staff || [];
+      const newInvite = {
+        user_id: null,
+        email: email,
+        role: role,
+        status: 'invited',
+        invited_at: new Date().toISOString(),
+        added_at: new Date().toISOString(),
+      };
+      return base44.entities.Business.update(business.id, {
+        staff: [...currentStaff, newInvite],
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['associatedBusinesses'] });
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', business.id] });
+      setAddStaffOpen(false);
+      setSearchEmail('');
+      setSearchResult(null);
+      setSelectedRole('instructor');
+      toast.success('Invitation sent! They will appear in your staff list when they create an account.');
+    },
+    onError: () => {
+      toast.error('Failed to send invitation');
+    },
+  });
+
   const removeStaffMutation = useMutation({
-    mutationFn: async (userId) => {
-      const updatedStaff = (business.staff || []).filter((s) => s.user_id !== userId);
-      const updatedInstructors = (business.instructors || []).filter((id) => id !== userId);
+    mutationFn: async (identifier) => {
+      const updatedStaff = (business.staff || []).filter(
+        (s) => s.user_id !== identifier && s.email !== identifier
+      );
+      const updatedInstructors = (business.instructors || []).filter((id) => id !== identifier);
       return base44.entities.Business.update(business.id, {
         staff: updatedStaff,
         instructors: updatedInstructors,
