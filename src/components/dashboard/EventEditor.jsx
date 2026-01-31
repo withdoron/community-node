@@ -77,6 +77,7 @@ export default function EventEditor({
   const [recurrencePattern, setRecurrencePattern] = useState("weekly");
   const [selectedDays, setSelectedDays] = useState([]);
   const [recurrenceEndDate, setRecurrenceEndDate] = useState(null);
+  const [recurrenceEndDateOpen, setRecurrenceEndDateOpen] = useState(false);
 
   const toggleDay = (day) => {
     setSelectedDays((prev) =>
@@ -464,7 +465,7 @@ export default function EventEditor({
 
               <div>
                 <Label className="text-slate-300">Ends on (Optional)</Label>
-                <Popover>
+                <Popover open={recurrenceEndDateOpen} onOpenChange={setRecurrenceEndDateOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       type="button"
@@ -481,7 +482,16 @@ export default function EventEditor({
                     <Calendar
                       mode="single"
                       selected={recurrenceEndDate}
-                      onSelect={setRecurrenceEndDate}
+                      onSelect={(date) => {
+                        setRecurrenceEndDate(date);
+                        setRecurrenceEndDateOpen(false);
+                      }}
+                      disabled={(date) => {
+                        const today = new Date(new Date().setHours(0, 0, 0, 0));
+                        if (date < today) return true;
+                        if (formData.start_date && date <= formData.start_date) return true;
+                        return false;
+                      }}
                       initialFocus
                     />
                   </PopoverContent>
