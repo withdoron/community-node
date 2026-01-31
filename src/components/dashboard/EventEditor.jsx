@@ -1351,18 +1351,17 @@ export default function EventEditor({
         </div>
 
         {/* Actions */}
-        <div className="space-y-3 pt-4 border-t border-slate-700">
+        <div className="space-y-3 pt-4 border-t border-slate-800">
           {lastSaved && (
             <p className="text-xs text-slate-500 text-center">
               Last auto-saved {formatDistanceToNow(lastSaved, { addSuffix: true })}
             </p>
           )}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
             <Button
               type="button"
-              variant="ghost"
               onClick={onCancel}
-              className="w-full text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+              className="bg-transparent border-none text-slate-400 hover:text-slate-300 hover:underline hover:bg-transparent w-full sm:w-auto px-6 sm:px-8 py-3 shadow-none order-3 sm:order-1"
             >
               Cancel
             </Button>
@@ -1370,8 +1369,7 @@ export default function EventEditor({
               type="button"
               disabled={isSubmitting}
               onClick={(e) => handleSubmit(e, { isDraft: true })}
-              variant="outline"
-              className="w-full border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
+              className="bg-transparent border border-slate-600 text-slate-200 hover:bg-slate-800 hover:border-slate-500 w-full sm:w-auto px-6 sm:px-8 py-3 order-2 sm:order-2"
             >
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Save as Draft
@@ -1379,7 +1377,7 @@ export default function EventEditor({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold text-base"
+              className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold w-full sm:w-auto px-6 sm:px-8 py-3 order-1 sm:order-3"
             >
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Publish Event
