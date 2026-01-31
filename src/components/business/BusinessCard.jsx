@@ -60,18 +60,6 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
           <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-transparent pointer-events-none" />
           {/* Stacked badges: top-left */}
           <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1">
-            {/* Featured badge (user-facing term for boosted) - takes priority over internal "Boosted" */}
-            {featured ? (
-              <Badge className="bg-emerald-500 text-white text-xs font-semibold px-2 py-0.5">
-                <Sparkles className="h-3 w-3 mr-1" />
-                Featured
-              </Badge>
-            ) : isBoosted && (
-              <Badge className="bg-amber-400 text-amber-900 text-xs font-semibold px-2 py-0.5">
-                <Sparkles className="h-3 w-3 mr-1" />
-                Boosted
-              </Badge>
-            )}
             <Badge className={`text-xs font-semibold px-2 py-0.5 ${tierBadgeClasses}`}>
               {TierIcon && <TierIcon className="h-3 w-3 mr-1" />}
               {tierLabel}
