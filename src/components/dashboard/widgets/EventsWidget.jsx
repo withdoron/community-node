@@ -193,7 +193,7 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
   };
 
   const handleViewOnLocalLane = (event) => {
-    window.open(`/Events/${event.id}`, '_blank');
+    window.location.href = '/Events';
   };
 
   const handleCancelEvent = (event) => {
