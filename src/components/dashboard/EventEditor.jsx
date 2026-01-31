@@ -704,10 +704,19 @@ export default function EventEditor({
                 Create multiple event instances on a schedule
               </p>
             </div>
-            <Switch
-              checked={isRecurring}
-              className="data-[state=checked]:bg-amber-500 pointer-events-none"
-            />
+            <div
+              className={cn(
+                "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
+                isRecurring ? "bg-amber-500" : "bg-slate-600"
+              )}
+            >
+              <span
+                className={cn(
+                  "inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform",
+                  isRecurring ? "translate-x-5" : "translate-x-0.5"
+                )}
+              />
+            </div>
           </div>
 
           {isRecurring && (
@@ -1160,10 +1169,19 @@ export default function EventEditor({
                 className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
               >
                 <span className="text-slate-300 pointer-events-none">Punch Pass Eligible</span>
-                <Switch
-                  checked={formData.punch_pass_eligible}
-                  className="data-[state=checked]:bg-amber-500 pointer-events-none"
-                />
+                <div
+                  className={cn(
+                    "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
+                    formData.punch_pass_eligible ? "bg-amber-500" : "bg-slate-600"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform",
+                      formData.punch_pass_eligible ? "translate-x-5" : "translate-x-0.5"
+                    )}
+                  />
+                </div>
               </div>
               {formData.punch_pass_eligible && (
                 <div>
