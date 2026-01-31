@@ -11,20 +11,20 @@ export default function BusinessCard({ business, userRole, eventCount = 0, onCli
       className: 'bg-amber-500 text-black font-bold border-amber-500',
     },
     staff: {
-      label: 'STAFF',
+      label: 'TEAM',
       icon: UserCircle,
       className: 'border-amber-500 text-amber-500',
     },
     none: {
-      label: 'STAFF',
+      label: 'TEAM',
       icon: UserCircle,
       className: 'bg-slate-700 text-slate-300 border-slate-700',
     },
     // Legacy keys for backward compatibility
     Owner: { label: 'OWNER', icon: Crown, className: 'bg-amber-500 text-black font-bold border-amber-500' },
     Manager: { label: 'MANAGER', icon: Shield, className: 'bg-slate-700 text-slate-300 border-slate-700' },
-    Instructor: { label: 'STAFF', icon: UserCircle, className: 'bg-slate-700 text-slate-300 border-slate-700' },
-    Editor: { label: 'STAFF', icon: UserCircle, className: 'bg-slate-700 text-slate-300 border-slate-700' },
+    Instructor: { label: 'TEAM', icon: UserCircle, className: 'bg-slate-700 text-slate-300 border-slate-700' },
+    Editor: { label: 'TEAM', icon: UserCircle, className: 'bg-slate-700 text-slate-300 border-slate-700' },
   };
 
   const role = roleConfig[userRole] || roleConfig.staff;

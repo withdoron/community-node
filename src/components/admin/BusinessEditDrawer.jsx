@@ -285,12 +285,16 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
-      queryClient.invalidateQueries({ queryKey: ['staffRoles', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      queryClient.invalidateQueries({ queryKey: ['staffRoles'] });
+      queryClient.invalidateQueries({ queryKey: ['staffInvites'] });
       queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
+      queryClient.refetchQueries({ queryKey: ['staff', business?.id] });
+      refetchStaff();
       setAddStaffEmail('');
       setStaffSearchResult(null);
-      toast.success('Staff added');
+      setStaffSearchError('');
+      toast.success('Staff updated');
     },
     onError: () => {
       toast.error('Failed to add staff');
@@ -691,17 +695,24 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 </div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                 <Input
                   type="email"
                   placeholder="staff@example.com"
                   value={addStaffEmail}
                   onChange={(e) => setAddStaffEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearchStaff()}
+                  autoComplete="off"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSearchStaff();
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
                   className="bg-slate-800 border-slate-700 text-white text-sm"
                 />
                 <Button
-                  onClick={handleSearchStaff}
+                  onClick={(e) => { e.stopPropagation(); handleSearchStaff(); }}
                   disabled={isSearchingStaff || !addStaffEmail.trim()}
                   size="sm"
                   className="bg-amber-500 hover:bg-amber-600 text-black"

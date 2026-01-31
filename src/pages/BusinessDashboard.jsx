@@ -349,7 +349,7 @@ export default function BusinessDashboard() {
               {userRole === 'owner' ? (
                 <Badge className="ml-2 bg-amber-500 text-black">OWNER</Badge>
               ) : (
-                <Badge variant="outline" className="ml-2 border-amber-500 text-amber-500">STAFF</Badge>
+                <Badge variant="outline" className="ml-2 border-amber-500 text-amber-500">TEAM</Badge>
               )}
             </div>
           </div>
