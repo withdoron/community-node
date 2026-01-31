@@ -95,18 +95,24 @@ export default function BusinessDashboard() {
           )
         );
         const found = businesses.filter(Boolean);
-        return found.filter(
+        const result = found.filter(
           (b) =>
             b.instructors?.includes(currentUser.id) &&
             b.owner_user_id !== currentUser.id
         );
+        console.log('[Dashboard] staffBusinesses (associated_businesses path):', result);
+        result.forEach((b) => console.log('[Dashboard] business', b.id, 'instructors:', b.instructors));
+        return result;
       }
       const allBusinesses = await base44.entities.Business.list('-created_date', 500);
-      return (allBusinesses || []).filter(
+      const result = (allBusinesses || []).filter(
         (b) =>
           b.instructors?.includes(currentUser.id) &&
           b.owner_user_id !== currentUser.id
       );
+      console.log('[Dashboard] staffBusinesses (list path):', result);
+      result.forEach((b) => console.log('[Dashboard] business', b.id, 'instructors:', b.instructors));
+      return result;
     },
     enabled: !!currentUser?.id,
   });

@@ -12,6 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { User, UserPlus, Plus, X, Mail } from "lucide-react";
 
 export default function StaffWidget({ business }) {
+  console.log('[StaffWidget] business:', business);
+  console.log('[StaffWidget] business.instructors:', business?.instructors);
+  console.log('[StaffWidget] business.owner_email:', business?.owner_email);
+
   const queryClient = useQueryClient();
   const [addStaffOpen, setAddStaffOpen] = useState(false);
   const [searchEmail, setSearchEmail] = useState('');
