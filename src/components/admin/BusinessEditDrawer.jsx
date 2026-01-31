@@ -34,10 +34,20 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const [isSearchingStaff, setIsSearchingStaff] = useState(false);
   const [selectedRole, setSelectedRole] = useState('instructor');
   const [localInstructors, setLocalInstructors] = useState([]);
+  const staffSearchRef = useRef(null);
 
   useEffect(() => {
     setLocalInstructors(business?.instructors || []);
   }, [business?.instructors]);
+
+  useEffect(() => {
+    if (open && staffSearchRef.current) {
+      const t = setTimeout(() => {
+        staffSearchRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(t);
+    }
+  }, [open]);
 
   const { data: pendingInvites = [] } = useQuery({
     queryKey: ['staffInvites', business?.id],
