@@ -147,39 +147,33 @@ export default function Events() {
 
         {/* Quick filter chips + Filters button */}
         <div className="flex items-center gap-2 flex-wrap mb-4">
-          <Button
-            variant="outline"
-            size="sm"
+          <button
             onClick={() => setQuickFilter('all')}
             className={quickFilter === 'all'
-              ? 'bg-amber-500 border-amber-500 text-black font-semibold hover:bg-amber-400 hover:border-amber-400'
-              : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors'
+              ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-500 text-black border border-amber-500 cursor-default'
+              : 'px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors cursor-pointer'
             }
           >
             All
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
+          </button>
+          <button
             onClick={() => setQuickFilter('weekend')}
             className={quickFilter === 'weekend'
-              ? 'bg-amber-500 border-amber-500 text-black font-semibold hover:bg-amber-400 hover:border-amber-400'
-              : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors'
+              ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-500 text-black border border-amber-500 cursor-default'
+              : 'px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors cursor-pointer'
             }
           >
             This Weekend
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
+          </button>
+          <button
             onClick={() => setQuickFilter('today')}
             className={quickFilter === 'today'
-              ? 'bg-amber-500 border-amber-500 text-black font-semibold hover:bg-amber-400 hover:border-amber-400'
-              : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors'
+              ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-500 text-black border border-amber-500 cursor-default'
+              : 'px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors cursor-pointer'
             }
           >
             Today
-          </Button>
+          </button>
           <Button
             variant="outline"
             size="sm"
