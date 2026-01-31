@@ -5,13 +5,33 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Plus, Pencil, Trash2, PlusCircle } from "lucide-react";
+import { Calendar, Plus, Pencil, Trash2, PlusCircle, MoreHorizontal, Copy, ExternalLink, XCircle } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import EventEditor from '../EventEditor';
 
 export default function EventsWidget({ business, allowEdit, userRole }) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [selectedEventForAction, setSelectedEventForAction] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: events = [], isLoading } = useQuery({
@@ -61,8 +81,17 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
     }
   });
 
+  const cancelMutation = useMutation({
+    mutationFn: (id) => base44.entities.Event.update(id, { status: 'cancelled', is_active: false }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['business-events', business.id] });
+      setCancelConfirmOpen(false);
+      setSelectedEventForAction(null);
+    }
+  });
+
   const handleSave = (eventData) => {
-    if (editingEvent) {
+    if (editingEvent?.id) {
       return updateMutation.mutateAsync({ id: editingEvent.id, data: eventData });
     }
     return createMutation.mutateAsync(eventData);
@@ -86,6 +115,46 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
   const handleDelete = (eventId) => {
     if (confirm('Are you sure you want to delete this event?')) {
       deleteMutation.mutate(eventId);
+    }
+  };
+
+  const handleDuplicate = (event) => {
+    const duplicatedEvent = {
+      ...event,
+      id: undefined,
+      title: `${event.title} (Copy)`,
+      status: undefined,
+      created_date: undefined,
+    };
+    setEditingEvent(duplicatedEvent);
+    setEditorOpen(true);
+  };
+
+  const handleViewOnLocalLane = (event) => {
+    window.open(`/Events/${event.id}`, '_blank');
+  };
+
+  const handleCancelEvent = (event) => {
+    setSelectedEventForAction(event);
+    setCancelConfirmOpen(true);
+  };
+
+  const handleDeleteEvent = (event) => {
+    setSelectedEventForAction(event);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (selectedEventForAction) {
+      deleteMutation.mutate(selectedEventForAction.id);
+      setDeleteConfirmOpen(false);
+      setSelectedEventForAction(null);
+    }
+  };
+
+  const confirmCancel = () => {
+    if (selectedEventForAction) {
+      cancelMutation.mutate(selectedEventForAction.id);
     }
   };
 
@@ -167,24 +236,51 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
                   </div>
                 </div>
                 {allowEdit && (userRole === 'Owner' || userRole === 'Manager') && (
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="ghost"
-                      onClick={() => handleEditEvent(event)}
-                      className="text-slate-400 hover:text-slate-100"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="ghost"
-                      onClick={() => handleDelete(event.id)}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="ghost" className="text-slate-400 hover:text-slate-100 hover:bg-slate-700">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 min-w-[160px]">
+                      <DropdownMenuItem
+                        onClick={() => handleEditEvent(event)}
+                        className="text-slate-200 focus:bg-slate-700 focus:text-white cursor-pointer"
+                      >
+                        <Pencil className="h-4 w-4 mr-2 text-slate-400" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleDuplicate(event)}
+                        className="text-slate-200 focus:bg-slate-700 focus:text-white cursor-pointer"
+                      >
+                        <Copy className="h-4 w-4 mr-2 text-slate-400" />
+                        Duplicate
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleViewOnLocalLane(event)}
+                        className="text-slate-200 focus:bg-slate-700 focus:text-white cursor-pointer"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2 text-slate-400" />
+                        View on Local Lane
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-slate-700" />
+                      <DropdownMenuItem
+                        onClick={() => handleCancelEvent(event)}
+                        className="text-orange-500 focus:bg-slate-700 focus:text-orange-400 cursor-pointer"
+                      >
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Cancel Event
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleDeleteEvent(event)}
+                        className="text-red-500 focus:bg-slate-700 focus:text-red-400 cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </div>
             </div>
@@ -210,6 +306,52 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
         />
       </DialogContent>
     </Dialog>
+
+    {/* Delete Confirmation Dialog */}
+    <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+      <AlertDialogContent className="bg-slate-900 border-slate-700">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-white">Delete Event</AlertDialogTitle>
+          <AlertDialogDescription className="text-slate-400">
+            Are you sure you want to delete &quot;{selectedEventForAction?.title}&quot;? This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white">
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={confirmDelete}
+            className="bg-red-500 hover:bg-red-400 text-white font-semibold"
+          >
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    {/* Cancel Event Confirmation Dialog */}
+    <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
+      <AlertDialogContent className="bg-slate-900 border-slate-700">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-white">Cancel Event</AlertDialogTitle>
+          <AlertDialogDescription className="text-slate-400">
+            Are you sure you want to cancel &quot;{selectedEventForAction?.title}&quot;? This will mark the event as cancelled and hide it from listings.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white">
+            Go Back
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={confirmCancel}
+            className="bg-orange-500 hover:bg-orange-400 text-white font-semibold"
+          >
+            Cancel Event
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }
