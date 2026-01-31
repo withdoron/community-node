@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -728,6 +728,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 className="flex gap-2"
               >
                 <textarea
+                  ref={staffSearchRef}
                   role="search"
                   aria-label="Staff email search"
                   placeholder="staff@example.com"
