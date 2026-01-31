@@ -1,344 +1,306 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import SearchBar from '@/components/search/SearchBar';
+import { useQuery } from '@tanstack/react-query';
+import { mainCategories, getMainCategory, getSubcategoryLabel, legacyCategoryMapping } from '@/components/categories/categoryData';
 import BusinessCard from '@/components/business/BusinessCard';
 import { rankBusinesses } from '@/components/business/rankingUtils';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ChevronRight, Shield, Users, Ban, Coins, Calendar, Store } from "lucide-react";
-import { mainCategories, defaultPopularCategoryIds } from '@/components/categories/categoryData';
-import TextTransition, { presets } from 'react-text-transition';
-import { motion } from 'framer-motion';
-
-const TEXTS = [
-  "Businesses",
-  "Community Groups",
-  "Family Activities",
-  "Local Trades",
-  "Outings",
-  "Service Projects"
-];
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Search, MapPin, Loader2, SearchX, Coins } from "lucide-react";
 
 export default function Directory() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-
-  // Get active region for this instance
   const { region, isLoading: regionLoading } = useActiveRegion();
 
-  // User location state - defaults to region center
-  const [userLat, setUserLat] = useState(null);
-  const [userLng, setUserLng] = useState(null);
+  // Read initial state from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const [searchInput, setSearchInput] = useState(urlParams.get('q') || '');
+  const [searchQuery, setSearchQuery] = useState(urlParams.get('q') || '');
+  const [selectedCategory, setSelectedCategory] = useState(urlParams.get('cat') || 'all');
+  const [acceptsSilver, setAcceptsSilver] = useState(urlParams.get('silver') === '1');
+  const [sortBy, setSortBy] = useState(urlParams.get('sort') || 'rating');
 
-  // Text transition for hero
-  const [textIndex, setTextIndex] = useState(0);
-
+  // Debounce search input (300ms)
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setTextIndex((index) => (index + 1) % TEXTS.length);
-    }, 3000);
-    return () => clearInterval(intervalId);
-  }, []);
+    const timer = setTimeout(() => setSearchQuery(searchInput), 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
-  // Default to region center - fixed 30 mile radius for now
+  // Sync URL when filters change
   useEffect(() => {
-    if (!region) return;
-    
-    // Use region center for all users
-    setUserLat(region.center_lat);
-    setUserLng(region.center_lng);
-  }, [region]);
-
-  const { data: categoryClicks = [] } = useQuery({
-    queryKey: ['categoryClicks'],
-    queryFn: () => base44.entities.CategoryClick.list('-click_count', 100)
-  });
-
-  const trackClick = useMutation({
-    mutationFn: async (categoryId) => {
-      const existing = categoryClicks.find(c => c.category === categoryId);
-      if (existing) {
-        await base44.entities.CategoryClick.update(existing.id, { 
-          click_count: (existing.click_count || 0) + 1 
-        });
-      } else {
-        await base44.entities.CategoryClick.create({ category: categoryId, click_count: 1 });
-      }
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categoryClicks'] })
-  });
-
-  // Fetch all businesses; filter by region to keep content local
-  const { data: allBusinesses = [] } = useQuery({
-    queryKey: ['all-businesses', region?.id],
-    queryFn: async () => {
-      const businesses = await base44.entities.Business.filter({ is_active: true }, '-average_rating', 200);
-      return filterBusinessesByRegion(businesses, region);
-    },
-    enabled: !!region
-  });
-
-  // Top Rated Businesses - filtered by region
-  const { data: featuredBusinesses = [], isLoading } = useQuery({
-    queryKey: ['featured-businesses', region?.id],
-    queryFn: async () => {
-      const businesses = await base44.entities.Business.filter(
-        { is_active: true },
-        '-average_rating',
-        50
-      );
-      // Filter by region, then rank and take top 6
-      const regionalBusinesses = filterBusinessesByRegion(businesses, region);
-      return rankBusinesses(regionalBusinesses).slice(0, 6);
-    },
-    enabled: !!region
-  });
-
-  const handleSearch = ({ query, location }) => {
     const params = new URLSearchParams();
-    if (query) params.set('q', query);
-    if (location) params.set('location', location);
-    navigate(createPageUrl(`Search?${params.toString()}`));
+    if (searchQuery) params.set('q', searchQuery);
+    if (selectedCategory !== 'all') params.set('cat', selectedCategory);
+    if (acceptsSilver) params.set('silver', '1');
+    if (sortBy !== 'rating') params.set('sort', sortBy);
+    const qs = params.toString();
+    const url = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+    window.history.replaceState({}, '', url);
+  }, [searchQuery, selectedCategory, acceptsSilver, sortBy]);
+
+  // Fetch admin settings for badge visibility
+  const { data: savedSettings = [] } = useQuery({
+    queryKey: ['admin-settings'],
+    queryFn: () => base44.entities.AdminSettings.list()
+  });
+
+  const badgeSettings = useMemo(() => {
+    if (savedSettings.length === 0) return null;
+    const obj = {};
+    savedSettings.forEach((s) => {
+      try {
+        obj[s.key] = JSON.parse(s.value);
+      } catch {
+        obj[s.key] = s.value;
+      }
+    });
+    return {
+      show_accepts_silver_badge: obj.show_accepts_silver_badge !== false,
+      show_locally_owned_franchise_badge: obj.show_locally_owned_franchise_badge !== false
+    };
+  }, [savedSettings]);
+
+  // Fetch businesses filtered by region
+  const { data: businesses = [], isLoading } = useQuery({
+    queryKey: ['directory-businesses', region?.id],
+    queryFn: async () => {
+      const list = await base44.entities.Business.filter({ is_active: true }, '-average_rating', 200);
+      return filterBusinessesByRegion(list, region);
+    },
+    enabled: !!region
+  });
+
+  // Filter and sort
+  const filteredBusinesses = useMemo(() => {
+    let result = [...businesses];
+
+    // Search filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(b => {
+        if (b.name?.toLowerCase().includes(q)) return true;
+        if (b.description?.toLowerCase().includes(q)) return true;
+        const mainCat = getMainCategory(b.main_category);
+        if (mainCat?.label?.toLowerCase().includes(q)) return true;
+        if (b.subcategories?.some(subId => {
+          const label = getSubcategoryLabel(b.main_category, subId);
+          return label?.toLowerCase().includes(q);
+        })) return true;
+        if (b.services?.some(s => s.name?.toLowerCase().includes(q))) return true;
+        return false;
+      });
+    }
+
+    // Category filter
+    if (selectedCategory !== 'all') {
+      result = result.filter(b => {
+        if (b.main_category === selectedCategory) return true;
+        if (b.category && legacyCategoryMapping[b.category]) {
+          return legacyCategoryMapping[b.category].main === selectedCategory;
+        }
+        return false;
+      });
+    }
+
+    // Accepts silver filter
+    if (acceptsSilver) {
+      result = result.filter(b => b.accepts_silver);
+    }
+
+    // Trust-based default sort
+    result = rankBusinesses(result);
+
+    // Re-sort by user preference if not rating
+    if (sortBy !== 'rating') {
+      result.sort((a, b) => {
+        switch (sortBy) {
+          case 'reviews':
+            return (b.review_count || 0) - (a.review_count || 0);
+          case 'newest':
+            return new Date(b.created_date || 0) - new Date(a.created_date || 0);
+          case 'alpha':
+            return (a.name || '').localeCompare(b.name || '');
+          default:
+            return 0;
+        }
+      });
+    }
+
+    return result;
+  }, [businesses, searchQuery, selectedCategory, acceptsSilver, sortBy]);
+
+  const handleClearFilters = () => {
+    setSearchInput('');
+    setSearchQuery('');
+    setSelectedCategory('all');
+    setAcceptsSilver(false);
+    setSortBy('rating');
   };
 
-  const handleCategoryClick = (categoryId) => {
-    trackClick.mutate(categoryId);
+  const handleCategoryTileClick = (categoryId) => {
     navigate(createPageUrl(`CategoryPage?id=${categoryId}`));
   };
 
-  const popularCategories = [...mainCategories]
-    .filter(c => defaultPopularCategoryIds.includes(c.id))
-    .sort((a, b) => {
-      const aClicks = categoryClicks.find(c => c.category === a.id)?.click_count || 0;
-      const bClicks = categoryClicks.find(c => c.category === b.id)?.click_count || 0;
-      if (aClicks !== bClicks) return bClicks - aClicks;
-      return defaultPopularCategoryIds.indexOf(a.id) - defaultPopularCategoryIds.indexOf(b.id);
-    }).slice(0, 8);
-
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-amber-400 rounded-full blur-[120px]" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500 rounded-full blur-[150px]" />
+    <div className="min-h-screen bg-slate-950">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Page header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-white">Directory</h1>
+          <p className="text-slate-400 mt-1">Find trusted local businesses in your community</p>
+          {region && (
+            <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-slate-400 bg-slate-800 border border-slate-700 rounded-full px-2.5 py-1">
+              <MapPin className="h-3 w-3" />
+              {region.display_name || region.name}
+            </div>
+          )}
         </div>
-        
-        <div className="relative max-w-6xl mx-auto px-4 py-20 sm:py-32">
-          <div className="text-center max-w-3xl mx-auto">
-            <Badge className="mb-6 bg-white/10 text-white border-white/20 hover:bg-white/20">
-              <Shield className="h-3 w-3 mr-1" />
-              Ad‑Free • Trusted • Local
-            </Badge>
-            <h1 className="text-white tracking-tight leading-tight text-center px-4">
-              <span className="block text-3xl sm:text-4xl font-semibold mb-3">Find trusted</span>
-              <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold my-4 break-words">
-                <TextTransition springConfig={presets.wobbly} inline className="text-amber-400">
-                  {TEXTS[textIndex]}
-                </TextTransition>
-              </span>
-              <span className="block text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold mt-3">
-                in the Greater Eugene/Springfield Area
-              </span>
-            </h1>
-            <p className="mt-12 text-lg text-slate-300 max-w-2xl mx-auto">
-              No ads, no spam—just real local community, with the option to support sound money with silver.
-            </p>
-          </div>
 
-          <div className="mt-12 max-w-3xl mx-auto px-4">
-            <div className="flex flex-row items-center justify-center gap-3 sm:gap-4">
-              <Button 
-                size="lg"
-                className="bg-amber-400 hover:bg-amber-500 hover:brightness-110 text-slate-900 font-semibold px-6 sm:px-10 py-4 text-base sm:text-lg h-auto flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
-                onClick={() => navigate(createPageUrl('Search'))}
-              >
-                Browse Directory
-              </Button>
-              <Button 
-                size="lg"
-                variant="outline"
-                className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-6 sm:px-10 py-4 text-base sm:text-lg h-auto flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
-                onClick={() => navigate(createPageUrl('Events'))}
-              >
-                View Events
-              </Button>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-white">100+</p>
-              <p className="text-sm text-slate-400 mt-1">Local Businesses Listed</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-white">4.8</p>
-              <p className="text-sm text-slate-400 mt-1">Average Rating</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-white">1000+</p>
-              <p className="text-sm text-slate-400 mt-1">Local Customers Served</p>
-            </div>
-          </div>
+        {/* Search bar */}
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            type="text"
+            placeholder="Search businesses, services, categories..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="h-12 pl-11 text-base bg-slate-900 border border-slate-700 text-white placeholder:text-slate-500 focus:border-amber-500 focus:ring-amber-500 rounded-xl w-full"
+          />
         </div>
-      </section>
 
-      {/* Categories */}
-      <section id="categories" className="max-w-6xl mx-auto px-4 py-16">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900">Browse by Category</h2>
-            <p className="text-slate-600 mt-1">Find exactly what you need</p>
-          </div>
-          <Button 
-            variant="ghost" 
-            className="text-slate-600 hover:text-slate-900"
-            onClick={() => navigate(createPageUrl('Categories'))}
+        {/* Quick filter chips */}
+        <div
+          className="flex items-center gap-2 overflow-x-auto pb-2 mt-4 [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: 'none' }}
+        >
+          <button
+            onClick={() => setSelectedCategory('all')}
+            className={selectedCategory === 'all'
+              ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-500 text-black border border-amber-500 cursor-default whitespace-nowrap flex-shrink-0'
+              : 'px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0'
+            }
           >
-            View all categories
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {popularCategories.map((category) => {
+            All
+          </button>
+          {mainCategories.map((category) => {
             const Icon = category.icon;
+            const isActive = selectedCategory === category.id;
             return (
               <button
                 key={category.id}
-                onClick={() => handleCategoryClick(category.id)}
-                className={`p-5 rounded-xl border border-slate-100 ${category.color} transition-all duration-200 hover:scale-[1.02] hover:shadow-sm text-left`}
+                onClick={() => setSelectedCategory(category.id)}
+                className={isActive
+                  ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-500 text-black border border-amber-500 cursor-default whitespace-nowrap flex-shrink-0 flex items-center gap-1.5'
+                  : 'px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0 flex items-center gap-1.5'
+                }
               >
-                <Icon className="h-8 w-8 mb-3" />
-                <p className="font-semibold text-slate-900">{category.label}</p>
+                {Icon && <Icon className="h-3.5 w-3.5 flex-shrink-0" />}
+                {category.label}
               </button>
             );
           })}
+          <div className="w-px h-6 bg-slate-700 flex-shrink-0" />
+          <button
+            onClick={() => setAcceptsSilver(!acceptsSilver)}
+            className={acceptsSilver
+              ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-500/20 text-amber-500 border border-amber-500/50 cursor-default whitespace-nowrap flex-shrink-0 flex items-center gap-1.5'
+              : 'px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0 flex items-center gap-1.5'
+            }
+          >
+            <Coins className="h-3.5 w-3.5" />
+            Accepts Silver
+          </button>
         </div>
-      </section>
 
-      {/* Top Rated Businesses (organic, no Featured badge) */}
-      <section className="bg-slate-50 py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">Top Rated Businesses</h2>
-              <p className="text-slate-600 mt-1">Highly recommended by your neighbors</p>
-            </div>
-            <Button 
-              variant="ghost" 
-              className="text-slate-600 hover:text-slate-900"
-              onClick={() => navigate(createPageUrl('Search'))}
-            >
-              View all
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
+        {/* Results header */}
+        <div className="flex items-center justify-between mt-4 mb-4">
+          <span className="text-sm text-slate-400">
+            {filteredBusinesses.length} {filteredBusinesses.length === 1 ? 'business' : 'businesses'}
+          </span>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[160px] h-9 bg-slate-800 border-slate-700 text-slate-300 text-sm">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-900 border-slate-700">
+              <SelectItem value="rating" className="text-slate-300 focus:bg-slate-800 focus:text-white">
+                Top Rated
+              </SelectItem>
+              <SelectItem value="reviews" className="text-slate-300 focus:bg-slate-800 focus:text-white">
+                Most Reviewed
+              </SelectItem>
+              <SelectItem value="newest" className="text-slate-300 focus:bg-slate-800 focus:text-white">
+                Newest
+              </SelectItem>
+              <SelectItem value="alpha" className="text-slate-300 focus:bg-slate-800 focus:text-white">
+                A-Z
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
+        {/* Business grid */}
+        <div className="min-h-[200px]">
           {isLoading ? (
-            <div className="grid gap-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-40 bg-white rounded-xl animate-pulse" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="h-48 bg-slate-800 rounded-xl animate-pulse" />
               ))}
             </div>
+          ) : filteredBusinesses.length === 0 ? (
+            <div className="text-center py-20 bg-slate-900 border border-slate-800 rounded-xl">
+              <SearchX className="h-12 w-12 text-slate-500 mx-auto mb-3" />
+              <p className="text-slate-300 font-medium">No businesses found</p>
+              <p className="text-sm text-slate-400 mt-1">Try adjusting your search or filters</p>
+              <button
+                onClick={handleClearFilters}
+                className="mt-4 px-4 py-2 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors"
+              >
+                Clear filters
+              </button>
+            </div>
           ) : (
-            <div className="grid gap-4">
-              {featuredBusinesses.map((business) => (
-                <BusinessCard 
-                  key={business.id} 
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredBusinesses.map((business) => (
+                <BusinessCard
+                  key={business.id}
                   business={business}
+                  badgeSettings={badgeSettings}
                 />
               ))}
             </div>
           )}
         </div>
-      </section>
 
-      {/* Why LocalLane */}
-      <section className="max-w-6xl mx-auto px-4 py-16">
-        <h2 className="text-2xl font-bold text-slate-900 text-center mb-10">Why use LocalLane?</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          <motion.div 
-            className="text-center p-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0 }}
-          >
-            <div className="h-12 w-12 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Store className="h-6 w-6 text-emerald-600" />
-            </div>
-            <h3 className="font-semibold text-lg text-slate-900">Trusted Local Pros</h3>
-            <p className="text-slate-600 mt-2 text-sm">
-              Every listing is a real local business, vetted by the community. No ads, just quality connections.
-            </p>
-          </motion.div>
-          <motion.div 
-            className="text-center p-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            <div className="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Calendar className="h-6 w-6 text-amber-600" />
-            </div>
-            <h3 className="font-semibold text-lg text-slate-900">Events & Activities</h3>
-            <p className="text-slate-600 mt-2 text-sm">
-              From family outings to community meetups—find out what's happening in Eugene/Springfield this weekend.
-            </p>
-          </motion.div>
-          <motion.div 
-            className="text-center p-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <div className="h-12 w-12 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Coins className="h-6 w-6 text-yellow-600" />
-            </div>
-            <h3 className="font-semibold text-lg text-slate-900">Sound Money Friendly</h3>
-            <p className="text-slate-600 mt-2 text-sm">
-              Support the local economy with the option to support sound money with silver. Always optional, always sound.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* CTA for Business Owners & Event Organizers */}
-      <section className="bg-slate-900 py-16">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-white">Be Part of the Community</h2>
-          <p className="text-slate-300 mt-4 max-w-xl mx-auto">
-            Whether you run a business or host local events, LocalLane is your place to be seen without paying for ads.
-          </p>
-          <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 mt-8">
-            <Button 
-              size="lg"
-              className="bg-amber-400 hover:bg-amber-500 hover:brightness-110 text-slate-900 font-semibold px-6 sm:px-8 py-4 flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
-              onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
-            >
-              List Your Business
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </Button>
-            <Button 
-              size="lg"
-              variant="outline"
-              className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-6 sm:px-8 py-4 flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
-              onClick={() => navigate(createPageUrl('Events'))}
-            >
-              Post an Event
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </Button>
+        {/* Browse by Category */}
+        <section className="mt-16 border-t border-slate-800 pt-12">
+          <h2 className="text-xl font-bold text-slate-100">Browse by Category</h2>
+          <p className="text-slate-400 mt-1 mb-6">Explore all {mainCategories.length} categories</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {mainCategories.map((category) => {
+              const Icon = category.icon;
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => handleCategoryTileClick(category.id)}
+                  className="p-4 rounded-xl border border-slate-800 bg-slate-900 hover:border-amber-500/50 hover:bg-slate-800/50 transition-all text-left group"
+                >
+                  <Icon className="h-6 w-6 text-slate-400 group-hover:text-amber-500 transition-colors mb-2" />
+                  <span className="text-sm font-medium text-slate-200">{category.label}</span>
+                </button>
+              );
+            })}
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }
