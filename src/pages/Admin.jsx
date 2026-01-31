@@ -280,6 +280,7 @@ export default function Admin() {
             <Route path="events/types" element={<ConfigSection domain="events" configType="event_types" title="Event Types" />} />
             <Route path="events/age-groups" element={<ConfigSection domain="events" configType="age_groups" title="Age Groups" />} />
             <Route path="events/durations" element={<ConfigSection domain="events" configType="duration_presets" title="Duration Presets" />} />
+            <Route path="events/accessibility" element={<ConfigSection domain="events" configType="accessibility_features" title="Accessibility Features" />} />
 
             <Route path="onboarding/business" element={<PlaceholderSection title="Business Onboarding" description="Business onboarding wizard config — coming soon." />} />
             <Route path="onboarding/user" element={<PlaceholderSection title="User Onboarding" description="User onboarding config — coming soon." />} />

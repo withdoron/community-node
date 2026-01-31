@@ -20,6 +20,7 @@ import {
   UsersRound,
   Layout,
   User,
+  Accessibility,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -50,6 +51,7 @@ const sections = [
       { to: `${ADMIN_BASE}/events/types`, label: 'Event Types', icon: Calendar },
       { to: `${ADMIN_BASE}/events/age-groups`, label: 'Age Groups', icon: UsersRound },
       { to: `${ADMIN_BASE}/events/durations`, label: 'Durations', icon: Clock },
+      { to: `${ADMIN_BASE}/events/accessibility`, label: 'Accessibility', icon: Accessibility },
     ],
   },
   {

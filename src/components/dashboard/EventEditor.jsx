@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { format, addMinutes, parseISO } from "date-fns";
+import React, { useState, useEffect, useRef } from "react";
+import { format, addMinutes, parseISO, formatDistanceToNow } from "date-fns";
 import { base44 } from "@/api/base44Client";
 import { useOrganization } from "@/hooks/useOrganization";
 import { LockedFeature } from "@/components/ui/LockedFeature";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -52,6 +53,7 @@ export default function EventEditor({
   const { data: networks = [] } = useConfig("platform", "networks");
   const { data: ageGroups = [] } = useConfig("events", "age_groups");
   const { data: durationPresets = [] } = useConfig("events", "duration_presets");
+  const { data: accessibilityOptions = [] } = useConfig("events", "accessibility_features");
 
   const [formData, setFormData] = useState({
     title: "",
@@ -72,6 +74,7 @@ export default function EventEditor({
     capacity: "",
     accepts_rsvps: false,
     additional_notes: "",
+    accessibility_features: [],
   });
 
   const [errors, setErrors] = useState({});
@@ -88,6 +91,9 @@ export default function EventEditor({
   const [endTime, setEndTime] = useState("");
   const [endDate, setEndDate] = useState(null);
   const [endDateOpen, setEndDateOpen] = useState(false);
+
+  const [lastSaved, setLastSaved] = useState(null);
+  const autoSaveTimer = useRef(null);
 
   const toggleDay = (day) => {
     setSelectedDays((prev) =>
@@ -151,6 +157,7 @@ export default function EventEditor({
         capacity: existingEvent.capacity ? String(existingEvent.capacity) : "",
         accepts_rsvps: !!existingEvent.accepts_rsvps,
         additional_notes: existingEvent.additional_notes || "",
+        accessibility_features: Array.isArray(existingEvent.accessibility_features) ? existingEvent.accessibility_features : [],
         ticket_types: Array.isArray(existingEvent.ticket_types) && existingEvent.ticket_types.length > 0
           ? existingEvent.ticket_types.map((t) => ({
               name: t.name ?? "",
@@ -233,8 +240,8 @@ export default function EventEditor({
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e, { isDraft = false } = {}) => {
+    e?.preventDefault?.();
     if (!validate()) {
       toast.error("Please fix the errors before saving");
       return;
@@ -307,7 +314,7 @@ export default function EventEditor({
       capacity: formData.capacity ? parseInt(formData.capacity, 10) : null,
 
       // Status
-      status: tier === "basic" ? "pending_review" : "published",
+      status: isDraft ? "draft" : tier === "basic" ? "pending_review" : "published",
       is_active: true,
 
       // Recurrence (MVP: save settings only; instances generated later)
@@ -329,8 +336,11 @@ export default function EventEditor({
 
     try {
       await Promise.resolve(onSave(eventData));
+      if (typeof window !== "undefined") localStorage.removeItem("event_draft");
       toast.success(
-        eventData.status === "pending_review"
+        isDraft
+          ? "Draft saved!"
+          : eventData.status === "pending_review"
           ? "Event submitted for review"
           : "Event saved"
       );
@@ -376,6 +386,48 @@ export default function EventEditor({
       };
     });
   };
+
+  const toggleAccessibility = (feature) => {
+    setFormData((prev) => ({
+      ...prev,
+      accessibility_features: prev.accessibility_features.includes(feature)
+        ? prev.accessibility_features.filter((f) => f !== feature)
+        : [...prev.accessibility_features, feature],
+    }));
+  };
+
+  const DRAFT_KEY = "event_draft";
+
+  useEffect(() => {
+    if (!existingEvent && typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (raw) {
+          const draft = JSON.parse(raw);
+          if (draft && draft.title) {
+            setFormData((prev) => ({ ...prev, ...draft }));
+            toast.info("Draft restored from last session");
+          }
+        }
+      } catch (_) {}
+    }
+  }, [existingEvent]);
+
+  useEffect(() => {
+    if (existingEvent) return;
+    if (!formData.title?.trim()) return;
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
+        setLastSaved(new Date());
+      } catch (_) {}
+      autoSaveTimer.current = null;
+    }, 30000);
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+  }, [formData, existingEvent]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 pt-2">
@@ -1212,28 +1264,75 @@ export default function EventEditor({
               rows={3}
             />
           </div>
+          <div>
+            <Label className="text-slate-300">Accessibility (Optional)</Label>
+            <div className="space-y-2 mt-2">
+              {(accessibilityOptions || [])
+                .filter((o) => o.active !== false)
+                .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+                .map((opt) => (
+                  <div
+                    key={opt.value}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => toggleAccessibility(opt.value)}
+                    onKeyDown={(ev) => ev.key === "Enter" && toggleAccessibility(opt.value)}
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors",
+                      formData.accessibility_features?.includes(opt.value)
+                        ? "border-amber-500 bg-amber-500/10"
+                        : "border-slate-700 hover:border-amber-500/50 bg-slate-800/50"
+                    )}
+                  >
+                    <Checkbox
+                      checked={formData.accessibility_features?.includes(opt.value)}
+                      className="pointer-events-none data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                    />
+                    <span className="text-slate-200 text-sm">{opt.label}</span>
+                  </div>
+                ))}
+            </div>
+          </div>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-4 border-t border-slate-700">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            className="flex-1 bg-transparent border-slate-600 text-slate-300 hover:bg-transparent hover:border-amber-500 hover:text-amber-500"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="flex-1 bg-amber-500 hover:bg-amber-600 text-black font-semibold"
-          >
-            {isSubmitting ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : null}
-            {existingEvent ? "Save Event" : "Create Event"}
-          </Button>
+        <div className="space-y-2 pt-4 border-t border-slate-700">
+          {lastSaved && (
+            <p className="text-xs text-slate-500">
+              Last auto-saved {formatDistanceToNow(lastSaved, { addSuffix: true })}
+            </p>
+          )}
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              className="flex-1 bg-transparent border-slate-600 text-slate-300 hover:bg-transparent hover:border-amber-500 hover:text-amber-500"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={isSubmitting}
+              onClick={(e) => handleSubmit(e, { isDraft: true })}
+              className="flex-1 bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500"
+            >
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
+              Save as Draft
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 bg-amber-500 hover:bg-amber-600 text-black font-semibold"
+            >
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
+              Publish
+            </Button>
+          </div>
         </div>
       </form>
   );

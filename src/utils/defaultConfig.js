@@ -30,6 +30,13 @@ export const DEFAULT_CONFIG = {
       { value: '120', label: '2 hours', minutes: 120, active: true, sort_order: 4 },
       { value: '180', label: '3 hours', minutes: 180, active: true, sort_order: 5 },
     ],
+    accessibility_features: [
+      { value: 'wheelchair_accessible', label: 'Wheelchair accessible', active: true, sort_order: 1 },
+      { value: 'sensory_friendly', label: 'Sensory-friendly option available', active: true, sort_order: 2 },
+      { value: 'childcare_provided', label: 'Childcare provided', active: true, sort_order: 3 },
+      { value: 'asl_interpreter', label: 'ASL interpreter available', active: true, sort_order: 4 },
+      { value: 'free_admission', label: 'Free admission option', active: true, sort_order: 5 },
+    ],
   },
   platform: {
     networks: [
