@@ -706,7 +706,6 @@ export default function EventEditor({
             </div>
             <Switch
               checked={isRecurring}
-              onCheckedChange={setIsRecurring}
               className="data-[state=checked]:bg-amber-500 pointer-events-none"
             />
           </div>
@@ -1163,16 +1162,6 @@ export default function EventEditor({
                 <span className="text-slate-300 pointer-events-none">Punch Pass Eligible</span>
                 <Switch
                   checked={formData.punch_pass_eligible}
-                  onCheckedChange={(checked) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      punch_pass_eligible: checked,
-                      pricing_type:
-                        checked && prev.pricing_type === "free"
-                          ? ""
-                          : prev.pricing_type,
-                    }))
-                  }
                   className="data-[state=checked]:bg-amber-500 pointer-events-none"
                 />
               </div>
