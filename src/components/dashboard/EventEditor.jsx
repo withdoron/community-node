@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -103,6 +102,13 @@ export default function EventEditor({
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
   };
+
+  /* ALL useEffect HOOKS IN THIS FILE (dependency arrays):
+   * 1. Prefill existingEvent → [existingEvent?.id] — calls setFormData, setEndTimeMode, setEndTime, setEndDate
+   * 2. Draft restore → [] — calls setFormData (once, guarded by hasRestoredDraft)
+   * 3. Auto-save → [formData.title, existingEvent?.id] — uses formDataRef.current, calls setLastSaved only
+   * NONE have formData or formData.accessibility_features in deps (would cause loop).
+   */
 
   // Prefill from backend field names: date, punch_pass_accepted, network, thumbnail_url
   useEffect(() => {
@@ -1291,10 +1297,20 @@ export default function EventEditor({
                         : "border-slate-700 hover:border-amber-500/50 bg-slate-800/50"
                     )}
                   >
-                    <Checkbox
-                      checked={formData.accessibility_features?.includes(opt.value)}
-                      className="pointer-events-none data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
-                    />
+                    <div
+                      className={cn(
+                        "h-4 w-4 rounded border flex items-center justify-center flex-shrink-0",
+                        formData.accessibility_features?.includes(opt.value)
+                          ? "bg-amber-500 border-amber-500"
+                          : "border-slate-600 bg-transparent"
+                      )}
+                    >
+                      {formData.accessibility_features?.includes(opt.value) && (
+                        <svg className="h-3 w-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </div>
                     <span className="text-slate-200 text-sm">{opt.label}</span>
                   </div>
                 ))}
