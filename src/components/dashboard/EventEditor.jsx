@@ -185,7 +185,9 @@ export default function EventEditor({
         setEndDate(start && end && endDay !== startDay ? end : null);
       }
     }
-  }, [existingEvent?.id, networks, ageGroups, durationPresets]);
+  // Only re-run when editing a different event (existingEvent?.id). Do NOT depend on
+  // networks/ageGroups/durationPresets — they get new refs each render and cause infinite loop.
+  }, [existingEvent?.id]);
 
   const validate = () => {
     const e = {};
@@ -401,9 +403,11 @@ export default function EventEditor({
 
   const DRAFT_KEY = "event_draft";
 
+  // Draft restore: run once on mount when creating a new event. Empty deps + guard prevent loop.
   useEffect(() => {
-    if (hasRestoredDraft.current || existingEvent) return;
+    if (hasRestoredDraft.current) return;
     hasRestoredDraft.current = true;
+    if (existingEvent) return;
     if (typeof window === "undefined") return;
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
@@ -415,7 +419,7 @@ export default function EventEditor({
         }
       }
     } catch (_) {}
-  }, [existingEvent]);
+  }, []);
 
   useEffect(() => {
     if (existingEvent || !formData.title?.trim()) return;
@@ -430,7 +434,7 @@ export default function EventEditor({
     return () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
-  }, [formData.title, existingEvent]);
+  }, [formData.title, existingEvent?.id]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 pt-2">
