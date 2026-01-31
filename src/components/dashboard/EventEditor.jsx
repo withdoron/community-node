@@ -73,6 +73,17 @@ export default function EventEditor({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [startDateOpen, setStartDateOpen] = useState(false);
 
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrencePattern, setRecurrencePattern] = useState("weekly");
+  const [selectedDays, setSelectedDays] = useState([]);
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState(null);
+
+  const toggleDay = (day) => {
+    setSelectedDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
+  };
+
   // Prefill from backend field names: date, punch_pass_accepted, network, thumbnail_url
   useEffect(() => {
     if (existingEvent) {
@@ -219,6 +230,19 @@ export default function EventEditor({
       // Status
       status: tier === "basic" ? "pending_review" : "published",
       is_active: true,
+
+      // Recurrence (MVP: save settings only; instances generated later)
+      is_recurring: isRecurring,
+      recurrence_pattern: isRecurring ? recurrencePattern : null,
+      recurrence_days:
+        isRecurring &&
+        (recurrencePattern === "weekly" || recurrencePattern === "biweekly")
+          ? selectedDays
+          : null,
+      recurrence_end_date:
+        isRecurring && recurrenceEndDate
+          ? recurrenceEndDate.toISOString()
+          : null,
     };
 
     try {
@@ -366,6 +390,114 @@ export default function EventEditor({
               </Select>
             </div>
           </div>
+        </div>
+
+        {/* Recurring Event Section */}
+        <div className="space-y-4 p-4 border border-slate-700 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white font-medium">This event repeats</p>
+              <p className="text-slate-400 text-sm">
+                Create multiple event instances on a schedule
+              </p>
+            </div>
+            <Switch
+              checked={isRecurring}
+              onCheckedChange={setIsRecurring}
+              className="data-[state=checked]:bg-amber-500"
+            />
+          </div>
+
+          {isRecurring && (
+            <div className="space-y-4 pt-4 border-t border-slate-700">
+              <div>
+                <Label className="text-slate-300">Pattern</Label>
+                <Select
+                  value={recurrencePattern}
+                  onValueChange={setRecurrencePattern}
+                >
+                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem value="daily" className="text-slate-300">
+                      Daily
+                    </SelectItem>
+                    <SelectItem value="weekly" className="text-slate-300">
+                      Weekly
+                    </SelectItem>
+                    <SelectItem value="biweekly" className="text-slate-300">
+                      Every 2 weeks
+                    </SelectItem>
+                    <SelectItem value="monthly" className="text-slate-300">
+                      Monthly
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {(recurrencePattern === "weekly" ||
+                recurrencePattern === "biweekly") && (
+                <div>
+                  <Label className="text-slate-300">Repeats on</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                      (day) => (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => toggleDay(day)}
+                          className={cn(
+                            "px-4 py-2 rounded-lg border transition-colors",
+                            selectedDays.includes(day)
+                              ? "bg-amber-500 border-amber-500 text-black"
+                              : "bg-slate-800 border-slate-700 text-white hover:border-slate-600"
+                          )}
+                        >
+                          {day}
+                        </button>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Label className="text-slate-300">Ends on (Optional)</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-start mt-1 bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {recurrenceEndDate
+                        ? format(recurrenceEndDate, "PPP")
+                        : "Select end date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="bg-slate-800 border-slate-700 p-0 w-auto">
+                    <Calendar
+                      mode="single"
+                      selected={recurrenceEndDate}
+                      onSelect={setRecurrenceEndDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                {recurrenceEndDate && (
+                  <button
+                    type="button"
+                    onClick={() => setRecurrenceEndDate(null)}
+                    className="text-slate-400 text-sm mt-1 hover:text-white"
+                  >
+                    Clear end date
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Location */}
