@@ -1,16 +1,72 @@
 /**
  * Reusable config list section for Admin (Event Types, Networks, Age Groups, Durations, etc.).
  * Uses useConfig(domain, configType) and useConfigMutation to load/save.
- * List with Add / Edit / Delete; drag-to-reorder optional for later.
+ * List with Add / Edit / Delete; drag-and-drop reorder via @dnd-kit.
  */
 
 import React, { useState } from 'react';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useConfig, useConfigMutation } from '@/hooks/useConfig';
-import { Loader2, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Pencil, Trash2, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+
+function SortableItem({ id, children, isEditing, className }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        'flex items-center gap-2 py-2 px-3 rounded-md border border-slate-700/50',
+        isEditing ? 'bg-slate-800' : 'bg-slate-800/50',
+        isDragging && 'opacity-80 shadow-lg z-10',
+        className
+      )}
+    >
+      {!isEditing && (
+        <button
+          type="button"
+          className="touch-none cursor-grab active:cursor-grabbing text-slate-500 hover:text-slate-300 p-1 -ml-1"
+          {...attributes}
+          {...listeners}
+          aria-label="Drag to reorder"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+      )}
+      {children}
+    </li>
+  );
+}
 
 export default function ConfigSection({ domain, configType, title }) {
   const { data: items = [], isLoading } = useConfig(domain, configType);
@@ -20,6 +76,37 @@ export default function ConfigSection({ domain, configType, title }) {
   const [adding, setAdding] = useState(false);
   const [newValue, setNewValue] = useState('');
   const [newLabel, setNewLabel] = useState('');
+
+  const sortedItems = [...(items || [])].sort(
+    (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+  );
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    })
+  );
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = sortedItems.findIndex(
+      (i) => (i.value ?? i.id) === String(active.id)
+    );
+    const newIndex = sortedItems.findIndex(
+      (i) => (i.value ?? i.id) === String(over.id)
+    );
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(sortedItems, oldIndex, newIndex);
+    const withSortOrder = reordered.map((item, index) => ({
+      ...item,
+      sort_order: index,
+    }));
+    mutation.mutate(withSortOrder, {
+      onSuccess: () => toast.success('Order updated'),
+      onError: () => toast.error('Failed to update order'),
+    });
+  };
 
   const handleSaveEdit = () => {
     if (editingId == null || !editLabel?.trim()) return;
@@ -119,66 +206,76 @@ export default function ConfigSection({ domain, configType, title }) {
         )}
       </div>
       <ul className="space-y-1">
-        {items.map((item) => (
-          <li
-            key={item.value || item.id}
-            className={cn(
-              'flex items-center justify-between py-2 px-3 rounded-md border border-slate-700/50',
-              editingId === (item.value ?? item.id) ? 'bg-slate-800' : 'bg-slate-800/50'
-            )}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={sortedItems.map((i) => String(i.value ?? i.id))}
+            strategy={verticalListSortingStrategy}
           >
-            {editingId === (item.value ?? item.id) ? (
-              <>
-                <input
-                  type="text"
-                  value={editLabel}
-                  onChange={(e) => setEditLabel(e.target.value)}
-                  className="bg-slate-800 border border-slate-600 text-white rounded px-2 py-1 flex-1 max-w-xs"
-                  autoFocus
-                />
-                <div className="flex gap-2 ml-2">
-                  <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black" onClick={handleSaveEdit}>
-                    Save
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-slate-600 text-slate-300"
-                    onClick={() => { setEditingId(null); setEditLabel(''); }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                <span className="text-slate-200">{item.label}</span>
-                <span className="text-slate-500 text-sm font-mono mr-2">{item.value}</span>
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-slate-400 hover:text-amber-500 p-1 h-8 w-8"
-                    onClick={() => {
-                      setEditingId(item.value ?? item.id);
-                      setEditLabel(item.label || '');
-                    }}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-slate-400 hover:text-red-400 p-1 h-8 w-8"
-                    onClick={() => handleDelete(item)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </>
-            )}
-          </li>
-        ))}
+            {sortedItems.map((item) => {
+              const itemId = item.value ?? item.id;
+              const key = String(itemId);
+              const isEditing = editingId === itemId;
+              return (
+                <SortableItem key={key} id={key} isEditing={isEditing}>
+                  {isEditing ? (
+                    <>
+                      <input
+                        type="text"
+                        value={editLabel}
+                        onChange={(e) => setEditLabel(e.target.value)}
+                        className="bg-slate-800 border border-slate-600 text-white rounded px-2 py-1 flex-1 max-w-xs"
+                        autoFocus
+                      />
+                      <div className="flex gap-2 ml-2 flex-shrink-0">
+                        <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black" onClick={handleSaveEdit}>
+                          Save
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-slate-600 text-slate-300"
+                          onClick={() => { setEditingId(null); setEditLabel(''); }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-1 items-center justify-between min-w-0">
+                      <span className="text-slate-200 truncate">{item.label}</span>
+                      <span className="text-slate-500 text-sm font-mono mr-2 flex-shrink-0">{item.value}</span>
+                      <div className="flex gap-1 flex-shrink-0">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-slate-400 hover:text-amber-500 p-1 h-8 w-8"
+                          onClick={() => {
+                            setEditingId(itemId);
+                            setEditLabel(item.label || '');
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-slate-400 hover:text-red-400 p-1 h-8 w-8"
+                          onClick={() => handleDelete(item)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </SortableItem>
+              );
+            })}
+          </SortableContext>
+        </DndContext>
       </ul>
       {items.length === 0 && !adding && (
         <p className="text-slate-500 text-sm py-4">No items yet. Add one above or they will use defaults.</p>
