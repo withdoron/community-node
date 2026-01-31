@@ -185,7 +185,24 @@ export default function Admin() {
 
             <Route path="locations" element={
               <Card className="p-6 bg-slate-900 border-slate-700">
-                <div className="mb-4 text-sm text-slate-400">Showing {locations.length} locations across all businesses</div>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-slate-400">
+                    Showing {locations.length} locations across all businesses
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500"
+                    onClick={async () => {
+                      const { cleanupOrphanedLocations } = await import('@/utils/deleteBusinessCascade');
+                      const count = await cleanupOrphanedLocations();
+                      queryClient.invalidateQueries({ queryKey: ['admin-locations'] });
+                      toast.success(count > 0 ? `Cleaned up ${count} orphaned locations` : 'No orphans found');
+                    }}
+                  >
+                    Clean Up Orphans
+                  </Button>
+                </div>
                 {locationsLoading ? (
                   <div className="flex items-center justify-center py-20">
                     <Loader2 className="h-8 w-8 animate-spin text-slate-400" />

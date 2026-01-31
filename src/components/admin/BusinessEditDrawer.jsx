@@ -154,35 +154,17 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   // Hard delete: remove record permanently (Business.delete). Fallback to soft delete if delete not available.
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const businessId = business.id;
-      console.log('[Admin Delete] Starting delete for business id:', businessId, business?.name);
-      try {
-        if (typeof base44.entities.Business.delete === 'function') {
-          await base44.entities.Business.delete(businessId);
-          console.log('[Admin Delete] Business.delete(id) succeeded');
-        } else {
-          try {
-            await base44.entities.Business.update(businessId, { is_deleted: true });
-            console.log('[Admin Delete] Business.update(is_deleted: true) succeeded');
-          } catch (e) {
-            await base44.entities.Business.update(businessId, { status: 'deleted' });
-            console.log('[Admin Delete] Business.update(status: deleted) succeeded');
-          }
-        }
-        await base44.entities.AdminAuditLog.create({
-          admin_email: adminEmail,
-          business_id: business.id,
-          business_name: business.name,
-          action_type: 'business_delete',
-          field_changed: 'is_deleted',
-          old_value: 'false',
-          new_value: 'true',
-        });
-        console.log('[Admin Delete] Audit log created');
-      } catch (err) {
-        console.error('[Admin Delete] Error in deleteMutation:', err);
-        throw err;
-      }
+      const { deleteBusinessCascade } = await import('@/utils/deleteBusinessCascade');
+      await deleteBusinessCascade(business.id);
+      await base44.entities.AdminAuditLog.create({
+        admin_email: adminEmail,
+        business_id: business.id,
+        business_name: business.name,
+        action_type: 'business_delete',
+        field_changed: 'cascade_delete',
+        old_value: 'active',
+        new_value: 'deleted',
+      });
     },
     onSuccess: () => {
       console.log('[Admin Delete] onSuccess');

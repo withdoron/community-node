@@ -230,25 +230,10 @@ export default function BusinessDashboard() {
   // Hard delete: Business.delete(id) removes record permanently. Fallback to soft delete if delete not available.
   const deleteMutation = useMutation({
     mutationFn: async (businessId) => {
-      console.log('[Dashboard Delete] Starting delete for business id:', businessId);
-      try {
-        if (typeof base44.entities.Business.delete === 'function') {
-          await base44.entities.Business.delete(businessId);
-          console.log('[Dashboard Delete] Business.delete(id) succeeded');
-        } else {
-          try {
-            await base44.entities.Business.update(businessId, { is_deleted: true });
-            console.log('[Dashboard Delete] Business.update(is_deleted: true) succeeded');
-          } catch (e) {
-            await base44.entities.Business.update(businessId, { status: 'deleted' });
-            console.log('[Dashboard Delete] Business.update(status: deleted) succeeded');
-          }
-        }
-        console.log('[Dashboard Delete] Delete succeeded for id:', businessId);
-      } catch (err) {
-        console.error('[Dashboard Delete] Error in deleteMutation:', err);
-        throw err;
-      }
+      console.log('[Dashboard Delete] Starting cascade delete for business id:', businessId);
+      const { deleteBusinessCascade } = await import('@/utils/deleteBusinessCascade');
+      await deleteBusinessCascade(businessId);
+      console.log('[Dashboard Delete] Cascade delete complete for id:', businessId);
     },
     onSuccess: () => {
       console.log('[Dashboard Delete] onSuccess');

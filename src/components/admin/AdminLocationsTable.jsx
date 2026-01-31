@@ -69,7 +69,7 @@ export default function AdminLocationsTable({
                     <div className="flex items-center gap-2">
                       <Building2 className="h-4 w-4 text-slate-500" />
                       <span className="font-medium text-slate-100 truncate max-w-[150px]">
-                        {business?.name || 'Unknown'}
+                        {business?.name || <span className="text-red-400 italic">Orphaned</span>}
                       </span>
                     </div>
                   </TableCell>
