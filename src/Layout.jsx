@@ -115,20 +115,20 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                     )}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-60 bg-slate-900 border border-slate-700 shadow-xl shadow-black/20">
+                <DropdownMenuContent align="end" className="w-60 bg-slate-900 border border-slate-700 shadow-xl shadow-black/20 [&>*]:bg-transparent">
                   <div className="px-2 py-2">
                     <p className="text-sm font-medium text-slate-100">{currentUser.full_name}</p>
                     <p className="text-xs text-slate-500">{currentUser.email}</p>
                   </div>
                   <DropdownMenuSeparator className="bg-slate-800" />
-                  <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 focus:text-amber-500 focus:bg-slate-800 cursor-pointer">
+                  <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
                     <Link to={createPageUrl('MyLane')} className="flex items-center">
                       <Sparkles className="h-4 w-4 mr-2" />
                       My Lane
                     </Link>
                   </DropdownMenuItem>
                   {(currentUser.is_business_owner || userHasStaffRole) && (
-                    <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 focus:text-amber-500 focus:bg-slate-800 cursor-pointer">
+                    <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
                       <Link to={createPageUrl('BusinessDashboard')} className="flex items-center">
                         <LayoutDashboard className="h-4 w-4 mr-2" />
                         Business Dashboard
@@ -136,7 +136,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                     </DropdownMenuItem>
                   )}
                   {currentUser.role === 'admin' && (
-                    <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 focus:text-amber-500 focus:bg-slate-800 cursor-pointer">
+                    <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
                       <Link to={createPageUrl('Admin')} className="flex items-center">
                         <Shield className="h-4 w-4 mr-2" />
                         Admin Panel
@@ -144,7 +144,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator className="bg-slate-800" />
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-400 hover:text-red-300 hover:bg-slate-800 focus:text-red-300 focus:bg-slate-800 cursor-pointer">
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-400 hover:text-red-300 !bg-transparent hover:!bg-slate-800 focus:text-red-300 focus:!bg-slate-800 cursor-pointer">
                     <LogOut className="h-4 w-4 mr-2" />
                     Log Out
                   </DropdownMenuItem>
