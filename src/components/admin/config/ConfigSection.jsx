@@ -21,6 +21,7 @@ export default function ConfigSection({ domain, configType, title }) {
   const [newValue, setNewValue] = useState('');
   const [newLabel, setNewLabel] = useState('');
 
+  // Inline sort only — do NOT store in state; no useEffect watching items (avoids re-render loop)
   const sortedItems = [...(items || [])].sort(
     (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
   );

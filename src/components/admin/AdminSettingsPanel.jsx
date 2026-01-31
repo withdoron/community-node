@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from "@/components/ui/card";
@@ -21,6 +21,7 @@ export default function AdminSettingsPanel() {
   const queryClient = useQueryClient();
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [hasChanges, setHasChanges] = useState(false);
+  const lastAppliedSigRef = useRef(null);
 
   // Fetch existing settings
   const { data: savedSettings = [], isLoading } = useQuery({
@@ -28,19 +29,21 @@ export default function AdminSettingsPanel() {
     queryFn: () => base44.entities.AdminSettings.list()
   });
 
-  // Load settings from database
+  // Load settings from database once when data arrives; avoid loop from unstable savedSettings ref
   useEffect(() => {
-    if (savedSettings.length > 0) {
-      const loaded = { ...DEFAULT_SETTINGS };
-      savedSettings.forEach(s => {
-        try {
-          loaded[s.key] = JSON.parse(s.value);
-        } catch {
-          loaded[s.key] = s.value;
-        }
-      });
-      setSettings(loaded);
-    }
+    if (savedSettings.length === 0) return;
+    const sig = JSON.stringify(savedSettings.map((s) => [s.key, s.value]));
+    if (lastAppliedSigRef.current === sig) return;
+    lastAppliedSigRef.current = sig;
+    const loaded = { ...DEFAULT_SETTINGS };
+    savedSettings.forEach((s) => {
+      try {
+        loaded[s.key] = JSON.parse(s.value);
+      } catch {
+        loaded[s.key] = s.value;
+      }
+    });
+    setSettings(loaded);
   }, [savedSettings]);
 
   const saveMutation = useMutation({

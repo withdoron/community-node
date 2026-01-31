@@ -5,6 +5,7 @@
  * See CONFIG-SYSTEM.md and Spec-Repo/STEP-1.1-PLATFORM-CONFIG-ENTITY.md.
  */
 
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { getDefaultConfig } from '@/utils/defaultConfig';
@@ -17,7 +18,10 @@ export function getConfigKey(domain, configType) {
 
 export function useConfig(domain, configType) {
   const key = getConfigKey(domain, configType);
-  const defaults = getDefaultConfig(domain, configType);
+  const defaults = useMemo(
+    () => getDefaultConfig(domain, configType),
+    [domain, configType]
+  );
 
   return useQuery({
     queryKey: ['config', domain, configType],

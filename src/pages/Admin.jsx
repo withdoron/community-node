@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, Routes, Route, Navigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -48,14 +48,6 @@ export default function Admin() {
     queryFn: () => base44.entities.Business.list('-created_date', 500),
     enabled: currentUser?.role === 'admin'
   });
-
-  useEffect(() => {
-    if (!businesses?.length) return;
-    console.log(
-      '[Admin] Raw businesses:',
-      businesses.map((b) => ({ id: b.id, name: b.name, is_deleted: b.is_deleted, status: b.status }))
-    );
-  }, [businesses]);
 
   const { data: locations = [], isLoading: locationsLoading } = useQuery({
     queryKey: ['admin-locations'],
