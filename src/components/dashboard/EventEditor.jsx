@@ -81,6 +81,11 @@ export default function EventEditor({
   const [recurrenceEndDate, setRecurrenceEndDate] = useState(null);
   const [recurrenceEndDateOpen, setRecurrenceEndDateOpen] = useState(false);
 
+  const [endTimeMode, setEndTimeMode] = useState("duration");
+  const [endTime, setEndTime] = useState("");
+  const [endDate, setEndDate] = useState(null);
+  const [endDateOpen, setEndDateOpen] = useState(false);
+
   const toggleDay = (day) => {
     setSelectedDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
@@ -149,8 +154,23 @@ export default function EventEditor({
             }))
           : [{ name: "", price: "", quantity_limit: "" }],
       });
+      const presetMinutes = durationPresets
+        .filter((d) => d.active !== false)
+        .map((d) => d.minutes ?? d.value);
+      const matchesPreset = presetMinutes.includes(duration);
+      if (matchesPreset) {
+        setEndTimeMode("duration");
+        setEndTime("");
+        setEndDate(null);
+      } else {
+        setEndTimeMode("end_time");
+        setEndTime(end ? format(end, "HH:mm") : "11:00");
+        const startDay = start ? format(start, "yyyy-MM-dd") : "";
+        const endDay = end ? format(end, "yyyy-MM-dd") : "";
+        setEndDate(start && end && endDay !== startDay ? end : null);
+      }
     }
-  }, [existingEvent, networks, ageGroups]);
+  }, [existingEvent, networks, ageGroups, durationPresets]);
 
   const validate = () => {
     const e = {};
@@ -176,6 +196,16 @@ export default function EventEditor({
     if (formData.pricing_type === "multiple_tickets") {
       const validTickets = formData.ticket_types?.filter((t) => t.name?.trim() && t.price !== "" && parseFloat(t.price) >= 0);
       if (!validTickets?.length) e.ticket_types = "Add at least one ticket type with name and price";
+    }
+    if (endTimeMode === "end_time") {
+      if (!endTime?.trim()) e.end_time = "End time is required";
+      if (endDate && formData.start_date) {
+        const startDay = new Date(formData.start_date);
+        startDay.setHours(0, 0, 0, 0);
+        const endDay = new Date(endDate);
+        endDay.setHours(0, 0, 0, 0);
+        if (endDay < startDay) e.end_date = "End date must be on or after start date";
+      }
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -205,7 +235,19 @@ export default function EventEditor({
     const start = new Date(formData.start_date);
     const [h, m] = formData.start_time.split(":").map(Number);
     start.setHours(h, m, 0, 0);
-    const end = addMinutes(start, formData.duration_minutes);
+
+    let end;
+    let durationMinutes;
+    if (endTimeMode === "end_time" && endTime) {
+      const endDateToUse = endDate || formData.start_date;
+      end = new Date(endDateToUse);
+      const [eh, em] = endTime.split(":").map(Number);
+      end.setHours(eh, em, 0, 0);
+      durationMinutes = Math.round((end.getTime() - start.getTime()) / 60000);
+    } else {
+      end = addMinutes(start, formData.duration_minutes);
+      durationMinutes = formData.duration_minutes;
+    }
 
     // Step 3: map to backend field names (date, punch_pass_accepted, network, thumbnail_url)
     const eventData = {
@@ -216,7 +258,7 @@ export default function EventEditor({
       // Date fields
       date: start.toISOString(), // NOT start_date
       end_date: end.toISOString(),
-      duration_minutes: formData.duration_minutes,
+      duration_minutes: durationMinutes,
 
       // Location
       location: formData.location.trim() || null,
@@ -412,6 +454,38 @@ export default function EventEditor({
               />
             </div>
             <div>
+              <Label className="text-slate-300">End</Label>
+              <div className="flex gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={() => setEndTimeMode("duration")}
+                  className={cn(
+                    "px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                    endTimeMode === "duration"
+                      ? "bg-amber-500 text-black"
+                      : "bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+                  )}
+                >
+                  Duration
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEndTimeMode("end_time")}
+                  className={cn(
+                    "px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                    endTimeMode === "end_time"
+                      ? "bg-amber-500 text-black"
+                      : "bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+                  )}
+                >
+                  End Time
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {endTimeMode === "duration" ? (
+            <div>
               <Label className="text-slate-300">Duration</Label>
               <Select
                 value={String(formData.duration_minutes)}
@@ -440,7 +514,70 @@ export default function EventEditor({
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-3">
+              <div data-error="end_time">
+                <Label className="text-slate-300">End Time *</Label>
+                <Input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="bg-slate-900 border-slate-700 text-white mt-1"
+                />
+                {errors.end_time && (
+                  <p className="text-red-400 text-sm mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {errors.end_time}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label className="text-slate-300">Different end date (optional)</Label>
+                <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-start text-left bg-slate-900 border-slate-700 text-slate-100 mt-1"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, "PPP") : "Same day"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-slate-900 border-slate-700">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={(date) => {
+                        setEndDate(date);
+                        setEndDateOpen(false);
+                      }}
+                      disabled={(date) => {
+                        if (!formData.start_date) return true;
+                        const startDay = new Date(formData.start_date);
+                        startDay.setHours(0, 0, 0, 0);
+                        const d = new Date(date);
+                        d.setHours(0, 0, 0, 0);
+                        return d < startDay;
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+                {endDate && (
+                  <button
+                    type="button"
+                    onClick={() => setEndDate(null)}
+                    className="text-slate-400 text-sm mt-1 hover:text-white"
+                  >
+                    Clear (same day)
+                  </button>
+                )}
+                {errors.end_date && (
+                  <p className="text-red-400 text-sm mt-1">{errors.end_date}</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Recurring Event Section */}
