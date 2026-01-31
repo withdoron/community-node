@@ -235,7 +235,7 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
                     )}
                   </div>
                 </div>
-                {allowEdit && (userRole === 'Owner' || userRole === 'Manager') && (
+                {allowEdit && ['owner', 'manager'].includes(userRole?.toLowerCase()) && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button size="sm" variant="ghost" className="text-slate-400 hover:text-slate-100 hover:bg-slate-700">
