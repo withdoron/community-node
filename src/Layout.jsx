@@ -45,12 +45,21 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
   };
 
   const navLinkClass = (page) =>
-    currentPageName === page ? 'text-amber-500' : 'text-slate-300 hover:text-amber-500';
+    currentPageName === page ? 'px-3 py-2 text-amber-500' : 'px-3 py-2 text-slate-300 hover:text-amber-500';
 
   const sheetLinkClass = (page) =>
     currentPageName === page
       ? 'py-3 px-4 rounded-lg bg-amber-500/10 text-amber-500'
       : 'py-3 px-4 rounded-lg text-slate-300 hover:text-amber-500 hover:bg-slate-800';
+
+  const getUserInitials = () => {
+    if (!currentUser?.full_name) return null;
+    const parts = currentUser.full_name.trim().split(' ');
+    if (parts.length === 1) return parts[0][0]?.toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
+  const userInitials = getUserInitials();
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -70,25 +79,27 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
           </Link>
 
           {/* Center-right: Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-1">
             <Link to={createPageUrl('Directory')} className={navLinkClass('Directory')}>
-              Browse
+              Directory
             </Link>
             <Link to={createPageUrl('Events')} className={navLinkClass('Events')}>
               Events
             </Link>
             {currentUser && userHasStaffRole && (
-              <Link to={createPageUrl('BusinessDashboard')} className={`flex items-center gap-1.5 ${navLinkClass('BusinessDashboard')}`}>
-                <LayoutDashboard className="h-4 w-4 mr-1.5" />
+              <Link to={createPageUrl('BusinessDashboard')} className={navLinkClass('BusinessDashboard')}>
                 Dashboard
               </Link>
             )}
+
+            {/* Separator */}
+            <div className="w-px h-5 bg-slate-700 mx-3" />
 
             {/* Far right: User area */}
             {!currentUser ? (
               <Button
                 variant="outline"
-                className="border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 ml-2"
+                className="border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500"
                 onClick={() => base44.auth.redirectToLogin()}
               >
                 Sign In
@@ -96,25 +107,29 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="h-8 w-8 rounded-full bg-slate-800 border border-slate-700 hover:border-amber-500/50 flex items-center justify-center ml-2 transition-colors cursor-pointer">
-                    <User className="h-4 w-4 text-slate-400" />
+                  <button className="h-8 w-8 rounded-full bg-slate-800 border border-slate-700 hover:border-amber-500/50 flex items-center justify-center transition-colors cursor-pointer">
+                    {userInitials ? (
+                      <span className="text-xs font-semibold text-amber-500">{userInitials}</span>
+                    ) : (
+                      <User className="h-4 w-4 text-slate-400" />
+                    )}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-slate-800">
+                <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-slate-700 text-slate-300">
                   <div className="px-2 py-2">
                     <p className="text-sm font-medium text-slate-100">{currentUser.full_name}</p>
                     <p className="text-xs text-slate-500">{currentUser.email}</p>
                   </div>
                   <DropdownMenuSeparator className="bg-slate-800" />
                   <DropdownMenuItem asChild>
-                    <Link to={createPageUrl('MyLane')} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 cursor-pointer flex items-center">
+                    <Link to={createPageUrl('MyLane')} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 focus:bg-slate-800 focus:text-amber-500 cursor-pointer flex items-center">
                       <Sparkles className="h-4 w-4 mr-2" />
                       My Lane
                     </Link>
                   </DropdownMenuItem>
                   {(currentUser.is_business_owner || userHasStaffRole) && (
                     <DropdownMenuItem asChild>
-                      <Link to={createPageUrl('BusinessDashboard')} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 cursor-pointer flex items-center">
+                      <Link to={createPageUrl('BusinessDashboard')} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 focus:bg-slate-800 focus:text-amber-500 cursor-pointer flex items-center">
                         <LayoutDashboard className="h-4 w-4 mr-2" />
                         Business Dashboard
                       </Link>
@@ -122,14 +137,14 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                   )}
                   {currentUser.role === 'admin' && (
                     <DropdownMenuItem asChild>
-                      <Link to={createPageUrl('Admin')} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 cursor-pointer flex items-center">
+                      <Link to={createPageUrl('Admin')} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 focus:bg-slate-800 focus:text-amber-500 cursor-pointer flex items-center">
                         <Shield className="h-4 w-4 mr-2" />
                         Admin Panel
                       </Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator className="bg-slate-800" />
-                  <DropdownMenuItem onClick={handleLogout} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 cursor-pointer">
+                  <DropdownMenuItem onClick={handleLogout} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 focus:bg-slate-800 focus:text-amber-500 cursor-pointer">
                     <LogOut className="h-4 w-4 mr-2 text-red-400" />
                     <span className="text-red-400">Log Out</span>
                   </DropdownMenuItem>
@@ -172,7 +187,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                     <SheetClose asChild>
                       <Link to={createPageUrl('Directory')} className={`flex items-center gap-3 ${sheetLinkClass('Directory')}`}>
                         <Store className="h-5 w-5 flex-shrink-0" />
-                        Browse
+                        Directory
                       </Link>
                     </SheetClose>
                     <SheetClose asChild>
