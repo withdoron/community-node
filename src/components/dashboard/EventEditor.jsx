@@ -1360,9 +1360,9 @@ export default function EventEditor({
           <div className="grid grid-cols-3 gap-3">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={onCancel}
-              className="w-full bg-transparent border-slate-600 text-slate-300 hover:bg-slate-800 hover:border-slate-500"
+              className="w-full text-slate-400 hover:text-slate-200 hover:bg-slate-800"
             >
               Cancel
             </Button>
@@ -1371,7 +1371,7 @@ export default function EventEditor({
               disabled={isSubmitting}
               onClick={(e) => handleSubmit(e, { isDraft: true })}
               variant="outline"
-              className="w-full bg-transparent border-slate-600 text-slate-300 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-500"
+              className="w-full border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
             >
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Save as Draft
@@ -1379,7 +1379,7 @@ export default function EventEditor({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold"
+              className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold text-base"
             >
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Publish Event
