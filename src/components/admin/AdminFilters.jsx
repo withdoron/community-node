@@ -14,7 +14,6 @@ export default function AdminFilters({ filters, onFiltersChange }) {
       search: '',
       ownerSearch: '',
       tier: 'all',
-      boosted: 'all',
       acceptsSilver: 'all',
       localFranchise: 'all',
       status: 'all',
@@ -24,7 +23,6 @@ export default function AdminFilters({ filters, onFiltersChange }) {
   const hasActiveFilters = filters.search || 
     filters.ownerSearch ||
     filters.tier !== 'all' || 
-    filters.boosted !== 'all' || 
     filters.acceptsSilver !== 'all' || 
     filters.localFranchise !== 'all' || 
     filters.status !== 'all';
@@ -68,17 +66,6 @@ export default function AdminFilters({ filters, onFiltersChange }) {
             <SelectItem value="basic" className="text-slate-300 focus:bg-slate-800">Basic</SelectItem>
             <SelectItem value="standard" className="text-slate-300 focus:bg-slate-800">Standard</SelectItem>
             <SelectItem value="partner" className="text-slate-300 focus:bg-slate-800">Partner</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filters.boosted} onValueChange={(v) => updateFilter('boosted', v)}>
-          <SelectTrigger className="w-[140px] bg-slate-800 border-slate-700 text-slate-300">
-            <SelectValue placeholder="Boosted" />
-          </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-800">
-            <SelectItem value="all" className="text-slate-300 focus:bg-slate-800">All</SelectItem>
-            <SelectItem value="yes" className="text-slate-300 focus:bg-slate-800">Boosted</SelectItem>
-            <SelectItem value="no" className="text-slate-300 focus:bg-slate-800">Not Boosted</SelectItem>
           </SelectContent>
         </Select>
 

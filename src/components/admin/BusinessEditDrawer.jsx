@@ -117,7 +117,6 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     if (business) {
       setEditData({
         subscription_tier: business.subscription_tier || 'basic',
-        is_bumped: business.is_bumped || false,
         accepts_silver: business.accepts_silver || false,
         is_locally_owned_franchise: business.is_locally_owned_franchise || false,
         is_active: business.is_active !== false,
@@ -544,27 +543,6 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   </SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <Separator />
-
-            {/* Boost Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base font-medium text-slate-100">Boosted</Label>
-                <p className="text-sm text-slate-400">Listing appears at top of search results</p>
-              </div>
-              <Switch
-                checked={editData.is_bumped}
-                onCheckedChange={(checked) => handleFieldChange(
-                  'is_bumped',
-                  checked,
-                  'boost_toggle',
-                  checked ? 'Boost this listing?' : 'Remove boost from this listing?'
-                )}
-                disabled={updateMutation.isPending}
-                className="data-[state=checked]:bg-amber-500"
-              />
             </div>
 
             <Separator className="bg-slate-700" />

@@ -89,8 +89,6 @@ export default function Admin() {
       if (filters.search && !b.name?.toLowerCase().includes(filters.search.toLowerCase())) return false;
       if (filters.ownerSearch && !b.owner_email?.toLowerCase().includes(filters.ownerSearch.toLowerCase())) return false;
       if (filters.tier !== 'all' && (b.subscription_tier || 'basic') !== filters.tier) return false;
-      if (filters.boosted === 'yes' && !b.is_bumped) return false;
-      if (filters.boosted === 'no' && b.is_bumped) return false;
       if (filters.acceptsSilver === 'yes' && !b.accepts_silver) return false;
       if (filters.acceptsSilver === 'no' && b.accepts_silver) return false;
       if (filters.localFranchise === 'yes' && !b.is_locally_owned_franchise) return false;
@@ -211,9 +209,7 @@ export default function Admin() {
                   <AdminLocationsTable
                     locations={locations}
                     businesses={businesses}
-                    onToggleAutoBoost={(loc, enabled) => updateLocation.mutate({ id: loc.id, data: { is_auto_boost_enabled: enabled } })}
-                    onClearBoost={(loc) => updateLocation.mutate({ id: loc.id, data: { boost_start_at: null, boost_end_at: null } })}
-                    updatingId={updateLocation.isPending ? updateLocation.variables?.id : null}
+                    updatingId={null}
                   />
                 )}
               </Card>

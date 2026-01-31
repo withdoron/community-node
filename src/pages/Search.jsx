@@ -4,9 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import SearchBar from '@/components/search/SearchBar';
 import FilterBar from '@/components/search/FilterBar';
 import SearchResultsSection from '@/components/search/SearchResultsSection';
-import { rankBusinesses, isBoostActive, getTierPriority } from '@/components/business/rankingUtils';
-import { processSearchResults } from '@/components/search/searchFeaturedUtils';
-import { useActiveRegion, filterBusinessesByRegion, filterLocationsByRegion } from '@/components/region/useActiveRegion';
+import { rankBusinesses } from '@/components/business/rankingUtils';
+import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
 import { Loader2, SearchX, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -34,36 +33,8 @@ export default function Search() {
   const { data: businesses = [], isLoading } = useQuery({
     queryKey: ['businesses-with-locations', region?.id],
     queryFn: async () => {
-      const [businessList, locationList] = await Promise.all([
-        base44.entities.Business.filter({ is_active: true }, '-created_date', 200),
-        base44.entities.Location.filter({ is_active: true }, '-created_date', 500)
-      ]);
-      
-      // Filter by region first
-      const regionalBusinesses = filterBusinessesByRegion(businessList, region);
-      const regionalLocations = filterLocationsByRegion(locationList, region);
-      
-      // Build a map of business_id -> boosted location (if any)
-      const now = new Date();
-      const boostedLocationByBusiness = {};
-      const locationCountByBusiness = {};
-      
-      for (const loc of regionalLocations) {
-        // Count locations per business
-        locationCountByBusiness[loc.business_id] = (locationCountByBusiness[loc.business_id] || 0) + 1;
-        
-        if (loc.boost_end_at && new Date(loc.boost_end_at) > now) {
-          boostedLocationByBusiness[loc.business_id] = loc;
-        }
-      }
-      
-      // Enrich businesses with location boost info and count
-      return regionalBusinesses.map(b => ({
-        ...b,
-        _hasLocationBoost: !!boostedLocationByBusiness[b.id],
-        _boostedLocation: boostedLocationByBusiness[b.id] || null,
-        _locationCount: locationCountByBusiness[b.id] || 0
-      }));
+      const businessList = await base44.entities.Business.filter({ is_active: true }, '-created_date', 200);
+      return filterBusinessesByRegion(businessList, region);
     },
     enabled: !!region
   });
@@ -102,24 +73,11 @@ export default function Search() {
       result = result.filter(b => b.accepts_silver);
     }
 
-    // Apply primary ranking: Tier > Boost > Rating > Reviews
+    // Trust-based default ranking; then apply user's sort preference if set
     result = rankBusinesses(result);
 
-    // Apply secondary sort within tier/boost groups if user selected a specific sort
     if (sortBy !== 'rating') {
       result.sort((a, b) => {
-        // First maintain tier grouping
-        const tierA = getTierPriority(a);
-        const tierB = getTierPriority(b);
-        if (tierA !== tierB) return tierB - tierA;
-
-        // Then maintain boost grouping within tier
-        const boostA = isBoostActive(a);
-        const boostB = isBoostActive(b);
-        if (boostA && !boostB) return -1;
-        if (!boostA && boostB) return 1;
-
-        // Then apply user's sort preference
         switch (sortBy) {
           case 'reviews':
             return (b.review_count || 0) - (a.review_count || 0);
@@ -143,19 +101,6 @@ export default function Search() {
 
     return result;
   }, [businesses, searchParams, filters, sortBy]);
-
-  // Process into direct match, featured band, and results
-  const { directMatch, featuredBand, results } = useMemo(() => {
-    return processSearchResults(filteredBusinesses, searchParams.query);
-  }, [filteredBusinesses, searchParams.query]);
-
-  // Build search filters object for analytics
-  const searchFiltersForAnalytics = useMemo(() => ({
-    category: filters.category,
-    acceptsSilver: filters.acceptsSilver,
-    location: searchParams.location,
-    sortBy
-  }), [filters, searchParams.location, sortBy]);
 
   const handleSearch = ({ query, location }) => {
     setSearchParams({ query, location });
@@ -223,14 +168,7 @@ export default function Search() {
           </div>
         ) : (
           <div className="mt-6">
-            <SearchResultsSection
-              directMatch={directMatch}
-              featuredBand={featuredBand}
-              results={results}
-              searchQuery={searchParams.query}
-              searchFilters={searchFiltersForAnalytics}
-              radiusMiles={null}
-            />
+            <SearchResultsSection results={filteredBusinesses} />
           </div>
         )}
       </div>

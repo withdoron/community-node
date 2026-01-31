@@ -5,10 +5,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import SearchBar from '@/components/search/SearchBar';
 import BusinessCard from '@/components/business/BusinessCard';
-import FeaturedNearbySection from '@/components/featured/FeaturedNearbySection';
-import { getFeaturedAndOrganicLocations } from '@/components/featured/featuredLocationsUtils';
-import { rankBusinesses, isBoostActive } from '@/components/business/rankingUtils';
-import { useActiveRegion, filterBusinessesByRegion, filterLocationsByRegion } from '@/components/region/useActiveRegion';
+import { rankBusinesses } from '@/components/business/rankingUtils';
+import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, Shield, Users, Ban, Coins, Calendar, Store } from "lucide-react";
@@ -74,8 +72,7 @@ export default function Directory() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categoryClicks'] })
   });
 
-  // Fetch all businesses and locations for Featured nearby logic
-  // Filter by region to keep content local
+  // Fetch all businesses; filter by region to keep content local
   const { data: allBusinesses = [] } = useQuery({
     queryKey: ['all-businesses', region?.id],
     queryFn: async () => {
@@ -84,24 +81,6 @@ export default function Directory() {
     },
     enabled: !!region
   });
-
-  const { data: allLocations = [] } = useQuery({
-    queryKey: ['all-locations', region?.id],
-    queryFn: async () => {
-      const locations = await base44.entities.Location.list('-created_date', 500);
-      return filterLocationsByRegion(locations, region);
-    },
-    enabled: !!region
-  });
-
-  // Compute featured and organic lists - memoized to prevent recalculations
-  // Fixed 30 mile radius around Eugene region center
-  const featuredData = React.useMemo(() => {
-    if (!userLat || !userLng || allBusinesses.length === 0) {
-      return { featured: [], organic: [] };
-    }
-    return getFeaturedAndOrganicLocations(allBusinesses, allLocations, userLat, userLng, 30);
-  }, [userLat, userLng, allBusinesses, allLocations]);
 
   // Top Rated Businesses - filtered by region
   const { data: featuredBusinesses = [], isLoading } = useQuery({
@@ -209,15 +188,6 @@ export default function Directory() {
         </div>
       </section>
 
-      {/* Featured Nearby Section */}
-      {userLat && userLng && (
-        <FeaturedNearbySection
-          featured={featuredData.featured}
-          organic={featuredData.organic}
-          isLoading={regionLoading}
-        />
-      )}
-
       {/* Categories */}
       <section id="categories" className="max-w-6xl mx-auto px-4 py-16">
         <div className="flex items-center justify-between mb-8">
@@ -281,8 +251,7 @@ export default function Directory() {
               {featuredBusinesses.map((business) => (
                 <BusinessCard 
                   key={business.id} 
-                  business={business} 
-                  featured={false}
+                  business={business}
                 />
               ))}
             </div>

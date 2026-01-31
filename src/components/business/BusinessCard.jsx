@@ -4,11 +4,10 @@ import { createPageUrl } from '@/utils';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Phone, ChevronRight, Sparkles, Zap, Crown, Coins, Store } from "lucide-react";
+import { Star, MapPin, Phone, ChevronRight, Zap, Crown, Coins, Store } from "lucide-react";
 
 import { mainCategories, getMainCategory, getSubcategoryLabel } from '@/components/categories/categoryData';
-import { isBoostActive, getTierLabel, getTierBadgeClasses } from '@/components/business/rankingUtils';
-import { trackEvent } from '@/components/analytics/trackEvent';
+import { getTierLabel, getTierBadgeClasses } from '@/components/business/rankingUtils';
 
 const legacyCategoryLabels = {
   carpenter: 'Carpenter',
@@ -23,7 +22,7 @@ const legacyCategoryLabels = {
   other: 'Other'
 };
 
-export default function BusinessCard({ business, featured = false, badgeSettings = null, trackingProps = null, locationCount = null }) {
+export default function BusinessCard({ business, badgeSettings = null, locationCount = null }) {
   // Badge visibility settings (default to showing if not provided)
   const showSilverBadge = badgeSettings?.show_accepts_silver_badge !== false;
   const showFranchiseBadge = badgeSettings?.show_locally_owned_franchise_badge !== false;
@@ -31,7 +30,6 @@ export default function BusinessCard({ business, featured = false, badgeSettings
     ? Math.min(...business.services.map(s => s.starting_price || 0))
     : null;
 
-  const isBoosted = isBoostActive(business);
   const tier = business.subscription_tier || 'basic';
   const tierLabel = getTierLabel(tier);
   const tierBadgeClasses = getTierBadgeClasses(tier);
@@ -48,46 +46,8 @@ export default function BusinessCard({ business, featured = false, badgeSettings
   // Tier icon
   const TierIcon = tier === 'partner' ? Crown : tier === 'standard' ? Zap : null;
 
-  // Handle click tracking for Featured/Organic sections (landing and search)
-  const handleCardClick = () => {
-    if (!trackingProps) return;
-    
-    const isSearchContext = trackingProps.isSearchContext || false;
-    const isFeaturedSource = trackingProps.source === 'landing_featured' || 
-                            trackingProps.source === 'search_featured_band' ||
-                            trackingProps.source === 'search_direct_match';
-    
-    let eventName;
-    if (isSearchContext) {
-      // Search context: determine featured vs organic based on source
-      const isSearchFeatured = trackingProps.source === 'search_featured_band' || 
-                               trackingProps.source === 'search_direct_match';
-      eventName = isSearchFeatured ? 'search_featured_click' : 'search_organic_click';
-    } else {
-      // Landing context
-      eventName = trackingProps.source === 'landing_featured' ? 'featured_click' : 'organic_click';
-    }
-    
-    const payload = {
-      location_id: trackingProps.locationId,
-      owner_id: trackingProps.ownerId,
-      is_manual_boost: trackingProps.isManualBoost,
-      radius_miles: trackingProps.radiusMiles,
-      position_in_section: trackingProps.positionInSection,
-      source: trackingProps.source
-    };
-    
-    // Add search-specific fields if in search context
-    if (isSearchContext) {
-      payload.search_query = trackingProps.searchQuery || '';
-      payload.search_filters = trackingProps.searchFilters || {};
-    }
-    
-    trackEvent(eventName, payload);
-  };
-
   return (
-    <Card className={`group overflow-hidden transition-all duration-300 hover:shadow-lg ${featured ? 'ring-2 ring-emerald-400 shadow-md' : isBoosted ? 'ring-2 ring-amber-400 shadow-md' : 'border-slate-200'}`}>
+    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg border-slate-200">
       <div className="flex flex-col sm:flex-row">
         {/* Image */}
         <div className="relative sm:w-48 h-40 sm:h-auto flex-shrink-0">
@@ -196,7 +156,6 @@ export default function BusinessCard({ business, featured = false, badgeSettings
             <Link 
               to={createPageUrl(`BusinessProfile?id=${business.id}`)} 
               className="flex-1"
-              onClick={handleCardClick}
             >
               <Button 
                 variant="default" 

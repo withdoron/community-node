@@ -17,7 +17,7 @@ import StarRating from '@/components/reviews/StarRating';
 import ReviewCard from '@/components/reviews/ReviewCard';
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Star, Eye, Rocket, Settings, MessageSquare, MapPin,
+  Star, Eye, Settings, MessageSquare, MapPin,
   Loader2, CheckCircle, Crown, Zap, ArrowUp, Upload, X, Plus, Trash2,
   ExternalLink, Check, ChevronLeft
 } from "lucide-react";
@@ -52,8 +52,7 @@ const tiers = [
     price: '$9',
     period: '/month',
     icon: Star,
-    features: ['Business listing', 'Basic profile', 'Contact info', 'Customer reviews'],
-    bumps: 0
+    features: ['Business listing', 'Basic profile', 'Contact info', 'Customer reviews']
   },
   {
     id: 'standard',
@@ -62,8 +61,7 @@ const tiers = [
     period: '/month',
     icon: Zap,
     popular: true,
-    features: ['Everything in Basic', 'Photo gallery', 'Service listings', '3 bumps per month', 'Priority support'],
-    bumps: 3
+    features: ['Everything in Basic', 'Photo gallery', 'Service listings', 'Priority support']
   },
   {
     id: 'partner',
@@ -71,8 +69,7 @@ const tiers = [
     price: '$79',
     period: '/month',
     icon: Crown,
-    features: ['Everything in Standard', 'Partner badge', 'Featured placement', '10 bumps per month', 'Analytics dashboard'],
-    bumps: 10
+    features: ['Everything in Standard', 'Partner badge', 'Dedicated account manager', 'Analytics dashboard']
   }
 ];
 
@@ -146,10 +143,8 @@ export default function BusinessDashboardDetail({ business, onBack }) {
 
   const upgradePlan = useMutation({
     mutationFn: async (newTier) => {
-      const tier = tiers.find(t => t.id === newTier);
       await base44.entities.Business.update(business.id, {
-        subscription_tier: newTier,
-        bumps_remaining: tier?.bumps || 0
+        subscription_tier: newTier
       });
     },
     onSuccess: () => {
@@ -381,17 +376,6 @@ export default function BusinessDashboardDetail({ business, onBack }) {
               <div>
                 <p className="text-2xl font-bold text-slate-900">—</p>
                 <p className="text-sm text-slate-500">Profile Views</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-5">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                <Rocket className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900">{business.bumps_remaining || 0}</p>
-                <p className="text-sm text-slate-500">Bumps Left</p>
               </div>
             </div>
           </Card>

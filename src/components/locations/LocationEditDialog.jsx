@@ -44,8 +44,7 @@ export default function LocationEditDialog({
     country: 'United States',
     is_home_based: false,
     phone: '',
-    email: '',
-    is_auto_boost_enabled: false
+    email: ''
   });
 
   useEffect(() => {
@@ -60,8 +59,7 @@ export default function LocationEditDialog({
         country: location.country || 'United States',
         is_home_based: location.is_home_based || false,
         phone: location.phone || '',
-        email: location.email || '',
-        is_auto_boost_enabled: location.is_auto_boost_enabled || false
+        email: location.email || ''
       });
     } else {
       setFormData({
@@ -74,8 +72,7 @@ export default function LocationEditDialog({
         country: 'United States',
         is_home_based: false,
         phone: '',
-        email: '',
-        is_auto_boost_enabled: false
+        email: ''
       });
     }
   }, [location, open]);
@@ -219,18 +216,6 @@ export default function LocationEditDialog({
                 className="mt-1.5"
               />
             </div>
-          </div>
-
-          <div className="flex items-center justify-between py-3 px-4 bg-emerald-50 rounded-lg border border-emerald-200">
-            <div>
-              <Label htmlFor="auto-boost" className="font-medium text-slate-900">Smart Auto-Boost</Label>
-              <p className="text-sm text-slate-600">Automatically boost when under-exposed during active hours</p>
-            </div>
-            <Switch
-              id="auto-boost"
-              checked={formData.is_auto_boost_enabled === true}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_auto_boost_enabled: checked }))}
-            />
           </div>
 
           <div className="flex gap-3 pt-4">

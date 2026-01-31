@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { mainCategories, getMainCategory, legacyCategoryMapping } from '@/components/categories/categoryData';
 import BusinessCard from '@/components/business/BusinessCard';
-import { rankBusinesses, isBoostActive } from '@/components/business/rankingUtils';
+import { rankBusinesses } from '@/components/business/rankingUtils';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -71,7 +71,7 @@ export default function CategoryPage() {
       });
     }
 
-    // Apply consistent ranking: Tier > Boost > Rating > Reviews > Date
+    // Apply trust-based ranking: Rating > Reviews > Date
     return rankBusinesses(result);
   }, [businesses, categoryId, selectedSubcategory, category]);
 
@@ -183,7 +183,6 @@ export default function CategoryPage() {
               <BusinessCard 
                 key={business.id} 
                 business={business}
-                featured={isBoostActive(business) || business.subscription_tier === 'partner'}
               />
             ))}
           </div>

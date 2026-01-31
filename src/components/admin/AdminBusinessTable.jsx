@@ -9,8 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Star, Zap, Crown, Sparkles, Store, Coins, Loader2, ChevronDown } from "lucide-react";
-import { isBoostActive } from '@/components/business/rankingUtils';
+import { Star, Zap, Crown, Store, Coins, ChevronDown } from "lucide-react";
 
 const tierConfig = {
   basic: { label: 'Basic', icon: Star, className: 'bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600' },
@@ -27,7 +26,6 @@ export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpd
             <TableHead className="font-semibold text-slate-400">Business</TableHead>
             <TableHead className="font-semibold text-slate-400">City</TableHead>
             <TableHead className="font-semibold text-slate-400">Tier</TableHead>
-            <TableHead className="font-semibold text-center text-slate-400">Boosted</TableHead>
             <TableHead className="font-semibold text-center text-slate-400">Silver</TableHead>
             <TableHead className="font-semibold text-center text-slate-400">Local Franchise</TableHead>
             <TableHead className="font-semibold text-center text-slate-400">Status</TableHead>
@@ -77,32 +75,6 @@ export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpd
                       })}
                     </DropdownMenuContent>
                   </DropdownMenu>
-                </TableCell>
-                
-                {/* Boosted Toggle - based on actual time, not just is_bumped flag */}
-                <TableCell className="text-center">
-                  {(() => {
-                    const isBoosted = isBoostActive(business);
-                    return (
-                      <div className="flex items-center justify-center gap-2">
-                        <Switch
-                          checked={isBoosted}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              // Set boost for 4 hours from now
-                              const expiresAt = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
-                              onUpdateBusiness(business.id, { is_bumped: true, bump_expires_at: expiresAt });
-                            } else {
-                              // Clear boost by setting expiry to past
-                              onUpdateBusiness(business.id, { is_bumped: false, bump_expires_at: null });
-                            }
-                          }}
-                          className="data-[state=checked]:bg-amber-500"
-                        />
-                        {isBoosted && <Sparkles className="h-3 w-3 text-amber-500" />}
-                      </div>
-                    );
-                  })()}
                 </TableCell>
                 
                 {/* Silver Toggle */}

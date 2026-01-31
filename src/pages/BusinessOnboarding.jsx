@@ -129,7 +129,6 @@ export default function BusinessOnboarding() {
         owner_user_id: currentUser?.id,
         owner_email: currentUser?.email,
         slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-        bumps_remaining: tier?.bumps || 0,
         is_active: true,
         sub_category_id: data.sub_category_id || null
       });
