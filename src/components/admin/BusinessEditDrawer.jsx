@@ -284,19 +284,21 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         await base44.entities.AdminSettings.create({ key, value });
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      setAddStaffEmail('');
+      setStaffSearchResult(null);
+      setStaffSearchError('');
+      setSelectedRole('instructor');
       queryClient.invalidateQueries({ queryKey: ['staff'] });
       queryClient.invalidateQueries({ queryKey: ['staffRoles'] });
       queryClient.invalidateQueries({ queryKey: ['staffInvites'] });
       queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
-      queryClient.refetchQueries({ queryKey: ['staff', business?.id] });
-      refetchStaff();
-      setAddStaffEmail('');
-      setStaffSearchResult(null);
-      setStaffSearchError('');
-      toast.success('Staff updated');
+      await queryClient.refetchQueries({ queryKey: ['admin-businesses'] });
+      await refetchStaffUsers();
+      toast.success('Staff added');
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('[Admin] Add staff error:', error);
       toast.error('Failed to add staff');
     },
   });
@@ -319,14 +321,20 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         });
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['staff'] });
       queryClient.invalidateQueries({ queryKey: ['staffRoles'] });
       queryClient.invalidateQueries({ queryKey: ['staffInvites'] });
       queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
+      await queryClient.refetchQueries({ queryKey: ['admin-businesses'] });
+      await refetchStaffUsers();
+      setAddStaffEmail('');
+      setStaffSearchResult(null);
+      setStaffSearchError('');
       toast.success('Staff removed');
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('[Admin] Remove staff error:', error);
       toast.error('Failed to remove staff');
     },
   });
@@ -700,7 +708,12 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   type="email"
                   placeholder="staff@example.com"
                   value={addStaffEmail}
-                  onChange={(e) => setAddStaffEmail(e.target.value)}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    setAddStaffEmail(e.target.value);
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
                   autoComplete="off"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -708,7 +721,6 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                       handleSearchStaff();
                     }
                   }}
-                  onClick={(e) => e.stopPropagation()}
                   className="bg-slate-800 border-slate-700 text-white text-sm"
                 />
                 <Button
