@@ -192,18 +192,16 @@ export default function Directory() {
             All
           </button>
           {mainCategories.map((category) => {
-            const Icon = category.icon;
             const isActive = selectedCategory === category.id;
             return (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
                 className={isActive
-                  ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-500 text-black border border-amber-500 cursor-default whitespace-nowrap flex-shrink-0 flex items-center gap-1.5'
-                  : 'px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0 flex items-center gap-1.5'
+                  ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-500 text-black border border-amber-500 cursor-default whitespace-nowrap flex-shrink-0'
+                  : 'px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0'
                 }
               >
-                {Icon && <Icon className="h-3.5 w-3.5 flex-shrink-0" />}
                 {category.label}
               </button>
             );
@@ -250,7 +248,7 @@ export default function Directory() {
         {/* Business grid */}
         <div className="min-h-[200px]">
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div key={i} className="h-48 bg-slate-800 rounded-xl animate-pulse" />
               ))}
@@ -268,7 +266,7 @@ export default function Directory() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredBusinesses.map((business) => (
                 <BusinessCard
                   key={business.id}
@@ -291,10 +289,10 @@ export default function Directory() {
                 <button
                   key={category.id}
                   onClick={() => handleCategoryTileClick(category.id)}
-                  className="p-4 rounded-xl border border-slate-800 bg-slate-900 hover:border-amber-500/50 hover:bg-slate-800/50 transition-all text-left group"
+                  className="p-3 rounded-lg border border-slate-800 bg-slate-900 hover:border-amber-500/50 hover:bg-slate-800/50 transition-all text-left group flex items-start gap-2.5"
                 >
-                  <Icon className="h-6 w-6 text-slate-400 group-hover:text-amber-500 transition-colors mb-2" />
-                  <span className="text-sm font-medium text-slate-200">{category.label}</span>
+                  <Icon className="h-5 w-5 text-slate-400 group-hover:text-amber-500 transition-colors flex-shrink-0 mt-0.5" />
+                  <span className="text-sm font-medium text-slate-200 group-hover:text-white transition-colors">{category.label}</span>
                 </button>
               );
             })}
