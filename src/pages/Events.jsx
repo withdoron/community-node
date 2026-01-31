@@ -121,13 +121,14 @@ export default function Events() {
     queryKey: ['events'],
     queryFn: async () => {
       const allEvents = await base44.entities.Event.filter({ is_active: true }, '-date', 200);
-      return allEvents.filter(e => !e.is_deleted);
+      const filtered = allEvents.filter(e => !e.is_deleted);
+      console.log('Fetched events:', filtered);
+      return filtered;
     }
   });
 
   const filteredEvents = useMemo(() => {
     let result = [...events];
-    const now = new Date();
 
     // Search filter
     if (searchQuery) {
@@ -188,8 +189,14 @@ export default function Events() {
       result = result.filter(e => e.free_parking);
     }
 
-    // Filter out past events
-    result = result.filter(e => new Date(e.date) >= now);
+    // Filter out past events (compare dates only, ignore time)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    result = result.filter(e => {
+      const eventDate = new Date(e.date);
+      eventDate.setHours(0, 0, 0, 0);
+      return eventDate >= today;
+    });
 
     return result;
   }, [events, searchQuery, quickFilter, advancedFilters]);
