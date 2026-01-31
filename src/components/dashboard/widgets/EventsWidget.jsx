@@ -23,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { format } from "date-fns";
+import { format, addWeeks } from "date-fns";
 import EventEditor from '../EventEditor';
 
 export default function EventsWidget({ business, allowEdit, userRole }) {
@@ -56,8 +56,70 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
     queryFn: () => base44.entities.Location.filter({ business_id: business.id, is_active: true }, '-created_date', 50)
   });
 
+  // Generate recurring event instances (weekly/biweekly with selected days)
+  const generateRecurringEvents = async (eventData) => {
+    const startDate = new Date(eventData.date);
+    const endDate = eventData.recurrence_end_date
+      ? new Date(eventData.recurrence_end_date)
+      : addWeeks(startDate, 12);
+    const dayMap = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 0 };
+    const seriesId = `series_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    const selectedDays = (eventData.recurrence_days || [])
+      .map((d) => dayMap[d])
+      .filter((n) => n !== undefined)
+      .sort((a, b) => a - b);
+    if (selectedDays.length === 0) {
+      return base44.entities.Event.create(eventData);
+    }
+
+    let currentWeekStart = new Date(startDate);
+    currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
+    const durationMs = (eventData.duration_minutes || 60) * 60 * 1000;
+    const originalStart = new Date(eventData.date);
+
+    while (currentWeekStart <= endDate) {
+      for (const dayNum of selectedDays) {
+        const eventDate = new Date(currentWeekStart);
+        eventDate.setDate(currentWeekStart.getDate() + dayNum);
+
+        if (eventDate >= startDate && eventDate <= endDate) {
+          eventDate.setHours(
+            originalStart.getHours(),
+            originalStart.getMinutes(),
+            0,
+            0
+          );
+          const instanceEnd = new Date(eventDate.getTime() + durationMs);
+
+          await base44.entities.Event.create({
+            ...eventData,
+            date: eventDate.toISOString(),
+            end_date: instanceEnd.toISOString(),
+            recurring_series_id: seriesId,
+          });
+        }
+      }
+      const weeksToAdd = eventData.recurrence_pattern === "biweekly" ? 2 : 1;
+      currentWeekStart = addWeeks(currentWeekStart, weeksToAdd);
+    }
+
+    return null; // success handled by invalidation
+  };
+
   const createMutation = useMutation({
-    mutationFn: (eventData) => base44.entities.Event.create(eventData),
+    mutationFn: async (eventData) => {
+      if (
+        eventData.is_recurring &&
+        (eventData.recurrence_pattern === "weekly" ||
+          eventData.recurrence_pattern === "biweekly") &&
+        eventData.recurrence_days?.length > 0
+      ) {
+        await generateRecurringEvents(eventData);
+        return {};
+      }
+      return base44.entities.Event.create(eventData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-events', business.id] });
       setEditorOpen(false);
