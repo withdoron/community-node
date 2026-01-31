@@ -327,8 +327,13 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         });
       }
     },
-    onSuccess: async (userId) => {
-      setLocalInstructors((prev) => prev.filter((id) => id !== userId));
+    onSuccess: async (_data, userId) => {
+      console.log('[Admin] Remove success, userId:', userId);
+      setLocalInstructors((prev) => {
+        const updated = prev.filter((id) => id !== userId);
+        console.log('[Admin] Updated localInstructors:', updated);
+        return updated;
+      });
       queryClient.invalidateQueries({ queryKey: ['staff'] });
       queryClient.invalidateQueries({ queryKey: ['staffRoles'] });
       queryClient.invalidateQueries({ queryKey: ['staffInvites'] });
@@ -674,7 +679,10 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => removeStaffMutation.mutate(user.id)}
+                      onClick={() => {
+                        console.log('[Admin] Removing user:', user.id);
+                        removeStaffMutation.mutate(user.id);
+                      }}
                       className="h-6 w-6 text-slate-400 hover:text-red-400"
                     >
                       <X className="w-3 h-3" />
