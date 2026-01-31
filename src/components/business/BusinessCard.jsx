@@ -47,7 +47,7 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
   const TierIcon = tier === 'partner' ? Crown : tier === 'standard' ? Zap : null;
 
   return (
-    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg border-slate-200">
+    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-black/20 border-slate-800 bg-slate-900 hover:border-amber-500/30">
       <div className="flex flex-col sm:flex-row">
         {/* Image */}
         <div className="relative sm:w-48 h-40 sm:h-auto flex-shrink-0">
@@ -80,15 +80,15 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
         </div>
 
         {/* Content */}
-        <div className="flex-1 p-4 sm:p-5">
+        <div className="flex-1 p-4 sm:p-5 bg-slate-900">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <Badge variant="secondary" className="text-xs bg-slate-100 text-slate-600">
+                <Badge variant="secondary" className="text-xs bg-slate-800 text-slate-300">
                   {getCategoryLabel()}
                 </Badge>
               </div>
-              <h3 className="font-semibold text-lg text-slate-900 truncate group-hover:text-slate-700 transition-colors">
+              <h3 className="font-semibold text-lg text-slate-100 truncate group-hover:text-amber-500 transition-colors">
                 {business.name}
               </h3>
             </div>
@@ -96,31 +96,31 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
             {/* Rating */}
             <div className="flex items-center gap-1 flex-shrink-0">
               <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-              <span className="font-semibold text-slate-900">
+              <span className="font-semibold text-slate-100">
                 {business.average_rating?.toFixed(1) || '0.0'}
               </span>
-              <span className="text-sm text-slate-500">
+              <span className="text-sm text-slate-400">
                 ({business.review_count || 0})
               </span>
             </div>
           </div>
 
-          <p className="text-sm text-slate-600 mt-2 line-clamp-2">
+          <p className="text-sm text-slate-400 mt-2 line-clamp-2">
             {business.description || 'No description available'}
           </p>
 
-          <div className="flex items-center gap-4 mt-3 text-sm text-slate-500">
+          <div className="flex items-center gap-4 mt-3 text-sm text-slate-400">
             {business.city && (
               <span className="flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" />
                 {business.city}{business.state ? `, ${business.state}` : ''}
                 {locationCount && locationCount > 1 && (
-                  <span className="text-slate-400 ml-1">• {locationCount} locations</span>
+                  <span className="text-slate-500 ml-1">• {locationCount} locations</span>
                 )}
               </span>
             )}
             {minPrice !== null && minPrice > 0 && (
-              <span className="font-medium text-slate-700">
+              <span className="font-medium text-amber-500">
                 From ${minPrice}
               </span>
             )}
@@ -131,7 +131,7 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
               <Button 
                 variant="outline" 
                 size="sm"
-                className="h-9 border-slate-200 hover:bg-slate-50"
+                className="h-9 border-slate-700 text-slate-300 hover:bg-transparent hover:border-amber-500 hover:text-amber-500"
                 onClick={(e) => {
                   e.preventDefault();
                   window.location.href = `tel:${business.phone}`;
@@ -148,7 +148,7 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
               <Button 
                 variant="default" 
                 size="sm"
-                className="w-full h-9 bg-slate-900 hover:bg-slate-800"
+                className="w-full h-9 bg-amber-500 hover:bg-amber-400 text-black font-semibold"
               >
                 View Profile
                 <ChevronRight className="h-3.5 w-3.5 ml-1" />
