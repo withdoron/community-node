@@ -1319,18 +1319,18 @@ export default function EventEditor({
         </div>
 
         {/* Actions */}
-        <div className="space-y-2 pt-4 border-t border-slate-700">
+        <div className="space-y-3 pt-4 border-t border-slate-700">
           {lastSaved && (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 text-center">
               Last auto-saved {formatDistanceToNow(lastSaved, { addSuffix: true })}
             </p>
           )}
-          <div className="flex gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
-              className="flex-1 bg-transparent border-slate-600 text-slate-300 hover:bg-transparent hover:border-amber-500 hover:text-amber-500"
+              className="w-full bg-transparent border-slate-600 text-slate-300 hover:bg-slate-800 hover:border-slate-500"
             >
               Cancel
             </Button>
@@ -1338,22 +1338,19 @@ export default function EventEditor({
               type="button"
               disabled={isSubmitting}
               onClick={(e) => handleSubmit(e, { isDraft: true })}
-              className="flex-1 bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500"
+              variant="outline"
+              className="w-full bg-transparent border-slate-600 text-slate-300 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-500"
             >
-              {isSubmitting ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : null}
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Save as Draft
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 bg-amber-500 hover:bg-amber-600 text-black font-semibold"
+              className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold"
             >
-              {isSubmitting ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : null}
-              Publish
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Publish Event
             </Button>
           </div>
         </div>
