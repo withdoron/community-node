@@ -36,6 +36,8 @@ export default function AdminFilters({ filters, onFiltersChange }) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <Input
+            name="admin-filter-search"
+            id="admin-filter-search"
             placeholder="Search by business name..."
             value={filters.search}
             onChange={(e) => updateFilter('search', e.target.value)}
@@ -45,6 +47,8 @@ export default function AdminFilters({ filters, onFiltersChange }) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <Input
+            name="admin-filter-owner-email"
+            id="admin-filter-owner-email"
             placeholder="Search by owner email..."
             value={filters.ownerSearch || ''}
             onChange={(e) => updateFilter('ownerSearch', e.target.value)}

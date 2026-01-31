@@ -727,30 +727,20 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 onClick={(e) => e.stopPropagation()}
                 className="flex gap-2"
               >
-                <Input
-                  type="email"
+                <textarea
+                  role="search"
+                  aria-label="Staff email search"
                   placeholder="staff@example.com"
                   value={addStaffEmail}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    setAddStaffEmail(e.target.value);
-                  }}
-                  onInput={(e) => e.stopPropagation()}
+                  onChange={(e) => setAddStaffEmail(e.target.value)}
+                  rows={1}
                   onKeyDown={(e) => {
-                    e.stopPropagation();
                     if (e.key === 'Enter') {
                       e.preventDefault();
                       handleSearchStaff();
                     }
                   }}
-                  onKeyUp={(e) => e.stopPropagation()}
-                  onClick={(e) => e.stopPropagation()}
-                  onFocus={(e) => e.stopPropagation()}
-                  autoComplete="off"
-                  name="staff-search-isolated"
-                  id="staff-search-isolated"
-                  className="bg-slate-800 border-slate-700 text-white text-sm"
+                  className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder:text-slate-500 resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 />
                 <Button
                   type="submit"
