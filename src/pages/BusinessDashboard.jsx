@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
@@ -110,6 +110,89 @@ export default function BusinessDashboard() {
     },
     enabled: !!currentUser?.id,
   });
+
+  // Auto-link pending staff invites for current user (runs once when dashboard loads)
+  useEffect(() => {
+    const checkAndLinkInvites = async () => {
+      if (!currentUser?.email || !currentUser?.id) return;
+
+      try {
+        const allSettings = await base44.entities.AdminSettings.list();
+        const inviteSettings = (allSettings || []).filter((s) => s.key?.startsWith('staff_invites:'));
+
+        for (const setting of inviteSettings) {
+          const businessId = setting.key.replace('staff_invites:', '');
+          let invites = [];
+          try {
+            invites = JSON.parse(setting.value) || [];
+          } catch {
+            continue;
+          }
+
+          const myInvite = invites.find(
+            (inv) => (inv.email || '').toLowerCase() === (currentUser.email || '').toLowerCase()
+          );
+
+          if (myInvite) {
+            console.log('[Dashboard] Found pending invite for', currentUser.email, 'at business', businessId);
+
+            const business = await base44.entities.Business.get(businessId);
+            const currentInstructors = business.instructors || [];
+            if (!currentInstructors.includes(currentUser.id)) {
+              await base44.entities.Business.update(businessId, {
+                instructors: [...currentInstructors, currentUser.id],
+              });
+            }
+
+            const rolesKey = `staff_roles:${businessId}`;
+            const rolesSettings = await base44.entities.AdminSettings.filter({ key: rolesKey });
+            let currentRoles = [];
+            if (rolesSettings.length > 0) {
+              try {
+                currentRoles = JSON.parse(rolesSettings[0].value) || [];
+              } catch {}
+            }
+
+            if (!currentRoles.some((r) => r.user_id === currentUser.id)) {
+              const newRole = {
+                user_id: currentUser.id,
+                role: myInvite.role || 'instructor',
+                added_at: new Date().toISOString(),
+              };
+              const updatedRoles = [...currentRoles, newRole];
+
+              if (rolesSettings.length > 0) {
+                await base44.entities.AdminSettings.update(rolesSettings[0].id, {
+                  value: JSON.stringify(updatedRoles),
+                });
+              } else {
+                await base44.entities.AdminSettings.create({
+                  key: rolesKey,
+                  value: JSON.stringify(updatedRoles),
+                });
+              }
+            }
+
+            const updatedInvites = invites.filter(
+              (inv) => (inv.email || '').toLowerCase() !== (currentUser.email || '').toLowerCase()
+            );
+            await base44.entities.AdminSettings.update(setting.id, {
+              value: JSON.stringify(updatedInvites),
+            });
+
+            console.log('[Dashboard] Auto-linked user to business', businessId);
+          }
+        }
+
+        queryClient.invalidateQueries({ queryKey: ['ownedBusinesses'] });
+        queryClient.invalidateQueries({ queryKey: ['staffBusinesses'] });
+      } catch (error) {
+        console.error('[Dashboard] Error checking invites:', error);
+      }
+    };
+
+    checkAndLinkInvites();
+  }, [currentUser?.email, currentUser?.id, queryClient]);
 
   // Merge and dedupe (owner list first, then staff)
   const associatedBusinesses = [...(ownedBusinesses || []), ...(staffBusinesses || [])].filter(
