@@ -32,6 +32,7 @@ import {
   AlertCircle,
   Plus,
   Lock,
+  Video,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -69,6 +70,8 @@ export default function EventEditor({
     networks: [],
     age_info: "",
     capacity: "",
+    accepts_rsvps: false,
+    additional_notes: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -146,6 +149,8 @@ export default function EventEditor({
           return found ? found.value : a;
         })(),
         capacity: existingEvent.capacity ? String(existingEvent.capacity) : "",
+        accepts_rsvps: !!existingEvent.accepts_rsvps,
+        additional_notes: existingEvent.additional_notes || "",
         ticket_types: Array.isArray(existingEvent.ticket_types) && existingEvent.ticket_types.length > 0
           ? existingEvent.ticket_types.map((t) => ({
               name: t.name ?? "",
@@ -176,7 +181,11 @@ export default function EventEditor({
     const e = {};
     if (!formData.title?.trim()) e.title = "Title is required";
     if (!formData.start_date) e.start_date = "Start date is required";
-    if (!formData.location?.trim()) e.location = "Location is required";
+    if (formData.is_virtual) {
+      if (!formData.virtual_url?.trim()) e.virtual_url = "Meeting link is required";
+    } else if (!formData.is_location_tbd && !formData.location?.trim()) {
+      e.location = "Location is required";
+    }
     if (!formData.description?.trim()) e.description = "Description is required";
     if (!formData.event_type) e.event_type = "Select an event type";
     if (
@@ -260,8 +269,12 @@ export default function EventEditor({
       end_date: end.toISOString(),
       duration_minutes: durationMinutes,
 
-      // Location
-      location: formData.location.trim() || null,
+      // Location & virtual
+      location: formData.is_virtual ? null : (formData.location.trim() || null),
+      is_virtual: formData.is_virtual,
+      virtual_url: formData.is_virtual ? formData.virtual_url.trim() || null : null,
+      virtual_platform: formData.is_virtual ? formData.virtual_platform || null : null,
+      is_location_tbd: formData.is_location_tbd,
 
       // Image
       thumbnail_url: formData.image || null, // NOT images array
@@ -309,6 +322,9 @@ export default function EventEditor({
         isRecurring && recurrenceEndDate
           ? recurrenceEndDate.toISOString()
           : null,
+
+      accepts_rsvps: formData.accepts_rsvps,
+      additional_notes: formData.additional_notes?.trim() || null,
     };
 
     try {
@@ -697,25 +713,116 @@ export default function EventEditor({
           )}
         </div>
 
-        {/* Location */}
-        <div data-error="location">
-          <Label className="text-slate-300">Location *</Label>
-          <div className="flex items-center gap-2 mt-1">
-            <MapPin className="h-4 w-4 text-slate-400" />
-            <Input
-              value={formData.location}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, location: e.target.value }))
+        {/* Location / Virtual / TBD */}
+        <div className="space-y-3">
+          <Label className="text-slate-300">Location</Label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  is_virtual: !prev.is_virtual,
+                  is_location_tbd: prev.is_virtual ? prev.is_location_tbd : false,
+                }))
               }
-              className="bg-slate-900 border-slate-700 text-white"
-              placeholder="e.g., 123 Main St, City"
-            />
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
+                formData.is_virtual
+                  ? "bg-amber-500 text-black"
+                  : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+              )}
+            >
+              <Video className="h-4 w-4" />
+              Virtual/Online Event
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  is_location_tbd: !prev.is_location_tbd,
+                  is_virtual: prev.is_location_tbd ? prev.is_virtual : false,
+                }))
+              }
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                formData.is_location_tbd
+                  ? "bg-amber-500 text-black"
+                  : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+              )}
+            >
+              Location TBD
+            </button>
           </div>
-          {errors.location && (
-            <p className="text-red-400 text-sm mt-1 flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" />
-              {errors.location}
-            </p>
+
+          {formData.is_virtual ? (
+            <div className="space-y-3 pt-2">
+              <div data-error="virtual_url">
+                <Label className="text-slate-300">Virtual Meeting Link *</Label>
+                <Input
+                  type="url"
+                  value={formData.virtual_url}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, virtual_url: e.target.value }))
+                  }
+                  className="bg-slate-900 border-slate-700 text-white mt-1"
+                  placeholder="https://zoom.us/j/..."
+                />
+                {errors.virtual_url && (
+                  <p className="text-red-400 text-sm mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {errors.virtual_url}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label className="text-slate-300">Platform</Label>
+                <Select
+                  value={formData.virtual_platform || "zoom"}
+                  onValueChange={(v) =>
+                    setFormData((prev) => ({ ...prev, virtual_platform: v }))
+                  }
+                >
+                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white mt-1">
+                    <SelectValue placeholder="Select platform" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-700">
+                    <SelectItem value="zoom" className="text-slate-300">Zoom</SelectItem>
+                    <SelectItem value="google_meet" className="text-slate-300">Google Meet</SelectItem>
+                    <SelectItem value="microsoft_teams" className="text-slate-300">Microsoft Teams</SelectItem>
+                    <SelectItem value="other" className="text-slate-300">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          ) : (
+            <div data-error="location" className="pt-2">
+              <Label className="text-slate-300">
+                {formData.is_location_tbd ? "Location (optional)" : "Location *"}
+              </Label>
+              <div className="flex items-center gap-2 mt-1">
+                <MapPin className="h-4 w-4 text-slate-400" />
+                <Input
+                  value={formData.location}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, location: e.target.value }))
+                  }
+                  className="bg-slate-900 border-slate-700 text-white"
+                  placeholder={
+                    formData.is_location_tbd
+                      ? "Location to be announced"
+                      : "e.g., 123 Main St, City"
+                  }
+                />
+              </div>
+              {errors.location && (
+                <p className="text-red-400 text-sm mt-1 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.location}
+                </p>
+              )}
+            </div>
           )}
         </div>
 
@@ -1075,6 +1182,36 @@ export default function EventEditor({
             className="bg-slate-900 border-slate-700 text-white mt-1 w-32"
             placeholder="e.g., 50"
           />
+        </div>
+
+        {/* Additional Settings */}
+        <div className="space-y-4 p-4 border border-slate-700 rounded-lg bg-slate-900/50">
+          <h3 className="text-lg font-semibold text-white">Additional Settings</h3>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-slate-300">Accept RSVPs for this event</Label>
+              <p className="text-sm text-slate-400 mt-0.5">Allow attendees to RSVP through Local Lane</p>
+            </div>
+            <Switch
+              checked={formData.accepts_rsvps}
+              onCheckedChange={(checked) =>
+                setFormData((prev) => ({ ...prev, accepts_rsvps: checked }))
+              }
+              className="data-[state=checked]:bg-amber-500"
+            />
+          </div>
+          <div>
+            <Label className="text-slate-300">Additional Notes (Optional)</Label>
+            <Textarea
+              value={formData.additional_notes}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, additional_notes: e.target.value }))
+              }
+              className="bg-slate-900 border-slate-700 text-white mt-1 min-h-[80px]"
+              placeholder="Parking details, what to bring, etc."
+              rows={3}
+            />
+          </div>
         </div>
 
         {/* Actions */}
