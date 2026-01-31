@@ -94,6 +94,9 @@ export default function EventEditor({
 
   const [lastSaved, setLastSaved] = useState(null);
   const autoSaveTimer = useRef(null);
+  const formDataRef = useRef(formData);
+  const hasRestoredDraft = useRef(false);
+  formDataRef.current = formData;
 
   const toggleDay = (day) => {
     setSelectedDays((prev) =>
@@ -182,7 +185,7 @@ export default function EventEditor({
         setEndDate(start && end && endDay !== startDay ? end : null);
       }
     }
-  }, [existingEvent, networks, ageGroups, durationPresets]);
+  }, [existingEvent?.id, networks, ageGroups, durationPresets]);
 
   const validate = () => {
     const e = {};
@@ -399,27 +402,27 @@ export default function EventEditor({
   const DRAFT_KEY = "event_draft";
 
   useEffect(() => {
-    if (!existingEvent && typeof window !== "undefined") {
-      try {
-        const raw = localStorage.getItem(DRAFT_KEY);
-        if (raw) {
-          const draft = JSON.parse(raw);
-          if (draft && draft.title) {
-            setFormData((prev) => ({ ...prev, ...draft }));
-            toast.info("Draft restored from last session");
-          }
+    if (hasRestoredDraft.current || existingEvent) return;
+    hasRestoredDraft.current = true;
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const draft = JSON.parse(raw);
+        if (draft && draft.title) {
+          setFormData((prev) => ({ ...prev, ...draft }));
+          toast.info("Draft restored from last session");
         }
-      } catch (_) {}
-    }
+      }
+    } catch (_) {}
   }, [existingEvent]);
 
   useEffect(() => {
-    if (existingEvent) return;
-    if (!formData.title?.trim()) return;
+    if (existingEvent || !formData.title?.trim()) return;
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(() => {
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(formDataRef.current));
         setLastSaved(new Date());
       } catch (_) {}
       autoSaveTimer.current = null;
@@ -427,7 +430,7 @@ export default function EventEditor({
     return () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
-  }, [formData, existingEvent]);
+  }, [formData.title, existingEvent]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 pt-2">
