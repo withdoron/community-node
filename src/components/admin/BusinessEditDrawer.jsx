@@ -33,6 +33,11 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const [staffSearchError, setStaffSearchError] = useState('');
   const [isSearchingStaff, setIsSearchingStaff] = useState(false);
   const [selectedRole, setSelectedRole] = useState('instructor');
+  const [localInstructors, setLocalInstructors] = useState([]);
+
+  useEffect(() => {
+    setLocalInstructors(business?.instructors || []);
+  }, [business?.instructors]);
 
   const { data: pendingInvites = [] } = useQuery({
     queryKey: ['staffInvites', business?.id],
@@ -84,18 +89,18 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     }
   };
 
-  const { data: staffUsers = [] } = useQuery({
-    queryKey: ['staff', business?.id, business?.instructors],
+  const { data: staffUsers = [], refetch: refetchStaffUsers } = useQuery({
+    queryKey: ['staff', business?.id, localInstructors],
     queryFn: async () => {
-      if (!business?.instructors?.length) return [];
+      if (!localInstructors?.length) return [];
       const users = await Promise.all(
-        business.instructors.map((id) =>
+        localInstructors.map((id) =>
           base44.entities.User.get(id).catch(() => null)
         )
       );
       return users.filter(Boolean);
     },
-    enabled: !!business?.id && !!business?.instructors?.length,
+    enabled: !!business?.id && localInstructors.length > 0,
   });
 
   useEffect(() => {
@@ -244,7 +249,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         return;
       }
       const user = users[0];
-      if (business.instructors?.includes(user.id)) {
+      if (localInstructors?.includes(user.id)) {
         setStaffSearchError('Already a staff member.');
         return;
       }
@@ -284,7 +289,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         await base44.entities.AdminSettings.create({ key, value });
       }
     },
-    onSuccess: async () => {
+    onSuccess: async (_data, { userId }) => {
+      setLocalInstructors((prev) => [...prev, userId]);
       setAddStaffEmail('');
       setStaffSearchResult(null);
       setStaffSearchError('');
@@ -321,7 +327,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         });
       }
     },
-    onSuccess: async () => {
+    onSuccess: async (userId) => {
+      setLocalInstructors((prev) => prev.filter((id) => id !== userId));
       queryClient.invalidateQueries({ queryKey: ['staff'] });
       queryClient.invalidateQueries({ queryKey: ['staffRoles'] });
       queryClient.invalidateQueries({ queryKey: ['staffInvites'] });
@@ -703,35 +710,49 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 </div>
               )}
 
-              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSearchStaff();
+                }}
+                onClick={(e) => e.stopPropagation()}
+                className="flex gap-2"
+              >
                 <Input
                   type="email"
                   placeholder="staff@example.com"
                   value={addStaffEmail}
                   onChange={(e) => {
                     e.stopPropagation();
+                    e.preventDefault();
                     setAddStaffEmail(e.target.value);
                   }}
-                  onClick={(e) => e.stopPropagation()}
-                  onFocus={(e) => e.stopPropagation()}
-                  autoComplete="off"
+                  onInput={(e) => e.stopPropagation()}
                   onKeyDown={(e) => {
+                    e.stopPropagation();
                     if (e.key === 'Enter') {
                       e.preventDefault();
                       handleSearchStaff();
                     }
                   }}
+                  onKeyUp={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
+                  autoComplete="off"
+                  name="staff-search-isolated"
+                  id="staff-search-isolated"
                   className="bg-slate-800 border-slate-700 text-white text-sm"
                 />
                 <Button
-                  onClick={(e) => { e.stopPropagation(); handleSearchStaff(); }}
+                  type="submit"
                   disabled={isSearchingStaff || !addStaffEmail.trim()}
                   size="sm"
                   className="bg-amber-500 hover:bg-amber-600 text-black"
                 >
                   Search
                 </Button>
-              </div>
+              </form>
 
               {staffSearchError && (
                 <p className="text-red-400 text-xs">{staffSearchError}</p>
