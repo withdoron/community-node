@@ -61,13 +61,13 @@ export default function EventEditor({
     start_time: "10:00",
     duration_minutes: 60,
     location: "",
-    image: "",
+    images: [],
     pricing_type: "free",
     price: "",
     min_price: "",
     punch_pass_eligible: false,
     punch_cost: 1,
-    event_type: "",
+    event_types: [],
     networks: [],
     age_info: "",
     capacity: "",
@@ -145,10 +145,11 @@ export default function EventEditor({
         punch_pass_eligible:
           existingEvent.punch_pass_accepted ?? existingEvent.punch_pass_eligible ?? false,
         punch_cost: existingEvent.punch_cost ?? 1,
-        event_type:
-          existingEvent.event_type ||
-          (Array.isArray(existingEvent.event_types) ? existingEvent.event_types[0] : "") ||
-          "",
+        event_types: (() => {
+          const et = existingEvent.event_type;
+          const arr = Array.isArray(existingEvent.event_types) ? existingEvent.event_types : et ? [et] : [];
+          return arr;
+        })(),
         networks: (() => {
           const n = existingEvent.network;
           const arr = Array.isArray(existingEvent.networks) ? existingEvent.networks : n ? [n] : [];
@@ -205,7 +206,7 @@ export default function EventEditor({
       e.location = "Location is required";
     }
     if (!formData.description?.trim()) e.description = "Description is required";
-    if (!formData.event_type) e.event_type = "Select an event type";
+    if (!formData.event_types || formData.event_types.length === 0) e.event_types = "Select at least one event type";
     if (
       formData.pricing_type === "single_price" &&
       (!formData.price || parseFloat(formData.price) <= 0)
@@ -241,14 +242,25 @@ export default function EventEditor({
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if ((formData.images || []).length >= 3) {
+      toast.error("Maximum 3 images allowed");
+      return;
+    }
     try {
       const result = await base44.integrations.Core.UploadFile({ file });
       const url = result?.file_url || result?.url;
-      if (url) setFormData((prev) => ({ ...prev, image: url }));
+      if (url) setFormData((prev) => ({ ...prev, images: [...(prev.images || []), url] }));
       else toast.error("Upload failed");
     } catch (err) {
       toast.error("Failed to upload image");
     }
+  };
+
+  const removeImage = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: (prev.images || []).filter((_, i) => i !== index),
+    }));
   };
 
   const handleSubmit = async (e, { isDraft = false } = {}) => {
@@ -295,7 +307,8 @@ export default function EventEditor({
       is_location_tbd: formData.is_location_tbd,
 
       // Image
-      thumbnail_url: formData.image || null, // NOT images array
+      thumbnail_url: formData.images?.[0] || null,
+      images: formData.images || [],
 
       // Pricing
       pricing_type: formData.pricing_type,
@@ -319,7 +332,8 @@ export default function EventEditor({
       punch_cost: formData.punch_cost ?? 1,
 
       // Categorization
-      event_type: formData.event_type || null,
+      event_type: formData.event_types?.[0] || null,
+      event_types: formData.event_types || [],
       network: formData.networks?.[0] ?? null, // Single value, NOT array
       age_info: formData.age_info?.trim() || null,
       capacity: formData.capacity ? parseInt(formData.capacity, 10) : null,
@@ -368,6 +382,15 @@ export default function EventEditor({
       networks: prev.networks.includes(name)
         ? prev.networks.filter((n) => n !== name)
         : [...prev.networks, name],
+    }));
+  };
+
+  const toggleEventType = (type) => {
+    setFormData((prev) => ({
+      ...prev,
+      event_types: prev.event_types.includes(type)
+        ? prev.event_types.filter((t) => t !== type)
+        : [...prev.event_types, type],
     }));
   };
 
@@ -420,7 +443,12 @@ export default function EventEditor({
       if (raw) {
         const draft = JSON.parse(raw);
         if (draft && draft.title) {
-          setFormData((prev) => ({ ...prev, ...draft }));
+          const normalized = { ...draft };
+          if (draft.event_type != null && !Array.isArray(draft.event_types)) normalized.event_types = draft.event_type ? [draft.event_type] : [];
+          if (draft.image != null && !Array.isArray(draft.images)) normalized.images = draft.image ? [draft.image] : [];
+          delete normalized.event_type;
+          delete normalized.image;
+          setFormData((prev) => ({ ...prev, ...normalized }));
           toast.info("Draft restored from last session");
         }
       }
@@ -891,39 +919,47 @@ export default function EventEditor({
           )}
         </div>
 
-        {/* Image (single) */}
+        {/* Images (up to 3) */}
         <div>
-          <Label className="text-slate-300">Event Image</Label>
-          <div className="flex items-center gap-4 mt-2">
-            {formData.image ? (
-              <div className="relative group">
+          <Label className="text-slate-300">Event Images</Label>
+          <div className="flex flex-wrap gap-4 mt-2">
+            {(formData.images || []).map((url, index) => (
+              <div key={url + index} className="relative group w-32 h-32">
                 <img
-                  src={formData.image}
+                  src={url}
                   alt=""
                   className="w-32 h-32 object-cover rounded-lg border border-slate-700"
                 />
+                {index === 0 && (
+                  <span className="absolute top-1 right-1 bg-slate-900/80 px-2 py-1 rounded text-xs text-slate-300">
+                    Hero
+                  </span>
+                )}
                 <button
                   type="button"
-                  onClick={() =>
-                    setFormData((prev) => ({ ...prev, image: "" }))
-                  }
-                  className="absolute top-1 right-1 p-1 bg-red-600 rounded hover:bg-red-700"
+                  onClick={() => removeImage(index)}
+                  className="absolute bottom-1 right-1 p-1 bg-red-600 rounded hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <Trash2 className="h-4 w-4 text-white" />
                 </button>
               </div>
-            ) : null}
-            <label className="w-32 h-32 border-2 border-dashed border-slate-700 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-amber-500/50 transition-colors">
-              <Upload className="h-6 w-6 text-slate-400" />
-              <span className="text-xs text-slate-400 mt-1">Upload</span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-            </label>
+            ))}
+            {(formData.images || []).length < 3 && (
+              <label className="w-32 h-32 border-2 border-dashed border-slate-700 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-amber-500/50 transition-colors">
+                <Upload className="h-6 w-6 text-slate-400" />
+                <span className="text-xs text-slate-400 mt-1">Upload</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </label>
+            )}
           </div>
+          <p className="text-xs text-slate-500 mt-2">
+            Up to 3 images. First image is the hero. Recommended: 1200×675px (16:9)
+          </p>
         </div>
 
         {/* Pricing */}
@@ -1146,33 +1182,29 @@ export default function EventEditor({
         </div>
 
         {/* Event Type */}
-        <div data-error="event_type">
+        <div data-error="event_types">
           <Label className="text-slate-300">Event Type *</Label>
-          <Select
-            value={formData.event_type}
-            onValueChange={(v) =>
-              setFormData((prev) => ({ ...prev, event_type: v }))
-            }
-          >
-            <SelectTrigger className="bg-slate-900 border-slate-700 text-white mt-1">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-900 border-slate-700">
-              {eventTypes
-                .filter((t) => t.active !== false)
-                .map((type) => (
-                  <SelectItem
-                    key={type.value}
-                    value={type.value}
-                    className="text-slate-300"
-                  >
-                    {type.label}
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-          {errors.event_type && (
-            <p className="text-red-400 text-sm mt-1">{errors.event_type}</p>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {(eventTypes || [])
+              .filter((t) => t.active !== false)
+              .map((type) => (
+                <button
+                  key={type.value}
+                  type="button"
+                  onClick={() => toggleEventType(type.value)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                    formData.event_types?.includes(type.value)
+                      ? "bg-amber-500 text-black"
+                      : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+                  )}
+                >
+                  {type.label}
+                </button>
+              ))}
+          </div>
+          {errors.event_types && (
+            <p className="text-red-400 text-sm mt-1">{errors.event_types}</p>
           )}
         </div>
 
