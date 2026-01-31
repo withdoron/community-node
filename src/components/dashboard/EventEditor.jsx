@@ -691,8 +691,14 @@ export default function EventEditor({
 
         {/* Recurring Event Section */}
         <div className="space-y-4 p-4 border border-slate-700 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setIsRecurring(!isRecurring)}
+            onKeyDown={(e) => e.key === "Enter" && setIsRecurring(!isRecurring)}
+            className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
+          >
+            <div className="pointer-events-none">
               <p className="text-white font-medium">This event repeats</p>
               <p className="text-slate-400 text-sm">
                 Create multiple event instances on a schedule
@@ -701,7 +707,7 @@ export default function EventEditor({
             <Switch
               checked={isRecurring}
               onCheckedChange={setIsRecurring}
-              className="data-[state=checked]:bg-amber-500"
+              className="data-[state=checked]:bg-amber-500 pointer-events-none"
             />
           </div>
 
@@ -801,6 +807,12 @@ export default function EventEditor({
                     Clear end date
                   </button>
                 )}
+              </div>
+              <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                <p className="text-xs text-amber-500">
+                  <AlertCircle className="h-3 w-3 inline mr-1" />
+                  Each occurrence will be created as a separate event
+                </p>
               </div>
             </div>
           )}
@@ -970,7 +982,7 @@ export default function EventEditor({
           </h3>
           <div data-error="pricing_type">
             <Label className="text-slate-300">Pricing Type</Label>
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="grid grid-cols-2 gap-2 mt-2">
               {["free", "single_price", "multiple_tickets", "pay_what_you_wish"].map((type) => {
                 const isLocked = type === "multiple_tickets" && !canUseMultipleTickets;
                 const isDisabled = isLocked || (type === "free" && formData.punch_pass_eligible);
@@ -1013,6 +1025,12 @@ export default function EventEditor({
             {!canUseMultipleTickets && (
               <p className="text-xs text-slate-400 mt-1">
                 Multiple ticket types require Standard tier or higher.
+              </p>
+            )}
+            {formData.punch_pass_eligible && (!formData.pricing_type || formData.pricing_type === "free") && (
+              <p className="text-xs text-amber-500 flex items-center gap-1 mt-1">
+                <AlertCircle className="h-3 w-3" />
+                Punch Pass events cannot be free
               </p>
             )}
             {errors.pricing_type && (
@@ -1120,8 +1138,29 @@ export default function EventEditor({
           <Label className="text-slate-300">Punch Pass</Label>
           {canUsePunchPass ? (
             <div className="space-y-3 p-4 bg-slate-900 border border-slate-700 rounded-xl">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-300">Punch Pass Eligible</span>
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  const checked = !formData.punch_pass_eligible;
+                  const updates = { punch_pass_eligible: checked };
+                  if (checked && formData.pricing_type === "free") {
+                    updates.pricing_type = "";
+                  }
+                  setFormData((prev) => ({ ...prev, ...updates }));
+                }}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter") return;
+                  const checked = !formData.punch_pass_eligible;
+                  const updates = { punch_pass_eligible: checked };
+                  if (checked && formData.pricing_type === "free") {
+                    updates.pricing_type = "";
+                  }
+                  setFormData((prev) => ({ ...prev, ...updates }));
+                }}
+                className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
+              >
+                <span className="text-slate-300 pointer-events-none">Punch Pass Eligible</span>
                 <Switch
                   checked={formData.punch_pass_eligible}
                   onCheckedChange={(checked) =>
@@ -1134,7 +1173,7 @@ export default function EventEditor({
                           : prev.pricing_type,
                     }))
                   }
-                  className="data-[state=checked]:bg-amber-500"
+                  className="data-[state=checked]:bg-amber-500 pointer-events-none"
                 />
               </div>
               {formData.punch_pass_eligible && (
@@ -1159,6 +1198,9 @@ export default function EventEditor({
                       </button>
                     ))}
                   </div>
+                  <p className="text-xs text-slate-400 mt-2">
+                    You earn 85% of punch value (${((formData.punch_cost || 1) * 0.85).toFixed(2)} per redemption)
+                  </p>
                 </div>
               )}
             </div>
