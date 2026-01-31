@@ -30,6 +30,8 @@ import {
   Loader2,
   Info,
   AlertCircle,
+  Plus,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -139,6 +141,13 @@ export default function EventEditor({
           return found ? found.value : a;
         })(),
         capacity: existingEvent.capacity ? String(existingEvent.capacity) : "",
+        ticket_types: Array.isArray(existingEvent.ticket_types) && existingEvent.ticket_types.length > 0
+          ? existingEvent.ticket_types.map((t) => ({
+              name: t.name ?? "",
+              price: t.price != null ? String(t.price) : "",
+              quantity_limit: t.quantity_limit != null ? String(t.quantity_limit) : "",
+            }))
+          : [{ name: "", price: "", quantity_limit: "" }],
       });
     }
   }, [existingEvent, networks, ageGroups]);
@@ -163,6 +172,10 @@ export default function EventEditor({
       e.min_price = "Min price must be 0 or more";
     if (formData.punch_pass_eligible && formData.pricing_type === "free") {
       e.pricing_type = "Punch Pass events cannot be free";
+    }
+    if (formData.pricing_type === "multiple_tickets") {
+      const validTickets = formData.ticket_types?.filter((t) => t.name?.trim() && t.price !== "" && parseFloat(t.price) >= 0);
+      if (!validTickets?.length) e.ticket_types = "Add at least one ticket type with name and price";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -217,6 +230,16 @@ export default function EventEditor({
       is_free: formData.pricing_type === "free",
       is_pay_what_you_wish: formData.pricing_type === "pay_what_you_wish",
       min_price: parseFloat(formData.min_price) || 0,
+      ticket_types:
+        formData.pricing_type === "multiple_tickets"
+          ? formData.ticket_types
+              .filter((t) => t.name?.trim() && t.price !== "")
+              .map((t) => ({
+                name: t.name.trim(),
+                price: parseFloat(t.price) || 0,
+                quantity_limit: t.quantity_limit ? parseInt(t.quantity_limit, 10) : null,
+              }))
+          : null,
 
       // Punch Pass
       punch_pass_accepted: canUsePunchPass ? formData.punch_pass_eligible : false, // NOT punch_pass_eligible
@@ -267,6 +290,33 @@ export default function EventEditor({
         ? prev.networks.filter((n) => n !== name)
         : [...prev.networks, name],
     }));
+  };
+
+  const addTicketType = () => {
+    setFormData((prev) => ({
+      ...prev,
+      ticket_types: [...(prev.ticket_types || []), { name: "", price: "", quantity_limit: "" }],
+    }));
+  };
+
+  const updateTicketType = (index, field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      ticket_types: (prev.ticket_types || []).map((t, i) =>
+        i === index ? { ...t, [field]: value } : t
+      ),
+    }));
+  };
+
+  const removeTicketType = (index) => {
+    setFormData((prev) => {
+      const types = prev.ticket_types || [];
+      if (types.length <= 1) return prev;
+      return {
+        ...prev,
+        ticket_types: types.filter((_, i) => i !== index),
+      };
+    });
   };
 
   return (
@@ -576,32 +626,50 @@ export default function EventEditor({
           <div data-error="pricing_type">
             <Label className="text-slate-300">Pricing Type</Label>
             <div className="flex flex-wrap gap-2 mt-2">
-              {["free", "single_price", "pay_what_you_wish"].map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      pricing_type: type,
-                      price: type === "free" ? "" : prev.price,
-                      min_price:
-                        type === "pay_what_you_wish" ? prev.min_price : "",
-                    }))
-                  }
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                    formData.pricing_type === type
-                      ? "bg-amber-500 text-black"
-                      : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
-                  )}
-                >
-                  {type === "free" && "Free"}
-                  {type === "single_price" && "Single Price"}
-                  {type === "pay_what_you_wish" && "Pay What You Wish"}
-                </button>
-              ))}
+              {["free", "single_price", "multiple_tickets", "pay_what_you_wish"].map((type) => {
+                const isLocked = type === "multiple_tickets" && !canUseMultipleTickets;
+                const isDisabled = isLocked || (type === "free" && formData.punch_pass_eligible);
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() =>
+                      !isDisabled &&
+                      setFormData((prev) => ({
+                        ...prev,
+                        pricing_type: type,
+                        price: type === "free" ? "" : prev.price,
+                        min_price: type === "pay_what_you_wish" ? prev.min_price : "",
+                      }))
+                    }
+                    disabled={isDisabled}
+                    className={cn(
+                      "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1",
+                      formData.pricing_type === type
+                        ? "bg-amber-500 text-black"
+                        : isDisabled
+                        ? "bg-slate-800/50 text-slate-500 border border-slate-700 cursor-not-allowed"
+                        : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+                    )}
+                  >
+                    {type === "free" && "Free"}
+                    {type === "single_price" && "Single Price"}
+                    {type === "multiple_tickets" && (
+                      <>
+                        Multiple Tickets
+                        {isLocked && <Lock className="h-3 w-3" />}
+                      </>
+                    )}
+                    {type === "pay_what_you_wish" && "Pay What You Wish"}
+                  </button>
+                );
+              })}
             </div>
+            {!canUseMultipleTickets && (
+              <p className="text-xs text-slate-400 mt-1">
+                Multiple ticket types require Standard tier or higher.
+              </p>
+            )}
             {errors.pricing_type && (
               <p className="text-red-400 text-sm mt-1">{errors.pricing_type}</p>
             )}
@@ -621,6 +689,63 @@ export default function EventEditor({
               />
               {errors.price && (
                 <p className="text-red-400 text-sm mt-1">{errors.price}</p>
+              )}
+            </div>
+          )}
+          {formData.pricing_type === "multiple_tickets" && (
+            <div className="space-y-3" data-error="ticket_types">
+              {(formData.ticket_types || []).map((ticket, index) => (
+                <div key={index} className="flex gap-2 items-start p-3 bg-slate-800 rounded-lg border border-slate-700">
+                  <div className="flex-1 grid grid-cols-3 gap-2">
+                    <Input
+                      placeholder="Tier name"
+                      value={ticket.name}
+                      onChange={(e) => updateTicketType(index, "name", e.target.value)}
+                      className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500 focus:border-amber-500"
+                    />
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="Price"
+                      value={ticket.price}
+                      onChange={(e) => updateTicketType(index, "price", e.target.value)}
+                      className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500 focus:border-amber-500"
+                    />
+                    <Input
+                      type="number"
+                      min="0"
+                      placeholder="Limit (optional)"
+                      value={ticket.quantity_limit}
+                      onChange={(e) => updateTicketType(index, "quantity_limit", e.target.value)}
+                      className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500 focus:border-amber-500"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeTicketType(index)}
+                    disabled={(formData.ticket_types || []).length <= 1}
+                    className="text-red-400 hover:text-red-300 disabled:opacity-50 disabled:pointer-events-none shrink-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                onClick={addTicketType}
+                className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Ticket Type
+              </Button>
+              {errors.ticket_types && (
+                <p className="text-red-400 text-sm mt-1 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.ticket_types}
+                </p>
               )}
             </div>
           )}
