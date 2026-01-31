@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -11,11 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Store, User, LogOut, LayoutDashboard, Plus, Menu, Shield, Calendar, X, Building2, Sparkles } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles } from "lucide-react";
 import Footer from '@/components/layout/Footer';
 
-export default function Layout({ children, currentPageName }) {
+export default function Layout({ children, currentPageName: currentPageNameProp }) {
+  const location = useLocation();
+  const currentPageName = currentPageNameProp ?? location.pathname?.replace(/^\//, '').split('?')[0]?.split('/')[0] ?? '';
+
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -25,447 +28,227 @@ export default function Layout({ children, currentPageName }) {
     }
   });
 
-  const isHomePage = currentPageName === 'Home';
+  const { data: staffBusinesses = [] } = useQuery({
+    queryKey: ['staff-businesses', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      const allBusinesses = await base44.entities.Business.filter({ is_active: true });
+      return allBusinesses.filter(b => b.instructors?.includes(currentUser.id));
+    },
+    enabled: !!currentUser?.id && !currentUser?.is_business_owner
+  });
+
+  const userHasStaffRole = currentUser?.is_business_owner || staffBusinesses.length > 0;
 
   const handleLogout = () => {
     base44.auth.logout();
   };
 
-  const NavContent = () => (
-    <>
-      <Link to={createPageUrl('MyLane')}>
-        <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
-          <Sparkles className="h-4 w-4 mr-2" />
-          My Lane
-        </Button>
-      </Link>
-      <Link to={createPageUrl('Events')}>
-        <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
-          Browse Events
-        </Button>
-      </Link>
-      <Link to={createPageUrl('Directory')}>
-        <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
-          Browse Directory
-        </Button>
-      </Link>
-      <Link to={createPageUrl('BusinessDashboard')}>
-        <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
-          <LayoutDashboard className="h-4 w-4 mr-2" />
-          Dashboard
-        </Button>
-      </Link>
-      {!currentUser?.is_business_owner && (
-        <Link to={createPageUrl('BusinessOnboarding')}>
-          <Button variant="ghost" className="text-slate-300 hover:text-amber-500">
-            <Plus className="h-4 w-4 mr-2" />
-            Start Hosting
-          </Button>
-        </Link>
-      )}
-    </>
-  );
+  const navLinkClass = (page) =>
+    currentPageName === page ? 'text-amber-500' : 'text-slate-300 hover:text-amber-500';
+
+  const sheetLinkClass = (page) =>
+    currentPageName === page
+      ? 'py-3 px-4 rounded-lg bg-amber-500/10 text-amber-500'
+      : 'py-3 px-4 rounded-lg text-slate-300 hover:text-amber-500 hover:bg-slate-800';
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header - only show if not on home page (home has its own hero) */}
-      {!isHomePage && (
-        <header className="bg-white border-b border-slate-200">
-          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <Link to={createPageUrl('Home')} className="group flex items-center gap-2 py-2 -ml-2 pl-2 pr-4 cursor-pointer transition-all">
-              <div className="h-8 w-8 bg-slate-900 rounded-lg flex items-center justify-center border border-slate-800 group-hover:border-amber-500/50 group-hover:bg-slate-800 transition-colors">
-                <Store className="h-4 w-4 text-white group-hover:text-amber-400 transition-colors" />
-              </div>
-              <span className="font-bold text-slate-900 text-lg group-hover:text-amber-500 transition-colors">Local Lane</span>
+    <div className="min-h-screen bg-slate-950">
+      <header className="sticky top-0 z-50 bg-slate-900 border-b border-slate-800">
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+          {/* Left: Logo */}
+          <Link
+            to={createPageUrl('Home')}
+            className="group flex items-center gap-2 py-2 -ml-2 pl-2 pr-4 cursor-pointer transition-all rounded-lg"
+          >
+            <div className="h-8 w-8 rounded-lg border border-slate-800 bg-slate-900 flex items-center justify-center group-hover:border-amber-500/50 transition-colors">
+              <Store className="h-4 w-4 text-white group-hover:text-amber-400 transition-colors" />
+            </div>
+            <span className="font-bold text-slate-100 text-lg group-hover:text-amber-500 transition-colors">
+              Local Lane
+            </span>
+          </Link>
+
+          {/* Center-right: Desktop nav */}
+          <nav className="hidden md:flex items-center gap-6">
+            <Link to={createPageUrl('Directory')} className={navLinkClass('Directory')}>
+              Browse
             </Link>
-
-            {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-2">
-              <NavContent />
-              
-              {currentUser ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="ml-2">
-                      <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center">
-                        <User className="h-4 w-4 text-slate-600" />
-                      </div>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <div className="px-2 py-1.5">
-                      <p className="text-sm font-medium">{currentUser.full_name}</p>
-                      <p className="text-xs text-slate-500">{currentUser.email}</p>
-                    </div>
-                    <DropdownMenuSeparator />
-                    {currentUser.is_business_owner && (
-                                                <DropdownMenuItem asChild>
-                                                  <Link to={createPageUrl('BusinessDashboard')}>
-                                                    <LayoutDashboard className="h-4 w-4 mr-2" />
-                                                    Business Dashboard
-                                                  </Link>
-                                                </DropdownMenuItem>
-                                              )}
-                                              {currentUser.role === 'admin' && (
-                                                <>
-                                                  <DropdownMenuItem asChild>
-                                                    <Link to={createPageUrl('Admin')}>
-                                                      <Shield className="h-4 w-4 mr-2" />
-                                                      Admin Panel
-                                                    </Link>
-                                                  </DropdownMenuItem>
-                                                  <DropdownMenuItem asChild>
-                                                    <Link to={createPageUrl('Admin') + '&tab=spokes'}>
-                                                      <Store className="h-4 w-4 mr-2" />
-                                                      Spokes
-                                                    </Link>
-                                                  </DropdownMenuItem>
-                                                </>
-                                              )}
-                                              <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Log Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button 
-                  className="ml-2 bg-slate-900 hover:bg-slate-800"
-                  onClick={() => base44.auth.redirectToLogin()}
-                >
-                  Sign In
-                </Button>
-              )}
-            </nav>
-
-            {/* Mobile Nav */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" className="md:hidden p-4 -mr-4 text-slate-400 hover:text-amber-400 transition-colors z-50 cursor-pointer">
-                  <Menu className="w-8 h-8" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="bg-slate-950 border-l border-slate-800 [&>button]:hidden">
-                <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950 -m-6 mb-6">
-                  <div className="font-bold text-lg text-slate-100 tracking-tight">
-                    Menu
-                  </div>
-                  <SheetClose asChild>
-                    <button 
-                      className="p-2 text-slate-400 hover:text-amber-400 transition-colors rounded-full hover:bg-slate-900"
-                      aria-label="Close menu"
-                    >
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        width="24" 
-                        height="24" 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round"
-                      >
-                        <path d="M18 6 6 18"/>
-                        <path d="m6 6 12 12"/>
-                      </svg>
-                    </button>
-                  </SheetClose>
-                </div>
-                <div className="flex flex-col h-full">
-                  <div className="flex flex-col gap-2 flex-1">
-                    <SheetClose asChild>
-                      <Link to={createPageUrl('MyLane')}>
-                        <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                          <Sparkles className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                          My Lane
-                        </Button>
-                      </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Link to={createPageUrl('Events')}>
-                        <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                          <Calendar className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                          Browse Events
-                        </Button>
-                      </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Link to={createPageUrl('Directory')}>
-                        <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                          <Building2 className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                          Browse Directory
-                        </Button>
-                      </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Link to={createPageUrl('BusinessDashboard')}>
-                        <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                          <LayoutDashboard className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                          Dashboard
-                        </Button>
-                      </Link>
-                    </SheetClose>
-                    {currentUser?.is_business_owner ? (
-                      <SheetClose asChild>
-                        <Link to={createPageUrl('BusinessDashboard')}>
-                          <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                            <Store className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                            Host Dashboard
-                          </Button>
-                        </Link>
-                      </SheetClose>
-                    ) : (
-                      <SheetClose asChild>
-                        <Link to={createPageUrl('BusinessOnboarding')}>
-                          <Button variant="ghost" className="w-full justify-start items-center text-amber-400 hover:text-amber-300 hover:bg-slate-900 group">
-                            <Plus className="h-5 w-5 mr-3 text-amber-500 group-hover:text-amber-400" strokeWidth={2} />
-                            Start Hosting
-                          </Button>
-                        </Link>
-                      </SheetClose>
-                    )}
-                  </div>
-                  
-                  {currentUser ? (
-                    <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 mt-auto">
-                      <div>
-                        <p className="text-sm font-medium text-slate-100">{currentUser.full_name}</p>
-                        <p className="text-xs text-slate-500">{currentUser.email}</p>
-                      </div>
-                      <div className="mt-3 pt-3 border-t border-slate-800">
-                        <button 
-                          onClick={handleLogout}
-                          className="flex items-center gap-2 text-sm text-slate-400 hover:text-red-400 transition-colors"
-                        >
-                          <LogOut className="h-4 w-4" strokeWidth={2} />
-                          Log Out
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mt-auto">
-                      <Button 
-                        className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold"
-                        onClick={() => base44.auth.redirectToLogin()}
-                      >
-                        Sign In
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-        </header>
-      )}
-
-      {/* Home page header - now consistent with other pages */}
-      {isHomePage && (
-        <header className="bg-white border-b border-slate-200">
-          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <Link to={createPageUrl('Home')} className="group flex items-center gap-2 py-2 -ml-2 pl-2 pr-4 cursor-pointer transition-all">
-              <div className="h-8 w-8 bg-slate-900 rounded-lg flex items-center justify-center border border-slate-800 group-hover:border-amber-500/50 group-hover:bg-slate-800 transition-colors">
-                <Store className="h-4 w-4 text-white group-hover:text-amber-400 transition-colors" />
-              </div>
-              <span className="font-bold text-slate-900 text-lg group-hover:text-amber-500 transition-colors">Local Lane</span>
+            <Link to={createPageUrl('Events')} className={navLinkClass('Events')}>
+              Events
             </Link>
-
-            <nav className="hidden md:flex items-center gap-2">
-              <Link to={createPageUrl('Search')}>
-                <Button variant="ghost" className="text-slate-600 hover:text-slate-900">
-                  Browse
-                </Button>
+            {currentUser && userHasStaffRole && (
+              <Link to={createPageUrl('BusinessDashboard')} className={`flex items-center gap-1.5 ${navLinkClass('BusinessDashboard')}`}>
+                <LayoutDashboard className="h-4 w-4 mr-1.5" />
+                Dashboard
               </Link>
-              {currentUser?.is_business_owner ? (
-                <Link to={createPageUrl('BusinessDashboard')}>
-                  <Button variant="ghost" className="text-slate-600 hover:text-slate-900">
-                    <LayoutDashboard className="h-4 w-4 mr-2" />
-                    Dashboard
-                  </Button>
-                </Link>
-              ) : (
-                <Link to={createPageUrl('BusinessOnboarding')}>
-                  <Button variant="ghost" className="text-slate-600 hover:text-slate-900">
-                    <Plus className="h-4 w-4 mr-2" />
-                    List Your Business
-                  </Button>
-                </Link>
-              )}
-              {currentUser ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="ml-2">
-                      <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center">
-                        <User className="h-4 w-4 text-slate-600" />
-                      </div>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <div className="px-2 py-1.5">
-                      <p className="text-sm font-medium">{currentUser.full_name}</p>
-                      <p className="text-xs text-slate-500">{currentUser.email}</p>
-                    </div>
-                    <DropdownMenuSeparator />
-                    {currentUser.is_business_owner && (
-                      <DropdownMenuItem asChild>
-                        <Link to={createPageUrl('BusinessDashboard')}>
-                          <LayoutDashboard className="h-4 w-4 mr-2" />
-                          Business Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-                    {currentUser.role === 'admin' && (
-                      <DropdownMenuItem asChild>
-                        <Link to={createPageUrl('Admin')}>
-                          <Shield className="h-4 w-4 mr-2" />
-                          Admin Panel
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Log Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button 
-                  className="ml-2 bg-slate-900 hover:bg-slate-800"
-                  onClick={() => base44.auth.redirectToLogin()}
-                >
-                  Sign In
-                </Button>
-              )}
-            </nav>
+            )}
 
-            {/* Mobile */}
+            {/* Far right: User area */}
+            {!currentUser ? (
+              <Button
+                variant="outline"
+                className="border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 ml-2"
+                onClick={() => base44.auth.redirectToLogin()}
+              >
+                Sign In
+              </Button>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="h-8 w-8 rounded-full bg-slate-800 border border-slate-700 hover:border-amber-500/50 flex items-center justify-center ml-2 transition-colors cursor-pointer">
+                    <User className="h-4 w-4 text-slate-400" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-slate-800">
+                  <div className="px-2 py-2">
+                    <p className="text-sm font-medium text-slate-100">{currentUser.full_name}</p>
+                    <p className="text-xs text-slate-500">{currentUser.email}</p>
+                  </div>
+                  <DropdownMenuSeparator className="bg-slate-800" />
+                  <DropdownMenuItem asChild>
+                    <Link to={createPageUrl('MyLane')} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 cursor-pointer flex items-center">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      My Lane
+                    </Link>
+                  </DropdownMenuItem>
+                  {(currentUser.is_business_owner || userHasStaffRole) && (
+                    <DropdownMenuItem asChild>
+                      <Link to={createPageUrl('BusinessDashboard')} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 cursor-pointer flex items-center">
+                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                        Business Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {currentUser.role === 'admin' && (
+                    <DropdownMenuItem asChild>
+                      <Link to={createPageUrl('Admin')} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 cursor-pointer flex items-center">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin Panel
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator className="bg-slate-800" />
+                  <DropdownMenuItem onClick={handleLogout} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 cursor-pointer">
+                    <LogOut className="h-4 w-4 mr-2 text-red-400" />
+                    <span className="text-red-400">Log Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </nav>
+
+          {/* Mobile: Hamburger */}
+          <div className="md:hidden flex items-center gap-2">
+            {!currentUser ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500"
+                onClick={() => base44.auth.redirectToLogin()}
+              >
+                Sign In
+              </Button>
+            ) : null}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" className="md:hidden p-4 -mr-4 text-slate-400 hover:text-amber-400 transition-colors z-50 cursor-pointer">
-                  <Menu className="w-8 h-8" />
+                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-100">
+                  <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="bg-slate-950 border-l border-slate-800 [&>button]:hidden">
-                <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950 -m-6 mb-6">
-                  <div className="font-bold text-lg text-slate-100 tracking-tight">
-                    Menu
+              <SheetContent side="right" className="bg-slate-900 border-l border-slate-800 p-0 flex flex-col w-full max-w-[280px]">
+                <div className="flex flex-col flex-1 overflow-y-auto">
+                  <div className="p-4 border-b border-slate-800">
+                    <SheetClose asChild>
+                      <Link to={createPageUrl('Home')} className="group flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-lg border border-slate-800 bg-slate-900 flex items-center justify-center group-hover:border-amber-500/50">
+                          <Store className="h-4 w-4 text-white group-hover:text-amber-400" />
+                        </div>
+                        <span className="font-bold text-slate-100 text-lg group-hover:text-amber-500">Local Lane</span>
+                      </Link>
+                    </SheetClose>
                   </div>
-                  <SheetClose asChild>
-                    <button 
-                      className="p-2 text-slate-400 hover:text-amber-400 transition-colors rounded-full hover:bg-slate-900"
-                      aria-label="Close menu"
-                    >
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        width="24" 
-                        height="24" 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round"
-                      >
-                        <path d="M18 6 6 18"/>
-                        <path d="m6 6 12 12"/>
-                      </svg>
-                    </button>
-                  </SheetClose>
-                </div>
-                <div className="flex flex-col h-full">
-                  <div className="flex flex-col gap-2 flex-1">
+                  <div className="py-4 flex flex-col">
                     <SheetClose asChild>
-                      <Link to={createPageUrl('MyLane')}>
-                        <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                          <Sparkles className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                          My Lane
-                        </Button>
+                      <Link to={createPageUrl('Directory')} className={`flex items-center gap-3 ${sheetLinkClass('Directory')}`}>
+                        <Store className="h-5 w-5 flex-shrink-0" />
+                        Browse
                       </Link>
                     </SheetClose>
                     <SheetClose asChild>
-                      <Link to={createPageUrl('Events')}>
-                        <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                          <Calendar className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                          Browse Events
-                        </Button>
+                      <Link to={createPageUrl('Events')} className={`flex items-center gap-3 ${sheetLinkClass('Events')}`}>
+                        <Calendar className="h-5 w-5 flex-shrink-0" />
+                        Events
                       </Link>
                     </SheetClose>
-                    <SheetClose asChild>
-                      <Link to={createPageUrl('Directory')}>
-                        <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                          <Building2 className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                          Browse Directory
-                        </Button>
-                      </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Link to={createPageUrl('BusinessDashboard')}>
-                        <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                          <LayoutDashboard className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
+                    {currentUser && userHasStaffRole && (
+                      <SheetClose asChild>
+                        <Link to={createPageUrl('BusinessDashboard')} className={`flex items-center gap-3 ${sheetLinkClass('BusinessDashboard')}`}>
+                          <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
                           Dashboard
-                        </Button>
-                      </Link>
-                    </SheetClose>
-                    {currentUser?.is_business_owner ? (
-                      <SheetClose asChild>
-                        <Link to={createPageUrl('BusinessDashboard')}>
-                          <Button variant="ghost" className="w-full justify-start items-center text-slate-300 hover:text-amber-500 hover:bg-slate-900 group">
-                            <Store className="h-5 w-5 mr-3 text-slate-400 group-hover:text-amber-500" strokeWidth={2} />
-                            Host Dashboard
-                          </Button>
-                        </Link>
-                      </SheetClose>
-                    ) : (
-                      <SheetClose asChild>
-                        <Link to={createPageUrl('BusinessOnboarding')}>
-                          <Button variant="ghost" className="w-full justify-start items-center text-amber-400 hover:text-amber-300 hover:bg-slate-900 group">
-                            <Plus className="h-5 w-5 mr-3 text-amber-500 group-hover:text-amber-400" strokeWidth={2} />
-                            Start Hosting
-                          </Button>
                         </Link>
                       </SheetClose>
                     )}
                   </div>
-                  
+                  <div className="border-t border-slate-800 my-4" />
+                  {currentUser && (
+                    <div className="flex flex-col gap-1 px-4">
+                      <SheetClose asChild>
+                        <Link to={createPageUrl('MyLane')} className={`flex items-center gap-3 ${sheetLinkClass('MyLane')}`}>
+                          <Sparkles className="h-5 w-5 flex-shrink-0" />
+                          My Lane
+                        </Link>
+                      </SheetClose>
+                      {(currentUser.is_business_owner || userHasStaffRole) && (
+                        <SheetClose asChild>
+                          <Link to={createPageUrl('BusinessDashboard')} className={`flex items-center gap-3 ${sheetLinkClass('BusinessDashboard')}`}>
+                            <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
+                            Business Dashboard
+                          </Link>
+                        </SheetClose>
+                      )}
+                      {currentUser.role === 'admin' && (
+                        <SheetClose asChild>
+                          <Link to={createPageUrl('Admin')} className={`flex items-center gap-3 ${sheetLinkClass('Admin')}`}>
+                            <Shield className="h-5 w-5 flex-shrink-0" />
+                            Admin Panel
+                          </Link>
+                        </SheetClose>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="mt-auto p-4 border-t border-slate-800">
                   {currentUser ? (
-                    <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 mt-auto">
-                      <div>
-                        <p className="text-sm font-medium text-slate-100">{currentUser.full_name}</p>
-                        <p className="text-xs text-slate-500">{currentUser.email}</p>
-                      </div>
-                      <div className="mt-3 pt-3 border-t border-slate-800">
-                        <button 
-                          onClick={handleLogout}
-                          className="flex items-center gap-2 text-sm text-slate-400 hover:text-red-400 transition-colors"
-                        >
-                          <LogOut className="h-4 w-4" strokeWidth={2} />
-                          Log Out
-                        </button>
-                      </div>
+                    <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-800">
+                      <p className="text-sm font-medium text-slate-100">{currentUser.full_name}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{currentUser.email}</p>
+                      <button
+                        onClick={handleLogout}
+                        className="mt-3 flex items-center gap-2 text-sm text-slate-400 hover:text-red-400 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Log Out
+                      </button>
                     </div>
                   ) : (
-                    <div className="mt-auto">
-                      <Button 
-                        className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold"
-                        onClick={() => base44.auth.redirectToLogin()}
-                      >
-                        Sign In
-                      </Button>
-                    </div>
+                    <Button
+                      className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                      onClick={() => base44.auth.redirectToLogin()}
+                    >
+                      Sign In
+                    </Button>
                   )}
                 </div>
               </SheetContent>
             </Sheet>
           </div>
-        </header>
-      )}
+        </div>
+      </header>
 
-      {/* Page Content */}
       <main>{children}</main>
 
-      {/* Footer */}
       <Footer />
-      </div>
-      );
-      }
+    </div>
+  );
+}
