@@ -551,7 +551,7 @@ export default function BusinessDashboard() {
 
         {/* Staff - Owners and Staff (Venue/Location) */}
         {config.widgets.includes('Staff') && (isOwner || isStaff) && (
-          <StaffWidget business={selectedBusiness} />
+          <StaffWidget business={selectedBusiness} currentUserId={currentUser?.id} />
         )}
 
         {/* CheckIn - Venue/Location */}

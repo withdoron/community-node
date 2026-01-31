@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, UserPlus, Plus, X, Mail } from "lucide-react";
 
-export default function StaffWidget({ business }) {
+export default function StaffWidget({ business, currentUserId }) {
   console.log('[StaffWidget] business:', business);
   console.log('[StaffWidget] business.instructors:', business?.instructors);
   console.log('[StaffWidget] business.owner_email:', business?.owner_email);
@@ -74,18 +74,32 @@ export default function StaffWidget({ business }) {
     return roleData?.role || 'instructor';
   };
 
+  const isOwner = business?.owner_user_id === currentUserId;
+  const isManager = currentUserId && getRoleForUser(currentUserId) === 'manager';
+
   const { data: staffUsers = [], isLoading: staffLoading } = useQuery({
     queryKey: ['staff', business?.id, business?.instructors],
     queryFn: async () => {
-      if (!staffUserIds.length) return [];
+      if (!business?.instructors?.length) return [];
+
       const users = await Promise.all(
-        staffUserIds.map((id) =>
-          base44.entities.User.filter({ id }, '', 1).then((r) => r?.[0] ?? null)
-        )
+        business.instructors.map(async (id) => {
+          try {
+            const results = await base44.entities.User.filter({ id }, '', 1);
+            if (results.length > 0) {
+              return results[0];
+            }
+            return { id, email: 'Team Member', full_name: null, _notFound: true };
+          } catch (error) {
+            console.log('[StaffWidget] Could not fetch user', id, '- using placeholder');
+            return { id, email: 'Team Member', full_name: null, _permissionDenied: true };
+          }
+        })
       );
+
       return users.filter(Boolean);
     },
-    enabled: !!business?.id && staffUserIds.length > 0,
+    enabled: !!business?.id && !!business?.instructors?.length,
   });
 
   const addStaffMutation = useMutation({
@@ -274,20 +288,22 @@ export default function StaffWidget({ business }) {
           <h2 className="text-xl font-bold text-slate-100">Staff & Instructors</h2>
           <p className="text-sm text-slate-400">Manage your team members</p>
         </div>
-        <Button
-          variant="outline"
-          className="border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-black"
-          onClick={() => {
-            setAddStaffOpen(true);
-            setSearchEmail('');
-            setSearchResult(null);
-            setSearchError('');
-            setSelectedRole('instructor');
-          }}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Staff
-        </Button>
+        {(isOwner || isManager) && (
+          <Button
+            variant="outline"
+            className="border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-black"
+            onClick={() => {
+              setAddStaffOpen(true);
+              setSearchEmail('');
+              setSearchResult(null);
+              setSearchError('');
+              setSelectedRole('instructor');
+            }}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Staff
+          </Button>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -313,21 +329,27 @@ export default function StaffWidget({ business }) {
                 <User className="w-5 h-5 text-slate-400" />
               </div>
               <div>
-                <p className="text-white font-medium">{user.full_name || user.email}</p>
-                <p className="text-slate-400 text-sm">{user.email}</p>
+                <p className="text-white font-medium">
+                  {user._permissionDenied ? 'Team Member' : (user.full_name || user.email)}
+                </p>
+                {!user._permissionDenied && user.email && (
+                  <p className="text-slate-400 text-sm">{user.email}</p>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2">
               {getRoleBadge(getRoleForUser(user.id))}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeStaffMutation.mutate(user.id)}
-                disabled={removeStaffMutation.isPending}
-                className="text-slate-400 hover:text-red-400 hover:bg-slate-700"
-              >
-                <X className="w-4 h-4" />
-              </Button>
+              {(isOwner || isManager) && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeStaffMutation.mutate(user.id)}
+                  disabled={removeStaffMutation.isPending}
+                  className="text-slate-400 hover:text-red-400 hover:bg-slate-700"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </div>
         ))}
