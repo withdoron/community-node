@@ -64,7 +64,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
   return (
     <div className="min-h-screen bg-slate-950">
       <header className="sticky top-0 z-50 bg-slate-900 border-b border-slate-800">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           {/* Left: Logo */}
           <Link
             to={createPageUrl('Home')}
@@ -79,7 +79,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
           </Link>
 
           {/* Center-right: Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-8 ml-auto">
             <Link to={createPageUrl('Directory')} className={navLinkClass('Directory')}>
               Directory
             </Link>
@@ -107,46 +107,46 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="h-8 w-8 rounded-full bg-slate-800 border border-slate-700 hover:border-amber-500/50 flex items-center justify-center transition-colors cursor-pointer">
+                  <button className="h-9 w-9 rounded-full bg-amber-500/10 border-2 border-amber-500/30 hover:border-amber-500/60 flex items-center justify-center transition-colors cursor-pointer">
                     {userInitials ? (
-                      <span className="text-xs font-semibold text-amber-500">{userInitials}</span>
+                      <span className="text-xs font-bold text-amber-500">{userInitials}</span>
                     ) : (
-                      <User className="h-4 w-4 text-slate-400" />
+                      <User className="h-4 w-4 text-amber-500" />
                     )}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-slate-700 text-slate-300">
+                <DropdownMenuContent align="end" className="w-60 bg-slate-900 border border-slate-700 shadow-xl shadow-black/20">
                   <div className="px-2 py-2">
                     <p className="text-sm font-medium text-slate-100">{currentUser.full_name}</p>
                     <p className="text-xs text-slate-500">{currentUser.email}</p>
                   </div>
                   <DropdownMenuSeparator className="bg-slate-800" />
-                  <DropdownMenuItem asChild>
-                    <Link to={createPageUrl('MyLane')} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 focus:bg-slate-800 focus:text-amber-500 cursor-pointer flex items-center">
+                  <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 focus:text-amber-500 focus:bg-slate-800 cursor-pointer">
+                    <Link to={createPageUrl('MyLane')} className="flex items-center">
                       <Sparkles className="h-4 w-4 mr-2" />
                       My Lane
                     </Link>
                   </DropdownMenuItem>
                   {(currentUser.is_business_owner || userHasStaffRole) && (
-                    <DropdownMenuItem asChild>
-                      <Link to={createPageUrl('BusinessDashboard')} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 focus:bg-slate-800 focus:text-amber-500 cursor-pointer flex items-center">
+                    <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 focus:text-amber-500 focus:bg-slate-800 cursor-pointer">
+                      <Link to={createPageUrl('BusinessDashboard')} className="flex items-center">
                         <LayoutDashboard className="h-4 w-4 mr-2" />
                         Business Dashboard
                       </Link>
                     </DropdownMenuItem>
                   )}
                   {currentUser.role === 'admin' && (
-                    <DropdownMenuItem asChild>
-                      <Link to={createPageUrl('Admin')} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 focus:bg-slate-800 focus:text-amber-500 cursor-pointer flex items-center">
+                    <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 focus:text-amber-500 focus:bg-slate-800 cursor-pointer">
+                      <Link to={createPageUrl('Admin')} className="flex items-center">
                         <Shield className="h-4 w-4 mr-2" />
                         Admin Panel
                       </Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator className="bg-slate-800" />
-                  <DropdownMenuItem onClick={handleLogout} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800 focus:bg-slate-800 focus:text-amber-500 cursor-pointer">
-                    <LogOut className="h-4 w-4 mr-2 text-red-400" />
-                    <span className="text-red-400">Log Out</span>
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-400 hover:text-red-300 hover:bg-slate-800 focus:text-red-300 focus:bg-slate-800 cursor-pointer">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Log Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
