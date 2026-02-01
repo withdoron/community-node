@@ -43,13 +43,16 @@ export default function BusinessProfile() {
     enabled: !!businessId
   });
 
-  const { data: reviews = [], isLoading: reviewsLoading } = useQuery({
-    queryKey: ['reviews', businessId],
+  const { data: recommendations = [], isLoading: recommendationsLoading } = useQuery({
+    queryKey: ['recommendations', businessId],
     queryFn: async () => {
-      return await base44.entities.Review.filter({ business_id: businessId }, '-created_date', 50);
+      return await base44.entities.Recommendation.filter({ business_id: businessId, is_active: true }, '-created_date', 100);
     },
     enabled: !!businessId
   });
+
+  const nods = recommendations.filter(r => r.type === 'nod');
+  const stories = recommendations.filter(r => r.type === 'story');
 
   // Fetch locations for this business
   const { data: locations = [] } = useQuery({

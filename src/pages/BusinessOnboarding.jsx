@@ -298,12 +298,13 @@ export default function BusinessOnboarding() {
                 </div>
               ) : archetypes.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-slate-400 mb-4">No archetypes found. Please run the migration first.</p>
+                  <p className="text-slate-400 mb-4">No archetypes found. Please contact an administrator.</p>
                   <Button
-                    onClick={() => navigate(createPageUrl('MigrateCategories'))}
-                    className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+                    onClick={() => navigate(createPageUrl('Admin'))}
+                    variant="outline"
+                    className="border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500"
                   >
-                    Run Migration
+                    Go to Admin
                   </Button>
                 </div>
               ) : (

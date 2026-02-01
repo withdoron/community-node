@@ -80,14 +80,6 @@ export default function BusinessDashboardDetail({ business, onBack }) {
   const [uploading, setUploading] = useState(false);
   const [editData, setEditData] = useState(null);
 
-  const { data: reviews = [] } = useQuery({
-    queryKey: ['businessReviews', business?.id],
-    queryFn: async () => {
-      return await base44.entities.Review.filter({ business_id: business.id }, '-created_date', 50);
-    },
-    enabled: !!business?.id
-  });
-
   const { data: recommendations = [], isLoading: recommendationsLoading } = useQuery({
     queryKey: ['recommendations', business?.id],
     queryFn: async () => {

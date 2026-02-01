@@ -3,12 +3,10 @@ import BuildLane from './pages/BuildLane';
 import BusinessDashboard from './pages/BusinessDashboard';
 import BusinessOnboarding from './pages/BusinessOnboarding';
 import BusinessProfile from './pages/BusinessProfile';
-import Categories from './pages/Categories';
 import CategoryPage from './pages/CategoryPage';
 import Directory from './pages/Directory';
 import Events from './pages/Events';
 import Home from './pages/Home';
-import MigrateCategories from './pages/MigrateCategories';
 import MyLane from './pages/MyLane';
 import PunchPass from './pages/PunchPass';
 import Search from './pages/Search';
@@ -23,12 +21,10 @@ export const PAGES = {
     "BusinessDashboard": BusinessDashboard,
     "BusinessOnboarding": BusinessOnboarding,
     "BusinessProfile": BusinessProfile,
-    "Categories": Categories,
     "CategoryPage": CategoryPage,
     "Directory": Directory,
     "Events": Events,
     "Home": Home,
-    "MigrateCategories": MigrateCategories,
     "MyLane": MyLane,
     "PunchPass": PunchPass,
     "Search": Search,
