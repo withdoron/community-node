@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useUserState } from '@/hooks/useUserState';
 import GreetingHeader from '@/components/mylane/GreetingHeader';
+import UpcomingEventsSection from '@/components/mylane/UpcomingEventsSection';
 import HappeningSoonSection from '@/components/mylane/HappeningSoonSection';
 import NewInCommunitySection from '@/components/mylane/NewInCommunitySection';
 import YourRecommendationsSection from '@/components/mylane/YourRecommendationsSection';
@@ -50,6 +51,7 @@ export default function MyLane() {
     <div className="min-h-screen bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
         <GreetingHeader currentUser={currentUser} punchPass={punchPass} />
+        <UpcomingEventsSection currentUser={currentUser} />
         <HappeningSoonSection />
         <NewInCommunitySection />
         {recommendations.length > 0 && (
