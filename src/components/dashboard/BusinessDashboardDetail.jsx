@@ -226,16 +226,16 @@ export default function BusinessDashboardDetail({ business, onBack }) {
   if (!editData) return null;
 
   const tierInfo = {
-    basic: { icon: Star, color: 'text-slate-600', bg: 'bg-slate-100', name: 'Basic' },
-    standard: { icon: Zap, color: 'text-blue-600', bg: 'bg-blue-100', name: 'Standard' },
-    partner: { icon: Crown, color: 'text-amber-600', bg: 'bg-amber-100', name: 'Partner' }
+    basic: { icon: Star, color: 'text-slate-300', bg: 'bg-slate-800', name: 'Basic' },
+    standard: { icon: Zap, color: 'text-blue-400', bg: 'bg-blue-500/20', name: 'Standard' },
+    partner: { icon: Crown, color: 'text-amber-500', bg: 'bg-amber-500/20', name: 'Partner' }
   };
 
   const currentTier = tierInfo[business.subscription_tier] || tierInfo.basic;
   const TierIcon = currentTier.icon;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-950">
       {/* Header */}
       <div className="bg-slate-900 border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-6">
@@ -243,7 +243,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
             variant="ghost" 
             size="sm" 
             onClick={onBack}
-            className="mb-4"
+            className="mb-4 text-slate-300 hover:text-amber-500 hover:bg-slate-800"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back to All Businesses
@@ -252,7 +252,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-slate-900">{business.name}</h1>
+                <h1 className="text-2xl font-bold text-white">{business.name}</h1>
                 <Badge className={`${currentTier.bg} ${currentTier.color} border-0`}>
                   <TierIcon className="h-3 w-3 mr-1" />
                   {currentTier.name}
@@ -290,8 +290,8 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                             key={tier.id}
                             className={`relative rounded-xl border-2 p-5 transition-all ${
                               isCurrentPlan 
-                                ? 'border-slate-900 bg-slate-50' 
-                                : 'border-slate-200 hover:border-slate-300'
+                                ? 'border-amber-500 bg-slate-800' 
+                                : 'border-slate-700 hover:border-slate-600'
                             }`}
                           >
                             {tier.popular && (
@@ -301,12 +301,12 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                             )}
                             <div className="text-center mb-4">
                               <div className={`h-12 w-12 rounded-lg flex items-center justify-center mx-auto mb-3 ${
-                                tier.id === 'partner' ? 'bg-amber-100' : 
-                                tier.id === 'standard' ? 'bg-blue-100' : 'bg-slate-100'
+                                tier.id === 'partner' ? 'bg-amber-500/20' : 
+                                tier.id === 'standard' ? 'bg-blue-500/20' : 'bg-slate-800'
                               }`}>
                                 <TierIconComponent className={`h-6 w-6 ${
-                                  tier.id === 'partner' ? 'text-amber-600' : 
-                                  tier.id === 'standard' ? 'text-blue-600' : 'text-slate-600'
+                                  tier.id === 'partner' ? 'text-amber-500' : 
+                                  tier.id === 'standard' ? 'text-blue-400' : 'text-slate-400'
                                 }`} />
                               </div>
                               <h3 className="font-semibold text-lg text-white">{tier.name}</h3>
@@ -317,7 +317,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                             </div>
                             <ul className="space-y-2 mb-4">
                               {tier.features.map((feature) => (
-                                <li key={feature} className="flex items-center gap-2 text-sm text-slate-600">
+                                <li key={feature} className="flex items-center gap-2 text-sm text-slate-300">
                                   <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" />
                                   {feature}
                                 </li>
@@ -698,7 +698,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                   <Button 
                     onClick={handleSave}
                     disabled={updateBusiness.isPending}
-                    className="bg-slate-900 hover:bg-slate-800"
+                    className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
                   >
                     {updateBusiness.isPending ? (
                       <>
