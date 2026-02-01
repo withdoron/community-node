@@ -55,7 +55,7 @@ export default function HappeningSoonSection() {
     }
 
     return result;
-  }, [events, regionalBusinessIds, eventFilter, useRegionFilter]);
+  }, [events, regionalBusinessIds, eventFilter]);
 
   const pillClass = (active) =>
     active
