@@ -13,13 +13,13 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import StarRating from '@/components/reviews/StarRating';
-import ReviewCard from '@/components/reviews/ReviewCard';
+import StoryCard from '@/components/recommendations/StoryCard';
+import NodAvatars from '@/components/recommendations/NodAvatars';
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Star, Eye, Settings, MessageSquare, MapPin,
+  Star, Eye, Settings, MapPin,
   Loader2, CheckCircle, Crown, Zap, ArrowUp, Upload, X, Plus, Trash2,
-  ExternalLink, Check, ChevronLeft
+  ExternalLink, Check, ChevronLeft, ThumbsUp, BookOpen
 } from "lucide-react";
 import { format } from 'date-fns';
 import { mainCategories, getMainCategory } from '@/components/categories/categoryData';
@@ -52,7 +52,7 @@ const tiers = [
     price: '$9',
     period: '/month',
     icon: Star,
-    features: ['Business listing', 'Basic profile', 'Contact info', 'Customer reviews']
+    features: ['Business listing', 'Basic profile', 'Contact info', 'Neighbor recommendations']
   },
   {
     id: 'standard',
@@ -87,6 +87,17 @@ export default function BusinessDashboardDetail({ business, onBack }) {
     },
     enabled: !!business?.id
   });
+
+  const { data: recommendations = [], isLoading: recommendationsLoading } = useQuery({
+    queryKey: ['recommendations', business?.id],
+    queryFn: async () => {
+      return await base44.entities.Recommendation.filter({ business_id: business.id, is_active: true }, '-created_date', 100);
+    },
+    enabled: !!business?.id
+  });
+
+  const nods = recommendations.filter(r => r.type === 'nod');
+  const stories = recommendations.filter(r => r.type === 'story');
 
   useEffect(() => {
     if (business && !editData) {
@@ -226,7 +237,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
+      <div className="bg-slate-900 border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <Button 
             variant="ghost" 
@@ -247,11 +258,11 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                   {currentTier.name}
                 </Badge>
               </div>
-              <p className="text-slate-600 mt-1">Manage your business listing</p>
+              <p className="text-slate-400 mt-1">Manage your business listing</p>
             </div>
             <div className="flex items-center gap-3">
               <Link to={createPageUrl(`BusinessProfile?id=${business.id}`)}>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent">
                   <ExternalLink className="h-4 w-4 mr-2" />
                   View Public Profile
                 </Button>
@@ -260,12 +271,12 @@ export default function BusinessDashboardDetail({ business, onBack }) {
               {/* Upgrade Plan Button */}
               <Dialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent">
                     <ArrowUp className="h-4 w-4 mr-2" />
                     {business.subscription_tier === 'partner' ? 'Manage Plan' : 'Upgrade Plan'}
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-800">
                   <DialogHeader>
                     <DialogTitle>Choose Your Plan</DialogTitle>
                   </DialogHeader>
@@ -284,7 +295,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                             }`}
                           >
                             {tier.popular && (
-                              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white">
+                              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-black">
                                 Popular
                               </Badge>
                             )}
@@ -298,10 +309,10 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                                   tier.id === 'standard' ? 'text-blue-600' : 'text-slate-600'
                                 }`} />
                               </div>
-                              <h3 className="font-semibold text-lg">{tier.name}</h3>
-                              <p className="text-2xl font-bold mt-1">
+                              <h3 className="font-semibold text-lg text-white">{tier.name}</h3>
+                              <p className="text-2xl font-bold mt-1 text-white">
                                 {tier.price}
-                                <span className="text-sm font-normal text-slate-500">{tier.period}</span>
+                                <span className="text-sm font-normal text-slate-400">{tier.period}</span>
                               </p>
                             </div>
                             <ul className="space-y-2 mb-4">
@@ -314,8 +325,8 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                             </ul>
                             <Button
                               className={`w-full ${isCurrentPlan 
-                                ? 'bg-slate-200 text-slate-600 cursor-default' 
-                                : 'bg-slate-900 hover:bg-slate-800'}`}
+                                ? 'bg-slate-700 text-slate-400 cursor-default' 
+                                : 'bg-amber-500 hover:bg-amber-400 text-black font-semibold'}`}
                               disabled={isCurrentPlan || upgradePlan.isPending}
                               onClick={() => upgradePlan.mutate(tier.id)}
                             >
@@ -343,39 +354,39 @@ export default function BusinessDashboardDetail({ business, onBack }) {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card className="p-5">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <Card className="p-5 bg-slate-900 border-slate-800">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                <Star className="h-5 w-5 text-amber-600" />
+              <div className="h-10 w-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                <ThumbsUp className="h-5 w-5 text-amber-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">
-                  {(business.average_rating || 0).toFixed(1)}
+                <p className="text-2xl font-bold text-white">
+                  {business.recommendation_count || business.review_count || 0}
                 </p>
-                <p className="text-sm text-slate-500">Avg. Rating</p>
+                <p className="text-sm text-slate-400">Recommendations</p>
               </div>
             </div>
           </Card>
-          <Card className="p-5">
+          <Card className="p-5 bg-slate-900 border-slate-800">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                <MessageSquare className="h-5 w-5 text-blue-600" />
+              <div className="h-10 w-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                <BookOpen className="h-5 w-5 text-amber-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">{business.review_count || 0}</p>
-                <p className="text-sm text-slate-500">Reviews</p>
+                <p className="text-2xl font-bold text-white">{business.story_count || 0}</p>
+                <p className="text-sm text-slate-400">Stories</p>
               </div>
             </div>
           </Card>
-          <Card className="p-5">
+          <Card className="p-5 bg-slate-900 border-slate-800">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <Eye className="h-5 w-5 text-emerald-600" />
+              <div className="h-10 w-10 rounded-lg bg-slate-800 flex items-center justify-center">
+                <Eye className="h-5 w-5 text-slate-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">—</p>
-                <p className="text-sm text-slate-500">Profile Views</p>
+                <p className="text-2xl font-bold text-white">—</p>
+                <p className="text-sm text-slate-400">Profile Views</p>
               </div>
             </div>
           </Card>
@@ -385,7 +396,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
 
         {/* Tabs */}
         <Tabs defaultValue="locations" className="w-full">
-          <TabsList className="w-full justify-start bg-white border border-slate-200 p-1 mb-6">
+          <TabsList className="w-full justify-start bg-slate-900 border border-slate-800 p-1 mb-6">
             <TabsTrigger value="locations">
               <MapPin className="h-4 w-4 mr-2" />
               Locations
@@ -394,31 +405,31 @@ export default function BusinessDashboardDetail({ business, onBack }) {
               <Settings className="h-4 w-4 mr-2" />
               Edit Profile
             </TabsTrigger>
-            <TabsTrigger value="reviews">
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Reviews ({reviews.length})
+            <TabsTrigger value="recommendations">
+              <ThumbsUp className="h-4 w-4 mr-2" />
+              Recommendations ({recommendations.length})
             </TabsTrigger>
           </TabsList>
 
           {/* Locations Tab */}
           <TabsContent value="locations">
-            <Card className="p-6">
+            <Card className="p-6 bg-slate-900 border-slate-800">
               <LocationsSection business={business} />
             </Card>
           </TabsContent>
 
           {/* Edit Profile Tab */}
           <TabsContent value="profile">
-            <Card className="p-6">
+            <Card className="p-6 bg-slate-900 border-slate-800">
               <div className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="name">Business Name</Label>
+                    <Label htmlFor="name" className="text-slate-100">Business Name</Label>
                     <Input
                       id="name"
                       value={editData.name}
                       onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                      className="mt-1.5"
+                      className="mt-1.5 bg-slate-800 border-slate-700 text-white"
                     />
                   </div>
                   <div>
@@ -443,15 +454,15 @@ export default function BusinessDashboardDetail({ business, onBack }) {
 
                 {editData.main_category && availableSubcategories.length > 0 && (
                   <div>
-                    <Label>Subcategories (select all that apply)</Label>
+                    <Label className="text-slate-100">Subcategories (select all that apply)</Label>
                     <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {availableSubcategories.map((sub) => (
                         <label
                           key={sub.id}
                           className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
                             editData.subcategories?.includes(sub.id)
-                              ? 'border-slate-900 bg-slate-50'
-                              : 'border-slate-200 hover:border-slate-300'
+                              ? 'border-amber-500 bg-amber-500/10 text-amber-500'
+                              : 'border-slate-700 text-slate-400 hover:border-slate-600'
                           }`}
                         >
                           <Checkbox
@@ -466,34 +477,34 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                 )}
 
                 <div>
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description" className="text-slate-100">Description</Label>
                   <Textarea
                     id="description"
                     value={editData.description}
                     onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                    className="mt-1.5 min-h-[100px]"
+                    className="mt-1.5 min-h-[100px] bg-slate-800 border-slate-700 text-white"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="street_address">Street Address</Label>
+                  <Label htmlFor="street_address" className="text-slate-100">Street Address</Label>
                   <Input
                     id="street_address"
                     value={editData.street_address}
                     onChange={(e) => setEditData({ ...editData, street_address: e.target.value })}
                     placeholder="123 Main Street"
-                    className="mt-1.5"
+                    className="mt-1.5 bg-slate-800 border-slate-700 text-white"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="address_line2">Apt, Suite, Unit (optional)</Label>
+                  <Label htmlFor="address_line2" className="text-slate-100">Apt, Suite, Unit (optional)</Label>
                   <Input
                     id="address_line2"
                     value={editData.address_line2}
                     onChange={(e) => setEditData({ ...editData, address_line2: e.target.value })}
                     placeholder="Suite 100"
-                    className="mt-1.5"
+                    className="mt-1.5 bg-slate-800 border-slate-700 text-white"
                   />
                 </div>
 
@@ -527,21 +538,21 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="zip_code">ZIP Code</Label>
+                    <Label htmlFor="zip_code" className="text-slate-100">ZIP Code</Label>
                     <Input
                       id="zip_code"
                       value={editData.zip_code}
                       onChange={(e) => setEditData({ ...editData, zip_code: e.target.value })}
                       placeholder="97401"
-                      className="mt-1.5"
+                      className="mt-1.5 bg-slate-800 border-slate-700 text-white"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="country">Country</Label>
+                    <Label htmlFor="country" className="text-slate-100">Country</Label>
                     <Input
                       id="country"
                       value={editData.country}
-                      className="mt-1.5"
+                      className="mt-1.5 bg-slate-800 border-slate-700 text-white"
                       disabled
                     />
                   </div>
@@ -578,19 +589,19 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                 </div>
 
                 <div>
-                  <Label htmlFor="service_area">Service Area</Label>
+                  <Label htmlFor="service_area" className="text-slate-100">Service Area</Label>
                   <Input
                     id="service_area"
                     value={editData.service_area}
                     onChange={(e) => setEditData({ ...editData, service_area: e.target.value })}
-                    className="mt-1.5"
+                    className="mt-1.5 bg-slate-800 border-slate-700 text-white"
                   />
                 </div>
 
-                <div className="flex items-center justify-between py-3 px-4 bg-amber-50 rounded-lg border border-amber-200">
+                <div className="flex items-center justify-between py-3 px-4 bg-amber-500/10 rounded-lg border border-amber-500/30">
                   <div>
-                    <Label htmlFor="silver" className="font-medium text-slate-900">Accept Silver Payment</Label>
-                    <p className="text-sm text-slate-600">Let customers know you accept silver/precious metals</p>
+                    <Label htmlFor="silver" className="font-medium text-slate-100">Accept Silver Payment</Label>
+                    <p className="text-sm text-slate-400">Let customers know you accept silver/precious metals</p>
                   </div>
                   <Switch
                     id="silver"
@@ -619,7 +630,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                         </button>
                       </div>
                     ))}
-                    <label className="h-24 w-24 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-slate-400 hover:bg-slate-50 transition-colors">
+                    <label className="h-24 w-24 rounded-lg border-2 border-dashed border-slate-600 flex items-center justify-center cursor-pointer hover:border-amber-500 hover:bg-amber-500/10 transition-colors">
                       {uploading ? (
                         <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
                       ) : (
@@ -639,12 +650,12 @@ export default function BusinessDashboardDetail({ business, onBack }) {
 
                 {/* Services */}
                 <div>
-                  <Label>Services</Label>
+                  <Label className="text-slate-100">Services</Label>
                   <div className="mt-2 space-y-3">
                     {editData.services.map((service, idx) => (
-                      <div key={idx} className="p-3 border border-slate-200 rounded-lg">
+                      <div key={idx} className="p-3 border border-slate-700 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-slate-700">Service {idx + 1}</span>
+                          <span className="text-sm font-medium text-slate-300">Service {idx + 1}</span>
                           {editData.services.length > 1 && (
                             <Button
                               variant="ghost"
@@ -676,14 +687,14 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                         </div>
                       </div>
                     ))}
-                    <Button variant="outline" onClick={addService} className="w-full">
+                    <Button variant="outline" onClick={addService} className="w-full border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent">
                       <Plus className="h-4 w-4 mr-2" />
                       Add Service
                     </Button>
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-4 border-t border-slate-200">
+                <div className="flex justify-end pt-4 border-t border-slate-800">
                   <Button 
                     onClick={handleSave}
                     disabled={updateBusiness.isPending}
@@ -709,18 +720,27 @@ export default function BusinessDashboardDetail({ business, onBack }) {
           </TabsContent>
 
           {/* Reviews Tab */}
-          <TabsContent value="reviews">
-            <div className="space-y-4">
-              {reviews.length > 0 ? (
-                reviews.map((review) => (
-                  <ReviewCard key={review.id} review={review} />
+          <TabsContent value="recommendations">
+            <div className="space-y-6">
+              {/* Nods summary */}
+              {nods.length > 0 && (
+                <Card className="p-5 bg-slate-900 border-slate-800">
+                  <p className="text-sm text-slate-400 mb-3">{nods.length} neighbors recommend your business</p>
+                  <NodAvatars recommendations={nods} maxShow={12} />
+                </Card>
+              )}
+
+              {/* Stories list */}
+              {stories.length > 0 ? (
+                stories.map((story) => (
+                  <StoryCard key={story.id} recommendation={story} />
                 ))
               ) : (
-                <Card className="p-8 text-center">
-                  <MessageSquare className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                  <h3 className="font-semibold text-slate-900">No reviews yet</h3>
-                  <p className="text-slate-600 mt-2">
-                    Once customers leave reviews, they'll appear here.
+                <Card className="p-8 text-center bg-slate-900 border-slate-800">
+                  <BookOpen className="h-12 w-12 text-slate-600 mx-auto mb-4" />
+                  <h3 className="font-semibold text-white">No stories yet</h3>
+                  <p className="text-slate-400 mt-2">
+                    When neighbors share stories about your business, they'll appear here.
                   </p>
                 </Card>
               )}

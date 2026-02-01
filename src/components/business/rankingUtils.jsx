@@ -1,7 +1,7 @@
 /**
  * Business Ranking Utility
  *
- * Trust-based ranking: Rating > Reviews > Recency
+ * Trust-based ranking: Recommendations > Stories > Recency
  * No paid placement. No tier-based ordering.
  */
 
@@ -18,20 +18,23 @@ export const getTierPriority = (business) => {
 
 /**
  * Main ranking function for businesses
- * Sorts by: Rating (desc) → Review count (desc) → Newest first
+ * Sorts by: Recommendation count (desc) → Story count (desc) → Newest first
  */
 export const rankBusinesses = (businesses) => {
   if (!businesses || businesses.length === 0) return [];
 
   return [...businesses].sort((a, b) => {
-    const ratingA = a.average_rating || 0;
-    const ratingB = b.average_rating || 0;
-    if (ratingA !== ratingB) return ratingB - ratingA;
+    // Primary: recommendation count (includes nods + stories)
+    const recA = a.recommendation_count || a.review_count || 0;
+    const recB = b.recommendation_count || b.review_count || 0;
+    if (recA !== recB) return recB - recA;
 
-    const reviewsA = a.review_count || 0;
-    const reviewsB = b.review_count || 0;
-    if (reviewsA !== reviewsB) return reviewsB - reviewsA;
+    // Secondary: story count (richer engagement)
+    const storiesA = a.story_count || 0;
+    const storiesB = b.story_count || 0;
+    if (storiesA !== storiesB) return storiesB - storiesA;
 
+    // Tertiary: newest first
     const dateA = new Date(a.created_date || 0);
     const dateB = new Date(b.created_date || 0);
     return dateB - dateA;
