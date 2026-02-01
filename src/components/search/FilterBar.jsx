@@ -64,7 +64,7 @@ export default function FilterBar({
 
       {/* Accepts Silver */}
       <div className="flex items-center justify-between py-2">
-        <Label htmlFor="silver" className="text-sm font-medium text-slate-700 cursor-pointer">
+        <Label htmlFor="silver" className="text-sm font-medium text-slate-300 cursor-pointer">
           Accepts Silver Payment
         </Label>
         <Switch
@@ -143,7 +143,7 @@ export default function FilterBar({
         {/* Mobile Filter Sheet */}
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="h-9 md:hidden border-slate-200">
+            <Button variant="outline" size="sm" className="h-9 md:hidden border-slate-700 text-slate-300">
               <Filter className="h-3.5 w-3.5 mr-2" />
               Filters
               {activeFilterCount > 0 && (

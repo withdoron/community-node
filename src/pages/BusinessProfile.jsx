@@ -142,7 +142,7 @@ export default function BusinessProfile() {
                       </Badge>
                     )}
                     {business.accepts_silver && (
-                      <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50">
+                      <Badge variant="outline" className="border-amber-500/30 text-amber-500 bg-amber-500/10">
                         <Coins className="h-3 w-3 mr-1" />
                         Accepts Silver
                       </Badge>
@@ -152,7 +152,7 @@ export default function BusinessProfile() {
                   
                   <div className="flex items-center gap-3 mt-3">
                     <StarRating rating={business.average_rating || 0} size="md" />
-                    <span className="font-semibold text-slate-900">
+                    <span className="font-semibold text-white">
                       {(business.average_rating || 0).toFixed(1)}
                     </span>
                     <span className="text-slate-500">
@@ -198,7 +198,7 @@ export default function BusinessProfile() {
               </TabsList>
 
               <TabsContent value="services" className="mt-4">
-                <Card className="divide-y divide-slate-100">
+                <Card className="divide-y divide-slate-800">
                   {business.services?.length > 0 ? (
                     business.services.map((service, idx) => (
                       <div key={idx} className="p-4 flex items-start justify-between gap-4">
@@ -209,7 +209,7 @@ export default function BusinessProfile() {
                           )}
                         </div>
                         {service.starting_price && (
-                          <p className="font-semibold text-slate-900 whitespace-nowrap">
+                          <p className="font-semibold text-amber-500 whitespace-nowrap">
                             From ${service.starting_price}
                           </p>
                         )}
@@ -248,7 +248,7 @@ export default function BusinessProfile() {
                 <Card className="p-6">
                   <div className="flex flex-col sm:flex-row items-center gap-6">
                     <div className="text-center">
-                      <p className="text-5xl font-bold text-slate-900">
+                      <p className="text-5xl font-bold text-white">
                         {(business.average_rating || 0).toFixed(1)}
                       </p>
                       <StarRating rating={business.average_rating || 0} size="md" />
@@ -276,7 +276,7 @@ export default function BusinessProfile() {
                 {/* Write Review Button */}
                 <div className="flex justify-end">
                   <Link to={createPageUrl(`WriteReview?businessId=${business.id}`)}>
-                    <Button className="bg-slate-900 hover:bg-slate-800">
+                    <Button className="bg-amber-500 hover:bg-amber-400 text-black font-semibold">
                       Write a Review
                     </Button>
                   </Link>
@@ -311,7 +311,7 @@ export default function BusinessProfile() {
                 {business.phone && (
                   <a 
                     href={`tel:${business.phone}`}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg bg-amber-500 text-black hover:bg-amber-400 transition-colors font-medium"
                   >
                     <Phone className="h-5 w-5" />
                     <span className="font-medium">{business.phone}</span>
@@ -333,7 +333,7 @@ export default function BusinessProfile() {
                     href={business.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors"
                   >
                     <Globe className="h-5 w-5" />
                     <span className="truncate">{business.website.replace(/^https?:\/\//, '')}</span>
@@ -377,7 +377,7 @@ export default function BusinessProfile() {
                   href={`https://maps.google.com/?q=${encodeURIComponent(business.address + ', ' + business.city)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
+                  className="flex items-start gap-3 p-3 rounded-lg border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors"
                 >
                   <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0" />
                   <span>{business.address}, {business.city}</span>
