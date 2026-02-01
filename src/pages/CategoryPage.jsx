@@ -8,7 +8,6 @@ import BusinessCard from '@/components/business/BusinessCard';
 import { rankBusinesses } from '@/components/business/rankingUtils';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, Loader2, SearchX } from "lucide-react";
 
 export default function CategoryPage() {
@@ -88,15 +87,15 @@ export default function CategoryPage() {
 
   if (!category) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
         <div className="text-center">
-          <h2 className="text-xl font-bold text-slate-900">Category not found</h2>
+          <h2 className="text-xl font-bold text-white">Category not found</h2>
           <Button 
             variant="outline" 
-            className="mt-4"
-            onClick={() => navigate(createPageUrl('Home'))}
+            className="mt-4 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500"
+            onClick={() => navigate(createPageUrl('Directory'))}
           >
-            Back to Home
+            Back to Directory
           </Button>
         </div>
       </div>
@@ -106,32 +105,27 @@ export default function CategoryPage() {
   const CategoryIcon = category.icon;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-950">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
+      <div className="border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <Button 
             variant="ghost" 
             size="sm" 
-            className="mb-4"
-            onClick={() => {
-              navigate(createPageUrl('Home'));
-              setTimeout(() => {
-                document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' });
-              }, 100);
-            }}
+            className="mb-4 text-slate-300 hover:text-amber-500 hover:bg-slate-800"
+            onClick={() => navigate(createPageUrl('Directory'))}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back
           </Button>
           
           <div className="flex items-center gap-3 mb-4">
-            <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${category.color.split(' ').slice(0, 2).join(' ')}`}>
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-slate-800 text-amber-500">
               <CategoryIcon className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">{category.label}</h1>
-              <p className="text-slate-600">{filteredBusinesses.length} businesses found</p>
+              <h1 className="text-2xl font-bold text-white">{category.label}</h1>
+              <p className="text-slate-400">{filteredBusinesses.length} businesses found</p>
             </div>
           </div>
 
@@ -141,15 +135,16 @@ export default function CategoryPage() {
               const isSelected = selectedSubcategory === sub.id || 
                 (sub.id.startsWith('all_') && (selectedSubcategory === 'all' || selectedSubcategory === sub.id));
               return (
-                <Button
+                <button
                   key={sub.id}
-                  variant={isSelected ? "default" : "outline"}
-                  size="sm"
-                  className={isSelected ? "bg-slate-900 hover:bg-slate-800" : ""}
                   onClick={() => handleSubcategoryClick(sub.id)}
+                  className={isSelected
+                    ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-500 text-black cursor-default'
+                    : 'px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors cursor-pointer'
+                  }
                 >
                   {sub.label}
-                </Button>
+                </button>
               );
             })}
           </div>
@@ -164,21 +159,20 @@ export default function CategoryPage() {
           </div>
         ) : filteredBusinesses.length === 0 ? (
           <div className="text-center py-20">
-            <SearchX className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900">No businesses found</h3>
-            <p className="text-slate-600 mt-2">
+            <SearchX className="h-12 w-12 text-slate-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-slate-200">No businesses found</h3>
+            <p className="text-slate-400 mt-2">
               No businesses are listed in this category yet.
             </p>
-            <Button 
-              variant="outline" 
-              className="mt-4"
+            <button
+              className="mt-4 px-4 py-2 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors"
               onClick={() => handleSubcategoryClick('all')}
             >
               View all {category.label.toLowerCase()}
-            </Button>
+            </button>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredBusinesses.map((business) => (
               <BusinessCard 
                 key={business.id} 
