@@ -22,16 +22,6 @@ export default function UpcomingEventsSection({ currentUser }) {
     enabled: rsvpsLoaded && rsvps.length > 0
   });
 
-  // Debug logging — REMOVE after confirming it works
-  console.log('UpcomingEvents debug:', {
-    userId: currentUser?.id,
-    rsvpCount: rsvps.length,
-    rsvpsLoaded,
-    rsvpEventIds: rsvps.map(r => r.event_id),
-    eventsCount: allEvents.length,
-    eventIds: allEvents.slice(0, 5).map(e => e.id)
-  });
-
   // Match RSVPs to events and filter to upcoming only
   const upcomingEvents = useMemo(() => {
     if (!rsvps.length || !allEvents.length) return [];
