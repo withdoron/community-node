@@ -64,7 +64,7 @@ export default function BusinessProfile() {
 
   if (businessLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
       </div>
     );
@@ -72,11 +72,11 @@ export default function BusinessProfile() {
 
   if (!business) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-slate-900">Business not found</h2>
-          <Link to={createPageUrl('Search')}>
-            <Button className="mt-4">Back to Search</Button>
+          <h2 className="text-xl font-semibold text-white">Business not found</h2>
+          <Link to={createPageUrl('Directory')}>
+            <Button className="mt-4 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500">Back to Directory</Button>
           </Link>
         </div>
       </div>
@@ -92,12 +92,12 @@ export default function BusinessProfile() {
   }));
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-950">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
+      <div className="bg-slate-950/90 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link to={createPageUrl('Search')}>
-            <Button variant="ghost" size="sm">
+          <Link to={createPageUrl('Directory')}>
+            <Button variant="ghost" size="sm" className="text-slate-300 hover:text-amber-500 hover:bg-slate-800">
               <ChevronLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
@@ -114,7 +114,7 @@ export default function BusinessProfile() {
       </div>
 
       {/* Hero Image */}
-      <div className="relative h-64 sm:h-80 bg-slate-200">
+      <div className="relative h-64 sm:h-80 bg-slate-900">
         <img
           src={business.photos?.[0] || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=600&fit=crop'}
           alt={business.name}
@@ -132,7 +132,7 @@ export default function BusinessProfile() {
               <div className="flex items-start gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="secondary" className="bg-slate-100 text-slate-700">
+                    <Badge variant="secondary" className="bg-slate-800 text-slate-300">
                       {categoryLabels[business.category] || business.category}
                     </Badge>
                     {business.subscription_tier === 'partner' && (
@@ -148,7 +148,7 @@ export default function BusinessProfile() {
                       </Badge>
                     )}
                   </div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">{business.name}</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white">{business.name}</h1>
                   
                   <div className="flex items-center gap-3 mt-3">
                     <StarRating rating={business.average_rating || 0} size="md" />
@@ -161,7 +161,7 @@ export default function BusinessProfile() {
                   </div>
 
                   {(primaryLocation || business.city) && (
-                    <div className="flex items-start gap-1.5 text-slate-600 mt-3">
+                    <div className="flex items-start gap-1.5 text-slate-400 mt-3">
                       <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                       <div>
                         {primaryLocation ? (
@@ -182,7 +182,7 @@ export default function BusinessProfile() {
               </p>
 
               {business.service_area && (
-                <p className="text-sm text-slate-500 mt-4 flex items-center gap-1.5">
+                <p className="text-sm text-slate-400 mt-4 flex items-center gap-1.5">
                   <Navigation className="h-4 w-4" />
                   Service area: {business.service_area}
                 </p>
@@ -191,7 +191,7 @@ export default function BusinessProfile() {
 
             {/* Tabs */}
             <Tabs defaultValue="services" className="w-full">
-              <TabsList className="w-full justify-start bg-white border border-slate-200 p-1">
+              <TabsList className="w-full justify-start bg-slate-900 border border-slate-800 p-1">
                 <TabsTrigger value="services">Services</TabsTrigger>
                 <TabsTrigger value="photos">Photos</TabsTrigger>
                 <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
@@ -203,9 +203,9 @@ export default function BusinessProfile() {
                     business.services.map((service, idx) => (
                       <div key={idx} className="p-4 flex items-start justify-between gap-4">
                         <div>
-                          <h4 className="font-medium text-slate-900">{service.name}</h4>
+                          <h4 className="font-medium text-slate-100">{service.name}</h4>
                           {service.description && (
-                            <p className="text-sm text-slate-600 mt-1">{service.description}</p>
+                            <p className="text-sm text-slate-400 mt-1">{service.description}</p>
                           )}
                         </div>
                         {service.starting_price && (
@@ -216,7 +216,7 @@ export default function BusinessProfile() {
                       </div>
                     ))
                   ) : (
-                    <div className="p-8 text-center text-slate-500">
+                    <div className="p-8 text-center text-slate-400">
                       No services listed yet
                     </div>
                   )}
@@ -227,7 +227,7 @@ export default function BusinessProfile() {
                 {business.photos?.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {business.photos.map((photo, idx) => (
-                      <div key={idx} className="aspect-square rounded-xl overflow-hidden bg-slate-200">
+                      <div key={idx} className="aspect-square rounded-xl overflow-hidden bg-slate-800">
                         <img
                           src={photo}
                           alt={`${business.name} photo ${idx + 1}`}
@@ -259,8 +259,8 @@ export default function BusinessProfile() {
                     <div className="flex-1 w-full space-y-2">
                       {ratingBreakdown.map(({ rating, count, percentage }) => (
                         <div key={rating} className="flex items-center gap-3">
-                          <span className="text-sm text-slate-600 w-3">{rating}</span>
-                          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <span className="text-sm text-slate-400 w-3">{rating}</span>
+                          <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
                             <div 
                               className="h-full bg-amber-400 rounded-full transition-all duration-500"
                               style={{ width: `${percentage}%` }}
@@ -306,7 +306,7 @@ export default function BusinessProfile() {
           <div className="space-y-4">
             {/* Contact Card */}
             <Card className="p-5 sticky top-20">
-              <h3 className="font-semibold text-slate-900 mb-4">Contact</h3>
+              <h3 className="font-semibold text-white mb-4">Contact</h3>
               <div className="space-y-3">
                 {business.phone && (
                   <a 
@@ -321,7 +321,7 @@ export default function BusinessProfile() {
                 {business.email && (
                   <a 
                     href={`mailto:${business.email}`}
-                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors"
                   >
                     <Mail className="h-5 w-5" />
                     <span>{business.email}</span>
@@ -343,8 +343,8 @@ export default function BusinessProfile() {
 
                 {/* Locations Section */}
               {locations.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-slate-100">
-                  <h4 className="text-sm font-medium text-slate-700 mb-3">
+                <div className="mt-4 pt-4 border-t border-slate-800">
+                  <h4 className="text-sm font-medium text-slate-300 mb-3">
                     {locations.length === 1 ? 'Location' : `${locations.length} Locations`}
                   </h4>
                   <div className="space-y-3">
@@ -354,13 +354,13 @@ export default function BusinessProfile() {
                         href={`https://maps.google.com/?q=${buildMapsQuery(loc)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
+                        className="flex items-start gap-3 p-3 rounded-lg border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors"
                       >
                         <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0 text-slate-400" />
                         <div className="flex-1">
-                          {loc.name && <span className="block text-sm font-medium text-slate-900">{loc.name}</span>}
+                          {loc.name && <span className="block text-sm font-medium text-slate-200">{loc.name}</span>}
                           {formatAddress(loc, { multiline: true, forPublic: true }).map((line, lineIdx) => (
-                            <span key={lineIdx} className="block text-sm text-slate-600">{line}</span>
+                            <span key={lineIdx} className="block text-sm text-slate-400">{line}</span>
                           ))}
                           {loc.phone && <span className="block text-sm text-slate-500 mt-1">{loc.phone}</span>}
                         </div>
@@ -387,8 +387,8 @@ export default function BusinessProfile() {
               </div>
 
               {business.accepts_silver && (
-                <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
-                  <p className="text-sm text-amber-800 flex items-center gap-2">
+                <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                  <p className="text-sm text-amber-500 flex items-center gap-2">
                     <Coins className="h-4 w-4" />
                     This business accepts silver as payment
                   </p>

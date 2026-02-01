@@ -20,7 +20,7 @@ export default function SearchBar({ onSearch, initialQuery = '', initialLocation
           placeholder="What are you looking for? (e.g., carpenter, mechanic, farm…)"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="pl-12 h-14 bg-white border-slate-200 focus:border-slate-400 focus:ring-slate-400 text-lg"
+          className="pl-12 h-14 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-amber-500 focus:ring-amber-500 text-lg rounded-xl"
         />
       </div>
     </form>

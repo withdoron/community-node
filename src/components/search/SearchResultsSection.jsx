@@ -7,7 +7,7 @@ import BusinessCard from '@/components/business/BusinessCard';
  */
 export default function SearchResultsSection({ results = [] }) {
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {results.map((business) => (
         <BusinessCard key={business.id} business={business} />
       ))}

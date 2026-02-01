@@ -113,9 +113,9 @@ export default function Search() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-950">
       {/* Search Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
+      <div className="bg-slate-950/90 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <SearchBar 
             onSearch={handleSearch}
@@ -131,7 +131,7 @@ export default function Search() {
         {region && (
           <div className="flex items-center gap-2 mb-4 text-sm text-slate-500">
             <MapPin className="h-4 w-4" />
-            <span>Searching in <span className="font-medium text-slate-700">{region.display_name}</span></span>
+            <span>Searching in <span className="font-medium text-slate-300">{region.display_name}</span></span>
             <Badge variant="outline" className="text-xs">{region.default_radius_miles} mi radius</Badge>
           </div>
         )}
@@ -150,14 +150,14 @@ export default function Search() {
           </div>
         ) : filteredBusinesses.length === 0 ? (
           <div className="text-center py-20">
-            <SearchX className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900">No businesses found</h3>
-            <p className="text-slate-600 mt-2">
+            <SearchX className="h-12 w-12 text-slate-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-slate-200">No businesses found</h3>
+            <p className="text-slate-400 mt-2">
               Try adjusting your search or filters
             </p>
             <Button 
               variant="outline" 
-              className="mt-4"
+              className="mt-4 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500"
               onClick={() => {
                 setSearchParams({ query: '', location: '' });
                 setFilters({ category: 'all', acceptsSilver: false });

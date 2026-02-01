@@ -44,12 +44,12 @@ export default function FilterBar({
     <div className="space-y-6">
       {/* Category */}
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-slate-700">Category</Label>
+        <Label className="text-sm font-medium text-slate-300">Category</Label>
         <Select
           value={filters.category || 'all'}
           onValueChange={(value) => onFiltersChange({ ...filters, category: value })}
         >
-          <SelectTrigger className="w-full h-10 border-slate-200">
+          <SelectTrigger className="w-full h-10 border-slate-700 bg-slate-900 text-slate-300">
             <SelectValue placeholder="Select category" />
           </SelectTrigger>
           <SelectContent>
@@ -78,7 +78,7 @@ export default function FilterBar({
       {activeFilterCount > 0 && (
         <Button
           variant="ghost"
-          className="w-full text-slate-600 hover:text-slate-900"
+          className="w-full text-slate-400 hover:text-amber-500"
           onClick={() => onFiltersChange({ category: 'all', acceptsSilver: false })}
         >
           <X className="h-4 w-4 mr-2" />
@@ -89,17 +89,17 @@ export default function FilterBar({
   );
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 border-b border-slate-200">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 border-b border-slate-800">
       <div className="flex items-center gap-3">
-        <p className="text-sm text-slate-600">
-          <span className="font-semibold text-slate-900">{resultCount}</span> businesses found
+        <p className="text-sm text-slate-400">
+          <span className="font-semibold text-slate-100">{resultCount}</span> businesses found
         </p>
       </div>
 
       <div className="flex items-center gap-3">
         {/* Sort */}
         <Select value={sortBy} onValueChange={onSortChange}>
-          <SelectTrigger className="w-[180px] h-9 border-slate-200">
+          <SelectTrigger className="w-[180px] h-9 border-slate-700 bg-slate-900 text-slate-300">
             <ArrowUpDown className="h-3.5 w-3.5 mr-2 text-slate-500" />
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
@@ -118,7 +118,7 @@ export default function FilterBar({
             value={filters.category || 'all'}
             onValueChange={(value) => onFiltersChange({ ...filters, category: value })}
           >
-            <SelectTrigger className="w-[160px] h-9 border-slate-200">
+            <SelectTrigger className="w-[160px] h-9 border-slate-700 bg-slate-900 text-slate-300">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -133,7 +133,7 @@ export default function FilterBar({
           <Button
             variant={filters.acceptsSilver ? "default" : "outline"}
             size="sm"
-            className={`h-9 ${filters.acceptsSilver ? 'bg-slate-900' : 'border-slate-200'}`}
+            className={`h-9 ${filters.acceptsSilver ? 'bg-amber-500 text-black hover:bg-amber-400' : 'border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500'}`}
             onClick={() => onFiltersChange({ ...filters, acceptsSilver: !filters.acceptsSilver })}
           >
             Accepts Silver
@@ -147,7 +147,7 @@ export default function FilterBar({
               <Filter className="h-3.5 w-3.5 mr-2" />
               Filters
               {activeFilterCount > 0 && (
-                <span className="ml-2 h-5 w-5 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center">
+                <span className="ml-2 h-5 w-5 rounded-full bg-amber-500 text-black text-xs flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}
@@ -155,7 +155,7 @@ export default function FilterBar({
           </SheetTrigger>
           <SheetContent>
             <SheetHeader>
-              <SheetTitle>Filters</SheetTitle>
+              <SheetTitle className="text-slate-100">Filters</SheetTitle>
             </SheetHeader>
             <div className="mt-6">
               <FilterContent />
