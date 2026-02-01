@@ -8,7 +8,7 @@ import { MapPin, Phone, ChevronRight, Zap, Crown, Coins, Store } from "lucide-re
 import TrustSignal from '@/components/recommendations/TrustSignal';
 
 import { mainCategories, getMainCategory, getSubcategoryLabel } from '@/components/categories/categoryData';
-import { getTierLabel, getTierBadgeClasses } from '@/components/business/rankingUtils';
+import { getTierLabel } from '@/components/business/rankingUtils';
 
 const legacyCategoryLabels = {
   carpenter: 'Carpenter',
@@ -23,7 +23,13 @@ const legacyCategoryLabels = {
   other: 'Other'
 };
 
-export default function BusinessCard({ business, badgeSettings = null, locationCount = null }) {
+const DARK_TIER_BADGE_CLASSES = {
+  partner: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+  standard: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  basic: 'bg-slate-800 text-slate-400 border-slate-700'
+};
+
+export default function BusinessCard({ business, badgeSettings = null, locationCount = null, showTierBadge = false }) {
   // Badge visibility settings (default to showing if not provided)
   const showSilverBadge = badgeSettings?.show_accepts_silver_badge !== false;
   const showFranchiseBadge = badgeSettings?.show_locally_owned_franchise_badge !== false;
@@ -33,7 +39,7 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
 
   const tier = business.subscription_tier || 'basic';
   const tierLabel = getTierLabel(tier);
-  const tierBadgeClasses = getTierBadgeClasses(tier);
+  const darkTierClasses = DARK_TIER_BADGE_CLASSES[tier] || DARK_TIER_BADGE_CLASSES.basic;
 
   // Get category label (supports both new and legacy categories)
   const getCategoryLabel = () => {
@@ -61,10 +67,12 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
           <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-transparent pointer-events-none" />
           {/* Stacked badges: top-left */}
           <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1">
-            <Badge className={`text-xs font-semibold px-2 py-0.5 ${tierBadgeClasses}`}>
-              {TierIcon && <TierIcon className="h-3 w-3 mr-1" />}
-              {tierLabel}
-            </Badge>
+            {showTierBadge && (
+              <Badge className={`text-xs font-semibold px-2 py-0.5 border ${darkTierClasses}`}>
+                {TierIcon && <TierIcon className="h-3 w-3 mr-1" />}
+                {tierLabel}
+              </Badge>
+            )}
             {business.accepts_silver && showSilverBadge && (
               <span className="inline-flex items-center bg-black/20 backdrop-blur-sm text-white/90 text-[9px] font-normal px-1.5 py-0.5 rounded">
                 <Coins className="h-2 w-2 mr-1 opacity-80" />
