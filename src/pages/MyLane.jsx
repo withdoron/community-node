@@ -1,324 +1,62 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Heart, Sparkles, Calendar, MapPin, Tag, TrendingUp, Music, Ticket, Star, Store, Settings } from "lucide-react";
-
-const FILTER_PILLS = [
-  { id: 'for-you', label: 'For You', icon: Sparkles },
-  { id: 'this-weekend', label: 'This Weekend', icon: Calendar },
-  { id: 'tonight', label: 'Tonight', icon: Calendar },
-  { id: 'near-me', label: 'Near Me', icon: MapPin },
-  { id: 'exclusive', label: 'Exclusive Offers', icon: Tag }
-];
-
-const MOCK_FEED_ITEMS = [
-  {
-    id: 1,
-    type: 'event',
-    title: 'Jazz Night at The Blue Note',
-    date: 'Fri, Dec 27 • 8:00 PM',
-    location: 'The Blue Note, Downtown',
-    image: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800',
-    context: '🎸 Because you like Jazz',
-    contextIcon: Music,
-    saved: false
-  },
-  {
-    id: 2,
-    type: 'event',
-    title: 'Comedy Open Mic Night',
-    date: 'Sat, Dec 28 • 7:00 PM',
-    location: 'Laugh Factory, South End',
-    image: 'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=800',
-    context: '📈 Trending in your area',
-    contextIcon: TrendingUp,
-    saved: false
-  },
-  {
-    id: 3,
-    type: 'perk',
-    title: 'Free Appetizer at The Jazz Corner',
-    subtitle: 'Show this offer to your server',
-    validUntil: 'Valid until Dec 31',
-    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800',
-    context: '💎 Member Exclusive',
-    contextIcon: Sparkles,
-    saved: false
-  },
-  {
-    id: 4,
-    type: 'event',
-    title: 'Indie Rock Showcase',
-    date: 'Sun, Dec 29 • 9:00 PM',
-    location: 'The Basement, East Side',
-    image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800',
-    context: '❤️ Similar to events you saved',
-    contextIcon: Heart,
-    saved: true
-  },
-  {
-    id: 5,
-    type: 'perk',
-    title: '10% Off All Drinks This Week',
-    subtitle: 'At participating venues',
-    validUntil: 'Valid until Jan 1',
-    image: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800',
-    context: '💎 Member Perk',
-    contextIcon: Sparkles,
-    saved: false
-  },
-  {
-    id: 6,
-    type: 'event',
-    title: 'Yoga in the Park',
-    date: 'Sat, Dec 28 • 9:00 AM',
-    location: 'Central Park, West Lawn',
-    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800',
-    context: '🏃 New activities for you',
-    contextIcon: Sparkles,
-    saved: false
-  }
-];
+import React from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
+import { useUserState } from '@/hooks/useUserState';
+import GreetingHeader from '@/components/mylane/GreetingHeader';
+import HappeningSoonSection from '@/components/mylane/HappeningSoonSection';
+import NewInCommunitySection from '@/components/mylane/NewInCommunitySection';
+import YourRecommendationsSection from '@/components/mylane/YourRecommendationsSection';
+import DiscoverSection from '@/components/mylane/DiscoverSection';
 
 export default function MyLane() {
-  const [activeFilter, setActiveFilter] = useState('for-you');
-  const [feedItems, setFeedItems] = useState(MOCK_FEED_ITEMS);
+  const { data: currentUser, isLoading: userLoading } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: async () => {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) return null;
+      return base44.auth.me();
+    }
+  });
 
-  const toggleSave = (id) => {
-    setFeedItems(prev => prev.map(item => 
-      item.id === id ? { ...item, saved: !item.saved } : item
-    ));
-  };
+  const { recommendations, punchPass } = useUserState(currentUser?.id);
+
+  if (!userLoading && !currentUser) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold text-slate-100 mb-3">Welcome to MyLane</h1>
+          <p className="text-slate-400 mb-6">Sign in to see your personalized community dashboard.</p>
+          <button
+            onClick={() => base44.auth.redirectToLogin()}
+            className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-6 py-3 rounded-xl transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950">
-      {/* Header */}
-      <div className="bg-slate-900 border-b border-slate-800">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Sparkles className="h-8 w-8 text-amber-500" />
-            <h1 className="text-3xl font-bold text-slate-100">Your Local Lane</h1>
-          </div>
-          <p className="text-slate-400">
-            Personalized events, offers, and experiences just for you
-          </p>
-
-          {/* Dashboard Tiles */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-            {/* Build Your Lane */}
-            <Link to={createPageUrl('BuildLane')}>
-              <Card className="group bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:border-amber-500/50 transition-all cursor-pointer p-4">
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Settings className="h-5 w-5 text-amber-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white mb-1">Build Your Local Lane</h3>
-                    <p className="text-xs text-slate-400">Select your interests to unlock hidden gems</p>
-                    <Badge className="mt-2 bg-amber-500/20 text-amber-400 border-0 text-xs">
-                      ✨ UNLOCKS MAGIC PLANNER
-                    </Badge>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-
-            {/* Saved Items */}
-            <Card className="bg-slate-800 border-slate-700 hover:border-amber-500/50 transition-all cursor-pointer p-4">
-              <div className="flex items-start gap-3">
-                <div className="h-10 w-10 bg-pink-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Heart className="h-5 w-5 text-pink-400" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white mb-1">My Saved Items</h3>
-                  <p className="text-xs text-slate-400">Access your saved events and favorite businesses</p>
-                  <Button variant="outline" className="mt-2 h-7 text-xs border-slate-600 text-slate-300 hover:border-pink-500 hover:text-pink-400">
-                    View Saved
-                  </Button>
-                </div>
-              </div>
-            </Card>
-
-            {/* Punch Pass Network */}
-            <Link to={createPageUrl('PunchPass')}>
-              <Card className="bg-gradient-to-br from-amber-900/30 to-amber-500/10 border-2 border-amber-500/30 hover:border-amber-500 transition-all cursor-pointer p-4">
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Ticket className="h-5 w-5 text-amber-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white mb-1">Punch Pass Network</h3>
-                    <p className="text-xs text-amber-300/80">Recess & The Creative Alliance</p>
-                    <Badge className="mt-2 bg-amber-500 text-slate-900 border-0 text-xs font-bold">
-                      💎 MEMBER NETWORK
-                    </Badge>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-
-            {/* Host Center */}
-            <Link to={createPageUrl('BusinessDashboard')}>
-              <Card className="bg-slate-800 border-slate-700 hover:border-amber-500/50 transition-all cursor-pointer p-4">
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Store className="h-5 w-5 text-blue-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white mb-1">Host Center</h3>
-                    <p className="text-xs text-slate-400">Want to list a business or event?</p>
-                    <Button variant="outline" className="mt-2 h-7 text-xs border-slate-600 text-slate-300 hover:border-blue-500 hover:text-blue-400">
-                      Create Organization
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
+        <GreetingHeader currentUser={currentUser} punchPass={punchPass} />
+        <HappeningSoonSection />
+        <NewInCommunitySection />
+        {recommendations.length > 0 && (
+          <YourRecommendationsSection recommendations={recommendations} />
+        )}
+        <DiscoverSection />
       </div>
-
-      {/* Filter Pills */}
-      <div className="bg-slate-900/50 border-b border-slate-800 sticky top-0 z-10 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex overflow-x-auto md:flex-wrap gap-3 pb-2 scrollbar-hide">
-            {FILTER_PILLS.map((filter) => {
-              const Icon = filter.icon;
-              const isActive = activeFilter === filter.id;
-              return (
-                <button
-                  key={filter.id}
-                  onClick={() => setActiveFilter(filter.id)}
-                  className={`
-                    flex items-center gap-2 px-4 py-1.5 md:py-2 rounded-full border whitespace-nowrap
-                    transition-all duration-200 flex-shrink-0 cursor-pointer text-xs md:text-sm
-                    ${isActive 
-                      ? 'border-amber-500 bg-amber-500/10 text-amber-500' 
-                      : 'border-white/20 bg-transparent text-slate-300 hover:border-amber-500 hover:text-amber-500'}
-                  `}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="font-medium text-sm">{filter.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Smart Grid */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {feedItems.map((item) => (
-            <Card
-              key={item.id}
-              className={`
-                group relative overflow-hidden bg-white/5 border border-white/10 rounded-xl cursor-pointer
-                ${item.type === 'perk' ? 'border-2 border-amber-500/30 bg-gradient-to-br from-slate-900 via-slate-900 to-amber-900/10' : ''}
-              `}
-            >
-              {/* Image */}
-              <div className="relative h-48 overflow-hidden">
-                <img 
-                  src={item.image} 
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                {/* Context Badge Overlay */}
-                <div className="absolute top-3 left-3">
-                  <Badge className="bg-black/80 text-white border-0 backdrop-blur-sm text-xs">
-                    {item.context}
-                  </Badge>
-                </div>
-                {/* Save Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleSave(item.id);
-                  }}
-                  className="absolute top-3 right-3 h-9 w-9 rounded-full bg-black/60 backdrop-blur-sm
-                    flex items-center justify-center hover:bg-black/80 transition-colors"
-                >
-                  <Heart 
-                    className={`h-4 w-4 ${item.saved ? 'fill-red-500 text-red-500' : 'text-white'}`}
-                  />
-                </button>
-                {/* Perk Badge */}
-                {item.type === 'perk' && (
-                  <div className="absolute bottom-3 left-3">
-                    <Badge className="bg-amber-500 text-black border-0 font-bold text-xs">
-                      💎 EXCLUSIVE PERK
-                    </Badge>
-                  </div>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="p-5">
-                <h3 className="text-lg font-bold text-slate-100 mb-2 line-clamp-2 group-hover:text-amber-500 transition-colors">
-                  {item.title}
-                </h3>
-                
-                {item.type === 'event' && (
-                  <>
-                    <p className="text-sm text-slate-400 mb-1 flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-amber-500" />
-                      {item.date}
-                    </p>
-                    <p className="text-sm text-slate-400 mb-4 flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-amber-500" />
-                      {item.location}
-                    </p>
-                  </>
-                )}
-
-                {item.type === 'perk' && (
-                  <>
-                    <p className="text-sm text-slate-300 mb-2">{item.subtitle}</p>
-                    <p className="text-xs text-amber-500 font-medium mb-4">{item.validUntil}</p>
-                  </>
-                )}
-
-                {/* Action Button */}
-                <button
-                  className={`
-                    w-full py-2 rounded-lg text-sm font-medium transition-all duration-300
-                    ${item.type === 'perk' 
-                      ? 'bg-amber-500 text-black hover:bg-amber-400 hover:shadow-[0_0_15px_rgba(245,158,11,0.6)]' 
-                      : 'border border-white/20 bg-transparent text-slate-300 hover:border-amber-500 hover:text-amber-500'}
-                  `}
-                >
-                  {item.type === 'perk' ? 'Claim Offer' : 'More Info'}
-                </button>
-              </div>
-            </Card>
-          ))}
-        </div>
-
-        {/* Load More */}
-        <div className="mt-12 text-center">
-          <Button
-            variant="outline"
-            className="bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-500"
-          >
-            Load More
-          </Button>
-        </div>
-      </div>
-
-      {/* Floating Action Button */}
-      <button
-        onClick={() => console.log('Open Itinerary Builder')}
-        className="fixed bottom-6 right-6 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 
-          rounded-full text-black text-sm font-bold shadow-lg 
-          hover:scale-105 transition-all duration-300 flex items-center gap-2 z-50 cursor-pointer"
-      >
-        <Sparkles className="h-4 w-4 text-black" />
-        <span>Open Magic Planner</span>
-      </button>
     </div>
   );
 }
