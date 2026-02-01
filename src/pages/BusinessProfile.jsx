@@ -10,10 +10,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TrustSignal from '@/components/recommendations/TrustSignal';
 import StoryCard from '@/components/recommendations/StoryCard';
 import NodAvatars from '@/components/recommendations/NodAvatars';
+import VouchCard from '@/components/recommendations/VouchCard';
 import { 
   Phone, Mail, Globe, MapPin, Clock, ChevronLeft, 
   Share2, Heart, CheckCircle, Coins, Navigation, ExternalLink,
-  Loader2, ThumbsUp, BookOpen
+  Loader2, ThumbsUp, BookOpen, Shield
 } from "lucide-react";
 import { formatAddress, buildMapsQuery } from '@/components/locations/formatAddress';
 
@@ -53,6 +54,7 @@ export default function BusinessProfile() {
 
   const nods = recommendations.filter(r => r.type === 'nod');
   const stories = recommendations.filter(r => r.type === 'story');
+  const vouches = recommendations.filter(r => r.type === 'vouch');
 
   // Fetch locations for this business
   const { data: locations = [] } = useQuery({
@@ -265,6 +267,23 @@ export default function BusinessProfile() {
                   </div>
                 </Card>
 
+                {/* Vouches */}
+                {vouches.length > 0 && (
+                  <div className="mt-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Shield className="h-5 w-5 text-amber-500" />
+                      <h3 className="text-lg font-semibold text-white">
+                        {vouches.length} Verified {vouches.length === 1 ? 'Vouch' : 'Vouches'}
+                      </h3>
+                    </div>
+                    <div className="space-y-3">
+                      {vouches.map(vouch => (
+                        <VouchCard key={vouch.id} vouch={vouch} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Recommend CTA */}
                 <div className="flex flex-col sm:flex-row gap-3 justify-end">
                   <Link to={createPageUrl(`Recommend?businessId=${business.id}`)}>
@@ -277,6 +296,12 @@ export default function BusinessProfile() {
                     <Button variant="outline" className="border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent">
                       <BookOpen className="h-4 w-4 mr-2" />
                       Share a Story
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl(`Recommend?businessId=${business.id}&mode=vouch`)}>
+                    <Button variant="outline" className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10">
+                      <Shield className="h-4 w-4 mr-2" />
+                      Vouch for This Business
                     </Button>
                   </Link>
                 </div>

@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ThumbsUp, BookOpen, ChevronLeft, Loader2, Upload, X, CheckCircle, ShieldCheck } from "lucide-react";
+import { ThumbsUp, BookOpen, ChevronLeft, Loader2, Upload, X, CheckCircle, ShieldCheck, Shield } from "lucide-react";
 import ConcernForm from '@/components/recommendations/ConcernForm';
 
 export default function Recommend() {
@@ -17,16 +17,22 @@ export default function Recommend() {
   const businessId = urlParams.get('businessId');
   const urlMode = urlParams.get('mode');
 
-  // mode: 'choose' | 'story' | 'nod-done' | 'story-done' | 'concern' | 'concern-done'
+  // mode: 'choose' | 'story' | 'nod-done' | 'story-done' | 'concern' | 'concern-done' | 'vouch' | 'vouch-done'
   const [mode, setMode] = useState(
     urlMode === 'story' ? 'story' :
     urlMode === 'concern' ? 'concern' :
+    urlMode === 'vouch' ? 'vouch' :
     'choose'
   );
   const [serviceUsed, setServiceUsed] = useState('');
   const [content, setContent] = useState('');
   const [photos, setPhotos] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [vouchServiceUsed, setVouchServiceUsed] = useState('');
+  const [vouchDate, setVouchDate] = useState('');
+  const [vouchHireAgain, setVouchHireAgain] = useState(null);
+  const [vouchRelationship, setVouchRelationship] = useState('');
+  const [vouchStatement, setVouchStatement] = useState('');
 
   const { data: business } = useQuery({
     queryKey: ['business', businessId],
@@ -40,6 +46,21 @@ export default function Recommend() {
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me()
+  });
+
+  // Check if user already vouched
+  const { data: existingVouch } = useQuery({
+    queryKey: ['existing-vouch', businessId, currentUser?.id],
+    queryFn: async () => {
+      const vouches = await base44.entities.Recommendation.filter({
+        business_id: businessId,
+        user_id: currentUser.id,
+        type: 'vouch',
+        is_active: true
+      });
+      return vouches[0] || null;
+    },
+    enabled: !!businessId && !!currentUser?.id
   });
 
   // Check if user already nodded this business
@@ -142,6 +163,38 @@ export default function Recommend() {
     }
   });
 
+  const submitVouch = useMutation({
+    mutationFn: async () => {
+      await base44.entities.Recommendation.create({
+        business_id: businessId,
+        user_id: currentUser.id,
+        user_name: currentUser.full_name || currentUser.email,
+        type: 'vouch',
+        service_used: vouchServiceUsed.trim(),
+        content: JSON.stringify({
+          approximate_date: vouchDate.trim(),
+          hire_again: vouchHireAgain,
+          relationship: vouchRelationship,
+          statement: vouchStatement.trim()
+        }),
+        is_active: true
+      });
+
+      const businesses = await base44.entities.Business.filter({ id: businessId });
+      const biz = businesses[0];
+      await base44.entities.Business.update(businessId, {
+        vouch_count: (biz?.vouch_count || 0) + 1,
+        recommendation_count: (biz?.recommendation_count || 0) + 1
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['business', businessId]);
+      queryClient.invalidateQueries(['recommendations', businessId]);
+      queryClient.invalidateQueries(['existing-vouch', businessId]);
+      setMode('vouch-done');
+    }
+  });
+
   const handlePhotoUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
@@ -235,6 +288,180 @@ export default function Recommend() {
             </Button>
           </Link>
         </Card>
+      </div>
+    );
+  }
+
+  // Vouch success
+  if (mode === 'vouch-done') {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800">
+          <div className="h-16 w-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Shield className="h-8 w-8 text-amber-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-white">Vouch Submitted!</h2>
+          <p className="text-slate-400 mt-2">Your verified endorsement helps your neighbors find businesses they can trust.</p>
+          <Link to={createPageUrl(`BusinessProfile?id=${businessId}`)}>
+            <Button className="mt-6 bg-amber-500 hover:bg-amber-400 text-black font-semibold">
+              Back to {business?.name}
+            </Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
+  // Vouch form
+  if (mode === 'vouch') {
+    return (
+      <div className="min-h-screen bg-slate-950">
+        <div className="bg-slate-950/90 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-10">
+          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center">
+            <Button variant="ghost" size="sm" className="text-slate-300 hover:text-amber-500 hover:bg-slate-800" onClick={() => setMode('choose')}>
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back
+            </Button>
+          </div>
+        </div>
+
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          <Card className="p-6 sm:p-8 bg-slate-900 border-slate-800">
+            <div className="flex items-center gap-3 mb-1">
+              <Shield className="h-6 w-6 text-amber-500" />
+              <h1 className="text-2xl font-bold text-white">Vouch for {business?.name}</h1>
+            </div>
+            <p className="text-slate-400 mt-1 mb-2">A vouch is a verified endorsement. It carries weight because you're putting your reputation behind it.</p>
+            <p className="text-slate-500 text-sm mb-8">We'll ask a few verification questions to confirm your experience.</p>
+
+            <div className="space-y-6">
+              <div>
+                <Label className="text-base font-medium text-slate-100">
+                  What service or product did you use? <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  value={vouchServiceUsed}
+                  onChange={(e) => setVouchServiceUsed(e.target.value)}
+                  placeholder="e.g., Kitchen remodel, Oil change, Farm stand purchase"
+                  className="mt-2 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                />
+              </div>
+
+              <div>
+                <Label className="text-base font-medium text-slate-100">
+                  Approximately when? <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  value={vouchDate}
+                  onChange={(e) => setVouchDate(e.target.value)}
+                  placeholder="e.g., January 2026, Last summer, Two weeks ago"
+                  className="mt-2 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                />
+              </div>
+
+              <div>
+                <Label className="text-base font-medium text-slate-100">
+                  Would you use them again? <span className="text-red-500">*</span>
+                </Label>
+                <div className="flex gap-3 mt-2">
+                  <button
+                    onClick={() => setVouchHireAgain(true)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      vouchHireAgain === true
+                        ? 'bg-amber-500 text-black'
+                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                    }`}
+                  >
+                    Absolutely
+                  </button>
+                  <button
+                    onClick={() => setVouchHireAgain(false)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      vouchHireAgain === false
+                        ? 'bg-slate-600 text-white'
+                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                    }`}
+                  >
+                    Probably not
+                  </button>
+                </div>
+                {vouchHireAgain === false && (
+                  <p className="text-sm text-slate-500 mt-2">
+                    A vouch means you stand behind them. If you wouldn't use them again, consider sharing a Story or flagging a Concern instead.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-base font-medium text-slate-100">
+                  How do you know this business?
+                </Label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {[
+                    { value: 'customer', label: 'I was a customer' },
+                    { value: 'neighbor', label: "They're my neighbor" },
+                    { value: 'business_owner', label: "I'm a fellow business owner" },
+                    { value: 'other', label: 'Other' }
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setVouchRelationship(opt.value)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                        vouchRelationship === opt.value
+                          ? 'bg-amber-500 text-black'
+                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-base font-medium text-slate-100">
+                  Why do you vouch for them? (optional)
+                </Label>
+                <Textarea
+                  value={vouchStatement}
+                  onChange={(e) => setVouchStatement(e.target.value)}
+                  placeholder="A sentence or two about why you trust this business..."
+                  className="mt-2 min-h-[80px] bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 p-3 bg-slate-800/50 rounded-lg">
+                <div className="h-8 w-8 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                  <Shield className="h-4 w-4 text-amber-500" />
+                </div>
+                <p className="text-sm text-slate-400">
+                  Your vouch will appear as <span className="text-slate-200 font-medium">{currentUser?.full_name || currentUser?.email}</span> — verified endorsement, visible to the community.
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => setMode('choose')}
+                  className="text-slate-400 hover:text-white"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => submitVouch.mutate()}
+                  disabled={!vouchServiceUsed.trim() || !vouchDate.trim() || vouchHireAgain === null || vouchHireAgain === false || submitVouch.isPending}
+                  className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                >
+                  {submitVouch.isPending ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Submitting...</>
+                  ) : (
+                    'Submit Vouch'
+                  )}
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -390,9 +617,9 @@ export default function Recommend() {
         </h1>
         <p className="text-slate-400 mt-2">Your name stands behind your recommendation</p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
           {/* Quick Nod Card */}
-          <Card className="p-6 bg-slate-900 border-slate-800 hover:border-amber-500/50 transition-all">
+          <Card className="p-6 bg-slate-900 border-slate-800 hover:border-amber-500/50 transition-all flex flex-col">
             <ThumbsUp className="h-10 w-10 text-amber-500 mb-4" />
             <h2 className="text-lg font-semibold text-white">Quick Nod</h2>
             <p className="text-sm text-slate-400 mt-2">One click. Your name says it all.</p>
@@ -427,7 +654,7 @@ export default function Recommend() {
           </Card>
 
           {/* Share a Story Card */}
-          <Card className="p-6 bg-slate-900 border-slate-800 hover:border-amber-500/50 transition-all">
+          <Card className="p-6 bg-slate-900 border-slate-800 hover:border-amber-500/50 transition-all flex flex-col">
             <BookOpen className="h-10 w-10 text-amber-500 mb-4" />
             <h2 className="text-lg font-semibold text-white">Share a Story</h2>
             <p className="text-sm text-slate-400 mt-2">Tell your neighbors what happened.</p>
@@ -438,6 +665,32 @@ export default function Recommend() {
             >
               Start Writing
             </Button>
+          </Card>
+
+          {/* Vouch Card */}
+          <Card
+            className="p-6 bg-slate-900 border-slate-800 hover:border-amber-500/50 transition-all cursor-pointer flex flex-col items-center text-center"
+            onClick={() => !existingVouch && setMode('vouch')}
+          >
+            <div className="h-12 w-12 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
+              <Shield className="h-6 w-6 text-amber-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-white mb-2">Vouch</h3>
+            <p className="text-sm text-slate-400">
+              Stand behind this business. Verified endorsement with your reputation.
+            </p>
+            {existingVouch ? (
+              <div className="mt-4">
+                <div className="flex items-center gap-2 text-emerald-400">
+                  <CheckCircle className="h-4 w-4" />
+                  <span className="text-sm font-medium">You've vouched for this business</span>
+                </div>
+              </div>
+            ) : (
+              <Button className="mt-4 bg-amber-500 hover:bg-amber-400 text-black font-semibold w-full" onClick={(e) => { e.stopPropagation(); setMode('vouch'); }}>
+                Vouch for Them
+              </Button>
+            )}
           </Card>
         </div>
 

@@ -24,17 +24,22 @@ export const rankBusinesses = (businesses) => {
   if (!businesses || businesses.length === 0) return [];
 
   return [...businesses].sort((a, b) => {
-    // Primary: recommendation count (includes nods + stories)
+    // Primary: trust score (vouches worth 3x, stories worth 2x, nods worth 1x)
+    const scoreA = ((a.vouch_count || 0) * 3) + ((a.story_count || 0) * 2) + (a.nod_count || 0);
+    const scoreB = ((b.vouch_count || 0) * 3) + ((b.story_count || 0) * 2) + (b.nod_count || 0);
+    if (scoreA !== scoreB) return scoreB - scoreA;
+
+    // Secondary: vouch count (verified endorsements)
+    const vouchA = a.vouch_count || 0;
+    const vouchB = b.vouch_count || 0;
+    if (vouchA !== vouchB) return vouchB - vouchA;
+
+    // Tertiary: total recommendation count
     const recA = a.recommendation_count || a.review_count || 0;
     const recB = b.recommendation_count || b.review_count || 0;
     if (recA !== recB) return recB - recA;
 
-    // Secondary: story count (richer engagement)
-    const storiesA = a.story_count || 0;
-    const storiesB = b.story_count || 0;
-    if (storiesA !== storiesB) return storiesB - storiesA;
-
-    // Tertiary: newest first
+    // Quaternary: newest first
     const dateA = new Date(a.created_date || 0);
     const dateB = new Date(b.created_date || 0);
     return dateB - dateA;

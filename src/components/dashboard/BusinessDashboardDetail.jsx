@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import StoryCard from '@/components/recommendations/StoryCard';
 import NodAvatars from '@/components/recommendations/NodAvatars';
+import VouchCard from '@/components/recommendations/VouchCard';
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Star, Eye, Settings, MapPin,
@@ -90,6 +91,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
 
   const nods = recommendations.filter(r => r.type === 'nod');
   const stories = recommendations.filter(r => r.type === 'story');
+  const vouches = recommendations.filter(r => r.type === 'vouch');
 
   useEffect(() => {
     if (business && !editData) {
@@ -735,6 +737,18 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                     When neighbors share stories about your business, they'll appear here.
                   </p>
                 </Card>
+              )}
+
+              {/* Vouches */}
+              {vouches.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-sm font-medium text-slate-400 mb-3">Verified Vouches ({vouches.length})</h4>
+                  <div className="space-y-3">
+                    {vouches.map(v => (
+                      <VouchCard key={v.id} vouch={v} />
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </TabsContent>

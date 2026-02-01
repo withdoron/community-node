@@ -1,10 +1,10 @@
 import React from 'react';
 import { Card } from "@/components/ui/card";
-import { ThumbsUp, BookOpen, Eye } from "lucide-react";
+import { ThumbsUp, BookOpen, Eye, Shield } from "lucide-react";
 
 export default function OverviewWidget({ business }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card className="p-6 bg-slate-900 border-slate-800">
         <div className="flex items-center justify-between">
           <div>
@@ -29,6 +29,20 @@ export default function OverviewWidget({ business }) {
           </div>
           <div className="h-12 w-12 bg-amber-500/20 rounded-lg flex items-center justify-center">
             <BookOpen className="h-6 w-6 text-amber-500" />
+          </div>
+        </div>
+      </Card>
+
+      <Card className="p-6 bg-slate-900 border-slate-800">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-slate-400">Vouches</p>
+            <p className="text-3xl font-bold text-white mt-1">
+              {business.vouch_count || 0}
+            </p>
+          </div>
+          <div className="h-12 w-12 bg-amber-500/20 rounded-lg flex items-center justify-center">
+            <Shield className="h-6 w-6 text-amber-500" />
           </div>
         </div>
       </Card>
