@@ -13,7 +13,7 @@ import MyLane from './pages/MyLane';
 import PunchPass from './pages/PunchPass';
 import Search from './pages/Search';
 import SpokeDetails from './pages/SpokeDetails';
-import WriteReview from './pages/WriteReview';
+import Recommend from './pages/Recommend';
 import __Layout from './Layout.jsx';
 
 
@@ -33,7 +33,8 @@ export const PAGES = {
     "PunchPass": PunchPass,
     "Search": Search,
     "SpokeDetails": SpokeDetails,
-    "WriteReview": WriteReview,
+    "Recommend": Recommend,
+    "WriteReview": Recommend, // backward compat alias
 }
 
 export const pagesConfig = {

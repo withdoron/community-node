@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import StarRating from '@/components/reviews/StarRating';
-import ReviewCard from '@/components/reviews/ReviewCard';
+import TrustSignal from '@/components/recommendations/TrustSignal';
+import StoryCard from '@/components/recommendations/StoryCard';
+import NodAvatars from '@/components/recommendations/NodAvatars';
 import { 
   Phone, Mail, Globe, MapPin, Clock, ChevronLeft, 
   Share2, Heart, CheckCircle, Coins, Navigation, ExternalLink,
-  Loader2
+  Loader2, ThumbsUp, BookOpen
 } from "lucide-react";
 import { formatAddress, buildMapsQuery } from '@/components/locations/formatAddress';
 
@@ -83,14 +84,6 @@ export default function BusinessProfile() {
     );
   }
 
-  const ratingBreakdown = [5, 4, 3, 2, 1].map(rating => ({
-    rating,
-    count: reviews.filter(r => r.rating === rating).length,
-    percentage: reviews.length > 0 
-      ? (reviews.filter(r => r.rating === rating).length / reviews.length) * 100 
-      : 0
-  }));
-
   return (
     <div className="min-h-screen bg-slate-950">
       {/* Header */}
@@ -150,14 +143,8 @@ export default function BusinessProfile() {
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-white">{business.name}</h1>
                   
-                  <div className="flex items-center gap-3 mt-3">
-                    <StarRating rating={business.average_rating || 0} size="md" />
-                    <span className="font-semibold text-white">
-                      {(business.average_rating || 0).toFixed(1)}
-                    </span>
-                    <span className="text-slate-500">
-                      ({business.review_count || 0} reviews)
-                    </span>
+                  <div className="mt-3">
+                    <TrustSignal business={business} />
                   </div>
 
                   {(primaryLocation || business.city) && (
@@ -194,7 +181,7 @@ export default function BusinessProfile() {
               <TabsList className="w-full justify-start bg-slate-900 border border-slate-800 p-1">
                 <TabsTrigger value="services">Services</TabsTrigger>
                 <TabsTrigger value="photos">Photos</TabsTrigger>
-                <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
+                <TabsTrigger value="recommendations">Recommendations ({recommendations.length})</TabsTrigger>
               </TabsList>
 
               <TabsContent value="services" className="mt-4">
@@ -243,59 +230,69 @@ export default function BusinessProfile() {
                 )}
               </TabsContent>
 
-              <TabsContent value="reviews" className="mt-4 space-y-6">
-                {/* Rating Summary */}
-                <Card className="p-6">
+              <TabsContent value="recommendations" className="mt-4 space-y-6">
+                {/* Recommendation Summary */}
+                <Card className="p-6 border-slate-800 bg-slate-900">
                   <div className="flex flex-col sm:flex-row items-center gap-6">
                     <div className="text-center">
-                      <p className="text-5xl font-bold text-white">
-                        {(business.average_rating || 0).toFixed(1)}
+                      <div className="h-16 w-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <ThumbsUp className="h-8 w-8 text-amber-500" />
+                      </div>
+                      <p className="text-3xl font-bold text-white">
+                        {(business.recommendation_count || business.review_count || 0)}
                       </p>
-                      <StarRating rating={business.average_rating || 0} size="md" />
-                      <p className="text-sm text-slate-500 mt-2">
-                        {business.review_count || 0} reviews
-                      </p>
+                      <p className="text-sm text-slate-400 mt-1">neighbors recommend</p>
                     </div>
-                    <div className="flex-1 w-full space-y-2">
-                      {ratingBreakdown.map(({ rating, count, percentage }) => (
-                        <div key={rating} className="flex items-center gap-3">
-                          <span className="text-sm text-slate-400 w-3">{rating}</span>
-                          <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-amber-400 rounded-full transition-all duration-500"
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
-                          <span className="text-sm text-slate-500 w-8">{count}</span>
+                    <div className="flex-1 w-full space-y-4">
+                      {/* Nod avatars */}
+                      {nods.length > 0 && (
+                        <div>
+                          <p className="text-sm text-slate-400 mb-2">{nods.length} quick recommendations</p>
+                          <NodAvatars recommendations={nods} maxShow={8} />
                         </div>
-                      ))}
+                      )}
+                      {/* Story count */}
+                      {stories.length > 0 && (
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="h-4 w-4 text-amber-500" />
+                          <p className="text-sm text-slate-300">{stories.length} {stories.length === 1 ? 'story' : 'stories'} shared</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Card>
 
-                {/* Write Review Button */}
-                <div className="flex justify-end">
-                  <Link to={createPageUrl(`WriteReview?businessId=${business.id}`)}>
+                {/* Recommend CTA */}
+                <div className="flex flex-col sm:flex-row gap-3 justify-end">
+                  <Link to={createPageUrl(`Recommend?businessId=${business.id}`)}>
                     <Button className="bg-amber-500 hover:bg-amber-400 text-black font-semibold">
-                      Write a Review
+                      <ThumbsUp className="h-4 w-4 mr-2" />
+                      Recommend
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl(`Recommend?businessId=${business.id}&mode=story`)}>
+                    <Button variant="outline" className="border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent">
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      Share a Story
                     </Button>
                   </Link>
                 </div>
 
-                {/* Reviews List */}
-                {reviewsLoading ? (
+                {/* Stories List */}
+                {recommendationsLoading ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
                   </div>
-                ) : reviews.length > 0 ? (
+                ) : stories.length > 0 ? (
                   <div className="space-y-4">
-                    {reviews.map((review) => (
-                      <ReviewCard key={review.id} review={review} />
+                    {stories.map(story => (
+                      <StoryCard key={story.id} recommendation={story} />
                     ))}
                   </div>
                 ) : (
-                  <Card className="p-8 text-center text-slate-500">
-                    No reviews yet. Be the first to write one!
+                  <Card className="p-8 text-center border-slate-800">
+                    <BookOpen className="h-8 w-8 text-slate-600 mx-auto mb-3" />
+                    <p className="text-slate-400">No stories yet. Be the first to share your experience!</p>
                   </Card>
                 )}
               </TabsContent>

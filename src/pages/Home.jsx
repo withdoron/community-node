@@ -3,13 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import SearchBar from '@/components/search/SearchBar';
 import BusinessCard from '@/components/business/BusinessCard';
 import { rankBusinesses } from '@/components/business/rankingUtils';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, Shield, Users, Ban, Coins, Calendar, Store } from "lucide-react";
+import { ChevronRight, Shield, Coins, Calendar, Store } from "lucide-react";
 import { mainCategories, defaultPopularCategoryIds } from '@/components/categories/categoryData';
 import TextTransition, { presets } from 'react-text-transition';
 import { motion } from 'framer-motion';
@@ -30,10 +29,6 @@ export default function Home() {
   // Get active region for this instance
   const { region, isLoading: regionLoading } = useActiveRegion();
 
-  // User location state - defaults to region center
-  const [userLat, setUserLat] = useState(null);
-  const [userLng, setUserLng] = useState(null);
-
   // Text transition for hero
   const [textIndex, setTextIndex] = useState(0);
 
@@ -43,15 +38,6 @@ export default function Home() {
     }, 3000);
     return () => clearInterval(intervalId);
   }, []);
-
-  // Default to region center - fixed 30 mile radius for now
-  useEffect(() => {
-    if (!region) return;
-    
-    // Use region center for all users
-    setUserLat(region.center_lat);
-    setUserLng(region.center_lng);
-  }, [region]);
 
   const { data: categoryClicks = [] } = useQuery({
     queryKey: ['categoryClicks'],
@@ -72,17 +58,6 @@ export default function Home() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categoryClicks'] })
   });
 
-  // Fetch all businesses and locations for Featured nearby logic
-  // Filter by region to keep content local
-  const { data: allBusinesses = [] } = useQuery({
-    queryKey: ['all-businesses', region?.id],
-    queryFn: async () => {
-      const businesses = await base44.entities.Business.filter({ is_active: true }, '-average_rating', 200);
-      return filterBusinessesByRegion(businesses, region);
-    },
-    enabled: !!region
-  });
-
   // Top Rated Businesses - filtered by region
   const { data: featuredBusinesses = [], isLoading } = useQuery({
     queryKey: ['featured-businesses', region?.id],
@@ -98,13 +73,6 @@ export default function Home() {
     },
     enabled: !!region
   });
-
-  const handleSearch = ({ query, location }) => {
-    const params = new URLSearchParams();
-    if (query) params.set('q', query);
-    if (location) params.set('location', location);
-    navigate(createPageUrl(`Search?${params.toString()}`));
-  };
 
   const handleCategoryClick = (categoryId) => {
     trackClick.mutate(categoryId);
@@ -171,21 +139,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-white">100+</p>
-              <p className="text-sm text-slate-400 mt-1">Local Businesses Listed</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-white">4.8</p>
-              <p className="text-sm text-slate-400 mt-1">Average Rating</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-white">1000+</p>
-              <p className="text-sm text-slate-400 mt-1">Local Customers Served</p>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -199,7 +152,7 @@ export default function Home() {
           <Button 
             variant="ghost" 
             className="text-slate-400 hover:text-amber-500"
-            onClick={() => navigate(createPageUrl('Categories'))}
+            onClick={() => navigate(createPageUrl('Directory'))}
           >
             View all categories
             <ChevronRight className="h-4 w-4 ml-1" />
@@ -234,7 +187,7 @@ export default function Home() {
             <Button 
               variant="ghost" 
               className="text-slate-400 hover:text-amber-500"
-              onClick={() => navigate(createPageUrl('Search'))}
+              onClick={() => navigate(createPageUrl('Directory'))}
             >
               View all
               <ChevronRight className="h-4 w-4 ml-1" />

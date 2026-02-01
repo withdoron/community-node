@@ -4,7 +4,8 @@ import { createPageUrl } from '@/utils';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Phone, ChevronRight, Zap, Crown, Coins, Store } from "lucide-react";
+import { MapPin, Phone, ChevronRight, Zap, Crown, Coins, Store } from "lucide-react";
+import TrustSignal from '@/components/recommendations/TrustSignal';
 
 import { mainCategories, getMainCategory, getSubcategoryLabel } from '@/components/categories/categoryData';
 import { getTierLabel, getTierBadgeClasses } from '@/components/business/rankingUtils';
@@ -93,15 +94,9 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
               </h3>
             </div>
             
-            {/* Rating */}
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-              <span className="font-semibold text-slate-100">
-                {business.average_rating?.toFixed(1) || '0.0'}
-              </span>
-              <span className="text-sm text-slate-400">
-                ({business.review_count || 0})
-              </span>
+            {/* Trust Signal */}
+            <div className="flex-shrink-0">
+              <TrustSignal business={business} />
             </div>
           </div>
 
