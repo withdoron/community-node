@@ -1,19 +1,43 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, MapPin, DollarSign, Repeat2, Users, CheckCircle2, Tag, ExternalLink } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, DollarSign, Repeat2, Users, CheckCircle2, Tag, ExternalLink, UserCheck, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useRSVP } from '@/hooks/useRSVP';
 
 export default function EventDetailModal({ event, isOpen, onClose }) {
   if (!event) return null;
 
-  const eventDate = new Date(event.date);
+  const eventDate = new Date(event.date || event.start_date);
+  const isPast = eventDate < new Date();
   const isFree = !event.price || event.price === 0;
   const punchPassEligible = event.punch_pass_accepted;
   const punchCount = punchPassEligible ? Math.max(1, Math.round((event.price || 0) / 10)) : 0;
   const isCancelled = event.status === 'cancelled';
+
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: async () => {
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (!isAuth) return null;
+        return base44.auth.me();
+      } catch {
+        return null;
+      }
+    },
+    retry: false
+  });
+
+  const {
+    isGoing,
+    attendeeCount,
+    rsvpLoading,
+    rsvpGoing,
+    rsvpCancel
+  } = useRSVP(event?.id, currentUser);
 
   // Fetch spoke information if this is a spoke event
   const { data: spokeEvent } = useQuery({
@@ -108,6 +132,27 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                   </div>
                 )}
 
+                {/* Price badge when no hero image */}
+                {!event.thumbnail_url && !isCancelled && (
+                  <div className="flex gap-2">
+                    {punchPassEligible && (
+                      <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold">
+                        {punchCount === 1 ? '1 Punch' : `${punchCount} Punches`}
+                      </Badge>
+                    )}
+                    {!punchPassEligible && !isFree && event.price > 0 && (
+                      <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold">
+                        ${event.price.toFixed(2)}
+                      </Badge>
+                    )}
+                    {isFree && (
+                      <Badge className="bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold">
+                        FREE
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
                 {/* Date & Time */}
                 <div className="bg-slate-800/50 rounded-xl p-5 space-y-2">
                   <div className="flex items-center gap-2">
@@ -194,7 +239,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Badge className="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-3 py-1">
-                        {event.event_type.replace(/_/g, ' & ')}
+                        {event.event_type.replace(/_+/g, ' ')}
                       </Badge>
                     </div>
                   </div>
@@ -317,6 +362,67 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                     >
                       View on {spokeEvent.spokeName || 'Partner Site'} <ExternalLink className="h-4 w-4" />
                     </a>
+                  </div>
+                )}
+
+                {/* RSVP Section */}
+                {!isCancelled && !isPast && (
+                  <div className="space-y-3 pt-2">
+                    {attendeeCount > 0 && (
+                      <div className="flex items-center gap-2 text-sm text-slate-400">
+                        <Users className="h-4 w-4 text-amber-500" />
+                        {isGoing ? (
+                          <span>
+                            You{attendeeCount > 1 ? ` and ${attendeeCount - 1} other${attendeeCount > 2 ? 's' : ''}` : ''} attending
+                          </span>
+                        ) : (
+                          <span>
+                            {attendeeCount} {attendeeCount === 1 ? 'person' : 'people'} attending
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {currentUser ? (
+                      isGoing ? (
+                        <button
+                          onClick={() => rsvpCancel.mutate()}
+                          disabled={rsvpCancel.isPending}
+                          className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 font-semibold hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+                        >
+                          <UserCheck className="h-5 w-5" />
+                          {rsvpCancel.isPending ? 'Cancelling...' : "You're Going — Tap to Cancel"}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => rsvpGoing.mutate()}
+                          disabled={rsvpGoing.isPending}
+                          className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-bold transition-colors disabled:bg-amber-500/50"
+                        >
+                          <UserPlus className="h-5 w-5" />
+                          {rsvpGoing.isPending ? 'Saving...' : "I'm Going"}
+                        </button>
+                      )
+                    ) : (
+                      <div className="text-center py-3 px-6 rounded-lg bg-slate-800 border border-slate-700">
+                        <p className="text-slate-400 text-sm">
+                          <button
+                            type="button"
+                            onClick={() => base44.auth.redirectToLogin()}
+                            className="text-amber-500 hover:text-amber-400 font-semibold"
+                          >
+                            Sign in
+                          </button>
+                          {' '}to RSVP for this event
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {isPast && !isCancelled && (
+                  <div className="text-center py-3 px-6 rounded-lg bg-slate-800 border border-slate-700">
+                    <p className="text-slate-400 text-sm">This event has ended</p>
                   </div>
                 )}
               </div>
