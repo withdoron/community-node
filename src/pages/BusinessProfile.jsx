@@ -280,6 +280,14 @@ export default function BusinessProfile() {
                     </Button>
                   </Link>
                 </div>
+                <div className="mt-4 text-center">
+                  <Link
+                    to={createPageUrl(`Recommend?businessId=${business.id}&mode=concern`)}
+                    className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
+                  >
+                    Had a different experience?
+                  </Link>
+                </div>
 
                 {/* Stories List */}
                 {recommendationsLoading ? (

@@ -13,6 +13,7 @@ import BusinessEditDrawer from '@/components/admin/BusinessEditDrawer';
 import AdminSettingsPanel from '@/components/admin/AdminSettingsPanel';
 import AdminLocationsTable from '@/components/admin/AdminLocationsTable';
 import AdminLayout from '@/components/admin/AdminLayout';
+import AdminConcernsPanel from '@/components/admin/AdminConcernsPanel';
 import ConfigSection from '@/components/admin/config/ConfigSection';
 
 function PlaceholderSection({ title, description }) {
@@ -176,6 +177,8 @@ export default function Admin() {
                 )}
               </Card>
             } />
+
+            <Route path="concerns" element={<AdminConcernsPanel />} />
 
             <Route path="users" element={
               <PlaceholderSection title="Users" description="User management — coming soon." />

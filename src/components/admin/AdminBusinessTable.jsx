@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Star, Zap, Crown, Store, Coins, ChevronDown } from "lucide-react";
+import { Star, Zap, Crown, Store, Coins, ChevronDown, ShieldAlert } from "lucide-react";
 
 const tierConfig = {
   basic: { label: 'Basic', icon: Star, className: 'bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600' },
@@ -43,7 +43,15 @@ export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpd
               <TableRow key={business.id} className={`border-b border-slate-800 hover:bg-slate-800/50 transition-colors ${isUpdating ? 'opacity-70' : ''}`}>
                 <TableCell>
                   <div>
-                    <p className="font-medium text-slate-100">{business.name}</p>
+                    <p className="font-medium text-slate-100">
+                      {business.name}
+                      {business.concern_count > 0 && (
+                        <span className="ml-2 inline-flex items-center gap-1 text-xs text-slate-500">
+                          <ShieldAlert className="h-3 w-3" />
+                          {business.concern_count}
+                        </span>
+                      )}
+                    </p>
                     <p className="text-xs text-slate-500 truncate max-w-[200px]">{business.owner_email}</p>
                   </div>
                 </TableCell>

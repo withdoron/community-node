@@ -8,7 +8,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ThumbsUp, BookOpen, ChevronLeft, Loader2, Upload, X, CheckCircle } from "lucide-react";
+import { ThumbsUp, BookOpen, ChevronLeft, Loader2, Upload, X, CheckCircle, ShieldCheck } from "lucide-react";
+import ConcernForm from '@/components/recommendations/ConcernForm';
 
 export default function Recommend() {
   const queryClient = useQueryClient();
@@ -16,8 +17,12 @@ export default function Recommend() {
   const businessId = urlParams.get('businessId');
   const urlMode = urlParams.get('mode');
 
-  // mode: 'choose' | 'story' | 'nod-done' | 'story-done'
-  const [mode, setMode] = useState(urlMode === 'story' ? 'story' : 'choose');
+  // mode: 'choose' | 'story' | 'nod-done' | 'story-done' | 'concern' | 'concern-done'
+  const [mode, setMode] = useState(
+    urlMode === 'story' ? 'story' :
+    urlMode === 'concern' ? 'concern' :
+    'choose'
+  );
   const [serviceUsed, setServiceUsed] = useState('');
   const [content, setContent] = useState('');
   const [photos, setPhotos] = useState([]);
@@ -182,6 +187,50 @@ export default function Recommend() {
           <p className="text-slate-400 mt-2">Your neighbors can see your recommendation on their profile.</p>
           <Link to={createPageUrl(`BusinessProfile?id=${businessId}`)}>
             <Button className="mt-6 bg-amber-500 hover:bg-amber-400 text-black font-semibold">
+              Back to {business?.name}
+            </Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
+  // Concern form
+  if (mode === 'concern') {
+    return (
+      <div className="min-h-screen bg-slate-950">
+        <div className="bg-slate-950/90 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-10">
+          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center">
+            <Button variant="ghost" size="sm" className="text-slate-300 hover:text-amber-500 hover:bg-slate-800" onClick={() => setMode('choose')}>
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back
+            </Button>
+          </div>
+        </div>
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          <ConcernForm
+            businessId={businessId}
+            businessName={business?.name}
+            onClose={() => setMode('choose')}
+            onSuccess={() => setMode('concern-done')}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Concern success
+  if (mode === 'concern-done') {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800">
+          <div className="h-16 w-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <ShieldCheck className="h-8 w-8 text-emerald-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-white">Concern Received</h2>
+          <p className="text-slate-400 mt-2">We'll review this and follow up if needed. Thank you for helping keep our community trustworthy.</p>
+          <Link to={createPageUrl(`BusinessProfile?id=${businessId}`)}>
+            <Button className="mt-6 bg-slate-700 hover:bg-slate-600 text-white">
               Back to {business?.name}
             </Button>
           </Link>
@@ -390,6 +439,15 @@ export default function Recommend() {
               Start Writing
             </Button>
           </Card>
+        </div>
+
+        <div className="mt-8 text-center">
+          <button
+            onClick={() => setMode('concern')}
+            className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
+          >
+            Had a different experience?
+          </button>
         </div>
       </div>
     </div>
