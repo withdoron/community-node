@@ -30,7 +30,6 @@ export const PAGES = {
     "Search": Search,
     "SpokeDetails": SpokeDetails,
     "Recommend": Recommend,
-    "WriteReview": Recommend, // backward compat alias
 }
 
 export const pagesConfig = {

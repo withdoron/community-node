@@ -64,7 +64,7 @@ export default function Home() {
     queryFn: async () => {
       const businesses = await base44.entities.Business.filter(
         { is_active: true },
-        '-average_rating',
+        '-created_date',
         50
       );
       // Filter by region, then rank and take top 6

@@ -2,7 +2,7 @@ import React from 'react';
 import { ThumbsUp, Shield } from "lucide-react";
 
 export default function TrustSignal({ business }) {
-  const count = business.recommendation_count || business.review_count || 0;
+  const count = business.recommendation_count || 0;
   const stories = business.story_count || 0;
   const vouches = business.vouch_count || 0;
 

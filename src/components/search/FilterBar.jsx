@@ -21,8 +21,7 @@ const categories = [
 ];
 
 const sortOptions = [
-  { value: 'rating', label: 'Highest Rated' },
-  { value: 'reviews', label: 'Most Reviews' },
+  { value: 'recommended', label: 'Recommended' },
   { value: 'price_low', label: 'Price: Low to High' },
   { value: 'price_high', label: 'Price: High to Low' },
   { value: 'newest', label: 'Newest' }

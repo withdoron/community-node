@@ -35,8 +35,8 @@ export const rankBusinesses = (businesses) => {
     if (vouchA !== vouchB) return vouchB - vouchA;
 
     // Tertiary: total recommendation count
-    const recA = a.recommendation_count || a.review_count || 0;
-    const recB = b.recommendation_count || b.review_count || 0;
+    const recA = a.recommendation_count || 0;
+    const recB = b.recommendation_count || 0;
     if (recA !== recB) return recB - recA;
 
     // Quaternary: newest first

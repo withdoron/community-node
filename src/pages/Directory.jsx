@@ -27,7 +27,7 @@ export default function Directory() {
   const [searchQuery, setSearchQuery] = useState(urlParams.get('q') || '');
   const [selectedCategory, setSelectedCategory] = useState(urlParams.get('cat') || 'all');
   const [acceptsSilver, setAcceptsSilver] = useState(urlParams.get('silver') === '1');
-  const [sortBy, setSortBy] = useState(urlParams.get('sort') || 'rating');
+  const [sortBy, setSortBy] = useState(urlParams.get('sort') || 'recommended');
 
   // Debounce search input (300ms)
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function Directory() {
     if (searchQuery) params.set('q', searchQuery);
     if (selectedCategory !== 'all') params.set('cat', selectedCategory);
     if (acceptsSilver) params.set('silver', '1');
-    if (sortBy !== 'rating') params.set('sort', sortBy);
+    if (sortBy !== 'recommended') params.set('sort', sortBy);
     const qs = params.toString();
     const url = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
     window.history.replaceState({}, '', url);
@@ -73,7 +73,7 @@ export default function Directory() {
   const { data: businesses = [], isLoading } = useQuery({
     queryKey: ['directory-businesses', region?.id],
     queryFn: async () => {
-      const list = await base44.entities.Business.filter({ is_active: true }, '-average_rating', 200);
+      const list = await base44.entities.Business.filter({ is_active: true }, '-created_date', 200);
       return filterBusinessesByRegion(list, region);
     },
     enabled: !!region
@@ -119,12 +119,10 @@ export default function Directory() {
     // Trust-based default sort
     result = rankBusinesses(result);
 
-    // Re-sort by user preference if not rating
-    if (sortBy !== 'rating') {
+    // Re-sort by user preference if not recommended
+    if (sortBy !== 'recommended') {
       result.sort((a, b) => {
         switch (sortBy) {
-          case 'reviews':
-            return (b.review_count || 0) - (a.review_count || 0);
           case 'newest':
             return new Date(b.created_date || 0) - new Date(a.created_date || 0);
           case 'alpha':
@@ -143,7 +141,7 @@ export default function Directory() {
     setSearchQuery('');
     setSelectedCategory('all');
     setAcceptsSilver(false);
-    setSortBy('rating');
+    setSortBy('recommended');
   };
 
   const handleCategoryTileClick = (categoryId) => {
@@ -229,11 +227,8 @@ export default function Directory() {
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-700">
-              <SelectItem value="rating" className="text-slate-300 focus:bg-slate-800 focus:text-white">
-                Top Rated
-              </SelectItem>
-              <SelectItem value="reviews" className="text-slate-300 focus:bg-slate-800 focus:text-white">
-                Most Reviewed
+              <SelectItem value="recommended" className="text-slate-300 focus:bg-slate-800 focus:text-white">
+                Recommended
               </SelectItem>
               <SelectItem value="newest" className="text-slate-300 focus:bg-slate-800 focus:text-white">
                 Newest

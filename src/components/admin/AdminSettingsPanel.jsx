@@ -14,7 +14,6 @@ const DEFAULT_SETTINGS = {
   show_accepts_silver_badge: true,
   show_locally_owned_franchise_badge: true,
   show_accepts_payments_badge: false,
-  default_boost_duration_days: 1,
 };
 
 export default function AdminSettingsPanel() {
@@ -145,34 +144,6 @@ export default function AdminSettingsPanel() {
               onCheckedChange={(checked) => updateSetting('show_accepts_payments_badge', checked)}
               disabled
             />
-          </div>
-        </div>
-      </Card>
-
-      {/* Boost Configuration */}
-      <Card className="p-6 bg-slate-900 border-slate-800">
-        <h2 className="text-lg font-semibold text-slate-100 mb-4">Boost Configuration</h2>
-        <p className="text-sm text-slate-400 mb-6">
-          Configure default settings for listing boosts.
-        </p>
-
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <Zap className="h-5 w-5 text-amber-500" />
-              <Label className="font-medium text-slate-100">Default Boost Duration</Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                min="1"
-                max="30"
-                value={settings.default_boost_duration_days}
-                onChange={(e) => updateSetting('default_boost_duration_days', parseInt(e.target.value) || 1)}
-                className="w-20 bg-slate-800 border-slate-700 text-white focus:ring-2 focus:ring-amber-500"
-              />
-              <span className="text-sm text-slate-400">days</span>
-            </div>
           </div>
         </div>
       </Card>

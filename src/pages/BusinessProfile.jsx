@@ -244,7 +244,7 @@ export default function BusinessProfile() {
                         <ThumbsUp className="h-8 w-8 text-amber-500" />
                       </div>
                       <p className="text-3xl font-bold text-white">
-                        {(business.recommendation_count || business.review_count || 0)}
+                        {(business.recommendation_count || 0)}
                       </p>
                       <p className="text-sm text-slate-400 mt-1">neighbors recommend</p>
                     </div>

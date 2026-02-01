@@ -27,7 +27,7 @@ export default function Search() {
     category: initialCategory,
     acceptsSilver: false
   });
-  const [sortBy, setSortBy] = useState('rating');
+  const [sortBy, setSortBy] = useState('recommended');
 
   // Fetch businesses and locations, filtered by region
   const { data: businesses = [], isLoading } = useQuery({
@@ -76,11 +76,9 @@ export default function Search() {
     // Trust-based default ranking; then apply user's sort preference if set
     result = rankBusinesses(result);
 
-    if (sortBy !== 'rating') {
+    if (sortBy !== 'recommended') {
       result.sort((a, b) => {
         switch (sortBy) {
-          case 'reviews':
-            return (b.review_count || 0) - (a.review_count || 0);
           case 'price_low': {
             const aMin = a.services?.length ? Math.min(...a.services.map(s => s.starting_price || Infinity)) : Infinity;
             const bMin = b.services?.length ? Math.min(...b.services.map(s => s.starting_price || Infinity)) : Infinity;

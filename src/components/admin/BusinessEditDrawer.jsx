@@ -470,10 +470,9 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   <p className="text-slate-300">{format(new Date(business.updated_date), 'MMM d, yyyy')}</p>
                 </div>
                 <div>
-                  <span className="text-slate-400">Rating:</span>
-                  <p className="text-slate-300 flex items-center gap-1">
-                    <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
-                    {(business.average_rating || 0).toFixed(1)} ({business.review_count || 0} reviews)
+                  <span className="text-slate-400">Recommendations:</span>
+                  <p className="text-slate-300">
+                    {business.recommendation_count || 0}
                   </p>
                 </div>
                 <div>

@@ -18,7 +18,7 @@ import NodAvatars from '@/components/recommendations/NodAvatars';
 import VouchCard from '@/components/recommendations/VouchCard';
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Star, Eye, Settings, MapPin,
+  Eye, Settings, MapPin,
   Loader2, CheckCircle, Crown, Zap, ArrowUp, Upload, X, Plus, Trash2,
   ExternalLink, Check, ChevronLeft, ThumbsUp, BookOpen
 } from "lucide-react";
@@ -356,7 +356,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">
-                  {business.recommendation_count || business.review_count || 0}
+                  {business.recommendation_count || 0}
                 </p>
                 <p className="text-sm text-slate-400">Recommendations</p>
               </div>

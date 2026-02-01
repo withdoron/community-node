@@ -10,7 +10,7 @@ export default function OverviewWidget({ business }) {
           <div>
             <p className="text-sm text-slate-400">Recommendations</p>
             <p className="text-3xl font-bold text-white mt-1">
-              {business.recommendation_count || business.review_count || 0}
+              {business.recommendation_count || 0}
             </p>
           </div>
           <div className="h-12 w-12 bg-amber-500/20 rounded-lg flex items-center justify-center">
