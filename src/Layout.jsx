@@ -167,7 +167,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
             ) : null}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-100">
+                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-100 hover:bg-slate-800">
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>

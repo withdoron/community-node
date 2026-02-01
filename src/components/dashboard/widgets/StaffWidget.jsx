@@ -343,6 +343,7 @@ export default function StaffWidget({ business, currentUserId }) {
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="hover:bg-slate-800"
                   onClick={() => removeStaffMutation.mutate(user.id)}
                   disabled={removeStaffMutation.isPending}
                   className="text-slate-400 hover:text-red-400 hover:bg-slate-700"
@@ -379,6 +380,7 @@ export default function StaffWidget({ business, currentUserId }) {
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="hover:bg-slate-800"
                     onClick={() => removeStaffMutation.mutate(invite.email)}
                     disabled={removeStaffMutation.isPending}
                     className="text-slate-400 hover:text-red-400 hover:bg-slate-700"

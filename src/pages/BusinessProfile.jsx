@@ -101,10 +101,10 @@ export default function BusinessProfile() {
             </Button>
           </Link>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="hover:bg-slate-800">
               <Heart className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="hover:bg-slate-800">
               <Share2 className="h-4 w-4" />
             </Button>
           </div>
@@ -169,7 +169,7 @@ export default function BusinessProfile() {
                 </div>
               </div>
 
-              <p className="text-slate-600 mt-6 leading-relaxed">
+              <p className="text-slate-400 mt-6 leading-relaxed">
                 {business.description || 'No description available.'}
               </p>
 

@@ -142,7 +142,7 @@ export default function FilterBar({
         {/* Mobile Filter Sheet */}
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="h-9 md:hidden border-slate-700 text-slate-300">
+            <Button variant="outline" size="sm" className="h-9 md:hidden border-slate-700 text-slate-300 hover:bg-slate-800">
               <Filter className="h-3.5 w-3.5 mr-2" />
               Filters
               {activeFilterCount > 0 && (

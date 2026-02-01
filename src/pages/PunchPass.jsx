@@ -82,7 +82,7 @@ export default function PunchPass() {
 
   if (userLoading || passLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
       </div>
     );
@@ -92,7 +92,7 @@ export default function PunchPass() {
   const hasPin = hasPunchPass && !!punchPassData.pin_hash;
 
   return (
-    <div className="min-h-screen bg-slate-900 py-8 px-4">
+    <div className="min-h-screen bg-slate-950 py-8 px-4">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">

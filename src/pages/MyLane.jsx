@@ -197,7 +197,7 @@ export default function MyLane() {
                     transition-all duration-200 flex-shrink-0 cursor-pointer text-xs md:text-sm
                     ${isActive 
                       ? 'border-amber-500 bg-amber-500/10 text-amber-500' 
-                      : 'border-white/20 bg-transparent text-gray-300 hover:border-amber-500 hover:text-amber-500'}
+                      : 'border-white/20 bg-transparent text-slate-300 hover:border-amber-500 hover:text-amber-500'}
                   `}
                 >
                   <Icon className="h-4 w-4" />
@@ -288,7 +288,7 @@ export default function MyLane() {
                     w-full py-2 rounded-lg text-sm font-medium transition-all duration-300
                     ${item.type === 'perk' 
                       ? 'bg-amber-500 text-black hover:bg-amber-400 hover:shadow-[0_0_15px_rgba(245,158,11,0.6)]' 
-                      : 'border border-white/20 bg-transparent text-gray-300 hover:border-amber-500 hover:text-amber-500'}
+                      : 'border border-white/20 bg-transparent text-slate-300 hover:border-amber-500 hover:text-amber-500'}
                   `}
                 >
                   {item.type === 'perk' ? 'Claim Offer' : 'More Info'}

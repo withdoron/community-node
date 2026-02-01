@@ -222,7 +222,7 @@ export default function LocationEditDialog({
             <Button 
               type="button" 
               variant="outline" 
-              className="flex-1"
+              className="flex-1 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-500"
               onClick={() => onClose(false)}
             >
               Cancel
