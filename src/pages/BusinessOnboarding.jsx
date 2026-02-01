@@ -423,7 +423,7 @@ export default function BusinessOnboarding() {
                 <Button
                   variant="outline"
                   onClick={addService}
-                  className="w-full"
+                  className="w-full border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Another Service
@@ -462,12 +462,12 @@ export default function BusinessOnboarding() {
                         <div className="flex items-center gap-3">
                           <div className={`
                             h-10 w-10 rounded-lg flex items-center justify-center
-                            ${tier.id === 'partner' ? 'bg-amber-100' : 
-                              tier.id === 'standard' ? 'bg-blue-100' : 'bg-slate-100'}
+                            ${tier.id === 'partner' ? 'bg-amber-500/20' : 
+                              tier.id === 'standard' ? 'bg-blue-500/20' : 'bg-slate-800'}
                           `}>
                             <Icon className={`h-5 w-5 ${
-                              tier.id === 'partner' ? 'text-amber-600' : 
-                              tier.id === 'standard' ? 'text-blue-600' : 'text-slate-600'
+                              tier.id === 'partner' ? 'text-amber-500' : 
+                              tier.id === 'standard' ? 'text-blue-400' : 'text-slate-400'
                             }`} />
                           </div>
                           <div>
