@@ -48,20 +48,41 @@ export default function Settings() {
 
   const updateUserMutation = useMutation({
     mutationFn: async (updates) => {
-      try {
-        await base44.entities.User.update(currentUser.id, updates);
-      } catch (error) {
+      // Base44 User entity: full_name is top-level, phone/home_region go in data blob
+      const topLevel = {};
+      const dataFields = {};
+
+      if (updates.full_name !== undefined) {
+        topLevel.full_name = updates.full_name;
+      }
+      if (updates.phone !== undefined) {
+        dataFields.phone = updates.phone;
+      }
+      if (updates.home_region !== undefined) {
+        dataFields.home_region = updates.home_region;
+      }
+
+      // Update top-level fields if any
+      if (Object.keys(topLevel).length > 0) {
+        await base44.entities.User.update(currentUser.id, topLevel);
+      }
+
+      // Update data blob fields if any
+      if (Object.keys(dataFields).length > 0) {
         await base44.entities.User.update(currentUser.id, {
-          data: { ...currentUser.data, ...updates }
+          data: { ...currentUser.data, ...dataFields }
         });
       }
     },
     onSuccess: () => {
+      // Invalidate all queries that might use user data
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      queryClient.invalidateQueries({ queryKey: ['mylane'] });
       toast.success('Settings saved');
       setHasChanges(false);
     },
     onError: (error) => {
+      console.error('Settings save error:', error);
       toast.error(getFriendlyErrorMessage(error, 'Failed to save settings. Please try again.'));
     }
   });
