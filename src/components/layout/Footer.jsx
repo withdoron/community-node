@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Store } from 'lucide-react';
 
 export default function Footer() {
@@ -25,15 +26,25 @@ export default function Footer() {
 
           {/* Navigation Links */}
           <nav className="flex items-center gap-6">
-            {footerLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="text-slate-400 hover:text-amber-500 transition-colors duration-300 text-sm"
-              >
-                {link.label}
-              </a>
-            ))}
+            {footerLinks.map((link) =>
+              link.href.startsWith('mailto:') ? (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="text-slate-400 hover:text-amber-500 transition-colors duration-300 text-sm"
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  className="text-slate-400 hover:text-amber-500 transition-colors duration-300 text-sm"
+                >
+                  {link.label}
+                </Link>
+              )
+            )}
           </nav>
         </div>
 
