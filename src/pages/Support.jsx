@@ -32,10 +32,10 @@ export default function Support() {
                   For questions, feedback, or issues, reach out anytime.
                 </p>
                 <a
-                  href="mailto:support@locallane.org"
+                  href="mailto:support@locallane.app"
                   className="text-amber-500 hover:text-amber-400 transition-colors font-medium"
                 >
-                  support@locallane.org
+                  support@locallane.app
                 </a>
               </div>
             </div>

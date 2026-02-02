@@ -107,8 +107,8 @@ export default function Privacy() {
             <p>
               You can view and update your personal information through your account settings at
               any time. If you'd like to delete your account and associated data, contact us at{' '}
-              <a href="mailto:support@locallane.org" className="text-amber-500 hover:text-amber-400 transition-colors">
-                support@locallane.org
+              <a href="mailto:support@locallane.app" className="text-amber-500 hover:text-amber-400 transition-colors">
+                support@locallane.app
               </a>{' '}
               and we'll process your request promptly.
             </p>
@@ -140,8 +140,8 @@ export default function Privacy() {
             <h2 className="text-xl font-semibold text-white mb-3">9. Contact</h2>
             <p>
               Privacy questions? Reach us at{' '}
-              <a href="mailto:support@locallane.org" className="text-amber-500 hover:text-amber-400 transition-colors">
-                support@locallane.org
+              <a href="mailto:support@locallane.app" className="text-amber-500 hover:text-amber-400 transition-colors">
+                support@locallane.app
               </a>
             </p>
           </section>

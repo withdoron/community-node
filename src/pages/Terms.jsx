@@ -95,7 +95,7 @@ export default function Terms() {
             </p>
             <p className="mb-3">
               You may cancel your subscription at any time through your account settings or by
-              contacting support at support@locallane.org. Cancellation takes effect at the end of
+              contacting support at support@locallane.app. Cancellation takes effect at the end of
               your current billing period. No refunds are issued for partial billing periods.
             </p>
             <p>
@@ -168,8 +168,8 @@ export default function Terms() {
             <h2 className="text-xl font-semibold text-white mb-3">10. Contact</h2>
             <p>
               Questions about these terms? Reach us at{' '}
-              <a href="mailto:support@locallane.org" className="text-amber-500 hover:text-amber-400 transition-colors">
-                support@locallane.org
+              <a href="mailto:support@locallane.app" className="text-amber-500 hover:text-amber-400 transition-colors">
+                support@locallane.app
               </a>
             </p>
           </section>
