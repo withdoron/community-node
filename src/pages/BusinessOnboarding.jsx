@@ -27,8 +27,7 @@ const tiers = [
     price: '$9',
     period: '/month',
     icon: Star,
-    features: ['Business listing', 'Basic profile', 'Contact info', 'Customer reviews'],
-    bumps: 0
+    features: ['Business listing', 'Basic profile', 'Contact info']
   },
   {
     id: 'standard',
@@ -37,8 +36,7 @@ const tiers = [
     period: '/month',
     icon: Zap,
     popular: true,
-    features: ['Everything in Basic', 'Photo gallery', 'Service listings', '3 bumps per month', 'Priority support'],
-    bumps: 3
+    features: ['Everything in Basic', 'Photo gallery', 'Service listings', 'Priority support']
   },
   {
     id: 'partner',
@@ -46,8 +44,7 @@ const tiers = [
     price: '$79',
     period: '/month',
     icon: Crown,
-    features: ['Everything in Standard', 'Partner badge', 'Featured placement', '10 bumps per month', 'Analytics dashboard'],
-    bumps: 10
+    features: ['Everything in Standard', 'Partner badge', 'Featured placement', 'Analytics dashboard']
   }
 ];
 

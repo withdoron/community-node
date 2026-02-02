@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useOrganization } from "@/hooks/useOrganization";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,8 +12,8 @@ import TrustSignal from '@/components/recommendations/TrustSignal';
 import StoryCard from '@/components/recommendations/StoryCard';
 import NodAvatars from '@/components/recommendations/NodAvatars';
 import VouchCard from '@/components/recommendations/VouchCard';
-import { 
-  Phone, Mail, Globe, MapPin, Clock, ChevronLeft, 
+import {
+  Phone, Mail, Globe, MapPin, Clock, ChevronLeft,
   Share2, Heart, CheckCircle, Coins, Navigation, ExternalLink,
   Loader2, ThumbsUp, BookOpen, Shield
 } from "lucide-react";
@@ -55,6 +56,8 @@ export default function BusinessProfile() {
   const nods = recommendations.filter(r => r.type === 'nod');
   const stories = recommendations.filter(r => r.type === 'story');
   const vouches = recommendations.filter(r => r.type === 'vouch');
+
+  const { isPartner } = useOrganization(business);
 
   // Fetch locations for this business
   const { data: locations = [] } = useQuery({
@@ -133,8 +136,8 @@ export default function BusinessProfile() {
                     <Badge variant="secondary" className="bg-slate-800 text-slate-300">
                       {categoryLabels[business.category] || business.category}
                     </Badge>
-                    {business.subscription_tier === 'partner' && (
-                      <Badge className="bg-emerald-500 text-white">
+                    {isPartner && (
+                      <Badge className="bg-amber-500 text-black">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Partner
                       </Badge>

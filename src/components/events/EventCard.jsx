@@ -16,7 +16,7 @@ export default function EventCard({ event, onClick }) {
   // Get up to 2 event type badges
   const eventTypes = [];
   if (event.event_type) {
-    eventTypes.push(event.event_type.replace(/_/g, ' '));
+    eventTypes.push(event.event_type.replace(/_+/g, ' '));
   }
   if (event.network) {
     eventTypes.push(event.network);

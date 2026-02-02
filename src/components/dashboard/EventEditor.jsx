@@ -712,7 +712,7 @@ export default function EventEditor({
             >
               <span
                 className={cn(
-                  "inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform",
+                  "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
                   isRecurring ? "translate-x-5" : "translate-x-0.5"
                 )}
               />
@@ -1177,7 +1177,7 @@ export default function EventEditor({
                 >
                   <span
                     className={cn(
-                      "inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform",
+                      "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
                       formData.punch_pass_eligible ? "translate-x-5" : "translate-x-0.5"
                     )}
                   />

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useOrganization } from "@/hooks/useOrganization";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +21,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Eye, Settings, MapPin,
   Loader2, CheckCircle, Crown, Zap, ArrowUp, Upload, X, Plus, Trash2,
-  ExternalLink, Check, ChevronLeft, ThumbsUp, BookOpen
+  ExternalLink, Check, ChevronLeft, ThumbsUp, BookOpen, Star
 } from "lucide-react";
 import { format } from 'date-fns';
 import { mainCategories, getMainCategory } from '@/components/categories/categoryData';
@@ -76,6 +77,7 @@ const tiers = [
 
 export default function BusinessDashboardDetail({ business, onBack }) {
   const queryClient = useQueryClient();
+  const { tier, tierLevel, isPartner } = useOrganization(business);
 
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -225,7 +227,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
     partner: { icon: Crown, color: 'text-amber-500', bg: 'bg-amber-500/20', name: 'Partner' }
   };
 
-  const currentTier = tierInfo[business.subscription_tier] || tierInfo.basic;
+  const currentTier = tierInfo[tier] || tierInfo.basic;
   const TierIcon = currentTier.icon;
 
   return (
@@ -267,7 +269,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent">
                     <ArrowUp className="h-4 w-4 mr-2" />
-                    {business.subscription_tier === 'partner' ? 'Manage Plan' : 'Upgrade Plan'}
+                    {isPartner ? 'Manage Plan' : 'Upgrade Plan'}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-800">
@@ -276,41 +278,41 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                   </DialogHeader>
                   <div className="py-4">
                     <div className="grid md:grid-cols-3 gap-4">
-                      {tiers.map((tier) => {
-                        const TierIconComponent = tier.icon;
-                        const isCurrentPlan = business.subscription_tier === tier.id;
+                      {tiers.map((planTier) => {
+                        const TierIconComponent = planTier.icon;
+                        const isCurrentPlan = tier === planTier.id;
                         return (
                           <div
-                            key={tier.id}
+                            key={planTier.id}
                             className={`relative rounded-xl border-2 p-5 transition-all ${
-                              isCurrentPlan 
-                                ? 'border-amber-500 bg-slate-800' 
+                              isCurrentPlan
+                                ? 'border-amber-500 bg-slate-800'
                                 : 'border-slate-700 hover:border-slate-600'
                             }`}
                           >
-                            {tier.popular && (
+                            {planTier.popular && (
                               <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-black">
                                 Popular
                               </Badge>
                             )}
                             <div className="text-center mb-4">
                               <div className={`h-12 w-12 rounded-lg flex items-center justify-center mx-auto mb-3 ${
-                                tier.id === 'partner' ? 'bg-amber-500/20' : 
-                                tier.id === 'standard' ? 'bg-blue-500/20' : 'bg-slate-800'
+                                planTier.id === 'partner' ? 'bg-amber-500/20' :
+                                planTier.id === 'standard' ? 'bg-blue-500/20' : 'bg-slate-800'
                               }`}>
                                 <TierIconComponent className={`h-6 w-6 ${
-                                  tier.id === 'partner' ? 'text-amber-500' : 
-                                  tier.id === 'standard' ? 'text-blue-400' : 'text-slate-400'
+                                  planTier.id === 'partner' ? 'text-amber-500' :
+                                  planTier.id === 'standard' ? 'text-blue-400' : 'text-slate-400'
                                 }`} />
                               </div>
-                              <h3 className="font-semibold text-lg text-white">{tier.name}</h3>
+                              <h3 className="font-semibold text-lg text-white">{planTier.name}</h3>
                               <p className="text-2xl font-bold mt-1 text-white">
-                                {tier.price}
-                                <span className="text-sm font-normal text-slate-400">{tier.period}</span>
+                                {planTier.price}
+                                <span className="text-sm font-normal text-slate-400">{planTier.period}</span>
                               </p>
                             </div>
                             <ul className="space-y-2 mb-4">
-                              {tier.features.map((feature) => (
+                              {planTier.features.map((feature) => (
                                 <li key={feature} className="flex items-center gap-2 text-sm text-slate-300">
                                   <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" />
                                   {feature}
@@ -318,11 +320,11 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                               ))}
                             </ul>
                             <Button
-                              className={`w-full ${isCurrentPlan 
-                                ? 'bg-slate-700 text-slate-400 cursor-default' 
+                              className={`w-full ${isCurrentPlan
+                                ? 'bg-slate-700 text-slate-400 cursor-default'
                                 : 'bg-amber-500 hover:bg-amber-400 text-black font-semibold'}`}
                               disabled={isCurrentPlan || upgradePlan.isPending}
-                              onClick={() => upgradePlan.mutate(tier.id)}
+                              onClick={() => upgradePlan.mutate(planTier.id)}
                             >
                               {upgradePlan.isPending ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />

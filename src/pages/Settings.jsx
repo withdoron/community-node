@@ -26,6 +26,7 @@ export default function Settings() {
     home_region: 'greater_eugene',
   });
   const [hasChanges, setHasChanges] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -37,17 +38,22 @@ export default function Settings() {
   });
 
   useEffect(() => {
-    if (currentUser) {
+    // Only initialize form data once on mount, not on every refetch
+    if (currentUser && !isInitialized) {
       setFormData({
         full_name: currentUser.full_name || '',
         phone: currentUser.phone || currentUser.data?.phone || '',
         home_region: currentUser.data?.home_region || 'greater_eugene',
       });
+      setIsInitialized(true);
     }
-  }, [currentUser]);
+  }, [currentUser, isInitialized]);
 
   const updateUserMutation = useMutation({
     mutationFn: async (updates) => {
+      console.log('Settings mutation - updates:', updates);
+      console.log('Settings mutation - currentUser.id:', currentUser.id);
+
       // Base44 User entity: full_name is top-level, phone/home_region go in data blob
       const topLevel = {};
       const dataFields = {};

@@ -12,11 +12,11 @@ export default function LocationsTable({
     <div className="border rounded-lg overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="bg-slate-50">
-            <TableHead>Location</TableHead>
-            <TableHead>City</TableHead>
-            <TableHead className="text-center">Views (7d)</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+          <TableRow className="bg-slate-800">
+            <TableHead className="text-slate-400">Location</TableHead>
+            <TableHead className="text-slate-400">City</TableHead>
+            <TableHead className="text-center text-slate-400">Views (7d)</TableHead>
+            <TableHead className="text-right text-slate-400">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -39,11 +39,11 @@ export default function LocationsTable({
                       <span className="font-medium">{location.name || 'Main Location'}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-slate-600">{location.city}</TableCell>
+                  <TableCell className="text-slate-300">{location.city}</TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
                       <Eye className="h-3 w-3 text-slate-400" />
-                      <span className="text-slate-600">{views}</span>
+                      <span className="text-slate-300">{views}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-right">

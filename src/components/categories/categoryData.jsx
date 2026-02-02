@@ -21,7 +21,7 @@ export const mainCategories = [
     id: 'home_services',
     label: 'Home Services',
     icon: Home,
-    color: 'bg-blue-50 text-blue-600 hover:bg-blue-100',
+    color: 'bg-slate-800 text-amber-500 hover:bg-slate-700',
     subcategories: [
       { id: 'all_home_services', label: 'All home services' },
       { id: 'carpenters_handymen', label: 'Carpenters & Handymen' },
@@ -40,7 +40,7 @@ export const mainCategories = [
     id: 'auto_transportation',
     label: 'Auto & Transportation',
     icon: Car,
-    color: 'bg-slate-50 text-slate-600 hover:bg-slate-100',
+    color: 'bg-slate-800 text-amber-500 hover:bg-slate-700',
     subcategories: [
       { id: 'all_auto', label: 'All auto services' },
       { id: 'mechanics', label: 'Mechanics / Auto Repair' },
@@ -55,7 +55,7 @@ export const mainCategories = [
     id: 'farms_food',
     label: 'Farms & Food',
     icon: Tractor,
-    color: 'bg-green-50 text-green-600 hover:bg-green-100',
+    color: 'bg-slate-800 text-amber-500 hover:bg-slate-700',
     subcategories: [
       { id: 'all_farms_food', label: 'All farms & food' },
       { id: 'farms_ranches', label: 'Farms & Ranches' },
@@ -70,7 +70,7 @@ export const mainCategories = [
     id: 'health_fitness',
     label: 'Health, Fitness & Wellness',
     icon: Dumbbell,
-    color: 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100',
+    color: 'bg-slate-800 text-amber-500 hover:bg-slate-700',
     subcategories: [
       { id: 'all_health_fitness', label: 'All health & fitness' },
       { id: 'gyms', label: 'Gyms & Fitness Centers' },
@@ -88,7 +88,7 @@ export const mainCategories = [
     id: 'healthcare',
     label: 'Healthcare (Doctors & Dentists)',
     icon: Stethoscope,
-    color: 'bg-red-50 text-red-600 hover:bg-red-100',
+    color: 'bg-slate-800 text-amber-500 hover:bg-slate-700',
     subcategories: [
       { id: 'all_healthcare', label: 'All healthcare' },
       { id: 'family_doctors', label: 'Family Doctors / Clinics' },
@@ -102,7 +102,7 @@ export const mainCategories = [
     id: 'professional_services',
     label: 'Professional Services',
     icon: Briefcase,
-    color: 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100',
+    color: 'bg-slate-800 text-amber-500 hover:bg-slate-700',
     subcategories: [
       { id: 'all_professional', label: 'All professional services' },
       { id: 'accountants', label: 'Accountants & Bookkeepers' },
@@ -120,7 +120,7 @@ export const mainCategories = [
     id: 'bullion_coins',
     label: 'Bullion Dealers & Coin Shops',
     icon: Coins,
-    color: 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100',
+    color: 'bg-slate-800 text-amber-500 hover:bg-slate-700',
     subcategories: [
       { id: 'all_bullion', label: 'All bullion & coins' },
       { id: 'bullion_dealers', label: 'Bullion Dealers' },
@@ -131,7 +131,7 @@ export const mainCategories = [
     id: 'education_tutoring',
     label: 'Education & Tutoring',
     icon: GraduationCap,
-    color: 'bg-violet-50 text-violet-600 hover:bg-violet-100',
+    color: 'bg-slate-800 text-amber-500 hover:bg-slate-700',
     subcategories: [
       { id: 'all_education', label: 'All education' },
       { id: 'academic_tutors', label: 'Academic Tutors' },
@@ -145,7 +145,7 @@ export const mainCategories = [
     id: 'childcare_family',
     label: 'Childcare & Family',
     icon: Baby,
-    color: 'bg-pink-50 text-pink-600 hover:bg-pink-100',
+    color: 'bg-slate-800 text-amber-500 hover:bg-slate-700',
     subcategories: [
       { id: 'all_childcare', label: 'All childcare & family' },
       { id: 'daycare', label: 'Daycare & Preschools' },
@@ -158,7 +158,7 @@ export const mainCategories = [
     id: 'pets_animals',
     label: 'Pets & Animals',
     icon: PawPrint,
-    color: 'bg-orange-50 text-orange-600 hover:bg-orange-100',
+    color: 'bg-slate-800 text-amber-500 hover:bg-slate-700',
     subcategories: [
       { id: 'all_pets', label: 'All pet services' },
       { id: 'veterinarians', label: 'Veterinarians' },
@@ -172,7 +172,7 @@ export const mainCategories = [
     id: 'events_entertainment',
     label: 'Events & Entertainment',
     icon: PartyPopper,
-    color: 'bg-fuchsia-50 text-fuchsia-600 hover:bg-fuchsia-100',
+    color: 'bg-slate-800 text-amber-500 hover:bg-slate-700',
     subcategories: [
       { id: 'all_events', label: 'All events' },
       { id: 'photographers', label: 'Photographers & Videographers' },
@@ -186,7 +186,7 @@ export const mainCategories = [
     id: 'beauty_personal_care',
     label: 'Beauty & Personal Care',
     icon: Sparkles,
-    color: 'bg-rose-50 text-rose-600 hover:bg-rose-100',
+    color: 'bg-slate-800 text-amber-500 hover:bg-slate-700',
     subcategories: [
       { id: 'all_beauty', label: 'All beauty & personal care' },
       { id: 'hair_salons', label: 'Hair Salons & Barbers' },
@@ -199,7 +199,7 @@ export const mainCategories = [
     id: 'tech_electronics',
     label: 'Tech & Electronics',
     icon: Smartphone,
-    color: 'bg-cyan-50 text-cyan-600 hover:bg-cyan-100',
+    color: 'bg-slate-800 text-amber-500 hover:bg-slate-700',
     subcategories: [
       { id: 'all_tech', label: 'All tech services' },
       { id: 'phone_repair', label: 'Phone & Tablet Repair' },
@@ -212,7 +212,7 @@ export const mainCategories = [
     id: 'moving_misc',
     label: 'Moving & Misc. Local Services',
     icon: Truck,
-    color: 'bg-amber-50 text-amber-600 hover:bg-amber-100',
+    color: 'bg-slate-800 text-amber-500 hover:bg-slate-700',
     subcategories: [
       { id: 'all_local', label: 'All local services' },
       { id: 'movers', label: 'Movers' },

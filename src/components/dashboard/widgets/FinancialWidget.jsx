@@ -3,16 +3,17 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DollarSign, CreditCard, TrendingUp, Settings } from "lucide-react";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export default function FinancialWidget({ business }) {
-  // Match Admin Panel: subscription_tier is 'basic' | 'standard' | 'partner'
+  const { tier, tierLevel, isPartner } = useOrganization(business);
+
   const tierLabels = {
     basic: 'Basic',
     standard: 'Standard',
     partner: 'Partner'
   };
 
-  const tier = business?.subscription_tier || 'basic';
   const tierLabel = tierLabels[tier] || 'Basic';
 
   return (
@@ -38,9 +39,9 @@ export default function FinancialWidget({ business }) {
             <Badge className="bg-amber-500 text-black">{tierLabel}</Badge>
           </div>
           <p className="text-xs text-slate-400">
-            {tier === 'basic' && 'Upgrade to Standard or Partner to unlock more features'}
-            {tier === 'standard' && 'Punch Pass, multiple tickets, auto-publish events'}
-            {tier === 'partner' && 'Full features, dedicated node, priority support'}
+            {tierLevel === 1 && 'Upgrade to Standard or Partner to unlock more features'}
+            {tierLevel === 2 && 'Punch Pass, multiple tickets, auto-publish events'}
+            {tierLevel === 3 && 'Full features, dedicated node, priority support'}
           </p>
         </div>
 
