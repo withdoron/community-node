@@ -33,7 +33,7 @@ const sections = [
     items: [
       { to: `${ADMIN_BASE}/businesses`, label: 'Businesses', icon: Building2 },
       { to: `${ADMIN_BASE}/concerns`, label: 'Concerns', icon: ShieldAlert },
-      { to: `${ADMIN_BASE}/users`, label: 'Users', icon: Users, placeholder: true },
+      { to: `${ADMIN_BASE}/users`, label: 'Users', icon: Users },
       { to: `${ADMIN_BASE}/locations`, label: 'Locations', icon: MapPin },
       { to: `${ADMIN_BASE}/partners`, label: 'Partners', icon: Network },
     ],
