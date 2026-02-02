@@ -50,15 +50,22 @@ export default function Settings() {
 
   const updateUserMutation = useMutation({
     mutationFn: async (updates) => {
+      // Get fresh user data to avoid stale closure
+      const freshUser = await base44.auth.me();
+
       // Store everything in user.data — full_name is read-only
       const dataFields = {
+        ...freshUser.data,  // Preserve existing data
         display_name: updates.full_name,
         phone: updates.phone,
         home_region: updates.home_region,
       };
 
-      await base44.entities.User.update(currentUser.id, {
-        data: { ...currentUser.data, ...dataFields }
+      console.log('Settings mutation - freshUser.data before:', freshUser.data);
+      console.log('Settings mutation - saving dataFields:', dataFields);
+
+      await base44.entities.User.update(freshUser.id, {
+        data: dataFields
       });
     },
     onSuccess: () => {
