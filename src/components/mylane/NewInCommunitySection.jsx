@@ -7,6 +7,7 @@ import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/u
 import BusinessCard from '@/components/business/BusinessCard';
 import SectionWrapper from './SectionWrapper';
 import { Badge } from '@/components/ui/badge';
+import { Store } from 'lucide-react';
 
 export default function NewInCommunitySection() {
   const { region } = useActiveRegion();
@@ -31,7 +32,25 @@ export default function NewInCommunitySection() {
   }, [businesses]);
 
   if (isLoading) return null;
-  if (newBusinesses.length === 0) return null;
+
+  if (newBusinesses.length === 0) {
+    return (
+      <SectionWrapper title="New in Your Community" seeAllPage="Directory">
+        <div className="text-center py-10 bg-slate-900 border border-slate-800 rounded-xl">
+          <Store className="h-12 w-12 text-slate-500 mx-auto mb-3" />
+          <p className="text-slate-300 font-medium">No new businesses this month</p>
+          <p className="text-sm text-slate-500 mt-1">Browse the Directory to explore what&apos;s here.</p>
+          <Link
+            to={createPageUrl('Directory')}
+            className="mt-4 inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 text-sm font-medium transition-colors"
+          >
+            Browse Directory
+            <span aria-hidden>→</span>
+          </Link>
+        </div>
+      </SectionWrapper>
+    );
+  }
 
   return (
     <SectionWrapper title="New in Your Community" seeAllPage="Directory">

@@ -203,8 +203,8 @@ export default function Events() {
             </div>
           ) : filteredEvents.length === 0 ? (
             <div className="text-center py-20 bg-slate-900 border border-slate-800 rounded-xl">
-              <p className="text-slate-400">No events found</p>
-              <p className="text-sm text-slate-500 mt-2">Try adjusting your filters</p>
+              <p className="text-slate-300 font-medium">No events found</p>
+              <p className="text-sm text-slate-500 mt-2">Try adjusting your filters, or check back later — new events are added regularly.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

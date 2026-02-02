@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { getFriendlyErrorMessage } from '@/lib/errorMessages';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -61,7 +62,7 @@ export default function Settings() {
       setHasChanges(false);
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to save settings');
+      toast.error(getFriendlyErrorMessage(error, 'Failed to save settings. Please try again.'));
     }
   });
 

@@ -165,7 +165,7 @@ export default function Search() {
             <SearchX className="h-12 w-12 text-slate-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-slate-200">No businesses found</h3>
             <p className="text-slate-400 mt-2">
-              Try adjusting your search or filters
+              Try adjusting your search or filters, or check back soon — we&apos;re growing.
             </p>
             <Button 
               variant="outline" 

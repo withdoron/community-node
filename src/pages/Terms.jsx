@@ -85,18 +85,18 @@ export default function Terms() {
             </p>
           </section>
 
-          {/* 4. Auto-Renewal */}
+          {/* 4. Auto-Renewal and Cancellation (Oregon ORS 646A.293–.295) */}
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">4. Auto-Renewal and Cancellation</h2>
             <p className="mb-3">
-              Community Pass memberships and business tier subscriptions renew automatically at the
-              end of each billing cycle unless cancelled. You will be charged the then-current rate
-              for your plan.
+              Before you subscribe, please note: Community Pass memberships and business tier
+              subscriptions renew automatically at the end of each billing cycle unless you cancel.
+              You will be charged the then-current rate for your plan at each renewal.
             </p>
             <p className="mb-3">
               You may cancel your subscription at any time through your account settings or by
-              contacting support. Cancellation takes effect at the end of your current billing
-              period. No refunds are issued for partial billing periods.
+              contacting support at support@locallane.org. Cancellation takes effect at the end of
+              your current billing period. No refunds are issued for partial billing periods.
             </p>
             <p>
               You will receive a confirmation email when your subscription is created and when

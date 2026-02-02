@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { getFriendlyErrorMessage } from '@/lib/errorMessages';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -72,7 +73,7 @@ export default function AdminUsersSection({ businesses = [] }) {
       setEditData(null);
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to update user');
+      toast.error(getFriendlyErrorMessage(error, 'Failed to update user. Please try again.'));
     }
   });
 

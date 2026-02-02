@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
+import { getFriendlyErrorMessage } from '@/lib/errorMessages';
 
 const AuthContext = createContext();
 
@@ -64,13 +65,13 @@ export const AuthProvider = ({ children }) => {
           } else {
             setAuthError({
               type: reason,
-              message: appError.message
+              message: getFriendlyErrorMessage(appError, 'Something went wrong. Please try again.')
             });
           }
         } else {
           setAuthError({
             type: 'unknown',
-            message: appError.message || 'Failed to load app'
+            message: getFriendlyErrorMessage(appError, 'Failed to load app. Please refresh the page.')
           });
         }
         setIsLoadingPublicSettings(false);
@@ -80,7 +81,7 @@ export const AuthProvider = ({ children }) => {
       console.error('Unexpected error:', error);
       setAuthError({
         type: 'unknown',
-        message: error.message || 'An unexpected error occurred'
+        message: getFriendlyErrorMessage(error, 'Something went wrong. Please refresh the page.')
       });
       setIsLoadingPublicSettings(false);
       setIsLoadingAuth(false);

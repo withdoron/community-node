@@ -252,7 +252,7 @@ export default function Directory() {
             <div className="text-center py-20 bg-slate-900 border border-slate-800 rounded-xl">
               <SearchX className="h-12 w-12 text-slate-500 mx-auto mb-3" />
               <p className="text-slate-300 font-medium">No businesses found</p>
-              <p className="text-sm text-slate-400 mt-1">Try adjusting your search or filters</p>
+              <p className="text-sm text-slate-400 mt-1">Try adjusting your search or filters, or check back soon — we&apos;re growing.</p>
               <button
                 onClick={handleClearFilters}
                 className="mt-4 px-4 py-2 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors"

@@ -38,6 +38,21 @@ const AuthenticatedApp = () => {
       // Redirect to login automatically
       navigateToLogin();
       return null;
+    } else if (authError.type === 'unknown') {
+      return (
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <h1 className="text-xl font-bold text-slate-100 mb-2">Something went wrong</h1>
+            <p className="text-slate-400 mb-6">{authError.message}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-medium transition-colors"
+            >
+              Refresh page
+            </button>
+          </div>
+        </div>
+      );
     }
   }
 

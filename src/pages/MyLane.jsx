@@ -1,7 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ThumbsUp } from 'lucide-react';
+import { createPageUrl } from '@/utils';
 import { useUserState } from '@/hooks/useUserState';
 import GreetingHeader from '@/components/mylane/GreetingHeader';
 import UpcomingEventsSection from '@/components/mylane/UpcomingEventsSection';
@@ -9,6 +11,7 @@ import HappeningSoonSection from '@/components/mylane/HappeningSoonSection';
 import NewInCommunitySection from '@/components/mylane/NewInCommunitySection';
 import YourRecommendationsSection from '@/components/mylane/YourRecommendationsSection';
 import DiscoverSection from '@/components/mylane/DiscoverSection';
+import SectionWrapper from '@/components/mylane/SectionWrapper';
 
 export default function MyLane() {
   const { data: currentUser, isLoading: userLoading } = useQuery({
@@ -54,8 +57,23 @@ export default function MyLane() {
         <UpcomingEventsSection currentUser={currentUser} />
         <HappeningSoonSection />
         <NewInCommunitySection />
-        {recommendations.length > 0 && (
+        {recommendations.length > 0 ? (
           <YourRecommendationsSection recommendations={recommendations} />
+        ) : (
+          <SectionWrapper title="Your Recommendations" seeAllPage="Directory">
+            <div className="text-center py-10 bg-slate-900 border border-slate-800 rounded-xl">
+              <ThumbsUp className="h-12 w-12 text-slate-500 mx-auto mb-3" />
+              <p className="text-slate-300 font-medium">You haven&apos;t recommended any businesses yet</p>
+              <p className="text-sm text-slate-500 mt-1">Discover local spots and share your experience.</p>
+              <Link
+                to={createPageUrl('Directory')}
+                className="mt-4 inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 text-sm font-medium transition-colors"
+              >
+                Browse Directory
+                <span aria-hidden>→</span>
+              </Link>
+            </div>
+          </SectionWrapper>
         )}
         <DiscoverSection />
       </div>

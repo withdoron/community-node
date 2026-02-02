@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { getFriendlyErrorMessage } from '@/lib/errorMessages';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -95,7 +96,7 @@ export default function SpokeDetails() {
       }
     },
     onError: (error) => {
-      toast.error(`Error: ${error.message}`);
+      toast.error(getFriendlyErrorMessage(error, 'Failed to save spoke. Please try again.'));
     }
   });
 
@@ -110,7 +111,7 @@ export default function SpokeDetails() {
       navigate(createPageUrl('Admin'));
     },
     onError: (error) => {
-      toast.error(`Error deleting spoke: ${error.message}`);
+      toast.error(getFriendlyErrorMessage(error, 'Failed to delete spoke. Please try again.'));
     }
   });
 

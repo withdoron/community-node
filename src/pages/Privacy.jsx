@@ -52,7 +52,9 @@ export default function Privacy() {
               <span className="text-white font-medium">Payment data:</span> When payment features
               are active, payment processing is handled entirely by Stripe. LocalLane does not
               store credit card numbers, bank account details, or other sensitive financial
-              information on our servers. See{' '}
+              information on our servers, and we do not have access to your full payment card or
+              bank account number. We may retain information about your subscription or purchase
+              (such as plan type or transaction date) but not your payment method details. See{' '}
               <a
                 href="https://stripe.com/privacy"
                 target="_blank"
@@ -61,7 +63,9 @@ export default function Privacy() {
               >
                 Stripe's Privacy Policy
               </a>{' '}
-              for how they handle payment data.
+              for how they handle payment data. For businesses that receive payments through the
+              platform, we may collect tax identification information (e.g. EIN) as required for
+              tax reporting; payment processing and card/bank data remain with Stripe.
             </p>
           </section>
 

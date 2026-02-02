@@ -168,7 +168,7 @@ export default function Home() {
                 onClick={() => handleCategoryClick(category.id)}
                 className={`p-5 rounded-xl border border-slate-800 ${category.color} transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:border-amber-500/50 text-left bg-slate-900`}
               >
-                <Icon className="h-8 w-8 mb-3 text-slate-200" />
+                <Icon className="h-8 w-8 mb-3 text-amber-500" />
                 <p className="font-semibold text-slate-100">{category.label}</p>
               </button>
             );
@@ -199,6 +199,19 @@ export default function Home() {
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-40 bg-slate-800 rounded-xl animate-pulse" />
               ))}
+            </div>
+          ) : featuredBusinesses.length === 0 ? (
+            <div className="text-center py-16 bg-slate-900 border border-slate-800 rounded-xl">
+              <Store className="h-12 w-12 text-slate-500 mx-auto mb-3" />
+              <p className="text-slate-300 font-medium">No businesses in your area yet</p>
+              <p className="text-sm text-slate-500 mt-1">Browse the Directory or check back soon — we&apos;re growing.</p>
+              <Button
+                variant="outline"
+                className="mt-4 border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500"
+                onClick={() => navigate(createPageUrl('Directory'))}
+              >
+                Browse Directory
+              </Button>
             </div>
           ) : (
             <div className="grid gap-4">

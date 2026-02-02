@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { getFriendlyErrorMessage } from '@/lib/errorMessages';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -208,13 +209,13 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       toast.success('Owner linked successfully');
     },
     onError: (error) => {
-      const message = error?.message || 'Failed to link owner';
-      if (message.includes('No user found')) {
+      const message = (error?.message || '').toLowerCase();
+      if (message.includes('no user found')) {
         toast.error('No user found with that email');
-      } else if (message.includes('No owner email')) {
+      } else if (message.includes('no owner email')) {
         toast.error('No owner email set on this business');
       } else {
-        toast.error(message);
+        toast.error(getFriendlyErrorMessage(error, 'Failed to link owner. Please try again.'));
       }
       console.error(error);
     },

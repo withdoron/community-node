@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getFriendlyErrorMessage } from '@/lib/errorMessages';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from "@/components/ui/card";
@@ -60,7 +61,7 @@ export default function PunchPass() {
       setIsSettingPin(false);
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to set PIN');
+      toast.error(getFriendlyErrorMessage(error, 'Failed to set PIN. Please try again.'));
     }
   });
 
