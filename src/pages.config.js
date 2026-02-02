@@ -10,6 +10,7 @@ import Home from './pages/Home';
 import MyLane from './pages/MyLane';
 import PunchPass from './pages/PunchPass';
 import Search from './pages/Search';
+import Settings from './pages/Settings';
 import SpokeDetails from './pages/SpokeDetails';
 import Recommend from './pages/Recommend';
 import __Layout from './Layout.jsx';
@@ -28,6 +29,7 @@ export const PAGES = {
     "MyLane": MyLane,
     "PunchPass": PunchPass,
     "Search": Search,
+    "Settings": Settings,
     "SpokeDetails": SpokeDetails,
     "Recommend": Recommend,
 }

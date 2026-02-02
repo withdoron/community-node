@@ -14,6 +14,7 @@ import AdminSettingsPanel from '@/components/admin/AdminSettingsPanel';
 import AdminLocationsTable from '@/components/admin/AdminLocationsTable';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminConcernsPanel from '@/components/admin/AdminConcernsPanel';
+import AdminUsersSection from '@/components/admin/AdminUsersSection';
 import ConfigSection from '@/components/admin/config/ConfigSection';
 
 function PlaceholderSection({ title, description }) {
@@ -180,9 +181,7 @@ export default function Admin() {
 
             <Route path="concerns" element={<AdminConcernsPanel />} />
 
-            <Route path="users" element={
-              <PlaceholderSection title="Users" description="User management — coming soon." />
-            } />
+                <Route path="users" element={<AdminUsersSection businesses={businesses} />} />
 
             <Route path="locations" element={
               <Card className="p-6 bg-slate-900 border-slate-700">
