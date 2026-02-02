@@ -102,6 +102,42 @@ These are allowed ONLY for destructive actions. Not for status indicators, not f
 - Staff: `border-slate-500 text-slate-300` (outline)
 - Pending: `border-amber-500 text-amber-500` (outline)
 
+### Status Indicator Colors (DEC-028)
+
+In **admin panels and dashboard contexts**, these colors are allowed for status indicators:
+
+- **Amber** — Primary, active, or highlighted states
+- **Blue** (`bg-blue-500/20 text-blue-400`) — Informational or neutral status (reviewing, standard tier)
+- **Teal** (`bg-teal-500/20 text-teal-400`) — Selection states in wizards/onboarding
+- **Red/Orange** — Destructive actions only (per DEC-017)
+
+These are **NOT allowed in the public-facing browse/search/directory UI**. Keep public UI strictly amber + white + slate.
+
+---
+
+## The Organism — North Star (DEC-026)
+
+LocalLane's north star is the Organism Concept: a living visual entity that reflects community health. Every feature decision passes through the filter: **"Does this make the organism more alive?"**
+
+**What it is:** An ambient, animated element in MyLane that responds to real community data — RSVPs, check-ins, recommendations, seasonal rhythms.
+
+**What it is NOT:** A mascot, a reward system, a social score, a notification system, or gamification.
+
+**Principles:**
+- Mirror, don't manipulate (reflect reality, no artificial urgency)
+- Growth, not points (no badges, leaderboards, or XP)
+- Seasons, not streaks (rest is healthy, not failure)
+- Connection, not competition (organisms don't compete)
+
+**Fractal structure:**
+- Personal organism → one user's community life
+- Network organism → one pass network's collective activity
+- Community organism → the whole Cell's health
+
+**Current phase:** Phase 1 — CSS + SVG in MyLane GreetingHeader. Uses `useVitality` hook calculating from existing data (RSVPs, recommendations, punch usage). No external dependencies.
+
+**If you're building a feature** and you're unsure whether it aligns: ask whether the feature generates or reflects genuine community participation. If it creates artificial engagement (streaks, points, leaderboards), it conflicts with the organism principles.
+
 ---
 
 ## Tier System (DEC-001, DEC-002)
@@ -222,6 +258,18 @@ We've cleaned out legacy Review, Bump, and Boost systems. Do NOT reference:
 
 The recommendation system now uses Nods, Stories, and Vouches (DEC-021, DEC-022).
 
+### Toggle Knob Color
+
+**Problem:** Toggle switch knobs using `bg-white` are too bright against dark backgrounds.
+
+**Solution:** Use `bg-slate-100` for toggle knobs instead of `bg-white`.
+
+### Tier Checking — Always Use the Hook
+
+**Problem:** Raw string comparisons like `business.subscription_tier === 'partner'` bypass centralized tier logic and create inconsistency.
+
+**Solution:** Always use the `useOrganization()` hook which provides `tier`, `tierLevel`, `isPartner`, `canUsePunchPass`, `canAutoPublish`, etc. The only exceptions are admin tables and pure utility functions that don't have React context.
+
 ---
 
 ## Component & File Conventions
@@ -232,6 +280,23 @@ The recommendation system now uses Nods, Stories, and Vouches (DEC-021, DEC-022)
 - Check events-node for reference implementations
 - Always use `useOrganization()` hook for tier checking
 - Icons: Lucide React only. Default to `text-white` or `text-slate-400`, use `text-amber-500` for emphasis
+
+### File Organization Convention
+
+| Type | Location |
+|------|----------|
+| Generic UI primitives | `src/components/ui/` (shadcn components only) |
+| Feature components | `src/components/{feature}/` |
+| Shared utilities | `src/utils/` (formatAddress, rankingUtils, trackEvent, etc.) |
+| Static data/config | `src/data/` (categoryData, archetypeCategories, etc.) |
+| Hooks | `src/hooks/` (useActiveRegion, useUserState, etc.) |
+| Business-logic components | `src/components/dashboard/` (e.g., LockedFeature), NOT `src/components/ui/` |
+
+Move files to correct locations incrementally as they are touched for other work. Do not do large reorganization PRs.
+
+### Large File Guidance
+
+`EventEditor.jsx` is 1400+ lines. When making changes to it, work in small focused edits. Consider splitting into sub-components if adding major new functionality, but do not refactor purely for size while it's stable.
 
 ---
 
