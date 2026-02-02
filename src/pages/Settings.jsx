@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { getFriendlyErrorMessage } from '@/lib/errorMessages';
 import { base44 } from '@/api/base44Client';
@@ -20,6 +20,7 @@ const COMMUNITY_OPTIONS = [
 
 export default function Settings() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     full_name: '',
     phone: '',
@@ -67,13 +68,14 @@ export default function Settings() {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       queryClient.invalidateQueries({ queryKey: ['mylane'] });
       toast.success('Settings saved');
-      // Update form with the values we just saved (don't wait for refetch)
       setFormData({
         full_name: variables.full_name,
         phone: variables.phone,
         home_region: variables.home_region,
       });
       setHasChanges(false);
+      // Navigate back to MyLane after save
+      navigate(createPageUrl('MyLane'));
     },
     onError: (error) => {
       console.error('Settings save error:', error);
