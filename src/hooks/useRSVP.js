@@ -58,6 +58,8 @@ export function useRSVP(eventId, currentUser) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-rsvp', eventId, userId] });
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['user-rsvps'] });
+      queryClient.invalidateQueries({ queryKey: ['all-events-for-rsvp'] });
     }
   });
 
@@ -74,6 +76,8 @@ export function useRSVP(eventId, currentUser) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-rsvp', eventId, userId] });
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['user-rsvps'] });
+      queryClient.invalidateQueries({ queryKey: ['all-events-for-rsvp'] });
     }
   });
 

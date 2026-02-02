@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Clock, MapPin, DollarSign, Repeat2, Users, CheckCircle2, Tag, ExternalLink, UserCheck, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
@@ -38,6 +38,12 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
     rsvpGoing,
     rsvpCancel
   } = useRSVP(event?.id, currentUser);
+
+  const [rsvpConfirmation, setRsvpConfirmation] = useState(null); // 'going' | 'cancelled' | null
+
+  useEffect(() => {
+    setRsvpConfirmation(null);
+  }, [event?.id]);
 
   // Fetch spoke information if this is a spoke event
   const { data: spokeEvent } = useQuery({
@@ -368,54 +374,91 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 {/* RSVP Section */}
                 {!isCancelled && !isPast && (
                   <div className="space-y-3 pt-2">
-                    {attendeeCount > 0 && (
-                      <div className="flex items-center gap-2 text-sm text-slate-400">
-                        <Users className="h-4 w-4 text-amber-500" />
-                        {isGoing ? (
-                          <span>
-                            You{attendeeCount > 1 ? ` and ${attendeeCount - 1} other${attendeeCount > 2 ? 's' : ''}` : ''} attending
-                          </span>
-                        ) : (
-                          <span>
-                            {attendeeCount} {attendeeCount === 1 ? 'person' : 'people'} attending
-                          </span>
-                        )}
+                    {rsvpConfirmation === 'going' && (
+                      <div className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold">
+                        <CheckCircle2 className="h-5 w-5" />
+                        You&apos;re in! See you there.
                       </div>
                     )}
 
-                    {currentUser ? (
-                      isGoing ? (
-                        <button
-                          onClick={() => rsvpCancel.mutate()}
-                          disabled={rsvpCancel.isPending}
-                          className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 font-semibold hover:bg-amber-500/20 transition-colors disabled:opacity-50"
-                        >
-                          <UserCheck className="h-5 w-5" />
-                          {rsvpCancel.isPending ? 'Cancelling...' : "You're Going — Tap to Cancel"}
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => rsvpGoing.mutate()}
-                          disabled={rsvpGoing.isPending}
-                          className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-bold transition-colors disabled:bg-amber-500/50"
-                        >
-                          <UserPlus className="h-5 w-5" />
-                          {rsvpGoing.isPending ? 'Saving...' : "I'm Going"}
-                        </button>
-                      )
-                    ) : (
-                      <div className="text-center py-3 px-6 rounded-lg bg-slate-800 border border-slate-700">
-                        <p className="text-slate-400 text-sm">
-                          <button
-                            type="button"
-                            onClick={() => base44.auth.redirectToLogin()}
-                            className="text-amber-500 hover:text-amber-400 font-semibold"
-                          >
-                            Sign in
-                          </button>
-                          {' '}to RSVP for this event
-                        </p>
+                    {rsvpConfirmation === 'cancelled' && (
+                      <div className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 font-semibold">
+                        RSVP removed
                       </div>
+                    )}
+
+                    {rsvpConfirmation === null && (
+                      <>
+                        {attendeeCount > 0 && (
+                          <div className="flex items-center gap-2 text-sm text-slate-400">
+                            <Users className="h-4 w-4 text-amber-500" />
+                            {isGoing ? (
+                              <span>
+                                You{attendeeCount > 1 ? ` and ${attendeeCount - 1} other${attendeeCount > 2 ? 's' : ''}` : ''} attending
+                              </span>
+                            ) : (
+                              <span>
+                                {attendeeCount} {attendeeCount === 1 ? 'person' : 'people'} attending
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {currentUser ? (
+                          isGoing ? (
+                            <button
+                              onClick={() => {
+                                rsvpCancel.mutate(undefined, {
+                                  onSuccess: () => {
+                                    setRsvpConfirmation('cancelled');
+                                    setTimeout(() => {
+                                      setRsvpConfirmation(null);
+                                      onClose();
+                                    }, 1200);
+                                  }
+                                });
+                              }}
+                              disabled={rsvpCancel.isPending}
+                              className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 font-semibold hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+                            >
+                              <UserCheck className="h-5 w-5" />
+                              {rsvpCancel.isPending ? 'Cancelling...' : "You're Going — Tap to Cancel"}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                rsvpGoing.mutate(undefined, {
+                                  onSuccess: () => {
+                                    setRsvpConfirmation('going');
+                                    setTimeout(() => {
+                                      setRsvpConfirmation(null);
+                                      onClose();
+                                    }, 1200);
+                                  }
+                                });
+                              }}
+                              disabled={rsvpGoing.isPending}
+                              className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-bold transition-colors disabled:bg-amber-500/50"
+                            >
+                              <UserPlus className="h-5 w-5" />
+                              {rsvpGoing.isPending ? 'Saving...' : "I'm Going"}
+                            </button>
+                          )
+                        ) : (
+                          <div className="text-center py-3 px-6 rounded-lg bg-slate-800 border border-slate-700">
+                            <p className="text-slate-400 text-sm">
+                              <button
+                                type="button"
+                                onClick={() => base44.auth.redirectToLogin()}
+                                className="text-amber-500 hover:text-amber-400 font-semibold"
+                              >
+                                Sign in
+                              </button>
+                              {' '}to RSVP for this event
+                            </p>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 )}
