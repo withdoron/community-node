@@ -115,7 +115,7 @@ These are **NOT allowed in the public-facing browse/search/directory UI**. Keep 
 
 ---
 
-## The Organism — North Star (DEC-026)
+## The Organism — North Star (DEC-029)
 
 LocalLane's north star is the Organism Concept: a living visual entity that reflects community health. Every feature decision passes through the filter: **"Does this make the organism more alive?"**
 
