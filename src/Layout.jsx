@@ -67,7 +67,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           {/* Left: Logo */}
           <Link
-            to={createPageUrl('Home')}
+            to={createPageUrl(currentUser ? 'MyLane' : 'Home')}
             className="group flex items-center gap-2 py-2 -ml-2 pl-2 pr-4 cursor-pointer transition-all rounded-lg"
           >
             <div className="h-8 w-8 rounded-lg border border-slate-800 bg-slate-900 flex items-center justify-center group-hover:border-amber-500/50 transition-colors">
@@ -187,7 +187,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                 <div className="flex flex-col flex-1 overflow-y-auto">
                   <div className="p-4 border-b border-slate-800">
                     <SheetClose asChild>
-                      <Link to={createPageUrl('Home')} className="group flex items-center gap-2">
+                      <Link to={createPageUrl(currentUser ? 'MyLane' : 'Home')} className="group flex items-center gap-2">
                         <div className="h-8 w-8 rounded-lg border border-slate-800 bg-slate-900 flex items-center justify-center group-hover:border-amber-500/50">
                           <Store className="h-4 w-4 text-white group-hover:text-amber-400" />
                         </div>

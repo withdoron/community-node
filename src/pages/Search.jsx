@@ -1,4 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import SearchBar from '@/components/search/SearchBar';
@@ -11,10 +14,21 @@ import { Loader2, SearchX, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function Search() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
+
   const urlParams = new URLSearchParams(window.location.search);
   const initialQuery = urlParams.get('q') || '';
   const initialLocation = urlParams.get('location') || '';
   const initialCategory = urlParams.get('category') || 'all';
+
+  // Logged-in users hitting "/" go to MyLane; unauthenticated see landing (Search)
+  useEffect(() => {
+    if (location.pathname === '/' && isAuthenticated) {
+      navigate(createPageUrl('MyLane'), { replace: true });
+    }
+  }, [location.pathname, isAuthenticated, navigate]);
 
   // Get active region for this instance
   const { region, isLoading: regionLoading } = useActiveRegion();
