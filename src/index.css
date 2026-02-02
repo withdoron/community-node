@@ -123,6 +123,21 @@ button:focus-visible {
   }
 }
 
+/* Autofill dark theme overrides */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f1f5f9 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #1e293b inset !important;
+  box-shadow: 0 0 0px 1000px #1e293b inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+  caret-color: #f1f5f9;
+}
+
 /* Override Radix UI Tabs hover states to prevent white background flash */
 @layer components {
   /* Target all possible Radix UI tab trigger variations */
