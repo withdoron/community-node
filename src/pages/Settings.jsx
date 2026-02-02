@@ -26,7 +26,6 @@ export default function Settings() {
     home_region: 'greater_eugene',
   });
   const [hasChanges, setHasChanges] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
 
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -38,15 +37,14 @@ export default function Settings() {
   });
 
   useEffect(() => {
-    if (currentUser && !isInitialized) {
+    if (currentUser && !hasChanges) {
       setFormData({
         full_name: currentUser.data?.display_name || currentUser.full_name || '',
         phone: currentUser.data?.phone || currentUser.phone || '',
         home_region: currentUser.data?.home_region || 'greater_eugene',
       });
-      setIsInitialized(true);
     }
-  }, [currentUser, isInitialized]);
+  }, [currentUser]);
 
   const updateUserMutation = useMutation({
     mutationFn: async (updates) => {
@@ -61,18 +59,20 @@ export default function Settings() {
         home_region: updates.home_region,
       };
 
-      console.log('Settings mutation - freshUser.data before:', freshUser.data);
-      console.log('Settings mutation - saving dataFields:', dataFields);
-
       await base44.entities.User.update(freshUser.id, {
         data: dataFields
       });
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       queryClient.invalidateQueries({ queryKey: ['mylane'] });
       toast.success('Settings saved');
-      setIsInitialized(false);  // Allow form to reload with new data
+      // Update form with the values we just saved (don't wait for refetch)
+      setFormData({
+        full_name: variables.full_name,
+        phone: variables.phone,
+        home_region: variables.home_region,
+      });
       setHasChanges(false);
     },
     onError: (error) => {
