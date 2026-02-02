@@ -5,7 +5,8 @@ import { Ticket } from 'lucide-react';
 export default function GreetingHeader({ currentUser, punchPass }) {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-  const firstName = currentUser?.full_name?.trim().split(' ')[0] || 'there';
+  const displayName = currentUser?.data?.display_name || currentUser?.full_name || 'neighbor';
+  const firstName = displayName.split(' ')[0];
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

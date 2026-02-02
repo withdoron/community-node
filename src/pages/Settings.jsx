@@ -38,11 +38,10 @@ export default function Settings() {
   });
 
   useEffect(() => {
-    // Only initialize form data once on mount, not on every refetch
     if (currentUser && !isInitialized) {
       setFormData({
-        full_name: currentUser.full_name || '',
-        phone: currentUser.phone || currentUser.data?.phone || '',
+        full_name: currentUser.data?.display_name || currentUser.full_name || '',
+        phone: currentUser.data?.phone || currentUser.phone || '',
         home_region: currentUser.data?.home_region || 'greater_eugene',
       });
       setIsInitialized(true);
@@ -51,40 +50,22 @@ export default function Settings() {
 
   const updateUserMutation = useMutation({
     mutationFn: async (updates) => {
-      console.log('Settings mutation - updates:', updates);
-      console.log('Settings mutation - currentUser.id:', currentUser.id);
+      // Store everything in user.data — full_name is read-only
+      const dataFields = {
+        display_name: updates.full_name,
+        phone: updates.phone,
+        home_region: updates.home_region,
+      };
 
-      // Base44 User entity: full_name is top-level, phone/home_region go in data blob
-      const topLevel = {};
-      const dataFields = {};
-
-      if (updates.full_name !== undefined) {
-        topLevel.full_name = updates.full_name;
-      }
-      if (updates.phone !== undefined) {
-        dataFields.phone = updates.phone;
-      }
-      if (updates.home_region !== undefined) {
-        dataFields.home_region = updates.home_region;
-      }
-
-      // Update top-level fields if any
-      if (Object.keys(topLevel).length > 0) {
-        await base44.entities.User.update(currentUser.id, topLevel);
-      }
-
-      // Update data blob fields if any
-      if (Object.keys(dataFields).length > 0) {
-        await base44.entities.User.update(currentUser.id, {
-          data: { ...currentUser.data, ...dataFields }
-        });
-      }
+      await base44.entities.User.update(currentUser.id, {
+        data: { ...currentUser.data, ...dataFields }
+      });
     },
     onSuccess: () => {
-      // Invalidate all queries that might use user data
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       queryClient.invalidateQueries({ queryKey: ['mylane'] });
       toast.success('Settings saved');
+      setIsInitialized(false);  // Allow form to reload with new data
       setHasChanges(false);
     },
     onError: (error) => {
@@ -135,7 +116,8 @@ export default function Settings() {
     ? format(new Date(currentUser.created_date), 'MMMM yyyy')
     : 'Unknown';
   const accountType = currentUser?.data?.tier || 'Free';
-  const initials = currentUser?.full_name
+  const displayNameForAvatar = currentUser?.data?.display_name || currentUser?.full_name;
+  const initials = displayNameForAvatar
     ?.split(' ')
     .map(n => n[0])
     .join('')

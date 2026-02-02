@@ -52,9 +52,11 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
       ? 'py-3 px-4 rounded-lg bg-amber-500/10 text-amber-500'
       : 'py-3 px-4 rounded-lg text-slate-300 hover:text-amber-500 hover:bg-slate-800';
 
+  const displayName = currentUser?.data?.display_name || currentUser?.full_name || currentUser?.email?.split('@')[0];
+
   const getUserInitials = () => {
-    if (!currentUser?.full_name) return null;
-    const parts = currentUser.full_name.trim().split(' ');
+    if (!displayName) return null;
+    const parts = displayName.trim().split(' ');
     if (parts.length === 1) return parts[0][0]?.toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
@@ -117,7 +119,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-60 bg-slate-900 border border-slate-700 shadow-xl shadow-black/20 [&>*]:bg-transparent">
                   <div className="px-2 py-2">
-                    <p className="text-sm font-medium text-slate-100">{currentUser.full_name}</p>
+                    <p className="text-sm font-medium text-slate-100">{displayName}</p>
                     <p className="text-xs text-slate-500">{currentUser.email}</p>
                   </div>
                   <DropdownMenuSeparator className="bg-slate-800" />
@@ -260,7 +262,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                 <div className="mt-auto p-4 border-t border-slate-800">
                   {currentUser ? (
                     <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-800">
-                      <p className="text-sm font-medium text-slate-100">{currentUser.full_name}</p>
+                      <p className="text-sm font-medium text-slate-100">{displayName}</p>
                       <p className="text-xs text-slate-500 mt-0.5">{currentUser.email}</p>
                       <button
                         onClick={handleLogout}
