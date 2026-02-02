@@ -6,9 +6,9 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   const footerLinks = [
-    { label: 'Terms', href: '#' },
-    { label: 'Privacy', href: '#' },
-    { label: 'Support', href: '#' }
+    { label: 'Terms', href: '/Terms' },
+    { label: 'Privacy', href: '/Privacy' },
+    { label: 'Support', href: '/Support' }
   ];
 
   return (

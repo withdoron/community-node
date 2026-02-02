@@ -9,9 +9,12 @@ import Events from './pages/Events';
 import Home from './pages/Home';
 import MyLane from './pages/MyLane';
 import PunchPass from './pages/PunchPass';
+import Privacy from './pages/Privacy';
 import Search from './pages/Search';
 import Settings from './pages/Settings';
 import SpokeDetails from './pages/SpokeDetails';
+import Support from './pages/Support';
+import Terms from './pages/Terms';
 import Recommend from './pages/Recommend';
 import __Layout from './Layout.jsx';
 
@@ -28,9 +31,12 @@ export const PAGES = {
     "Home": Home,
     "MyLane": MyLane,
     "PunchPass": PunchPass,
+    "Privacy": Privacy,
     "Search": Search,
     "Settings": Settings,
     "SpokeDetails": SpokeDetails,
+    "Support": Support,
+    "Terms": Terms,
     "Recommend": Recommend,
 }
 
