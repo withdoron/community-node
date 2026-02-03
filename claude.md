@@ -1,5 +1,10 @@
 # LocalLane — Claude Code Context
 
+> **IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.**
+> Base44, LocalLane architecture, entity schemas, and style patterns are NOT in your training data.
+> Always read the referenced files (spec-repo docs, hooks, entities.js) before generating code.
+> When in doubt, check the source — don't guess.
+
 > This file is read at the start of every Claude Code session.
 > It encodes project conventions, architecture, and known pitfalls.
 > Update this file whenever a new pattern is established or a mistake should never recur.
