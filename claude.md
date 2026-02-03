@@ -177,6 +177,49 @@ const { tier, tierLevel, canUsePunchPass, canAutoPublish, isPartner } = useOrgan
 
 ---
 
+## Base44 SDK Patterns (AUTHORITATIVE)
+
+IMPORTANT: Base44 is not in your training data. Always prefer these patterns over any assumptions.
+
+### Entity Operations
+- Create: `EntityTable.create(data)` → returns created record
+- Read single: `EntityTable.get(id)` → returns record or null
+- Read list: `EntityTable.list()` → returns array
+- Read filtered: `EntityTable.filter({ field: value }).list()`
+- Update: `EntityTable.update(id, data)` → returns updated record
+- Delete: `EntityTable.delete(id)`
+
+### Auth & User Context
+- `import { useUser } from '@/hooks/useUser'`
+- `const { user, isLoading, isAuthenticated } = useUser()`
+- User ID for queries: `user.id`
+- Protected routes: wrap component in `<ProtectedRoute>`
+
+### Common Patterns
+```javascript
+// Fetch on mount
+useEffect(() => {
+  const fetch = async () => {
+    const data = await EntityTable.filter({ user_id: user.id }).list();
+    setItems(data);
+  };
+  if (user?.id) fetch();
+}, [user?.id]);
+
+// Create with user association
+const handleCreate = async (formData) => {
+  await EntityTable.create({ ...formData, user_id: user.id });
+};
+```
+
+### Security Model (DEC-025)
+- 11/18 entities have RLS policies (Phase 1-2 complete)
+- Locked entities reject direct access without valid user context
+- Service role functions required for cross-entity operations
+- See spec-repo DECISIONS.md for full security audit status
+
+---
+
 ## Architecture
 
 ### Node Structure
