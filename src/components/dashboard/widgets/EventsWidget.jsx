@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Plus, Pencil, Trash2, PlusCircle, MoreHorizontal, Copy, ExternalLink, XCircle } from "lucide-react";
+import { Calendar, Plus, Pencil, Trash2, PlusCircle, MoreHorizontal, Copy, ExternalLink, XCircle, UserCheck } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +26,7 @@ import {
 import { format, addWeeks } from "date-fns";
 import EventEditor from '../EventEditor';
 
-export default function EventsWidget({ business, allowEdit, userRole }) {
+export default function EventsWidget({ business, allowEdit, userRole, onEnterCheckIn }) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -326,6 +326,15 @@ export default function EventsWidget({ business, allowEdit, userRole }) {
                         <ExternalLink className="h-4 w-4 mr-2 text-slate-400" />
                         View on Local Lane
                       </DropdownMenuItem>
+                      {onEnterCheckIn && new Date(event.date || event.start_date) >= new Date() && (
+                        <DropdownMenuItem
+                          onClick={() => onEnterCheckIn(event)}
+                          className="text-emerald-400 focus:bg-slate-700 focus:text-emerald-300 cursor-pointer"
+                        >
+                          <UserCheck className="h-4 w-4 mr-2" />
+                          Check-In Mode
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator className="bg-slate-700" />
                       <DropdownMenuItem
                         onClick={() => handleCancelEvent(event)}
