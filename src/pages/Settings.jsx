@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronLeft, Loader2, Lock } from 'lucide-react';
+import { HouseholdManager } from '@/components/mylane/HouseholdManager';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -244,6 +245,11 @@ export default function Settings() {
                 This is your home community. Your recommendations and trust signals live here.
               </p>
             </div>
+          </div>
+
+          {/* My Household Section */}
+          <div>
+            <HouseholdManager />
           </div>
 
           {/* Account Section */}

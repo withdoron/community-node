@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, ThumbsUp } from 'lucide-react';
+import { Loader2, ThumbsUp, Users } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useUserState } from '@/hooks/useUserState';
 import GreetingHeader from '@/components/mylane/GreetingHeader';
@@ -56,6 +56,12 @@ export default function MyLane() {
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
         <GreetingHeader currentUser={currentUser} punchPass={punchPass} />
         <JoyCoinsCard />
+        <SectionWrapper title="My Household" seeAllPage="Settings">
+          <div className="py-6 text-center bg-slate-900 border border-slate-800 rounded-xl">
+            <Users className="h-10 w-10 text-slate-500 mx-auto mb-2" />
+            <p className="text-sm text-slate-400">Add family members to quickly select them when RSVPing</p>
+          </div>
+        </SectionWrapper>
         <UpcomingEventsSection currentUser={currentUser} />
         <HappeningSoonSection />
         <NewInCommunitySection />
