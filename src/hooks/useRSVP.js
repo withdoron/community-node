@@ -63,9 +63,12 @@ export function useRSVP(eventId, currentUser) {
   const rsvpGoing = useMutation({
     mutationFn: async (variables = {}) => {
       const event = variables.event || null;
-      const isJoyCoinEvent = event?.joy_coin_enabled && (event?.joy_coin_cost ?? 0) > 0;
-      const partySize = 1;
-      const joyCoinTotal = isJoyCoinEvent ? partySize * (event.joy_coin_cost || 0) : 0;
+      const rawPartySize = variables.partySize ?? 1;
+      const maxParty = event?.max_party_size != null ? event.max_party_size : 10;
+      const partySize = Math.max(1, Math.min(rawPartySize, maxParty));
+      const joyCoinCost = event?.joy_coin_cost ?? 0;
+      const isJoyCoinEvent = event?.joy_coin_enabled && joyCoinCost > 0;
+      const joyCoinTotal = isJoyCoinEvent ? partySize * joyCoinCost : 0;
 
       if (isJoyCoinEvent && joyCoinTotal > 0) {
         const joyCoinsRecords = await base44.entities.JoyCoins.filter({ user_id: userId });

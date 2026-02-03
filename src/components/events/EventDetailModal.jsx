@@ -45,10 +45,14 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
   } = useRSVP(event?.id, currentUser);
 
   const { balance: joyCoinBalance, hasJoyCoins, isLoading: joyCoinsLoading } = useJoyCoins();
-  const hasEnoughJoyCoins = !isJoyCoinEvent || joyCoinBalance >= joyCoinCost;
 
+  const [partySize, setPartySize] = useState(1);
   const [rsvpConfirmation, setRsvpConfirmation] = useState(null); // 'going' | 'cancelled' | null
   const [cancelConfirming, setCancelConfirming] = useState(false);
+
+  const maxPartySize = event?.max_party_size != null ? event.max_party_size : 10;
+  const totalCost = joyCoinCost * partySize;
+  const hasEnoughJoyCoins = !isJoyCoinEvent || joyCoinBalance >= totalCost;
 
   const hasJoyCoinReservation = !!(userRSVP?.joy_coin_reservation_id && (userRSVP?.joy_coin_total ?? 0) > 0);
   const joyCoinCancelAmount = userRSVP?.joy_coin_total ?? 0;
@@ -57,6 +61,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
   useEffect(() => {
     setRsvpConfirmation(null);
     setCancelConfirming(false);
+    setPartySize(1);
   }, [event?.id]);
 
 
@@ -342,15 +347,59 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
 
                 {/* Joy Coin cost */}
                 {isJoyCoinEvent && (
-                  <div className="bg-slate-800/50 rounded-xl p-5 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                  <div className="bg-slate-800/50 rounded-xl p-5">
+                    <div className="flex items-center gap-3 mb-4">
                       <Coins className="h-5 w-5 text-amber-500 flex-shrink-0" />
                       <div>
                         <div className="text-white font-medium">Joy Coins</div>
                         <div className="text-sm text-slate-400">{joyCoinCost === 1 ? '1 coin per person' : `${joyCoinCost} coins per person`} — Community Pass members</div>
                       </div>
                     </div>
-                    {currentUser && hasJoyCoins && !joyCoinsLoading && (
+                    {currentUser && !isGoing && rsvpConfirmation === null && joyCoinCost > 0 && (
+                      <div className="space-y-3 pt-2 border-t border-slate-700">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-slate-400">Cost per person</span>
+                          <span className="text-slate-200">{joyCoinCost} {joyCoinCost === 1 ? 'coin' : 'coins'}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-400">How many people?</span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setPartySize(Math.max(1, partySize - 1))}
+                              disabled={partySize <= 1}
+                              className="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                            >
+                              −
+                            </button>
+                            <span className="w-8 text-center text-lg font-semibold text-slate-100">{partySize}</span>
+                            <button
+                              type="button"
+                              onClick={() => setPartySize(partySize + 1)}
+                              disabled={partySize >= maxPartySize}
+                              className="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                        {partySize > 1 && (
+                          <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-800">
+                            <span className="text-slate-300 font-medium">Total</span>
+                            <span className="text-amber-500 font-semibold">{totalCost} coins</span>
+                          </div>
+                        )}
+                        {hasJoyCoins && !joyCoinsLoading && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-slate-400">Your balance</span>
+                            <span className={hasEnoughJoyCoins ? 'text-slate-200' : 'text-red-400'}>
+                              {joyCoinBalance} coins {!hasEnoughJoyCoins && totalCost > joyCoinBalance && `(need ${totalCost - joyCoinBalance} more)`}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {currentUser && hasJoyCoins && !joyCoinsLoading && (isGoing || rsvpConfirmation !== null) && (
                       <span className={`text-sm font-medium ${hasEnoughJoyCoins ? 'text-emerald-400' : 'text-red-400'}`}>
                         Your balance: {joyCoinBalance}
                       </span>
@@ -470,6 +519,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                                       rsvpCancel.mutate({ event }, {
                                         onSuccess: () => {
                                           setCancelConfirming(false);
+                                          setPartySize(1);
                                           setRsvpConfirmation('cancelled');
                                           setTimeout(() => {
                                             setRsvpConfirmation(null);
@@ -496,6 +546,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                                   } else {
                                     rsvpCancel.mutate({ event }, {
                                       onSuccess: () => {
+                                        setPartySize(1);
                                         setRsvpConfirmation('cancelled');
                                         setTimeout(() => {
                                           setRsvpConfirmation(null);
@@ -516,11 +567,12 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                           ) : (
                             <button
                               onClick={() => {
-                                rsvpGoing.mutate({ event }, {
+                                rsvpGoing.mutate({ event, partySize }, {
                                   onSuccess: () => {
                                     setRsvpConfirmation('going');
                                     setTimeout(() => {
                                       setRsvpConfirmation(null);
+                                      setPartySize(1);
                                       onClose();
                                     }, 1200);
                                   },
@@ -537,7 +589,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                               className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-bold transition-colors disabled:bg-amber-500/50 disabled:cursor-not-allowed"
                             >
                               <UserPlus className="h-5 w-5" />
-                              {rsvpGoing.isPending ? 'Saving...' : isJoyCoinEvent && !hasEnoughJoyCoins ? `Need ${joyCoinCost} coins` : "I'm Going"}
+                              {rsvpGoing.isPending ? 'Saving...' : isJoyCoinEvent && !hasEnoughJoyCoins ? `Need ${totalCost} coins` : "I'm Going"}
                             </button>
                           )
                         ) : (
