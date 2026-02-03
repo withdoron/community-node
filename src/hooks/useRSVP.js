@@ -64,6 +64,7 @@ export function useRSVP(eventId, currentUser) {
     mutationFn: async (variables = {}) => {
       const event = variables.event || null;
       const rawPartySize = variables.partySize ?? 1;
+      const partyComposition = variables.partyComposition ?? null;
       const maxParty = event?.max_party_size != null ? event.max_party_size : 10;
       const partySize = Math.max(1, Math.min(rawPartySize, maxParty));
       const joyCoinCost = event?.joy_coin_cost ?? 0;
@@ -100,6 +101,9 @@ export function useRSVP(eventId, currentUser) {
         if (isJoyCoinEvent) {
           rsvpPayload.party_size = partySize;
           rsvpPayload.joy_coin_total = joyCoinTotal;
+        }
+        if (partyComposition && Array.isArray(partyComposition) && partyComposition.length > 0) {
+          rsvpPayload.party_composition = partyComposition;
         }
 
         const rsvp = await base44.entities.RSVP.create(rsvpPayload);

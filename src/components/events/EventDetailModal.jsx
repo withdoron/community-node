@@ -47,6 +47,8 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
   const { balance: joyCoinBalance, hasJoyCoins, isLoading: joyCoinsLoading } = useJoyCoins();
 
   const [partySize, setPartySize] = useState(1);
+  const [showPartyPicker, setShowPartyPicker] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState([]);
   const [rsvpConfirmation, setRsvpConfirmation] = useState(null); // 'going' | 'cancelled' | null
   const [cancelConfirming, setCancelConfirming] = useState(false);
 
@@ -58,10 +60,54 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
   const joyCoinCancelAmount = userRSVP?.joy_coin_total ?? 0;
   const willRefundOnCancel = hasJoyCoinReservation && getRefundEligibility(event);
 
+  const { data: householdMembers = [] } = useQuery({
+    queryKey: ['householdMembers', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      return base44.entities.HouseholdMembers.filter({ user_id: currentUser.id });
+    },
+    enabled: !!currentUser?.id && isOpen,
+  });
+
+  useEffect(() => {
+    if (showPartyPicker && selectedMembers.length > 0) {
+      setPartySize(selectedMembers.length);
+    }
+  }, [selectedMembers, showPartyPicker]);
+
+  useEffect(() => {
+    if (showPartyPicker && selectedMembers.length === 0) {
+      setSelectedMembers([{
+        household_member_id: null,
+        name: currentUser?.full_name || currentUser?.data?.display_name || currentUser?.email || 'Me',
+        is_primary: true
+      }]);
+    }
+  }, [showPartyPicker]);
+
+  const toggleMember = (member, isPrimary = false) => {
+    setSelectedMembers((prev) => {
+      const exists = prev.find((m) =>
+        isPrimary ? m.is_primary : m.household_member_id === member.id
+      );
+      if (exists) {
+        if (isPrimary) return prev;
+        return prev.filter((m) => m.household_member_id !== member.id);
+      }
+      return [...prev, {
+        household_member_id: isPrimary ? null : member.id,
+        name: isPrimary ? (currentUser?.full_name || currentUser?.data?.display_name || currentUser?.email || 'Me') : member.name,
+        is_primary: isPrimary,
+      }];
+    });
+  };
+
   useEffect(() => {
     setRsvpConfirmation(null);
     setCancelConfirming(false);
     setPartySize(1);
+    setShowPartyPicker(false);
+    setSelectedMembers([]);
   }, [event?.id]);
 
 
@@ -397,6 +443,60 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                             </span>
                           </div>
                         )}
+                        {householdMembers.length > 0 && (
+                          <div className="pt-2">
+                            {!showPartyPicker ? (
+                              <button
+                                type="button"
+                                onClick={() => setShowPartyPicker(true)}
+                                className="text-sm text-amber-500 hover:text-amber-400"
+                              >
+                                Select who&apos;s going (optional)
+                              </button>
+                            ) : (
+                              <div className="space-y-2 p-3 bg-slate-800/50 rounded-lg mt-2">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm text-slate-400">Who&apos;s going?</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setShowPartyPicker(false);
+                                      setSelectedMembers([]);
+                                      setPartySize(1);
+                                    }}
+                                    className="text-xs text-slate-500 hover:text-slate-400"
+                                  >
+                                    Just use number
+                                  </button>
+                                </div>
+                                <label className="flex items-center gap-2 p-2 rounded hover:bg-slate-800 cursor-default">
+                                  <input
+                                    type="checkbox"
+                                    checked
+                                    readOnly
+                                    disabled
+                                    className="rounded border-slate-600 bg-slate-800"
+                                  />
+                                  <span className="text-sm text-slate-200">{currentUser?.full_name || currentUser?.data?.display_name || currentUser?.email || 'Me'} (me)</span>
+                                </label>
+                                {householdMembers.map((member) => (
+                                  <label key={member.id} className="flex items-center gap-2 p-2 rounded hover:bg-slate-800 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedMembers.some((m) => m.household_member_id === member.id)}
+                                      onChange={() => toggleMember(member)}
+                                      className="rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                                    />
+                                    <span className="text-sm text-slate-200">{member.name}</span>
+                                    {(member.category === 'child' || member.category === 'infant') && (
+                                      <span className="text-xs text-slate-500">({member.category})</span>
+                                    )}
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                     {currentUser && hasJoyCoins && !joyCoinsLoading && (isGoing || rsvpConfirmation !== null) && (
@@ -567,7 +667,11 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                           ) : (
                             <button
                               onClick={() => {
-                                rsvpGoing.mutate({ event, partySize }, {
+                                rsvpGoing.mutate({
+                                  event,
+                                  partySize,
+                                  partyComposition: showPartyPicker && selectedMembers.length > 0 ? selectedMembers : null
+                                }, {
                                   onSuccess: () => {
                                     setRsvpConfirmation('going');
                                     setTimeout(() => {
