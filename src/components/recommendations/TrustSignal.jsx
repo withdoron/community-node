@@ -18,13 +18,13 @@ export default function TrustSignal({ business }) {
       <span className="text-slate-300 font-medium">{count} recommended</span>
       {stories > 0 && (
         <>
-          <span className="text-slate-600">·</span>
+          <span className="text-slate-500">·</span>
           <span className="text-slate-400">{stories} {stories === 1 ? 'story' : 'stories'}</span>
         </>
       )}
       {vouches > 0 && (
         <>
-          <span className="text-slate-600">·</span>
+          <span className="text-slate-500">·</span>
           <Shield className="h-4 w-4 text-amber-500" />
           <span className="text-amber-400 font-medium">{vouches} {vouches === 1 ? 'vouch' : 'vouches'}</span>
         </>
