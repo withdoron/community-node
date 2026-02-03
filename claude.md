@@ -235,7 +235,7 @@ When working on LocalLane, read these files before generating code:
 |entities:{src/api/entities.js,src/api/base44Client.js}
 |hooks:{src/hooks/useUser.js,src/hooks/useRSVP.js,src/hooks/useOrganization.js,src/hooks/useVitality.js}
 |admin:{src/pages/Admin.jsx,src/components/admin/}
-|mylane:{src/pages/MyLane.jsx,src/components/my-lane/}
+|mylane:{src/pages/MyLane.jsx,src/components/mylane/}
 
 For decisions DEC-001 through DEC-031, check DECISIONS.md before assuming behavior.
 
