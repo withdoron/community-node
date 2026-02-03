@@ -1,6 +1,32 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 
+/**
+ * Determines if a Joy Coin RSVP cancellation is eligible for refund based on event policy.
+ * flexible: refund if > 2 hours before event start
+ * moderate: refund if > 24 hours before event start
+ * strict: never refund
+ */
+export function getRefundEligibility(event) {
+  if (!event) return false;
+  const now = new Date();
+  const eventStart = new Date(event.date || event.start_date);
+  const hoursUntilEvent = (eventStart - now) / (1000 * 60 * 60);
+
+  const policy = event.refund_policy || 'moderate';
+
+  switch (policy) {
+    case 'flexible':
+      return hoursUntilEvent > 2;
+    case 'moderate':
+      return hoursUntilEvent > 24;
+    case 'strict':
+      return false;
+    default:
+      return hoursUntilEvent > 24;
+  }
+}
+
 export function useRSVP(eventId, currentUser) {
   const queryClient = useQueryClient();
   const userId = currentUser?.id;
@@ -122,20 +148,92 @@ export function useRSVP(eventId, currentUser) {
   });
 
   // Cancel RSVP
+  // NOTE: Joy Coin refund/forfeit logic should migrate to a service role function for atomicity.
   const rsvpCancel = useMutation({
-    mutationFn: async () => {
-      if (userRSVP) {
-        await base44.entities.RSVP.update(userRSVP.id, {
-          status: 'cancelled',
-          is_active: false
-        });
+    mutationFn: async (variables = {}) => {
+      if (!userRSVP) return;
+
+      let event = variables.event || null;
+      if (!event && eventId) {
+        const events = await base44.entities.Event.filter({ id: eventId });
+        event = events[0] || null;
       }
+      const reservationId = userRSVP.joy_coin_reservation_id;
+      const joyCoinTotal = userRSVP.joy_coin_total ?? 0;
+      const hasJoyCoinReservation = !!reservationId && joyCoinTotal > 0;
+
+      if (hasJoyCoinReservation && event) {
+        const reservationRecords = await base44.entities.JoyCoinReservations.filter({ id: reservationId });
+        const reservation = reservationRecords[0];
+        if (!reservation || reservation.status !== 'held') {
+          // Reservation already resolved, just cancel RSVP
+        } else {
+          const willRefund = getRefundEligibility(event);
+          const now = new Date().toISOString();
+
+          if (willRefund) {
+            await base44.entities.JoyCoinReservations.update(reservationId, {
+              status: 'refunded',
+              resolved_at: now,
+              resolution_type: 'cancel_refund'
+            });
+
+            const joyCoinsRecords = await base44.entities.JoyCoins.filter({ user_id: userId });
+            const joyCoinsRecord = joyCoinsRecords[0];
+            const newBalance = (joyCoinsRecord?.balance ?? 0) + joyCoinTotal;
+
+            await base44.entities.JoyCoinTransactions.create({
+              user_id: userId,
+              type: 'refund',
+              amount: joyCoinTotal,
+              balance_after: newBalance,
+              event_id: eventId,
+              rsvp_id: userRSVP.id,
+              reservation_id: reservationId,
+              note: 'RSVP cancelled within refund window'
+            });
+
+            await base44.entities.JoyCoins.update(joyCoinsRecord.id, {
+              balance: newBalance,
+              lifetime_spent: Math.max(0, (joyCoinsRecord?.lifetime_spent ?? 0) - joyCoinTotal)
+            });
+          } else {
+            await base44.entities.JoyCoinReservations.update(reservationId, {
+              status: 'forfeited',
+              resolved_at: now,
+              resolution_type: 'cancel_forfeit'
+            });
+
+            const joyCoinsForForfeit = await base44.entities.JoyCoins.filter({ user_id: userId });
+            const currentBalance = joyCoinsForForfeit[0]?.balance ?? 0;
+
+            await base44.entities.JoyCoinTransactions.create({
+              user_id: userId,
+              type: 'forfeit',
+              amount: 0,
+              balance_after: currentBalance,
+              event_id: eventId,
+              rsvp_id: userRSVP.id,
+              reservation_id: reservationId,
+              note: 'RSVP cancelled outside refund window'
+            });
+          }
+        }
+      }
+
+      await base44.entities.RSVP.update(userRSVP.id, {
+        status: 'cancelled',
+        is_active: false
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-rsvp', eventId, userId] });
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] });
       queryClient.invalidateQueries({ queryKey: ['user-rsvps'] });
       queryClient.invalidateQueries({ queryKey: ['all-events-for-rsvp'] });
+      queryClient.invalidateQueries({ queryKey: ['joyCoins', userId] });
+      queryClient.invalidateQueries({ queryKey: ['joyCoinsTransactions', userId] });
+      queryClient.invalidateQueries({ queryKey: ['joyCoinsReservations', userId] });
     }
   });
 
@@ -150,6 +248,7 @@ export function useRSVP(eventId, currentUser) {
     isGoing,
     attendeeCount,
     attendeeNames,
+    userRSVP,
     rsvpLoading,
     attendeesLoading,
     rsvpGoing,

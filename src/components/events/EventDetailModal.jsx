@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { useRSVP } from '@/hooks/useRSVP';
+import { useRSVP, getRefundEligibility } from '@/hooks/useRSVP';
 import { useJoyCoins } from '@/hooks/useJoyCoins';
 import { toast } from 'sonner';
 
@@ -38,6 +38,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
   const {
     isGoing,
     attendeeCount,
+    userRSVP,
     rsvpLoading,
     rsvpGoing,
     rsvpCancel
@@ -47,10 +48,17 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
   const hasEnoughJoyCoins = !isJoyCoinEvent || joyCoinBalance >= joyCoinCost;
 
   const [rsvpConfirmation, setRsvpConfirmation] = useState(null); // 'going' | 'cancelled' | null
+  const [cancelConfirming, setCancelConfirming] = useState(false);
+
+  const hasJoyCoinReservation = !!(userRSVP?.joy_coin_reservation_id && (userRSVP?.joy_coin_total ?? 0) > 0);
+  const joyCoinCancelAmount = userRSVP?.joy_coin_total ?? 0;
+  const willRefundOnCancel = hasJoyCoinReservation && getRefundEligibility(event);
 
   useEffect(() => {
     setRsvpConfirmation(null);
+    setCancelConfirming(false);
   }, [event?.id]);
+
 
   // Fetch spoke information if this is a spoke event
   const { data: spokeEvent } = useQuery({
@@ -443,24 +451,68 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
 
                         {currentUser ? (
                           isGoing ? (
-                            <button
-                              onClick={() => {
-                                rsvpCancel.mutate(undefined, {
-                                  onSuccess: () => {
-                                    setRsvpConfirmation('cancelled');
-                                    setTimeout(() => {
-                                      setRsvpConfirmation(null);
-                                      onClose();
-                                    }, 1200);
+                            cancelConfirming && hasJoyCoinReservation ? (
+                              <div className="space-y-3">
+                                <div className={`py-3 px-4 rounded-lg text-sm font-medium ${willRefundOnCancel ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'}`}>
+                                  {willRefundOnCancel
+                                    ? `${joyCoinCancelAmount} coin${joyCoinCancelAmount !== 1 ? 's' : ''} will be refunded`
+                                    : `${joyCoinCancelAmount} coin${joyCoinCancelAmount !== 1 ? 's' : ''} will be forfeited (outside refund window)`}
+                                </div>
+                                <div className="flex gap-3">
+                                  <button
+                                    onClick={() => setCancelConfirming(false)}
+                                    className="flex-1 py-3 px-6 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 font-semibold hover:bg-slate-700 transition-colors"
+                                  >
+                                    Keep RSVP
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      rsvpCancel.mutate({ event }, {
+                                        onSuccess: () => {
+                                          setCancelConfirming(false);
+                                          setRsvpConfirmation('cancelled');
+                                          setTimeout(() => {
+                                            setRsvpConfirmation(null);
+                                            onClose();
+                                          }, 1200);
+                                        },
+                                        onError: () => {
+                                          toast.error('Failed to cancel. Please try again.');
+                                        }
+                                      });
+                                    }}
+                                    disabled={rsvpCancel.isPending}
+                                    className="flex-1 py-3 px-6 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 font-semibold hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                                  >
+                                    {rsvpCancel.isPending ? 'Cancelling...' : 'Confirm Cancel'}
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  if (hasJoyCoinReservation) {
+                                    setCancelConfirming(true);
+                                  } else {
+                                    rsvpCancel.mutate({ event }, {
+                                      onSuccess: () => {
+                                        setRsvpConfirmation('cancelled');
+                                        setTimeout(() => {
+                                          setRsvpConfirmation(null);
+                                          onClose();
+                                        }, 1200);
+                                      },
+                                      onError: () => toast.error('Failed to cancel. Please try again.')
+                                    });
                                   }
-                                });
-                              }}
-                              disabled={rsvpCancel.isPending}
-                              className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 font-semibold hover:bg-amber-500/20 transition-colors disabled:opacity-50"
-                            >
-                              <UserCheck className="h-5 w-5" />
-                              {rsvpCancel.isPending ? 'Cancelling...' : "You're Going — Tap to Cancel"}
-                            </button>
+                                }}
+                                disabled={rsvpCancel.isPending}
+                                className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 font-semibold hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+                              >
+                                <UserCheck className="h-5 w-5" />
+                                {rsvpCancel.isPending ? 'Cancelling...' : "You're Going — Tap to Cancel"}
+                              </button>
+                            )
                           ) : (
                             <button
                               onClick={() => {
