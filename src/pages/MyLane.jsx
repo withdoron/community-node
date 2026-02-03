@@ -12,6 +12,7 @@ import NewInCommunitySection from '@/components/mylane/NewInCommunitySection';
 import YourRecommendationsSection from '@/components/mylane/YourRecommendationsSection';
 import DiscoverSection from '@/components/mylane/DiscoverSection';
 import SectionWrapper from '@/components/mylane/SectionWrapper';
+import { JoyCoinsCard } from '@/components/mylane/JoyCoinsCard';
 
 export default function MyLane() {
   const { data: currentUser, isLoading: userLoading } = useQuery({
@@ -54,6 +55,7 @@ export default function MyLane() {
     <div className="min-h-screen bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
         <GreetingHeader currentUser={currentUser} punchPass={punchPass} />
+        <JoyCoinsCard />
         <UpcomingEventsSection currentUser={currentUser} />
         <HappeningSoonSection />
         <NewInCommunitySection />
