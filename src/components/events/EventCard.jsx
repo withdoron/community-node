@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Tag } from "lucide-react";
+import { Calendar, MapPin, Tag, Coins } from "lucide-react";
 import { format } from 'date-fns';
 
 export default function EventCard({ event, onClick }) {
@@ -12,6 +12,8 @@ export default function EventCard({ event, onClick }) {
   
   // Calculate punch count (assuming 1 punch per $10, or use a fixed amount)
   const punchCount = punchPassEligible ? Math.max(1, Math.round((event.price || 0) / 10)) : 0;
+  const isJoyCoinEvent = event?.joy_coin_enabled && (event?.joy_coin_cost ?? 0) > 0;
+  const joyCoinCost = isJoyCoinEvent ? (event.joy_coin_cost || 0) : 0;
 
   // Get up to 2 event type badges
   const eventTypes = [];
@@ -52,6 +54,12 @@ export default function EventCard({ event, onClick }) {
             </Badge>
           ) : (
             <>
+              {isJoyCoinEvent && (
+                <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full px-3 py-1 font-semibold shadow-lg flex items-center gap-1">
+                  <Coins className="h-3 w-3" />
+                  {joyCoinCost === 1 ? '1 coin' : `${joyCoinCost} coins`}
+                </Badge>
+              )}
               {punchPassEligible && (
                 <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
                   {punchCount === 1 ? '1 Punch' : `${punchCount} Punches`}
@@ -62,7 +70,7 @@ export default function EventCard({ event, onClick }) {
                   ${event.price.toFixed(2)}
                 </Badge>
               )}
-              {isFree && (
+              {isFree && !isJoyCoinEvent && (
                 <Badge className="bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
                   FREE
                 </Badge>

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, MapPin, DollarSign, Repeat2, Users, CheckCircle2, Tag, ExternalLink, UserCheck, UserPlus } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, DollarSign, Repeat2, Users, CheckCircle2, Tag, ExternalLink, UserCheck, UserPlus, Coins } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useRSVP } from '@/hooks/useRSVP';
+import { useJoyCoins } from '@/hooks/useJoyCoins';
+import { toast } from 'sonner';
 
 export default function EventDetailModal({ event, isOpen, onClose }) {
   if (!event) return null;
@@ -16,6 +18,8 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
   const punchPassEligible = event.punch_pass_accepted;
   const punchCount = punchPassEligible ? Math.max(1, Math.round((event.price || 0) / 10)) : 0;
   const isCancelled = event.status === 'cancelled';
+  const isJoyCoinEvent = event?.joy_coin_enabled && (event?.joy_coin_cost ?? 0) > 0;
+  const joyCoinCost = isJoyCoinEvent ? (event.joy_coin_cost || 0) : 0;
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -38,6 +42,9 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
     rsvpGoing,
     rsvpCancel
   } = useRSVP(event?.id, currentUser);
+
+  const { balance: joyCoinBalance, hasJoyCoins, isLoading: joyCoinsLoading } = useJoyCoins();
+  const hasEnoughJoyCoins = !isJoyCoinEvent || joyCoinBalance >= joyCoinCost;
 
   const [rsvpConfirmation, setRsvpConfirmation] = useState(null); // 'going' | 'cancelled' | null
 
@@ -117,6 +124,12 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                         </Badge>
                       ) : (
                         <>
+                          {isJoyCoinEvent && (
+                            <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full px-3 py-1 font-semibold shadow-lg flex items-center gap-1">
+                              <Coins className="h-3 w-3" />
+                              {joyCoinCost === 1 ? '1 coin' : `${joyCoinCost} coins`}
+                            </Badge>
+                          )}
                           {punchPassEligible && (
                             <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
                               {punchCount === 1 ? '1 Punch' : `${punchCount} Punches`}
@@ -127,7 +140,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                               ${event.price.toFixed(2)}
                             </Badge>
                           )}
-                          {isFree && (
+                          {isFree && !isJoyCoinEvent && (
                             <Badge className="bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
                               FREE
                             </Badge>
@@ -140,7 +153,13 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
 
                 {/* Price badge when no hero image */}
                 {!event.thumbnail_url && !isCancelled && (
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    {isJoyCoinEvent && (
+                      <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full px-3 py-1 font-semibold flex items-center gap-1">
+                        <Coins className="h-3 w-3" />
+                        {joyCoinCost === 1 ? '1 coin' : `${joyCoinCost} coins`}
+                      </Badge>
+                    )}
                     {punchPassEligible && (
                       <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold">
                         {punchCount === 1 ? '1 Punch' : `${punchCount} Punches`}
@@ -151,7 +170,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                         ${event.price.toFixed(2)}
                       </Badge>
                     )}
-                    {isFree && (
+                    {isFree && !isJoyCoinEvent && (
                       <Badge className="bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold">
                         FREE
                       </Badge>
@@ -313,6 +332,24 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                   </div>
                 )}
 
+                {/* Joy Coin cost */}
+                {isJoyCoinEvent && (
+                  <div className="bg-slate-800/50 rounded-xl p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Coins className="h-5 w-5 text-amber-500 flex-shrink-0" />
+                      <div>
+                        <div className="text-white font-medium">Joy Coins</div>
+                        <div className="text-sm text-slate-400">{joyCoinCost === 1 ? '1 coin per person' : `${joyCoinCost} coins per person`} — Community Pass members</div>
+                      </div>
+                    </div>
+                    {currentUser && hasJoyCoins && !joyCoinsLoading && (
+                      <span className={`text-sm font-medium ${hasEnoughJoyCoins ? 'text-emerald-400' : 'text-red-400'}`}>
+                        Your balance: {joyCoinBalance}
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 {/* Accept RSVPs */}
                 {event.accepts_rsvps && (
                   <div className="bg-slate-800/50 rounded-xl p-5 flex items-center gap-3">
@@ -427,21 +464,28 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                           ) : (
                             <button
                               onClick={() => {
-                                rsvpGoing.mutate(undefined, {
+                                rsvpGoing.mutate({ event }, {
                                   onSuccess: () => {
                                     setRsvpConfirmation('going');
                                     setTimeout(() => {
                                       setRsvpConfirmation(null);
                                       onClose();
                                     }, 1200);
+                                  },
+                                  onError: (err) => {
+                                    if (err?.message === 'INSUFFICIENT_JOY_COINS') {
+                                      toast.error('Not enough Joy Coins. Subscribe to Community Pass or earn more coins.');
+                                    } else {
+                                      toast.error('Failed to RSVP. Please try again.');
+                                    }
                                   }
                                 });
                               }}
-                              disabled={rsvpGoing.isPending}
-                              className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-bold transition-colors disabled:bg-amber-500/50"
+                              disabled={rsvpGoing.isPending || (isJoyCoinEvent && !hasEnoughJoyCoins)}
+                              className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-bold transition-colors disabled:bg-amber-500/50 disabled:cursor-not-allowed"
                             >
                               <UserPlus className="h-5 w-5" />
-                              {rsvpGoing.isPending ? 'Saving...' : "I'm Going"}
+                              {rsvpGoing.isPending ? 'Saving...' : isJoyCoinEvent && !hasEnoughJoyCoins ? `Need ${joyCoinCost} coins` : "I'm Going"}
                             </button>
                           )
                         ) : (
