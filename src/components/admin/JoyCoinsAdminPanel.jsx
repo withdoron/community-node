@@ -6,12 +6,22 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { processMonthlyGrantsBatch, getDefaultGrantAmount } from '@/functions/processMonthlyGrants';
 import { processNoShows } from '@/functions/processNoShows';
+import {
+  calculateMonthlyRevenueShare,
+  getPricingConfig
+} from '@/functions/calculateRevenueShare';
 
 export function JoyCoinsAdminPanel() {
   const [grantAmount, setGrantAmount] = useState(getDefaultGrantAmount().toString());
   const [processingGrants, setProcessingGrants] = useState(false);
   const [processingNoShows, setProcessingNoShows] = useState(false);
   const [lastResults, setLastResults] = useState(null);
+  const [revenueMonth, setRevenueMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [calculatingRevenue, setCalculatingRevenue] = useState(false);
+  const [revenueReport, setRevenueReport] = useState(null);
 
   const handleProcessGrants = async () => {
     if (
@@ -49,6 +59,20 @@ export function JoyCoinsAdminPanel() {
       toast.error('Failed to process no-shows');
     } finally {
       setProcessingNoShows(false);
+    }
+  };
+
+  const handleCalculateRevenue = async () => {
+    setCalculatingRevenue(true);
+    try {
+      const [year, month] = revenueMonth.split('-').map(Number);
+      const results = await calculateMonthlyRevenueShare(year, month);
+      setRevenueReport(results);
+      toast.success(`Calculated revenue for ${results.businesses.length} businesses`);
+    } catch (error) {
+      toast.error('Failed to calculate revenue');
+    } finally {
+      setCalculatingRevenue(false);
     }
   };
 
@@ -108,6 +132,111 @@ export function JoyCoinsAdminPanel() {
             {processingNoShows ? 'Processing...' : 'Process All No-Shows'}
           </Button>
         </div>
+
+        {/* Revenue Share Calculation */}
+        <div className="p-4 bg-slate-800/50 rounded-lg space-y-3">
+          <h4 className="text-sm font-medium text-slate-200">Revenue Share Report</h4>
+          <p className="text-xs text-slate-500">
+            Calculate business payouts based on Joy Coin redemptions.
+          </p>
+          <div className="text-xs text-slate-400 space-y-1">
+            {(() => {
+              const config = getPricingConfig();
+              return (
+                <>
+                  <p>
+                    Subscription: ${config.subscriptionPrice}/mo · Grant: {config.monthlyGrant} coins
+                  </p>
+                  <p>
+                    Coin value: ${config.coinValue.toFixed(2)} · Business share: $
+                    {config.businessSharePerCoin.toFixed(2)}/coin ({config.businessSharePercent}%)
+                  </p>
+                </>
+              );
+            })()}
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Input
+              type="month"
+              value={revenueMonth}
+              onChange={(e) => setRevenueMonth(e.target.value)}
+              className="w-40 bg-slate-800 border-slate-700 text-slate-100"
+            />
+            <Button
+              onClick={handleCalculateRevenue}
+              disabled={calculatingRevenue}
+              variant="outline"
+              className="border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${calculatingRevenue ? 'animate-spin' : ''}`} />
+              {calculatingRevenue ? 'Calculating...' : 'Calculate'}
+            </Button>
+          </div>
+        </div>
+
+        {/* Revenue Report Display */}
+        {revenueReport && (
+          <div className="p-4 bg-slate-800/30 rounded-lg space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium text-slate-300">
+                Revenue Report: {revenueReport.period.month}/{revenueReport.period.year}
+              </h4>
+              <div className="text-right">
+                <p className="text-lg font-bold text-emerald-400">
+                  ${revenueReport.totals.totalBusinessShare.toFixed(2)}
+                </p>
+                <p className="text-xs text-slate-500">Total business payouts</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-xl font-bold text-amber-400">
+                  {revenueReport.totals.totalCoinsRedeemed}
+                </p>
+                <p className="text-xs text-slate-500">Coins Redeemed</p>
+              </div>
+              <div>
+                <p className="text-xl font-bold text-emerald-400">
+                  ${revenueReport.totals.totalBusinessShare.toFixed(2)}
+                </p>
+                <p className="text-xs text-slate-500">Business Share (75%)</p>
+              </div>
+              <div>
+                <p className="text-xl font-bold text-blue-400">
+                  ${revenueReport.totals.totalPlatformShare.toFixed(2)}
+                </p>
+                <p className="text-xs text-slate-500">Platform Share (25%)</p>
+              </div>
+            </div>
+            {revenueReport.businesses.length > 0 ? (
+              <div>
+                <h5 className="text-xs font-medium text-slate-400 mb-2">By Business</h5>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {revenueReport.businesses.map((biz) => (
+                    <div
+                      key={biz.businessId}
+                      className="flex items-center justify-between py-2 px-3 bg-slate-800/50 rounded"
+                    >
+                      <div>
+                        <p className="text-sm text-slate-200">{biz.businessName}</p>
+                        <p className="text-xs text-slate-500">
+                          {biz.totalCoinsRedeemed} coins · {biz.totalRedemptions} check-ins
+                        </p>
+                      </div>
+                      <p className="text-sm font-medium text-emerald-400">
+                        ${biz.businessShare.toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 text-center py-4">
+                No redemptions found for this period.
+              </p>
+            )}
+          </div>
+        )}
 
         {lastResults && (
           <div className="p-4 bg-slate-800/30 rounded-lg">
