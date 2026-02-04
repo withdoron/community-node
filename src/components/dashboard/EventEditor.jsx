@@ -1194,71 +1194,67 @@ export default function EventEditor({
           </div>
           {formData.joy_coin_enabled && (
             <div className="space-y-4 pt-3 border-t border-slate-700">
-              <div>
-                <Label className="text-slate-300">Coins per person</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={formData.joy_coin_cost}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, joy_coin_cost: e.target.value }))
-                  }
-                  className="bg-slate-900 border-slate-700 text-white mt-1 w-32"
-                  placeholder="e.g., 3"
-                />
-              </div>
-              {!formData.joy_coin_unlimited && (
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-slate-300">Joy Coin spots (optional)</Label>
+                  <Label className="text-slate-300">Coins per person</Label>
                   <Input
                     type="number"
-                    min="0"
-                    value={formData.joy_coin_spots}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, joy_coin_spots: e.target.value }))
-                    }
-                    className="bg-slate-900 border-slate-700 text-white mt-1 w-32"
-                    placeholder="Defaults to event capacity"
+                    min="1"
+                    value={formData.joy_coin_cost}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, joy_coin_cost: e.target.value }))}
+                    className="bg-slate-900 border-slate-700 text-white mt-1"
+                    placeholder="e.g., 3"
                   />
                 </div>
-              )}
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => setFormData((prev) => ({ ...prev, joy_coin_unlimited: !prev.joy_coin_unlimited }))}
-                onKeyDown={(e) => e.key === "Enter" && setFormData((prev) => ({ ...prev, joy_coin_unlimited: !prev.joy_coin_unlimited }))}
-                className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
-              >
-                <div className="pointer-events-none">
-                  <span className="text-slate-300">Unlimited Joy Coin spots</span>
-                  <p className="text-xs text-slate-500">No limit on Joy Coin reservations</p>
+                {!formData.joy_coin_unlimited && (
+                  <div>
+                    <Label className="text-slate-300">Joy Coin spots</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={formData.joy_coin_spots}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, joy_coin_spots: e.target.value }))}
+                      className="bg-slate-900 border-slate-700 text-white mt-1"
+                      placeholder="Defaults to capacity"
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <Label className="text-slate-300">Max party size</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={formData.max_party_size}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, max_party_size: e.target.value }))}
+                    className="bg-slate-900 border-slate-700 text-white mt-1 w-24"
+                    placeholder="10"
+                  />
                 </div>
                 <div
-                  className={cn(
-                    "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
-                    formData.joy_coin_unlimited ? "bg-amber-500" : "bg-slate-600"
-                  )}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setFormData((prev) => ({ ...prev, joy_coin_unlimited: !prev.joy_coin_unlimited }))}
+                  onKeyDown={(e) => e.key === "Enter" && setFormData((prev) => ({ ...prev, joy_coin_unlimited: !prev.joy_coin_unlimited }))}
+                  className="flex items-center gap-3 cursor-pointer"
                 >
-                  <span
+                  <span className="text-slate-300 text-sm">Unlimited spots</span>
+                  <div
                     className={cn(
-                      "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
-                      formData.joy_coin_unlimited ? "translate-x-5" : "translate-x-0.5"
+                      "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0",
+                      formData.joy_coin_unlimited ? "bg-amber-500" : "bg-slate-600"
                     )}
-                  />
+                  >
+                    <span
+                      className={cn(
+                        "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                        formData.joy_coin_unlimited ? "translate-x-5" : "translate-x-0.5"
+                      )}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <Label className="text-slate-300">Max party size (optional)</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={formData.max_party_size}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, max_party_size: e.target.value }))
-                  }
-                  className="bg-slate-900 border-slate-700 text-white mt-1 w-32"
-                  placeholder="Defaults to 10"
-                />
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-300">Attendance limit (optional)</Label>
@@ -1288,53 +1284,44 @@ export default function EventEditor({
                   </Select>
                 </div>
               </div>
-              <div>
-                <Label className="text-slate-300">Refund policy</Label>
-                <Select
-                  value={formData.refund_policy || "moderate"}
-                  onValueChange={(v) =>
-                    setFormData((prev) => ({ ...prev, refund_policy: v }))
-                  }
-                >
-                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-slate-700">
-                    <SelectItem value="flexible" className="text-slate-300">
-                      Flexible (refund up to 2 hours before)
-                    </SelectItem>
-                    <SelectItem value="moderate" className="text-slate-300">
-                      Moderate (refund up to 24 hours before)
-                    </SelectItem>
-                    <SelectItem value="strict" className="text-slate-300">
-                      Strict (no refunds)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => setFormData((prev) => ({ ...prev, adults_only: !prev.adults_only }))}
-                onKeyDown={(e) => e.key === "Enter" && setFormData((prev) => ({ ...prev, adults_only: !prev.adults_only }))}
-                className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
-              >
-                <div className="pointer-events-none">
-                  <span className="text-slate-300">Adults only (18+)</span>
-                  <p className="text-xs text-slate-500">Only adult household members can attend</p>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <Label className="text-slate-300">Refund policy</Label>
+                  <Select
+                    value={formData.refund_policy || "moderate"}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, refund_policy: value }))}
+                  >
+                    <SelectTrigger className="bg-slate-900 border-slate-700 text-white mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-slate-700">
+                      <SelectItem value="flexible" className="text-slate-300">Flexible (2 hours)</SelectItem>
+                      <SelectItem value="moderate" className="text-slate-300">Moderate (24 hours)</SelectItem>
+                      <SelectItem value="strict" className="text-slate-300">Strict (no refunds)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div
-                  className={cn(
-                    "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
-                    formData.adults_only ? "bg-amber-500" : "bg-slate-600"
-                  )}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setFormData((prev) => ({ ...prev, adults_only: !prev.adults_only }))}
+                  onKeyDown={(e) => e.key === "Enter" && setFormData((prev) => ({ ...prev, adults_only: !prev.adults_only }))}
+                  className="flex items-center gap-3 cursor-pointer pt-6"
                 >
-                  <span
+                  <span className="text-slate-300 text-sm">18+ only</span>
+                  <div
                     className={cn(
-                      "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
-                      formData.adults_only ? "translate-x-5" : "translate-x-0.5"
+                      "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0",
+                      formData.adults_only ? "bg-amber-500" : "bg-slate-600"
                     )}
-                  />
+                  >
+                    <span
+                      className={cn(
+                        "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                        formData.adults_only ? "translate-x-5" : "translate-x-0.5"
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

@@ -21,7 +21,7 @@ export default function Events() {
     networks: [],
     audience: [],
     setting: [],
-    acceptsSilver: false,
+    acceptsJoyCoins: false,
     wheelchairAccessible: false,
     freeParking: false
   });
@@ -87,8 +87,8 @@ export default function Events() {
       );
     }
 
-    if (advancedFilters.acceptsSilver) {
-      result = result.filter(e => e.accepts_silver);
+    if (advancedFilters.acceptsJoyCoins) {
+      result = result.filter(e => e.joy_coin_enabled);
     }
 
     if (advancedFilters.wheelchairAccessible) {
@@ -118,7 +118,7 @@ export default function Events() {
     if (advancedFilters.networks?.length > 0) count += advancedFilters.networks.length;
     if (advancedFilters.audience?.length > 0) count += advancedFilters.audience.length;
     if (advancedFilters.setting?.length > 0) count += advancedFilters.setting.length;
-    if (advancedFilters.acceptsSilver) count++;
+    if (advancedFilters.acceptsJoyCoins) count++;
     if (advancedFilters.wheelchairAccessible) count++;
     if (advancedFilters.freeParking) count++;
     return count;

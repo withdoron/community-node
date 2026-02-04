@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
-import { X } from "lucide-react";
+import { X, Coins } from "lucide-react";
 
 export default function FilterModal({ open, onOpenChange, filters, onFiltersChange }) {
   const [localFilters, setLocalFilters] = useState(filters);
@@ -217,11 +217,14 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox
-                  checked={localFilters.acceptsSilver}
-                  onCheckedChange={(checked) => setLocalFilters({ ...localFilters, acceptsSilver: checked })}
+                  checked={localFilters.acceptsJoyCoins}
+                  onCheckedChange={(checked) => setLocalFilters({ ...localFilters, acceptsJoyCoins: checked })}
                   className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
                 />
-                <span className="text-sm text-slate-300">🪙 Silver Accepted</span>
+                <span className="text-sm text-slate-300 flex items-center gap-1.5">
+                  <Coins className="h-4 w-4" />
+                  Joy Coins
+                </span>
               </label>
             </div>
           </div>

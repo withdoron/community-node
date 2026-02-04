@@ -26,7 +26,7 @@ export default function Directory() {
   const [searchInput, setSearchInput] = useState(urlParams.get('q') || '');
   const [searchQuery, setSearchQuery] = useState(urlParams.get('q') || '');
   const [selectedCategory, setSelectedCategory] = useState(urlParams.get('cat') || 'all');
-  const [acceptsSilver, setAcceptsSilver] = useState(urlParams.get('silver') === '1');
+  const [acceptsJoyCoins, setAcceptsJoyCoins] = useState(urlParams.get('joycoins') === '1');
   const [sortBy, setSortBy] = useState(urlParams.get('sort') || 'recommended');
 
   // Debounce search input (300ms)
@@ -45,7 +45,7 @@ export default function Directory() {
     const qs = params.toString();
     const url = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
     window.history.replaceState({}, '', url);
-  }, [searchQuery, selectedCategory, acceptsSilver, sortBy]);
+  }, [searchQuery, selectedCategory, acceptsJoyCoins, sortBy]);
 
   // Fetch admin settings for badge visibility
   const { data: savedSettings = [] } = useQuery({
@@ -134,7 +134,7 @@ export default function Directory() {
     }
 
     return result;
-  }, [businesses, searchQuery, selectedCategory, acceptsSilver, sortBy]);
+  }, [businesses, searchQuery, selectedCategory, acceptsJoyCoins, sortBy]);
 
   const handleClearFilters = () => {
     setSearchInput('');
@@ -206,14 +206,14 @@ export default function Directory() {
           })}
           <div className="w-px h-6 bg-slate-700 flex-shrink-0" />
           <button
-            onClick={() => setAcceptsSilver(!acceptsSilver)}
-            className={acceptsSilver
+            onClick={() => setAcceptsJoyCoins(!acceptsJoyCoins)}
+            className={acceptsJoyCoins
               ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-500/20 text-amber-500 border border-amber-500/50 cursor-default whitespace-nowrap flex-shrink-0 flex items-center gap-1.5'
               : 'px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0 flex items-center gap-1.5'
             }
           >
             <Coins className="h-3.5 w-3.5" />
-            Accepts Silver
+            Joy Coins
           </button>
         </div>
 
@@ -296,4 +296,5 @@ export default function Directory() {
       </div>
     </div>
   );
+}
 }
