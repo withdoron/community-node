@@ -9,6 +9,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import JoyCoinsHistory from '@/pages/JoyCoinsHistory';
+import { JoyCoinsTransfer } from '@/components/mylane/JoyCoinsTransfer';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -81,6 +82,14 @@ const AuthenticatedApp = () => {
         element={
           <LayoutWrapper currentPageName="MyLane">
             <JoyCoinsHistory />
+          </LayoutWrapper>
+        }
+      />
+      <Route
+        path="/my-lane/transfer"
+        element={
+          <LayoutWrapper currentPageName="MyLane">
+            <JoyCoinsTransfer />
           </LayoutWrapper>
         }
       />

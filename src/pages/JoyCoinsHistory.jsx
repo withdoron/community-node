@@ -1,4 +1,4 @@
-import { ArrowLeft, Coins, Plus, Minus, RefreshCw, ArrowRightLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Coins, Plus, Minus, RefreshCw, ArrowRightLeft, AlertCircle, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useJoyCoins } from '@/hooks/useJoyCoins';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -70,19 +70,30 @@ export default function JoyCoinsHistory() {
   return (
     <div className="min-h-screen bg-slate-950 pb-20">
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <div className="flex items-center gap-3 mb-6">
-          <Link
-            to={createPageUrl('MyLane')}
-            className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5 text-slate-400" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-slate-100">Joy Coins History</h1>
-            {!isLoading && hasJoyCoins && (
-              <p className="text-sm text-slate-400">Current balance: {balance}</p>
-            )}
+        <div className="flex items-center justify-between gap-3 mb-6">
+          <div className="flex items-center gap-3">
+            <Link
+              to={createPageUrl('MyLane')}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5 text-slate-400" />
+            </Link>
+            <div>
+              <h1 className="text-xl font-bold text-slate-100">Joy Coins History</h1>
+              {!isLoading && hasJoyCoins && (
+                <p className="text-sm text-slate-400">Current balance: {balance}</p>
+              )}
+            </div>
           </div>
+          {hasJoyCoins && (
+            <Link
+              to="/my-lane/transfer"
+              className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black rounded-lg text-sm font-medium transition-colors"
+            >
+              <Send className="h-4 w-4" />
+              Send
+            </Link>
+          )}
         </div>
 
         {isLoading || transactionsLoading ? (
