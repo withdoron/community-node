@@ -21,8 +21,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Eye, Settings, MapPin,
   Loader2, CheckCircle, Crown, Zap, ArrowUp, Upload, X, Plus, Trash2,
-  ExternalLink, Check, ChevronLeft, ThumbsUp, BookOpen, Star
+  ExternalLink, Check, ChevronLeft, ThumbsUp, BookOpen, Star, Coins
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { format } from 'date-fns';
 import { mainCategories, getMainCategory } from '@/components/categories/categoryData';
 import LocationsSection from '@/components/dashboard/LocationsSection';
@@ -113,6 +114,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
         website: business.website || '',
         service_area: business.service_area || '',
         accepts_silver: business.accepts_silver || false,
+        accepts_joy_coins: business.accepts_joy_coins ?? false,
         photos: business.photos || [],
         services: business.services?.length > 0 ? business.services : [{ name: '', starting_price: '', description: '' }]
       });
@@ -604,6 +606,39 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                     checked={editData.accepts_silver}
                     onCheckedChange={(checked) => setEditData({ ...editData, accepts_silver: checked })}
                   />
+                </div>
+
+                {/* Joy Coins */}
+                <div className="space-y-3 p-4 rounded-xl border border-slate-700 bg-slate-800/50">
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <Coins className="h-5 w-5 text-amber-500" />
+                    Joy Coins
+                  </h3>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setEditData((prev) => ({ ...prev, accepts_joy_coins: !prev.accepts_joy_coins }))}
+                    onKeyDown={(e) => e.key === "Enter" && setEditData((prev) => ({ ...prev, accepts_joy_coins: !prev.accepts_joy_coins }))}
+                    className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
+                  >
+                    <div className="pointer-events-none">
+                      <span className="text-slate-300">Accept Joy Coins</span>
+                      <p className="text-xs text-slate-500">Show "Accepts Joy Coins" badge on your profile</p>
+                    </div>
+                    <div
+                      className={cn(
+                        "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
+                        editData.accepts_joy_coins ? "bg-amber-500" : "bg-slate-600"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                          editData.accepts_joy_coins ? "translate-x-5" : "translate-x-0.5"
+                        )}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Photos */}

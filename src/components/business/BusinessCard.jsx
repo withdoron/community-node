@@ -79,6 +79,12 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
                 Accepts Silver
               </span>
             )}
+            {business.accepts_joy_coins && (
+              <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs">
+                <Coins className="h-3 w-3 mr-1" />
+                Joy Coins
+              </Badge>
+            )}
             {business.is_locally_owned_franchise && showFranchiseBadge && (
               <span className="inline-flex items-center bg-black/20 backdrop-blur-sm text-white/90 text-[9px] font-normal px-1.5 py-0.5 rounded">
                 <Store className="h-2 w-2 mr-1 opacity-80" />

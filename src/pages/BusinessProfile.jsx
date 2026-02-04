@@ -148,6 +148,12 @@ export default function BusinessProfile() {
                         Accepts Silver
                       </Badge>
                     )}
+                    {business.accepts_joy_coins && (
+                      <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                        <Coins className="h-3 w-3" />
+                        Accepts Joy Coins
+                      </Badge>
+                    )}
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-white">{business.name}</h1>
                   
