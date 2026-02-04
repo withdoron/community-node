@@ -16,6 +16,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import AdminConcernsPanel from '@/components/admin/AdminConcernsPanel';
 import AdminUsersSection from '@/components/admin/AdminUsersSection';
 import ConfigSection from '@/components/admin/config/ConfigSection';
+import { JoyCoinsAdminPanel } from '@/components/admin/JoyCoinsAdminPanel';
 
 function PlaceholderSection({ title, description }) {
   return (
@@ -281,6 +282,7 @@ export default function Admin() {
             } />
 
             <Route path="networks" element={<ConfigSection domain="platform" configType="networks" title="Networks" />} />
+            <Route path="joy-coins" element={<JoyCoinsAdminPanel />} />
             <Route path="tiers" element={<PlaceholderSection title="Tiers" description="Business and user tier definitions — coming soon." />} />
             <Route path="punch-pass" element={<PlaceholderSection title="Punch Pass" description="Punch Pass system settings — coming soon." />} />
 
