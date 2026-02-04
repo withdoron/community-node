@@ -9,9 +9,9 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
 const CATEGORY_CONFIG = {
-  adult: { label: 'Adult', icon: User, color: 'text-blue-500' },
+  adult: { label: 'Adult', icon: User, color: 'text-slate-400' },
   child: { label: 'Child', icon: UserCircle, color: 'text-amber-500' },
-  infant: { label: 'Infant', icon: Baby, color: 'text-pink-500' },
+  infant: { label: 'Infant', icon: Baby, color: 'text-slate-300' },
 };
 
 function MemberRow({ member, onEdit, onDelete }) {

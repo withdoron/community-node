@@ -237,9 +237,8 @@ export function CheckInMode({ event, onExit }) {
         : rsvp.user_name;
       toast.success(`${partyLabel} checked in!`);
     },
-    onError: (error) => {
+    onError: () => {
       toast.error('Check-in failed. Please try again.');
-      console.error('Check-in error:', error);
     }
   });
 
