@@ -66,8 +66,6 @@ export default function EventEditor({
     pricing_type: "free",
     price: "",
     min_price: "",
-    punch_pass_eligible: false,
-    punch_cost: 1,
     joy_coin_enabled: false,
     joy_coin_cost: "",
     joy_coin_spots: "",
@@ -152,9 +150,6 @@ export default function EventEditor({
           (existingEvent.is_free ? "free" : "single_price"),
         price: String(existingEvent.price ?? ""),
         min_price: String(existingEvent.min_price ?? ""),
-        punch_pass_eligible:
-          existingEvent.punch_pass_accepted ?? existingEvent.punch_pass_eligible ?? false,
-        punch_cost: existingEvent.punch_cost ?? 1,
         event_types: (() => {
           const et = existingEvent.event_type;
           const arr = Array.isArray(existingEvent.event_types) ? existingEvent.event_types : et ? [et] : [];
@@ -346,10 +341,6 @@ export default function EventEditor({
                 quantity_limit: t.quantity_limit ? parseInt(t.quantity_limit, 10) : null,
               }))
           : null,
-
-      // Punch Pass
-      punch_pass_accepted: canUsePunchPass ? formData.punch_pass_eligible : false, // NOT punch_pass_eligible
-      punch_cost: formData.punch_cost ?? 1,
 
       // Joy Coins
       joy_coin_enabled: formData.joy_coin_enabled ?? false,
@@ -1024,7 +1015,7 @@ export default function EventEditor({
             <div className="grid grid-cols-2 gap-2 mt-2">
               {["free", "single_price", "multiple_tickets", "pay_what_you_wish"].map((type) => {
                 const isLocked = type === "multiple_tickets" && !canUseMultipleTickets;
-                const isDisabled = isLocked || (type === "free" && formData.punch_pass_eligible);
+                const isDisabled = isLocked;
                 return (
                   <button
                     key={type}
@@ -1064,12 +1055,6 @@ export default function EventEditor({
             {!canUseMultipleTickets && (
               <p className="text-xs text-slate-400 mt-1">
                 Multiple ticket types require Standard tier or higher.
-              </p>
-            )}
-            {formData.punch_pass_eligible && (!formData.pricing_type || formData.pricing_type === "free") && (
-              <p className="text-xs text-amber-500 flex items-center gap-1 mt-1">
-                <AlertCircle className="h-3 w-3" />
-                Punch Pass events cannot be free
               </p>
             )}
             {errors.pricing_type && (
@@ -1169,95 +1154,6 @@ export default function EventEditor({
                 <p className="text-red-400 text-sm mt-1">{errors.min_price}</p>
               )}
             </div>
-          )}
-        </div>
-
-        {/* Punch Pass */}
-        <div className="space-y-3">
-          <Label className="text-slate-300">Punch Pass</Label>
-          {canUsePunchPass ? (
-            <div className="space-y-3 p-4 bg-slate-900 border border-slate-700 rounded-xl">
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  const checked = !formData.punch_pass_eligible;
-                  const updates = { punch_pass_eligible: checked };
-                  if (checked && formData.pricing_type === "free") {
-                    updates.pricing_type = "";
-                  }
-                  setFormData((prev) => ({ ...prev, ...updates }));
-                }}
-                onKeyDown={(e) => {
-                  if (e.key !== "Enter") return;
-                  const checked = !formData.punch_pass_eligible;
-                  const updates = { punch_pass_eligible: checked };
-                  if (checked && formData.pricing_type === "free") {
-                    updates.pricing_type = "";
-                  }
-                  setFormData((prev) => ({ ...prev, ...updates }));
-                }}
-                className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
-              >
-                <span className="text-slate-300 pointer-events-none">Punch Pass Eligible</span>
-                <div
-                  className={cn(
-                    "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
-                    formData.punch_pass_eligible ? "bg-amber-500" : "bg-slate-600"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
-                      formData.punch_pass_eligible ? "translate-x-5" : "translate-x-0.5"
-                    )}
-                  />
-                </div>
-              </div>
-              {formData.punch_pass_eligible && (
-                <div>
-                  <Label className="text-slate-300 text-sm">Punch Cost</Label>
-                  <div className="flex gap-2 mt-2">
-                    {[1, 2, 3, 4, 5].map((cost) => (
-                      <button
-                        key={cost}
-                        type="button"
-                        onClick={() =>
-                          setFormData((prev) => ({ ...prev, punch_cost: cost }))
-                        }
-                        className={cn(
-                          "px-4 py-2 rounded-lg text-sm font-medium",
-                          formData.punch_cost === cost
-                            ? "bg-amber-500 text-black"
-                            : "bg-slate-800 text-slate-300 border border-slate-700"
-                        )}
-                      >
-                        {cost} {cost === 1 ? "punch" : "punches"}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-xs text-slate-400 mt-2">
-                    You earn 85% of punch value (${((formData.punch_cost || 1) * 0.85).toFixed(2)} per redemption)
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <LockedFeature
-              requiredTier="standard"
-              featureName="Punch Pass"
-              className="rounded-xl"
-            >
-              <div className="p-4 bg-slate-900 border border-slate-700 rounded-xl">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Punch Pass Eligible</span>
-                  <Switch disabled className="opacity-50" />
-                </div>
-                <p className="text-xs text-slate-500 mt-2">
-                  This event accepts Punch Pass payments
-                </p>
-              </div>
-            </LockedFeature>
           )}
         </div>
 
