@@ -185,6 +185,16 @@ export default function EventEditor({
               quantity_limit: t.quantity_limit != null ? String(t.quantity_limit) : "",
             }))
           : [{ name: "", price: "", quantity_limit: "" }],
+        // Joy Coins
+        joy_coin_enabled: existingEvent.joy_coin_enabled ?? false,
+        joy_coin_cost: existingEvent.joy_coin_cost != null ? String(existingEvent.joy_coin_cost) : "",
+        joy_coin_spots: existingEvent.joy_coin_spots != null ? String(existingEvent.joy_coin_spots) : "",
+        joy_coin_unlimited: existingEvent.joy_coin_unlimited ?? false,
+        max_party_size: existingEvent.max_party_size != null ? String(existingEvent.max_party_size) : "",
+        frequency_limit_count: existingEvent.frequency_limit_count != null ? String(existingEvent.frequency_limit_count) : "",
+        frequency_limit_period: existingEvent.frequency_limit_period || "",
+        refund_policy: existingEvent.refund_policy || "moderate",
+        adults_only: existingEvent.adults_only ?? false,
       });
       const presetMinutes = durationPresets
         .filter((d) => d.active !== false)
