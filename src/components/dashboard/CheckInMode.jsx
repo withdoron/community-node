@@ -138,8 +138,16 @@ export function CheckInMode({ event, onExit }) {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [checkingIn, setCheckingIn] = useState(null);
+  const [processingNoShows, setProcessingNoShows] = useState(false);
 
   const eventDate = event?.date || event?.start_date;
+  const eventEnd = event?.end_date
+    ? new Date(event.end_date)
+    : new Date(
+        new Date(event?.date || event?.start_date || 0).getTime() +
+          (event?.duration_minutes || 60) * 60 * 1000
+      );
+  const hasEnded = new Date() > eventEnd;
 
   const { data: rsvps = [], isLoading } = useQuery({
     queryKey: ['eventRsvps', event?.id],
@@ -298,6 +306,31 @@ export function CheckInMode({ event, onExit }) {
             </CardContent>
           </Card>
         </div>
+
+        {hasEnded && (
+          <div className="mb-6">
+            <Button
+              onClick={async () => {
+                setProcessingNoShows(true);
+                try {
+                  const { processNoShowsForEvent } = await import('@/functions/processNoShows');
+                  const results = await processNoShowsForEvent(event.id);
+                  toast.success(`Processed ${results.rsvpsMarkedNoShow} no-shows`);
+                  queryClient.invalidateQueries({ queryKey: ['eventRsvps', event.id] });
+                } catch (error) {
+                  toast.error(error?.message || 'Failed to process no-shows');
+                } finally {
+                  setProcessingNoShows(false);
+                }
+              }}
+              disabled={processingNoShows}
+              variant="outline"
+              className="w-full border-red-500/50 text-red-400 hover:bg-red-500/10"
+            >
+              {processingNoShows ? 'Processing...' : 'Mark Remaining as No-Show'}
+            </Button>
+          </div>
+        )}
 
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
