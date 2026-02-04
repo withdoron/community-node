@@ -24,17 +24,18 @@ import {
 import { ArrowLeft, Store, Wallet, Ticket, Plus, Palette, Users, TrendingUp, Trash2, Settings, Loader2 } from "lucide-react";
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
 import CheckInWidget from '@/components/dashboard/widgets/CheckInWidget';
+import { JoyCoinsAnalyticsWidget } from '@/components/dashboard/widgets/JoyCoinsAnalyticsWidget';
 import { toast } from "sonner";
 
 // DASHBOARD CONFIGURATION BY ARCHETYPE
 const DASHBOARD_CONFIG = {
   location: {
     title: 'Storefront Management',
-    widgets: ['Overview', 'Events', 'Staff', 'Financials', 'CheckIn']
+    widgets: ['Overview', 'Events', 'Staff', 'Financials', 'CheckIn', 'JoyCoinsAnalytics']
   },
   venue: {
     title: 'Storefront Management',
-    widgets: ['Overview', 'Events', 'Staff', 'Financials', 'CheckIn']
+    widgets: ['Overview', 'Events', 'Staff', 'Financials', 'CheckIn', 'JoyCoinsAnalytics']
   },
   service: {
     title: 'Artist Command Center',
@@ -546,6 +547,11 @@ export default function BusinessDashboard() {
         {/* CheckIn - Venue/Location */}
         {config.widgets.includes('CheckIn') && (
           <CheckInWidget business={selectedBusiness} onEnterCheckIn={setCheckInEvent} />
+        )}
+
+        {/* JoyCoinsAnalytics - Venue/Location */}
+        {config.widgets.includes('JoyCoinsAnalytics') && (
+          <JoyCoinsAnalyticsWidget business={selectedBusiness} />
         )}
 
         {/* Financials - Only Owners */}
