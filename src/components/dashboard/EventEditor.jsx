@@ -71,8 +71,12 @@ export default function EventEditor({
     joy_coin_enabled: false,
     joy_coin_cost: "",
     joy_coin_spots: "",
+    joy_coin_unlimited: false,
     max_party_size: "",
+    frequency_limit_count: "",
+    frequency_limit_period: "",
     refund_policy: "moderate",
+    adults_only: false,
     event_types: [],
     networks: [],
     age_info: "",
@@ -340,9 +344,13 @@ export default function EventEditor({
       // Joy Coins
       joy_coin_enabled: formData.joy_coin_enabled ?? false,
       joy_coin_cost: formData.joy_coin_enabled && formData.joy_coin_cost !== "" ? parseInt(formData.joy_coin_cost, 10) : null,
-      joy_coin_spots: formData.joy_coin_enabled && formData.joy_coin_spots !== "" ? parseInt(formData.joy_coin_spots, 10) : null,
+      joy_coin_spots: formData.joy_coin_enabled && !formData.joy_coin_unlimited && formData.joy_coin_spots !== "" ? parseInt(formData.joy_coin_spots, 10) : null,
+      joy_coin_unlimited: formData.joy_coin_enabled ? formData.joy_coin_unlimited : false,
       max_party_size: formData.joy_coin_enabled && formData.max_party_size !== "" ? parseInt(formData.max_party_size, 10) : null,
+      frequency_limit_count: formData.joy_coin_enabled && formData.frequency_limit_count !== "" ? parseInt(formData.frequency_limit_count, 10) : null,
+      frequency_limit_period: formData.joy_coin_enabled && formData.frequency_limit_period ? formData.frequency_limit_period : null,
       refund_policy: formData.joy_coin_enabled ? (formData.refund_policy || "moderate") : null,
+      adults_only: formData.adults_only ?? false,
 
       // Categorization
       event_type: formData.event_types?.[0] || null,
@@ -1293,18 +1301,45 @@ export default function EventEditor({
                   placeholder="e.g., 3"
                 />
               </div>
-              <div>
-                <Label className="text-slate-300">Joy Coin spots (optional)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={formData.joy_coin_spots}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, joy_coin_spots: e.target.value }))
-                  }
-                  className="bg-slate-900 border-slate-700 text-white mt-1 w-32"
-                  placeholder="Defaults to event capacity"
-                />
+              {!formData.joy_coin_unlimited && (
+                <div>
+                  <Label className="text-slate-300">Joy Coin spots (optional)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={formData.joy_coin_spots}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, joy_coin_spots: e.target.value }))
+                    }
+                    className="bg-slate-900 border-slate-700 text-white mt-1 w-32"
+                    placeholder="Defaults to event capacity"
+                  />
+                </div>
+              )}
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => setFormData((prev) => ({ ...prev, joy_coin_unlimited: !prev.joy_coin_unlimited }))}
+                onKeyDown={(e) => e.key === "Enter" && setFormData((prev) => ({ ...prev, joy_coin_unlimited: !prev.joy_coin_unlimited }))}
+                className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
+              >
+                <div className="pointer-events-none">
+                  <span className="text-slate-300">Unlimited Joy Coin spots</span>
+                  <p className="text-xs text-slate-500">No limit on Joy Coin reservations</p>
+                </div>
+                <div
+                  className={cn(
+                    "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
+                    formData.joy_coin_unlimited ? "bg-amber-500" : "bg-slate-600"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                      formData.joy_coin_unlimited ? "translate-x-5" : "translate-x-0.5"
+                    )}
+                  />
+                </div>
               </div>
               <div>
                 <Label className="text-slate-300">Max party size (optional)</Label>
@@ -1318,6 +1353,34 @@ export default function EventEditor({
                   className="bg-slate-900 border-slate-700 text-white mt-1 w-32"
                   placeholder="Defaults to 10"
                 />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-slate-300">Attendance limit (optional)</Label>
+                <p className="text-xs text-slate-500">Limit how often the same member can attend</p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min="1"
+                    value={formData.frequency_limit_count}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, frequency_limit_count: e.target.value }))}
+                    className="bg-slate-900 border-slate-700 text-white w-20"
+                    placeholder="∞"
+                  />
+                  <span className="text-slate-400">times per</span>
+                  <Select
+                    value={formData.frequency_limit_period}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, frequency_limit_period: value }))}
+                  >
+                    <SelectTrigger className="w-32 bg-slate-900 border-slate-700 text-white">
+                      <SelectValue placeholder="Select..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-slate-700">
+                      <SelectItem value="week" className="text-slate-300">week</SelectItem>
+                      <SelectItem value="month" className="text-slate-300">month</SelectItem>
+                      <SelectItem value="total" className="text-slate-300">total</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div>
                 <Label className="text-slate-300">Refund policy</Label>
@@ -1342,6 +1405,31 @@ export default function EventEditor({
                     </SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => setFormData((prev) => ({ ...prev, adults_only: !prev.adults_only }))}
+                onKeyDown={(e) => e.key === "Enter" && setFormData((prev) => ({ ...prev, adults_only: !prev.adults_only }))}
+                className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
+              >
+                <div className="pointer-events-none">
+                  <span className="text-slate-300">Adults only (18+)</span>
+                  <p className="text-xs text-slate-500">Only adult household members can attend</p>
+                </div>
+                <div
+                  className={cn(
+                    "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
+                    formData.adults_only ? "bg-amber-500" : "bg-slate-600"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                      formData.adults_only ? "translate-x-5" : "translate-x-0.5"
+                    )}
+                  />
+                </div>
               </div>
             </div>
           )}
