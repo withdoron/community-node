@@ -40,7 +40,7 @@ export default function Directory() {
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
     if (selectedCategory !== 'all') params.set('cat', selectedCategory);
-    if (acceptsSilver) params.set('silver', '1');
+    if (acceptsJoyCoins) params.set('joycoins', '1');
     if (sortBy !== 'recommended') params.set('sort', sortBy);
     const qs = params.toString();
     const url = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
@@ -111,9 +111,9 @@ export default function Directory() {
       });
     }
 
-    // Accepts silver filter
-    if (acceptsSilver) {
-      result = result.filter(b => b.accepts_silver);
+    // Joy Coins filter
+    if (acceptsJoyCoins) {
+      result = result.filter(b => b.accepts_joy_coins);
     }
 
     // Trust-based default sort
@@ -140,7 +140,7 @@ export default function Directory() {
     setSearchInput('');
     setSearchQuery('');
     setSelectedCategory('all');
-    setAcceptsSilver(false);
+    setAcceptsJoyCoins(false);
     setSortBy('recommended');
   };
 
@@ -296,5 +296,4 @@ export default function Directory() {
       </div>
     </div>
   );
-}
 }
