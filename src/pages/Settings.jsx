@@ -250,6 +250,9 @@ export default function Settings() {
           {/* My Household Section */}
           <div>
             <HouseholdManager />
+            <p className="text-xs text-slate-500 mt-2 text-center">
+              Household changes are saved automatically
+            </p>
           </div>
 
           {/* Account Section */}

@@ -33,6 +33,7 @@ import {
   Plus,
   Lock,
   Video,
+  Coins,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -67,6 +68,11 @@ export default function EventEditor({
     min_price: "",
     punch_pass_eligible: false,
     punch_cost: 1,
+    joy_coin_enabled: false,
+    joy_coin_cost: "",
+    joy_coin_spots: "",
+    max_party_size: "",
+    refund_policy: "moderate",
     event_types: [],
     networks: [],
     age_info: "",
@@ -330,6 +336,13 @@ export default function EventEditor({
       // Punch Pass
       punch_pass_accepted: canUsePunchPass ? formData.punch_pass_eligible : false, // NOT punch_pass_eligible
       punch_cost: formData.punch_cost ?? 1,
+
+      // Joy Coins
+      joy_coin_enabled: formData.joy_coin_enabled ?? false,
+      joy_coin_cost: formData.joy_coin_enabled && formData.joy_coin_cost !== "" ? parseInt(formData.joy_coin_cost, 10) : null,
+      joy_coin_spots: formData.joy_coin_enabled && formData.joy_coin_spots !== "" ? parseInt(formData.joy_coin_spots, 10) : null,
+      max_party_size: formData.joy_coin_enabled && formData.max_party_size !== "" ? parseInt(formData.max_party_size, 10) : null,
+      refund_policy: formData.joy_coin_enabled ? (formData.refund_policy || "moderate") : null,
 
       // Categorization
       event_type: formData.event_types?.[0] || null,
@@ -1227,6 +1240,110 @@ export default function EventEditor({
                 </p>
               </div>
             </LockedFeature>
+          )}
+        </div>
+
+        {/* Joy Coins */}
+        <div className="space-y-3 p-4 rounded-xl border border-slate-700 bg-slate-800/50">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <Coins className="h-5 w-5 text-amber-500" />
+            Joy Coins
+          </h3>
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() =>
+              setFormData((prev) => ({ ...prev, joy_coin_enabled: !prev.joy_coin_enabled }))
+            }
+            onKeyDown={(e) =>
+              e.key === "Enter" &&
+              setFormData((prev) => ({ ...prev, joy_coin_enabled: !prev.joy_coin_enabled }))
+            }
+            className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
+          >
+            <span className="text-slate-300 pointer-events-none">
+              Accept Joy Coins for this event
+            </span>
+            <div
+              className={cn(
+                "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
+                formData.joy_coin_enabled ? "bg-amber-500" : "bg-slate-600"
+              )}
+            >
+              <span
+                className={cn(
+                  "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                  formData.joy_coin_enabled ? "translate-x-5" : "translate-x-0.5"
+                )}
+              />
+            </div>
+          </div>
+          {formData.joy_coin_enabled && (
+            <div className="space-y-4 pt-3 border-t border-slate-700">
+              <div>
+                <Label className="text-slate-300">Coins per person</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={formData.joy_coin_cost}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, joy_coin_cost: e.target.value }))
+                  }
+                  className="bg-slate-900 border-slate-700 text-white mt-1 w-32"
+                  placeholder="e.g., 3"
+                />
+              </div>
+              <div>
+                <Label className="text-slate-300">Joy Coin spots (optional)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={formData.joy_coin_spots}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, joy_coin_spots: e.target.value }))
+                  }
+                  className="bg-slate-900 border-slate-700 text-white mt-1 w-32"
+                  placeholder="Defaults to event capacity"
+                />
+              </div>
+              <div>
+                <Label className="text-slate-300">Max party size (optional)</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={formData.max_party_size}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, max_party_size: e.target.value }))
+                  }
+                  className="bg-slate-900 border-slate-700 text-white mt-1 w-32"
+                  placeholder="Defaults to 10"
+                />
+              </div>
+              <div>
+                <Label className="text-slate-300">Refund policy</Label>
+                <Select
+                  value={formData.refund_policy || "moderate"}
+                  onValueChange={(v) =>
+                    setFormData((prev) => ({ ...prev, refund_policy: v }))
+                  }
+                >
+                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-700">
+                    <SelectItem value="flexible" className="text-slate-300">
+                      Flexible (refund up to 2 hours before)
+                    </SelectItem>
+                    <SelectItem value="moderate" className="text-slate-300">
+                      Moderate (refund up to 24 hours before)
+                    </SelectItem>
+                    <SelectItem value="strict" className="text-slate-300">
+                      Strict (no refunds)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           )}
         </div>
 

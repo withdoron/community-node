@@ -45,7 +45,6 @@ const sections = [
       { to: `${ADMIN_BASE}/networks`, label: 'Networks', icon: Globe },
       { to: `${ADMIN_BASE}/joy-coins`, label: 'Joy Coins', icon: Coins },
       { to: `${ADMIN_BASE}/tiers`, label: 'Tiers', icon: CreditCard, placeholder: true },
-      { to: `${ADMIN_BASE}/punch-pass`, label: 'Punch Pass', icon: Zap, placeholder: true },
       { to: `${ADMIN_BASE}/settings`, label: 'Settings', icon: Settings },
     ],
   },
