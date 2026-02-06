@@ -21,7 +21,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Store, Wallet, Ticket, Plus, Palette, Users, TrendingUp, Trash2, Settings, Loader2 } from "lucide-react";
+import { ArrowLeft, Store, Wallet, Ticket, Plus, Palette, Users, TrendingUp, Trash2, Settings, Loader2, LayoutDashboard, Coins, Calendar } from "lucide-react";
+import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
 import CheckInWidget from '@/components/dashboard/widgets/CheckInWidget';
 import { JoyCoinsAnalyticsWidget } from '@/components/dashboard/widgets/JoyCoinsAnalyticsWidget';
@@ -67,6 +68,7 @@ export default function BusinessDashboard() {
   const [selectedBusinessId, setSelectedBusinessId] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [checkInEvent, setCheckInEvent] = useState(null);
+  const [activeTab, setActiveTab] = useState('home');
 
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -230,6 +232,22 @@ export default function BusinessDashboard() {
     },
     enabled: associatedBusinesses.length > 0
   });
+
+  // Events for selected business (used by Home tab and Events tab)
+  const { data: businessEvents = [] } = useQuery({
+    queryKey: ['business-events', selectedBusinessId],
+    queryFn: async () => {
+      if (!selectedBusinessId) return [];
+      return base44.entities.Event.filter(
+        { business_id: selectedBusinessId, is_active: true },
+        '-date',
+        100
+      );
+    },
+    enabled: !!selectedBusinessId
+  });
+
+  const revenue = useBusinessRevenue(selectedBusinessId);
 
   // Hard delete: Business.delete(id) removes record permanently. Fallback to soft delete if delete not available.
   const deleteMutation = useMutation({
@@ -432,156 +450,242 @@ export default function BusinessDashboard() {
             </div>
           </div>
         </div>
+        {/* Tab bar */}
+        <div className="flex gap-1 px-6">
+          <button
+            type="button"
+            onClick={() => setActiveTab('home')}
+            className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${activeTab === 'home' ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            Home
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('joy-coins')}
+            className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${activeTab === 'joy-coins' ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
+          >
+            <Coins className="h-4 w-4" />
+            Joy Coins
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('revenue')}
+            className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${activeTab === 'revenue' ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
+          >
+            <TrendingUp className="h-4 w-4" />
+            Revenue
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('events')}
+            className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${activeTab === 'events' ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
+          >
+            <Calendar className="h-4 w-4" />
+            Events
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('settings')}
+            className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${activeTab === 'settings' ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
+          >
+            <Settings className="h-4 w-4" />
+            Settings
+          </button>
+        </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
-        {/* Overview - Everyone can see */}
-        {config.widgets.includes('Overview') && (
-          <OverviewWidget business={selectedBusiness} />
+      {/* Tab content */}
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        {activeTab === 'home' && (
+          <>
+            <p className="text-lg text-slate-300 mb-6">
+              {revenue.totalRedemptions > 0 ? (
+                <>
+                  This month, {revenue.uniqueFamilies} families visited through LocalLane. Your estimated pool share:{' '}
+                  <span className="text-amber-500 font-bold">${Number(revenue.estimatedPayout).toFixed(2)}</span>
+                </>
+              ) : (
+                'Welcome to your LocalLane dashboard! Set your Joy Coin access hours and create events to start receiving families.'
+              )}
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                <Users className="h-5 w-5 text-amber-500 mb-2" />
+                <div className="text-2xl font-bold text-slate-100">{revenue.uniqueFamilies}</div>
+                <div className="text-sm text-slate-400">Families Served</div>
+              </div>
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                <Coins className="h-5 w-5 text-amber-500 mb-2" />
+                <div className="text-2xl font-bold text-slate-100">{revenue.totalCoinsRedeemed}</div>
+                <div className="text-sm text-slate-400">Joy Coins Redeemed</div>
+              </div>
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                <Wallet className="h-5 w-5 text-amber-500 mb-2" />
+                <div className="text-2xl font-bold text-slate-100">
+                  ${Number(revenue.estimatedPayout).toFixed(2)}
+                </div>
+                <div className="text-sm text-slate-400">Pool Share</div>
+              </div>
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                <Calendar className="h-5 w-5 text-amber-500 mb-2" />
+                <div className="text-2xl font-bold text-slate-100">
+                  {(() => {
+                    const now = new Date();
+                    const thisMonth = businessEvents.filter((e) => {
+                      const d = new Date(e.date || e.start_date);
+                      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                    }).length;
+                    return thisMonth;
+                  })()}
+                </div>
+                <div className="text-sm text-slate-400">Events This Month</div>
+              </div>
+            </div>
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-slate-100">Upcoming Events</h2>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('events')}
+                  className="text-sm text-amber-500 hover:text-amber-400"
+                >
+                  See All →
+                </button>
+              </div>
+              {(() => {
+                const now = new Date();
+                const upcoming = businessEvents
+                  .filter((e) => new Date(e.date || e.start_date) >= now)
+                  .sort((a, b) => new Date(a.date || a.start_date) - new Date(b.date || b.start_date))
+                  .slice(0, 3);
+                if (upcoming.length === 0) {
+                  return (
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 text-center">
+                      <p className="text-slate-400 mb-4">No upcoming events. Create one to start attracting families.</p>
+                      <Button
+                        variant="outline"
+                        className="bg-transparent border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
+                        onClick={() => setActiveTab('events')}
+                      >
+                        Create Event
+                      </Button>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="space-y-3">
+                    {upcoming.map((event) => (
+                      <div
+                        key={event.id}
+                        className="bg-slate-900/50 border border-slate-800 rounded-lg p-3 flex justify-between items-center"
+                      >
+                        <div>
+                          <div className="font-medium text-slate-100">{event.title}</div>
+                          <div className="text-sm text-slate-400">
+                            {event.date || event.start_date ? new Date(event.date || event.start_date).toLocaleString() : '—'}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm text-slate-400">
+                          {event.joy_coin_enabled && event.joy_coin_cost > 0 && (
+                            <span className="text-amber-500">{event.joy_coin_cost} coin(s)</span>
+                          )}
+                          <span>—</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="outline"
+                className="bg-transparent border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
+                onClick={() => setActiveTab('events')}
+              >
+                Create Event
+              </Button>
+              <Button
+                variant="outline"
+                className="bg-transparent border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
+                onClick={() => setActiveTab('joy-coins')}
+              >
+                Joy Coin Hours
+              </Button>
+              <Button
+                variant="outline"
+                className="bg-transparent border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
+                onClick={() => setActiveTab('revenue')}
+              >
+                View Revenue
+              </Button>
+            </div>
+          </>
         )}
 
-        {/* Events - Venue, Community, Organizer */}
-        {config.widgets.includes('Events') && (
-          <EventsWidget 
-            business={selectedBusiness} 
+        {activeTab === 'joy-coins' && (
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+            <Coins className="h-8 w-8 text-amber-500 mx-auto mb-3" />
+            <h2 className="text-xl font-bold text-slate-100">Joy Coin Access Hours</h2>
+            <p className="text-slate-400 mt-2">
+              Coming in Build 3 — manage when you accept Joy Coin members and set pricing per window.
+            </p>
+          </div>
+        )}
+
+        {activeTab === 'revenue' && (
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+            <TrendingUp className="h-8 w-8 text-amber-500 mx-auto mb-3" />
+            <h2 className="text-xl font-bold text-slate-100">Revenue Analytics</h2>
+            <p className="text-slate-400 mt-2">
+              Coming in Build 4 — see your pool share, scan trends, and network position.
+            </p>
+          </div>
+        )}
+
+        {activeTab === 'events' && (
+          <EventsWidget
+            business={selectedBusiness}
             allowEdit={true}
             userRole={userRole}
             onEnterCheckIn={setCheckInEvent}
           />
         )}
 
-        {/* Schedule - Talent/Service */}
-        {config.widgets.includes('Schedule') && (
-          <Card className="p-6 bg-slate-900 border-slate-800">
-            <div className="flex items-center gap-3 mb-4">
-              <TrendingUp className="h-5 w-5 text-amber-500" />
-              <h2 className="text-xl font-bold text-slate-100">Schedule</h2>
+        {activeTab === 'settings' && (
+          <div className="space-y-6">
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+              <Settings className="h-8 w-8 text-amber-500 mx-auto mb-3" />
+              <h2 className="text-xl font-bold text-slate-100">Business Settings</h2>
+              <p className="text-slate-400 mt-2">
+                Coming in Build 6 — profile, staff management, and subscription.
+              </p>
             </div>
-            <p className="text-sm text-slate-400">Booking calendar coming soon...</p>
-          </Card>
-        )}
-
-        {/* Portfolio - Talent/Service */}
-        {config.widgets.includes('Portfolio') && (
-          <Card className="p-6 bg-slate-900 border-slate-800">
-            <div className="flex items-center gap-3 mb-4">
-              <Palette className="h-5 w-5 text-amber-500" />
-              <h2 className="text-xl font-bold text-slate-100">Portfolio</h2>
-            </div>
-            <p className="text-sm text-slate-400">Showcase your work - coming soon...</p>
-          </Card>
-        )}
-
-        {/* Reviews - Talent/Service */}
-        {config.widgets.includes('Reviews') && (
-          <Card className="p-6 bg-slate-900 border-slate-800">
-            <div className="flex items-center gap-3 mb-4">
-              <Store className="h-5 w-5 text-amber-500" />
-              <h2 className="text-xl font-bold text-slate-100">Reviews</h2>
-            </div>
-            <p className="text-sm text-slate-400">Client testimonials coming soon...</p>
-          </Card>
-        )}
-
-        {/* Members - Community */}
-        {config.widgets.includes('Members') && (
-          <Card className="p-6 bg-slate-900 border-slate-800">
-            <div className="flex items-center gap-3 mb-4">
-              <Users className="h-5 w-5 text-amber-500" />
-              <h2 className="text-xl font-bold text-slate-100">Members</h2>
-            </div>
-            <p className="text-sm text-slate-400">Membership management coming soon...</p>
-          </Card>
-        )}
-
-        {/* Donations - Community */}
-        {config.widgets.includes('Donations') && (
-          <Card className="p-6 bg-slate-900 border-slate-800">
-            <div className="flex items-center gap-3 mb-4">
-              <Wallet className="h-5 w-5 text-amber-500" />
-              <h2 className="text-xl font-bold text-slate-100">Donations</h2>
-            </div>
-            <p className="text-sm text-slate-400">Fundraising tools coming soon...</p>
-          </Card>
-        )}
-
-        {/* Ticketing - Organizer */}
-        {config.widgets.includes('Ticketing') && (
-          <Card className="p-6 bg-slate-900 border-slate-800">
-            <div className="flex items-center gap-3 mb-4">
-              <Ticket className="h-5 w-5 text-amber-500" />
-              <h2 className="text-xl font-bold text-slate-100">Ticketing</h2>
-            </div>
-            <p className="text-sm text-slate-400">Ticket sales & check-ins coming soon...</p>
-          </Card>
-        )}
-
-        {/* Marketing - Organizer */}
-        {config.widgets.includes('Marketing') && (
-          <Card className="p-6 bg-slate-900 border-slate-800">
-            <div className="flex items-center gap-3 mb-4">
-              <TrendingUp className="h-5 w-5 text-amber-500" />
-              <h2 className="text-xl font-bold text-slate-100">Marketing</h2>
-            </div>
-            <p className="text-sm text-slate-400">Promotion tools coming soon...</p>
-          </Card>
-        )}
-
-        {/* Team - Organizer */}
-        {config.widgets.includes('Team') && (
-          <Card className="p-6 bg-slate-900 border-slate-800">
-            <div className="flex items-center gap-3 mb-4">
-              <Users className="h-5 w-5 text-amber-500" />
-              <h2 className="text-xl font-bold text-slate-100">Team</h2>
-            </div>
-            <p className="text-sm text-slate-400">Staff coordination coming soon...</p>
-          </Card>
-        )}
-
-        {/* Staff - Owners and Staff (Venue/Location) */}
-        {config.widgets.includes('Staff') && (isOwner || isStaff) && (
-          <StaffWidget business={selectedBusiness} currentUserId={currentUser?.id} />
-        )}
-
-        {/* CheckIn - Venue/Location */}
-        {config.widgets.includes('CheckIn') && (
-          <CheckInWidget business={selectedBusiness} onEnterCheckIn={setCheckInEvent} />
-        )}
-
-        {/* JoyCoinsAnalytics - Venue/Location */}
-        {config.widgets.includes('JoyCoinsAnalytics') && (
-          <JoyCoinsAnalyticsWidget business={selectedBusiness} />
-        )}
-
-        {/* Financials - Only Owners */}
-        {config.widgets.includes('Financials') && isOwner && (
-          <FinancialWidget business={selectedBusiness} />
-        )}
-
-        {/* Business settings - Owner only: Delete Business */}
-        {isOwner && (
-          <Card className="p-6 bg-slate-900 border-slate-800">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Settings className="h-5 w-5 text-slate-400" />
-                <h2 className="text-xl font-bold text-slate-100">Business settings</h2>
-              </div>
-            </div>
-            <p className="text-sm text-slate-400 mb-4">
-              Permanently remove this business and its data. This action uses a soft delete (business is marked deleted).
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
-              onClick={() => setDeleteDialogOpen(true)}
-              disabled={deleteMutation.isPending}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete Business
-            </Button>
-          </Card>
+            {isOwner && (
+              <Card className="p-6 bg-slate-900 border-slate-800">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Settings className="h-5 w-5 text-slate-400" />
+                    <h2 className="text-xl font-bold text-slate-100">Business settings</h2>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-400 mb-4">
+                  Permanently remove this business and its data. This action uses a soft delete (business is marked deleted).
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                  onClick={() => setDeleteDialogOpen(true)}
+                  disabled={deleteMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Business
+                </Button>
+              </Card>
+            )}
+          </div>
         )}
       </div>
 
