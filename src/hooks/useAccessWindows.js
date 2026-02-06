@@ -44,9 +44,17 @@ export function useAccessWindows(businessId) {
       business_id: businessId,
       is_active: true
     });
+    // Auto-sync: flip accepts_joy_coins to true if this is the first window
+    try {
+      if (windows.length === 0) {
+        await base44.entities.Business.update(businessId, { accepts_joy_coins: true });
+      }
+    } catch (err) {
+      console.error('[useAccessWindows] Failed to sync accepts_joy_coins:', err);
+    }
     await fetchWindows();
     return created;
-  }, [businessId, fetchWindows]);
+  }, [businessId, fetchWindows, windows.length]);
 
   const updateWindow = useCallback(async (id, data) => {
     const AccessWindow = base44.entities.AccessWindow;
@@ -58,8 +66,17 @@ export function useAccessWindows(businessId) {
   const deleteWindow = useCallback(async (id) => {
     const AccessWindow = base44.entities.AccessWindow;
     await AccessWindow.delete(id);
+    // Auto-sync: flip accepts_joy_coins to false if no active windows remain
+    try {
+      const remaining = windows.filter(w => w.id !== id);
+      if (remaining.length === 0) {
+        await base44.entities.Business.update(businessId, { accepts_joy_coins: false });
+      }
+    } catch (err) {
+      console.error('[useAccessWindows] Failed to sync accepts_joy_coins:', err);
+    }
     await fetchWindows();
-  }, [fetchWindows]);
+  }, [businessId, fetchWindows, windows]);
 
   const toggleWindow = useCallback(async (id) => {
     const window = windows.find(w => w.id === id);
