@@ -18,6 +18,7 @@ import {
   Loader2, ThumbsUp, BookOpen, Shield
 } from "lucide-react";
 import { formatAddress, buildMapsQuery } from '@/components/locations/formatAddress';
+import JoyCoinHours from '@/components/business/JoyCoinHours';
 
 const categoryLabels = {
   carpenter: 'Carpenter',
@@ -437,6 +438,9 @@ export default function BusinessProfile() {
                 </div>
               )}
             </Card>
+            {business.accepts_joy_coins && (
+              <JoyCoinHours businessId={business.id} />
+            )}
           </div>
         </div>
       </div>
