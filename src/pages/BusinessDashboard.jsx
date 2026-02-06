@@ -4,10 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import BusinessCard from '@/components/dashboard/BusinessCard';
-import OverviewWidget from '@/components/dashboard/widgets/OverviewWidget';
 import EventsWidget from '@/components/dashboard/widgets/EventsWidget';
-import StaffWidget from '@/components/dashboard/widgets/StaffWidget';
-import FinancialWidget from '@/components/dashboard/widgets/FinancialWidget';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -21,48 +18,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Store, Wallet, Ticket, Plus, Palette, Users, TrendingUp, Trash2, Settings, Loader2, LayoutDashboard, Coins, Calendar } from "lucide-react";
+import { ArrowLeft, Store, Wallet, Ticket, Plus, Users, TrendingUp, Trash2, Settings, Loader2, LayoutDashboard, Coins, Calendar } from "lucide-react";
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
 import AccessWindowManager from '@/components/dashboard/AccessWindowManager';
 import RevenueOverview from '@/components/dashboard/RevenueOverview';
 import BusinessSettings from '@/components/dashboard/BusinessSettings';
-import CheckInWidget from '@/components/dashboard/widgets/CheckInWidget';
-import { JoyCoinsAnalyticsWidget } from '@/components/dashboard/widgets/JoyCoinsAnalyticsWidget';
 import { toast } from "sonner";
 
-// DASHBOARD CONFIGURATION BY ARCHETYPE
-const DASHBOARD_CONFIG = {
-  location: {
-    title: 'Storefront Management',
-    widgets: ['Overview', 'Events', 'Staff', 'Financials', 'CheckIn', 'JoyCoinsAnalytics']
-  },
-  venue: {
-    title: 'Storefront Management',
-    widgets: ['Overview', 'Events', 'Staff', 'Financials', 'CheckIn', 'JoyCoinsAnalytics']
-  },
-  service: {
-    title: 'Artist Command Center',
-    widgets: ['Overview', 'Schedule', 'Portfolio', 'Reviews']
-  },
-  talent: {
-    title: 'Artist Command Center',
-    widgets: ['Overview', 'Schedule', 'Portfolio', 'Reviews']
-  },
-  community: {
-    title: 'Group Hub',
-    widgets: ['Overview', 'Events', 'Members', 'Donations']
-  },
-  organizer: {
-    title: 'Event Command Center',
-    widgets: ['Overview', 'Ticketing', 'Marketing', 'Team']
-  }
-};
-
-// Fallback for unspecified archetypes
-const DEFAULT_CONFIG = {
-  title: 'Business Dashboard',
-  widgets: ['Overview', 'Events', 'Staff', 'Financials']
+const ARCHETYPE_TITLES = {
+  location: 'Storefront Management',
+  venue: 'Storefront Management',
+  service: 'Artist Command Center',
+  talent: 'Artist Command Center',
+  community: 'Group Hub',
+  organizer: 'Event Command Center'
 };
 
 export default function BusinessDashboard() {
@@ -419,9 +389,17 @@ export default function BusinessDashboard() {
 
   const userRole = getUserRole(selectedBusiness);
   const archetype = selectedBusiness.archetype || 'location';
-  const config = DASHBOARD_CONFIG[archetype] || DEFAULT_CONFIG;
+  const archetypeTitle = ARCHETYPE_TITLES[archetype] || 'Business Dashboard';
   const isOwner = userRole === 'owner';
-  const isStaff = userRole === 'staff';
+
+  if (checkInEvent) {
+    return (
+      <CheckInMode
+        event={checkInEvent}
+        onExit={() => setCheckInEvent(null)}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -443,7 +421,7 @@ export default function BusinessDashboard() {
               <Store className="h-5 w-5 text-amber-500" />
               <div>
                 <h1 className="text-lg font-bold text-slate-100">{selectedBusiness.name}</h1>
-                <p className="text-xs text-slate-400">{config.title}</p>
+                <p className="text-xs text-slate-400">{archetypeTitle}</p>
               </div>
               {userRole === 'owner' ? (
                 <Badge className="ml-2 bg-amber-500 text-black">OWNER</Badge>
