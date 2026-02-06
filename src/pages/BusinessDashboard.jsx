@@ -26,6 +26,7 @@ import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
 import AccessWindowManager from '@/components/dashboard/AccessWindowManager';
 import RevenueOverview from '@/components/dashboard/RevenueOverview';
+import BusinessSettings from '@/components/dashboard/BusinessSettings';
 import CheckInWidget from '@/components/dashboard/widgets/CheckInWidget';
 import { JoyCoinsAnalyticsWidget } from '@/components/dashboard/widgets/JoyCoinsAnalyticsWidget';
 import { toast } from "sonner";
@@ -645,13 +646,7 @@ export default function BusinessDashboard() {
 
         {activeTab === 'settings' && (
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-              <Settings className="h-8 w-8 text-amber-500 mx-auto mb-3" />
-              <h2 className="text-xl font-bold text-slate-100">Business Settings</h2>
-              <p className="text-slate-400 mt-2">
-                Coming in Build 6 — profile, staff management, and subscription.
-              </p>
-            </div>
+            <BusinessSettings business={selectedBusiness} currentUserId={currentUser?.id} />
             {isOwner && (
               <Card className="p-6 bg-slate-900 border-slate-800">
                 <div className="flex items-center justify-between mb-4">
