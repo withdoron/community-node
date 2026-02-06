@@ -25,6 +25,7 @@ import { ArrowLeft, Store, Wallet, Ticket, Plus, Palette, Users, TrendingUp, Tra
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
 import AccessWindowManager from '@/components/dashboard/AccessWindowManager';
+import RevenueOverview from '@/components/dashboard/RevenueOverview';
 import CheckInWidget from '@/components/dashboard/widgets/CheckInWidget';
 import { JoyCoinsAnalyticsWidget } from '@/components/dashboard/widgets/JoyCoinsAnalyticsWidget';
 import { toast } from "sonner";
@@ -630,13 +631,7 @@ export default function BusinessDashboard() {
         )}
 
         {activeTab === 'revenue' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-            <TrendingUp className="h-8 w-8 text-amber-500 mx-auto mb-3" />
-            <h2 className="text-xl font-bold text-slate-100">Revenue Analytics</h2>
-            <p className="text-slate-400 mt-2">
-              Coming in Build 4 — see your pool share, scan trends, and network position.
-            </p>
-          </div>
+          <RevenueOverview business={selectedBusiness} />
         )}
 
         {activeTab === 'events' && (
