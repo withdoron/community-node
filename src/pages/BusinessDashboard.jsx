@@ -24,6 +24,7 @@ import {
 import { ArrowLeft, Store, Wallet, Ticket, Plus, Palette, Users, TrendingUp, Trash2, Settings, Loader2, LayoutDashboard, Coins, Calendar } from "lucide-react";
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
+import AccessWindowManager from '@/components/dashboard/AccessWindowManager';
 import CheckInWidget from '@/components/dashboard/widgets/CheckInWidget';
 import { JoyCoinsAnalyticsWidget } from '@/components/dashboard/widgets/JoyCoinsAnalyticsWidget';
 import { toast } from "sonner";
@@ -625,13 +626,7 @@ export default function BusinessDashboard() {
         )}
 
         {activeTab === 'joy-coins' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-            <Coins className="h-8 w-8 text-amber-500 mx-auto mb-3" />
-            <h2 className="text-xl font-bold text-slate-100">Joy Coin Access Hours</h2>
-            <p className="text-slate-400 mt-2">
-              Coming in Build 3 — manage when you accept Joy Coin members and set pricing per window.
-            </p>
-          </div>
+          <AccessWindowManager business={selectedBusiness} />
         )}
 
         {activeTab === 'revenue' && (
