@@ -102,10 +102,21 @@ Writes go through `manageRecommendation` (create, update, remove). Server enforc
 
 Creates go through `manageRecommendation` (action: create_concern). Admin concern status updates use direct entity calls.
 
+## RSVP (Phase 3d)
+
+| Operation | Permission |
+|-----------|------------|
+| Read | Authenticated |
+| Create | Admin only |
+| Update | Admin only |
+| Delete | Admin only |
+
+Writes go through `manageRSVP` (rsvp, cancel, checkin, no_show). Orchestrates Joy Coin reservation/refund/forfeit/redemption. handleEventCancellation uses asServiceRole for RSVP updates.
+
 ## Notes
 
 - **CategoryClick** create remains Authenticated — regular users click categories; low risk, no server function needed.
 - **deleteBusinessCascade** runs client-side with admin auth — AdminSettings/Business filter/delete/update will succeed when user is admin.
 - All AdminSettings writes go through `updateAdminSettings`. Business writes through `updateBusiness`. Event writes (client) through `manageEvent`; Spoke webhook uses `updateEvent`.
 - **Business.create** (e.g. BusinessOnboarding) is admin-only; no server function for create.
-- User profile: `updateUser`. Recommendation/Concern: `manageRecommendation` (create, update, remove, create_concern).
+- User profile: `updateUser`. Recommendation/Concern: `manageRecommendation` (create, update, remove, create_concern). RSVP + Joy Coin lifecycle: `manageRSVP` (rsvp, cancel, checkin, no_show).

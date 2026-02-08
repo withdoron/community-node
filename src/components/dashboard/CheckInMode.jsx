@@ -177,54 +177,15 @@ export function CheckInMode({ event, onExit }) {
 
   const checkInMutation = useMutation({
     mutationFn: async ({ rsvp }) => {
-      // NOTE: PIN validation should use server function with PIN hash. Staff override when pin is null.
-      const now = new Date().toISOString();
-
-      await base44.entities.RSVP.update(rsvp.id, {
-        checked_in: true,
-        checked_in_at: now,
-        checked_in_by: 'staff'
+      const result = await base44.functions.invoke('manageRSVP', {
+        action: 'checkin',
+        event_id: event.id,
+        rsvp_id: rsvp.id,
       });
-
-      if (rsvp.joy_coin_reservation_id) {
-        const reservations = await base44.entities.JoyCoinReservations.filter({
-          id: rsvp.joy_coin_reservation_id
-        });
-
-        if (reservations.length > 0 && reservations[0].status === 'held') {
-          const reservation = reservations[0];
-
-          await base44.entities.JoyCoinReservations.update(reservation.id, {
-            status: 'redeemed',
-            resolved_at: now,
-            resolution_type: 'checkin'
-          });
-
-          const joyCoinsRecords = await base44.entities.JoyCoins.filter({
-            user_id: rsvp.user_id
-          });
-
-          if (joyCoinsRecords.length > 0) {
-            const joyCoins = joyCoinsRecords[0];
-
-            await base44.entities.JoyCoinTransactions.create({
-              user_id: rsvp.user_id,
-              type: 'redemption',
-              amount: 0,
-              balance_after: joyCoins.balance ?? 0,
-              event_id: event.id,
-              rsvp_id: rsvp.id,
-              reservation_id: reservation.id,
-              business_id: event.business_id
-            });
-
-            await base44.entities.JoyCoins.update(joyCoins.id, {
-              lifetime_spent: (joyCoins.lifetime_spent ?? 0) + (reservation.amount ?? 0)
-            });
-          }
-        }
+      const data = result?.data ?? result;
+      if (data?.error) {
+        throw new Error(data.error);
       }
-
       return { rsvp };
     },
     onSuccess: ({ rsvp }) => {

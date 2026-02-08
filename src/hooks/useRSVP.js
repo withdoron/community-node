@@ -57,90 +57,21 @@ export function useRSVP(eventId, currentUser) {
     enabled: !!eventId
   });
 
-  // RSVP "I'm Going"
-  // NOTE: For Joy Coin events, coin deduction and reservation creation should migrate to a
-  // service role function for atomicity. See JOY-COINS-SPEC.md §2.1 RSVP + Reservation Flow.
+  // RSVP "I'm Going" — server function handles Joy Coin reservation + deduction
   const rsvpGoing = useMutation({
     mutationFn: async (variables = {}) => {
-      const event = variables.event || null;
-      const rawPartySize = variables.partySize ?? 1;
-      const partyComposition = variables.partyComposition ?? null;
-      const maxParty = event?.max_party_size != null ? event.max_party_size : 10;
-      const partySize = Math.max(1, Math.min(rawPartySize, maxParty));
-      const joyCoinCost = event?.joy_coin_cost ?? 0;
-      const isJoyCoinEvent = event?.joy_coin_enabled && joyCoinCost > 0;
-      const joyCoinTotal = isJoyCoinEvent ? partySize * joyCoinCost : 0;
-
-      if (isJoyCoinEvent && joyCoinTotal > 0) {
-        const joyCoinsRecords = await base44.entities.JoyCoins.filter({ user_id: userId });
-        const joyCoins = joyCoinsRecords[0];
-        if (!joyCoins || (joyCoins.balance ?? 0) < joyCoinTotal) {
-          throw new Error('INSUFFICIENT_JOY_COINS');
-        }
-      }
-
-      const existing = await base44.entities.RSVP.filter({
+      const result = await base44.functions.invoke('manageRSVP', {
+        action: 'rsvp',
         event_id: eventId,
-        user_id: userId
+        party_size: variables.partySize ?? 1,
+        party_composition: variables.partyComposition ?? undefined,
       });
-
-      if (existing.length > 0) {
-        await base44.entities.RSVP.update(existing[0].id, {
-          status: 'going',
-          is_active: true
-        });
-      } else {
-        const rsvpPayload = {
-          event_id: eventId,
-          user_id: userId,
-          user_name: currentUser.full_name || currentUser.email,
-          status: 'going',
-          is_active: true,
-          created_date: new Date().toISOString()
-        };
-        if (isJoyCoinEvent) {
-          rsvpPayload.party_size = partySize;
-          rsvpPayload.joy_coin_total = joyCoinTotal;
-        }
-        if (partyComposition && Array.isArray(partyComposition) && partyComposition.length > 0) {
-          rsvpPayload.party_composition = partyComposition;
-        }
-
-        const rsvp = await base44.entities.RSVP.create(rsvpPayload);
-
-        if (isJoyCoinEvent && joyCoinTotal > 0) {
-          const reservation = await base44.entities.JoyCoinReservations.create({
-            user_id: userId,
-            event_id: eventId,
-            rsvp_id: rsvp.id,
-            amount: joyCoinTotal,
-            status: 'held',
-            held_at: new Date().toISOString()
-          });
-
-          await base44.entities.RSVP.update(rsvp.id, {
-            joy_coin_reservation_id: reservation.id
-          });
-
-          const joyCoinsRecords = await base44.entities.JoyCoins.filter({ user_id: userId });
-          const joyCoinsRecord = joyCoinsRecords[0];
-          const newBalance = Math.max(0, (joyCoinsRecord?.balance ?? 0) - joyCoinTotal);
-
-          await base44.entities.JoyCoinTransactions.create({
-            user_id: userId,
-            type: 'reservation',
-            amount: -joyCoinTotal,
-            balance_after: newBalance,
-            event_id: eventId,
-            rsvp_id: rsvp.id,
-            reservation_id: reservation.id
-          });
-
-          await base44.entities.JoyCoins.update(joyCoinsRecord.id, {
-            balance: newBalance,
-            lifetime_spent: (joyCoinsRecord?.lifetime_spent ?? 0) + joyCoinTotal
-          });
-        }
+      const data = result?.data ?? result;
+      if (data?.error === 'INSUFFICIENT_JOY_COINS') {
+        throw new Error('INSUFFICIENT_JOY_COINS');
+      }
+      if (data?.error) {
+        throw new Error(data.error);
       }
     },
     onSuccess: () => {
@@ -154,84 +85,21 @@ export function useRSVP(eventId, currentUser) {
     }
   });
 
-  // Cancel RSVP
-  // NOTE: Joy Coin refund/forfeit logic should migrate to a service role function for atomicity.
+  // Cancel RSVP — server function handles refund/forfeit
   const rsvpCancel = useMutation({
     mutationFn: async (variables = {}) => {
       if (!userRSVP) return;
 
-      let event = variables.event || null;
-      if (!event && eventId) {
-        const events = await base44.entities.Event.filter({ id: eventId });
-        event = events[0] || null;
-      }
-      const reservationId = userRSVP.joy_coin_reservation_id;
-      const joyCoinTotal = userRSVP.joy_coin_total ?? 0;
-      const hasJoyCoinReservation = !!reservationId && joyCoinTotal > 0;
-
-      if (hasJoyCoinReservation && event) {
-        const reservationRecords = await base44.entities.JoyCoinReservations.filter({ id: reservationId });
-        const reservation = reservationRecords[0];
-        if (!reservation || reservation.status !== 'held') {
-          // Reservation already resolved, just cancel RSVP
-        } else {
-          const willRefund = getRefundEligibility(event);
-          const now = new Date().toISOString();
-
-          if (willRefund) {
-            await base44.entities.JoyCoinReservations.update(reservationId, {
-              status: 'refunded',
-              resolved_at: now,
-              resolution_type: 'cancel_refund'
-            });
-
-            const joyCoinsRecords = await base44.entities.JoyCoins.filter({ user_id: userId });
-            const joyCoinsRecord = joyCoinsRecords[0];
-            const newBalance = (joyCoinsRecord?.balance ?? 0) + joyCoinTotal;
-
-            await base44.entities.JoyCoinTransactions.create({
-              user_id: userId,
-              type: 'refund',
-              amount: joyCoinTotal,
-              balance_after: newBalance,
-              event_id: eventId,
-              rsvp_id: userRSVP.id,
-              reservation_id: reservationId,
-              note: 'RSVP cancelled within refund window'
-            });
-
-            await base44.entities.JoyCoins.update(joyCoinsRecord.id, {
-              balance: newBalance,
-              lifetime_spent: Math.max(0, (joyCoinsRecord?.lifetime_spent ?? 0) - joyCoinTotal)
-            });
-          } else {
-            await base44.entities.JoyCoinReservations.update(reservationId, {
-              status: 'forfeited',
-              resolved_at: now,
-              resolution_type: 'cancel_forfeit'
-            });
-
-            const joyCoinsForForfeit = await base44.entities.JoyCoins.filter({ user_id: userId });
-            const currentBalance = joyCoinsForForfeit[0]?.balance ?? 0;
-
-            await base44.entities.JoyCoinTransactions.create({
-              user_id: userId,
-              type: 'forfeit',
-              amount: 0,
-              balance_after: currentBalance,
-              event_id: eventId,
-              rsvp_id: userRSVP.id,
-              reservation_id: reservationId,
-              note: 'RSVP cancelled outside refund window'
-            });
-          }
-        }
-      }
-
-      await base44.entities.RSVP.update(userRSVP.id, {
-        status: 'cancelled',
-        is_active: false
+      const result = await base44.functions.invoke('manageRSVP', {
+        action: 'cancel',
+        event_id: eventId,
+        rsvp_id: userRSVP.id,
+        event: variables.event ?? undefined,
       });
+      const data = result?.data ?? result;
+      if (data?.error) {
+        throw new Error(data.error);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-rsvp', eventId, userId] });

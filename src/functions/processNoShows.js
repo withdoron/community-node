@@ -55,52 +55,22 @@ export async function processNoShows() {
 
         for (const rsvp of uncheckedRsvps) {
           try {
-            await base44.entities.RSVP.update(rsvp.id, {
-              status: 'no_show'
+            const result = await base44.functions.invoke('manageRSVP', {
+              action: 'no_show',
+              event_id: event.id,
+              rsvp_id: rsvp.id,
             });
-            results.rsvpsMarkedNoShow++;
-
-            if (rsvp.joy_coin_reservation_id) {
-              const reservations = await base44.entities.JoyCoinReservations.filter({
-                id: rsvp.joy_coin_reservation_id
-              });
-
-              if (reservations.length > 0 && reservations[0].status === 'held') {
-                const reservation = reservations[0];
-                const resolvedAt = now.toISOString();
-
-                await base44.entities.JoyCoinReservations.update(reservation.id, {
-                  status: 'forfeited',
-                  resolved_at: resolvedAt,
-                  resolution_type: 'noshow'
-                });
-
-                const joyCoinsRecords = await base44.entities.JoyCoins.filter({
-                  user_id: rsvp.user_id
-                });
-
-                if (joyCoinsRecords.length > 0) {
-                  await base44.entities.JoyCoinTransactions.create({
-                    user_id: rsvp.user_id,
-                    type: 'forfeit',
-                    amount: 0,
-                    balance_after: joyCoinsRecords[0].balance,
-                    event_id: event.id,
-                    rsvp_id: rsvp.id,
-                    reservation_id: reservation.id,
-                    business_id: event.business_id,
-                    note: `No-show: ${event.title || 'Event'}`
-                  });
-                }
-
-                results.reservationsForfeited++;
-              }
+            const data = result?.data ?? result;
+            if (data?.error) {
+              throw new Error(data.error);
             }
+            results.rsvpsMarkedNoShow++;
+            if (rsvp.joy_coin_reservation_id) results.reservationsForfeited++;
           } catch (rsvpError) {
             results.errors.push({
               type: 'rsvp',
               rsvpId: rsvp.id,
-              error: rsvpError.message
+              error: rsvpError?.message || String(rsvpError)
             });
           }
         }
@@ -164,55 +134,26 @@ export async function processNoShowsForEvent(eventId) {
 
     for (const rsvp of uncheckedRsvps) {
       try {
-        await base44.entities.RSVP.update(rsvp.id, {
-          status: 'no_show'
+        const result = await base44.functions.invoke('manageRSVP', {
+          action: 'no_show',
+          event_id: eventId,
+          rsvp_id: rsvp.id,
         });
-        results.rsvpsMarkedNoShow++;
-
-        if (rsvp.joy_coin_reservation_id) {
-          const reservations = await base44.entities.JoyCoinReservations.filter({
-            id: rsvp.joy_coin_reservation_id
-          });
-
-          if (reservations.length > 0 && reservations[0].status === 'held') {
-            const reservation = reservations[0];
-
-            await base44.entities.JoyCoinReservations.update(reservation.id, {
-              status: 'forfeited',
-              resolved_at: now.toISOString(),
-              resolution_type: 'noshow'
-            });
-
-            const joyCoinsRecords = await base44.entities.JoyCoins.filter({
-              user_id: rsvp.user_id
-            });
-
-            if (joyCoinsRecords.length > 0) {
-              await base44.entities.JoyCoinTransactions.create({
-                user_id: rsvp.user_id,
-                type: 'forfeit',
-                amount: 0,
-                balance_after: joyCoinsRecords[0].balance,
-                event_id: event.id,
-                rsvp_id: rsvp.id,
-                reservation_id: reservation.id,
-                business_id: event.business_id,
-                note: `No-show: ${event.title || 'Event'}`
-              });
-            }
-
-            results.reservationsForfeited++;
-          }
+        const data = result?.data ?? result;
+        if (data?.error) {
+          throw new Error(data.error);
         }
+        results.rsvpsMarkedNoShow++;
+        if (rsvp.joy_coin_reservation_id) results.reservationsForfeited++;
       } catch (rsvpError) {
         results.errors.push({
           rsvpId: rsvp.id,
-          error: rsvpError.message
+          error: rsvpError?.message || String(rsvpError)
         });
       }
     }
   } catch (error) {
-    results.errors.push({ error: error.message });
+    results.errors.push({ error: error?.message || String(error) });
   }
 
   return results;
