@@ -81,12 +81,14 @@ export default function Recommend() {
   // Submit a Nod
   const submitNod = useMutation({
     mutationFn: async () => {
-      await base44.entities.Recommendation.create({
-        business_id: businessId,
-        user_id: currentUser.id,
-        user_name: currentUser.full_name || currentUser.email,
-        type: 'nod',
-        is_active: true
+      await base44.functions.invoke('manageRecommendation', {
+        action: 'create',
+        data: {
+          business_id: businessId,
+          user_id: currentUser.id,
+          type: 'nod',
+          is_active: true,
+        },
       });
       await base44.functions.invoke('updateBusiness', {
         action: 'update_counters',
@@ -109,7 +111,10 @@ export default function Recommend() {
   const removeNod = useMutation({
     mutationFn: async () => {
       if (existingNod) {
-        await base44.entities.Recommendation.update(existingNod.id, { is_active: false });
+        await base44.functions.invoke('manageRecommendation', {
+          action: 'remove',
+          recommendation_id: existingNod.id,
+        });
         await base44.functions.invoke('updateBusiness', {
           action: 'update_counters',
           business_id: businessId,
@@ -130,27 +135,29 @@ export default function Recommend() {
   // Submit a Story (also auto-nods if not already nodded)
   const submitStory = useMutation({
     mutationFn: async () => {
-      // Create the story
-      await base44.entities.Recommendation.create({
-        business_id: businessId,
-        user_id: currentUser.id,
-        user_name: currentUser.full_name || currentUser.email,
-        type: 'story',
-        service_used: serviceUsed,
-        content,
-        photos,
-        is_active: true
-      });
-
-      // Auto-nod if not already nodded
-      let newNodCount = business.nod_count || 0;
-      if (!existingNod) {
-        await base44.entities.Recommendation.create({
+      await base44.functions.invoke('manageRecommendation', {
+        action: 'create',
+        data: {
           business_id: businessId,
           user_id: currentUser.id,
-          user_name: currentUser.full_name || currentUser.email,
-          type: 'nod',
-          is_active: true
+          type: 'story',
+          service_used: serviceUsed,
+          content,
+          photos,
+          is_active: true,
+        },
+      });
+
+      let newNodCount = business.nod_count || 0;
+      if (!existingNod) {
+        await base44.functions.invoke('manageRecommendation', {
+          action: 'create',
+          data: {
+            business_id: businessId,
+            user_id: currentUser.id,
+            type: 'nod',
+            is_active: true,
+          },
         });
         newNodCount += 1;
       }
@@ -175,19 +182,21 @@ export default function Recommend() {
 
   const submitVouch = useMutation({
     mutationFn: async () => {
-      await base44.entities.Recommendation.create({
-        business_id: businessId,
-        user_id: currentUser.id,
-        user_name: currentUser.full_name || currentUser.email,
-        type: 'vouch',
-        service_used: vouchServiceUsed.trim(),
-        content: JSON.stringify({
-          approximate_date: vouchDate.trim(),
-          hire_again: vouchHireAgain,
-          relationship: vouchRelationship,
-          statement: vouchStatement.trim()
-        }),
-        is_active: true
+      await base44.functions.invoke('manageRecommendation', {
+        action: 'create',
+        data: {
+          business_id: businessId,
+          user_id: currentUser.id,
+          type: 'vouch',
+          service_used: vouchServiceUsed.trim(),
+          content: JSON.stringify({
+            approximate_date: vouchDate.trim(),
+            hire_again: vouchHireAgain,
+            relationship: vouchRelationship,
+            statement: vouchStatement.trim(),
+          }),
+          is_active: true,
+        },
       });
 
       const businesses = await base44.entities.Business.filter({ id: businessId });

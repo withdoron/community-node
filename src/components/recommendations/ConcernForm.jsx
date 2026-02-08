@@ -24,14 +24,14 @@ export default function ConcernForm({ businessId, businessName, onClose, onSucce
       const businesses = await base44.entities.Business.filter({ id: businessId });
       const business = businesses[0];
 
-      await base44.entities.Concern.create({
-        business_id: businessId,
-        user_id: currentUser.id,
-        user_name: currentUser.full_name || currentUser.email,
-        description: description.trim(),
-        desired_resolution: desiredResolution.trim() || undefined,
-        approximate_date: approximateDate.trim() || undefined,
-        status: 'new'
+      await base44.functions.invoke('manageRecommendation', {
+        action: 'create_concern',
+        data: {
+          business_id: businessId,
+          description: description.trim(),
+          desired_resolution: desiredResolution.trim() || undefined,
+          approximate_date: approximateDate.trim() || undefined,
+        },
       });
 
       await base44.functions.invoke('updateBusiness', {

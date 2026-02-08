@@ -67,7 +67,40 @@ Writes go through `updateBusiness` server function (owner, manager, or admin for
 | Update | Admin only |
 | Delete | Admin only |
 
-Writes go through `updateEvent` server function (owner or staff for create/update/delete/cancel).
+Writes go through `manageEvent` server function (owner or staff for create/update/delete/cancel). Spoke webhook uses `updateEvent`.
+
+## User (Phase 3c)
+
+| Operation | Permission |
+|-----------|------------|
+| Read | Authenticated |
+| Create | Admin only |
+| Update | Admin only |
+| Delete | Admin only |
+
+Profile updates go through `updateUser` (action: update_profile, allowlist: display_name, phone, home_region). Admin user management uses direct entity calls.
+
+## Recommendation (Phase 3d)
+
+| Operation | Permission |
+|-----------|------------|
+| Read | Public |
+| Create | Admin only |
+| Update | Admin only |
+| Delete | Admin only |
+
+Writes go through `manageRecommendation` (create, update, remove). Server enforces user_id and user_name from auth.
+
+## Concern (Phase 3d)
+
+| Operation | Permission |
+|-----------|------------|
+| Read | Authenticated |
+| Create | Admin only |
+| Update | Admin only |
+| Delete | Admin only |
+
+Creates go through `manageRecommendation` (action: create_concern). Admin concern status updates use direct entity calls.
 
 ## Notes
 
@@ -75,3 +108,4 @@ Writes go through `updateEvent` server function (owner or staff for create/updat
 - **deleteBusinessCascade** runs client-side with admin auth — AdminSettings/Business filter/delete/update will succeed when user is admin.
 - All AdminSettings writes go through `updateAdminSettings`. Business writes through `updateBusiness`. Event writes (client) through `manageEvent`; Spoke webhook uses `updateEvent`.
 - **Business.create** (e.g. BusinessOnboarding) is admin-only; no server function for create.
+- User profile: `updateUser`. Recommendation/Concern: `manageRecommendation` (create, update, remove, create_concern).

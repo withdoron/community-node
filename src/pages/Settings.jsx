@@ -50,19 +50,13 @@ export default function Settings() {
 
   const updateUserMutation = useMutation({
     mutationFn: async (updates) => {
-      // Get fresh user data to avoid stale closure
-      const freshUser = await base44.auth.me();
-
-      // Store everything in user.data — full_name is read-only
-      const dataFields = {
-        ...freshUser.data,  // Preserve existing data
-        display_name: updates.full_name,
-        phone: updates.phone,
-        home_region: updates.home_region,
-      };
-
-      await base44.entities.User.update(freshUser.id, {
-        data: dataFields
+      await base44.functions.invoke('updateUser', {
+        action: 'update_profile',
+        data: {
+          display_name: updates.full_name,
+          phone: updates.phone,
+          home_region: updates.home_region,
+        },
       });
     },
     onSuccess: (_, variables) => {
