@@ -1,6 +1,5 @@
-// MIGRATION NOTE: This function operates on the PunchPass Base44 entity.
-// When Joy Coins entity fully replaces PunchPass, rename to setJoyCoinPin.ts
-// and update entity references. See DEC-041, PUNCH-PASS-AUDIT.md.
+// Joy Coin PIN management — sets or updates the check-in PIN for a Community Pass member
+// Migrated from setPunchPassPin.ts (DEC-041, 2026-02-07)
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
@@ -23,30 +22,28 @@ Deno.serve(async (req) => {
 
     const { pin } = await req.json();
 
-    // Validate PIN format (4 digits)
     if (!pin || !/^\d{4}$/.test(pin)) {
       return Response.json({ 
         error: 'PIN must be exactly 4 digits' 
       }, { status: 400 });
     }
 
-    // Hash the PIN
     const hashedPin = await hashPin(pin);
 
-    // Find existing punch pass or create new one
-    const existingPasses = await base44.entities.PunchPass.filter({ user_id: user.id });
+    // Find existing JoyCoins record or create one
+    const existing = await base44.entities.JoyCoins.filter({ user_id: user.id });
     
-    if (existingPasses.length > 0) {
-      // Update existing
-      await base44.entities.PunchPass.update(existingPasses[0].id, {
+    if (existing.length > 0) {
+      await base44.entities.JoyCoins.update(existing[0].id, {
         pin_hash: hashedPin
       });
     } else {
-      // Create new
-      await base44.entities.PunchPass.create({
+      await base44.entities.JoyCoins.create({
         user_id: user.id,
         pin_hash: hashedPin,
-        current_balance: 0
+        balance: 0,
+        lifetime_earned: 0,
+        lifetime_spent: 0
       });
     }
 

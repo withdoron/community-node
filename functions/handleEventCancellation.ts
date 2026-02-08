@@ -1,5 +1,5 @@
-// MIGRATION NOTE: References PunchPass entity for cancellation/refund logic.
-// Update to JoyCoins/JoyCoinTransactions entities when migration completes.
+// Event cancellation handler — refunds Joy Coins and notifies RSVP'd users
+// Migrated from PunchPass to JoyCoins entities (DEC-041, 2026-02-07)
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
@@ -7,7 +7,6 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // This function is triggered by automation when an event status changes to 'cancelled'
     const { event: triggerEvent, data: eventData } = await req.json();
     
     if (!eventData || eventData.status !== 'cancelled') {
@@ -17,36 +16,54 @@ Deno.serve(async (req) => {
     const eventId = triggerEvent.entity_id;
     console.log(`Processing cancellation for event: ${eventId}`);
 
-    // 1. Refund punch passes
-    const punchPassUsages = await base44.asServiceRole.entities.PunchPassUsage.filter({ 
-      event_id: eventId 
+    // 1. Find Joy Coin reservations for this event
+    const reservations = await base44.asServiceRole.entities.JoyCoinReservations.filter({ 
+      event_id: eventId,
+      status: 'held'
     });
 
-    console.log(`Found ${punchPassUsages.length} punch pass usages to refund`);
+    console.log(`Found ${reservations.length} Joy Coin reservations to refund`);
 
-    for (const usage of punchPassUsages) {
+    for (const reservation of reservations) {
       try {
-        // Get the user's punch pass
-        const punchPass = await base44.asServiceRole.entities.PunchPass.get(usage.punch_pass_id);
+        // Get the user's Joy Coins balance
+        const joyCoinsRecords = await base44.asServiceRole.entities.JoyCoins.filter({ user_id: reservation.user_id });
+        const joyCoins = joyCoinsRecords[0];
         
-        if (punchPass) {
-          // Refund the punches
-          await base44.asServiceRole.entities.PunchPass.update(usage.punch_pass_id, {
-            current_balance: punchPass.current_balance + usage.punches_deducted,
-            total_used: punchPass.total_used - usage.punches_deducted
+        if (joyCoins) {
+          const newBalance = joyCoins.balance + reservation.amount;
+
+          // Refund the coins
+          await base44.asServiceRole.entities.JoyCoins.update(joyCoins.id, {
+            balance: newBalance
           });
 
-          // Mark the usage as refunded by deleting or updating it
-          await base44.asServiceRole.entities.PunchPassUsage.delete(usage.id);
+          // Mark reservation as refunded
+          await base44.asServiceRole.entities.JoyCoinReservations.update(reservation.id, {
+            status: 'refunded',
+            resolved_at: new Date().toISOString(),
+            resolution_type: 'event_cancelled'
+          });
+
+          // Create refund transaction record
+          await base44.asServiceRole.entities.JoyCoinTransactions.create({
+            user_id: reservation.user_id,
+            type: 'refund',
+            amount: reservation.amount,
+            balance_after: newBalance,
+            event_id: eventId,
+            reservation_id: reservation.id,
+            note: `Event cancelled: ${eventData.title}`
+          });
           
-          console.log(`Refunded ${usage.punches_deducted} punches to user ${usage.user_id}`);
+          console.log(`Refunded ${reservation.amount} Joy Coins to user ${reservation.user_id}`);
         }
       } catch (error) {
-        console.error(`Error refunding punch pass for user ${usage.user_id}:`, error);
+        console.error(`Error refunding Joy Coins for user ${reservation.user_id}:`, error);
       }
     }
 
-    // 2. Send cancellation notifications to all RSVP'd users
+    // 2. Send cancellation notifications
     const rsvps = await base44.asServiceRole.entities.RSVP.filter({ 
       event_id: eventId,
       status: 'confirmed'
@@ -56,7 +73,8 @@ Deno.serve(async (req) => {
 
     for (const rsvp of rsvps) {
       try {
-        // Send cancellation email
+        const wasRefunded = reservations.some(r => r.user_id === rsvp.user_id);
+
         await base44.asServiceRole.integrations.Core.SendEmail({
           to: rsvp.user_email,
           subject: `Event Cancelled: ${eventData.title}`,
@@ -74,14 +92,12 @@ Deno.serve(async (req) => {
               minute: '2-digit'
             })}</p>
             <p><strong>Location:</strong> ${eventData.location}</p>
-            ${punchPassUsages.some(u => u.user_id === rsvp.user_id) ? 
-              '<p><strong>Note:</strong> Your Joy Coins have been automatically refunded.</p>' : ''}
-            <p>We apologize for any inconvenience this may cause.</p>
-            <p>Best regards,<br/>Local Lane Team</p>
+            ${wasRefunded ? '<p><strong>Note:</strong> Your Joy Coins have been automatically refunded.</p>' : ''}
+            <p>We apologize for any inconvenience.</p>
+            <p>Best regards,<br/>The LocalLane Team</p>
           `
         });
 
-        // Update RSVP status
         await base44.asServiceRole.entities.RSVP.update(rsvp.id, {
           status: 'cancelled'
         });
@@ -94,7 +110,7 @@ Deno.serve(async (req) => {
 
     return Response.json({ 
       message: 'Event cancellation processed',
-      refunded_punches: punchPassUsages.length,
+      refunded_reservations: reservations.length,
       notified_users: rsvps.length
     });
 

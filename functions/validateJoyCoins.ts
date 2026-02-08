@@ -1,6 +1,5 @@
-// MIGRATION NOTE: This function validates check-in against PunchPass entity.
-// When Joy Coins entity fully replaces PunchPass, rename to validateJoyCoins.ts
-// and update entity references. See DEC-041, PUNCH-PASS-AUDIT.md.
+// Joy Coin check-in validation — verifies PIN and deducts coins at point of check-in
+// Migrated from validatePunchPass.ts (DEC-041, 2026-02-07)
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
@@ -16,7 +15,6 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Authenticate spoke using Bearer token
     const authHeader = req.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return Response.json({ error: 'Missing or invalid authorization header' }, { status: 401 });
@@ -31,9 +29,8 @@ Deno.serve(async (req) => {
 
     const spoke = spokes[0];
 
-    // Parse request body
     const body = await req.json();
-    const { action, user_email, pin, event_id, event_title, event_date, location, punch_cost = 1 } = body;
+    const { action, user_email, pin, event_id, event_title, event_date, location, coin_cost = 1 } = body;
 
     if (!action || !user_email || !pin) {
       return Response.json({ 
@@ -48,80 +45,76 @@ Deno.serve(async (req) => {
     }
     const user = users[0];
 
-    // Find or create punch pass record
-    let punchPasses = await base44.asServiceRole.entities.PunchPass.filter({ user_id: user.id });
-    let punchPass = punchPasses[0];
+    // Find Joy Coins record
+    const joyCoinsRecords = await base44.asServiceRole.entities.JoyCoins.filter({ user_id: user.id });
+    const joyCoins = joyCoinsRecords[0];
 
-    if (!punchPass) {
+    if (!joyCoins) {
       return Response.json({ 
-        error: 'User does not have a punch pass account. Please set up PIN first.' 
+        error: 'User does not have a Community Pass account. Please set up PIN first.' 
       }, { status: 404 });
     }
 
-    // Hash the provided PIN and verify
+    // Verify PIN
     const hashedPin = await hashPin(pin);
-    if (hashedPin !== punchPass.pin_hash) {
+    if (hashedPin !== joyCoins.pin_hash) {
       return Response.json({ error: 'Invalid PIN' }, { status: 403 });
     }
 
-    // Handle different actions
     if (action === 'check_balance') {
       return Response.json({
         success: true,
-        balance: punchPass.current_balance,
+        balance: joyCoins.balance,
         user_name: user.full_name
       });
     }
 
-    if (action === 'deduct_punch') {
+    if (action === 'deduct') {
       if (!event_id || !event_title) {
         return Response.json({ 
-          error: 'Missing event details for punch deduction' 
+          error: 'Missing event details for coin deduction' 
         }, { status: 400 });
       }
 
-      // Check if user has enough punches
-      if (punchPass.current_balance < punch_cost) {
+      if (joyCoins.balance < coin_cost) {
         return Response.json({ 
-          error: 'Insufficient punch pass balance',
-          current_balance: punchPass.current_balance,
-          required: punch_cost
+          error: 'Insufficient Joy Coin balance',
+          current_balance: joyCoins.balance,
+          required: coin_cost
         }, { status: 400 });
       }
 
-      // Deduct punches
-      const newBalance = punchPass.current_balance - punch_cost;
-      await base44.asServiceRole.entities.PunchPass.update(punchPass.id, {
-        current_balance: newBalance,
-        total_used: (punchPass.total_used || 0) + punch_cost
+      const newBalance = joyCoins.balance - coin_cost;
+
+      // Update balance
+      await base44.asServiceRole.entities.JoyCoins.update(joyCoins.id, {
+        balance: newBalance,
+        lifetime_spent: (joyCoins.lifetime_spent || 0) + coin_cost
       });
 
-      // Record usage
-      await base44.asServiceRole.entities.PunchPassUsage.create({
+      // Create immutable transaction record
+      await base44.asServiceRole.entities.JoyCoinTransactions.create({
         user_id: user.id,
-        punch_pass_id: punchPass.id,
-        event_id,
-        event_title,
-        event_date: event_date || new Date().toISOString(),
-        location: location || 'Unknown',
-        punches_deducted: punch_cost,
-        spoke_id: spoke.spoke_id,
-        checked_in_by: body.checked_in_by || 'system'
+        type: 'redemption',
+        amount: -coin_cost,
+        balance_after: newBalance,
+        event_id: event_id,
+        note: `Check-in: ${event_title} at ${location || 'Unknown'}`
       });
 
       return Response.json({
         success: true,
-        message: 'Punch pass deducted successfully',
+        message: 'Joy Coins deducted successfully',
         new_balance: newBalance,
-        punches_deducted: punch_cost,
+        coins_deducted: coin_cost,
         user_name: user.full_name
       });
     }
 
-    return Response.json({ error: 'Invalid action' }, { status: 400 });
+    return Response.json({ error: 'Invalid action. Use check_balance or deduct.' }, { status: 400 });
 
   } catch (error) {
-    console.error('Punch pass validation error:', error);
+    console.error('Joy Coin validation error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
