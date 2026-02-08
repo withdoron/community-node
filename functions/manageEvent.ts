@@ -10,13 +10,24 @@ async function canEditEvent(
   businessId: string
 ): Promise<boolean> {
   if (user.role === 'admin') return true;
-
   const business = await base44.asServiceRole.entities.Business.get(businessId);
   if (!business) return false;
-  if (business.owner_user_id === user.id) return true;
-
-  const instructors = business.instructors || [];
-  return instructors.includes(user.id);
+  if ((business as { owner_user_id?: string }).owner_user_id === user.id) return true;
+  const instructors = (business as { instructors?: string[] }).instructors || [];
+  if (instructors.includes(user.id)) {
+    const key = `staff_roles:${businessId}`;
+    const settings = await base44.asServiceRole.entities.AdminSettings.filter({ key });
+    if (settings?.length > 0) {
+      try {
+        const roles = JSON.parse(settings[0].value || '[]') || [];
+        const myRole = roles.find((r: { user_id?: string }) => r.user_id === user.id);
+        if (myRole?.role === 'co-owner' || myRole?.role === 'manager') return true;
+      } catch {}
+    }
+    // Instructors can edit events they're assigned to (existing behavior)
+    return true;
+  }
+  return false;
 }
 
 Deno.serve(async (req) => {

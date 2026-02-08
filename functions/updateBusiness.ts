@@ -22,9 +22,9 @@ async function canEditBusiness(
       try {
         const roles = JSON.parse(settings[0].value || '[]') || [];
         const myRole = roles.find((r: { user_id?: string }) => r.user_id === user.id);
-        if (myRole?.role === 'manager') return true;
+        if (myRole?.role === 'co-owner' || myRole?.role === 'manager') return true;
       } catch {
-        // fall through: allow if in instructors (simplified per spec)
+        // fall through
       }
     }
     return true;
