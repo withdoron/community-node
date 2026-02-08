@@ -108,7 +108,7 @@ export default function BusinessDashboard() {
         });
         const inviteList = Array.isArray(inviteResults) ? inviteResults : (inviteResults?.data ?? []);
 
-        for (const { id: inviteSettingId, key, invites } of inviteList) {
+        for (const { key, invites } of inviteList) {
           const businessId = (key || '').replace('staff_invites:', '');
           if (!businessId) continue;
 
@@ -164,14 +164,9 @@ export default function BusinessDashboard() {
             }
           }
 
-          const updatedInvites = invites.filter(
-            (inv) => (inv?.email || '').toLowerCase() !== (currentUser.email || '').toLowerCase()
-          );
           await base44.functions.invoke('updateAdminSettings', {
-            action: 'update',
-            id: inviteSettingId,
-            key: `staff_invites:${businessId}`,
-            value: JSON.stringify(updatedInvites),
+            action: 'accept_invite',
+            business_id: businessId,
           });
 
           queryClient.invalidateQueries({ queryKey: ['staffInvites', businessId] });

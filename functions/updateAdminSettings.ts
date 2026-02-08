@@ -78,6 +78,44 @@ Deno.serve(async (req) => {
       return Response.json(results);
     }
 
+    // accept_invite: user removes their own pending invite (no admin/owner required)
+    if (action === 'accept_invite') {
+      const { business_id } = body;
+      if (!business_id || typeof business_id !== 'string') {
+        return Response.json({ error: 'business_id is required for accept_invite' }, { status: 400 });
+      }
+
+      const key = `staff_invites:${business_id}`;
+      const admin = base44.asServiceRole.entities.AdminSettings;
+      const records = await admin.filter({ key });
+      if (!records || records.length === 0) {
+        return Response.json({ success: false, reason: 'no_matching_invite' });
+      }
+
+      const record = records[0];
+      let invites: unknown[] = [];
+      try {
+        invites = JSON.parse(record.value || '[]') || [];
+      } catch {
+        return Response.json({ success: false, reason: 'no_matching_invite' });
+      }
+
+      const userEmail = (user.email || '').toLowerCase();
+      const myInvite = invites.find(
+        (inv: { email?: string }) => (inv?.email || '').toLowerCase() === userEmail
+      );
+      if (!myInvite) {
+        return Response.json({ success: false, reason: 'no_matching_invite' });
+      }
+
+      const updatedInvites = invites.filter(
+        (inv: { email?: string }) => (inv?.email || '').toLowerCase() !== userEmail
+      );
+      await admin.update(record.id, { value: JSON.stringify(updatedInvites) });
+
+      return Response.json({ success: true });
+    }
+
     // filter, create, update require key
     const { key, value, id } = body;
     if (!key || typeof key !== 'string') {
