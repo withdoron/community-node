@@ -75,7 +75,9 @@ export default function StaffWidget({ business, currentUserId }) {
   };
 
   const isOwner = business?.owner_user_id === currentUserId;
-  const isManager = currentUserId && getRoleForUser(currentUserId) === 'manager';
+  const myRole = currentUserId ? getRoleForUser(currentUserId) : null;
+  const isCoOwner = myRole === 'co-owner';
+  const isManager = myRole === 'manager';
 
   const { data: staffUsers = [], isLoading: staffLoading } = useQuery({
     queryKey: ['staff', business?.id, business?.instructors],
@@ -250,6 +252,8 @@ export default function StaffWidget({ business, currentUserId }) {
 
   const getRoleBadge = (role) => {
     switch (role) {
+      case 'co-owner':
+        return <Badge className="border-amber-500 text-amber-500" variant="outline">Co-Owner</Badge>;
       case 'manager':
         return <Badge className="bg-purple-500 text-white">Manager</Badge>;
       case 'instructor':
@@ -313,7 +317,7 @@ export default function StaffWidget({ business, currentUserId }) {
           <h2 className="text-xl font-bold text-slate-100">Staff & Instructors</h2>
           <p className="text-sm text-slate-400">Manage your team members</p>
         </div>
-        {(isOwner || isManager) && (
+        {(isOwner || isCoOwner || isManager) && (
           <Button
             variant="outline"
             className="border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-black"
@@ -364,7 +368,7 @@ export default function StaffWidget({ business, currentUserId }) {
             </div>
             <div className="flex items-center gap-2">
               {getRoleBadge(getRoleForUser(user.id))}
-              {(isOwner || isManager) && (
+              {(isOwner || isCoOwner || isManager) && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -492,6 +496,7 @@ export default function StaffWidget({ business, currentUserId }) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-slate-700">
+                        <SelectItem value="co-owner" className="text-slate-300 focus:bg-slate-700">Co-Owner</SelectItem>
                         <SelectItem value="manager" className="text-slate-300 focus:bg-slate-700">Manager</SelectItem>
                         <SelectItem value="instructor" className="text-slate-300 focus:bg-slate-700">Instructor</SelectItem>
                         <SelectItem value="staff" className="text-slate-300 focus:bg-slate-700">Staff</SelectItem>
@@ -521,12 +526,14 @@ export default function StaffWidget({ business, currentUserId }) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-slate-700">
+                        <SelectItem value="co-owner" className="text-slate-300 focus:bg-slate-700">Co-Owner</SelectItem>
                         <SelectItem value="manager" className="text-slate-300 focus:bg-slate-700">Manager</SelectItem>
                         <SelectItem value="instructor" className="text-slate-300 focus:bg-slate-700">Instructor</SelectItem>
                         <SelectItem value="staff" className="text-slate-300 focus:bg-slate-700">Staff</SelectItem>
                       </SelectContent>
                     </Select>
                     <p className="text-slate-500 text-xs">
+                      {selectedRole === 'co-owner' && 'Owner-level access: everything except delete business'}
                       {selectedRole === 'manager' && 'Full access: create events, manage staff, view analytics'}
                       {selectedRole === 'instructor' && 'Can edit assigned events and use check-in'}
                       {selectedRole === 'staff' && 'Check-in access only'}

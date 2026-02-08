@@ -10,6 +10,11 @@ export default function BusinessCard({ business, userRole, eventCount = 0, onCli
       icon: Crown,
       className: 'bg-amber-500 text-black font-bold border-amber-500',
     },
+    'co-owner': {
+      label: 'CO-OWNER',
+      icon: Crown,
+      className: 'border-amber-500 text-amber-500',
+    },
     staff: {
       label: 'TEAM',
       icon: UserCircle,
@@ -58,7 +63,7 @@ export default function BusinessCard({ business, userRole, eventCount = 0, onCli
               <h3 className="font-bold text-lg text-slate-100 truncate">
                 {business.name}
               </h3>
-              <Badge variant={userRole === 'staff' ? 'outline' : undefined} className={role.className}>
+              <Badge variant={userRole === 'staff' || userRole === 'co-owner' ? 'outline' : undefined} className={role.className}>
                 <RoleIcon className="h-3 w-3 mr-1" />
                 {role.label}
               </Badge>

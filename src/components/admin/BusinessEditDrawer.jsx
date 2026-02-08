@@ -89,6 +89,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
   const getRoleBadge = (role) => {
     switch (role) {
+      case 'co-owner':
+        return <Badge className="border-amber-500 text-amber-500 text-xs" variant="outline">Co-Owner</Badge>;
       case 'manager':
         return <Badge className="bg-purple-500 text-white text-xs">Manager</Badge>;
       case 'instructor':
@@ -787,6 +789,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-900 border-slate-800">
+                        <SelectItem value="co-owner" className="text-slate-300 focus:bg-slate-800">Co-Owner</SelectItem>
                         <SelectItem value="manager" className="text-slate-300 focus:bg-slate-800">Manager</SelectItem>
                         <SelectItem value="instructor" className="text-slate-300 focus:bg-slate-800">Instructor</SelectItem>
                         <SelectItem value="staff" className="text-slate-300 focus:bg-slate-800">Staff</SelectItem>
@@ -819,6 +822,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-900 border-slate-800">
+                        <SelectItem value="co-owner" className="text-slate-300 focus:bg-slate-800">Co-Owner</SelectItem>
                         <SelectItem value="manager" className="text-slate-300 focus:bg-slate-800">Manager</SelectItem>
                         <SelectItem value="instructor" className="text-slate-300 focus:bg-slate-800">Instructor</SelectItem>
                         <SelectItem value="staff" className="text-slate-300 focus:bg-slate-800">Staff</SelectItem>
