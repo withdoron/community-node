@@ -265,7 +265,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       });
 
       const key = `staff_roles:${business.id}`;
-      const existing = await base44.entities.AdminSettings.filter({ key });
+      const res = await base44.functions.invoke('updateAdminSettings', { action: 'filter', key });
+      const existing = Array.isArray(res) ? res : (res?.data ?? []);
       let currentRoles = [];
       if (existing.length > 0) {
         try {
@@ -276,9 +277,18 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       const updatedRoles = [...currentRoles.filter((r) => r.user_id !== userId), newRole];
       const value = JSON.stringify(updatedRoles);
       if (existing.length > 0) {
-        await base44.entities.AdminSettings.update(existing[0].id, { value });
+        await base44.functions.invoke('updateAdminSettings', {
+          action: 'update',
+          id: existing[0].id,
+          key,
+          value,
+        });
       } else {
-        await base44.entities.AdminSettings.create({ key, value });
+        await base44.functions.invoke('updateAdminSettings', {
+          action: 'create',
+          key,
+          value,
+        });
       }
     },
     onSuccess: async (_data, { userId }) => {
@@ -307,14 +317,18 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       await base44.entities.Business.update(business.id, { instructors: updated });
 
       const key = `staff_roles:${business.id}`;
-      const existing = await base44.entities.AdminSettings.filter({ key });
+      const res = await base44.functions.invoke('updateAdminSettings', { action: 'filter', key });
+      const existing = Array.isArray(res) ? res : (res?.data ?? []);
       if (existing.length > 0) {
         let currentRoles = [];
         try {
           currentRoles = JSON.parse(existing[0].value) || [];
         } catch {}
         const updatedRoles = currentRoles.filter((r) => r.user_id !== userId);
-        await base44.entities.AdminSettings.update(existing[0].id, {
+        await base44.functions.invoke('updateAdminSettings', {
+          action: 'update',
+          id: existing[0].id,
+          key,
           value: JSON.stringify(updatedRoles),
         });
       }
@@ -346,11 +360,15 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const removeInviteMutation = useMutation({
     mutationFn: async (email) => {
       const key = `staff_invites:${business.id}`;
-      const existing = await base44.entities.AdminSettings.filter({ key });
+      const res = await base44.functions.invoke('updateAdminSettings', { action: 'filter', key });
+      const existing = Array.isArray(res) ? res : (res?.data ?? []);
       if (existing.length > 0) {
         const currentInvites = JSON.parse(existing[0].value) || [];
         const updatedInvites = currentInvites.filter((inv) => (inv.email || '').toLowerCase() !== String(email).toLowerCase());
-        await base44.entities.AdminSettings.update(existing[0].id, {
+        await base44.functions.invoke('updateAdminSettings', {
+          action: 'update',
+          id: existing[0].id,
+          key,
           value: JSON.stringify(updatedInvites),
         });
       }
@@ -368,7 +386,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const inviteStaffMutation = useMutation({
     mutationFn: async ({ email, role }) => {
       const key = `staff_invites:${business.id}`;
-      const existing = await base44.entities.AdminSettings.filter({ key });
+      const res = await base44.functions.invoke('updateAdminSettings', { action: 'filter', key });
+      const existing = Array.isArray(res) ? res : (res?.data ?? []);
       let currentInvites = [];
       if (existing.length > 0) {
         try {
@@ -387,9 +406,18 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       const updatedInvites = [...currentInvites, newInvite];
       const value = JSON.stringify(updatedInvites);
       if (existing.length > 0) {
-        return base44.entities.AdminSettings.update(existing[0].id, { value });
+        return base44.functions.invoke('updateAdminSettings', {
+          action: 'update',
+          id: existing[0].id,
+          key,
+          value,
+        });
       }
-      return base44.entities.AdminSettings.create({ key, value });
+      return base44.functions.invoke('updateAdminSettings', {
+        action: 'create',
+        key,
+        value,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffInvites'] });

@@ -102,71 +102,79 @@ export default function BusinessDashboard() {
       if (!currentUser?.email || !currentUser?.id) return;
 
       try {
-        const allSettings = await base44.entities.AdminSettings.list();
-        const inviteSettings = (allSettings || []).filter((s) => s.key?.startsWith('staff_invites:'));
+        const inviteResults = await base44.functions.invoke('updateAdminSettings', {
+          action: 'check_my_invites',
+          email: currentUser.email,
+        });
+        const inviteList = Array.isArray(inviteResults) ? inviteResults : (inviteResults?.data ?? []);
 
-        for (const setting of inviteSettings) {
-          const businessId = setting.key.replace('staff_invites:', '');
-          let invites = [];
-          try {
-            invites = JSON.parse(setting.value) || [];
-          } catch {
-            continue;
+        for (const { id: inviteSettingId, key, invites } of inviteList) {
+          const businessId = (key || '').replace('staff_invites:', '');
+          if (!businessId) continue;
+
+          const myInvite = invites?.find(
+            (inv) => (inv?.email || '').toLowerCase() === (currentUser.email || '').toLowerCase()
+          );
+          if (!myInvite) continue;
+
+          console.log('[Dashboard] Found pending invite for', currentUser.email, 'at business', businessId);
+
+          const business = await base44.entities.Business.get(businessId);
+          const currentInstructors = business.instructors || [];
+          if (!currentInstructors.includes(currentUser.id)) {
+            await base44.entities.Business.update(businessId, {
+              instructors: [...currentInstructors, currentUser.id],
+            });
           }
 
-          const myInvite = invites.find(
-            (inv) => (inv.email || '').toLowerCase() === (currentUser.email || '').toLowerCase()
-          );
+          const rolesKey = `staff_roles:${businessId}`;
+          const rolesRes = await base44.functions.invoke('updateAdminSettings', {
+            action: 'filter',
+            key: rolesKey,
+          });
+          const rolesSettings = Array.isArray(rolesRes) ? rolesRes : (rolesRes?.data ?? []);
+          let currentRoles = [];
+          if (rolesSettings.length > 0) {
+            try {
+              currentRoles = JSON.parse(rolesSettings[0].value) || [];
+            } catch {}
+          }
 
-          if (myInvite) {
-            console.log('[Dashboard] Found pending invite for', currentUser.email, 'at business', businessId);
+          if (!currentRoles.some((r) => r.user_id === currentUser.id)) {
+            const newRole = {
+              user_id: currentUser.id,
+              role: myInvite.role || 'instructor',
+              added_at: new Date().toISOString(),
+            };
+            const updatedRoles = [...currentRoles, newRole];
 
-            const business = await base44.entities.Business.get(businessId);
-            const currentInstructors = business.instructors || [];
-            if (!currentInstructors.includes(currentUser.id)) {
-              await base44.entities.Business.update(businessId, {
-                instructors: [...currentInstructors, currentUser.id],
+            if (rolesSettings.length > 0) {
+              await base44.functions.invoke('updateAdminSettings', {
+                action: 'update',
+                id: rolesSettings[0].id,
+                key: rolesKey,
+                value: JSON.stringify(updatedRoles),
+              });
+            } else {
+              await base44.functions.invoke('updateAdminSettings', {
+                action: 'create',
+                key: rolesKey,
+                value: JSON.stringify(updatedRoles),
               });
             }
-
-            const rolesKey = `staff_roles:${businessId}`;
-            const rolesSettings = await base44.entities.AdminSettings.filter({ key: rolesKey });
-            let currentRoles = [];
-            if (rolesSettings.length > 0) {
-              try {
-                currentRoles = JSON.parse(rolesSettings[0].value) || [];
-              } catch {}
-            }
-
-            if (!currentRoles.some((r) => r.user_id === currentUser.id)) {
-              const newRole = {
-                user_id: currentUser.id,
-                role: myInvite.role || 'instructor',
-                added_at: new Date().toISOString(),
-              };
-              const updatedRoles = [...currentRoles, newRole];
-
-              if (rolesSettings.length > 0) {
-                await base44.entities.AdminSettings.update(rolesSettings[0].id, {
-                  value: JSON.stringify(updatedRoles),
-                });
-              } else {
-                await base44.entities.AdminSettings.create({
-                  key: rolesKey,
-                  value: JSON.stringify(updatedRoles),
-                });
-              }
-            }
-
-            const updatedInvites = invites.filter(
-              (inv) => (inv.email || '').toLowerCase() !== (currentUser.email || '').toLowerCase()
-            );
-            await base44.entities.AdminSettings.update(setting.id, {
-              value: JSON.stringify(updatedInvites),
-            });
-
-            console.log('[Dashboard] Auto-linked user to business', businessId);
           }
+
+          const updatedInvites = invites.filter(
+            (inv) => (inv?.email || '').toLowerCase() !== (currentUser.email || '').toLowerCase()
+          );
+          await base44.functions.invoke('updateAdminSettings', {
+            action: 'update',
+            id: inviteSettingId,
+            key: `staff_invites:${businessId}`,
+            value: JSON.stringify(updatedInvites),
+          });
+
+          console.log('[Dashboard] Auto-linked user to business', businessId);
         }
 
         queryClient.invalidateQueries({ queryKey: ['ownedBusinesses'] });

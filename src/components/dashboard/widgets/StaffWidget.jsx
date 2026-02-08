@@ -131,7 +131,8 @@ export default function StaffWidget({ business, currentUserId }) {
   const inviteStaffMutation = useMutation({
     mutationFn: async ({ email, role }) => {
       const key = `staff_invites:${business.id}`;
-      const existing = await base44.entities.AdminSettings.filter({ key });
+      const res = await base44.functions.invoke('updateAdminSettings', { action: 'filter', key });
+      const existing = Array.isArray(res) ? res : (res?.data ?? []);
       let currentInvites = [];
       if (existing.length > 0) {
         try {
@@ -150,9 +151,18 @@ export default function StaffWidget({ business, currentUserId }) {
       const updatedInvites = [...currentInvites, newInvite];
       const value = JSON.stringify(updatedInvites);
       if (existing.length > 0) {
-        return base44.entities.AdminSettings.update(existing[0].id, { value });
+        return base44.functions.invoke('updateAdminSettings', {
+          action: 'update',
+          id: existing[0].id,
+          key,
+          value,
+        });
       }
-      return base44.entities.AdminSettings.create({ key, value });
+      return base44.functions.invoke('updateAdminSettings', {
+        action: 'create',
+        key,
+        value,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffInvites', business.id] });
@@ -178,7 +188,8 @@ export default function StaffWidget({ business, currentUserId }) {
       );
       if (isPendingInvite) {
         const key = `staff_invites:${business.id}`;
-        const existing = await base44.entities.AdminSettings.filter({ key });
+        const res = await base44.functions.invoke('updateAdminSettings', { action: 'filter', key });
+        const existing = Array.isArray(res) ? res : (res?.data ?? []);
         if (existing.length > 0) {
           let currentInvites = [];
           try {
@@ -187,7 +198,10 @@ export default function StaffWidget({ business, currentUserId }) {
           const updatedInvites = currentInvites.filter(
             (inv) => (inv.email || '').toLowerCase() !== String(identifier).toLowerCase()
           );
-          await base44.entities.AdminSettings.update(existing[0].id, {
+          await base44.functions.invoke('updateAdminSettings', {
+            action: 'update',
+            id: existing[0].id,
+            key,
             value: JSON.stringify(updatedInvites),
           });
         }
@@ -197,14 +211,21 @@ export default function StaffWidget({ business, currentUserId }) {
           instructors: updatedInstructors,
         });
         const rolesKey = `staff_roles:${business.id}`;
-        const rolesExisting = await base44.entities.AdminSettings.filter({ key: rolesKey });
+        const rolesRes = await base44.functions.invoke('updateAdminSettings', {
+          action: 'filter',
+          key: rolesKey,
+        });
+        const rolesExisting = Array.isArray(rolesRes) ? rolesRes : (rolesRes?.data ?? []);
         if (rolesExisting.length > 0) {
           let currentRoles = [];
           try {
             currentRoles = JSON.parse(rolesExisting[0].value) || [];
           } catch {}
           const updatedRoles = currentRoles.filter((r) => r.user_id !== identifier);
-          await base44.entities.AdminSettings.update(rolesExisting[0].id, {
+          await base44.functions.invoke('updateAdminSettings', {
+            action: 'update',
+            id: rolesExisting[0].id,
+            key: rolesKey,
             value: JSON.stringify(updatedRoles),
           });
         }

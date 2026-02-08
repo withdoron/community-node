@@ -47,15 +47,23 @@ export default function AdminSettingsPanel() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      // Save each setting
       for (const [key, value] of Object.entries(settings)) {
         const existing = savedSettings.find(s => s.key === key);
         const valueStr = JSON.stringify(value);
-        
+
         if (existing) {
-          await base44.entities.AdminSettings.update(existing.id, { value: valueStr });
+          await base44.functions.invoke('updateAdminSettings', {
+            action: 'update',
+            id: existing.id,
+            key,
+            value: valueStr,
+          });
         } else {
-          await base44.entities.AdminSettings.create({ key, value: valueStr });
+          await base44.functions.invoke('updateAdminSettings', {
+            action: 'create',
+            key,
+            value: valueStr,
+          });
         }
       }
     },

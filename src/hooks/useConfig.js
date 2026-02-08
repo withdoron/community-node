@@ -47,12 +47,24 @@ export function useConfigMutation(domain, configType) {
   return useMutation({
     mutationFn: async (items) => {
       const value = JSON.stringify({ items, updated_at: new Date().toISOString() });
-      const existing = await base44.entities.AdminSettings.filter({ key });
-
-      if (existing.length > 0) {
-        return base44.entities.AdminSettings.update(existing[0].id, { value });
+      const existing = await base44.functions.invoke('updateAdminSettings', {
+        action: 'filter',
+        key,
+      });
+      const existingArr = Array.isArray(existing) ? existing : (existing?.data ?? []);
+      if (existingArr.length > 0) {
+        return base44.functions.invoke('updateAdminSettings', {
+          action: 'update',
+          id: existingArr[0].id,
+          key,
+          value,
+        });
       }
-      return base44.entities.AdminSettings.create({ key, value });
+      return base44.functions.invoke('updateAdminSettings', {
+        action: 'create',
+        key,
+        value,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['config', domain, configType] });
