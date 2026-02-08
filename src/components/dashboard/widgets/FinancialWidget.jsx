@@ -40,7 +40,7 @@ export default function FinancialWidget({ business }) {
           </div>
           <p className="text-xs text-slate-400">
             {tierLevel === 1 && 'Upgrade to Standard or Partner to unlock more features'}
-            {tierLevel === 2 && 'Punch Pass, multiple tickets, auto-publish events'}
+            {tierLevel === 2 && 'Joy Coins, multiple tickets, auto-publish events'}
             {tierLevel === 3 && 'Full features, dedicated node, priority support'}
           </p>
         </div>

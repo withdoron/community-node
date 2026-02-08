@@ -62,7 +62,7 @@ export default function EventCard({ event, onClick }) {
               )}
               {punchPassEligible && (
                 <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-                  {punchCount === 1 ? '1 Punch' : `${punchCount} Punches`}
+                  {punchCount === 1 ? '1 Joy Coin' : `${punchCount} Joy Coins`}
                 </Badge>
               )}
               {!punchPassEligible && !isFree && (

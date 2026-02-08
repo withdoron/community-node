@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Ticket, Key, History, ShoppingCart, Heart, Loader2, Check, Calendar, MapPin } from "lucide-react";
+import { Coins, Key, History, ShoppingCart, Heart, Loader2, Check, Calendar, MapPin } from "lucide-react";
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -74,7 +74,7 @@ export default function PunchPass() {
   };
 
   const handlePurchase = () => {
-    toast.info('Punch pass purchase coming soon!');
+    toast.info('Community Pass coming soon!');
   };
 
   const handleDonate = () => {
@@ -99,10 +99,10 @@ export default function PunchPass() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="h-12 w-12 bg-amber-500 rounded-lg flex items-center justify-center">
-              <Ticket className="h-6 w-6 text-slate-900" />
+              <Coins className="h-6 w-6 text-slate-900" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">Punch Pass Network</h1>
+              <h1 className="text-3xl font-bold text-white">Community Pass</h1>
               <p className="text-slate-400">Recess & The Creative Alliance</p>
             </div>
           </div>
@@ -116,10 +116,10 @@ export default function PunchPass() {
               <p className="text-4xl font-bold text-slate-900">
                 {punchPassData?.current_balance || 0}
               </p>
-              <p className="text-amber-950 text-sm mt-1">punch passes</p>
+              <p className="text-amber-950 text-sm mt-1">Joy Coins</p>
             </div>
             <div className="text-right">
-              <Ticket className="h-16 w-16 text-amber-950 opacity-20 mb-2" />
+              <Coins className="h-16 w-16 text-amber-950 opacity-20 mb-2" />
               {hasPin ? (
                 <Badge className="bg-slate-900 text-amber-400 border-0">
                   <Check className="h-3 w-3 mr-1" />
@@ -196,7 +196,7 @@ export default function PunchPass() {
                 <ShoppingCart className="h-6 w-6 text-emerald-400" />
               </div>
               <div>
-                <h3 className="font-semibold text-white">Buy More Punches</h3>
+                <h3 className="font-semibold text-white">Subscribe to Community Pass</h3>
                 <p className="text-sm text-slate-400">10 for $50 or 20 for $90</p>
               </div>
             </div>
@@ -237,7 +237,7 @@ export default function PunchPass() {
               ) : usageHistory.length === 0 ? (
                 <div className="text-center py-12">
                   <History className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                  <p className="text-slate-400">No punch passes used yet</p>
+                  <p className="text-slate-400">No Joy Coins used yet</p>
                   <p className="text-sm text-slate-500 mt-1">Your check-ins will appear here</p>
                 </div>
               ) : (
@@ -245,7 +245,7 @@ export default function PunchPass() {
                   {usageHistory.map((usage) => (
                     <div key={usage.id} className="flex items-start gap-4 p-4 bg-slate-900 rounded-lg">
                       <div className="h-10 w-10 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Ticket className="h-5 w-5 text-amber-400" />
+                        <Coins className="h-5 w-5 text-amber-400" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-white">{usage.event_title}</h4>
@@ -280,7 +280,7 @@ export default function PunchPass() {
                 <div className="text-center py-12">
                   <ShoppingCart className="h-12 w-12 text-slate-600 mx-auto mb-3" />
                   <p className="text-slate-400">No purchases yet</p>
-                  <p className="text-sm text-slate-500 mt-1">Buy your first punch pass to get started</p>
+                  <p className="text-sm text-slate-500 mt-1">Subscribe to Community Pass to get started</p>
                 </div>
               ) : (
                 <div className="space-y-3">

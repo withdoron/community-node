@@ -191,7 +191,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                           )}
                           {punchPassEligible && (
                             <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-                              {punchCount === 1 ? '1 Punch' : `${punchCount} Punches`}
+                              {punchCount === 1 ? '1 Joy Coin' : `${punchCount} Joy Coins`}
                             </Badge>
                           )}
                           {!punchPassEligible && !isFree && (
@@ -221,7 +221,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                     )}
                     {punchPassEligible && (
                       <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold">
-                        {punchCount === 1 ? '1 Punch' : `${punchCount} Punches`}
+                        {punchCount === 1 ? '1 Joy Coin' : `${punchCount} Joy Coins`}
                       </Badge>
                     )}
                     {!punchPassEligible && !isFree && event.price > 0 && (
@@ -385,7 +385,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                     </div>
                     {punchPassEligible && (
                       <Badge className="bg-amber-500/20 text-amber-500 border border-amber-500/30 rounded-lg px-3 py-1 font-medium">
-                        Punch Pass Eligible
+                        Accepts Joy Coins
                       </Badge>
                     )}
                   </div>

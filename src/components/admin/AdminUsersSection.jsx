@@ -281,7 +281,7 @@ export default function AdminUsersSection({ businesses = [] }) {
                       <span className="text-slate-100">{userRSVPs.length}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Punch Pass Balance:</span>
+                      <span className="text-slate-400">Joy Coin balance:</span>
                       <span className="text-slate-100">{punchPassBalance}</span>
                     </div>
                   </div>

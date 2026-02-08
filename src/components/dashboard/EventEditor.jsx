@@ -234,7 +234,7 @@ export default function EventEditor({
     )
       e.min_price = "Min price must be 0 or more";
     if (formData.punch_pass_eligible && formData.pricing_type === "free") {
-      e.pricing_type = "Punch Pass events cannot be free";
+      e.pricing_type = "Joy Coin events cannot be free";
     }
     if (formData.pricing_type === "multiple_tickets") {
       const validTickets = formData.ticket_types?.filter((t) => t.name?.trim() && t.price !== "" && parseFloat(t.price) >= 0);

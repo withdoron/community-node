@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Ticket } from 'lucide-react';
+import { Coins } from 'lucide-react';
 
 export default function GreetingHeader({ currentUser, punchPass }) {
   const hour = new Date().getHours();
@@ -22,12 +22,12 @@ export default function GreetingHeader({ currentUser, punchPass }) {
           to={createPageUrl('PunchPass')}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 transition-colors"
         >
-          <Ticket className="h-5 w-5 text-amber-500" />
+          <Coins className="h-5 w-5 text-amber-500" />
           <div>
             <p className="text-amber-500 font-bold text-lg leading-tight">
               {punchPass?.current_balance ?? 0}
             </p>
-            <p className="text-amber-500/70 text-xs">Punches</p>
+            <p className="text-amber-500/70 text-xs">Joy Coins</p>
           </div>
         </Link>
       </div>

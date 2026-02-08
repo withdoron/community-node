@@ -284,7 +284,7 @@ export default function Admin() {
             <Route path="networks" element={<ConfigSection domain="platform" configType="networks" title="Networks" />} />
             <Route path="joy-coins" element={<JoyCoinsAdminPanel />} />
             <Route path="tiers" element={<PlaceholderSection title="Tiers" description="Business and user tier definitions — coming soon." />} />
-            <Route path="punch-pass" element={<PlaceholderSection title="Punch Pass" description="Punch Pass system settings — coming soon." />} />
+            <Route path="punch-pass" element={<PlaceholderSection title="Community Pass" description="Community Pass system settings — coming soon." />} />
 
             <Route path="events/types" element={<ConfigSection domain="events" configType="event_types" title="Event Types" />} />
             <Route path="events/age-groups" element={<ConfigSection domain="events" configType="age_groups" title="Age Groups" />} />

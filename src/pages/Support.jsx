@@ -92,7 +92,7 @@ export default function Support() {
                     <h3 className="text-white font-medium mb-1">What is Community Pass?</h3>
                     <p className="text-slate-400 text-sm">
                       Community Pass is a monthly membership that gives you access to
-                      participating local businesses through a punch-based system. Think of it
+                      participating local businesses through Joy Coins. Think of it
                       like a community access pass, not stored value. Coming soon.
                     </p>
                   </div>

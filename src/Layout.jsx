@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles, Ticket, Settings } from "lucide-react";
+import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles, Coins, Settings } from "lucide-react";
 import Footer from '@/components/layout/Footer';
 
 export default function Layout({ children, currentPageName: currentPageNameProp }) {
@@ -147,8 +147,8 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                   )}
                   <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
                     <Link to={createPageUrl('PunchPass')} className="flex items-center">
-                      <Ticket className="h-4 w-4 mr-2" />
-                      Punch Pass
+                      <Coins className="h-4 w-4 mr-2" />
+                      Community Pass
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
@@ -246,8 +246,8 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                       )}
                       <SheetClose asChild>
                         <Link to={createPageUrl('PunchPass')} className={`flex items-center gap-3 ${sheetLinkClass('PunchPass')}`}>
-                          <Ticket className="h-5 w-5 flex-shrink-0" />
-                          Punch Pass
+                          <Coins className="h-5 w-5 flex-shrink-0" />
+                          Community Pass
                         </Link>
                       </SheetClose>
                       <SheetClose asChild>
