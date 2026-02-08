@@ -49,11 +49,11 @@ export default function Terms() {
             </p>
             <p className="mb-3">
               <span className="text-white font-medium">Nature of product:</span> Community Pass
-              punches are access rights to participate in offerings at participating businesses. They
+              Joy Coins are access rights to participate in offerings at participating businesses. They
               are not money, stored value, credits, or a payment instrument.
             </p>
             <p className="mb-3">
-              <span className="text-white font-medium">No cash value:</span> Punches have no cash
+              <span className="text-white font-medium">No cash value:</span> Joy Coins have no cash
               or set monetary value. They cannot be exchanged for money, refunded, or applied toward
               purchases.
             </p>
@@ -69,13 +69,13 @@ export default function Terms() {
             </p>
             <p className="mb-3">
               <span className="text-white font-medium">Expiration and non-transferability:</span>{' '}
-              Punches are non-transferable, expire at the end of each billing cycle, and do not roll
-              over except as specified in the membership tier description.
+              Joy Coins are non-transferable, expire at the end of each billing cycle, and do not roll
+              over. Unused Joy Coins contribute to the Community Scholarship Pool, which funds Community Pass access for youth and families in need.
             </p>
             <p className="mb-3">
               <span className="text-white font-medium">Prohibited uses:</span> Members may not
-              transfer, sell, gift, cash out, or redeem punches for monetary value. Peer-to-peer
-              transfer of punches is not permitted.
+              transfer, sell, gift, cash out, or redeem Joy Coins for monetary value. Peer-to-peer
+              transfer of Joy Coins is not permitted.
             </p>
             <p>
               <span className="text-white font-medium">Regulatory statement:</span> LocalLane is

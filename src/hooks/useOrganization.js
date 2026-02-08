@@ -22,7 +22,7 @@ export function useOrganization(organization) {
         organization: null,
         tier: 'basic',
         tierLevel: 1,
-        canUsePunchPass: false,
+        canUseJoyCoins: false,
         canAutoPublish: false,
         canUseMultipleTickets: false,
         canUseCheckIn: false,
@@ -37,7 +37,7 @@ export function useOrganization(organization) {
       organization,
       tier, // 'basic' | 'standard' | 'partner'
       tierLevel, // 1 | 2 | 3
-      canUsePunchPass: tierLevel >= 2, // true for standard+
+      canUseJoyCoins: tierLevel >= 2, // true for standard+
       canAutoPublish: tierLevel >= 2, // true for standard+
       canUseMultipleTickets: tierLevel >= 2, // true for standard+
       canUseCheckIn: tierLevel >= 2, // true for standard+

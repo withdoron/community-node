@@ -15,8 +15,8 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
   const eventDate = new Date(event.date || event.start_date);
   const isPast = eventDate < new Date();
   const isFree = !event.price || event.price === 0;
-  const punchPassEligible = event.punch_pass_accepted;
-  const punchCount = punchPassEligible ? Math.max(1, Math.round((event.price || 0) / 10)) : 0;
+  const acceptsLegacyJoyCoins = event.punch_pass_accepted;
+  const legacyJoyCoinCost = acceptsLegacyJoyCoins ? Math.max(1, Math.round((event.price || 0) / 10)) : 0;
   const isCancelled = event.status === 'cancelled';
   const isJoyCoinEvent = event?.joy_coin_enabled && (event?.joy_coin_cost ?? 0) > 0;
   const joyCoinCost = isJoyCoinEvent ? (event.joy_coin_cost || 0) : 0;
@@ -189,12 +189,12 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                               {joyCoinCost === 1 ? '1 coin' : `${joyCoinCost} coins`}
                             </Badge>
                           )}
-                          {punchPassEligible && (
+                          {acceptsLegacyJoyCoins && (
                             <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-                              {punchCount === 1 ? '1 Joy Coin' : `${punchCount} Joy Coins`}
+                              {legacyJoyCoinCost === 1 ? '1 Joy Coin' : `${legacyJoyCoinCost} Joy Coins`}
                             </Badge>
                           )}
-                          {!punchPassEligible && !isFree && (
+                          {!acceptsLegacyJoyCoins && !isFree && (
                             <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
                               ${event.price.toFixed(2)}
                             </Badge>
@@ -219,12 +219,12 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                         {joyCoinCost === 1 ? '1 coin' : `${joyCoinCost} coins`}
                       </Badge>
                     )}
-                    {punchPassEligible && (
+                    {acceptsLegacyJoyCoins && (
                       <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold">
-                        {punchCount === 1 ? '1 Joy Coin' : `${punchCount} Joy Coins`}
+                        {legacyJoyCoinCost === 1 ? '1 Joy Coin' : `${legacyJoyCoinCost} Joy Coins`}
                       </Badge>
                     )}
-                    {!punchPassEligible && !isFree && event.price > 0 && (
+                    {!acceptsLegacyJoyCoins && !isFree && event.price > 0 && (
                       <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold">
                         ${event.price.toFixed(2)}
                       </Badge>
@@ -373,7 +373,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 )}
 
                 {/* Age & Audience */}
-                {(event.audience && event.audience.length > 0) || punchPassEligible && (
+                {(event.audience && event.audience.length > 0) || acceptsLegacyJoyCoins && (
                   <div className="bg-slate-800/50 rounded-xl p-5 space-y-3">
                     <h4 className="font-semibold text-white text-lg">Age & Audience</h4>
                     <div className="text-slate-300">
@@ -383,7 +383,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                         'All Ages'
                       )}
                     </div>
-                    {punchPassEligible && (
+                    {acceptsLegacyJoyCoins && (
                       <Badge className="bg-amber-500/20 text-amber-500 border border-amber-500/30 rounded-lg px-3 py-1 font-medium">
                         Accepts Joy Coins
                       </Badge>

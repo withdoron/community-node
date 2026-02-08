@@ -1,4 +1,4 @@
-import { ArrowLeft, Coins, Plus, Minus, RefreshCw, ArrowRightLeft, AlertCircle, Send } from 'lucide-react';
+import { ArrowLeft, Coins, Plus, Minus, RefreshCw, ArrowRightLeft, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useJoyCoins } from '@/hooks/useJoyCoins';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -85,15 +85,6 @@ export default function JoyCoinsHistory() {
               )}
             </div>
           </div>
-          {hasJoyCoins && (
-            <Link
-              to="/my-lane/transfer"
-              className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black rounded-lg text-sm font-medium transition-colors"
-            >
-              <Send className="h-4 w-4" />
-              Send
-            </Link>
-          )}
         </div>
 
         {isLoading || transactionsLoading ? (

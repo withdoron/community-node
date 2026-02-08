@@ -52,8 +52,8 @@ export default function AdminUsersSection({ businesses = [] }) {
     enabled: !!selectedUser?.id
   });
 
-  const { data: userPunchPasses = [] } = useQuery({
-    queryKey: ['admin-user-punchpass', selectedUser?.id],
+  const { data: userLegacyJoyCoinRecords = [] } = useQuery({
+    queryKey: ['admin-user-legacy-joycoins', selectedUser?.id],
     queryFn: () =>
       base44.entities.PunchPass.filter({ user_id: String(selectedUser.id) }),
     enabled: !!selectedUser?.id
@@ -107,8 +107,8 @@ export default function AdminUsersSection({ businesses = [] }) {
     );
   }, [selectedUser, businesses]);
 
-  const punchPassBalance =
-    userPunchPasses.length > 0 ? userPunchPasses[0].current_balance || 0 : 0;
+  const joyCoinBalance =
+    userLegacyJoyCoinRecords.length > 0 ? userLegacyJoyCoinRecords[0].current_balance || 0 : 0;
 
   const initials = (name) =>
     name
@@ -282,7 +282,7 @@ export default function AdminUsersSection({ businesses = [] }) {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Joy Coin balance:</span>
-                      <span className="text-slate-100">{punchPassBalance}</span>
+                      <span className="text-slate-100">{joyCoinBalance}</span>
                     </div>
                   </div>
                 </div>

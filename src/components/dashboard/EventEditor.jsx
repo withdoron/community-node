@@ -47,7 +47,7 @@ export default function EventEditor({
   instructors = [],
   locations = [],
 }) {
-  const { tier, canUsePunchPass, canUseMultipleTickets } = useOrganization(business);
+  const { tier, canUseJoyCoins, canUseMultipleTickets } = useOrganization(business);
 
   const { data: eventTypes = [] } = useConfig("events", "event_types");
   const { data: networks = [] } = useConfig("platform", "networks");

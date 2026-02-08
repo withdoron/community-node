@@ -8,7 +8,6 @@ import Directory from './pages/Directory';
 import Events from './pages/Events';
 import Home from './pages/Home';
 import MyLane from './pages/MyLane';
-import PunchPass from './pages/PunchPass';
 import Privacy from './pages/Privacy';
 import Search from './pages/Search';
 import Settings from './pages/Settings';
@@ -30,7 +29,6 @@ export const PAGES = {
     "Events": Events,
     "Home": Home,
     "MyLane": MyLane,
-    "PunchPass": PunchPass,
     "Privacy": Privacy,
     "Search": Search,
     "Settings": Settings,

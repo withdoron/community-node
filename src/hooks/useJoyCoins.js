@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -67,72 +67,7 @@ export function useJoyCoins() {
     queryClient.invalidateQueries({ queryKey: ['joyCoinsReservations', userId] });
   };
 
-  const transferMutation = useMutation({
-    mutationFn: async ({ recipientUserId, recipientName, amount }) => {
-      if (!userId) throw new Error('Not authenticated');
-      if (amount <= 0) throw new Error('Amount must be positive');
-      if (recipientUserId === userId) throw new Error('Cannot transfer to yourself');
-
-      const senderRecords = await base44.entities.JoyCoins.filter({ user_id: userId });
-      if (senderRecords.length === 0) throw new Error('No Joy Coins account');
-      const senderJoyCoins = senderRecords[0];
-      const currentBalance = senderJoyCoins.balance ?? 0;
-      if (amount > currentBalance) throw new Error('INSUFFICIENT_BALANCE');
-
-      const now = new Date().toISOString();
-
-      let recipientRecords = await base44.entities.JoyCoins.filter({ user_id: recipientUserId });
-      let recipientJoyCoins;
-
-      if (recipientRecords.length === 0) {
-        recipientJoyCoins = await base44.entities.JoyCoins.create({
-          user_id: recipientUserId,
-          balance: 0,
-          lifetime_earned: 0,
-          lifetime_spent: 0
-        });
-      } else {
-        recipientJoyCoins = recipientRecords[0];
-      }
-
-      const senderNewBalance = senderJoyCoins.balance - amount;
-      await base44.entities.JoyCoins.update(senderJoyCoins.id, {
-        balance: senderNewBalance
-      });
-
-      await base44.entities.JoyCoinTransactions.create({
-        user_id: userId,
-        type: 'transfer_out',
-        amount: -amount,
-        balance_after: senderNewBalance,
-        transfer_to_user_id: recipientUserId,
-        note: `Sent to ${recipientName || 'member'}`,
-        created_at: now
-      });
-
-      const recipientNewBalance = (recipientJoyCoins.balance ?? 0) + amount;
-      await base44.entities.JoyCoins.update(recipientJoyCoins.id, {
-        balance: recipientNewBalance,
-        lifetime_earned: (recipientJoyCoins.lifetime_earned ?? 0) + amount
-      });
-
-      await base44.entities.JoyCoinTransactions.create({
-        user_id: recipientUserId,
-        type: 'transfer_in',
-        amount,
-        balance_after: recipientNewBalance,
-        transfer_from_user_id: userId,
-        note: 'Received from member',
-        created_at: now
-      });
-
-      return { amount, recipientName };
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['joyCoins', userId] });
-      queryClient.invalidateQueries({ queryKey: ['joyCoinsTransactions', userId] });
-    }
-  });
+  // Transfer feature removed — Joy Coins are non-transferable (DEC-041)
 
   return {
     balance,
@@ -148,8 +83,6 @@ export function useJoyCoins() {
     transactionsLoading,
     reservationsLoading,
     error: balanceError,
-    refetchAll,
-    transferCoins: transferMutation.mutateAsync,
-    transferPending: transferMutation.isPending
+    refetchAll
   };
 }

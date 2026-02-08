@@ -15,21 +15,21 @@ export function useUserState(userId) {
     enabled: !!userId
   });
 
-  const { data: punchPass } = useQuery({
-    queryKey: ['punchPass', userId],
+  const { data: joyCoins } = useQuery({
+    queryKey: ['legacyJoyCoins', userId],
     queryFn: async () => {
       if (!userId) return null;
-      const passes = await base44.entities.PunchPass.filter({ user_id: userId });
-      return passes[0] || null;
+      const records = await base44.entities.PunchPass.filter({ user_id: userId });
+      return records[0] || null;
     },
     enabled: !!userId
   });
 
   const recCount = recommendations.length;
-  const hasPunchActivity = punchPass && (punchPass.total_used > 0 || (punchPass.current_balance || 0) > 0);
+  const hasJoyCoinActivity = joyCoins && (joyCoins.total_used > 0 || (joyCoins.current_balance || 0) > 0);
 
   let state = 'explorer';
-  if (recCount >= 5 || hasPunchActivity) {
+  if (recCount >= 5 || hasJoyCoinActivity) {
     state = 'connected';
   } else if (recCount > 0) {
     state = 'engaged';
@@ -38,7 +38,7 @@ export function useUserState(userId) {
   return {
     state,
     recommendations,
-    punchPass,
+    joyCoins,
     recCount
   };
 }

@@ -146,7 +146,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
-                    <Link to={createPageUrl('PunchPass')} className="flex items-center">
+                    <Link to="/my-lane/transactions" className="flex items-center">
                       <Coins className="h-4 w-4 mr-2" />
                       Community Pass
                     </Link>
@@ -245,7 +245,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                         </SheetClose>
                       )}
                       <SheetClose asChild>
-                        <Link to={createPageUrl('PunchPass')} className={`flex items-center gap-3 ${sheetLinkClass('PunchPass')}`}>
+                        <Link to="/my-lane/transactions" className={`flex items-center gap-3 ${sheetLinkClass('PunchPass')}`}>
                           <Coins className="h-5 w-5 flex-shrink-0" />
                           Community Pass
                         </Link>

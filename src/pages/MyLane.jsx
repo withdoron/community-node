@@ -24,7 +24,7 @@ export default function MyLane() {
     }
   });
 
-  const { recommendations, punchPass } = useUserState(currentUser?.id);
+  const { recommendations, joyCoins } = useUserState(currentUser?.id);
 
   if (!userLoading && !currentUser) {
     return (
@@ -54,7 +54,7 @@ export default function MyLane() {
   return (
     <div className="min-h-screen bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
-        <GreetingHeader currentUser={currentUser} punchPass={punchPass} />
+        <GreetingHeader currentUser={currentUser} joyCoins={joyCoins} />
         <JoyCoinsCard />
         <SectionWrapper title="My Household" seeAllPage="Settings">
           <div className="py-6 text-center bg-slate-900 border border-slate-800 rounded-xl">

@@ -139,7 +139,7 @@ LocalLane's north star is the Organism Concept: a living visual entity that refl
 - Network organism → one pass network's collective activity
 - Community organism → the whole Cell's health
 
-**Current phase:** Phase 1 — CSS + SVG in MyLane GreetingHeader. Uses `useVitality` hook calculating from existing data (RSVPs, recommendations, punch usage). No external dependencies.
+**Current phase:** Phase 1 — CSS + SVG in MyLane GreetingHeader. Uses `useVitality` hook calculating from existing data (RSVPs, recommendations, Joy Coin usage). No external dependencies.
 
 **If you're building a feature** and you're unsure whether it aligns: ask whether the feature generates or reflects genuine community participation. If it creates artificial engagement (streaks, points, leaderboards), it conflicts with the organism principles.
 
@@ -162,7 +162,7 @@ subscription_tier: 'basic' | 'standard' | 'partner'
 ### Tier Checking Pattern
 
 ```javascript
-const { tier, tierLevel, canUsePunchPass, canAutoPublish, isPartner } = useOrganization();
+const { tier, tierLevel, canUseJoyCoins, canAutoPublish, isPartner } = useOrganization();
 // tierLevel: 1 = basic, 2 = standard, 3 = partner
 // Feature gates: tierLevel >= 2 for most paid features
 ```
@@ -332,7 +332,7 @@ The recommendation system now uses Nods, Stories, and Vouches (DEC-021, DEC-022)
 
 **Problem:** Raw string comparisons like `business.subscription_tier === 'partner'` bypass centralized tier logic and create inconsistency.
 
-**Solution:** Always use the `useOrganization()` hook which provides `tier`, `tierLevel`, `isPartner`, `canUsePunchPass`, `canAutoPublish`, etc. The only exceptions are admin tables and pure utility functions that don't have React context.
+**Solution:** Always use the `useOrganization()` hook which provides `tier`, `tierLevel`, `isPartner`, `canUseJoyCoins`, `canAutoPublish`, etc. The only exceptions are admin tables and pure utility functions that don't have React context.
 
 ---
 

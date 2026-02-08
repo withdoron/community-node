@@ -7,11 +7,9 @@ import { format } from 'date-fns';
 export default function EventCard({ event, onClick }) {
   const eventDate = new Date(event.date);
   const isFree = !event.price || event.price === 0;
-  const punchPassEligible = event.punch_pass_accepted;
+  const acceptsLegacyJoyCoins = event.punch_pass_accepted;
   const isCancelled = event.status === 'cancelled';
-  
-  // Calculate punch count (assuming 1 punch per $10, or use a fixed amount)
-  const punchCount = punchPassEligible ? Math.max(1, Math.round((event.price || 0) / 10)) : 0;
+  const legacyJoyCoinCost = acceptsLegacyJoyCoins ? Math.max(1, Math.round((event.price || 0) / 10)) : 0;
   const isJoyCoinEvent = event?.joy_coin_enabled && (event?.joy_coin_cost ?? 0) > 0;
   const joyCoinCost = isJoyCoinEvent ? (event.joy_coin_cost || 0) : 0;
 
@@ -46,7 +44,7 @@ export default function EventCard({ event, onClick }) {
           </div>
         )}
         
-        {/* Price/Punch Badges - Top Right */}
+        {/* Price badges - Top Right */}
         <div className="absolute top-3 right-3 flex flex-col gap-2">
           {isCancelled ? (
             <Badge className="bg-red-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
@@ -60,12 +58,12 @@ export default function EventCard({ event, onClick }) {
                   {joyCoinCost === 1 ? '1 coin' : `${joyCoinCost} coins`}
                 </Badge>
               )}
-              {punchPassEligible && (
+              {acceptsLegacyJoyCoins && (
                 <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-                  {punchCount === 1 ? '1 Joy Coin' : `${punchCount} Joy Coins`}
+                  {legacyJoyCoinCost === 1 ? '1 Joy Coin' : `${legacyJoyCoinCost} Joy Coins`}
                 </Badge>
               )}
-              {!punchPassEligible && !isFree && (
+              {!acceptsLegacyJoyCoins && !isFree && (
                 <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
                   ${event.price.toFixed(2)}
                 </Badge>
