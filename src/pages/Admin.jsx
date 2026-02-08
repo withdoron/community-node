@@ -77,7 +77,11 @@ export default function Admin() {
 
   const updateBusiness = useMutation({
     mutationFn: async ({ id, data }) => {
-      await base44.entities.Business.update(id, data);
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update',
+        business_id: id,
+        data,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });

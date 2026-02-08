@@ -34,8 +34,10 @@ export default function ConcernForm({ businessId, businessName, onClose, onSucce
         status: 'new'
       });
 
-      await base44.entities.Business.update(businessId, {
-        concern_count: (business?.concern_count || 0) + 1
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update_counters',
+        business_id: businessId,
+        data: { concern_count: (business?.concern_count || 0) + 1 },
       });
     },
     onSuccess: () => {

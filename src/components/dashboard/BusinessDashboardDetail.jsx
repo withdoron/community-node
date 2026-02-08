@@ -143,7 +143,11 @@ export default function BusinessDashboardDetail({ business, onBack }) {
 
   const updateBusiness = useMutation({
     mutationFn: async (data) => {
-      await base44.entities.Business.update(business.id, data);
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update',
+        business_id: business.id,
+        data,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['myBusinesses']);
@@ -152,8 +156,10 @@ export default function BusinessDashboardDetail({ business, onBack }) {
 
   const upgradePlan = useMutation({
     mutationFn: async (newTier) => {
-      await base44.entities.Business.update(business.id, {
-        subscription_tier: newTier
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update',
+        business_id: business.id,
+        data: { subscription_tier: newTier },
       });
     },
     onSuccess: () => {

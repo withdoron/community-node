@@ -127,9 +127,12 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
   const updateMutation = useMutation({
     mutationFn: async ({ field, value, actionType }) => {
-      // Update business
-      await base44.entities.Business.update(business.id, { [field]: value });
-      
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update',
+        business_id: business.id,
+        data: { [field]: value },
+      });
+
       // Log the action
       await base44.entities.AdminAuditLog.create({
         admin_email: adminEmail,
@@ -192,7 +195,11 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       if (!foundUser?.id) {
         throw new Error('No user found with that email');
       }
-      await base44.entities.Business.update(business.id, { owner_user_id: foundUser.id });
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update',
+        business_id: business.id,
+        data: { owner_user_id: foundUser.id },
+      });
       await base44.entities.AdminAuditLog.create({
         admin_email: adminEmail,
         business_id: business.id,
@@ -260,8 +267,10 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const addStaffMutation = useMutation({
     mutationFn: async ({ userId, role }) => {
       const currentInstructors = business.instructors || [];
-      await base44.entities.Business.update(business.id, {
-        instructors: [...currentInstructors, userId],
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update',
+        business_id: business.id,
+        data: { instructors: [...currentInstructors, userId] },
       });
 
       const key = `staff_roles:${business.id}`;
@@ -314,7 +323,11 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const removeStaffMutation = useMutation({
     mutationFn: async (userId) => {
       const updated = (business.instructors || []).filter((id) => id !== userId);
-      await base44.entities.Business.update(business.id, { instructors: updated });
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update',
+        business_id: business.id,
+        data: { instructors: updated },
+      });
 
       const key = `staff_roles:${business.id}`;
       const res = await base44.functions.invoke('updateAdminSettings', { action: 'filter', key });

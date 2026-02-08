@@ -106,8 +106,10 @@ export default function StaffWidget({ business, currentUserId }) {
     mutationFn: async ({ userId }) => {
       const currentInstructors = business.instructors || [];
       if (currentInstructors.includes(userId)) return;
-      return base44.entities.Business.update(business.id, {
-        instructors: [...currentInstructors, userId],
+      return base44.functions.invoke('updateBusiness', {
+        action: 'update',
+        business_id: business.id,
+        data: { instructors: [...currentInstructors, userId] },
       });
     },
     onSuccess: () => {
@@ -207,8 +209,10 @@ export default function StaffWidget({ business, currentUserId }) {
         }
       } else {
         const updatedInstructors = (business.instructors || []).filter((id) => id !== identifier);
-        await base44.entities.Business.update(business.id, {
-          instructors: updatedInstructors,
+        await base44.functions.invoke('updateBusiness', {
+          action: 'update',
+          business_id: business.id,
+          data: { instructors: updatedInstructors },
         });
         const rolesKey = `staff_roles:${business.id}`;
         const rolesRes = await base44.functions.invoke('updateAdminSettings', {

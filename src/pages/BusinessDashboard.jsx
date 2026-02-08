@@ -119,50 +119,10 @@ export default function BusinessDashboard() {
 
           console.log('[Dashboard] Found pending invite for', currentUser.email, 'at business', businessId);
 
-          const business = await base44.entities.Business.get(businessId);
-          const currentInstructors = business.instructors || [];
-          if (!currentInstructors.includes(currentUser.id)) {
-            await base44.entities.Business.update(businessId, {
-              instructors: [...currentInstructors, currentUser.id],
-            });
-          }
-
-          const rolesKey = `staff_roles:${businessId}`;
-          const rolesRes = await base44.functions.invoke('updateAdminSettings', {
-            action: 'filter',
-            key: rolesKey,
+          await base44.functions.invoke('updateBusiness', {
+            action: 'add_staff_from_invite',
+            business_id: businessId,
           });
-          const rolesSettings = Array.isArray(rolesRes) ? rolesRes : (rolesRes?.data ?? []);
-          let currentRoles = [];
-          if (rolesSettings.length > 0) {
-            try {
-              currentRoles = JSON.parse(rolesSettings[0].value) || [];
-            } catch {}
-          }
-
-          if (!currentRoles.some((r) => r.user_id === currentUser.id)) {
-            const newRole = {
-              user_id: currentUser.id,
-              role: myInvite.role || 'instructor',
-              added_at: new Date().toISOString(),
-            };
-            const updatedRoles = [...currentRoles, newRole];
-
-            if (rolesSettings.length > 0) {
-              await base44.functions.invoke('updateAdminSettings', {
-                action: 'update',
-                id: rolesSettings[0].id,
-                key: rolesKey,
-                value: JSON.stringify(updatedRoles),
-              });
-            } else {
-              await base44.functions.invoke('updateAdminSettings', {
-                action: 'create',
-                key: rolesKey,
-                value: JSON.stringify(updatedRoles),
-              });
-            }
-          }
 
           await base44.functions.invoke('updateAdminSettings', {
             action: 'accept_invite',

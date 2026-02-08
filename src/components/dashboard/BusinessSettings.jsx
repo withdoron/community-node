@@ -199,7 +199,11 @@ export default function BusinessSettings({ business, currentUserId }) {
                 size="sm"
                 onClick={async () => {
                   try {
-                    await base44.entities.Business.update(business.id, { subscription_tier: key });
+                    await base44.functions.invoke('updateBusiness', {
+                      action: 'update',
+                      business_id: business.id,
+                      data: { subscription_tier: key },
+                    });
                     window.location.reload();
                   } catch (err) {
                     console.error('Failed to update tier:', err);

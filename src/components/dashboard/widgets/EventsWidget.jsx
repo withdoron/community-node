@@ -70,7 +70,11 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
       .filter((n) => n !== undefined)
       .sort((a, b) => a - b);
     if (selectedDays.length === 0) {
-      return base44.entities.Event.create(eventData);
+      return base44.functions.invoke('manageEvent', {
+        action: 'create',
+        business_id: business.id,
+        data: eventData,
+      });
     }
 
     let currentWeekStart = new Date(startDate);
@@ -92,11 +96,15 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
           );
           const instanceEnd = new Date(eventDate.getTime() + durationMs);
 
-          await base44.entities.Event.create({
-            ...eventData,
-            date: eventDate.toISOString(),
-            end_date: instanceEnd.toISOString(),
-            recurring_series_id: seriesId,
+          await base44.functions.invoke('manageEvent', {
+            action: 'create',
+            business_id: business.id,
+            data: {
+              ...eventData,
+              date: eventDate.toISOString(),
+              end_date: instanceEnd.toISOString(),
+              recurring_series_id: seriesId,
+            },
           });
         }
       }
@@ -118,7 +126,11 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
         await generateRecurringEvents(eventData);
         return {};
       }
-      return base44.entities.Event.create(eventData);
+      return base44.functions.invoke('manageEvent', {
+        action: 'create',
+        business_id: business.id,
+        data: eventData,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-events', business.id] });
@@ -128,7 +140,13 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Event.update(id, data),
+    mutationFn: ({ id, data }) =>
+      base44.functions.invoke('manageEvent', {
+        action: 'update',
+        event_id: id,
+        business_id: business.id,
+        data,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-events', business.id] });
       setEditorOpen(false);
@@ -137,14 +155,24 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Event.update(id, { is_active: false }),
+    mutationFn: (id) =>
+      base44.functions.invoke('manageEvent', {
+        action: 'delete',
+        event_id: id,
+        business_id: business.id,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-events', business.id] });
     }
   });
 
   const cancelMutation = useMutation({
-    mutationFn: (id) => base44.entities.Event.update(id, { status: 'cancelled', is_active: false }),
+    mutationFn: (id) =>
+      base44.functions.invoke('manageEvent', {
+        action: 'cancel',
+        event_id: id,
+        business_id: business.id,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-events', business.id] });
       setCancelConfirmOpen(false);

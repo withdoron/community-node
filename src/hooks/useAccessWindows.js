@@ -47,7 +47,11 @@ export function useAccessWindows(businessId) {
     // Auto-sync: flip accepts_joy_coins to true if this is the first window
     try {
       if (windows.length === 0) {
-        await base44.entities.Business.update(businessId, { accepts_joy_coins: true });
+        await base44.functions.invoke('updateBusiness', {
+          action: 'update',
+          business_id: businessId,
+          data: { accepts_joy_coins: true },
+        });
       }
     } catch (err) {
       console.error('[useAccessWindows] Failed to sync accepts_joy_coins:', err);
@@ -70,7 +74,11 @@ export function useAccessWindows(businessId) {
     try {
       const remaining = windows.filter(w => w.id !== id);
       if (remaining.length === 0) {
-        await base44.entities.Business.update(businessId, { accepts_joy_coins: false });
+        await base44.functions.invoke('updateBusiness', {
+          action: 'update',
+          business_id: businessId,
+          data: { accepts_joy_coins: false },
+        });
       }
     } catch (err) {
       console.error('[useAccessWindows] Failed to sync accepts_joy_coins:', err);

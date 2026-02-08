@@ -88,10 +88,13 @@ export default function Recommend() {
         type: 'nod',
         is_active: true
       });
-      // Update business counts
-      await base44.entities.Business.update(businessId, {
-        nod_count: (business.nod_count || 0) + 1,
-        recommendation_count: (business.recommendation_count || 0) + 1
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update_counters',
+        business_id: businessId,
+        data: {
+          nod_count: (business.nod_count || 0) + 1,
+          recommendation_count: (business.recommendation_count || 0) + 1,
+        },
       });
     },
     onSuccess: () => {
@@ -107,9 +110,13 @@ export default function Recommend() {
     mutationFn: async () => {
       if (existingNod) {
         await base44.entities.Recommendation.update(existingNod.id, { is_active: false });
-        await base44.entities.Business.update(businessId, {
-          nod_count: Math.max((business.nod_count || 1) - 1, 0),
-          recommendation_count: Math.max((business.recommendation_count || 1) - 1, 0)
+        await base44.functions.invoke('updateBusiness', {
+          action: 'update_counters',
+          business_id: businessId,
+          data: {
+            nod_count: Math.max((business.nod_count || 1) - 1, 0),
+            recommendation_count: Math.max((business.recommendation_count || 1) - 1, 0),
+          },
         });
       }
     },
@@ -148,11 +155,14 @@ export default function Recommend() {
         newNodCount += 1;
       }
 
-      // Update business counts
-      await base44.entities.Business.update(businessId, {
-        nod_count: newNodCount,
-        story_count: (business.story_count || 0) + 1,
-        recommendation_count: (business.recommendation_count || 0) + (existingNod ? 1 : 2)
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update_counters',
+        business_id: businessId,
+        data: {
+          nod_count: newNodCount,
+          story_count: (business.story_count || 0) + 1,
+          recommendation_count: (business.recommendation_count || 0) + (existingNod ? 1 : 2),
+        },
       });
     },
     onSuccess: () => {
@@ -182,9 +192,13 @@ export default function Recommend() {
 
       const businesses = await base44.entities.Business.filter({ id: businessId });
       const biz = businesses[0];
-      await base44.entities.Business.update(businessId, {
-        vouch_count: (biz?.vouch_count || 0) + 1,
-        recommendation_count: (biz?.recommendation_count || 0) + 1
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update_counters',
+        business_id: businessId,
+        data: {
+          vouch_count: (biz?.vouch_count || 0) + 1,
+          recommendation_count: (biz?.recommendation_count || 0) + 1,
+        },
       });
     },
     onSuccess: () => {
