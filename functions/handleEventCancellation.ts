@@ -1,3 +1,6 @@
+// MIGRATION NOTE: References PunchPass entity for cancellation/refund logic.
+// Update to JoyCoins/JoyCoinTransactions entities when migration completes.
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
@@ -72,7 +75,7 @@ Deno.serve(async (req) => {
             })}</p>
             <p><strong>Location:</strong> ${eventData.location}</p>
             ${punchPassUsages.some(u => u.user_id === rsvp.user_id) ? 
-              '<p><strong>Note:</strong> Your punch pass has been automatically refunded.</p>' : ''}
+              '<p><strong>Note:</strong> Your Joy Coins have been automatically refunded.</p>' : ''}
             <p>We apologize for any inconvenience this may cause.</p>
             <p>Best regards,<br/>Local Lane Team</p>
           `

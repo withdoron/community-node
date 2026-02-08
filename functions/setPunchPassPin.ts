@@ -1,3 +1,7 @@
+// MIGRATION NOTE: This function operates on the PunchPass Base44 entity.
+// When Joy Coins entity fully replaces PunchPass, rename to setJoyCoinPin.ts
+// and update entity references. See DEC-041, PUNCH-PASS-AUDIT.md.
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 async function hashPin(pin) {

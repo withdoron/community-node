@@ -1,3 +1,6 @@
+// MIGRATION NOTE: Queries PunchPass entity for member lookup.
+// Update to JoyCoins entity when migration completes.
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 async function hashPin(pin) {

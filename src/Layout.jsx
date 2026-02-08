@@ -245,7 +245,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                         </SheetClose>
                       )}
                       <SheetClose asChild>
-                        <Link to="/my-lane/transactions" className={`flex items-center gap-3 ${sheetLinkClass('PunchPass')}`}>
+                        <Link to="/my-lane/transactions" className={`flex items-center gap-3 ${sheetLinkClass('MyLane')}`}>
                           <Coins className="h-5 w-5 flex-shrink-0" />
                           Community Pass
                         </Link>

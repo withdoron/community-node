@@ -1,3 +1,7 @@
+// MIGRATION NOTE: This function validates check-in against PunchPass entity.
+// When Joy Coins entity fully replaces PunchPass, rename to validateJoyCoins.ts
+// and update entity references. See DEC-041, PUNCH-PASS-AUDIT.md.
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 async function hashPin(pin) {

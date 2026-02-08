@@ -52,6 +52,7 @@ export default function AdminUsersSection({ businesses = [] }) {
     enabled: !!selectedUser?.id
   });
 
+  // Reads from legacy PunchPass entity — field mapping to Joy Coins terminology
   const { data: userLegacyJoyCoinRecords = [] } = useQuery({
     queryKey: ['admin-user-legacy-joycoins', selectedUser?.id],
     queryFn: () =>

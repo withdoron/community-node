@@ -15,6 +15,7 @@ export function useUserState(userId) {
     enabled: !!userId
   });
 
+  // Reads from legacy PunchPass entity — field mapping to Joy Coins terminology
   const { data: joyCoins } = useQuery({
     queryKey: ['legacyJoyCoins', userId],
     queryFn: async () => {
