@@ -82,6 +82,19 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
     const durationMs = (eventData.duration_minutes || 60) * 60 * 1000;
     const originalStart = new Date(eventData.date);
 
+    let totalDates = 0;
+    const tempWeek = new Date(currentWeekStart);
+    while (tempWeek <= endDate) {
+      for (const dayNum of selectedDays) {
+        const d = new Date(tempWeek);
+        d.setDate(tempWeek.getDate() + dayNum);
+        if (d >= startDate && d <= endDate) totalDates++;
+      }
+      tempWeek.setDate(tempWeek.getDate() + (eventData.recurrence_pattern === "biweekly" ? 14 : 7));
+    }
+    console.log('[EventsWidget] Recurring events: will generate', totalDates, 'instances');
+
+    let iteration = 0;
     while (currentWeekStart <= endDate) {
       for (const dayNum of selectedDays) {
         const eventDate = new Date(currentWeekStart);
@@ -95,17 +108,26 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
             0
           );
           const instanceEnd = new Date(eventDate.getTime() + durationMs);
+          iteration++;
 
-          await base44.functions.invoke('manageEvent', {
-            action: 'create',
-            business_id: business.id,
-            data: {
-              ...eventData,
-              date: eventDate.toISOString(),
-              end_date: instanceEnd.toISOString(),
-              recurring_series_id: seriesId,
-            },
-          });
+          const eventPayload = {
+            ...eventData,
+            date: eventDate.toISOString(),
+            end_date: instanceEnd.toISOString(),
+            recurring_series_id: seriesId,
+          };
+          console.log('[EventsWidget] Creating recurring event', iteration, 'of', totalDates, ':', eventPayload.date);
+
+          try {
+            const result = await base44.functions.invoke('manageEvent', {
+              action: 'create',
+              business_id: business.id,
+              data: eventPayload,
+            });
+            console.log('[EventsWidget] Recurring event created:', result);
+          } catch (err) {
+            console.error('[EventsWidget] Recurring event failed:', err);
+          }
         }
       }
       const weeksToAdd = eventData.recurrence_pattern === "biweekly" ? 2 : 1;
