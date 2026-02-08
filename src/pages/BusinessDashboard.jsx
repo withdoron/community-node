@@ -174,6 +174,8 @@ export default function BusinessDashboard() {
             value: JSON.stringify(updatedInvites),
           });
 
+          queryClient.invalidateQueries({ queryKey: ['staffInvites', businessId] });
+          queryClient.invalidateQueries({ queryKey: ['staffRoles', businessId] });
           console.log('[Dashboard] Auto-linked user to business', businessId);
         }
 
