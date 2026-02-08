@@ -105,17 +105,54 @@ export default function StaffWidget({ business, currentUserId }) {
   });
 
   const addStaffMutation = useMutation({
-    mutationFn: async ({ userId }) => {
+    mutationFn: async ({ userId, email, role }) => {
+      // 1. Add user to instructors array
       const currentInstructors = business.instructors || [];
-      if (currentInstructors.includes(userId)) return;
-      return base44.functions.invoke('updateBusiness', {
-        action: 'update',
-        business_id: business.id,
-        data: { instructors: [...currentInstructors, userId] },
+      if (!currentInstructors.includes(userId)) {
+        await base44.functions.invoke('updateBusiness', {
+          action: 'update',
+          business_id: business.id,
+          data: { instructors: [...currentInstructors, userId] },
+        });
+      }
+
+      // 2. Write role to staff_roles
+      const rolesKey = `staff_roles:${business.id}`;
+      const rolesRes = await base44.functions.invoke('updateAdminSettings', {
+        action: 'filter',
+        key: rolesKey,
       });
+      const rolesExisting = Array.isArray(rolesRes) ? rolesRes : (rolesRes?.data ?? []);
+      let currentRoles = [];
+      if (rolesExisting.length > 0) {
+        try {
+          currentRoles = JSON.parse(rolesExisting[0].value || '[]') || [];
+        } catch {}
+      }
+      const newRole = {
+        user_id: userId,
+        role: role || 'instructor',
+        added_at: new Date().toISOString(),
+      };
+      const updatedRoles = [...currentRoles.filter((r) => r.user_id !== userId), newRole];
+      if (rolesExisting.length > 0) {
+        await base44.functions.invoke('updateAdminSettings', {
+          action: 'update',
+          id: rolesExisting[0].id,
+          key: rolesKey,
+          value: JSON.stringify(updatedRoles),
+        });
+      } else {
+        await base44.functions.invoke('updateAdminSettings', {
+          action: 'create',
+          key: rolesKey,
+          value: JSON.stringify(updatedRoles),
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['staffRoles', business.id] });
       queryClient.invalidateQueries({ queryKey: ['associatedBusinesses'] });
       queryClient.invalidateQueries({ queryKey: ['ownedBusinesses'] });
       queryClient.invalidateQueries({ queryKey: ['staffBusinesses'] });
