@@ -156,8 +156,8 @@ subscription_tier: 'basic' | 'standard' | 'partner'
 | Tier | Code | Cost | Where |
 |------|------|------|-------|
 | Tier 1 | `basic` | Free | Community Node |
-| Tier 2 | `standard` | $X/month | Community Node |
-| Tier 3 | `partner` | Earned + $Y/month | Own Partner Node |
+| Tier 2 | `standard` | $79/month | Community Node |
+| Tier 3 | `partner` | $149/month (earned) | Community Node (future: own Partner Node) |
 
 ### Tier Checking Pattern
 
@@ -231,13 +231,13 @@ When working on LocalLane, read these files before generating code:
 
 [LocalLane Docs]|root: ./
 |architecture:{../Spec-Repo/ARCHITECTURE.md,../Spec-Repo/DECISIONS.md}
-|style:{../Spec-Repo/STYLE-GUIDE.md,../Spec-Repo/COMPONENTS.md}
+|style:{../Spec-Repo/STYLE-GUIDE.md}
 |entities:{src/api/entities.js,src/api/base44Client.js}
 |hooks:{src/hooks/useUser.js,src/hooks/useRSVP.js,src/hooks/useOrganization.js,src/hooks/useVitality.js}
 |admin:{src/pages/Admin.jsx,src/components/admin/}
 |mylane:{src/pages/MyLane.jsx,src/components/mylane/}
 
-For decisions DEC-001 through DEC-031, check DECISIONS.md before assuming behavior.
+For decisions DEC-001 through DEC-048, check DECISIONS.md before assuming behavior.
 
 ---
 
@@ -245,16 +245,17 @@ For decisions DEC-001 through DEC-031, check DECISIONS.md before assuming behavi
 
 ### Node Structure
 
+LocalLane uses a Node Lab Model (DEC-047) for development. Each node (Contractor Daily, Property Pulse, etc.) is built as an independent app with real users. Nodes integrate into the Community Node only after proving maturity — real users, stable schema, tested roles.
+
 ```
 Community Node (the hub — locallane.app)
-  └── Partner Nodes (Tier 3 businesses with own apps)
-      └── Example: Event Node, Nonprofit Node, etc.
+  └── Standalone Nodes (independent during lab phase)
+      └── Contractor Daily, Property Pulse, etc.
 ```
 
-- Config flows DOWN (parent → child, polling every 5 min)
-- Content flows UP (child → parent, POST on create/update)
-- Tier 1 & 2 operate within Community Node
-- Tier 3 gets own Partner Node that syncs back to Community Node
+- During lab phase: nodes are fully independent, no sync
+- Future integration: config flows down, content flows up
+- See Spec-Repo NODE-LAB-MODEL.md for maturity criteria
 
 ### Base44 Entities
 
@@ -371,7 +372,7 @@ Before making changes that affect architecture, style, or features:
 1. Check `DECISIONS.md` for existing constraints
 2. Check `STYLE-GUIDE.md` for visual standards
 3. Check `ARCHITECTURE.md` for data patterns
-4. Check `COMPONENTS.md` for UI patterns
+4. Check `.cursorrules` for UI patterns
 
 If you need to deviate from spec, flag it — don't just do it.
 
