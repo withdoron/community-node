@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Store } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -18,9 +17,11 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
           {/* Brand */}
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 bg-amber-500 rounded-lg flex items-center justify-center">
-              <Store className="h-4 w-4 text-black" />
-            </div>
+            <img
+              src="/LocalLaneLogo.png"
+              alt="Local Lane"
+              className="h-9 w-9 rounded-lg object-cover"
+            />
             <span className="text-white font-bold text-xl tracking-tight">Local Lane</span>
           </div>
 

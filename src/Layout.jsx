@@ -70,14 +70,14 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
           {/* Left: Logo */}
           <Link
             to={createPageUrl(currentUser ? 'MyLane' : 'Home')}
-            className="group flex items-center gap-2 py-2 -ml-2 pl-2 pr-4 cursor-pointer transition-all rounded-lg"
+            className="group flex items-center gap-3 py-2 -ml-2 pl-2 pr-4 cursor-pointer transition-all rounded-lg"
           >
             <img
               src="/LocalLaneLogo.png"
               alt="Local Lane"
-              className="h-9 w-9 rounded-lg object-cover"
+              className="h-9 w-9 rounded-lg object-cover transition-opacity group-hover:opacity-80"
             />
-            <span className="font-bold text-amber-500 text-lg hidden sm:block">
+            <span className="font-bold text-slate-100 text-lg hidden sm:block transition-colors group-hover:text-amber-500">
               Local Lane
             </span>
           </Link>
