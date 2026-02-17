@@ -72,10 +72,12 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
             to={createPageUrl(currentUser ? 'MyLane' : 'Home')}
             className="group flex items-center gap-2 py-2 -ml-2 pl-2 pr-4 cursor-pointer transition-all rounded-lg"
           >
-            <div className="h-8 w-8 rounded-lg border border-slate-800 bg-slate-900 flex items-center justify-center group-hover:border-amber-500/50 transition-colors">
-              <Store className="h-4 w-4 text-white group-hover:text-amber-400 transition-colors" />
-            </div>
-            <span className="font-bold text-slate-100 text-lg group-hover:text-amber-500 transition-colors">
+            <img
+              src="/LocalLaneLogo.png"
+              alt="Local Lane"
+              className="h-9 w-9 rounded-lg object-cover"
+            />
+            <span className="font-bold text-amber-500 text-lg hidden sm:block">
               Local Lane
             </span>
           </Link>
@@ -190,10 +192,12 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                   <div className="p-4 border-b border-slate-800">
                     <SheetClose asChild>
                       <Link to={createPageUrl(currentUser ? 'MyLane' : 'Home')} className="group flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-lg border border-slate-800 bg-slate-900 flex items-center justify-center group-hover:border-amber-500/50">
-                          <Store className="h-4 w-4 text-white group-hover:text-amber-400" />
-                        </div>
-                        <span className="font-bold text-slate-100 text-lg group-hover:text-amber-500">Local Lane</span>
+                        <img
+                          src="/LocalLaneLogo.png"
+                          alt="Local Lane"
+                          className="h-9 w-9 rounded-lg object-cover"
+                        />
+                        <span className="font-bold text-amber-500 text-lg">Local Lane</span>
                       </Link>
                     </SheetClose>
                   </div>
