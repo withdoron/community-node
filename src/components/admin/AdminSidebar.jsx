@@ -4,8 +4,9 @@
  * Styling: bg-slate-900, border-r border-slate-700; active: bg-slate-800 border-l-2 border-amber-500.
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
 import {
   Building2,
   Users,
@@ -13,7 +14,6 @@ import {
   Network,
   Globe,
   CreditCard,
-  Zap,
   Settings,
   Calendar,
   Clock,
@@ -23,6 +23,7 @@ import {
   Accessibility,
   ShieldAlert,
   Coins,
+  MessageSquarePlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -34,6 +35,7 @@ const sections = [
     items: [
       { to: `${ADMIN_BASE}/businesses`, label: 'Businesses', icon: Building2 },
       { to: `${ADMIN_BASE}/concerns`, label: 'Concerns', icon: ShieldAlert },
+      { to: `${ADMIN_BASE}/feedback`, label: 'Feedback', icon: MessageSquarePlus },
       { to: `${ADMIN_BASE}/users`, label: 'Users', icon: Users },
       { to: `${ADMIN_BASE}/locations`, label: 'Locations', icon: MapPin },
       { to: `${ADMIN_BASE}/partners`, label: 'Partners', icon: Network },
@@ -67,6 +69,23 @@ const sections = [
 ];
 
 export default function AdminSidebar() {
+  const [feedbackCount, setFeedbackCount] = useState(0);
+
+  useEffect(() => {
+    const loadFeedbackCount = async () => {
+      try {
+        const list = await base44.entities.FeedbackLog.list();
+        const items = Array.isArray(list) ? list : [];
+        setFeedbackCount(items.length);
+      } catch {
+        setFeedbackCount(0);
+      }
+    };
+    loadFeedbackCount();
+    const interval = setInterval(loadFeedbackCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <aside className="w-64 shrink-0 bg-slate-900 border-r border-slate-700 flex flex-col">
       <nav className="p-3 space-y-6 overflow-y-auto">
@@ -78,6 +97,7 @@ export default function AdminSidebar() {
             <ul className="space-y-0.5">
               {section.items.map((item) => {
                 const Icon = item.icon;
+                const isFeedback = item.to === `${ADMIN_BASE}/feedback`;
                 return (
                   <li key={item.to}>
                     <NavLink
@@ -96,6 +116,11 @@ export default function AdminSidebar() {
                       <span>{item.label}</span>
                       {item.placeholder && (
                         <span className="text-xs text-slate-500 ml-1">(soon)</span>
+                      )}
+                      {isFeedback && feedbackCount > 0 && (
+                        <span className="ml-auto rounded-full bg-amber-500 text-slate-900 text-xs font-bold min-w-5 h-5 flex items-center justify-center px-1.5">
+                          {feedbackCount > 99 ? '99+' : feedbackCount}
+                        </span>
                       )}
                     </NavLink>
                   </li>

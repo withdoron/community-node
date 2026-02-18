@@ -14,6 +14,7 @@ import AdminSettingsPanel from '@/components/admin/AdminSettingsPanel';
 import AdminLocationsTable from '@/components/admin/AdminLocationsTable';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminConcernsPanel from '@/components/admin/AdminConcernsPanel';
+import FeedbackReview from '@/components/admin/FeedbackReview';
 import AdminUsersSection from '@/components/admin/AdminUsersSection';
 import ConfigSection from '@/components/admin/config/ConfigSection';
 import { JoyCoinsAdminPanel } from '@/components/admin/JoyCoinsAdminPanel';
@@ -185,6 +186,7 @@ export default function Admin() {
             } />
 
             <Route path="concerns" element={<AdminConcernsPanel />} />
+            <Route path="feedback" element={<FeedbackReview />} />
 
                 <Route path="users" element={<AdminUsersSection businesses={businesses} />} />
 
