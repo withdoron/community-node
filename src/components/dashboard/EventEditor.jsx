@@ -38,6 +38,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useConfig } from "@/hooks/useConfig";
+import { useRole } from "@/hooks/useRole";
 
 export default function EventEditor({
   business,
@@ -48,6 +49,7 @@ export default function EventEditor({
   locations = [],
 }) {
   const { tier, canUseJoyCoins, canUseMultipleTickets } = useOrganization(business);
+  const { isAppAdmin } = useRole();
 
   const { data: eventTypes = [] } = useConfig("events", "event_types");
   const { data: networks = [] } = useConfig("platform", "networks");
@@ -714,141 +716,154 @@ export default function EventEditor({
         </div>
 
         {/* Recurring Event Section */}
-        <div className="space-y-4 p-4 border border-slate-700 rounded-lg">
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => setIsRecurring(!isRecurring)}
-            onKeyDown={(e) => e.key === "Enter" && setIsRecurring(!isRecurring)}
-            className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
-          >
-            <div className="pointer-events-none">
-              <p className="text-white font-medium">This event repeats</p>
-              <p className="text-slate-400 text-sm">
-                Create multiple event instances on a schedule
-              </p>
-            </div>
+        {isAppAdmin ? (
+          <div className="space-y-4 p-4 border border-slate-700 rounded-lg">
             <div
-              className={cn(
-                "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
-                isRecurring ? "bg-amber-500" : "bg-slate-600"
-              )}
+              role="button"
+              tabIndex={0}
+              onClick={() => setIsRecurring(!isRecurring)}
+              onKeyDown={(e) => e.key === "Enter" && setIsRecurring(!isRecurring)}
+              className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
             >
-              <span
-                className={cn(
-                  "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
-                  isRecurring ? "translate-x-5" : "translate-x-0.5"
-                )}
-              />
-            </div>
-          </div>
-
-          {isRecurring && (
-            <div className="space-y-4 pt-4 border-t border-slate-700">
-              <div>
-                <Label className="text-slate-300">Pattern</Label>
-                <Select
-                  value={recurrencePattern}
-                  onValueChange={setRecurrencePattern}
-                >
-                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="daily" className="text-slate-300">
-                      Daily
-                    </SelectItem>
-                    <SelectItem value="weekly" className="text-slate-300">
-                      Weekly
-                    </SelectItem>
-                    <SelectItem value="biweekly" className="text-slate-300">
-                      Every 2 weeks
-                    </SelectItem>
-                    <SelectItem value="monthly" className="text-slate-300">
-                      Monthly
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {(recurrencePattern === "weekly" ||
-                recurrencePattern === "biweekly") && (
-                <div>
-                  <Label className="text-slate-300">Repeats on</Label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                      (day) => (
-                        <button
-                          key={day}
-                          type="button"
-                          onClick={() => toggleDay(day)}
-                          className={cn(
-                            "px-4 py-2 rounded-lg border transition-colors",
-                            selectedDays.includes(day)
-                              ? "bg-amber-500 border-amber-500 text-black"
-                              : "bg-slate-800 border-slate-700 text-white hover:border-slate-600"
-                          )}
-                        >
-                          {day}
-                        </button>
-                      )
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <Label className="text-slate-300">Ends on (Optional)</Label>
-                <Popover open={recurrenceEndDateOpen} onOpenChange={setRecurrenceEndDateOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full justify-start mt-1 bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {recurrenceEndDate
-                        ? format(recurrenceEndDate, "PPP")
-                        : "Select end date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="bg-slate-800 border-slate-700 p-0 w-auto">
-                    <Calendar
-                      mode="single"
-                      selected={recurrenceEndDate}
-                      onSelect={(date) => {
-                        setRecurrenceEndDate(date);
-                        setRecurrenceEndDateOpen(false);
-                      }}
-                      disabled={(date) => {
-                        const today = new Date(new Date().setHours(0, 0, 0, 0));
-                        if (date < today) return true;
-                        if (formData.start_date && date <= formData.start_date) return true;
-                        return false;
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                {recurrenceEndDate && (
-                  <button
-                    type="button"
-                    onClick={() => setRecurrenceEndDate(null)}
-                    className="text-slate-400 text-sm mt-1 hover:text-white"
-                  >
-                    Clear end date
-                  </button>
-                )}
-              </div>
-              <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-                <p className="text-xs text-amber-500">
-                  <AlertCircle className="h-3 w-3 inline mr-1" />
-                  Each occurrence will be created as a separate event
+              <div className="pointer-events-none">
+                <p className="text-white font-medium">This event repeats</p>
+                <p className="text-slate-400 text-sm">
+                  Create multiple event instances on a schedule
                 </p>
               </div>
+              <div
+                className={cn(
+                  "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
+                  isRecurring ? "bg-amber-500" : "bg-slate-600"
+                )}
+              >
+                <span
+                  className={cn(
+                    "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                    isRecurring ? "translate-x-5" : "translate-x-0.5"
+                  )}
+                />
+              </div>
             </div>
-          )}
-        </div>
+
+            {isRecurring && (
+              <div className="space-y-4 pt-4 border-t border-slate-700">
+                <div>
+                  <Label className="text-slate-300">Pattern</Label>
+                  <Select
+                    value={recurrencePattern}
+                    onValueChange={setRecurrencePattern}
+                  >
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700">
+                      <SelectItem value="daily" className="text-slate-300">
+                        Daily
+                      </SelectItem>
+                      <SelectItem value="weekly" className="text-slate-300">
+                        Weekly
+                      </SelectItem>
+                      <SelectItem value="biweekly" className="text-slate-300">
+                        Every 2 weeks
+                      </SelectItem>
+                      <SelectItem value="monthly" className="text-slate-300">
+                        Monthly
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {(recurrencePattern === "weekly" ||
+                  recurrencePattern === "biweekly") && (
+                  <div>
+                    <Label className="text-slate-300">Repeats on</Label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                        (day) => (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => toggleDay(day)}
+                            className={cn(
+                              "px-4 py-2 rounded-lg border transition-colors",
+                              selectedDays.includes(day)
+                                ? "bg-amber-500 border-amber-500 text-black"
+                                : "bg-slate-800 border-slate-700 text-white hover:border-slate-600"
+                            )}
+                          >
+                            {day}
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <Label className="text-slate-300">Ends on (Optional)</Label>
+                  <Popover open={recurrenceEndDateOpen} onOpenChange={setRecurrenceEndDateOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full justify-start mt-1 bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {recurrenceEndDate
+                          ? format(recurrenceEndDate, "PPP")
+                          : "Select end date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="bg-slate-800 border-slate-700 p-0 w-auto">
+                      <Calendar
+                        mode="single"
+                        selected={recurrenceEndDate}
+                        onSelect={(date) => {
+                          setRecurrenceEndDate(date);
+                          setRecurrenceEndDateOpen(false);
+                        }}
+                        disabled={(date) => {
+                          const today = new Date(new Date().setHours(0, 0, 0, 0));
+                          if (date < today) return true;
+                          if (formData.start_date && date <= formData.start_date) return true;
+                          return false;
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {recurrenceEndDate && (
+                    <button
+                      type="button"
+                      onClick={() => setRecurrenceEndDate(null)}
+                      className="text-slate-400 text-sm mt-1 hover:text-white"
+                    >
+                      Clear end date
+                    </button>
+                  )}
+                </div>
+                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                  <p className="text-xs text-amber-500">
+                    <AlertCircle className="h-3 w-3 inline mr-1" />
+                    Each occurrence will be created as a separate event
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center justify-between p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl mt-2 opacity-50 cursor-not-allowed">
+            <div className="flex-1">
+              <p className="text-slate-400 font-medium">This event repeats</p>
+              <p className="text-slate-500 text-sm">Create multiple event instances on a schedule</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-amber-500/70">Coming Soon</span>
+              <Lock className="h-4 w-4 text-amber-500/70" />
+            </div>
+          </div>
+        )}
 
         {/* Location / Virtual / TBD */}
         <div className="space-y-3">
@@ -1160,175 +1175,191 @@ export default function EventEditor({
         </div>
 
         {/* Joy Coins */}
-        <div className="space-y-3 p-4 rounded-xl border border-slate-700 bg-slate-800/50">
-          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-            <Coins className="h-5 w-5 text-amber-500" />
-            Joy Coins
-          </h3>
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() =>
-              setFormData((prev) => ({ ...prev, joy_coin_enabled: !prev.joy_coin_enabled }))
-            }
-            onKeyDown={(e) =>
-              e.key === "Enter" &&
-              setFormData((prev) => ({ ...prev, joy_coin_enabled: !prev.joy_coin_enabled }))
-            }
-            className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
-          >
-            <span className="text-slate-300 pointer-events-none">
-              Accept Joy Coins for this event
-            </span>
+        {isAppAdmin ? (
+          <div className="space-y-3 p-4 rounded-xl border border-slate-700 bg-slate-800/50">
+            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+              <Coins className="h-5 w-5 text-amber-500" />
+              Joy Coins
+            </h3>
             <div
-              className={cn(
-                "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
-                formData.joy_coin_enabled ? "bg-amber-500" : "bg-slate-600"
-              )}
+              role="button"
+              tabIndex={0}
+              onClick={() =>
+                setFormData((prev) => ({ ...prev, joy_coin_enabled: !prev.joy_coin_enabled }))
+              }
+              onKeyDown={(e) =>
+                e.key === "Enter" &&
+                setFormData((prev) => ({ ...prev, joy_coin_enabled: !prev.joy_coin_enabled }))
+              }
+              className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
             >
-              <span
+              <span className="text-slate-300 pointer-events-none">
+                Accept Joy Coins for this event
+              </span>
+              <div
                 className={cn(
-                  "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
-                  formData.joy_coin_enabled ? "translate-x-5" : "translate-x-0.5"
+                  "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
+                  formData.joy_coin_enabled ? "bg-amber-500" : "bg-slate-600"
                 )}
-              />
+              >
+                <span
+                  className={cn(
+                    "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                    formData.joy_coin_enabled ? "translate-x-5" : "translate-x-0.5"
+                  )}
+                />
+              </div>
             </div>
-          </div>
-          {formData.joy_coin_enabled && (
-            <div className="space-y-4 pt-3 border-t border-slate-700">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-slate-300">Coins per person</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={formData.joy_coin_cost}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, joy_coin_cost: e.target.value }))}
-                    className="bg-slate-900 border-slate-700 text-white mt-1"
-                    placeholder="e.g., 3"
-                  />
-                </div>
-                {!formData.joy_coin_unlimited && (
+            {formData.joy_coin_enabled && (
+              <div className="space-y-4 pt-3 border-t border-slate-700">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-slate-300">Joy Coin spots</Label>
+                    <Label className="text-slate-300">Coins per person</Label>
                     <Input
                       type="number"
                       min="1"
-                      value={formData.joy_coin_spots}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, joy_coin_spots: e.target.value }))}
+                      value={formData.joy_coin_cost}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, joy_coin_cost: e.target.value }))}
                       className="bg-slate-900 border-slate-700 text-white mt-1"
-                      placeholder="Defaults to capacity"
+                      placeholder="e.g., 3"
                     />
                   </div>
-                )}
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex-1">
-                  <Label className="text-slate-300">Max party size</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="20"
-                    value={formData.max_party_size}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, max_party_size: e.target.value }))}
-                    className="bg-slate-900 border-slate-700 text-white mt-1 w-24"
-                    placeholder="10"
-                  />
+                  {!formData.joy_coin_unlimited && (
+                    <div>
+                      <Label className="text-slate-300">Joy Coin spots</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={formData.joy_coin_spots}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, joy_coin_spots: e.target.value }))}
+                        className="bg-slate-900 border-slate-700 text-white mt-1"
+                        placeholder="Defaults to capacity"
+                      />
+                    </div>
+                  )}
                 </div>
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setFormData((prev) => ({ ...prev, joy_coin_unlimited: !prev.joy_coin_unlimited }))}
-                  onKeyDown={(e) => e.key === "Enter" && setFormData((prev) => ({ ...prev, joy_coin_unlimited: !prev.joy_coin_unlimited }))}
-                  className="flex items-center gap-3 cursor-pointer"
-                >
-                  <span className="text-slate-300 text-sm">Unlimited spots</span>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <Label className="text-slate-300">Max party size</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="20"
+                      value={formData.max_party_size}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, max_party_size: e.target.value }))}
+                      className="bg-slate-900 border-slate-700 text-white mt-1 w-24"
+                      placeholder="10"
+                    />
+                  </div>
                   <div
-                    className={cn(
-                      "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0",
-                      formData.joy_coin_unlimited ? "bg-amber-500" : "bg-slate-600"
-                    )}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setFormData((prev) => ({ ...prev, joy_coin_unlimited: !prev.joy_coin_unlimited }))}
+                    onKeyDown={(e) => e.key === "Enter" && setFormData((prev) => ({ ...prev, joy_coin_unlimited: !prev.joy_coin_unlimited }))}
+                    className="flex items-center gap-3 cursor-pointer"
                   >
-                    <span
+                    <span className="text-slate-300 text-sm">Unlimited spots</span>
+                    <div
                       className={cn(
-                        "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
-                        formData.joy_coin_unlimited ? "translate-x-5" : "translate-x-0.5"
+                        "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0",
+                        formData.joy_coin_unlimited ? "bg-amber-500" : "bg-slate-600"
                       )}
-                    />
+                    >
+                      <span
+                        className={cn(
+                          "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                          formData.joy_coin_unlimited ? "translate-x-5" : "translate-x-0.5"
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-slate-300">Attendance limit (optional)</Label>
-                <p className="text-xs text-slate-500">Limit how often the same member can attend</p>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min="1"
-                    value={formData.frequency_limit_count}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, frequency_limit_count: e.target.value }))}
-                    className="bg-slate-900 border-slate-700 text-white w-20"
-                    placeholder="∞"
-                  />
-                  <span className="text-slate-400">times per</span>
-                  <Select
-                    value={formData.frequency_limit_period}
-                    onValueChange={(value) => setFormData((prev) => ({ ...prev, frequency_limit_period: value }))}
-                  >
-                    <SelectTrigger className="w-32 bg-slate-900 border-slate-700 text-white">
-                      <SelectValue placeholder="Select..." />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-700">
-                      <SelectItem value="week" className="text-slate-300">week</SelectItem>
-                      <SelectItem value="month" className="text-slate-300">month</SelectItem>
-                      <SelectItem value="total" className="text-slate-300">total</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Attendance limit (optional)</Label>
+                  <p className="text-xs text-slate-500">Limit how often the same member can attend</p>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="1"
+                      value={formData.frequency_limit_count}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, frequency_limit_count: e.target.value }))}
+                      className="bg-slate-900 border-slate-700 text-white w-20"
+                      placeholder="∞"
+                    />
+                    <span className="text-slate-400">times per</span>
+                    <Select
+                      value={formData.frequency_limit_period}
+                      onValueChange={(value) => setFormData((prev) => ({ ...prev, frequency_limit_period: value }))}
+                    >
+                      <SelectTrigger className="w-32 bg-slate-900 border-slate-700 text-white">
+                        <SelectValue placeholder="Select..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-slate-700">
+                        <SelectItem value="week" className="text-slate-300">week</SelectItem>
+                        <SelectItem value="month" className="text-slate-300">month</SelectItem>
+                        <SelectItem value="total" className="text-slate-300">total</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex-1">
-                  <Label className="text-slate-300">Refund policy</Label>
-                  <Select
-                    value={formData.refund_policy || "moderate"}
-                    onValueChange={(value) => setFormData((prev) => ({ ...prev, refund_policy: value }))}
-                  >
-                    <SelectTrigger className="bg-slate-900 border-slate-700 text-white mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-700">
-                      <SelectItem value="flexible" className="text-slate-300">Flexible (2 hours)</SelectItem>
-                      <SelectItem value="moderate" className="text-slate-300">Moderate (24 hours)</SelectItem>
-                      <SelectItem value="strict" className="text-slate-300">Strict (no refunds)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setFormData((prev) => ({ ...prev, adults_only: !prev.adults_only }))}
-                  onKeyDown={(e) => e.key === "Enter" && setFormData((prev) => ({ ...prev, adults_only: !prev.adults_only }))}
-                  className="flex items-center gap-3 cursor-pointer pt-6"
-                >
-                  <span className="text-slate-300 text-sm">18+ only</span>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <Label className="text-slate-300">Refund policy</Label>
+                    <Select
+                      value={formData.refund_policy || "moderate"}
+                      onValueChange={(value) => setFormData((prev) => ({ ...prev, refund_policy: value }))}
+                    >
+                      <SelectTrigger className="bg-slate-900 border-slate-700 text-white mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-slate-700">
+                        <SelectItem value="flexible" className="text-slate-300">Flexible (2 hours)</SelectItem>
+                        <SelectItem value="moderate" className="text-slate-300">Moderate (24 hours)</SelectItem>
+                        <SelectItem value="strict" className="text-slate-300">Strict (no refunds)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div
-                    className={cn(
-                      "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0",
-                      formData.adults_only ? "bg-amber-500" : "bg-slate-600"
-                    )}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setFormData((prev) => ({ ...prev, adults_only: !prev.adults_only }))}
+                    onKeyDown={(e) => e.key === "Enter" && setFormData((prev) => ({ ...prev, adults_only: !prev.adults_only }))}
+                    className="flex items-center gap-3 cursor-pointer pt-6"
                   >
-                    <span
+                    <span className="text-slate-300 text-sm">18+ only</span>
+                    <div
                       className={cn(
-                        "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
-                        formData.adults_only ? "translate-x-5" : "translate-x-0.5"
+                        "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0",
+                        formData.adults_only ? "bg-amber-500" : "bg-slate-600"
                       )}
-                    />
+                    >
+                      <span
+                        className={cn(
+                          "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                          formData.adults_only ? "translate-x-5" : "translate-x-0.5"
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl opacity-50 cursor-not-allowed">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Coins className="h-5 w-5 text-amber-500/50" />
+                <h3 className="text-slate-400 font-semibold">Joy Coins</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-amber-500/70">Coming Soon</span>
+                <Lock className="h-4 w-4 text-amber-500/70" />
               </div>
             </div>
-          )}
-        </div>
+            <p className="text-slate-500 text-sm mt-2">Accept Joy Coins for this event</p>
+          </div>
+        )}
 
         {/* Event Type */}
         <div data-error="event_types">
@@ -1358,28 +1389,47 @@ export default function EventEditor({
         </div>
 
         {/* Networks */}
-        <div>
-          <Label className="text-slate-300">Networks / Communities (optional)</Label>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {networks
-              .filter((n) => n.active !== false)
-              .map((network) => (
-                <button
-                  key={network.value}
-                  type="button"
-                  onClick={() => toggleNetwork(network.value)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-                    formData.networks.includes(network.value)
-                      ? "bg-amber-500 text-black"
-                      : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
-                  )}
-                >
-                  {network.label}
-                </button>
-              ))}
+        {isAppAdmin ? (
+          <div>
+            <Label className="text-slate-300">Networks / Communities (optional)</Label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {networks
+                .filter((n) => n.active !== false)
+                .map((network) => (
+                  <button
+                    key={network.value}
+                    type="button"
+                    onClick={() => toggleNetwork(network.value)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                      formData.networks.includes(network.value)
+                        ? "bg-amber-500 text-black"
+                        : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+                    )}
+                  >
+                    {network.label}
+                  </button>
+                ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="opacity-50 cursor-not-allowed">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-slate-400 text-sm font-medium">Networks / Communities (optional)</label>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-amber-500/70">Coming Soon</span>
+                <Lock className="h-4 w-4 text-amber-500/70" />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {['Recess', 'Creative Alliance', 'Harvest Network', 'Gathering Circle'].map(name => (
+                <span key={name} className="px-3 py-1.5 rounded-full border border-slate-700/50 text-slate-500 text-sm">
+                  {name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Age / Audience */}
         <div>
