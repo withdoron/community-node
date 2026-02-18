@@ -65,31 +65,14 @@ export default function BusinessOnboarding() {
     queryFn: () => base44.auth.me()
   });
 
-  // Fetch archetypes from database; filter to config active values and merge with config for label/description/icon
-  const { data: dbArchetypes = [], isLoading: archetypesLoading } = useQuery({
+  // Fetch archetypes from database (only needed for archetype_id on save)
+  const { data: dbArchetypes = [] } = useQuery({
     queryKey: ['archetypes'],
     queryFn: () => base44.entities.Archetype.list()
   });
 
-  const visibleArchetypeOptions = React.useMemo(() => {
-    const visible = ONBOARDING_CONFIG.archetypes.filter(a => a.active);
-    return visible.map(configArch => {
-      const dbArch = dbArchetypes.find(d => (d.slug || d.id) === configArch.value);
-      const Icon = ARCHETYPE_ICON_MAP[configArch.icon] || Store;
-      return { ...configArch, archetype_id: dbArch?.id, dbArch, Icon };
-    }).filter(o => o.archetype_id != null);
-  }, [dbArchetypes]);
-
-  // Fallback: if no config matches DB, show all DB archetypes with config-style display where possible
-  const archetypeOptions = visibleArchetypeOptions.length > 0
-    ? visibleArchetypeOptions
-    : dbArchetypes.map(arch => ({
-        value: arch.slug || arch.id,
-        label: arch.name,
-        description: arch.description || '',
-        archetype_id: arch.id,
-        Icon: Store
-      }));
+  const visibleArchetypes = ONBOARDING_CONFIG.archetypes.filter(a => a.active);
+  console.log('ARCHETYPE DEBUG:', { visibleArchetypes, allDbArchetypes: dbArchetypes });
 
   // Scroll to top when step changes
   React.useEffect(() => {
@@ -150,7 +133,7 @@ export default function BusinessOnboarding() {
   const canProceed = () => {
     switch (currentStepId) {
       case 'archetype':
-        return !!formData.archetype && !!formData.archetype_id;
+        return !!formData.archetype;
       case 'details': {
         if (!formData.name || !formData.primary_category || !formData.city || !formData.zip_code || !formData.phone || !formData.email) return false;
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -182,14 +165,22 @@ export default function BusinessOnboarding() {
         starting_price: s.starting_price ? parseFloat(s.starting_price) : null
       }));
 
+    const dbArch = dbArchetypes.find(d => (d.slug || d.id) === formData.archetype);
     const submitData = {
       ...formData,
+      archetype_id: dbArch?.id || null,
       goals,
       subscription_tier,
       services: cleanedServices
     };
     createBusiness.mutate(submitData);
   };
+
+  console.log('ONBOARDING DEBUG:', {
+    allSteps: ONBOARDING_CONFIG.steps,
+    activeSteps: ONBOARDING_CONFIG.steps.filter(s => s.active),
+    activeCount: ONBOARDING_CONFIG.steps.filter(s => s.active).length,
+  });
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -252,27 +243,24 @@ export default function BusinessOnboarding() {
                 <h2 className="text-3xl font-bold text-slate-100">How do you serve the community?</h2>
                 <p className="text-slate-400 mt-2">Choose the option that best fits your business or group.</p>
               </div>
-              {archetypesLoading ? (
-                <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
-                </div>
-              ) : archetypeOptions.length === 0 ? (
+              {visibleArchetypes.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-slate-400 mb-4">No archetypes found. Please contact an administrator.</p>
+                  <p className="text-slate-400 mb-4">No archetypes configured. Please contact an administrator.</p>
                   <Button onClick={() => navigate(createPageUrl('Admin'))} variant="outline" className="border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500">
                     Go to Admin
                   </Button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-4 mt-8">
-                  {archetypeOptions.map((opt) => {
-                    const Icon = opt.Icon || Store;
-                    const isSelected = formData.archetype_id === opt.archetype_id;
+                  {visibleArchetypes.map((arch) => {
+                    const Icon = ARCHETYPE_ICON_MAP[arch.icon] || Store;
+                    const isSelected = formData.archetype === arch.value;
                     return (
                       <div
-                        key={opt.value}
+                        key={arch.value}
                         onClick={() => {
-                          setFormData({ ...formData, archetype: opt.value, archetype_id: opt.archetype_id });
+                          const dbArch = dbArchetypes.find(d => (d.slug || d.id) === arch.value);
+                          setFormData({ ...formData, archetype: arch.value, archetype_id: dbArch?.id || '' });
                           setTimeout(() => setCurrentStepIndex(1), 500);
                         }}
                         className={`group p-6 rounded-xl border-2 cursor-pointer transition-all ${isSelected ? 'border-amber-500 bg-amber-500/10' : 'border-slate-700 bg-slate-800/50 hover:border-amber-500/50 hover:bg-slate-800'}`}
@@ -281,8 +269,8 @@ export default function BusinessOnboarding() {
                           <div className={`h-20 w-20 rounded-xl flex items-center justify-center mb-4 ${isSelected ? 'bg-amber-500/20' : 'bg-slate-700/50'}`}>
                             <Icon className="h-10 w-10 text-amber-500" />
                           </div>
-                          <h3 className={`font-bold text-xl mb-2 transition-colors ${isSelected ? 'text-amber-500' : 'text-slate-100 group-hover:text-amber-500'}`}>{opt.label}</h3>
-                          <p className="text-sm text-slate-400 mb-3 max-w-md">{opt.description}</p>
+                          <h3 className={`font-bold text-xl mb-2 transition-colors ${isSelected ? 'text-amber-500' : 'text-slate-100 group-hover:text-amber-500'}`}>{arch.label}</h3>
+                          <p className="text-sm text-slate-400 mb-3 max-w-md">{arch.description}</p>
                         </div>
                       </div>
                     );
