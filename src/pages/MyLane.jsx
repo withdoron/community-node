@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2, ThumbsUp, Users } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useUserState } from '@/hooks/useUserState';
+import { useRole } from '@/hooks/useRole';
 import GreetingHeader from '@/components/mylane/GreetingHeader';
 import UpcomingEventsSection from '@/components/mylane/UpcomingEventsSection';
 import HappeningSoonSection from '@/components/mylane/HappeningSoonSection';
@@ -25,6 +26,7 @@ export default function MyLane() {
   });
 
   const { recommendations, joyCoins } = useUserState(currentUser?.id);
+  const { isAppAdmin } = useRole();
 
   if (!userLoading && !currentUser) {
     return (
@@ -55,13 +57,15 @@ export default function MyLane() {
     <div className="min-h-screen bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
         <GreetingHeader currentUser={currentUser} joyCoins={joyCoins} />
-        <JoyCoinsCard />
-        <SectionWrapper title="My Household" seeAllPage="Settings">
-          <div className="py-6 text-center bg-slate-900 border border-slate-800 rounded-xl">
-            <Users className="h-10 w-10 text-slate-500 mx-auto mb-2" />
-            <p className="text-sm text-slate-400">Add family members to quickly select them when RSVPing</p>
-          </div>
-        </SectionWrapper>
+        {isAppAdmin && <JoyCoinsCard />}
+        {isAppAdmin && (
+          <SectionWrapper title="My Household" seeAllPage="Settings">
+            <div className="py-6 text-center bg-slate-900 border border-slate-800 rounded-xl">
+              <Users className="h-10 w-10 text-slate-500 mx-auto mb-2" />
+              <p className="text-sm text-slate-400">Add family members to quickly select them when RSVPing</p>
+            </div>
+          </SectionWrapper>
+        )}
         <UpcomingEventsSection currentUser={currentUser} />
         <HappeningSoonSection />
         <NewInCommunitySection />

@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Coins } from 'lucide-react';
+import { useRole } from '@/hooks/useRole';
 
 export default function GreetingHeader({ currentUser, joyCoins }) {
+  const { isAppAdmin } = useRole();
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   const displayName = currentUser?.data?.display_name || currentUser?.full_name || 'neighbor';
@@ -17,20 +19,22 @@ export default function GreetingHeader({ currentUser, joyCoins }) {
         <p className="text-slate-400 mt-1">Your community, organized around you.</p>
       </div>
 
-      <div className="flex items-center gap-3">
-        <Link
-          to="/my-lane/transactions"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 transition-colors"
-        >
-          <Coins className="h-5 w-5 text-amber-500" />
-          <div>
-            <p className="text-amber-500 font-bold text-lg leading-tight">
-              {joyCoins?.current_balance ?? 0}
-            </p>
-            <p className="text-amber-500/70 text-xs">Joy Coins</p>
-          </div>
-        </Link>
-      </div>
+      {isAppAdmin && (
+        <div className="flex items-center gap-3">
+          <Link
+            to="/my-lane/transactions"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 transition-colors"
+          >
+            <Coins className="h-5 w-5 text-amber-500" />
+            <div>
+              <p className="text-amber-500 font-bold text-lg leading-tight">
+                {joyCoins?.current_balance ?? 0}
+              </p>
+              <p className="text-amber-500/70 text-xs">Joy Coins</p>
+            </div>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
