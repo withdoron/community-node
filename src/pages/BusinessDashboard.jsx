@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ArrowLeft, Store, Wallet, Ticket, Plus, Users, TrendingUp, Trash2, Settings, Loader2, LayoutDashboard, Coins, Calendar } from "lucide-react";
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
+import { useRole } from '@/hooks/useRole';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
 import AccessWindowManager from '@/components/dashboard/AccessWindowManager';
 import RevenueOverview from '@/components/dashboard/RevenueOverview';
@@ -47,6 +48,7 @@ export default function BusinessDashboard() {
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me()
   });
+  const { isAppAdmin } = useRole();
 
   // Fetch businesses where user is owner
   const { data: ownedBusinesses = [], isLoading: ownedLoading } = useQuery({
@@ -286,23 +288,25 @@ export default function BusinessDashboard() {
                 </h1>
                 <p className="text-slate-400 text-sm mt-1">Welcome back to your dashboard</p>
               </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="bg-slate-800 border-slate-700 text-slate-200 px-4 py-2">
-                  <Wallet className="h-4 w-4 mr-2 text-amber-500" />
-                  Silver: 0 oz
-                </Badge>
-                <Badge variant="outline" className="bg-slate-800 border-slate-700 text-slate-200 px-4 py-2">
-                  <Ticket className="h-4 w-4 mr-2 text-amber-500" />
-                  0 Passes
-                </Badge>
-                <Button 
-                  className="bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700"
-                  onClick={() => navigate(createPageUrl('Events'))}
-                >
-                  <Ticket className="h-4 w-4 mr-2" />
-                  My Tickets
-                </Button>
-              </div>
+              {isAppAdmin && (
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline" className="bg-slate-800 border-slate-700 text-slate-200 px-4 py-2">
+                    <Wallet className="h-4 w-4 mr-2 text-amber-500" />
+                    Silver: 0 oz
+                  </Badge>
+                  <Badge variant="outline" className="bg-slate-800 border-slate-700 text-slate-200 px-4 py-2">
+                    <Ticket className="h-4 w-4 mr-2 text-amber-500" />
+                    0 Passes
+                  </Badge>
+                  <Button 
+                    className="bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700"
+                    onClick={() => navigate(createPageUrl('Events'))}
+                  >
+                    <Ticket className="h-4 w-4 mr-2" />
+                    My Tickets
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
