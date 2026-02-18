@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles, Coins, Settings, MessageSquarePlus, X, Send, Camera } from "lucide-react";
+import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles, Coins, Settings, MessageSquarePlus, X, Send, Camera, Lightbulb, Bug } from "lucide-react";
 import Footer from '@/components/layout/Footer';
 import { useRole } from '@/hooks/useRole';
 import { toast } from 'sonner';
@@ -43,6 +43,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
   const userHasStaffRole = currentUser?.is_business_owner || staffBusinesses.length > 0;
   const { isAppAdmin } = useRole();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackType, setFeedbackType] = useState('feedback');
   const [whatHappened, setWhatHappened] = useState('');
   const [whatExpected, setWhatExpected] = useState('');
   const [screenshotFile, setScreenshotFile] = useState(null);
@@ -63,6 +64,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
         user_email: currentUser?.email ?? undefined,
         user_role: isAppAdmin ? 'admin' : 'user',
         page_url: window.location.pathname ?? undefined,
+        feedback_type: feedbackType,
         what_happened: whatHappened.trim(),
         what_expected: whatExpected?.trim() || undefined,
       };
@@ -71,6 +73,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
       setWhatHappened('');
       setWhatExpected('');
       setScreenshotFile(null);
+      setFeedbackType('feedback');
       setFeedbackOpen(false);
       toast.success('Thanks — we got it! Your feedback helps make Local Lane better.');
     } catch (err) {
@@ -357,6 +360,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                   type="button"
                   onClick={() => {
                     setFeedbackOpen(false);
+                    setFeedbackType('feedback');
                     setWhatHappened('');
                     setWhatExpected('');
                     setScreenshotFile(null);
@@ -367,13 +371,41 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                 </button>
               </div>
 
+              {/* Mode Tabs */}
+              <div className="flex gap-2 px-4 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setFeedbackType('feedback')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    feedbackType === 'feedback'
+                      ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
+                      : 'bg-slate-900 text-slate-400 border border-slate-700 hover:text-slate-300'
+                  }`}
+                >
+                  <Lightbulb className="w-4 h-4" />
+                  Feedback
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFeedbackType('bug')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    feedbackType === 'bug'
+                      ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
+                      : 'bg-slate-900 text-slate-400 border border-slate-700 hover:text-slate-300'
+                  }`}
+                >
+                  <Bug className="w-4 h-4" />
+                  Report Bug
+                </button>
+              </div>
+
               <form onSubmit={handleFeedbackSubmit} className="p-4 space-y-3">
                 <div>
-                  <label className="text-sm text-slate-400 mb-1 block">What happened? *</label>
+                  <label className="text-sm text-slate-400 mb-1 block">{feedbackType === 'bug' ? 'Describe the bug *' : 'What happened? *'}</label>
                   <textarea
                     value={whatHappened}
                     onChange={(e) => setWhatHappened(e.target.value)}
-                    placeholder="Describe the issue or suggestion..."
+                    placeholder={feedbackType === 'bug' ? 'What went wrong...' : 'Share your idea or suggestion...'}
                     rows={3}
                     className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm resize-none focus:outline-none focus:border-amber-500"
                     required
@@ -381,11 +413,11 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                 </div>
 
                 <div>
-                  <label className="text-sm text-slate-400 mb-1 block">What did you expect? (optional)</label>
+                  <label className="text-sm text-slate-400 mb-1 block">{feedbackType === 'bug' ? 'What should have happened? (optional)' : 'What did you expect? (optional)'}</label>
                   <textarea
                     value={whatExpected}
                     onChange={(e) => setWhatExpected(e.target.value)}
-                    placeholder="What should have happened instead..."
+                    placeholder={feedbackType === 'bug' ? 'What should have happened instead...' : 'Any additional context...'}
                     rows={2}
                     className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm resize-none focus:outline-none focus:border-amber-500"
                   />
