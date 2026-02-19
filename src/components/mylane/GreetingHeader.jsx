@@ -7,7 +7,7 @@ export default function GreetingHeader({ currentUser, joyCoins }) {
   const { isAppAdmin } = useRole();
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-  const displayName = currentUser?.data?.display_name || currentUser?.full_name || 'neighbor';
+  const displayName = currentUser?.data?.display_name || currentUser?.data?.full_name || currentUser?.full_name || 'neighbor';
   const firstName = displayName.split(' ')[0];
 
   return (

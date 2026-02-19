@@ -53,17 +53,6 @@ export default function MyLane() {
     );
   }
 
-  if (currentUser) {
-    try {
-      if (!window.localStorage.getItem(ONBOARDING_STORAGE_KEY)) {
-        navigate(createPageUrl('welcome'), { replace: true });
-        return null;
-      }
-    } catch {
-      // ignore localStorage errors
-    }
-  }
-
   return (
     <div className="min-h-screen bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">

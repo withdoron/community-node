@@ -33,13 +33,17 @@ export default function UserOnboarding() {
   const updateUserMutation = useMutation({
     mutationFn: async (payload) => {
       if (!currentUser?.id) throw new Error('No user');
+      const data = {
+        onboarding_complete: payload.onboarding_complete,
+        network_interests: payload.network_interests ?? [],
+        community_pass_interest: payload.community_pass_interest ?? null,
+      };
+      if (payload.full_name != null && payload.full_name.trim() !== '') {
+        data.full_name = payload.full_name.trim();
+      }
       await base44.functions.invoke('updateUser', {
         action: 'update_onboarding',
-        data: {
-          onboarding_complete: payload.onboarding_complete,
-          network_interests: payload.network_interests ?? [],
-          community_pass_interest: payload.community_pass_interest ?? null,
-        },
+        data,
       });
     },
     onSuccess: () => {
@@ -134,6 +138,19 @@ export default function UserOnboarding() {
                   </p>
                 </div>
               </div>
+            </div>
+            <div className="mt-8">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                What should we call you?
+              </label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Your first name"
+                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-base"
+                autoComplete="given-name"
+              />
             </div>
             <div className="space-y-3 pt-4">
               <Button

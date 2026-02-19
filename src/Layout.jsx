@@ -191,12 +191,15 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
-                    <Link to="/my-lane/transactions" className="flex items-center">
-                      <Coins className="h-4 w-4 mr-2" />
-                      Community Pass
-                    </Link>
-                  </DropdownMenuItem>
+                  {/* FEATURE_GATE: Community Pass — show when membership system launches */}
+                  {false && (
+                    <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
+                      <Link to="/my-lane/transactions" className="flex items-center">
+                        <Coins className="h-4 w-4 mr-2" />
+                        Community Pass
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
                     <Link to={createPageUrl('Settings')} className="flex items-center">
                       <Settings className="h-4 w-4 mr-2" />
@@ -292,12 +295,15 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                           </Link>
                         </SheetClose>
                       )}
-                      <SheetClose asChild>
-                        <Link to="/my-lane/transactions" className={`flex items-center gap-3 ${sheetLinkClass('MyLane')}`}>
-                          <Coins className="h-5 w-5 flex-shrink-0" />
-                          Community Pass
-                        </Link>
-                      </SheetClose>
+                      {/* FEATURE_GATE: Community Pass — show when membership system launches */}
+                      {false && (
+                        <SheetClose asChild>
+                          <Link to="/my-lane/transactions" className={`flex items-center gap-3 ${sheetLinkClass('MyLane')}`}>
+                            <Coins className="h-5 w-5 flex-shrink-0" />
+                            Community Pass
+                          </Link>
+                        </SheetClose>
+                      )}
                       <SheetClose asChild>
                         <Link to={createPageUrl('Settings')} className={`flex items-center gap-3 ${sheetLinkClass('Settings')}`}>
                           <Settings className="h-5 w-5 flex-shrink-0" />
