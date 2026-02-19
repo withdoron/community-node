@@ -46,25 +46,32 @@ export function useConfigMutation(domain, configType) {
 
   return useMutation({
     mutationFn: async (items) => {
+      console.log('CONFIG SAVE DEBUG [useConfigMutation]: key=', key, 'items.length=', items?.length);
       const value = JSON.stringify({ items, updated_at: new Date().toISOString() });
       const existing = await base44.functions.invoke('updateAdminSettings', {
         action: 'filter',
         key,
       });
+      console.log('CONFIG SAVE DEBUG [useConfigMutation]: existing=', existing);
       const existingArr = Array.isArray(existing) ? existing : (existing?.data ?? []);
+      console.log('CONFIG SAVE DEBUG [useConfigMutation]: existingArr.length=', existingArr.length);
       if (existingArr.length > 0) {
-        return base44.functions.invoke('updateAdminSettings', {
+        const result = await base44.functions.invoke('updateAdminSettings', {
           action: 'update',
           id: existingArr[0].id,
           key,
           value,
         });
+        console.log('CONFIG SAVE DEBUG [useConfigMutation]: update result=', result);
+        return result;
       }
-      return base44.functions.invoke('updateAdminSettings', {
+      const result = await base44.functions.invoke('updateAdminSettings', {
         action: 'create',
         key,
         value,
       });
+      console.log('CONFIG SAVE DEBUG [useConfigMutation]: create result=', result);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['config', domain, configType] });
