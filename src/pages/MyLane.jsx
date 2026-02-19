@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, ThumbsUp, Users } from 'lucide-react';
@@ -51,6 +51,17 @@ export default function MyLane() {
         <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
       </div>
     );
+  }
+
+  if (currentUser) {
+    try {
+      if (!window.localStorage.getItem(ONBOARDING_STORAGE_KEY)) {
+        navigate(createPageUrl('welcome'), { replace: true });
+        return null;
+      }
+    } catch {
+      // ignore localStorage errors
+    }
   }
 
   return (

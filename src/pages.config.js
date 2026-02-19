@@ -15,6 +15,7 @@ import SpokeDetails from './pages/SpokeDetails';
 import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Recommend from './pages/Recommend';
+import UserOnboarding from './pages/UserOnboarding';
 import __Layout from './Layout.jsx';
 
 
@@ -36,6 +37,7 @@ export const PAGES = {
     "Support": Support,
     "Terms": Terms,
     "Recommend": Recommend,
+    "welcome": UserOnboarding,
 }
 
 export const pagesConfig = {
