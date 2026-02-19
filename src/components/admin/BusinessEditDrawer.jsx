@@ -20,9 +20,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown, Trash2, Link2, X } from "lucide-react";
+import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown, Trash2, Link2, X, Globe } from "lucide-react";
 import { format } from 'date-fns';
 import { toast } from "sonner";
+import { useConfig } from '@/hooks/useConfig';
 
 export default function BusinessEditDrawer({ business, open, onClose, adminEmail }) {
   const queryClient = useQueryClient();
@@ -116,6 +117,9 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     enabled: !!business?.id && localInstructors.length > 0,
   });
 
+  const { data: networksConfig = [] } = useConfig('platform', 'networks');
+  const networks = Array.isArray(networksConfig) ? networksConfig.filter((n) => n.active !== false) : [];
+
   useEffect(() => {
     if (business) {
       setEditData({
@@ -123,6 +127,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         accepts_silver: business.accepts_silver || false,
         is_locally_owned_franchise: business.is_locally_owned_franchise || false,
         is_active: business.is_active !== false,
+        network_ids: Array.isArray(business.network_ids) ? business.network_ids : [],
       });
     }
   }, [business]);
@@ -636,6 +641,44 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   className="data-[state=checked]:bg-amber-500"
                 />
               </div>
+            </div>
+
+            <Separator className="bg-slate-700" />
+
+            {/* Networks */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-slate-100">Networks</h3>
+              {networks.length === 0 ? (
+                <p className="text-xs text-slate-500">No networks configured. Add networks in Admin → Networks.</p>
+              ) : (
+                networks.map((network) => {
+                  const value = network.value ?? network.id;
+                  const currentIds = Array.isArray(editData.network_ids) ? editData.network_ids : [];
+                  const isChecked = currentIds.includes(value);
+                  return (
+                    <div key={value} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-700">
+                      <div className="flex items-center gap-3">
+                        <Globe className="h-5 w-5 text-amber-500" />
+                        <div>
+                          <Label className="font-medium text-slate-100">{network.label || value}</Label>
+                          <p className="text-xs text-slate-400">Assign this business to {network.label || value}</p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={isChecked}
+                        onCheckedChange={(checked) => {
+                          const next = checked
+                            ? [...currentIds, value]
+                            : currentIds.filter((id) => id !== value);
+                          handleFieldChange('network_ids', next, 'network_toggle');
+                        }}
+                        disabled={updateMutation.isPending}
+                        className="data-[state=checked]:bg-amber-500"
+                      />
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             <Separator className="bg-slate-700" />
