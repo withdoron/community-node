@@ -131,7 +131,7 @@ export default function AdminConcernsPanel() {
           <p className="text-slate-400 mt-2">All clear — no concerns have been submitted yet.</p>
         </div>
       ) : (
-        <div className="border border-slate-800 rounded-lg overflow-hidden">
+        <div className="border border-slate-800 rounded-lg overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="bg-slate-800/50 border-b border-slate-800">

@@ -451,7 +451,7 @@ export default function SpokeDetails() {
                       <div className="bg-slate-900 px-4 py-2 border-b border-slate-700">
                         <div className="flex items-center gap-3">
                           <span className="px-2 py-1 bg-green-600 text-white text-xs font-bold rounded">POST</span>
-                          <code className="text-sm text-slate-300">https://preview--local-connect-c9b011d3.base44.app/functions/receiveEvent</code>
+                          <code className="text-sm text-slate-300 break-all">https://preview--local-connect-c9b011d3.base44.app/functions/receiveEvent</code>
                         </div>
                       </div>
                       <div className="p-4 space-y-2 text-sm">
@@ -470,7 +470,7 @@ export default function SpokeDetails() {
                       <div className="bg-slate-900 px-4 py-2 border-b border-slate-700">
                         <div className="flex items-center gap-3">
                           <span className="px-2 py-1 bg-blue-600 text-white text-xs font-bold rounded">PATCH</span>
-                          <code className="text-sm text-slate-300">https://preview--local-connect-c9b011d3.base44.app/functions/updateEvent</code>
+                          <code className="text-sm text-slate-300 break-all">https://preview--local-connect-c9b011d3.base44.app/functions/updateEvent</code>
                         </div>
                       </div>
                       <div className="p-4 space-y-2 text-sm">
@@ -489,7 +489,7 @@ export default function SpokeDetails() {
                       <div className="bg-slate-900 px-4 py-2 border-b border-slate-700">
                         <div className="flex items-center gap-3">
                           <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded">DELETE</span>
-                          <code className="text-sm text-slate-300">https://preview--local-connect-c9b011d3.base44.app/functions/deleteEvent</code>
+                          <code className="text-sm text-slate-300 break-all">https://preview--local-connect-c9b011d3.base44.app/functions/deleteEvent</code>
                         </div>
                       </div>
                       <div className="p-4 space-y-2 text-sm">

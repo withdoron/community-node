@@ -182,10 +182,10 @@ export default function LocationEditDialog({
             </div>
           </div>
 
-          <div className="flex items-center justify-between py-3 px-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center justify-between py-3 px-4 bg-slate-800/50 rounded-lg border border-slate-700">
             <div>
-              <Label htmlFor="home-based" className="font-medium text-slate-900">Home-Based Business</Label>
-              <p className="text-sm text-slate-600">Don't show full street address publicly (only city, state)</p>
+              <Label htmlFor="home-based" className="font-medium text-slate-200">Home-Based Business</Label>
+              <p className="text-sm text-slate-400">Don't show full street address publicly (only city, state)</p>
             </div>
             <Switch
               id="home-based"

@@ -15,7 +15,7 @@ export default function AdminLocationsTable({
   }, [businesses]);
 
   return (
-    <div className="border border-slate-800 rounded-xl overflow-hidden bg-slate-900">
+    <div className="border border-slate-800 rounded-xl overflow-x-auto bg-slate-900">
       <Table>
         <TableHeader>
           <TableRow className="bg-slate-800/50 border-b border-slate-700">
