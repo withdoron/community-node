@@ -464,14 +464,14 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       setConfirmDialog({ open: true, field, value, actionType, message: confirmMessage });
     } else {
       updateMutation.mutate({ field, value, actionType });
-      setEditData({ ...editData, [field]: value });
+      setEditData((prev) => ({ ...prev, [field]: value }));
     }
   };
 
   const confirmChange = () => {
     const { field, value, actionType } = confirmDialog;
     updateMutation.mutate({ field, value, actionType });
-    setEditData({ ...editData, [field]: value });
+    setEditData((prev) => ({ ...prev, [field]: value }));
     setConfirmDialog({ open: false, field: '', value: null, message: '' });
   };
 
