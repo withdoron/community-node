@@ -204,11 +204,11 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 id="category_search"
                 type="text"
                 value={
-                  isEditing || isDropdownOpen
+                  isDropdownOpen
                     ? searchTerm
                     : formData.primary_category && formData.sub_category
                     ? `${formData.primary_category} → ${formData.sub_category}`
-                    : searchTerm
+                    : (formData.primary_category || '')
                 }
                 onChange={handleCategorySearchChange}
                 onFocus={() => {
