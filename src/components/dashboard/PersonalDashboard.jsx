@@ -31,7 +31,7 @@ export default function PersonalDashboard() {
     <div className="min-h-screen bg-slate-950 p-6">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-slate-100 mb-3">
+          <h1 className="text-2xl sm:text-4xl font-bold text-slate-100 mb-3">
             Welcome to Your Dashboard
           </h1>
           <p className="text-slate-400 text-lg">

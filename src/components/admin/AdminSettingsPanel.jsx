@@ -102,9 +102,9 @@ export default function AdminSettingsPanel() {
         <div className="space-y-4">
           {/* Accepts Silver Badge */}
           <div className="flex items-center justify-between p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
-            <div className="flex items-center gap-3">
-              <Coins className="h-5 w-5 text-amber-500" />
-              <div>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <Coins className="h-5 w-5 text-amber-500 shrink-0" />
+              <div className="min-w-0">
                 <Label className="font-medium text-slate-100">Show "Accepts Silver" Badges</Label>
                 <p className="text-xs text-slate-400 mt-0.5">
                   Display the silver acceptance badge on eligible listings
@@ -120,9 +120,9 @@ export default function AdminSettingsPanel() {
 
           {/* Locally Owned Franchise Badge */}
           <div className="flex items-center justify-between p-4 bg-slate-800 rounded-lg border border-slate-700">
-            <div className="flex items-center gap-3">
-              <Store className="h-5 w-5 text-amber-500" />
-              <div>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <Store className="h-5 w-5 text-amber-500 shrink-0" />
+              <div className="min-w-0">
                 <Label className="font-medium text-slate-100">Show "Locally Owned Franchise" Badges</Label>
                 <p className="text-xs text-slate-400 mt-0.5">
                   Display the local franchise badge on eligible listings
@@ -138,9 +138,9 @@ export default function AdminSettingsPanel() {
 
           {/* Future: Accepts Payments Badge */}
           <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700 opacity-60">
-            <div className="flex items-center gap-3">
-              <CreditCard className="h-5 w-5 text-slate-500" />
-              <div>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <CreditCard className="h-5 w-5 text-slate-500 shrink-0" />
+              <div className="min-w-0">
                 <Label className="font-medium text-slate-500">Show "Accepts Online Payments" Badges</Label>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Coming soon — Display when businesses accept online payments

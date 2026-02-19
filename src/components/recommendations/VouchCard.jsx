@@ -18,7 +18,7 @@ export default function VouchCard({ vouch }) {
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium text-white text-sm">{vouch.user_name}</span>
             <span className="text-xs text-amber-500 font-medium">Verified Vouch</span>
           </div>

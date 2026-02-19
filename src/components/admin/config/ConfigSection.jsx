@@ -195,12 +195,12 @@ export default function ConfigSection({ domain, configType, title }) {
               ) : (
                 <div className="flex flex-1 items-center justify-between min-w-0">
                   <span className="text-slate-200 truncate">{item.label}</span>
-                  <span className="text-slate-500 text-sm font-mono mr-2 flex-shrink-0">{item.value}</span>
+                  <span className="text-slate-500 text-sm font-mono mr-2 flex-shrink-0 hidden sm:inline">{item.value}</span>
                   <div className="flex gap-1 flex-shrink-0">
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-slate-400 hover:text-amber-500 p-1 h-8 w-8"
+                      className="text-slate-400 hover:text-amber-500 p-2 h-10 w-10"
                       onClick={() => {
                         setEditingId(itemId);
                         setEditLabel(item.label || '');
@@ -211,7 +211,7 @@ export default function ConfigSection({ domain, configType, title }) {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-slate-400 hover:text-red-400 p-1 h-8 w-8"
+                      className="text-slate-400 hover:text-red-400 p-2 h-10 w-10"
                       onClick={() => handleDelete(item)}
                     >
                       <Trash2 className="h-4 w-4" />

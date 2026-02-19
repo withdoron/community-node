@@ -108,14 +108,14 @@ export default function ConcernForm({ businessId, businessName, onClose, onSucce
           <Button
             variant="ghost"
             onClick={onClose}
-            className="text-slate-400 hover:text-white"
+            className="h-11 text-slate-400 hover:text-white"
           >
             Cancel
           </Button>
           <Button
             onClick={() => submitConcern.mutate()}
             disabled={!description.trim() || submitConcern.isPending}
-            className="bg-slate-700 hover:bg-slate-600 text-white"
+            className="h-11 bg-slate-700 hover:bg-slate-600 text-white"
           >
             {submitConcern.isPending ? (
               <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Submitting...</>

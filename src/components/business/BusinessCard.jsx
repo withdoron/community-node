@@ -96,7 +96,7 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
 
         {/* Content */}
         <div className="flex-1 p-4 sm:p-5 bg-slate-900">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start justify-between gap-3 overflow-hidden">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <Badge variant="secondary" className="text-xs bg-slate-800 text-slate-300">
@@ -157,7 +157,7 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
               <Button 
                 variant="default" 
                 size="sm"
-                className="w-full h-9 bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                className="w-full h-10 bg-amber-500 hover:bg-amber-400 text-black font-semibold"
               >
                 View Profile
                 <ChevronRight className="h-3.5 w-3.5 ml-1" />

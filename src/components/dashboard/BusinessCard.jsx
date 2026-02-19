@@ -59,7 +59,7 @@ export default function BusinessCard({ business, userRole, eventCount = 0, onCli
 
           {/* Business Info */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
               <h3 className="font-bold text-lg text-slate-100 truncate">
                 {business.name}
               </h3>

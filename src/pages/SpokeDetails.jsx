@@ -180,7 +180,7 @@ export default function SpokeDetails() {
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-6 py-8">
         <Card className="p-8 bg-slate-900 border-slate-800">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-3 mb-6">
             <div>
               <h1 className="text-2xl font-bold text-slate-100">
                 {spokeId ? 'Edit Spoke' : 'Create New Spoke'}
@@ -253,13 +253,13 @@ export default function SpokeDetails() {
               <Label htmlFor="api_key" className="text-slate-200">
                 API Key <span className="text-red-500">*</span>
               </Label>
-              <div className="flex gap-2 mt-1">
+              <div className="flex flex-col sm:flex-row gap-2 mt-1">
                 <Input
                   id="api_key"
                   value={formData.api_key}
                   onChange={(e) => setFormData({ ...formData, api_key: e.target.value })}
                   placeholder="Generate or enter API key"
-                  className="bg-slate-800 border-slate-700 text-slate-100 font-mono text-sm"
+                  className="w-full sm:flex-1 bg-slate-800 border-slate-700 text-slate-100 font-mono text-sm"
                 />
                 <Button
                   type="button"
@@ -376,7 +376,7 @@ export default function SpokeDetails() {
                   </p>
                   <div className="space-y-3 font-mono text-sm">
                     <div className="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <div className="text-amber-500 font-semibold">1. LOCAL_LANE_API_KEY</div>
                         <div className="text-slate-500 text-xs mt-1 break-all">{formData.api_key}</div>
                       </div>
@@ -414,7 +414,7 @@ export default function SpokeDetails() {
                       </Button>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <div className="text-amber-500 font-semibold">3. SPOKE_WEBHOOK_SECRET</div>
                         <div className="text-slate-500 text-xs mt-1 break-all">{formData.webhook_secret || '(generate one above)'}</div>
                       </div>

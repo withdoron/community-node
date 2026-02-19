@@ -180,7 +180,7 @@ export default function AdminUsersSection({ businesses = [] }) {
                     <td className="py-3 px-4 text-slate-100">
                       {user.full_name || user.email?.split('@')[0] || 'Unknown'}
                     </td>
-                    <td className="py-3 px-4 text-slate-400 truncate max-w-xs">
+                    <td className="py-3 px-4 text-slate-400 truncate max-w-[150px] sm:max-w-xs">
                       {user.email}
                     </td>
                     <td className="py-3 px-4 text-slate-400">

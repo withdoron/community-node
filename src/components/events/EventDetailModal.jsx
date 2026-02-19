@@ -149,7 +149,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
               {/* Header with close button */}
               <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/95 backdrop-blur-sm">
                 <div className="flex-1 pr-8">
-                  <h1 className={`text-2xl font-bold ${isCancelled ? 'text-red-400 line-through' : 'text-white'}`}>
+                  <h1 className={`text-xl sm:text-2xl font-bold ${isCancelled ? 'text-red-400 line-through' : 'text-white'}`}>
                     {event.title}
                   </h1>
                   {isCancelled && (
@@ -241,7 +241,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 <div className="bg-slate-800/50 rounded-xl p-5 space-y-2">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-5 w-5 text-amber-500" />
-                    <div className="text-amber-500 font-semibold text-lg">
+                    <div className="text-amber-500 font-semibold text-base sm:text-lg">
                       {format(eventDate, 'EEEE, MMMM d, yyyy')}
                     </div>
                   </div>

@@ -205,7 +205,7 @@ export default function AccessWindowManager({ business }) {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <Button
                     variant="ghost"
                     size="default"

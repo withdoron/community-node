@@ -13,7 +13,7 @@ export default function SectionWrapper({ title, subtitle, seeAllPage, seeAllPara
         {seeAllPage && (
           <Link
             to={createPageUrl(seeAllPage) + (seeAllParams || '')}
-            className="flex items-center gap-1 text-amber-500 hover:text-amber-400 text-sm font-medium transition-colors"
+            className="flex items-center gap-1 text-amber-500 hover:text-amber-400 text-sm font-medium transition-colors py-2"
           >
             See all
             <ChevronRight className="h-4 w-4" />

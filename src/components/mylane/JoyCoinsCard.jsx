@@ -29,7 +29,7 @@ export function JoyCoinsCard() {
   return (
     <Card className="bg-slate-900 border-slate-800">
       <CardContent className="p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-amber-500/10 rounded-lg">
               <Coins className="h-6 w-6 text-amber-500" />
@@ -40,7 +40,7 @@ export function JoyCoinsCard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 min-w-0">
             {reservedCoins > 0 && (
               <div className="text-right">
                 <div className="flex items-center gap-1 text-slate-400">
@@ -53,7 +53,7 @@ export function JoyCoinsCard() {
 
             <Link
               to="/my-lane/transactions"
-              className="flex items-center gap-1 text-amber-500 hover:text-amber-400 text-sm"
+              className="flex items-center gap-1 text-amber-500 hover:text-amber-400 text-sm py-2"
             >
               History
               <ArrowRight className="h-4 w-4" />

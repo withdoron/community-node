@@ -63,7 +63,7 @@ export default function CheckInWidget({ business, onEnterCheckIn }) {
                 <Button
                   size="sm"
                   onClick={() => onEnterCheckIn(event)}
-                  className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                  className="bg-amber-500 hover:bg-amber-400 text-black font-semibold shrink-0 whitespace-nowrap"
                 >
                   <UserCheck className="h-4 w-4 mr-2" />
                   Check-In Mode

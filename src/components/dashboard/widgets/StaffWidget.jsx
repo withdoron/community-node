@@ -409,7 +409,6 @@ export default function StaffWidget({ business, currentUserId }) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="hover:bg-slate-800"
                   onClick={() => removeStaffMutation.mutate(user.id)}
                   disabled={removeStaffMutation.isPending}
                   className="text-slate-400 hover:text-red-400 hover:bg-slate-700"
@@ -576,14 +575,14 @@ export default function StaffWidget({ business, currentUserId }) {
                       {selectedRole === 'staff' && 'Check-in access only'}
                     </p>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center shrink-0">
                         <User className="w-5 h-5 text-slate-400" />
                       </div>
-                      <div>
-                        <p className="text-white font-medium">{searchResult.full_name || searchResult.email}</p>
-                        <p className="text-slate-400 text-sm">{searchResult.email}</p>
+                      <div className="min-w-0">
+                        <p className="text-white font-medium truncate">{searchResult.full_name || searchResult.email}</p>
+                        <p className="text-slate-400 text-sm truncate">{searchResult.email}</p>
                       </div>
                     </div>
                     <Button

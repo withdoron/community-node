@@ -1238,7 +1238,7 @@ export default function EventEditor({
                     </div>
                   )}
                 </div>
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
                   <div className="flex-1">
                     <Label className="text-slate-300">Max party size</Label>
                     <Input
@@ -1277,7 +1277,7 @@ export default function EventEditor({
                 <div className="space-y-2">
                   <Label className="text-slate-300">Attendance limit (optional)</Label>
                   <p className="text-xs text-slate-500">Limit how often the same member can attend</p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Input
                       type="number"
                       min="1"
@@ -1302,8 +1302,8 @@ export default function EventEditor({
                     </Select>
                   </div>
                 </div>
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex-1">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex-1 min-w-0">
                     <Label className="text-slate-300">Refund policy</Label>
                     <Select
                       value={formData.refund_policy || "moderate"}

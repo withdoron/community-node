@@ -174,10 +174,12 @@ export default function RevenueOverview({ business }) {
               <p>
                 The pool is split based on <span className="text-slate-200 font-medium">actual check-ins</span> — the more families you serve, the larger your share.
               </p>
-              <div className="bg-slate-800 rounded-lg p-4 mt-3">
-                <p className="text-slate-300 text-xs font-mono">
-                  Your Check-ins ÷ Total Network Check-ins × Business Pool = Your Payout
-                </p>
+              <div className="overflow-x-auto">
+                <div className="bg-slate-800 rounded-lg p-4 mt-3">
+                  <p className="text-slate-300 text-xs font-mono">
+                    Your Check-ins ÷ Total Network Check-ins × Business Pool = Your Payout
+                  </p>
+                </div>
               </div>
               <p>
                 Each Joy Coin redeemed is currently worth approximately <span className="text-amber-500 font-medium">{formatCurrency(estimatedPerCoinValue)}</span> to your business (75% of coin value).

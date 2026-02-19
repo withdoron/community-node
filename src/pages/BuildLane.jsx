@@ -152,7 +152,7 @@ export default function BuildLane() {
           <h2 className="text-xl font-bold text-slate-100 mb-1">Budget</h2>
           <p className="text-slate-400 text-sm mb-6">What's your comfort zone?</p>
           
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {BUDGET_LEVELS.map((level) => {
               const isSelected = budget === level.value;
               return (
@@ -188,7 +188,7 @@ export default function BuildLane() {
       </div>
 
       {/* Sticky Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-800 p-4 z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-sm border-t border-slate-800 pt-4 px-4 z-50" style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}>
         <div className="max-w-3xl mx-auto">
           <Button
             onClick={handleComplete}

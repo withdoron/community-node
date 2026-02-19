@@ -99,7 +99,7 @@ export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpd
                 
                 {/* Local Franchise Toggle */}
                 <TableCell className="text-center">
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="min-h-[44px] flex items-center justify-center gap-2">
                     <Switch
                       checked={!!business.is_locally_owned_franchise}
                       onCheckedChange={(checked) => onUpdateBusiness(business.id, { is_locally_owned_franchise: checked })}

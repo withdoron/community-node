@@ -70,7 +70,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-md p-0 [&>button]:hidden">
+      <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-[calc(100vw-32px)] sm:max-w-md p-0 [&>button]:hidden">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-slate-700">
           <h2 className="text-xl font-bold text-white">Filters</h2>
@@ -117,7 +117,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
                 { id: 'sports_active', label: 'Sports & Active' },
                 { id: 'art_culture', label: 'Art & Culture' }
               ].map((type) => (
-                <label key={type.id} className="flex items-center gap-2 cursor-pointer">
+                <label key={type.id} className="flex items-center gap-2 cursor-pointer py-2">
                   <Checkbox
                     checked={localFilters.eventType?.includes(type.id)}
                     onCheckedChange={() => toggleEventType(type.id)}
@@ -144,7 +144,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
                   <span className="text-xs text-slate-500">Accepts Joy Coins</span>
                 </div>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer py-2">
                 <Checkbox
                   checked={localFilters.networks?.includes('tca')}
                   onCheckedChange={() => toggleNetwork('tca')}
@@ -185,7 +185,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
             <Label className="text-white font-bold mb-3 block">Setting</Label>
             <div className="space-y-2">
               {['indoor', 'outdoor'].map((set) => (
-                <label key={set} className="flex items-center gap-2 cursor-pointer">
+                <label key={set} className="flex items-center gap-2 cursor-pointer py-2">
                   <Checkbox
                     checked={localFilters.setting?.includes(set)}
                     onCheckedChange={() => toggleSetting(set)}
@@ -209,7 +209,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
                 />
                 <span className="text-sm text-slate-300">♿ Wheelchair Accessible</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer py-2">
                 <Checkbox
                   checked={localFilters.freeParking}
                   onCheckedChange={(checked) => setLocalFilters({ ...localFilters, freeParking: checked })}
@@ -217,7 +217,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
                 />
                 <span className="text-sm text-slate-300">🅿️ Free Parking</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer py-2">
                 <Checkbox
                   checked={localFilters.acceptsJoyCoins}
                   onCheckedChange={(checked) => setLocalFilters({ ...localFilters, acceptsJoyCoins: checked })}
@@ -237,13 +237,13 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
           <Button
             variant="outline"
             onClick={handleClear}
-            className="flex-1 bg-transparent border-slate-600 text-slate-300 hover:bg-slate-700"
+            className="flex-1 h-11 bg-transparent border-slate-600 text-slate-300 hover:bg-slate-700"
           >
             Clear All
           </Button>
           <Button
             onClick={handleApply}
-            className="flex-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold"
+            className="flex-1 h-11 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold"
           >
             Show Results
           </Button>

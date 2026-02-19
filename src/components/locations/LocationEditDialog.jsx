@@ -222,14 +222,14 @@ export default function LocationEditDialog({
             <Button 
               type="button" 
               variant="outline" 
-              className="flex-1 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-500"
+              className="flex-1 h-11 hover:bg-slate-800 hover:border-amber-500 hover:text-amber-500"
               onClick={() => onClose(false)}
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
-              className="flex-1 bg-slate-900 hover:bg-slate-800"
+              className="flex-1 h-11 bg-slate-900 hover:bg-slate-800"
               disabled={!formData.city || !formData.street_address || !formData.state || !formData.zip_code || isSaving}
             >
               {isSaving ? (

@@ -98,7 +98,7 @@ export default function FilterBar({
       <div className="flex items-center gap-3">
         {/* Sort */}
         <Select value={sortBy} onValueChange={onSortChange}>
-          <SelectTrigger className="w-[180px] h-9 border-slate-700 bg-slate-900 text-slate-300">
+          <SelectTrigger className="w-[140px] sm:w-[180px] h-10 border-slate-700 bg-slate-900 text-slate-300">
             <ArrowUpDown className="h-3.5 w-3.5 mr-2 text-slate-500" />
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
@@ -117,7 +117,7 @@ export default function FilterBar({
             value={filters.category || 'all'}
             onValueChange={(value) => onFiltersChange({ ...filters, category: value })}
           >
-            <SelectTrigger className="w-[160px] h-9 border-slate-700 bg-slate-900 text-slate-300">
+            <SelectTrigger className="w-[160px] h-10 border-slate-700 bg-slate-900 text-slate-300">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -142,7 +142,7 @@ export default function FilterBar({
         {/* Mobile Filter Sheet */}
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="h-9 md:hidden border-slate-700 text-slate-300 hover:bg-slate-800">
+            <Button variant="outline" size="sm" className="h-10 md:hidden border-slate-700 text-slate-300 hover:bg-slate-800">
               <Filter className="h-3.5 w-3.5 mr-2" />
               Filters
               {activeFilterCount > 0 && (

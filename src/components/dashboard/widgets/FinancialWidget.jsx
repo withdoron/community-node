@@ -64,7 +64,7 @@ export default function FinancialWidget({ business }) {
         </div>
 
         <div className="p-4 bg-slate-900 border border-slate-700 rounded-lg">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-3">
             <div>
               <p className="text-sm font-medium text-white">Payment Method</p>
               <p className="text-xs text-slate-400 mt-1">No payment method on file</p>

@@ -860,7 +860,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                       <p className="text-slate-400 text-xs">{staffSearchResult.email}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Label className="text-slate-400 text-xs shrink-0">Role:</Label>
                     <Select
                       value={selectedRole}
@@ -893,7 +893,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <div className="space-y-3 p-3 bg-slate-700 rounded-lg">
                   <p className="text-white text-sm">{staffSearchResult.email}</p>
                   <p className="text-amber-500 text-xs">No account found — send invite</p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Label className="text-slate-400 text-xs shrink-0">Role:</Label>
                     <Select
                       value={selectedRole}
@@ -914,7 +914,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                       onClick={() => inviteStaffMutation.mutate({ email: staffSearchResult.email, role: selectedRole })}
                       disabled={inviteStaffMutation.isPending}
                       size="sm"
-                      className="bg-amber-500 hover:bg-amber-600 text-black"
+                      className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-black"
                     >
                       {inviteStaffMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send Invite'}
                     </Button>

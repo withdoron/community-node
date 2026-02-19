@@ -213,7 +213,7 @@ export default function BusinessOnboarding() {
             {activeSteps.map((step, idx) => (
               <div key={step.id} className={`flex items-center ${idx < activeSteps.length - 1 ? 'flex-1' : ''}`}>
                 <div className={`
-                  h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium
+                  h-6 w-6 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium
                   ${idx <= currentStepIndex ? 'bg-amber-500 text-black' : 'bg-slate-800 text-slate-500'}
                 `}>
                   {idx < currentStepIndex ? <Check className="h-4 w-4" /> : idx + 1}

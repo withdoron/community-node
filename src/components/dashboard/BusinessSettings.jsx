@@ -191,7 +191,7 @@ export default function BusinessSettings({ business, currentUserId }) {
           <p className="text-xs text-slate-400 mb-3">
             Override subscription tier for testing. Changes are saved to the database.
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {Object.entries(TIER_CONFIG).map(([key, config]) => (
               <Button
                 key={key}

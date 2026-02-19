@@ -163,7 +163,7 @@ export function JoyCoinsAnalyticsWidget({ business }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <StatCard
             icon={Coins}
             label="Coins Redeemed"
@@ -211,7 +211,7 @@ export function JoyCoinsAnalyticsWidget({ business }) {
 
         <div>
           <h4 className="text-sm font-medium text-slate-400 mb-3">Attendance Summary</h4>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-emerald-500" />
               <span className="text-sm text-slate-300">{stats.totalAttendees} checked in</span>

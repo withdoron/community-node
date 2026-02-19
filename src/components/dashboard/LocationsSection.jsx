@@ -105,7 +105,7 @@ export default function LocationsSection({ business }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <MapPin className="h-5 w-5 text-slate-600" />
-          <h3 className="font-semibold text-lg text-slate-900">Locations</h3>
+          <h3 className="font-semibold text-lg text-slate-100">Locations</h3>
           <Badge variant="secondary">{locations.length}</Badge>
         </div>
         <Button onClick={handleAddNew} size="sm">

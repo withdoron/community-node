@@ -96,16 +96,16 @@ function AttendeeRow({ attendee, onCheckIn, isCheckedIn }) {
 
   return (
     <div className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0">
-      <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-lg ${isCheckedIn ? 'bg-emerald-500/10' : 'bg-slate-800'}`}>
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className={`p-2 rounded-lg shrink-0 ${isCheckedIn ? 'bg-emerald-500/10' : 'bg-slate-800'}`}>
           {isCheckedIn ? (
             <CheckCircle className="h-5 w-5 text-emerald-500" />
           ) : (
             <Clock className="h-5 w-5 text-slate-500" />
           )}
         </div>
-        <div>
-          <p className="text-sm font-medium text-slate-100">{partyLabel}</p>
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-slate-100 truncate">{partyLabel}</p>
           {partyNames && (
             <p className="text-xs text-slate-500">{partyNames}</p>
           )}
@@ -309,7 +309,7 @@ export function CheckInMode({ event, onExit }) {
             </CardTitle>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-400"
+              className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-400 p-2"
             >
               <Printer className="h-4 w-4" />
               Print

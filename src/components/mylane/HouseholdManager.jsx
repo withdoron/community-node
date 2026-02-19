@@ -83,7 +83,7 @@ function MemberForm({ member, onSave, onCancel, isLoading }) {
 
       <div>
         <label className="block text-sm text-slate-400 mb-2">Category</label>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {Object.entries(CATEGORY_CONFIG).map(([key, config]) => {
             const Icon = config.icon;
             return (

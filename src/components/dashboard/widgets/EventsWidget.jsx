@@ -335,7 +335,7 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
                     )}
                   </div>
                   <p className="text-sm text-slate-400 mb-2">{event.description}</p>
-                  <div className="flex items-center gap-4 text-xs text-slate-500">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       {format(new Date(event.date), 'MMM d, yyyy • h:mm a')}

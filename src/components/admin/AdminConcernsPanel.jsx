@@ -104,7 +104,7 @@ export default function AdminConcernsPanel() {
           <button
             key={status}
             onClick={() => setStatusFilter(status)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium capitalize ${
+            className={`px-3 py-2 rounded-full text-sm font-medium capitalize ${
               statusFilter === status
                 ? 'bg-amber-500 text-black'
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
