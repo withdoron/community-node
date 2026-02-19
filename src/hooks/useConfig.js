@@ -44,34 +44,18 @@ export function useConfigMutation(domain, configType) {
   const queryClient = useQueryClient();
   const key = getConfigKey(domain, configType);
 
+  const AdminSettings = base44.entities.AdminSettings;
+
   return useMutation({
     mutationFn: async (items) => {
-      console.log('CONFIG SAVE DEBUG [useConfigMutation]: key=', key, 'items.length=', items?.length);
       const value = JSON.stringify({ items, updated_at: new Date().toISOString() });
-      const existing = await base44.functions.invoke('updateAdminSettings', {
-        action: 'filter',
-        key,
-      });
-      console.log('CONFIG SAVE DEBUG [useConfigMutation]: existing=', existing);
-      const existingArr = Array.isArray(existing) ? existing : (existing?.data ?? []);
-      console.log('CONFIG SAVE DEBUG [useConfigMutation]: existingArr.length=', existingArr.length);
-      if (existingArr.length > 0) {
-        const result = await base44.functions.invoke('updateAdminSettings', {
-          action: 'update',
-          id: existingArr[0].id,
-          key,
-          value,
-        });
-        console.log('CONFIG SAVE DEBUG [useConfigMutation]: update result=', result);
-        return result;
+      const allSettings = await AdminSettings.list();
+      const existing = allSettings.find((s) => s.key === key);
+      if (existing) {
+        await AdminSettings.update(existing.id, { value });
+        return existing;
       }
-      const result = await base44.functions.invoke('updateAdminSettings', {
-        action: 'create',
-        key,
-        value,
-      });
-      console.log('CONFIG SAVE DEBUG [useConfigMutation]: create result=', result);
-      return result;
+      return AdminSettings.create({ key, value });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['config', domain, configType] });

@@ -68,27 +68,18 @@ export default function ConfigSection({ domain, configType, title }) {
   };
 
   const handleAdd = () => {
-    console.log('=== CONFIG SAVE DEBUG ===');
-    console.log('Domain:', domain);
-    console.log('Config type:', configType);
-    console.log('New item:', newLabel, newValue);
     const value = (newValue || newLabel || '').trim().toLowerCase().replace(/\s+/g, '_') || `item_${Date.now()}`;
     const label = (newLabel || newValue || value).trim() || value;
     if (!label) return;
     const next = [...items, { value, label, active: true, sort_order: items.length }];
-    console.log('CONFIG SAVE DEBUG: calling mutation.mutate with next (length):', next.length);
     mutation.mutate(next, {
       onSuccess: () => {
-        console.log('CONFIG SAVE DEBUG: mutation onSuccess');
         setAdding(false);
         setNewValue('');
         setNewLabel('');
         toast.success('Added');
       },
-      onError: (err) => {
-        console.log('CONFIG SAVE DEBUG: mutation onError', err);
-        toast.error('Failed to add');
-      },
+      onError: () => toast.error('Failed to add'),
     });
   };
 
