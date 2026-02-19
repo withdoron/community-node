@@ -23,6 +23,7 @@ import {
 import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown, Trash2, Link2, X, Globe } from "lucide-react";
 import { format } from 'date-fns';
 import { toast } from "sonner";
+import { useConfig } from '@/hooks/useConfig';
 
 export default function BusinessEditDrawer({ business, open, onClose, adminEmail }) {
   const queryClient = useQueryClient();
@@ -116,40 +117,11 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     enabled: !!business?.id && localInstructors.length > 0,
   });
 
-  const [networks, setNetworks] = useState([]);
-
-  useEffect(() => {
-    const fetchNetworks = async () => {
-      try {
-        console.log('=== NETWORK DEBUG ===');
-        console.log('base44.entities available:', Object.keys(base44.entities));
-
-        const entityName = base44.entities.Network ? 'Network' :
-          base44.entities.Networks ? 'Networks' :
-            base44.entities.network ? 'network' : 'NONE_FOUND';
-        console.log('Network entity found as:', entityName);
-
-        if (entityName === 'NONE_FOUND') {
-          console.error('No Network entity found in base44.entities');
-          setNetworks([]);
-          return;
-        }
-
-        const entity = base44.entities.Network || base44.entities.Networks || base44.entities.network;
-        const allNetworks = await entity.list();
-        console.log('Networks fetched:', allNetworks);
-        const active = Array.isArray(allNetworks)
-          ? allNetworks.filter((n) => n.is_active !== false)
-          : [];
-        console.log('Active networks:', active);
-        setNetworks(active);
-      } catch (err) {
-        console.error('Network fetch error:', err);
-        setNetworks([]);
-      }
-    };
-    fetchNetworks();
-  }, []);
+  const { data: networksConfig = [] } = useConfig('platform', 'networks');
+  const networks = React.useMemo(
+    () => Array.isArray(networksConfig) ? networksConfig.filter((n) => n.active !== false) : [],
+    [networksConfig]
+  );
 
   useEffect(() => {
     if (business) {
@@ -699,8 +671,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                         checked={isChecked}
                         onCheckedChange={(checked) => {
                           const next = checked
-                            ? [...currentIds, slug]
-                            : currentIds.filter((id) => id !== slug);
+                            ? [...currentIds, value]
+                            : currentIds.filter((id) => id !== value);
                           handleFieldChange('network_ids', next, 'network_toggle');
                         }}
                         disabled={updateMutation.isPending}
