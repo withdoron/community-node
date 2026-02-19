@@ -13,6 +13,14 @@ import { HouseholdManager } from '@/components/mylane/HouseholdManager';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
+function formatPhoneNumber(value) {
+  const digits = (value || '').replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 const COMMUNITY_OPTIONS = [
   { value: 'greater_eugene', label: 'Greater Eugene Area' },
   { value: 'portland_metro', label: 'Portland Metro (Coming Soon)', disabled: true },
@@ -40,9 +48,10 @@ export default function Settings() {
 
   useEffect(() => {
     if (currentUser && !hasChanges) {
+      const rawPhone = (currentUser.data?.phone || currentUser.phone || '').toString().replace(/\D/g, '').slice(0, 10);
       setFormData({
         full_name: currentUser.data?.display_name || currentUser.full_name || '',
-        phone: currentUser.data?.phone || currentUser.phone || '',
+        phone: rawPhone,
         home_region: currentUser.data?.home_region || 'greater_eugene',
       });
     }
@@ -195,8 +204,8 @@ export default function Settings() {
                 <Input
                   id="phone"
                   type="tel"
-                  value={formData.phone}
-                  onChange={(e) => handleChange('phone', e.target.value)}
+                  value={formatPhoneNumber(formData.phone)}
+                  onChange={(e) => handleChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
                   placeholder="(541) 555-1234"
                   className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg focus:border-amber-500 focus:ring-amber-500/20"
                 />

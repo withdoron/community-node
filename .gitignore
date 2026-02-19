@@ -1,6 +1,7 @@
 #env
 .env
 .env.*
+.codemcp.toml
 
 # Logs
 logs
