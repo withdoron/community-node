@@ -655,24 +655,25 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <p className="text-xs text-slate-500">No networks configured. Add networks in Admin → Networks.</p>
               ) : (
                 networks.map((network) => {
-                  const slug = network.slug ?? network.id;
+                  const networkId = network.value ?? network.slug ?? network.id;
+                  const displayName = network.label ?? network.name ?? networkId;
                   const currentIds = Array.isArray(editData.network_ids) ? editData.network_ids : [];
-                  const isChecked = currentIds.includes(slug);
+                  const isChecked = currentIds.includes(networkId);
                   return (
-                    <div key={slug} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-700">
+                    <div key={networkId} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-700">
                       <div className="flex items-center gap-3">
                         <Globe className="h-5 w-5 text-amber-500" />
                         <div>
-                          <Label className="font-medium text-slate-100">{network.name || slug}</Label>
-                          <p className="text-xs text-slate-400">Assign this business to {network.name || slug}</p>
+                          <Label className="font-medium text-slate-100">{displayName}</Label>
+                          <p className="text-xs text-slate-400">Assign this business to {displayName}</p>
                         </div>
                       </div>
                       <Switch
                         checked={isChecked}
                         onCheckedChange={(checked) => {
                           const next = checked
-                            ? [...currentIds, value]
-                            : currentIds.filter((id) => id !== value);
+                            ? [...currentIds, networkId]
+                            : currentIds.filter((id) => id !== networkId);
                           handleFieldChange('network_ids', next, 'network_toggle');
                         }}
                         disabled={updateMutation.isPending}
