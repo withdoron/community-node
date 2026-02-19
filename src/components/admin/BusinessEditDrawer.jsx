@@ -121,13 +121,30 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   useEffect(() => {
     const fetchNetworks = async () => {
       try {
-        const allNetworks = await base44.entities.Network.list();
+        console.log('=== NETWORK DEBUG ===');
+        console.log('base44.entities available:', Object.keys(base44.entities));
+
+        const entityName = base44.entities.Network ? 'Network' :
+          base44.entities.Networks ? 'Networks' :
+            base44.entities.network ? 'network' : 'NONE_FOUND';
+        console.log('Network entity found as:', entityName);
+
+        if (entityName === 'NONE_FOUND') {
+          console.error('No Network entity found in base44.entities');
+          setNetworks([]);
+          return;
+        }
+
+        const entity = base44.entities.Network || base44.entities.Networks || base44.entities.network;
+        const allNetworks = await entity.list();
+        console.log('Networks fetched:', allNetworks);
         const active = Array.isArray(allNetworks)
           ? allNetworks.filter((n) => n.is_active !== false)
           : [];
+        console.log('Active networks:', active);
         setNetworks(active);
       } catch (err) {
-        console.error('Failed to fetch networks:', err);
+        console.error('Network fetch error:', err);
         setNetworks([]);
       }
     };
