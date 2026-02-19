@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { MapPin, Users, Heart, Loader2, ChevronRight } from 'lucide-react';
 import { userOnboardingConfig } from '@/config/userOnboardingConfig';
+import { useConfig } from '@/hooks/useConfig';
 
 const ONBOARDING_STORAGE_KEY = 'locallane_onboarding_shown';
 
@@ -23,27 +24,23 @@ export default function UserOnboarding() {
     queryFn: () => base44.auth.me(),
   });
 
-  const [allNetworks, setAllNetworks] = useState([]);
-  useEffect(() => {
-    const fetchNetworks = async () => {
-      try {
-        const list = await base44.entities.Network.list();
-        setAllNetworks(Array.isArray(list) ? list : []);
-      } catch {
-        setAllNetworks([]);
-      }
-    };
-    fetchNetworks();
-  }, []);
+  const { data: networksConfig = [] } = useConfig('platform', 'networks');
   const networks = useMemo(
-    () => allNetworks.filter((n) => n.is_active !== false),
-    [allNetworks]
+    () => Array.isArray(networksConfig) ? networksConfig.filter((n) => n.active !== false) : [],
+    [networksConfig]
   );
 
   const updateUserMutation = useMutation({
     mutationFn: async (payload) => {
       if (!currentUser?.id) throw new Error('No user');
-      await base44.entities.User.update(currentUser.id, payload);
+      await base44.functions.invoke('updateUser', {
+        action: 'update_onboarding',
+        data: {
+          onboarding_complete: payload.onboarding_complete,
+          network_interests: payload.network_interests ?? [],
+          community_pass_interest: payload.community_pass_interest ?? null,
+        },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['currentUser']);
@@ -172,15 +169,17 @@ export default function UserOnboarding() {
             ) : (
               <div className="space-y-3">
                 {networks.map((net) => {
-                  const slug = net.slug ?? net.id;
-                  const isSelected = networkInterests.includes(slug);
+                  const value = net.value ?? net.slug ?? net.id;
+                  const label = net.label ?? net.name ?? value;
+                  const description = net.description;
+                  const isSelected = networkInterests.includes(value);
                   return (
                     <button
-                      key={slug}
+                      key={value}
                       type="button"
                       onClick={() => {
                         setNetworkInterests((prev) =>
-                          prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]
+                          prev.includes(value) ? prev.filter((s) => s !== value) : [...prev, value]
                         );
                       }}
                       className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
@@ -189,9 +188,9 @@ export default function UserOnboarding() {
                           : 'border-slate-700 bg-slate-800 hover:border-amber-500/50'
                       }`}
                     >
-                      <h3 className="font-semibold text-slate-100">{net.name || slug}</h3>
-                      {net.description && (
-                        <p className="text-sm text-slate-400 mt-1">{net.description}</p>
+                      <h3 className="font-semibold text-slate-100">{label}</h3>
+                      {description && (
+                        <p className="text-sm text-slate-400 mt-1">{description}</p>
                       )}
                     </button>
                   );
