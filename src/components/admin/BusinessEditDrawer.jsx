@@ -28,7 +28,9 @@ import { useConfig } from '@/hooks/useConfig';
 export default function BusinessEditDrawer({ business, open, onClose, adminEmail }) {
   const queryClient = useQueryClient();
   const [editData, setEditData] = useState(null);
+  const [hasChanges, setHasChanges] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, field: '', value: null, message: '' });
+  const [unsavedCloseDialogOpen, setUnsavedCloseDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addStaffEmail, setAddStaffEmail] = useState('');
   const [staffSearchResult, setStaffSearchResult] = useState(null);
@@ -132,36 +134,42 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         is_active: business.is_active !== false,
         network_ids: Array.isArray(business.network_ids) ? business.network_ids : [],
       });
+      setHasChanges(false);
     }
   }, [business]);
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ field, value, actionType }) => {
+  const saveMutation = useMutation({
+    mutationFn: async (payload) => {
       await base44.functions.invoke('updateBusiness', {
         action: 'update',
         business_id: business.id,
-        data: { [field]: value },
+        data: payload,
       });
-
-      // Log the action
       await base44.entities.AdminAuditLog.create({
         admin_email: adminEmail,
         business_id: business.id,
         business_name: business.name,
-        action_type: actionType,
-        field_changed: field,
-        old_value: String(business[field] ?? ''),
-        new_value: String(value),
+        action_type: 'drawer_save',
+        field_changed: 'multiple',
+        old_value: JSON.stringify({
+          subscription_tier: business.subscription_tier,
+          accepts_silver: business.accepts_silver,
+          is_locally_owned_franchise: business.is_locally_owned_franchise,
+          is_active: business.is_active,
+          network_ids: business.network_ids,
+        }),
+        new_value: JSON.stringify(payload),
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-businesses']);
+      setHasChanges(false);
       toast.success('Business updated successfully');
     },
     onError: (error) => {
       toast.error('Failed to update business');
       console.error(error);
-    }
+    },
   });
 
   // Hard delete: remove record permanently (Business.delete). Fallback to soft delete if delete not available.
@@ -463,16 +471,45 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     if (confirmMessage) {
       setConfirmDialog({ open: true, field, value, actionType, message: confirmMessage });
     } else {
-      updateMutation.mutate({ field, value, actionType });
       setEditData((prev) => ({ ...prev, [field]: value }));
+      setHasChanges(true);
     }
   };
 
   const confirmChange = () => {
-    const { field, value, actionType } = confirmDialog;
-    updateMutation.mutate({ field, value, actionType });
+    const { field, value } = confirmDialog;
     setEditData((prev) => ({ ...prev, [field]: value }));
+    setHasChanges(true);
     setConfirmDialog({ open: false, field: '', value: null, message: '' });
+  };
+
+  const handleSaveChanges = async () => {
+    if (!editData || !business) return;
+    const payload = {
+      subscription_tier: editData.subscription_tier,
+      accepts_silver: editData.accepts_silver,
+      is_locally_owned_franchise: editData.is_locally_owned_franchise,
+      network_ids: Array.isArray(editData.network_ids) ? editData.network_ids : [],
+      is_active: editData.is_active,
+    };
+    saveMutation.mutate(payload);
+  };
+
+  const handleDiscardChanges = () => {
+    setEditData({
+      subscription_tier: business.subscription_tier || 'basic',
+      accepts_silver: business.accepts_silver || false,
+      is_locally_owned_franchise: business.is_locally_owned_franchise || false,
+      is_active: business.is_active !== false,
+      network_ids: Array.isArray(business.network_ids) ? business.network_ids : [],
+    });
+    setHasChanges(false);
+    setUnsavedCloseDialogOpen(false);
+  };
+
+  const handleCloseWithDiscard = () => {
+    handleDiscardChanges();
+    onClose();
   };
 
   if (!business || !editData) return null;
@@ -485,13 +522,22 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onClose}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto bg-slate-900 border-slate-800">
+      <Sheet
+        open={open}
+        onOpenChange={(nextOpen) => {
+          if (nextOpen === false && hasChanges) {
+            setUnsavedCloseDialogOpen(true);
+            return;
+          }
+          onClose();
+        }}
+      >
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto bg-slate-900 border-slate-800 flex flex-col">
           <SheetHeader>
             <SheetTitle className="text-xl text-slate-100">{business.name}</SheetTitle>
           </SheetHeader>
 
-          <div className="mt-6 space-y-6">
+          <div className="mt-6 space-y-6 flex-1 min-h-0 overflow-y-auto pb-28">
             {/* Read-only Info */}
             <div className="space-y-3 p-4 bg-slate-800 rounded-lg border border-slate-700">
               <h3 className="font-medium text-slate-100 flex items-center gap-2">
@@ -568,7 +614,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   'tier_change',
                   `Change this business to ${tierLabels[value].label} tier?`
                 )}
-                disabled={updateMutation.isPending}
+                disabled={saveMutation.isPending}
               >
                 <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-300">
                   <SelectValue />
@@ -618,7 +664,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     checked,
                     'accepts_silver_toggle'
                   )}
-                  disabled={updateMutation.isPending}
+                  disabled={saveMutation.isPending}
                   className="data-[state=checked]:bg-amber-500"
                 />
               </div>
@@ -640,7 +686,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     'locally_owned_franchise_toggle',
                     checked ? 'Mark this as a Locally Owned Franchise?' : 'Remove Locally Owned Franchise status?'
                   )}
-                  disabled={updateMutation.isPending}
+                  disabled={saveMutation.isPending}
                   className="data-[state=checked]:bg-amber-500"
                 />
               </div>
@@ -676,7 +722,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                             : currentIds.filter((id) => id !== networkId);
                           handleFieldChange('network_ids', next, 'network_toggle');
                         }}
-                        disabled={updateMutation.isPending}
+                        disabled={saveMutation.isPending}
                         className="data-[state=checked]:bg-amber-500"
                       />
                     </div>
@@ -701,18 +747,10 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   'visibility_toggle',
                   checked ? 'Make this listing visible?' : 'Hide this listing from the public?'
                 )}
-                disabled={updateMutation.isPending}
+                disabled={saveMutation.isPending}
                 className="data-[state=checked]:bg-amber-500"
               />
             </div>
-
-            {/* Save indicator */}
-            {updateMutation.isPending && (
-              <div className="flex items-center justify-center gap-2 text-sm text-slate-400">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Saving...
-              </div>
-            )}
 
             <Separator className="bg-slate-700" />
 
@@ -898,13 +936,42 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 size="sm"
                 className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
                 onClick={() => setDeleteDialogOpen(true)}
-                disabled={updateMutation.isPending || deleteMutation.isPending}
+                disabled={deleteMutation.isPending}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete Business
               </Button>
             </div>
           </div>
+
+          {hasChanges && (
+            <div className="sticky bottom-0 bg-slate-900 border-t border-slate-700 p-4 flex gap-3 justify-end shrink-0">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleDiscardChanges}
+                disabled={saveMutation.isPending}
+                className="text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+              >
+                Discard
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSaveChanges}
+                disabled={saveMutation.isPending}
+                className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold rounded-lg transition-colors"
+              >
+                {saveMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
+            </div>
+          )}
         </SheetContent>
       </Sheet>
 
@@ -943,6 +1010,27 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
           <AlertDialogFooter>
             <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmChange} className="bg-amber-500 hover:bg-amber-400 text-black font-bold">Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Unsaved changes on close */}
+      <AlertDialog open={unsavedCloseDialogOpen} onOpenChange={setUnsavedCloseDialogOpen}>
+        <AlertDialogContent className="bg-slate-900 border-slate-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-slate-100">Unsaved changes</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              You have unsaved changes. Discard them?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800">Keep Editing</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCloseWithDiscard}
+              className="bg-slate-600 hover:bg-slate-500 text-white"
+            >
+              Discard
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
