@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Upload, X, Loader2, ChevronDown } from "lucide-react";
+import { Upload, X, Loader2, ChevronDown, Check } from "lucide-react";
 import { base44 } from '@/api/base44Client';
 
 export default function Step2Details({ formData, setFormData, uploading, setUploading }) {
@@ -247,21 +247,38 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                   /* Browse Mode - Accordion Style */
                   currentArchetypeCategories.length > 0 ? (
                     <div>
-                      {currentArchetypeCategories.map((cat) => (
+                      {currentArchetypeCategories.map((cat) => {
+                        const subs = cat.subCategories || [];
+                        const isSelected = formData.primary_category === cat.label && !formData.sub_category;
+                        return (
                         <div key={cat.label}>
                           <button
                             type="button"
-                            onClick={() => toggleCategory(cat.label)}
+                            onClick={() => {
+                              if (subs.length === 0) {
+                                setFormData({ ...formData, primary_category: cat.label, sub_category: '', sub_category_id: '' });
+                                setSearchTerm('');
+                                setIsEditing(false);
+                                setIsDropdownOpen(false);
+                                setExpandedCategory(null);
+                              } else {
+                                setExpandedCategory(expandedCategory === cat.label ? null : cat.label);
+                              }
+                            }}
                             className="w-full flex justify-between items-center p-3 hover:bg-slate-800 cursor-pointer transition-colors border-b border-slate-800"
                           >
                             <span className="text-sm font-semibold text-slate-200">{cat.label}</span>
-                            <ChevronDown 
-                              className={`h-4 w-4 text-slate-400 transition-transform ${
-                                expandedCategory === cat.label ? 'rotate-180' : ''
-                              }`}
-                            />
+                            {subs.length === 0 ? (
+                              isSelected ? <Check className="h-4 w-4 text-amber-500" /> : null
+                            ) : (
+                              <ChevronDown 
+                                className={`h-4 w-4 text-slate-400 transition-transform ${
+                                  expandedCategory === cat.label ? 'rotate-180' : ''
+                                }`}
+                              />
+                            )}
                           </button>
-                          {expandedCategory === cat.label && (
+                          {expandedCategory === cat.label && subs.length > 0 && (
                             <div className="bg-slate-800/30">
                               {cat.subCategories.map((sub) => {
                                 const subName = typeof sub === 'string' ? sub : sub.name;
@@ -291,7 +308,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                             </div>
                           )}
                         </div>
-                      ))}
+                      ); })}
                     </div>
                   ) : null
                 ) : (
