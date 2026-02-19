@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, ThumbsUp, Users } from 'lucide-react';
@@ -43,6 +43,12 @@ export default function MyLane() {
         </div>
       </div>
     );
+  }
+
+  // Onboarding redirect for new users
+  const ONBOARDING_STORAGE_KEY = 'locallane_onboarding_shown';
+  if (currentUser && !localStorage.getItem(ONBOARDING_STORAGE_KEY)) {
+    return <Navigate to={createPageUrl('welcome')} replace />;
   }
 
   if (userLoading) {
