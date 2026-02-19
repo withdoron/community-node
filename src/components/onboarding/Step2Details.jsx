@@ -293,8 +293,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                         </div>
                       ))}
                     </div>
-                  ) : null
-                )
+                  ) : null )
                 ) : (
                   /* Search Mode - Flat List */
                   filteredCategories.length > 0 ? (
