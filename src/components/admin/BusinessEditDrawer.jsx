@@ -23,7 +23,6 @@ import {
 import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown, Trash2, Link2, X, Globe } from "lucide-react";
 import { format } from 'date-fns';
 import { toast } from "sonner";
-import { useConfig } from '@/hooks/useConfig';
 
 export default function BusinessEditDrawer({ business, open, onClose, adminEmail }) {
   const queryClient = useQueryClient();
@@ -117,8 +116,23 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     enabled: !!business?.id && localInstructors.length > 0,
   });
 
-  const { data: networksConfig = [] } = useConfig('platform', 'networks');
-  const networks = Array.isArray(networksConfig) ? networksConfig.filter((n) => n.active !== false) : [];
+  const [networks, setNetworks] = useState([]);
+
+  useEffect(() => {
+    const fetchNetworks = async () => {
+      try {
+        const allNetworks = await base44.entities.Network.list();
+        const active = Array.isArray(allNetworks)
+          ? allNetworks.filter((n) => n.is_active !== false)
+          : [];
+        setNetworks(active);
+      } catch (err) {
+        console.error('Failed to fetch networks:', err);
+        setNetworks([]);
+      }
+    };
+    fetchNetworks();
+  }, []);
 
   useEffect(() => {
     if (business) {
@@ -652,24 +666,24 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <p className="text-xs text-slate-500">No networks configured. Add networks in Admin → Networks.</p>
               ) : (
                 networks.map((network) => {
-                  const value = network.value ?? network.id;
+                  const slug = network.slug ?? network.id;
                   const currentIds = Array.isArray(editData.network_ids) ? editData.network_ids : [];
-                  const isChecked = currentIds.includes(value);
+                  const isChecked = currentIds.includes(slug);
                   return (
-                    <div key={value} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-700">
+                    <div key={slug} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-700">
                       <div className="flex items-center gap-3">
                         <Globe className="h-5 w-5 text-amber-500" />
                         <div>
-                          <Label className="font-medium text-slate-100">{network.label || value}</Label>
-                          <p className="text-xs text-slate-400">Assign this business to {network.label || value}</p>
+                          <Label className="font-medium text-slate-100">{network.name || slug}</Label>
+                          <p className="text-xs text-slate-400">Assign this business to {network.name || slug}</p>
                         </div>
                       </div>
                       <Switch
                         checked={isChecked}
                         onCheckedChange={(checked) => {
                           const next = checked
-                            ? [...currentIds, value]
-                            : currentIds.filter((id) => id !== value);
+                            ? [...currentIds, slug]
+                            : currentIds.filter((id) => id !== slug);
                           handleFieldChange('network_ids', next, 'network_toggle');
                         }}
                         disabled={updateMutation.isPending}
