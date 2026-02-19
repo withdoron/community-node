@@ -72,7 +72,6 @@ export default function BusinessOnboarding() {
   });
 
   const visibleArchetypes = ONBOARDING_CONFIG.archetypes.filter(a => a.active);
-  console.log('ARCHETYPE DEBUG:', { visibleArchetypes, allDbArchetypes: dbArchetypes });
 
   // Scroll to top when step changes
   React.useEffect(() => {
@@ -175,12 +174,6 @@ export default function BusinessOnboarding() {
     };
     createBusiness.mutate(submitData);
   };
-
-  console.log('ONBOARDING DEBUG:', {
-    allSteps: ONBOARDING_CONFIG.steps,
-    activeSteps: ONBOARDING_CONFIG.steps.filter(s => s.active),
-    activeCount: ONBOARDING_CONFIG.steps.filter(s => s.active).length,
-  });
 
   return (
     <div className="min-h-screen bg-slate-950">
