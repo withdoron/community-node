@@ -88,7 +88,7 @@ export default function BusinessSettings({ business, currentUserId }) {
               )}
               <div>
                 <p className="text-slate-100 font-semibold">{business?.name || 'Unnamed Business'}</p>
-                <p className="text-xs text-slate-400 capitalize">{business?.archetype || 'location'} · {business?.category || 'General'}</p>
+                <p className="text-xs text-slate-400 capitalize">{business?.archetype || 'location'} · {business?.primary_category || business?.category || 'General'}</p>
               </div>
             </div>
 
@@ -104,10 +104,10 @@ export default function BusinessSettings({ business, currentUserId }) {
                 <span>{[business.city, business.state].filter(Boolean).join(', ')}</span>
               </div>
             )}
-            {business?.owner_email && (
+            {(business?.email || business?.contact_email) && (
               <div className="flex items-center gap-2 text-slate-400">
                 <Mail className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-                <span>{business.owner_email}</span>
+                <span>{business.email || business.contact_email}</span>
               </div>
             )}
             {business?.phone && (

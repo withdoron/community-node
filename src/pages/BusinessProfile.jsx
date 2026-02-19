@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -34,6 +34,7 @@ const categoryLabels = {
 };
 
 export default function BusinessProfile() {
+  const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const businessId = urlParams.get('id');
 
@@ -85,9 +86,9 @@ export default function BusinessProfile() {
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-white">Business not found</h2>
-          <Link to={createPageUrl('Directory')}>
-            <Button className="mt-4 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500">Back to Directory</Button>
-          </Link>
+          <Button onClick={() => navigate(-1)} className="mt-4 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500">
+            Back
+          </Button>
         </div>
       </div>
     );
@@ -98,12 +99,10 @@ export default function BusinessProfile() {
       {/* Header */}
       <div className="bg-slate-950/90 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link to={createPageUrl('Directory')}>
-            <Button variant="ghost" size="sm" className="text-slate-300 hover:text-amber-500 hover:bg-slate-800">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Back
-            </Button>
-          </Link>
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800">
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back
+          </Button>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="hover:bg-slate-800">
               <Heart className="h-4 w-4" />
