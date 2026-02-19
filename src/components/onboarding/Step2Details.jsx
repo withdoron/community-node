@@ -16,14 +16,10 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
   const [expandedCategory, setExpandedCategory] = useState(null);
   const dropdownRef = useRef(null);
 
-  // Fetch categories from database
+  // Fetch all category groups (ADR-001: client-side filter — Base44 filter unreliable)
   const { data: categoryGroups = [] } = useQuery({
-    queryKey: ['categoryGroups', formData.archetype_id],
-    queryFn: async () => {
-      if (!formData.archetype_id) return [];
-      return await base44.entities.CategoryGroup.filter({ archetype_id: formData.archetype_id }).list();
-    },
-    enabled: !!formData.archetype_id
+    queryKey: ['categoryGroups'],
+    queryFn: () => base44.entities.CategoryGroup.list(),
   });
 
   const { data: allSubCategories = [] } = useQuery({
@@ -31,9 +27,12 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
     queryFn: async () => await base44.entities.SubCategory.list()
   });
 
-  // Transform database data to match the old structure
+  // Filter to current archetype and transform to UI structure
   const currentArchetypeCategories = useMemo(() => {
-    return categoryGroups.map(group => ({
+    const filtered = (categoryGroups || []).filter(
+      cat => cat.archetype_id === formData.archetype_id
+    );
+    return filtered.map(group => ({
       label: group.label,
       subCategories: allSubCategories
         .filter(sub => sub.group_id === group.id)
@@ -43,7 +42,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
           id: sub.id
         }))
     }));
-  }, [categoryGroups, allSubCategories]);
+  }, [categoryGroups, allSubCategories, formData.archetype_id]);
 
   // Dynamic placeholder from ACTUAL data
   const getDynamicPlaceholder = () => {
@@ -198,7 +197,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
 
           <div className="relative" ref={dropdownRef}>
             <Label htmlFor="category_search" className="text-slate-200">
-              Category <span className="text-amber-500">*</span>
+              Category
             </Label>
             <div className="relative">
               <Input
@@ -294,11 +293,8 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <div className="px-3 py-4 text-sm text-slate-500 text-center">
-                      Optional — you can set this later
-                    </div>
-                  )
+                  ) : null
+                )
                 ) : (
                   /* Search Mode - Flat List */
                   filteredCategories.length > 0 ? (

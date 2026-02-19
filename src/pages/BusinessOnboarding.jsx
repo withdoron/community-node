@@ -263,7 +263,6 @@ export default function BusinessOnboarding() {
                             (arch.value && arch.value.includes(d.slug)) ||
                             (d.slug && arch.value && d.slug.includes(arch.value))
                           );
-                          console.log('ARCHETYPE MATCH:', { configValue: arch.value, dbSlug: dbArch?.slug, dbId: dbArch?.id, matched: !!dbArch });
                           setFormData({ ...formData, archetype: arch.value, archetype_id: dbArch?.id || '' });
                           setTimeout(() => setCurrentStepIndex(1), 500);
                         }}
