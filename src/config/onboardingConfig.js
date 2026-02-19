@@ -30,6 +30,13 @@ export const ONBOARDING_CONFIG = {
       active: true,
     },
     {
+      value: 'micro_business',
+      label: 'Micro Business',
+      description: 'I run a small neighborhood business — selling goods, offering services, or creating products.',
+      icon: 'Sprout',
+      active: true,
+    },
+    {
       value: 'service_provider',
       label: 'Service Provider',
       description: 'I offer mobile services or professional skills.',
@@ -63,6 +70,7 @@ export const ONBOARDING_CONFIG = {
     location_venue: ['host_events', 'list_in_directory', 'accept_joy_coins', 'manage_bookings', 'post_announcements'],
     event_organizer: ['host_events', 'accept_joy_coins', 'post_announcements'],
     community_nonprofit: ['host_events', 'list_in_directory', 'post_announcements'],
+    micro_business: ['list_in_directory', 'host_events'],
     service_provider: ['list_in_directory', 'manage_bookings'],
     product_seller: ['list_in_directory', 'sell_products'],
   },

@@ -15,12 +15,12 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ChevronLeft, ChevronRight, Loader2, Upload, X, Plus, Trash2,
-  Check, Star, Zap, Crown, Store, Briefcase, Heart, Ticket
+  Check, Star, Zap, Crown, Store, Briefcase, Heart, Ticket, Sprout
 } from "lucide-react";
 import Step2Details from '@/components/onboarding/Step2Details';
 import { ONBOARDING_CONFIG } from '@/config/onboardingConfig';
 
-const ARCHETYPE_ICON_MAP = { Store, Briefcase, Heart, Ticket };
+const ARCHETYPE_ICON_MAP = { Store, Briefcase, Heart, Ticket, Sprout };
 
 export default function BusinessOnboarding() {
   const navigate = useNavigate();
