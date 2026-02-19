@@ -18,6 +18,7 @@ export default function UserOnboarding() {
   const [stepIndex, setStepIndex] = useState(0);
   const [networkInterests, setNetworkInterests] = useState([]);
   const [communityPassInterest, setCommunityPassInterest] = useState(null);
+  const [displayName, setDisplayName] = useState('');
 
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
