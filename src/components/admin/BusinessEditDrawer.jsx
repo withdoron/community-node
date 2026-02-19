@@ -140,35 +140,43 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
   const saveMutation = useMutation({
     mutationFn: async (payload) => {
-      await base44.functions.invoke('updateBusiness', {
-        action: 'update',
-        business_id: business.id,
-        data: payload,
-      });
-      await base44.entities.AdminAuditLog.create({
-        admin_email: adminEmail,
-        business_id: business.id,
-        business_name: business.name,
-        action_type: 'drawer_save',
-        field_changed: 'multiple',
-        old_value: JSON.stringify({
-          subscription_tier: business.subscription_tier,
-          accepts_silver: business.accepts_silver,
-          is_locally_owned_franchise: business.is_locally_owned_franchise,
-          is_active: business.is_active,
-          network_ids: business.network_ids,
-        }),
-        new_value: JSON.stringify(payload),
-      });
+      console.log('Save payload:', payload);
+      try {
+        await base44.functions.invoke('updateBusiness', {
+          action: 'update',
+          business_id: business.id,
+          data: payload,
+        });
+        console.log('Save completed successfully');
+        await base44.entities.AdminAuditLog.create({
+          admin_email: adminEmail,
+          business_id: business.id,
+          business_name: business.name,
+          action_type: 'drawer_save',
+          field_changed: 'multiple',
+          old_value: JSON.stringify({
+            subscription_tier: business.subscription_tier,
+            accepts_silver: business.accepts_silver,
+            is_locally_owned_franchise: business.is_locally_owned_franchise,
+            is_active: business.is_active,
+            network_ids: business.network_ids,
+          }),
+          new_value: JSON.stringify(payload),
+        });
+      } catch (err) {
+        console.error('Save failed:', err);
+        throw err;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-businesses']);
       setHasChanges(false);
       toast.success('Business updated successfully');
+      onClose();
     },
     onError: (error) => {
       toast.error('Failed to update business');
-      console.error(error);
+      console.error('Save failed:', error);
     },
   });
 
@@ -945,31 +953,36 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
           </div>
 
           {hasChanges && (
-            <div className="sticky bottom-0 bg-slate-900 border-t border-slate-700 p-4 flex gap-3 justify-end shrink-0">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleDiscardChanges}
-                disabled={saveMutation.isPending}
-                className="text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-              >
-                Discard
-              </Button>
-              <Button
-                type="button"
-                onClick={handleSaveChanges}
-                disabled={saveMutation.isPending}
-                className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold rounded-lg transition-colors"
-              >
-                {saveMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  'Save Changes'
-                )}
-              </Button>
+            <div className="sticky bottom-0 bg-slate-900 border-t border-slate-700 p-4 flex flex-col gap-3 shrink-0">
+              {saveMutation.isError && (
+                <p className="text-red-400 text-sm">Save failed. Please try again.</p>
+              )}
+              <div className="flex gap-3 justify-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleDiscardChanges}
+                  disabled={saveMutation.isPending}
+                  className="text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                >
+                  Discard
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleSaveChanges}
+                  disabled={saveMutation.isPending}
+                  className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold rounded-lg transition-colors"
+                >
+                  {saveMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </Button>
+              </div>
             </div>
           )}
         </SheetContent>
