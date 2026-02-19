@@ -134,7 +134,7 @@ export default function BusinessOnboarding() {
       case 'archetype':
         return !!formData.archetype;
       case 'details': {
-        if (!formData.name || !formData.primary_category || !formData.city || !formData.zip_code || !formData.phone || !formData.email) return false;
+        if (!formData.name || !formData.city || !formData.zip_code || !formData.phone || !formData.email) return false;
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(formData.email)) return false;
         if ((formData.archetype === 'location' || formData.archetype === 'venue' || formData.archetype === 'location_venue') && (!formData.address || !formData.state)) return false;
@@ -164,7 +164,12 @@ export default function BusinessOnboarding() {
         starting_price: s.starting_price ? parseFloat(s.starting_price) : null
       }));
 
-    const dbArch = dbArchetypes.find(d => (d.slug || d.id) === formData.archetype);
+    const dbArch = dbArchetypes.find(d =>
+      d.slug === formData.archetype ||
+      d.id === formData.archetype ||
+      (formData.archetype && formData.archetype.includes(d.slug)) ||
+      (d.slug && formData.archetype && d.slug.includes(formData.archetype))
+    );
     const submitData = {
       ...formData,
       archetype_id: dbArch?.id || null,
@@ -252,7 +257,13 @@ export default function BusinessOnboarding() {
                       <div
                         key={arch.value}
                         onClick={() => {
-                          const dbArch = dbArchetypes.find(d => (d.slug || d.id) === arch.value);
+                          const dbArch = dbArchetypes.find(d =>
+                            d.slug === arch.value ||
+                            d.id === arch.value ||
+                            (arch.value && arch.value.includes(d.slug)) ||
+                            (d.slug && arch.value && d.slug.includes(arch.value))
+                          );
+                          console.log('ARCHETYPE MATCH:', { configValue: arch.value, dbSlug: dbArch?.slug, dbId: dbArch?.id, matched: !!dbArch });
                           setFormData({ ...formData, archetype: arch.value, archetype_id: dbArch?.id || '' });
                           setTimeout(() => setCurrentStepIndex(1), 500);
                         }}

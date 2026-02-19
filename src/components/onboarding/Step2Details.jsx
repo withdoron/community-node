@@ -21,7 +21,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
     queryKey: ['categoryGroups', formData.archetype_id],
     queryFn: async () => {
       if (!formData.archetype_id) return [];
-      return await base44.entities.CategoryGroup.filter({ archetype_id: formData.archetype_id });
+      return await base44.entities.CategoryGroup.filter({ archetype_id: formData.archetype_id }).list();
     },
     enabled: !!formData.archetype_id
   });
@@ -44,12 +44,6 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
         }))
     }));
   }, [categoryGroups, allSubCategories]);
-
-  console.log('CATEGORY DEBUG:', {
-    query: 'CategoryGroup.filter({ archetype_id })',
-    results: categoryGroups,
-    filterValue: formData.archetype_id,
-  });
 
   // Dynamic placeholder from ACTUAL data
   const getDynamicPlaceholder = () => {
@@ -302,7 +296,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                     </div>
                   ) : (
                     <div className="px-3 py-4 text-sm text-slate-500 text-center">
-                      No categories available
+                      Optional — you can set this later
                     </div>
                   )
                 ) : (
