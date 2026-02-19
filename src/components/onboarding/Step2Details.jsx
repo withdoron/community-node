@@ -45,6 +45,12 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
     }));
   }, [categoryGroups, allSubCategories]);
 
+  console.log('CATEGORY DEBUG:', {
+    query: 'CategoryGroup.filter({ archetype_id })',
+    results: categoryGroups,
+    filterValue: formData.archetype_id,
+  });
+
   // Dynamic placeholder from ACTUAL data
   const getDynamicPlaceholder = () => {
     // Flatten all subcategories into one list
