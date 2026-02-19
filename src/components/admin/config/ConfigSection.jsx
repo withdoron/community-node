@@ -108,20 +108,20 @@ export default function ConfigSection({ domain, configType, title }) {
             Add
           </Button>
         ) : (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <input
               type="text"
               placeholder="Label"
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
-              className="bg-slate-800 border border-slate-600 text-white rounded px-3 py-1.5 text-sm w-40"
+              className="bg-slate-800 border border-slate-600 text-white rounded px-3 py-1.5 text-sm w-full sm:w-40"
             />
             <input
               type="text"
               placeholder="Value (optional)"
               value={newValue}
               onChange={(e) => setNewValue(e.target.value)}
-              className="bg-slate-800 border border-slate-600 text-white rounded px-3 py-1.5 text-sm w-32"
+              className="bg-slate-800 border border-slate-600 text-white rounded px-3 py-1.5 text-sm w-full sm:w-32"
             />
             <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black" onClick={handleAdd}>
               Save
@@ -152,7 +152,7 @@ export default function ConfigSection({ domain, configType, title }) {
               <div className="flex flex-col gap-0">
                 <button
                   type="button"
-                  className="text-slate-500 hover:text-amber-500 disabled:opacity-30 disabled:cursor-not-allowed p-0.5"
+                  className="text-slate-500 hover:text-amber-500 disabled:opacity-30 disabled:cursor-not-allowed p-1.5"
                   disabled={index === 0}
                   onClick={() => handleReorder(index, -1)}
                   aria-label="Move up"
@@ -161,7 +161,7 @@ export default function ConfigSection({ domain, configType, title }) {
                 </button>
                 <button
                   type="button"
-                  className="text-slate-500 hover:text-amber-500 disabled:opacity-30 disabled:cursor-not-allowed p-0.5"
+                  className="text-slate-500 hover:text-amber-500 disabled:opacity-30 disabled:cursor-not-allowed p-1.5"
                   disabled={index === sortedItems.length - 1}
                   onClick={() => handleReorder(index, 1)}
                   aria-label="Move down"

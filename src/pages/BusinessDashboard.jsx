@@ -401,7 +401,7 @@ export default function BusinessDashboard() {
           </div>
         </div>
         {/* Tab bar */}
-        <div className="flex gap-1 px-6">
+        <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1">
           <button
             type="button"
             onClick={() => setActiveTab('home')}

@@ -134,7 +134,7 @@ export default function AdminUsersSection({ businesses = [] }) {
           <h2 className="text-2xl font-bold text-slate-100">Users</h2>
           <p className="text-slate-400 text-sm mt-1">{users.length} total users</p>
         </div>
-        <div className="relative w-64">
+        <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
             placeholder="Search users..."

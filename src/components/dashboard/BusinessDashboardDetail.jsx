@@ -264,9 +264,9 @@ export default function BusinessDashboardDetail({ business, onBack }) {
               </div>
               <p className="text-slate-400 mt-1">Manage your business listing</p>
             </div>
-            <div className="flex items-center gap-3">
-              <Link to={createPageUrl(`BusinessProfile?id=${business.id}`)}>
-                <Button variant="outline" size="sm" className="border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <Link to={createPageUrl(`BusinessProfile?id=${business.id}`)} className="w-full sm:w-auto">
+                <Button variant="outline" size="sm" className="w-full sm:w-auto border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent">
                   <ExternalLink className="h-4 w-4 mr-2" />
                   View Public Profile
                 </Button>
@@ -275,7 +275,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
               {/* Upgrade Plan Button */}
               <Dialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent">
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent">
                     <ArrowUp className="h-4 w-4 mr-2" />
                     {isPartner ? 'Manage Plan' : 'Upgrade Plan'}
                   </Button>

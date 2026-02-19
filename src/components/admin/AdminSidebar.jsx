@@ -68,7 +68,7 @@ const sections = [
   },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ onItemClick }) {
   const [feedbackCount, setFeedbackCount] = useState(0);
 
   useEffect(() => {
@@ -103,6 +103,7 @@ export default function AdminSidebar() {
                     <NavLink
                       to={item.to}
                       end={item.to === `${ADMIN_BASE}/businesses` ? false : undefined}
+                      onClick={() => onItemClick?.()}
                       className={({ isActive }) =>
                         cn(
                           'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',

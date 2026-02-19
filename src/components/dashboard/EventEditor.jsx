@@ -576,7 +576,7 @@ export default function EventEditor({
               <p className="text-red-400 text-sm mt-1">{errors.start_date}</p>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label className="text-slate-300">Start Time</Label>
               <Input
@@ -1100,7 +1100,7 @@ export default function EventEditor({
             <div className="space-y-3" data-error="ticket_types">
               {(formData.ticket_types || []).map((ticket, index) => (
                 <div key={index} className="flex gap-2 items-start p-3 bg-slate-800 rounded-lg border border-slate-700">
-                  <div className="flex-1 grid grid-cols-3 gap-2">
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <Input
                       placeholder="Tier name"
                       value={ticket.name}
@@ -1212,7 +1212,7 @@ export default function EventEditor({
             </div>
             {formData.joy_coin_enabled && (
               <div className="space-y-4 pt-3 border-t border-slate-700">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-slate-300">Coins per person</Label>
                     <Input

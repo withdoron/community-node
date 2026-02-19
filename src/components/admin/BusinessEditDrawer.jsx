@@ -778,7 +778,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                         console.log('[Admin] Removing user:', user.id);
                         removeStaffMutation.mutate(user.id);
                       }}
-                      className="h-6 w-6 text-slate-400 hover:text-red-400"
+                      className="h-8 w-8 text-slate-400 hover:text-red-400"
                     >
                       <X className="w-3 h-3" />
                     </Button>
@@ -803,7 +803,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                           size="icon"
                           onClick={() => removeInviteMutation.mutate(invite.email)}
                           disabled={removeInviteMutation.isPending}
-                          className="h-6 w-6 text-slate-400 hover:text-red-400"
+                          className="h-8 w-8 text-slate-400 hover:text-red-400"
                         >
                           <X className="w-3 h-3" />
                         </Button>

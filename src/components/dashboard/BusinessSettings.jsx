@@ -136,7 +136,7 @@ export default function BusinessSettings({ business, currentUserId }) {
       {/* Subscription Status */}
       <Card className="bg-slate-900 border-slate-800 rounded-xl p-5">
         <h3 className="text-sm font-semibold text-slate-100 mb-4">Subscription</h3>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-3">
           <div className="flex items-center gap-3">
             <div className={`p-2.5 rounded-lg ${tierConfig.bg}`}>
               <TierIcon className={`h-5 w-5 ${tierConfig.color}`} />

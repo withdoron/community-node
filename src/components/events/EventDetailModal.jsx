@@ -160,7 +160,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-slate-100"
+                  className="p-3 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-slate-100"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -414,7 +414,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                               type="button"
                               onClick={() => setPartySize(Math.max(1, partySize - 1))}
                               disabled={partySize <= 1}
-                              className="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                              className="w-10 h-10 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                             >
                               −
                             </button>
@@ -423,7 +423,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                               type="button"
                               onClick={() => setPartySize(partySize + 1)}
                               disabled={partySize >= maxPartySize}
-                              className="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                              className="w-10 h-10 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                             >
                               +
                             </button>

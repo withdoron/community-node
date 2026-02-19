@@ -74,7 +74,7 @@ function PinEntryModal({ attendee, onConfirm, onCancel, isLoading }) {
             <button
               type="button"
               onClick={() => onConfirm(null)}
-              className="text-sm text-slate-500 hover:text-slate-400 w-full text-center"
+              className="text-sm text-slate-500 hover:text-slate-400 w-full text-center py-2 inline-block"
             >
               Can&apos;t get PIN? Check in without PIN
             </button>
@@ -228,9 +228,9 @@ export function CheckInMode({ event, onExit }) {
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <div>
+            <div className="min-w-0">
               <p className="text-sm text-amber-500 font-medium">CHECK-IN MODE</p>
-              <h1 className="text-lg font-bold text-slate-100">{event.title}</h1>
+              <h1 className="text-lg font-bold text-slate-100 truncate">{event.title}</h1>
               <p className="text-sm text-slate-400">
                 {eventDate && new Date(eventDate).toLocaleDateString('en-US', {
                   weekday: 'short',

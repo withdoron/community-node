@@ -102,7 +102,7 @@ export default function AccessWindowModal({ open, onOpenChange, onSave, existing
                   key={day.key}
                   type="button"
                   onClick={() => updateField('day_of_week', day.key)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     form.day_of_week === day.key
                       ? 'bg-amber-500 text-black'
                       : 'bg-slate-800 text-slate-300 hover:bg-slate-700'

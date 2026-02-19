@@ -30,7 +30,7 @@ export default function AdminFilters({ filters, onFiltersChange }) {
   return (
     <div className="space-y-4">
       {/* Search */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <Input
@@ -58,7 +58,7 @@ export default function AdminFilters({ filters, onFiltersChange }) {
       {/* Filter dropdowns */}
       <div className="flex flex-wrap gap-3">
         <Select value={filters.tier} onValueChange={(v) => updateFilter('tier', v)}>
-          <SelectTrigger className="w-[140px] bg-slate-800 border-slate-700 text-slate-300">
+          <SelectTrigger className="flex-1 min-w-[120px] bg-slate-800 border-slate-700 text-slate-300">
             <SelectValue placeholder="Tier" />
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-800">
@@ -70,7 +70,7 @@ export default function AdminFilters({ filters, onFiltersChange }) {
         </Select>
 
         <Select value={filters.acceptsSilver} onValueChange={(v) => updateFilter('acceptsSilver', v)}>
-          <SelectTrigger className="w-[150px] bg-slate-800 border-slate-700 text-slate-300">
+          <SelectTrigger className="flex-1 min-w-[120px] bg-slate-800 border-slate-700 text-slate-300">
             <SelectValue placeholder="Accepts Silver" />
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-800">
@@ -81,7 +81,7 @@ export default function AdminFilters({ filters, onFiltersChange }) {
         </Select>
 
         <Select value={filters.localFranchise} onValueChange={(v) => updateFilter('localFranchise', v)}>
-          <SelectTrigger className="w-[170px] bg-slate-800 border-slate-700 text-slate-300">
+          <SelectTrigger className="flex-1 min-w-[120px] bg-slate-800 border-slate-700 text-slate-300">
             <SelectValue placeholder="Local Franchise" />
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-800">
@@ -92,7 +92,7 @@ export default function AdminFilters({ filters, onFiltersChange }) {
         </Select>
 
         <Select value={filters.status} onValueChange={(v) => updateFilter('status', v)}>
-          <SelectTrigger className="w-[130px] bg-slate-800 border-slate-700 text-slate-300">
+          <SelectTrigger className="flex-1 min-w-[120px] bg-slate-800 border-slate-700 text-slate-300">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent className="bg-slate-900 border-slate-800">

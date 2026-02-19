@@ -121,7 +121,7 @@ export default function AccessWindowManager({ business }) {
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
       {/* Joy Coins Toggle Info */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
             <Coins className="h-5 w-5 text-amber-500" />
@@ -208,7 +208,7 @@ export default function AccessWindowManager({ business }) {
                 <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="default"
                     onClick={() => handleEdit(win)}
                     className="text-slate-400 hover:text-slate-100"
                   >
@@ -217,7 +217,7 @@ export default function AccessWindowManager({ business }) {
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="text-slate-400 hover:text-slate-100">
+                      <Button variant="ghost" size="default" className="text-slate-400 hover:text-slate-100">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>

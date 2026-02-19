@@ -273,7 +273,7 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
   return (
     <>
     <Card className="p-6 bg-slate-900 border-slate-800">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-3 mb-6">
         <div>
           <h2 className="text-xl font-bold text-slate-100">Events</h2>
           <p className="text-sm text-slate-400">Manage your upcoming events</p>
@@ -411,7 +411,7 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
     </Card>
 
     <Dialog open={editorOpen} onOpenChange={(open) => { setEditorOpen(open); if (!open) setEditingEvent(null); }}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700">
+      <DialogContent className="w-[calc(100vw-32px)] sm:w-auto max-w-3xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700">
         <DialogHeader>
           <DialogTitle className="text-white">
             {editingEvent ? 'Edit Event' : 'Create Event'}

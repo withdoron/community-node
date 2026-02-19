@@ -49,7 +49,7 @@ export default function LocationsTable({
                   <TableCell className="text-right">
                     <Button
                       variant="outline"
-                      size="sm"
+                      size="default"
                       onClick={() => onEdit(location)}
                     >
                       <Pencil className="h-3 w-3" />

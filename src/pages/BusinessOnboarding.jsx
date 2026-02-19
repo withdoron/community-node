@@ -224,7 +224,7 @@ export default function BusinessOnboarding() {
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-xs">
+          <div className="hidden sm:flex justify-between text-xs">
             {activeSteps.map((step, idx) => (
               <span key={step.id} className={idx <= currentStepIndex ? 'text-slate-100 font-medium' : 'text-slate-500'}>
                 {step.label}

@@ -52,7 +52,7 @@ export default function FeedbackReview() {
       {/* Header with filter */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Pilot Feedback</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {['all', 'feedback', 'bug'].map(type => (
             <button
               key={type}
@@ -113,7 +113,7 @@ export default function FeedbackReview() {
               <button
                 type="button"
                 onClick={() => handleDelete(item.id)}
-                className="text-slate-500 hover:text-red-400 transition-colors p-1 flex-shrink-0"
+                className="text-slate-500 hover:text-red-400 transition-colors p-2 flex-shrink-0"
                 title="Delete feedback"
               >
                 <Trash2 className="w-4 h-4" />
@@ -154,9 +154,9 @@ export default function FeedbackReview() {
             {/* Footer: page + timestamp */}
             <div className="flex items-center gap-4 text-xs text-slate-500 mt-3 pt-2 border-t border-slate-800">
               {item.page_url && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  {item.page_url}
+                <span className="flex items-center gap-1 min-w-0">
+                  <MapPin className="w-3 h-3 shrink-0" />
+                  <span className="truncate max-w-[200px]">{item.page_url}</span>
                 </span>
               )}
               {item.created_at && (

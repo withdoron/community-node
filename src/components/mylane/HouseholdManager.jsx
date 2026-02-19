@@ -35,14 +35,14 @@ function MemberRow({ member, onEdit, onDelete }) {
       <div className="flex items-center gap-1">
         <button
           onClick={() => onEdit(member)}
-          className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
-        >
+          className="p-2.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
+          >
           <Pencil className="h-4 w-4" />
         </button>
         <button
           onClick={() => onDelete(member)}
-          className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors"
-        >
+          className="p-2.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors"
+          >
           <Trash2 className="h-4 w-4" />
         </button>
       </div>

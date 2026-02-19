@@ -390,16 +390,16 @@ export default function StaffWidget({ business, currentUserId }) {
         {/* Staff list */}
         {staffUsers.map((user) => (
           <div key={user.id} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center shrink-0">
                 <User className="w-5 h-5 text-slate-400" />
               </div>
-              <div>
-                <p className="text-white font-medium">
+              <div className="min-w-0">
+                <p className="text-white font-medium truncate">
                   {user._permissionDenied ? 'Team Member' : (user.full_name || user.email)}
                 </p>
                 {!user._permissionDenied && user.email && (
-                  <p className="text-slate-400 text-sm">{user.email}</p>
+                  <p className="text-slate-400 text-sm truncate">{user.email}</p>
                 )}
               </div>
             </div>
@@ -430,12 +430,12 @@ export default function StaffWidget({ business, currentUserId }) {
                 key={(invite.email || 'invite') + idx}
                 className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center shrink-0">
                     <Mail className="w-5 h-5 text-slate-500" />
                   </div>
-                  <div>
-                    <p className="text-slate-300">{invite.email}</p>
+                  <div className="min-w-0">
+                    <p className="text-slate-300 truncate">{invite.email}</p>
                     <p className="text-slate-500 text-sm">Invited as {invite.role}</p>
                   </div>
                 </div>

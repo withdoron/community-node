@@ -74,13 +74,15 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-slate-700">
           <h2 className="text-xl font-bold text-white">Filters</h2>
-          <button
-            onClick={() => onOpenChange(false)}
-            className="text-slate-400 hover:text-white transition-colors"
-          >
-            <X className="h-5 w-5" />
-            <span className="sr-only">Close</span>
-          </button>
+          <div className="min-h-[44px] min-w-[44px] flex items-center justify-center">
+            <button
+              onClick={() => onOpenChange(false)}
+              className="text-slate-400 hover:text-white transition-colors p-2"
+            >
+              <X className="h-5 w-5" />
+              <span className="sr-only">Close</span>
+            </button>
+          </div>
         </div>
 
         {/* Body */}
