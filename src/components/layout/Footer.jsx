@@ -34,40 +34,32 @@ export default function Footer() {
       toast.error('Please enter a valid email address.');
       return;
     }
-    setIsSubmitting(true);
     try {
-      const list = await base44.entities.NewsletterSubscriber.filter({ email: value });
-      if (list && list.length > 0) {
+      setIsSubmitting(true);
+
+      const existing = await base44.entities.NewsletterSubscriber.filter({ email: value });
+      if (existing && existing.length > 0) {
         toast.success("You're already subscribed!");
         setEmail('');
         setIsSubmitting(false);
         return;
       }
-      const first_name = currentUser?.full_name
-        ? (currentUser.full_name.trim().split(/\s+/)[0] || null)
-        : null;
-      const subscribed_at = new Date().toISOString();
-      base44.entities.NewsletterSubscriber.create({
+
+      await base44.entities.NewsletterSubscriber.create({
         email: value,
-        subscribed_at,
+        subscribed_at: new Date().toISOString(),
         source: 'footer',
         user_id: currentUser?.id ?? null,
-        ...(first_name ? { first_name } : {}),
-      })
-        .then(() => {
-          toast.success("You're in! Welcome to The Good News.");
-          setEmail('');
-        })
-        .catch((err) => {
-          console.error('Newsletter signup error:', err);
-          toast.error("Something went wrong. Try again?");
-        })
-        .finally(() => {
-          setIsSubmitting(false);
-        });
+        first_name: currentUser?.full_name ? currentUser.full_name.split(' ')[0] : null,
+        is_active: true,
+      });
+
+      toast.success("You're in! Welcome to The Good News.");
+      setEmail('');
     } catch (err) {
       console.error('Newsletter signup error:', err);
       toast.error("Something went wrong. Try again?");
+    } finally {
       setIsSubmitting(false);
     }
   };
