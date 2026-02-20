@@ -2,10 +2,11 @@ import React from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, ThumbsUp, Users } from 'lucide-react';
+import { Loader2, ThumbsUp, Users, Store } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useUserState } from '@/hooks/useUserState';
 import { useRole } from '@/hooks/useRole';
+import { useUserOwnedBusinesses } from '@/hooks/useUserOwnedBusinesses';
 import GreetingHeader from '@/components/mylane/GreetingHeader';
 import MyNetworksSection from '@/components/mylane/MyNetworksSection';
 import UpcomingEventsSection from '@/components/mylane/UpcomingEventsSection';
@@ -29,6 +30,7 @@ export default function MyLane() {
 
   const { recommendations, joyCoins } = useUserState(currentUser?.id);
   const { isAppAdmin } = useRole();
+  const { hasOwnedBusinesses } = useUserOwnedBusinesses(currentUser);
 
   const handleNetworksUpdate = () => {
     queryClient.invalidateQueries({ queryKey: ['currentUser'] });
@@ -73,6 +75,30 @@ export default function MyLane() {
         <GreetingHeader currentUser={currentUser} joyCoins={joyCoins} />
         {isAppAdmin && <JoyCoinsCard />}
         <MyNetworksSection currentUser={currentUser} onUpdate={handleNetworksUpdate} />
+        {!hasOwnedBusinesses && (
+          <section className="space-y-3">
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center">
+                  <Store className="h-5 w-5 text-amber-500" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-lg font-semibold text-slate-100">Run a local business?</h2>
+                  <p className="text-slate-400 text-sm mt-1">
+                    List your business, create events, and connect with your community.
+                  </p>
+                  <Link
+                    to={createPageUrl('BusinessOnboarding')}
+                    className="inline-flex items-center gap-1.5 mt-4 text-amber-500 hover:text-amber-400 font-medium text-sm border border-amber-500 hover:border-amber-400 rounded-lg px-4 py-2 transition-colors"
+                  >
+                    Get Started
+                    <span aria-hidden>→</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
         {isAppAdmin && (
           <SectionWrapper title="My Household" seeAllPage="Settings">
             <div className="py-6 text-center bg-slate-900 border border-slate-800 rounded-xl">

@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/s
 import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles, Coins, Settings, MessageSquarePlus, X, Send, Camera, Lightbulb, Bug } from "lucide-react";
 import Footer from '@/components/layout/Footer';
 import { useRole } from '@/hooks/useRole';
+import { useUserOwnedBusinesses } from '@/hooks/useUserOwnedBusinesses';
 import { toast } from 'sonner';
 
 export default function Layout({ children, currentPageName: currentPageNameProp }) {
@@ -30,18 +31,9 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
     }
   });
 
-  const { data: staffBusinesses = [] } = useQuery({
-    queryKey: ['staff-businesses', currentUser?.id],
-    queryFn: async () => {
-      if (!currentUser?.id) return [];
-      const allBusinesses = await base44.entities.Business.filter({ is_active: true });
-      return allBusinesses.filter(b => b.instructors?.includes(currentUser.id));
-    },
-    enabled: !!currentUser?.id && !currentUser?.is_business_owner
-  });
-
-  const userHasStaffRole = currentUser?.is_business_owner || staffBusinesses.length > 0;
+  const { hasOwnedBusinesses } = useUserOwnedBusinesses(currentUser);
   const { isAppAdmin } = useRole();
+  const showBusinessDashboard = isAppAdmin || hasOwnedBusinesses;
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackType, setFeedbackType] = useState('feedback');
   const [whatHappened, setWhatHappened] = useState('');
@@ -134,7 +126,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
             <Link to={createPageUrl('Events')} className={navLinkClass('Events')}>
               Events
             </Link>
-            {currentUser && userHasStaffRole && (
+            {currentUser && showBusinessDashboard && (
               <Link to={createPageUrl('BusinessDashboard')} className={navLinkClass('BusinessDashboard')}>
                 Dashboard
               </Link>
@@ -175,7 +167,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                       My Lane
                     </Link>
                   </DropdownMenuItem>
-                  {(currentUser.is_business_owner || userHasStaffRole) && (
+                  {showBusinessDashboard && (
                     <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
                       <Link to={createPageUrl('BusinessDashboard')} className="flex items-center">
                         <LayoutDashboard className="h-4 w-4 mr-2" />
@@ -261,7 +253,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                         Events
                       </Link>
                     </SheetClose>
-                    {currentUser && userHasStaffRole && (
+                    {currentUser && showBusinessDashboard && (
                       <SheetClose asChild>
                         <Link to={createPageUrl('BusinessDashboard')} className={`flex items-center gap-3 ${sheetLinkClass('BusinessDashboard')}`}>
                           <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
@@ -279,7 +271,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                           My Lane
                         </Link>
                       </SheetClose>
-                      {(currentUser.is_business_owner || userHasStaffRole) && (
+                      {showBusinessDashboard && (
                         <SheetClose asChild>
                           <Link to={createPageUrl('BusinessDashboard')} className={`flex items-center gap-3 ${sheetLinkClass('BusinessDashboard')}`}>
                             <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
