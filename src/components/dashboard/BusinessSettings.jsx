@@ -115,7 +115,11 @@ export default function BusinessSettings({ business, currentUserId }) {
 
   const updateMutation = useMutation({
     mutationFn: async (changedFields) => {
-      await base44.entities.Business.update(business.id, changedFields);
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update_profile',
+        business_id: business.id,
+        data: changedFields,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUserId] });
@@ -134,7 +138,11 @@ export default function BusinessSettings({ business, currentUserId }) {
       const result = await base44.integrations.Core.UploadFile({ file });
       const url = result?.file_url ?? result?.url;
       if (!url) throw new Error('No URL returned');
-      await base44.entities.Business.update(business.id, { logo_url: url });
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update_profile',
+        business_id: business.id,
+        data: { logo_url: url },
+      });
       return url;
     },
     onSuccess: () => {
@@ -172,9 +180,6 @@ export default function BusinessSettings({ business, currentUserId }) {
     if (Object.keys(changedFields).length === 0) {
       setIsEditing(false);
       return;
-    }
-    if (changedFields.name) {
-      changedFields.slug = changedFields.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     }
     updateMutation.mutate(changedFields);
   };
@@ -617,6 +622,7 @@ export default function BusinessSettings({ business, currentUserId }) {
                 size="sm"
                 onClick={async () => {
                   try {
+                    // Dev-only: direct update so tier can be toggled without admin role; production profile updates use update_profile server function.
                     await base44.entities.Business.update(business.id, { subscription_tier: key });
                     queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUserId] });
                     queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUserId] });

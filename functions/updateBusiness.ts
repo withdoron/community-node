@@ -1,7 +1,45 @@
 // Business entity writes via service role — DEC-025 Phase 3b
-// Handles update and add_staff_from_invite with authorization.
+// Handles update, update_profile, add_staff_from_invite with authorization.
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+const PROFILE_ALLOWLIST = [
+  'name', 'description', 'primary_category', 'sub_category', 'sub_category_id',
+  'email', 'contact_email', 'phone', 'website',
+  'address', 'city', 'state', 'zip_code', 'display_full_address',
+  'logo_url', 'instagram_url', 'facebook_url', 'tagline',
+];
+
+const ADMIN_EXTRA_ALLOWLIST = [
+  'subscription_tier', 'accepts_silver', 'is_locally_owned_franchise', 'network_ids', 'is_active',
+];
+
+function slugFromName(name: string): string {
+  return String(name)
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || 'business';
+}
+
+async function findUniqueSlug(
+  base44: Awaited<ReturnType<typeof createClientFromRequest>>,
+  baseSlug: string,
+  excludeBusinessId: string
+): Promise<string> {
+  const all = await base44.asServiceRole.entities.Business.list();
+  const bySlug = (all || []).filter((b: { slug?: string; id?: string }) => b.slug === baseSlug && b.id !== excludeBusinessId);
+  if (bySlug.length === 0) return baseSlug;
+  let suffix = 2;
+  let candidate = `${baseSlug}-${suffix}`;
+  while ((all || []).some((b: { slug?: string }) => b.slug === candidate)) {
+    suffix += 1;
+    candidate = `${baseSlug}-${suffix}`;
+  }
+  return candidate;
+}
 
 async function canEditBusiness(
   base44: Awaited<ReturnType<typeof createClientFromRequest>>,
@@ -118,6 +156,43 @@ Deno.serve(async (req) => {
       }
 
       return Response.json({ success: true });
+    }
+
+    if (action === 'update_profile') {
+      const { business_id, data } = body;
+      if (!business_id || typeof business_id !== 'string') {
+        return Response.json({ error: 'business_id is required for update_profile' }, { status: 400 });
+      }
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        return Response.json({ error: 'data object is required for update_profile' }, { status: 400 });
+      }
+
+      const allowed = await canEditBusiness(base44, user, business_id);
+      if (!allowed) {
+        return Response.json({ error: 'Not authorized to update this business' }, { status: 403 });
+      }
+
+      const isAdmin = user.role === 'admin';
+      const allowlist = isAdmin ? [...PROFILE_ALLOWLIST, ...ADMIN_EXTRA_ALLOWLIST] : PROFILE_ALLOWLIST;
+      const filtered: Record<string, unknown> = {};
+      for (const key of Object.keys(data as Record<string, unknown>)) {
+        if (allowlist.includes(key)) {
+          filtered[key] = (data as Record<string, unknown>)[key];
+        }
+      }
+
+      if (filtered.name != null && String(filtered.name).trim() !== '') {
+        const baseSlug = slugFromName(String(filtered.name));
+        filtered.slug = await findUniqueSlug(base44, baseSlug, business_id);
+      }
+
+      if (Object.keys(filtered).length === 0) {
+        const existing = await base44.asServiceRole.entities.Business.get(business_id);
+        return Response.json(existing);
+      }
+
+      const updated = await base44.asServiceRole.entities.Business.update(business_id, filtered);
+      return Response.json(updated);
     }
 
     if (action === 'update_counters') {
