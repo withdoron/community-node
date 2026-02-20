@@ -648,7 +648,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                                           subscribed_at: new Date().toISOString(),
                                           source: 'post_rsvp',
                                           user_id: currentUser.id,
-                                          active: true,
+                                          is_active: true,
                                         });
                                         toast.success("You're in! Welcome to The Good News.");
                                       }

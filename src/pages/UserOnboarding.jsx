@@ -76,7 +76,7 @@ export default function UserOnboarding() {
                   subscribed_at: new Date().toISOString(),
                   source: 'onboarding',
                   user_id: currentUser.id,
-                  active: true,
+                  is_active: true,
                 });
               }
             } catch {}
