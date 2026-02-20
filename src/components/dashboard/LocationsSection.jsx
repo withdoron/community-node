@@ -60,7 +60,7 @@ export default function LocationsSection({ business }) {
     return null;
   };
 
-  // Create/update location mutation
+  // Create/update location mutation (writes via server function for auth)
   const saveLocation = useMutation({
     mutationFn: async (data) => {
       // Geocode the address to get lat/lng
@@ -69,15 +69,15 @@ export default function LocationsSection({ business }) {
         ...data,
         ...(coords || {})
       };
-      
-      if (editingLocation?.id) {
-        await base44.entities.Location.update(editingLocation.id, locationData);
-      } else {
-        await base44.entities.Location.create({
-          ...locationData,
-          business_id: business.id
-        });
-      }
+
+      const isUpdate = !!editingLocation?.id;
+      await base44.functions.invoke('updateBusiness', {
+        action: 'manage_location',
+        business_id: business.id,
+        operation: isUpdate ? 'update' : 'create',
+        ...(isUpdate ? { location_id: editingLocation.id } : {}),
+        data: locationData,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['locations', business.id]);

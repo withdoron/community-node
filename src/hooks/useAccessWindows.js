@@ -38,11 +38,11 @@ export function useAccessWindows(businessId) {
   }, [fetchWindows]);
 
   const createWindow = useCallback(async (data) => {
-    const AccessWindow = base44.entities.AccessWindow;
-    const created = await AccessWindow.create({
-      ...data,
+    const created = await base44.functions.invoke('updateBusiness', {
+      action: 'manage_access_window',
       business_id: businessId,
-      is_active: true
+      operation: 'create',
+      data: { ...data, is_active: true },
     });
     // Auto-sync: flip accepts_joy_coins to true if this is the first window
     try {
@@ -61,15 +61,24 @@ export function useAccessWindows(businessId) {
   }, [businessId, fetchWindows, windows.length]);
 
   const updateWindow = useCallback(async (id, data) => {
-    const AccessWindow = base44.entities.AccessWindow;
-    const updated = await AccessWindow.update(id, data);
+    const updated = await base44.functions.invoke('updateBusiness', {
+      action: 'manage_access_window',
+      business_id: businessId,
+      operation: 'update',
+      window_id: id,
+      data,
+    });
     await fetchWindows();
     return updated;
-  }, [fetchWindows]);
+  }, [businessId, fetchWindows]);
 
   const deleteWindow = useCallback(async (id) => {
-    const AccessWindow = base44.entities.AccessWindow;
-    await AccessWindow.delete(id);
+    await base44.functions.invoke('updateBusiness', {
+      action: 'manage_access_window',
+      business_id: businessId,
+      operation: 'delete',
+      window_id: id,
+    });
     // Auto-sync: flip accepts_joy_coins to false if no active windows remain
     try {
       const remaining = windows.filter(w => w.id !== id);

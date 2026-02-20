@@ -235,6 +235,111 @@ Deno.serve(async (req) => {
       return Response.json(updated);
     }
 
+    // --- AccessWindow & Location: writes go through server; lock in Base44 dashboard after ship:
+    // AccessWindow: Update → Creator Only, Delete → Creator Only
+    // Location: Update → Creator Only, Delete → Creator Only
+    if (action === 'manage_access_window') {
+      const { business_id, operation, window_id, data } = body;
+      if (!business_id || typeof business_id !== 'string') {
+        return Response.json({ error: 'business_id is required for manage_access_window' }, { status: 400 });
+      }
+      const op = operation as string;
+      if (!['create', 'update', 'delete'].includes(op)) {
+        return Response.json({ error: 'operation must be create, update, or delete' }, { status: 400 });
+      }
+
+      const allowed = await canEditBusiness(base44, user, business_id);
+      if (!allowed) {
+        return Response.json({ error: 'Not authorized to manage access windows for this business' }, { status: 403 });
+      }
+
+      if (op === 'create') {
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+          return Response.json({ error: 'data is required for create' }, { status: 400 });
+        }
+        const d = data as Record<string, unknown>;
+        if (d.day_of_week == null || d.start_time == null || d.end_time == null || d.joy_coin_cost == null) {
+          return Response.json({ error: 'day_of_week, start_time, end_time, and joy_coin_cost are required' }, { status: 400 });
+        }
+        const created = await base44.asServiceRole.entities.AccessWindow.create({
+          ...d,
+          business_id,
+        } as Record<string, unknown>);
+        return Response.json(created);
+      }
+
+      if (op === 'update' || op === 'delete') {
+        if (!window_id || typeof window_id !== 'string') {
+          return Response.json({ error: 'window_id is required for update/delete' }, { status: 400 });
+        }
+        const existing = await base44.asServiceRole.entities.AccessWindow.get(window_id);
+        if (!existing) {
+          return Response.json({ error: 'Access window not found' }, { status: 404 });
+        }
+        if ((existing as { business_id?: string }).business_id !== business_id) {
+          return Response.json({ error: 'Access window does not belong to this business' }, { status: 403 });
+        }
+        if (op === 'update') {
+          if (!data || typeof data !== 'object' || Array.isArray(data)) {
+            return Response.json({ error: 'data is required for update' }, { status: 400 });
+          }
+          const updated = await base44.asServiceRole.entities.AccessWindow.update(window_id, data as Record<string, unknown>);
+          return Response.json(updated);
+        }
+        await base44.asServiceRole.entities.AccessWindow.delete(window_id);
+        return Response.json({ success: true });
+      }
+    }
+
+    if (action === 'manage_location') {
+      const { business_id, operation, location_id, data } = body;
+      if (!business_id || typeof business_id !== 'string') {
+        return Response.json({ error: 'business_id is required for manage_location' }, { status: 400 });
+      }
+      const op = operation as string;
+      if (!['create', 'update', 'delete'].includes(op)) {
+        return Response.json({ error: 'operation must be create, update, or delete' }, { status: 400 });
+      }
+
+      const allowed = await canEditBusiness(base44, user, business_id);
+      if (!allowed) {
+        return Response.json({ error: 'Not authorized to manage locations for this business' }, { status: 403 });
+      }
+
+      if (op === 'create') {
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+          return Response.json({ error: 'data is required for create' }, { status: 400 });
+        }
+        const created = await base44.asServiceRole.entities.Location.create({
+          ...(data as Record<string, unknown>),
+          business_id,
+        });
+        return Response.json(created);
+      }
+
+      if (op === 'update' || op === 'delete') {
+        if (!location_id || typeof location_id !== 'string') {
+          return Response.json({ error: 'location_id is required for update/delete' }, { status: 400 });
+        }
+        const existing = await base44.asServiceRole.entities.Location.get(location_id);
+        if (!existing) {
+          return Response.json({ error: 'Location not found' }, { status: 404 });
+        }
+        if ((existing as { business_id?: string }).business_id !== business_id) {
+          return Response.json({ error: 'Location does not belong to this business' }, { status: 403 });
+        }
+        if (op === 'update') {
+          if (!data || typeof data !== 'object' || Array.isArray(data)) {
+            return Response.json({ error: 'data is required for update' }, { status: 400 });
+          }
+          const updated = await base44.asServiceRole.entities.Location.update(location_id, data as Record<string, unknown>);
+          return Response.json(updated);
+        }
+        await base44.asServiceRole.entities.Location.delete(location_id);
+        return Response.json({ success: true });
+      }
+    }
+
     return Response.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error) {
     console.error('updateBusiness error:', error);
