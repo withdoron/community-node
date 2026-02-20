@@ -27,6 +27,7 @@ export default function Footer() {
   ];
 
   const handleNewsletterSubmit = async (e) => {
+    console.log('HANDLER CALLED');
     e.preventDefault();
     const value = email.trim().toLowerCase();
     if (!value) return;
@@ -57,7 +58,6 @@ export default function Footer() {
       toast.success("You're in! Welcome to The Good News.");
       setEmail('');
     } catch (err) {
-      window.alert('CATCH: ' + (err?.message ?? String(err)));
       console.error('Newsletter signup error:', err);
       toast.error("Something went wrong. Try again?");
     } finally {
@@ -72,7 +72,13 @@ export default function Footer() {
         <div className="mb-6">
           <h3 className="text-base font-semibold text-slate-100">The Good News</h3>
           <p className="text-sm text-slate-400 mt-0.5">Community wins, new features, and local stories.</p>
-          <form onSubmit={handleNewsletterSubmit} className="mt-3 flex flex-col sm:flex-row gap-0 max-w-md">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleNewsletterSubmit(e);
+            }}
+            className="mt-3 flex flex-col sm:flex-row gap-0 max-w-md"
+          >
             <input
               type="email"
               value={email}
