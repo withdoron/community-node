@@ -440,7 +440,6 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     },
     onSuccess: async (_data, userId) => {
       setLocalInstructors((prev) => prev.filter((id) => id !== userId));
-      });
       queryClient.invalidateQueries({ queryKey: ['staff'] });
       queryClient.invalidateQueries({ queryKey: ['staffRoles'] });
       queryClient.invalidateQueries({ queryKey: ['staffInvites'] });
