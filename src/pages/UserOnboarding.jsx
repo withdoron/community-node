@@ -181,6 +181,7 @@ export default function UserOnboarding() {
               <p className="text-slate-400 text-sm mt-1">
                 Follow the networks that match your family. You&apos;ll see events and updates tailored to your interests.
               </p>
+              <p className="text-slate-500 text-sm mt-1">You can change these anytime from your dashboard.</p>
             </div>
             {networks.length === 0 ? (
               <p className="text-slate-500 text-sm py-4">No networks available right now. You can add interests later from MyLane.</p>

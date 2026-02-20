@@ -121,7 +121,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
               alt="Local Lane"
               className="h-9 w-9 rounded-lg object-cover transition-opacity group-hover:opacity-80"
             />
-            <span className="font-bold text-slate-100 text-lg hidden sm:block transition-colors group-hover:text-amber-500">
+            <span className="font-bold text-slate-100 text-lg transition-colors group-hover:text-amber-500">
               Local Lane
             </span>
           </Link>
