@@ -44,6 +44,15 @@ export default function EventCard({ event, onClick }) {
           </div>
         )}
         
+        {/* Network-only badge - Top Left */}
+        {event.network_only && event.network && (
+          <div className="absolute top-3 left-3">
+            <span className="bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded-full capitalize">
+              {event.network.replace(/_/g, ' ')} Only
+            </span>
+          </div>
+        )}
+
         {/* Price badges - Top Right */}
         <div className="absolute top-3 right-3 flex flex-col gap-2">
           {isCancelled ? (

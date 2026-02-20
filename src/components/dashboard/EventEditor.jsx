@@ -34,6 +34,7 @@ import {
   Lock,
   Video,
   Coins,
+  Shield,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -192,6 +193,7 @@ export default function EventEditor({
         frequency_limit_period: existingEvent.frequency_limit_period || "",
         refund_policy: existingEvent.refund_policy || "moderate",
         adults_only: existingEvent.adults_only ?? false,
+        network_only: existingEvent.network_only ?? false,
       });
       const presetMinutes = durationPresets
         .filter((d) => d.active !== false)
@@ -403,12 +405,16 @@ export default function EventEditor({
   };
 
   const toggleNetwork = (name) => {
-    setFormData((prev) => ({
-      ...prev,
-      networks: prev.networks.includes(name)
+    setFormData((prev) => {
+      const next = prev.networks.includes(name)
         ? prev.networks.filter((n) => n !== name)
-        : [...prev.networks, name],
-    }));
+        : [...prev.networks, name];
+      return {
+        ...prev,
+        networks: next,
+        network_only: next.length === 0 ? false : prev.network_only,
+      };
+    });
   };
 
   const toggleEventType = (type) => {
@@ -1427,6 +1433,47 @@ export default function EventEditor({
                   {name}
                 </span>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Network Members Only — visible only when a network is selected */}
+        {isAppAdmin && formData.networks?.length > 0 && (
+          <div className="space-y-4 p-4 border border-slate-700 rounded-lg">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() =>
+                setFormData((prev) => ({ ...prev, network_only: !prev.network_only }))
+              }
+              onKeyDown={(e) =>
+                e.key === "Enter" &&
+                setFormData((prev) => ({ ...prev, network_only: !prev.network_only }))
+              }
+              className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
+            >
+              <div className="pointer-events-none flex items-start gap-3">
+                <Shield className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-white font-medium">Network Members Only</p>
+                  <p className="text-slate-400 text-sm">
+                    Only visible to users following this network
+                  </p>
+                </div>
+              </div>
+              <div
+                className={cn(
+                  "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
+                  formData.network_only ? "bg-amber-500" : "bg-slate-600"
+                )}
+              >
+                <span
+                  className={cn(
+                    "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                    formData.network_only ? "translate-x-5" : "translate-x-0.5"
+                  )}
+                />
+              </div>
             </div>
           </div>
         )}

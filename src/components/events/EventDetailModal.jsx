@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, MapPin, DollarSign, Repeat2, Users, CheckCircle2, Tag, ExternalLink, UserCheck, UserPlus, Coins } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, DollarSign, Repeat2, Users, CheckCircle2, Tag, ExternalLink, UserCheck, UserPlus, Coins, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useRSVP, getRefundEligibility } from '@/hooks/useRSVP';
 import { useJoyCoins } from '@/hooks/useJoyCoins';
+import { useRole } from '@/hooks/useRole';
+import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
 
 export default function EventDetailModal({ event, isOpen, onClose }) {
@@ -21,6 +24,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
   const joyCoinCost = event.joy_coin_cost ?? event.punch_cost ?? (acceptsJoyCoins ? Math.max(1, Math.round((event.price || 0) / 10)) : 0);
   const isJoyCoinEvent = acceptsJoyCoins && joyCoinCost > 0;
 
+  const { isAppAdmin } = useRole();
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -110,6 +114,17 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
     setSelectedMembers([]);
   }, [event?.id]);
 
+  // Network-only gate: show gate message if user cannot see this event
+  const networkInterests = currentUser?.data?.network_interests ?? [];
+  const followsNetwork = event.network && Array.isArray(networkInterests) && networkInterests.includes(event.network);
+  const showNetworkGate =
+    event.network_only &&
+    event.network &&
+    !isAppAdmin &&
+    (!currentUser || !followsNetwork);
+  const networkDisplayName = event.network
+    ? event.network.charAt(0).toUpperCase() + event.network.slice(1).replace(/_/g, ' ')
+    : '';
 
   // Fetch spoke information if this is a spoke event
   const { data: spokeEvent } = useQuery({
@@ -168,6 +183,37 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
 
               {/* Content */}
               <div className="p-6 space-y-6">
+                {/* Network-only gate: sign in or follow network to see details */}
+                {showNetworkGate ? (
+                  <div className="py-8 text-center space-y-4">
+                    <Lock className="h-12 w-12 text-slate-500 mx-auto" />
+                    {!currentUser ? (
+                      <>
+                        <p className="text-slate-300 font-medium">Sign in to view this event</p>
+                        <button
+                          type="button"
+                          onClick={() => base44.auth.redirectToLogin()}
+                          className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-6 py-3 rounded-xl transition-colors"
+                        >
+                          Sign In
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-white font-semibold">This event is for {networkDisplayName} members</p>
+                        <p className="text-slate-400 text-sm">Follow {networkDisplayName} in your network settings to see this event.</p>
+                        <Link
+                          to={createPageUrl('MyLane')}
+                          onClick={onClose}
+                          className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-6 py-3 rounded-xl transition-colors"
+                        >
+                          Go to My Networks
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <>
                 {/* Hero Image */}
                 {event.thumbnail_url && (
                   <div className="relative rounded-xl overflow-hidden bg-slate-800 h-64">
@@ -191,7 +237,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                           )}
                           {acceptsJoyCoins && (
                             <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-                              {legacyJoyCoinCost === 1 ? '1 Joy Coin' : `${legacyJoyCoinCost} Joy Coins`}
+                              {joyCoinCost === 1 ? '1 Joy Coin' : `${joyCoinCost} Joy Coins`}
                             </Badge>
                           )}
                           {!acceptsJoyCoins && !isFree && (
@@ -221,7 +267,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                     )}
                     {acceptsJoyCoins && (
                       <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold">
-                        {legacyJoyCoinCost === 1 ? '1 Joy Coin' : `${legacyJoyCoinCost} Joy Coins`}
+                        {joyCoinCost === 1 ? '1 Joy Coin' : `${joyCoinCost} Joy Coins`}
                       </Badge>
                     )}
                     {!acceptsJoyCoins && !isFree && event.price > 0 && (
@@ -719,6 +765,8 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                   <div className="text-center py-3 px-6 rounded-lg bg-slate-800 border border-slate-700">
                     <p className="text-slate-400 text-sm">This event has ended</p>
                   </div>
+                )}
+                  </>
                 )}
               </div>
             </div>

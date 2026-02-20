@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import EventCard from '@/components/events/EventCard';
 import EventDetailModal from '@/components/events/EventDetailModal';
 import FilterModal from '@/components/events/FilterModal';
+import { useRole } from '@/hooks/useRole';
 import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
 import { isToday } from 'date-fns';
 
@@ -26,13 +27,22 @@ export default function Events() {
     freeParking: false
   });
 
+  const { isAppAdmin } = useRole();
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: async () => {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) return null;
+      return base44.auth.me();
+    },
+  });
+
   // Fetch real events from database
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['events'],
     queryFn: async () => {
       const allEvents = await base44.entities.Event.filter({ is_active: true }, '-date', 200);
       const filtered = allEvents.filter(e => !e.is_deleted);
-      console.log('Fetched events:', filtered);
       return filtered;
     }
   });
@@ -108,8 +118,17 @@ export default function Events() {
       return eventDate >= today;
     });
 
+    // Network-only events: only show if user follows the network (or is admin)
+    const networkInterests = currentUser?.data?.network_interests ?? [];
+    result = result.filter(e => {
+      if (!e.network_only) return true;
+      if (isAppAdmin) return true;
+      if (!currentUser) return false;
+      return Array.isArray(networkInterests) && networkInterests.includes(e.network);
+    });
+
     return result;
-  }, [events, searchQuery, quickFilter, advancedFilters]);
+  }, [events, searchQuery, quickFilter, advancedFilters, currentUser, isAppAdmin]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;

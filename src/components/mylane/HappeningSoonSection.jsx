@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
+import { useRole } from '@/hooks/useRole';
 import EventCard from '@/components/events/EventCard';
 import EventDetailModal from '@/components/events/EventDetailModal';
 import SectionWrapper from './SectionWrapper';
@@ -12,6 +13,15 @@ export default function HappeningSoonSection() {
   const [eventFilter, setEventFilter] = useState('all');
   const [expandedEvent, setExpandedEvent] = useState(null);
   const { region } = useActiveRegion();
+  const { isAppAdmin } = useRole();
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: async () => {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) return null;
+      return base44.auth.me();
+    },
+  });
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['mylane-events'],
@@ -37,9 +47,16 @@ export default function HappeningSoonSection() {
 
   const filteredEvents = useMemo(() => {
     const now = new Date();
+    const networkInterests = currentUser?.data?.network_interests ?? [];
     let result = events
       .filter(e => new Date(e.date) >= now)
       .filter(e => regionalBusinessIds.has(e.business_id))
+      .filter(e => {
+        if (!e.network_only) return true;
+        if (isAppAdmin) return true;
+        if (!currentUser) return false;
+        return Array.isArray(networkInterests) && networkInterests.includes(e.network);
+      })
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .slice(0, 8);
 
@@ -55,7 +72,7 @@ export default function HappeningSoonSection() {
     }
 
     return result;
-  }, [events, regionalBusinessIds, eventFilter]);
+  }, [events, regionalBusinessIds, eventFilter, currentUser, isAppAdmin]);
 
   const pillClass = (active) =>
     active
