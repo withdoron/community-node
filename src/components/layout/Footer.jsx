@@ -40,24 +40,34 @@ export default function Footer() {
       if (list && list.length > 0) {
         toast.success("You're already subscribed!");
         setEmail('');
+        setIsSubmitting(false);
         return;
       }
       const first_name = currentUser?.full_name
         ? (currentUser.full_name.trim().split(/\s+/)[0] || null)
         : null;
-      await base44.entities.NewsletterSubscriber.create({
+      const subscribed_at = new Date().toISOString();
+      base44.entities.NewsletterSubscriber.create({
         email: value,
-        subscribed_at: new Date().toISOString(),
+        subscribed_at,
         source: 'footer',
         user_id: currentUser?.id ?? null,
         ...(first_name ? { first_name } : {}),
-      });
-      toast.success("You're in! Welcome to The Good News.");
-      setEmail('');
+      })
+        .then(() => {
+          toast.success("You're in! Welcome to The Good News.");
+          setEmail('');
+        })
+        .catch((err) => {
+          console.error('Newsletter signup error:', err);
+          toast.error("Something went wrong. Try again?");
+        })
+        .finally(() => {
+          setIsSubmitting(false);
+        });
     } catch (err) {
       console.error('Newsletter signup error:', err);
       toast.error("Something went wrong. Try again?");
-    } finally {
       setIsSubmitting(false);
     }
   };

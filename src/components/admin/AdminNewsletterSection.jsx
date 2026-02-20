@@ -5,6 +5,16 @@ import { Card } from '@/components/ui/card';
 import { Loader2, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 
+function formatSubscribedAt(val) {
+  if (val == null) return '—';
+  try {
+    const d = new Date(val);
+    return Number.isNaN(d.getTime()) ? '—' : format(d, 'MMM d, yyyy');
+  } catch {
+    return '—';
+  }
+}
+
 const SOURCE_BADGE = {
   footer: 'bg-slate-700 text-slate-300',
   onboarding: 'bg-amber-500/20 text-amber-500',
@@ -62,7 +72,7 @@ export default function AdminNewsletterSection() {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-slate-300 text-sm">
-                    {sub.subscribed_at ? format(new Date(sub.subscribed_at), 'MMM d, yyyy') : '—'}
+                    {formatSubscribedAt(sub.subscribed_at)}
                   </td>
                   <td className="py-3 px-4">
                     <span className="inline-flex items-center gap-1.5">
