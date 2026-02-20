@@ -53,7 +53,17 @@ export default function EventEditor({
   const { isAppAdmin } = useRole();
 
   const { data: eventTypes = [] } = useConfig("events", "event_types");
-  const { data: networks = [] } = useConfig("platform", "networks");
+  const { data: networksRaw = [] } = useConfig("platform", "networks");
+  const allowedNetworks = React.useMemo(() => {
+    const active = (networksRaw || []).filter((n) => n.active !== false);
+    if (isAppAdmin) return active;
+    const businessSlugs = Array.isArray(business?.network_ids) ? business.network_ids : [];
+    if (businessSlugs.length === 0) return [];
+    return active.filter((n) => {
+      const slug = n.value ?? n.slug ?? n.id;
+      return businessSlugs.includes(slug);
+    });
+  }, [networksRaw, isAppAdmin, business?.network_ids]);
   const { data: ageGroups = [] } = useConfig("events", "age_groups");
   const { data: durationPresets = [] } = useConfig("events", "duration_presets");
   const { data: accessibilityOptions = [] } = useConfig("events", "accessibility_features");
@@ -162,7 +172,7 @@ export default function EventEditor({
           const n = existingEvent.network;
           const arr = Array.isArray(existingEvent.networks) ? existingEvent.networks : n ? [n] : [];
           return arr.map((v) => {
-            const found = networks.find((net) => net.value === v || net.label === v);
+            const found = networksRaw.find((net) => net.value === v || net.label === v);
             return found ? found.value : v;
           });
         })(),
@@ -1398,51 +1408,35 @@ export default function EventEditor({
           )}
         </div>
 
-        {/* Networks */}
-        {isAppAdmin ? (
+        {/* Networks — only show if business has assigned networks (or admin sees all) */}
+        {allowedNetworks.length > 0 && (
           <div>
             <Label className="text-slate-300">Networks / Communities (optional)</Label>
             <div className="flex flex-wrap gap-2 mt-2">
-              {networks
-                .filter((n) => n.active !== false)
-                .map((network) => (
+              {allowedNetworks.map((network) => {
+                const slug = network.value ?? network.slug ?? network.id;
+                return (
                   <button
-                    key={network.value}
+                    key={slug}
                     type="button"
-                    onClick={() => toggleNetwork(network.value)}
+                    onClick={() => toggleNetwork(slug)}
                     className={cn(
                       "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-                      formData.networks.includes(network.value)
+                      formData.networks.includes(slug)
                         ? "bg-amber-500 text-black"
                         : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
                     )}
                   >
-                    {network.label}
+                    {network.label ?? network.name ?? slug}
                   </button>
-                ))}
-            </div>
-          </div>
-        ) : (
-          <div className="opacity-50 cursor-not-allowed">
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-slate-400 text-sm font-medium">Networks / Communities (optional)</label>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-amber-500/70">Coming Soon</span>
-                <Lock className="h-4 w-4 text-amber-500/70" />
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {['Recess', 'Creative Alliance', 'Harvest Network', 'Gathering Circle'].map(name => (
-                <span key={name} className="px-3 py-1.5 rounded-full border border-slate-700/50 text-slate-500 text-sm">
-                  {name}
-                </span>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
 
         {/* Network Members Only — visible only when a network is selected */}
-        {isAppAdmin && formData.networks?.length > 0 && (
+        {allowedNetworks.length > 0 && formData.networks?.length > 0 && (
           <div className="space-y-4 p-4 border border-slate-700 rounded-lg">
             <div
               role="button"

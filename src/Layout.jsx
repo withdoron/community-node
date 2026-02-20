@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles, Coins, Settings, MessageSquarePlus, X, Send, Camera, Lightbulb, Bug } from "lucide-react";
+import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles, Coins, Settings, MessageSquarePlus, X, Send, Camera, Lightbulb, Bug, Users } from "lucide-react";
 import Footer from '@/components/layout/Footer';
 import { useRole } from '@/hooks/useRole';
 import { toast } from 'sonner';
@@ -133,6 +133,9 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
             </Link>
             <Link to={createPageUrl('Events')} className={navLinkClass('Events')}>
               Events
+            </Link>
+            <Link to="/networks" className={navLinkClass('networks')}>
+              Networks
             </Link>
             {currentUser && userHasStaffRole && (
               <Link to={createPageUrl('BusinessDashboard')} className={navLinkClass('BusinessDashboard')}>
@@ -259,6 +262,12 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                       <Link to={createPageUrl('Events')} className={`flex items-center gap-3 ${sheetLinkClass('Events')}`}>
                         <Calendar className="h-5 w-5 flex-shrink-0" />
                         Events
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link to="/networks" className={`flex items-center gap-3 ${sheetLinkClass('networks')}`}>
+                        <Users className="h-5 w-5 flex-shrink-0" />
+                        Networks
                       </Link>
                     </SheetClose>
                     {currentUser && userHasStaffRole && (

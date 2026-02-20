@@ -12,11 +12,15 @@ import { Loader2, Plus, Pencil, Trash2, ChevronUp, ChevronDown } from 'lucide-re
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
+const isNetworks = (d, t) => d === 'platform' && t === 'networks';
+
 export default function ConfigSection({ domain, configType, title }) {
   const { data: items = [], isLoading } = useConfig(domain, configType);
   const mutation = useConfigMutation(domain, configType);
   const [editingId, setEditingId] = useState(null);
   const [editLabel, setEditLabel] = useState('');
+  const [editTagline, setEditTagline] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const [adding, setAdding] = useState(false);
   const [newValue, setNewValue] = useState('');
   const [newLabel, setNewLabel] = useState('');
@@ -43,15 +47,21 @@ export default function ConfigSection({ domain, configType, title }) {
 
   const handleSaveEdit = () => {
     if (editingId == null || !editLabel?.trim()) return;
-    const next = items.map((item) =>
-      item.value === editingId || item.id === editingId
-        ? { ...item, label: editLabel.trim() }
-        : item
-    );
+    const next = items.map((item) => {
+      if (item.value !== editingId && item.id !== editingId) return item;
+      const updated = { ...item, label: editLabel.trim() };
+      if (isNetworks(domain, configType)) {
+        updated.tagline = editTagline?.trim() || undefined;
+        updated.description = editDescription?.trim() || undefined;
+      }
+      return updated;
+    });
     mutation.mutate(next, {
       onSuccess: () => {
         setEditingId(null);
         setEditLabel('');
+        setEditTagline('');
+        setEditDescription('');
         toast.success('Updated');
       },
       onError: () => toast.error('Failed to save'),
@@ -170,28 +180,55 @@ export default function ConfigSection({ domain, configType, title }) {
                 </button>
               </div>
               {isEditing ? (
-                <>
-                  <input
-                    type="text"
-                    value={editLabel}
-                    onChange={(e) => setEditLabel(e.target.value)}
-                    className="bg-slate-800 border border-slate-600 text-white rounded px-2 py-1 flex-1 max-w-xs"
-                    autoFocus
-                  />
-                  <div className="flex gap-2 ml-2 flex-shrink-0">
-                    <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black" onClick={handleSaveEdit}>
-                      Save
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-slate-600 text-slate-300"
-                      onClick={() => { setEditingId(null); setEditLabel(''); }}
-                    >
-                      Cancel
-                    </Button>
+                <div className="flex-1 min-w-0 space-y-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="text"
+                      value={editLabel}
+                      onChange={(e) => setEditLabel(e.target.value)}
+                      placeholder="Label (name)"
+                      className="bg-slate-800 border border-slate-600 text-white rounded px-2 py-1 flex-1 min-w-0 max-w-xs"
+                      autoFocus
+                    />
+                    <div className="flex gap-2 flex-shrink-0">
+                      <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black" onClick={handleSaveEdit}>
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-slate-600 text-slate-300"
+                        onClick={() => { setEditingId(null); setEditLabel(''); setEditTagline(''); setEditDescription(''); }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
-                </>
+                  {isNetworks(domain, configType) && (
+                    <>
+                      <div>
+                        <label className="text-xs text-slate-400 block mb-1">Tagline (optional)</label>
+                        <input
+                          type="text"
+                          value={editTagline}
+                          onChange={(e) => setEditTagline(e.target.value)}
+                          placeholder="e.g., Move your body, build your crew"
+                          className="w-full bg-slate-800 border border-slate-600 text-white rounded px-2 py-1.5 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-400 block mb-1">Description (optional)</label>
+                        <textarea
+                          value={editDescription}
+                          onChange={(e) => setEditDescription(e.target.value)}
+                          placeholder="2–3 sentences about what this network is"
+                          rows={3}
+                          className="w-full bg-slate-800 border border-slate-600 text-white rounded px-2 py-1.5 text-sm resize-y"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
               ) : (
                 <div className="flex flex-1 items-center justify-between min-w-0">
                   <span className="text-slate-200 truncate">{item.label}</span>
@@ -204,6 +241,8 @@ export default function ConfigSection({ domain, configType, title }) {
                       onClick={() => {
                         setEditingId(itemId);
                         setEditLabel(item.label || '');
+                        setEditTagline(item.tagline || '');
+                        setEditDescription(item.description || '');
                       }}
                     >
                       <Pencil className="h-4 w-4" />

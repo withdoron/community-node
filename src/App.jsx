@@ -10,6 +10,8 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import JoyCoinsHistory from '@/pages/JoyCoinsHistory';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import NetworkPage from '@/pages/NetworkPage';
+import Networks from '@/pages/Networks';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -81,6 +83,22 @@ const AuthenticatedApp = () => {
         element={
           <LayoutWrapper currentPageName="MyLane">
             <JoyCoinsHistory />
+          </LayoutWrapper>
+        }
+      />
+      <Route
+        path="/networks"
+        element={
+          <LayoutWrapper currentPageName="Networks">
+            <Networks />
+          </LayoutWrapper>
+        }
+      />
+      <Route
+        path="/networks/:slug"
+        element={
+          <LayoutWrapper currentPageName="Networks">
+            <NetworkPage />
           </LayoutWrapper>
         }
       />
