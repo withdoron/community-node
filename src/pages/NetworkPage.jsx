@@ -3,8 +3,8 @@
  * Route: /networks/:slug
  * Public page; follow/unfollow requires auth.
  */
-import React, { useState, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useConfig } from '@/hooks/useConfig';
@@ -13,14 +13,15 @@ import EventCard from '@/components/events/EventCard';
 import EventDetailModal from '@/components/events/EventDetailModal';
 import BusinessCard from '@/components/business/BusinessCard';
 import { Button } from '@/components/ui/button';
-import { Loader2, Store, Calendar } from 'lucide-react';
+import { Loader2, Store, Calendar, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function NetworkPage() {
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const [expandedEvent, setExpandedEvent] = useState(null);
-  const [unfollowConfirm, setUnfollowConfirm] = useState(false);
+  const [followHover, setFollowHover] = useState(false);
+  const [optimisticFollowing, setOptimisticFollowing] = useState(null);
 
   const { data: networksConfig = [], isLoading: networksLoading } = useConfig('platform', 'networks');
   const network = useMemo(() => {
@@ -37,26 +38,39 @@ export default function NetworkPage() {
     },
   });
 
+  useEffect(() => {
+    setOptimisticFollowing(null);
+    setFollowHover(false);
+  }, [slug]);
+
   const networkInterests = currentUser?.data?.network_interests ?? [];
-  const followsNetwork = Array.isArray(networkInterests) && networkInterests.includes(slug);
+  const followsNetwork =
+    optimisticFollowing !== null ? optimisticFollowing : (Array.isArray(networkInterests) && networkInterests.includes(slug));
+
+  const displayNameForToast = network?.label ?? network?.name ?? slug;
 
   const handleFollow = async () => {
     if (!currentUser) {
       base44.auth.redirectToLogin();
       return;
     }
-    const next = followsNetwork
+    const willUnfollow = followsNetwork;
+    const next = willUnfollow
       ? networkInterests.filter((s) => s !== slug)
       : [...networkInterests, slug];
+    setOptimisticFollowing(!willUnfollow);
+    setFollowHover(false);
     try {
       await base44.functions.invoke('updateUser', {
         action: 'update_onboarding',
         data: { onboarding_complete: true, network_interests: next },
       });
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-      setUnfollowConfirm(false);
-      toast.success(followsNetwork ? 'Unfollowed' : 'Following');
+      toast.success(
+        willUnfollow ? `You've unfollowed ${displayNameForToast}` : `You're now following ${displayNameForToast}!`
+      );
     } catch (err) {
+      setOptimisticFollowing(null);
       toast.error('Failed to update. Please try again.');
     }
   };
@@ -132,6 +146,15 @@ export default function NetworkPage() {
   return (
     <div className="min-h-screen bg-slate-950">
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {/* Back button */}
+        <Link
+          to={createPageUrl('MyLane')}
+          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          MyLane
+        </Link>
+
         {/* Header */}
         <div className="space-y-4">
           <h1 className="text-3xl font-bold text-white">{displayName}</h1>
@@ -140,50 +163,30 @@ export default function NetworkPage() {
             {!currentUser ? (
               <Button
                 onClick={() => base44.auth.redirectToLogin()}
-                variant="outline"
-                className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
+                className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-6 py-2 rounded-lg transition-colors"
               >
-                Sign in to join
+                Sign in to follow
               </Button>
-            ) : unfollowConfirm ? (
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleFollow}
-                  className="bg-red-500/20 border border-red-500/50 text-red-400 hover:bg-red-500/30"
-                >
-                  Unfollow
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-slate-600 text-slate-300"
-                  onClick={() => setUnfollowConfirm(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
             ) : followsNetwork ? (
               <Button
-                onClick={() => setUnfollowConfirm(true)}
-                className="bg-amber-500 hover:bg-amber-400 text-slate-900"
+                onClick={handleFollow}
+                onMouseEnter={() => setFollowHover(true)}
+                onMouseLeave={() => setFollowHover(false)}
+                className={
+                  followHover
+                    ? 'bg-slate-800 border border-red-500/50 text-red-400 hover:bg-red-500/10 px-6 py-2 rounded-lg transition-colors'
+                    : 'bg-slate-800 border border-amber-500/30 text-amber-500 px-6 py-2 rounded-lg transition-colors'
+                }
               >
-                Following
+                {followHover ? 'Unfollow' : 'Following ✓'}
               </Button>
             ) : (
               <Button
                 onClick={handleFollow}
-                variant="outline"
-                className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
+                className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-6 py-2 rounded-lg transition-colors"
               >
                 Follow {displayName}
               </Button>
-            )}
-            {currentUser && followsNetwork && (
-              <Link
-                to={createPageUrl('MyLane')}
-                className="text-slate-400 hover:text-amber-500 text-sm transition-colors"
-              >
-                Manage in My Lane
-              </Link>
             )}
           </div>
         </div>
