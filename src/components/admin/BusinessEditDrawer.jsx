@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -128,6 +129,16 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   useEffect(() => {
     if (business) {
       setEditData({
+        name: business.name || '',
+        description: business.description || '',
+        primary_category: business.primary_category || business.category || '',
+        address: business.address || '',
+        city: business.city || '',
+        state: business.state || '',
+        zip_code: business.zip_code || '',
+        email: business.email || business.contact_email || '',
+        phone: business.phone || '',
+        website: business.website || '',
         subscription_tier: business.subscription_tier || 'basic',
         accepts_silver: business.accepts_silver || false,
         is_locally_owned_franchise: business.is_locally_owned_franchise || false,
@@ -501,12 +512,25 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       network_ids: Array.isArray(editData.network_ids) ? editData.network_ids : [],
       is_active: editData.is_active,
     };
+    if (payload.name) {
+      payload.slug = payload.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    }
     console.log('Save payload:', payload);
     saveMutation.mutate(payload);
   };
 
   const handleDiscardChanges = () => {
     setEditData({
+      name: business.name || '',
+      description: business.description || '',
+      primary_category: business.primary_category || business.category || '',
+      address: business.address || '',
+      city: business.city || '',
+      state: business.state || '',
+      zip_code: business.zip_code || '',
+      email: business.email || business.contact_email || '',
+      phone: business.phone || '',
+      website: business.website || '',
       subscription_tier: business.subscription_tier || 'basic',
       accepts_silver: business.accepts_silver || false,
       is_locally_owned_franchise: business.is_locally_owned_franchise || false,
@@ -612,6 +636,114 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
             </div>
 
             <Separator />
+
+            {/* Profile (editable) */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-slate-100 flex items-center gap-2">
+                <Store className="h-4 w-4 text-amber-500" />
+                Profile
+              </h3>
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Business name</Label>
+                  <Input
+                    value={editData.name ?? ''}
+                    onChange={(e) => handleFieldChange('name', e.target.value)}
+                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    placeholder="Business name"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Description</Label>
+                  <Textarea
+                    value={editData.description ?? ''}
+                    onChange={(e) => handleFieldChange('description', e.target.value)}
+                    rows={3}
+                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20 resize-none"
+                    placeholder="Description / bio"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Category</Label>
+                  <Input
+                    value={editData.primary_category ?? ''}
+                    onChange={(e) => handleFieldChange('primary_category', e.target.value)}
+                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    placeholder="e.g. Farm, Fitness"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Contact email</Label>
+                  <Input
+                    type="email"
+                    value={editData.email ?? ''}
+                    onChange={(e) => handleFieldChange('email', e.target.value)}
+                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    placeholder="contact@example.com"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Contact phone</Label>
+                  <Input
+                    type="tel"
+                    value={editData.phone ?? ''}
+                    onChange={(e) => handleFieldChange('phone', e.target.value)}
+                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    placeholder="(541) 555-1234"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Website</Label>
+                  <Input
+                    type="url"
+                    value={editData.website ?? ''}
+                    onChange={(e) => handleFieldChange('website', e.target.value)}
+                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    placeholder="https://example.com"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Street address</Label>
+                  <Input
+                    value={editData.address ?? ''}
+                    onChange={(e) => handleFieldChange('address', e.target.value)}
+                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    placeholder="123 Main St"
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <Label className="text-xs text-slate-400 uppercase tracking-wider">City</Label>
+                    <Input
+                      value={editData.city ?? ''}
+                      onChange={(e) => handleFieldChange('city', e.target.value)}
+                      className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                      placeholder="City"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-slate-400 uppercase tracking-wider">State</Label>
+                    <Input
+                      value={editData.state ?? ''}
+                      onChange={(e) => handleFieldChange('state', e.target.value)}
+                      className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                      placeholder="OR"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-slate-400 uppercase tracking-wider">Zip</Label>
+                    <Input
+                      value={editData.zip_code ?? ''}
+                      onChange={(e) => handleFieldChange('zip_code', e.target.value)}
+                      className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                      placeholder="97401"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Separator className="bg-slate-700" />
 
             {/* Tier Selection */}
             <div className="space-y-3">
