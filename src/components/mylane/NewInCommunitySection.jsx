@@ -6,7 +6,6 @@ import { base44 } from '@/api/base44Client';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
 import BusinessCard from '@/components/business/BusinessCard';
 import SectionWrapper from './SectionWrapper';
-import { Badge } from '@/components/ui/badge';
 import { Store } from 'lucide-react';
 
 export default function NewInCommunitySection() {
@@ -58,20 +57,9 @@ export default function NewInCommunitySection() {
         {newBusinesses.map((business) => (
           <div
             key={business.id}
-            className="snap-start flex-shrink-0 w-[85vw] sm:w-72 min-w-0 max-w-full overflow-hidden space-y-2"
+            className="snap-start flex-shrink-0 w-56 sm:w-64 min-w-0"
           >
-            <div className="mb-2">
-              <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs">
-                🆕 New to LocalLane
-              </Badge>
-            </div>
-            <BusinessCard business={business} />
-            <Link
-              to={createPageUrl(`Recommend?businessId=${business.id}`)}
-              className="text-xs text-slate-400 hover:text-amber-500 mt-1 inline-block py-2 transition-colors"
-            >
-              Be the first to recommend →
-            </Link>
+            <BusinessCard business={business} showNewToLocalLane />
           </div>
         ))}
       </div>
