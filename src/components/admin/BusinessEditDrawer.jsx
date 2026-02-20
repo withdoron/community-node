@@ -21,10 +21,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown, Trash2, Link2, X, Globe } from "lucide-react";
+import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown, Trash2, Link2, X, Globe, Upload } from "lucide-react";
 import { format } from 'date-fns';
 import { toast } from "sonner";
 import { useConfig } from '@/hooks/useConfig';
+import { US_STATES } from '@/lib/usStates';
 
 export default function BusinessEditDrawer({ business, open, onClose, adminEmail }) {
   const queryClient = useQueryClient();
@@ -40,6 +41,33 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const [selectedRole, setSelectedRole] = useState('instructor');
   const [localInstructors, setLocalInstructors] = useState([]);
   const staffSearchRef = useRef(null);
+  const logoInputRef = useRef(null);
+
+  const { data: categoryGroups = [] } = useQuery({
+    queryKey: ['categoryGroups'],
+    queryFn: () => base44.entities.CategoryGroup.list(),
+  });
+  const { data: allSubCategories = [] } = useQuery({
+    queryKey: ['subCategories'],
+    queryFn: () => base44.entities.SubCategory.list(),
+  });
+  const categoryOptions = useMemo(() => {
+    const groups = Array.isArray(categoryGroups) ? categoryGroups : [];
+    const subs = Array.isArray(allSubCategories) ? allSubCategories : [];
+    const options = [];
+    groups.forEach((g) => {
+      subs.filter((s) => s.group_id === g.id).forEach((s) => {
+        options.push({
+          value: `${g.label}|${s.name}`,
+          label: `${g.label} — ${s.name}`,
+          groupLabel: g.label,
+          subName: s.name,
+          subId: s.id,
+        });
+      });
+    });
+    return options;
+  }, [categoryGroups, allSubCategories]);
 
   useEffect(() => {
     setLocalInstructors(business?.instructors || []);
@@ -132,10 +160,13 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         name: business.name || '',
         description: business.description || '',
         primary_category: business.primary_category || business.category || '',
+        sub_category: business.sub_category || '',
+        sub_category_id: business.sub_category_id || '',
         address: business.address || '',
         city: business.city || '',
         state: business.state || '',
         zip_code: business.zip_code || '',
+        display_full_address: business.display_full_address === true,
         email: business.email || business.contact_email || '',
         phone: business.phone || '',
         website: business.website || '',
@@ -191,6 +222,30 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       console.error('Save failed:', error);
     },
   });
+
+  const logoUploadMutation = useMutation({
+    mutationFn: async (file) => {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      const url = result?.file_url ?? result?.url;
+      if (!url) throw new Error('No URL returned');
+      await base44.entities.Business.update(business.id, { logo_url: url });
+      return url;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-businesses']);
+      toast.success('Logo uploaded successfully');
+    },
+    onError: () => {
+      toast.error('Failed to upload logo');
+    },
+  });
+
+  const handleDrawerLogoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    logoUploadMutation.mutate(file);
+    if (logoInputRef.current) logoInputRef.current.value = '';
+  };
 
   // Hard delete: remove record permanently (Business.delete). Fallback to soft delete if delete not available.
   const deleteMutation = useMutation({
@@ -524,10 +579,13 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       name: business.name || '',
       description: business.description || '',
       primary_category: business.primary_category || business.category || '',
+      sub_category: business.sub_category || '',
+      sub_category_id: business.sub_category_id || '',
       address: business.address || '',
       city: business.city || '',
       state: business.state || '',
       zip_code: business.zip_code || '',
+      display_full_address: business.display_full_address === true,
       email: business.email || business.contact_email || '',
       phone: business.phone || '',
       website: business.website || '',
@@ -665,12 +723,32 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 </div>
                 <div>
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Category</Label>
-                  <Input
-                    value={editData.primary_category ?? ''}
-                    onChange={(e) => handleFieldChange('primary_category', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
-                    placeholder="e.g. Farm, Fitness"
-                  />
+                  <Select
+                    value={editData.primary_category && editData.sub_category ? `${editData.primary_category}|${editData.sub_category}` : (editData.primary_category || '')}
+                    onValueChange={(val) => {
+                      const opt = categoryOptions.find((o) => o.value === val);
+                      if (opt) {
+                        handleFieldChange('primary_category', opt.groupLabel);
+                        handleFieldChange('sub_category', opt.subName);
+                        handleFieldChange('sub_category_id', opt.subId || '');
+                      } else {
+                        handleFieldChange('primary_category', val || '');
+                        handleFieldChange('sub_category', '');
+                        handleFieldChange('sub_category_id', '');
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoryOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value} className="text-slate-100 focus:bg-slate-800 focus:text-amber-500">
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Contact email</Label>
@@ -702,18 +780,29 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     placeholder="https://example.com"
                   />
                 </div>
+                <label className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700 cursor-pointer">
+                  <Switch
+                    checked={editData.display_full_address === true}
+                    onCheckedChange={(checked) => handleFieldChange('display_full_address', checked)}
+                    className="data-[state=checked]:bg-amber-500"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-slate-200">Display full address on map?</p>
+                    <p className="text-xs text-slate-500">Off by default to protect privacy</p>
+                  </div>
+                </label>
                 <div>
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Street address</Label>
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Street address <span className="text-amber-500">*</span></Label>
                   <Input
                     value={editData.address ?? ''}
                     onChange={(e) => handleFieldChange('address', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
-                    placeholder="123 Main St"
+                    placeholder="123 Main Street"
                   />
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <Label className="text-xs text-slate-400 uppercase tracking-wider">City</Label>
+                    <Label className="text-xs text-slate-400 uppercase tracking-wider">City <span className="text-amber-500">*</span></Label>
                     <Input
                       value={editData.city ?? ''}
                       onChange={(e) => handleFieldChange('city', e.target.value)}
@@ -722,22 +811,62 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     />
                   </div>
                   <div>
-                    <Label className="text-xs text-slate-400 uppercase tracking-wider">State</Label>
-                    <Input
+                    <Label className="text-xs text-slate-400 uppercase tracking-wider">State <span className="text-amber-500">*</span></Label>
+                    <Select
                       value={editData.state ?? ''}
-                      onChange={(e) => handleFieldChange('state', e.target.value)}
-                      className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
-                      placeholder="OR"
-                    />
+                      onValueChange={(val) => handleFieldChange('state', val)}
+                    >
+                      <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20">
+                        <SelectValue placeholder="State" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {US_STATES.map((s) => (
+                          <SelectItem key={s.code} value={s.code} className="text-slate-100 focus:bg-slate-800 focus:text-amber-500">
+                            {s.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
-                    <Label className="text-xs text-slate-400 uppercase tracking-wider">Zip</Label>
+                    <Label className="text-xs text-slate-400 uppercase tracking-wider">Zip <span className="text-amber-500">*</span></Label>
                     <Input
                       value={editData.zip_code ?? ''}
                       onChange={(e) => handleFieldChange('zip_code', e.target.value)}
                       className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
                       placeholder="97401"
+                      maxLength={10}
                     />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 pt-2">
+                  {business?.logo_url ? (
+                    <img src={business.logo_url} alt={business.name} className="h-20 w-20 rounded-lg object-cover border border-slate-700" />
+                  ) : (
+                    <div className="h-20 w-20 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
+                      <Store className="h-8 w-8 text-slate-500" />
+                    </div>
+                  )}
+                  <div>
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      className="hidden"
+                      onChange={handleDrawerLogoUpload}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
+                      onClick={() => logoInputRef.current?.click()}
+                      disabled={logoUploadMutation.isPending}
+                    >
+                      {logoUploadMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                      Upload New
+                    </Button>
+                    <p className="text-xs text-slate-500 mt-1">Recommended: 200x200px, PNG or JPG</p>
                   </div>
                 </div>
               </div>

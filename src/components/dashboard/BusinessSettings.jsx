@@ -1,16 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { Settings, Store, Star, Zap, Crown, ExternalLink, Mail, Phone, Globe, MapPin, Pencil, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Settings, Store, Star, Zap, Crown, ExternalLink, Mail, Phone, Globe, MapPin, Pencil, Loader2, Upload } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { US_STATES } from '@/lib/usStates';
 import StaffWidget from './widgets/StaffWidget';
 
 const TIER_CONFIG = {
@@ -49,6 +52,8 @@ function getInitialFormData(business) {
     name: business.name || '',
     description: business.description || '',
     primary_category: business.primary_category || business.category || '',
+    sub_category: business.sub_category || '',
+    sub_category_id: business.sub_category_id || '',
     email: business.email || business.contact_email || '',
     phone: business.phone || '',
     website: business.website || '',
@@ -56,6 +61,7 @@ function getInitialFormData(business) {
     city: business.city || '',
     state: business.state || '',
     zip_code: business.zip_code || '',
+    display_full_address: business.display_full_address === true,
   };
 }
 
@@ -63,6 +69,33 @@ export default function BusinessSettings({ business, currentUserId }) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(null);
+  const logoInputRef = React.useRef(null);
+
+  const { data: categoryGroups = [] } = useQuery({
+    queryKey: ['categoryGroups'],
+    queryFn: () => base44.entities.CategoryGroup.list(),
+  });
+  const { data: allSubCategories = [] } = useQuery({
+    queryKey: ['subCategories'],
+    queryFn: () => base44.entities.SubCategory.list(),
+  });
+  const categoryOptions = useMemo(() => {
+    const groups = Array.isArray(categoryGroups) ? categoryGroups : [];
+    const subs = Array.isArray(allSubCategories) ? allSubCategories : [];
+    const options = [];
+    groups.forEach((g) => {
+      subs.filter((s) => s.group_id === g.id).forEach((s) => {
+        options.push({
+          value: `${g.label}|${s.name}`,
+          label: `${g.label} — ${s.name}`,
+          groupLabel: g.label,
+          subName: s.name,
+          subId: s.id,
+        });
+      });
+    });
+    return options;
+  }, [categoryGroups, allSubCategories]);
 
   useEffect(() => {
     const next = getInitialFormData(business);
@@ -95,6 +128,31 @@ export default function BusinessSettings({ business, currentUserId }) {
       toast.error('Failed to update profile. Please try again.');
     },
   });
+
+  const logoUploadMutation = useMutation({
+    mutationFn: async (file) => {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      const url = result?.file_url ?? result?.url;
+      if (!url) throw new Error('No URL returned');
+      await base44.entities.Business.update(business.id, { logo_url: url });
+      return url;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUserId] });
+      toast.success('Logo uploaded successfully');
+    },
+    onError: () => {
+      toast.error('Failed to upload logo');
+    },
+  });
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    logoUploadMutation.mutate(file);
+    if (logoInputRef.current) logoInputRef.current.value = '';
+  };
 
   const handleChange = (field, value) => {
     setFormData((prev) => (prev ? { ...prev, [field]: value } : prev));
@@ -210,13 +268,32 @@ export default function BusinessSettings({ business, currentUserId }) {
                 <Label htmlFor="business-category" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
                   Category
                 </Label>
-                <Input
-                  id="business-category"
-                  value={formData.primary_category}
-                  onChange={(e) => handleChange('primary_category', e.target.value)}
-                  className={INPUT_CLASS}
-                  placeholder="e.g. Farm, Fitness, Restaurant"
-                />
+                <Select
+                  value={formData.primary_category && formData.sub_category ? `${formData.primary_category}|${formData.sub_category}` : ''}
+                  onValueChange={(val) => {
+                    const opt = categoryOptions.find((o) => o.value === val);
+                    if (opt) {
+                      handleChange('primary_category', opt.groupLabel);
+                      handleChange('sub_category', opt.subName);
+                      handleChange('sub_category_id', opt.subId || '');
+                    } else {
+                      handleChange('primary_category', val || '');
+                      handleChange('sub_category', '');
+                      handleChange('sub_category_id', '');
+                    }
+                  }}
+                >
+                  <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg focus:border-amber-500 focus:ring-amber-500/20">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value} className="text-slate-100 focus:bg-slate-800 focus:text-amber-500">
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -271,22 +348,33 @@ export default function BusinessSettings({ business, currentUserId }) {
               <div className="border-b border-slate-700 pb-2">
                 <h4 className="text-xs text-slate-400 uppercase tracking-wider">Location</h4>
               </div>
+              <label className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700 cursor-pointer">
+                <Switch
+                  checked={formData.display_full_address}
+                  onCheckedChange={(checked) => handleChange('display_full_address', checked)}
+                  className="data-[state=checked]:bg-amber-500"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-slate-200">Display full address on map?</p>
+                  <p className="text-xs text-slate-500">Off by default to protect privacy</p>
+                </div>
+              </label>
               <div>
                 <Label htmlFor="business-address" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
-                  Street address
+                  Street address <span className="text-amber-500">*</span>
                 </Label>
                 <Input
                   id="business-address"
                   value={formData.address}
                   onChange={(e) => handleChange('address', e.target.value)}
                   className={INPUT_CLASS}
-                  placeholder="123 Main St"
+                  placeholder="123 Main Street"
                 />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <Label htmlFor="business-city" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
-                    City
+                    City <span className="text-amber-500">*</span>
                   </Label>
                   <Input
                     id="business-city"
@@ -298,19 +386,27 @@ export default function BusinessSettings({ business, currentUserId }) {
                 </div>
                 <div>
                   <Label htmlFor="business-state" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
-                    State
+                    State <span className="text-amber-500">*</span>
                   </Label>
-                  <Input
-                    id="business-state"
-                    value={formData.state}
-                    onChange={(e) => handleChange('state', e.target.value)}
-                    className={INPUT_CLASS}
-                    placeholder="OR"
-                  />
+                  <Select
+                    value={formData.state || ''}
+                    onValueChange={(val) => handleChange('state', val)}
+                  >
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg focus:border-amber-500 focus:ring-amber-500/20">
+                      <SelectValue placeholder="State" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {US_STATES.map((s) => (
+                        <SelectItem key={s.code} value={s.code} className="text-slate-100 focus:bg-slate-800 focus:text-amber-500">
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="business-zip" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
-                    Zip code
+                    Zip code <span className="text-amber-500">*</span>
                   </Label>
                   <Input
                     id="business-zip"
@@ -318,25 +414,50 @@ export default function BusinessSettings({ business, currentUserId }) {
                     onChange={(e) => handleChange('zip_code', e.target.value)}
                     className={INPUT_CLASS}
                     placeholder="97401"
+                    maxLength={10}
                   />
                 </div>
               </div>
             </div>
 
-            {/* Logo: TODO when user profile photo upload exists */}
-            <div className="flex items-center gap-3 pt-2">
+            {/* Logo */}
+            <div className="flex items-center gap-4 pt-2">
               {business?.logo_url ? (
                 <img
                   src={business.logo_url}
                   alt={business.name}
-                  className="h-12 w-12 rounded-lg object-cover border border-slate-700"
+                  className="h-20 w-20 rounded-lg object-cover border border-slate-700"
                 />
               ) : (
-                <div className="h-12 w-12 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
-                  <Store className="h-6 w-6 text-slate-500" />
+                <div className="h-20 w-20 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
+                  <Store className="h-8 w-8 text-slate-500" />
                 </div>
               )}
-              <p className="text-xs text-slate-500">Logo upload coming soon</p>
+              <div>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  className="hidden"
+                  onChange={handleLogoUpload}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={logoUploadMutation.isPending}
+                >
+                  {logoUploadMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-2" />
+                  )}
+                  Upload New
+                </Button>
+                <p className="text-xs text-slate-500 mt-1">Recommended: 200x200px, PNG or JPG</p>
+              </div>
             </div>
 
             <div className="flex gap-2 pt-2">
