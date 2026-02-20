@@ -4,11 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
-function isValidEmail(value) {
-  const s = String(value || '').trim();
-  return s.includes('@') && s.includes('.') && s.length > 5;
-}
-
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [email, setEmail] = useState('');
@@ -27,38 +22,29 @@ export default function Footer() {
   ];
 
   const handleNewsletterSubmit = async (e) => {
-    console.log('HANDLER CALLED');
     e.preventDefault();
     const value = email.trim().toLowerCase();
-    if (!value) return;
-    if (!isValidEmail(value)) {
-      toast.error('Please enter a valid email address.');
+    if (!value || !value.includes('@') || !value.includes('.') || value.length < 6) {
+      toast.error("Please enter a valid email address.");
       return;
     }
-    try {
-      setIsSubmitting(true);
 
-      const existing = await base44.entities.NewsletterSubscriber.filter({ email: value });
-      if (existing && existing.length > 0) {
-        toast.success("You're already subscribed!");
-        setEmail('');
-        setIsSubmitting(false);
-        return;
-      }
+    setIsSubmitting(true);
+    try {
+      const firstName = currentUser?.full_name ? currentUser.full_name.split(' ')[0] : null;
 
       await base44.entities.NewsletterSubscriber.create({
         email: value,
         subscribed_at: new Date().toISOString(),
         source: 'footer',
-        user_id: currentUser?.id ?? null,
-        first_name: currentUser?.full_name ? currentUser.full_name.split(' ')[0] : null,
+        user_id: currentUser?.id || null,
+        first_name: firstName,
         is_active: true,
       });
 
       toast.success("You're in! Welcome to The Good News.");
       setEmail('');
     } catch (err) {
-      console.error('Newsletter signup error:', err);
       toast.error("Something went wrong. Try again?");
     } finally {
       setIsSubmitting(false);
