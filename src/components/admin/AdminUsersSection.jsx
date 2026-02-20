@@ -162,11 +162,14 @@ export default function AdminUsersSection({ businesses = [] }) {
                   <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
                     Email
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300 hidden sm:table-cell">
                     Joined
                   </th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
                     Status
+                  </th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300 hidden sm:table-cell w-10">
+                    CP
                   </th>
                 </tr>
               </thead>
@@ -183,7 +186,7 @@ export default function AdminUsersSection({ businesses = [] }) {
                     <td className="py-3 px-4 text-slate-400 truncate max-w-[150px] sm:max-w-xs">
                       {user.email}
                     </td>
-                    <td className="py-3 px-4 text-slate-400">
+                    <td className="py-3 px-4 text-slate-400 hidden sm:table-cell">
                       {user.created_date
                         ? format(new Date(user.created_date), 'MMM yy')
                         : 'Unknown'}
@@ -198,6 +201,13 @@ export default function AdminUsersSection({ businesses = [] }) {
                       >
                         {user.data?.status === 'suspended' ? 'Suspended' : 'Active'}
                       </Badge>
+                    </td>
+                    <td className="py-3 px-4 hidden sm:table-cell">
+                      {user.data?.community_pass_interest === 'yes' ? (
+                        <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" title="Yes, interested" aria-hidden />
+                      ) : user.data?.community_pass_interest === 'maybe_later' ? (
+                        <span className="inline-block h-2 w-2 rounded-full bg-slate-500" title="Maybe later" aria-hidden />
+                      ) : null}
                     </td>
                   </tr>
                 ))}
