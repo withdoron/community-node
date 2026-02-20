@@ -414,7 +414,6 @@ export default function EventEditor({
       network_only: !!(formData.networks?.length > 0 && formData.network_only),
     };
 
-    console.log('Event payload:', eventData);
 
     try {
       await Promise.resolve(onSave(eventData));
@@ -774,7 +773,7 @@ export default function EventEditor({
               >
                 <span
                   className={cn(
-                    "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                    "inline-block h-5 w-5 rounded-full bg-slate-300 shadow-sm transition-transform",
                     isRecurring ? "translate-x-5" : "translate-x-0.5"
                   )}
                 />
@@ -1239,7 +1238,7 @@ export default function EventEditor({
               >
                 <span
                   className={cn(
-                    "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                    "inline-block h-5 w-5 rounded-full bg-slate-300 shadow-sm transition-transform",
                     formData.joy_coin_enabled ? "translate-x-5" : "translate-x-0.5"
                   )}
                 />
@@ -1302,7 +1301,7 @@ export default function EventEditor({
                     >
                       <span
                         className={cn(
-                          "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                          "inline-block h-5 w-5 rounded-full bg-slate-300 shadow-sm transition-transform",
                           formData.joy_coin_unlimited ? "translate-x-5" : "translate-x-0.5"
                         )}
                       />
@@ -1370,7 +1369,7 @@ export default function EventEditor({
                     >
                       <span
                         className={cn(
-                          "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                          "inline-block h-5 w-5 rounded-full bg-slate-300 shadow-sm transition-transform",
                           formData.adults_only ? "translate-x-5" : "translate-x-0.5"
                         )}
                       />
@@ -1482,7 +1481,7 @@ export default function EventEditor({
               >
                 <span
                   className={cn(
-                    "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                    "inline-block h-5 w-5 rounded-full bg-slate-300 shadow-sm transition-transform",
                     formData.network_only ? "translate-x-5" : "translate-x-0.5"
                   )}
                 />

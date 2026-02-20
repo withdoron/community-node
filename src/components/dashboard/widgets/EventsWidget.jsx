@@ -92,7 +92,6 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
       }
       tempWeek.setDate(tempWeek.getDate() + (eventData.recurrence_pattern === "biweekly" ? 14 : 7));
     }
-    console.log('[EventsWidget] Recurring events: will generate', totalDates, 'instances');
 
     let iteration = 0;
     while (currentWeekStart <= endDate) {
@@ -124,7 +123,6 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
               business_id: business.id,
               data: eventPayload,
             });
-            console.log('[EventsWidget] Recurring event created:', result);
           } catch (err) {
             console.error('[EventsWidget] Recurring event failed:', err);
           }

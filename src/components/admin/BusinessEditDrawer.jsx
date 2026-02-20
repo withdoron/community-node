@@ -204,7 +204,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
           new_value: JSON.stringify(payload),
         });
       } catch (auditErr) {
-        console.warn('Audit log failed (business was updated):', auditErr);
+        // Audit log failed; business was still updated
       }
     },
     onSuccess: () => {
@@ -263,7 +263,6 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       });
     },
     onSuccess: () => {
-      console.log('[Admin Delete] onSuccess');
       queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
       toast.success('Business deleted');
       setDeleteDialogOpen(false);
@@ -440,11 +439,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       }
     },
     onSuccess: async (_data, userId) => {
-      console.log('[Admin] Remove success, userId:', userId);
-      setLocalInstructors((prev) => {
-        const updated = prev.filter((id) => id !== userId);
-        console.log('[Admin] Updated localInstructors:', updated);
-        return updated;
+      setLocalInstructors((prev) => prev.filter((id) => id !== userId));
       });
       queryClient.invalidateQueries({ queryKey: ['staff'] });
       queryClient.invalidateQueries({ queryKey: ['staffRoles'] });
@@ -1259,10 +1254,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
           <AlertDialogFooter>
             <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                console.log('[Admin Delete] Confirmation clicked, calling mutate()');
-                deleteMutation.mutate();
-              }}
+              onClick={() => deleteMutation.mutate()}
               className="bg-red-600 hover:bg-red-500 text-white"
               disabled={deleteMutation.isPending}
             >

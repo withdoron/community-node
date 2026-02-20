@@ -47,7 +47,6 @@ export default function BuildLane() {
 
   const handleComplete = () => {
     // Save preferences (could save to user entity)
-    console.log({ vibe, tastes, budget });
     
     // Navigate to MyLane
     navigate(createPageUrl('MyLane'));

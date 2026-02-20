@@ -81,19 +81,6 @@ export default function NetworkPage() {
 
   const now = new Date();
   const upcomingEvents = useMemo(() => {
-    console.log('Network page debug:', { slug, allEvents: events?.length, sampleEvent: events?.[0] });
-    console.log(
-      'Event network check:',
-      events?.map((e) => ({
-        title: e.title,
-        network: e.network,
-        networks: e.networks,
-        'data?.network': e.data?.network,
-        date: e.date,
-        status: e.status,
-      }))
-    );
-
     const slugLower = (slug || '').toLowerCase();
     const eventMatchesNetwork = (e) => {
       const single = (e.network ?? e.data?.network ?? '').toString().toLowerCase();

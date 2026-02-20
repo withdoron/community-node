@@ -352,10 +352,6 @@ export default function BusinessDashboard() {
     return null;
   }
 
-  // Debug: full business object (tier is business.subscription_tier: basic | standard | partner)
-  console.log('[BusinessDashboard] selected business (full object):', selectedBusiness);
-  console.log('[BusinessDashboard] business.subscription_tier:', selectedBusiness.subscription_tier);
-
   const userRole = getUserRole(selectedBusiness);
   const archetype = selectedBusiness.archetype || 'location';
   const archetypeTitle = ARCHETYPE_TITLES[archetype] || 'Business Dashboard';

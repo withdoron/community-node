@@ -639,7 +639,7 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                     >
                       <span
                         className={cn(
-                          "inline-block h-5 w-5 rounded-full bg-slate-100 shadow-sm transition-transform",
+                          "inline-block h-5 w-5 rounded-full bg-slate-300 shadow-sm transition-transform",
                           editData.accepts_joy_coins ? "translate-x-5" : "translate-x-0.5"
                         )}
                       />
