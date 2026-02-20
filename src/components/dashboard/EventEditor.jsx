@@ -376,8 +376,23 @@ export default function EventEditor({
       age_info: formData.age_info?.trim() || null,
       capacity: formData.capacity ? parseInt(formData.capacity, 10) : null,
 
-      // Status
-      status: isDraft ? "draft" : tier === "basic" ? "pending_review" : "published",
+      // Status: auto-publish for admin, network-assigned businesses, or standard/partner tier.
+      // NOTE: Existing Recess events (or any events stuck in pending_review from network-assigned businesses)
+      // must be set to status "published" manually in the Base44 dashboard.
+      status: (() => {
+        if (isDraft) return "draft";
+        const hasNetworkAssignment =
+          Array.isArray(business?.network_ids) &&
+          business.network_ids.length > 0 &&
+          (formData.networks?.length ?? 0) > 0 &&
+          formData.networks.some((n) => business.network_ids.includes(n));
+        const shouldAutoPublish =
+          isAppAdmin ||
+          hasNetworkAssignment ||
+          tier === "standard" ||
+          tier === "partner";
+        return shouldAutoPublish ? "published" : "pending_review";
+      })(),
       is_active: true,
 
       // Recurrence (MVP: save settings only; instances generated later)
