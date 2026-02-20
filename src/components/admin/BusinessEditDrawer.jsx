@@ -140,22 +140,27 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
   const saveMutation = useMutation({
     mutationFn: async (payload) => {
+      // Direct entity update — do NOT use updateBusiness server function (known to fail)
       await base44.entities.Business.update(business.id, payload);
-      await base44.entities.AdminAuditLog.create({
-        admin_email: adminEmail,
-        business_id: business.id,
-        business_name: business.name,
-        action_type: 'drawer_save',
-        field_changed: 'multiple',
-        old_value: JSON.stringify({
-          subscription_tier: business.subscription_tier,
-          accepts_silver: business.accepts_silver,
-          is_locally_owned_franchise: business.is_locally_owned_franchise,
-          is_active: business.is_active,
-          network_ids: business.network_ids,
-        }),
-        new_value: JSON.stringify(payload),
-      });
+      try {
+        await base44.entities.AdminAuditLog.create({
+          admin_email: adminEmail,
+          business_id: business.id,
+          business_name: business.name,
+          action_type: 'drawer_save',
+          field_changed: 'multiple',
+          old_value: JSON.stringify({
+            subscription_tier: business.subscription_tier,
+            accepts_silver: business.accepts_silver,
+            is_locally_owned_franchise: business.is_locally_owned_franchise,
+            is_active: business.is_active,
+            network_ids: business.network_ids,
+          }),
+          new_value: JSON.stringify(payload),
+        });
+      } catch (auditErr) {
+        console.warn('Audit log failed (business was updated):', auditErr);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['admin-businesses']);
@@ -489,6 +494,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       network_ids: Array.isArray(editData.network_ids) ? editData.network_ids : [],
       is_active: editData.is_active,
     };
+    console.log('Saving business networks:', business.id, { network_ids: payload.network_ids, ...payload });
     saveMutation.mutate(payload);
   };
 
