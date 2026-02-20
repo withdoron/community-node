@@ -3,6 +3,7 @@
  * DEC-050 Build 1: Network Events spec.
  */
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useConfig } from '@/hooks/useConfig';
 import { base44 } from '@/api/base44Client';
 import { Check, Plus } from 'lucide-react';
@@ -71,10 +72,9 @@ export default function MyNetworksSection({ currentUser, onUpdate }) {
             const label = net.label ?? net.name ?? value;
             const isActive = selectedNetworks.includes(value);
             return (
-              <button
+              <Link
                 key={value}
-                type="button"
-                onClick={() => handleToggle(value)}
+                to={`/networks/${value}`}
                 className={cn(
                   'rounded-xl border p-4 cursor-pointer transition-all text-left flex items-center justify-between gap-2',
                   isActive
@@ -83,16 +83,35 @@ export default function MyNetworksSection({ currentUser, onUpdate }) {
                 )}
               >
                 <span className="font-medium text-slate-100 truncate">{label}</span>
-                {isActive ? (
-                  <Check className="h-5 w-5 text-amber-500 shrink-0" aria-hidden />
-                ) : (
-                  <Plus className="h-5 w-5 text-slate-500 shrink-0" aria-hidden />
-                )}
-              </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleToggle(value);
+                  }}
+                  className="shrink-0 p-1 rounded hover:bg-slate-800/50 transition-colors"
+                  aria-label={isActive ? `Unfollow ${label}` : `Follow ${label}`}
+                >
+                  {isActive ? (
+                    <Check className="h-5 w-5 text-amber-500" aria-hidden />
+                  ) : (
+                    <Plus className="h-5 w-5 text-slate-500" aria-hidden />
+                  )}
+                </button>
+              </Link>
             );
           })}
         </div>
       )}
+      <div className="text-right">
+        <Link
+          to="/networks"
+          className="text-sm text-slate-400 hover:text-amber-500 transition-colors"
+        >
+          Browse all networks →
+        </Link>
+      </div>
     </section>
   );
 }
