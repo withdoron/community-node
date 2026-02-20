@@ -47,7 +47,10 @@ export default function HappeningSoonSection() {
 
   const filteredEvents = useMemo(() => {
     const now = new Date();
+    // network_interests lives on user.data (not user root) — same as MyNetworksSection
     const networkInterests = currentUser?.data?.network_interests ?? [];
+    console.log('User network_interests:', currentUser?.data?.network_interests, 'isAdmin:', isAppAdmin);
+
     let result = events
       .filter(e => new Date(e.date) >= now)
       .filter(e => regionalBusinessIds.has(e.business_id))

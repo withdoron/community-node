@@ -118,13 +118,13 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
             {business.description || 'No description available'}
           </p>
 
-          <div className="flex items-center gap-4 mt-3 text-sm text-slate-400">
+          <div className="flex items-center gap-4 mt-3 text-sm text-slate-400 min-w-0">
             {business.city && (
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" />
-                {business.city}{business.state ? `, ${business.state}` : ''}
+              <span className="flex items-center gap-1 min-w-0 truncate">
+                <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="truncate">{business.city}{business.state ? `, ${business.state}` : ''}</span>
                 {locationCount && locationCount > 1 && (
-                  <span className="text-slate-500 ml-1">• {locationCount} locations</span>
+                  <span className="text-slate-500 ml-1 flex-shrink-0">• {locationCount} locations</span>
                 )}
               </span>
             )}

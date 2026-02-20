@@ -58,7 +58,7 @@ export default function NewInCommunitySection() {
         {newBusinesses.map((business) => (
           <div
             key={business.id}
-            className="snap-start flex-shrink-0 w-[85vw] sm:w-72 space-y-2"
+            className="snap-start flex-shrink-0 w-[85vw] sm:w-72 min-w-0 max-w-full overflow-hidden space-y-2"
           >
             <div className="mb-2">
               <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs">

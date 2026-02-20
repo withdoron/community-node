@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, ThumbsUp, Users } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useUserState } from '@/hooks/useUserState';
@@ -17,6 +17,7 @@ import SectionWrapper from '@/components/mylane/SectionWrapper';
 import { JoyCoinsCard } from '@/components/mylane/JoyCoinsCard';
 
 export default function MyLane() {
+  const queryClient = useQueryClient();
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -28,6 +29,10 @@ export default function MyLane() {
 
   const { recommendations, joyCoins } = useUserState(currentUser?.id);
   const { isAppAdmin } = useRole();
+
+  const handleNetworksUpdate = () => {
+    queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+  };
 
   if (!userLoading && !currentUser) {
     return (
@@ -65,7 +70,7 @@ export default function MyLane() {
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
         <GreetingHeader currentUser={currentUser} joyCoins={joyCoins} />
         {isAppAdmin && <JoyCoinsCard />}
-        <MyNetworksSection currentUser={currentUser} />
+        <MyNetworksSection currentUser={currentUser} onUpdate={handleNetworksUpdate} />
         {isAppAdmin && (
           <SectionWrapper title="My Household" seeAllPage="Settings">
             <div className="py-6 text-center bg-slate-900 border border-slate-800 rounded-xl">
