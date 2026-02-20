@@ -69,8 +69,11 @@ export default function UserOnboarding() {
           (async () => {
             try {
               const email = currentUser.email.trim().toLowerCase();
-              const list = await base44.entities.NewsletterSubscriber.filter({ email });
-              if (!list?.length) {
+              const allSubscribers = await base44.entities.NewsletterSubscriber.list();
+              const alreadyExists = (Array.isArray(allSubscribers) ? allSubscribers : []).some(
+                (sub) => (sub.email || '').toLowerCase() === email
+              );
+              if (!alreadyExists) {
                 await base44.entities.NewsletterSubscriber.create({
                   email,
                   subscribed_at: new Date().toISOString(),

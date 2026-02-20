@@ -641,8 +641,11 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                                   if (currentUser?.email) {
                                     try {
                                       const email = currentUser.email.trim().toLowerCase();
-                                      const existing = await base44.entities.NewsletterSubscriber.filter({ email });
-                                      if (!existing?.length) {
+                                      const allSubscribers = await base44.entities.NewsletterSubscriber.list();
+                                      const alreadyExists = (Array.isArray(allSubscribers) ? allSubscribers : []).some(
+                                        (sub) => (sub.email || '').toLowerCase() === email
+                                      );
+                                      if (!alreadyExists) {
                                         await base44.entities.NewsletterSubscriber.create({
                                           email,
                                           subscribed_at: new Date().toISOString(),

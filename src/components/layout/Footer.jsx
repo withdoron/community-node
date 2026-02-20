@@ -31,6 +31,17 @@ export default function Footer() {
 
     setIsSubmitting(true);
     try {
+      const allSubscribers = await base44.entities.NewsletterSubscriber.list();
+      const alreadyExists = (Array.isArray(allSubscribers) ? allSubscribers : []).some(
+        (sub) => (sub.email || '').toLowerCase() === value.toLowerCase()
+      );
+      if (alreadyExists) {
+        toast.success("You're already subscribed!");
+        setEmail('');
+        setIsSubmitting(false);
+        return;
+      }
+
       const firstName = currentUser?.full_name ? currentUser.full_name.split(' ')[0] : null;
 
       await base44.entities.NewsletterSubscriber.create({
