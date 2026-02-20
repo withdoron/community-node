@@ -81,8 +81,33 @@ export default function NetworkPage() {
 
   const now = new Date();
   const upcomingEvents = useMemo(() => {
+    console.log('Network page debug:', { slug, allEvents: events?.length, sampleEvent: events?.[0] });
+    console.log(
+      'Event network check:',
+      events?.map((e) => ({
+        title: e.title,
+        network: e.network,
+        networks: e.networks,
+        'data?.network': e.data?.network,
+        date: e.date,
+        status: e.status,
+      }))
+    );
+
+    const slugLower = (slug || '').toLowerCase();
+    const eventMatchesNetwork = (e) => {
+      const single = (e.network ?? e.data?.network ?? '').toString().toLowerCase();
+      const arr = Array.isArray(e.networks) ? e.networks : [];
+      return single === slugLower || arr.some((n) => (n || '').toString().toLowerCase() === slugLower);
+    };
+
     let list = events
-      .filter((e) => e.network === slug && new Date(e.date) >= now && e.status === 'published')
+      .filter(
+        (e) =>
+          eventMatchesNetwork(e) &&
+          new Date(e.date) >= now &&
+          e.status === 'published'
+      )
       .sort((a, b) => new Date(a.date) - new Date(b.date));
     if (!currentUser) {
       list = list.filter((e) => !e.network_only);
