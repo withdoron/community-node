@@ -69,7 +69,7 @@ export default function UserOnboarding() {
           (async () => {
             try {
               const email = currentUser.email.trim().toLowerCase();
-              const list = await base44.entities.NewsletterSubscriber.filter({ email }).list();
+              const list = await base44.entities.NewsletterSubscriber.filter({ email });
               if (!list?.length) {
                 await base44.entities.NewsletterSubscriber.create({
                   email,

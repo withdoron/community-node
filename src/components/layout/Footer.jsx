@@ -36,7 +36,7 @@ export default function Footer() {
     }
     setIsSubmitting(true);
     try {
-      const list = await base44.entities.NewsletterSubscriber.filter({ email: value }).list();
+      const list = await base44.entities.NewsletterSubscriber.filter({ email: value });
       if (list && list.length > 0) {
         toast.success("You're already subscribed!");
         setEmail('');
