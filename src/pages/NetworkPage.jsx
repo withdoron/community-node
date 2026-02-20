@@ -101,7 +101,9 @@ export default function NetworkPage() {
       return single === slugLower || arr.some((n) => (n || '').toString().toLowerCase() === slugLower);
     };
 
-    let list = events
+    // Show ALL events for this network (including network_only) — this is the network's home page.
+    // Network-only filtering applies only on Events page and MyLane Happening Soon.
+    return events
       .filter(
         (e) =>
           eventMatchesNetwork(e) &&
@@ -109,13 +111,7 @@ export default function NetworkPage() {
           e.status === 'published'
       )
       .sort((a, b) => new Date(a.date) - new Date(b.date));
-    if (!currentUser) {
-      list = list.filter((e) => !e.network_only);
-    } else if (!followsNetwork) {
-      list = list.filter((e) => !e.network_only);
-    }
-    return list;
-  }, [events, slug, currentUser, followsNetwork]);
+  }, [events, slug]);
 
   if (networksLoading) {
     return (
