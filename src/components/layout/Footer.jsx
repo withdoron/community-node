@@ -57,6 +57,7 @@ export default function Footer() {
       toast.success("You're in! Welcome to The Good News.");
       setEmail('');
     } catch (err) {
+      window.alert('CATCH: ' + (err?.message ?? String(err)));
       console.error('Newsletter signup error:', err);
       toast.error("Something went wrong. Try again?");
     } finally {
