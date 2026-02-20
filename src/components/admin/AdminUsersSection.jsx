@@ -272,6 +272,22 @@ export default function AdminUsersSection({ businesses = [] }) {
                           : 'Unknown'}
                       </span>
                     </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Community Pass:</span>
+                      <span className="text-slate-100">
+                        {selectedUser.data?.community_pass_interest === 'yes'
+                          ? 'Interested'
+                          : selectedUser.data?.community_pass_interest === 'maybe_later'
+                            ? 'Maybe later'
+                            : '—'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">The Good News:</span>
+                      <span className="text-slate-100">
+                        {selectedUser.data?.newsletter_interest ? 'Subscribed' : 'Not subscribed'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 

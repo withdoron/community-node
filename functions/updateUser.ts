@@ -4,7 +4,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const ALLOWED_PROFILE_FIELDS = ['display_name', 'phone', 'home_region'];
-const ALLOWED_ONBOARDING_FIELDS = ['onboarding_complete', 'network_interests', 'community_pass_interest', 'full_name', 'display_name'];
+const ALLOWED_ONBOARDING_FIELDS = ['onboarding_complete', 'network_interests', 'community_pass_interest', 'newsletter_interest', 'full_name', 'display_name'];
 
 Deno.serve(async (req) => {
   try {

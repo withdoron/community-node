@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { MapPin, Users, Heart, Loader2, ChevronRight } from 'lucide-react';
+import { MapPin, Users, Heart, Loader2, ChevronRight, Mail } from 'lucide-react';
 import { userOnboardingConfig } from '@/config/userOnboardingConfig';
 import { useConfig } from '@/hooks/useConfig';
 
@@ -38,6 +38,7 @@ export default function UserOnboarding() {
         onboarding_complete: payload.onboarding_complete,
         network_interests: payload.network_interests ?? [],
         community_pass_interest: payload.community_pass_interest ?? null,
+        newsletter_interest: payload.newsletter_interest ?? false,
       };
       if (payload.full_name != null && payload.full_name.trim() !== '') {
         data.full_name = payload.full_name.trim();
@@ -69,6 +70,7 @@ export default function UserOnboarding() {
       onboarding_complete: true,
       network_interests: [],
       community_pass_interest: null,
+      newsletter_interest: false,
       full_name: displayName.trim() || undefined,
       display_name: displayName.trim() || undefined,
     });
@@ -79,6 +81,7 @@ export default function UserOnboarding() {
       onboarding_complete: true,
       network_interests: networkInterests,
       community_pass_interest: communityPassInterest,
+      newsletter_interest: newsletterInterest,
       full_name: displayName.trim() || undefined,
       display_name: displayName.trim() || undefined,
     });
@@ -281,6 +284,36 @@ export default function UserOnboarding() {
                 <span className="font-semibold text-slate-100">Maybe later</span>
               </button>
             </div>
+
+            {/* Stay Connected — The Good News newsletter */}
+            <div className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg space-y-3">
+              <h3 className="font-semibold text-slate-100 flex items-center gap-2">
+                <Mail className="h-5 w-5 text-amber-500 shrink-0" />
+                Stay Connected
+              </h3>
+              <p className="text-sm text-slate-400">
+                Get community wins, new features, and local stories delivered to your inbox.
+              </p>
+              <button
+                type="button"
+                onClick={() => setNewsletterInterest((prev) => !prev)}
+                className={`w-full text-left p-4 rounded-lg border-2 transition-colors flex items-center gap-3 ${
+                  newsletterInterest
+                    ? 'border-amber-500 bg-amber-500/10'
+                    : 'border-slate-700 bg-slate-800 hover:border-amber-500/50'
+                }`}
+              >
+                <span className={`h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 ${
+                  newsletterInterest ? 'border-amber-500 bg-amber-500' : 'border-slate-500 bg-transparent'
+                }`}>
+                  {newsletterInterest && (
+                    <span className="text-white text-[10px] font-bold">✓</span>
+                  )}
+                </span>
+                <span className="font-semibold text-slate-100">Subscribe to The Good News</span>
+              </button>
+            </div>
+
             <div className="pt-4">
               <Button
                 onClick={handleFinish}
