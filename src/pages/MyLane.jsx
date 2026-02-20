@@ -7,6 +7,7 @@ import { createPageUrl } from '@/utils';
 import { useUserState } from '@/hooks/useUserState';
 import { useRole } from '@/hooks/useRole';
 import GreetingHeader from '@/components/mylane/GreetingHeader';
+import MyNetworksSection from '@/components/mylane/MyNetworksSection';
 import UpcomingEventsSection from '@/components/mylane/UpcomingEventsSection';
 import HappeningSoonSection from '@/components/mylane/HappeningSoonSection';
 import NewInCommunitySection from '@/components/mylane/NewInCommunitySection';
@@ -64,6 +65,7 @@ export default function MyLane() {
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
         <GreetingHeader currentUser={currentUser} joyCoins={joyCoins} />
         {isAppAdmin && <JoyCoinsCard />}
+        <MyNetworksSection currentUser={currentUser} />
         {isAppAdmin && (
           <SectionWrapper title="My Household" seeAllPage="Settings">
             <div className="py-6 text-center bg-slate-900 border border-slate-800 rounded-xl">
