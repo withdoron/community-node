@@ -50,7 +50,7 @@ export default function Settings() {
     if (currentUser && !hasChanges) {
       const rawPhone = (currentUser.data?.phone || currentUser.phone || '').toString().replace(/\D/g, '').slice(0, 10);
       setFormData({
-        full_name: currentUser.data?.display_name || currentUser.full_name || '',
+        full_name: currentUser.data?.display_name || currentUser.data?.full_name || currentUser.full_name || '',
         phone: rawPhone,
         home_region: currentUser.data?.home_region || 'greater_eugene',
       });
@@ -129,7 +129,7 @@ export default function Settings() {
     ? format(new Date(currentUser.created_date), 'MMMM yyyy')
     : 'Unknown';
   const accountType = currentUser?.data?.tier || 'Free';
-  const displayNameForAvatar = currentUser?.data?.display_name || currentUser?.full_name;
+  const displayNameForAvatar = currentUser?.data?.display_name || currentUser?.data?.full_name || currentUser?.full_name;
   const initials = displayNameForAvatar
     ?.split(' ')
     .map(n => n[0])

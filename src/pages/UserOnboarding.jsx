@@ -42,6 +42,9 @@ export default function UserOnboarding() {
       if (payload.full_name != null && payload.full_name.trim() !== '') {
         data.full_name = payload.full_name.trim();
       }
+      if (payload.display_name != null && payload.display_name.trim() !== '') {
+        data.display_name = payload.display_name.trim();
+      }
       await base44.functions.invoke('updateUser', {
         action: 'update_onboarding',
         data,
@@ -66,6 +69,8 @@ export default function UserOnboarding() {
       onboarding_complete: true,
       network_interests: [],
       community_pass_interest: null,
+      full_name: displayName.trim() || undefined,
+      display_name: displayName.trim() || undefined,
     });
   };
 
@@ -74,6 +79,8 @@ export default function UserOnboarding() {
       onboarding_complete: true,
       network_interests: networkInterests,
       community_pass_interest: communityPassInterest,
+      full_name: displayName.trim() || undefined,
+      display_name: displayName.trim() || undefined,
     });
   };
 

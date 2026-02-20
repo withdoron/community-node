@@ -9,6 +9,7 @@ export default function GreetingHeader({ currentUser, joyCoins }) {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   const displayName = currentUser?.data?.display_name || currentUser?.data?.full_name || currentUser?.full_name || 'neighbor';
   const firstName = displayName.split(' ')[0];
+  console.log('Greeting reads from:', { user: currentUser, display_name: currentUser?.data?.display_name, full_name: currentUser?.data?.full_name, root_full_name: currentUser?.full_name });
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
