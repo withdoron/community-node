@@ -16,6 +16,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import AdminConcernsPanel from '@/components/admin/AdminConcernsPanel';
 import FeedbackReview from '@/components/admin/FeedbackReview';
 import AdminUsersSection from '@/components/admin/AdminUsersSection';
+import AdminNewsletterSection from '@/components/admin/AdminNewsletterSection';
 import ConfigSection from '@/components/admin/config/ConfigSection';
 import { JoyCoinsAdminPanel } from '@/components/admin/JoyCoinsAdminPanel';
 
@@ -189,6 +190,7 @@ export default function Admin() {
             <Route path="feedback" element={<FeedbackReview />} />
 
                 <Route path="users" element={<AdminUsersSection businesses={businesses} />} />
+            <Route path="newsletter" element={<AdminNewsletterSection />} />
 
             <Route path="locations" element={
               <Card className="p-6 bg-slate-900 border-slate-700">

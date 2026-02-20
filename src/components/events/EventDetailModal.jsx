@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, MapPin, DollarSign, Repeat2, Users, CheckCircle2, Tag, ExternalLink, UserCheck, UserPlus, Coins, Lock } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, DollarSign, Repeat2, Users, CheckCircle2, Tag, ExternalLink, UserCheck, UserPlus, Coins, Lock, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -55,6 +55,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [rsvpConfirmation, setRsvpConfirmation] = useState(null); // 'going' | 'cancelled' | null
   const [cancelConfirming, setCancelConfirming] = useState(false);
+  const [showNewsletterPrompt, setShowNewsletterPrompt] = useState(false);
 
   const maxPartySize = event?.max_party_size != null ? event.max_party_size : 10;
   const totalCost = joyCoinCost * partySize;
@@ -615,9 +616,66 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 {!isCancelled && !isPast && (
                   <div className="space-y-3 pt-2">
                     {rsvpConfirmation === 'going' && (
-                      <div className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold">
-                        <CheckCircle2 className="h-5 w-5" />
-                        You&apos;re in! See you there.
+                      <div className="space-y-3">
+                        <div className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold">
+                          <CheckCircle2 className="h-5 w-5" />
+                          You&apos;re in! See you there.
+                        </div>
+                        {showNewsletterPrompt && (
+                          <div className="bg-slate-800/90 border border-amber-500/30 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Mail className="h-5 w-5 text-amber-500" />
+                              <span className="font-medium text-slate-100">The Good News</span>
+                            </div>
+                            <p className="text-sm text-slate-300 mb-4">
+                              Want community wins, new features, and local stories in your inbox?
+                            </p>
+                            <div className="flex gap-3">
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  try {
+                                    localStorage.setItem('locallane_newsletter_prompted', 'true');
+                                  } catch {}
+                                  setShowNewsletterPrompt(false);
+                                  if (currentUser?.email) {
+                                    try {
+                                      const email = currentUser.email.trim().toLowerCase();
+                                      const existing = await base44.entities.NewsletterSubscriber.filter({ email }).list();
+                                      if (!existing?.length) {
+                                        await base44.entities.NewsletterSubscriber.create({
+                                          email,
+                                          subscribed_at: new Date().toISOString(),
+                                          source: 'post_rsvp',
+                                          user_id: currentUser.id,
+                                          active: true,
+                                        });
+                                        toast.success("You're in! Welcome to The Good News.");
+                                      }
+                                    } catch {}
+                                  }
+                                  setTimeout(() => { setRsvpConfirmation(null); setPartySize(1); onClose(); }, 300);
+                                }}
+                                className="flex-1 py-2.5 px-4 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 font-medium transition-colors"
+                              >
+                                Join The Good News
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  try {
+                                    localStorage.setItem('locallane_newsletter_prompted', 'true');
+                                  } catch {}
+                                  setShowNewsletterPrompt(false);
+                                  setTimeout(() => { setRsvpConfirmation(null); setPartySize(1); onClose(); }, 300);
+                                }}
+                                className="flex-1 py-2.5 px-4 rounded-lg text-slate-400 hover:text-slate-300 hover:bg-slate-700/50 transition-colors"
+                              >
+                                Not now
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -720,11 +778,15 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                                 }, {
                                   onSuccess: () => {
                                     setRsvpConfirmation('going');
-                                    setTimeout(() => {
-                                      setRsvpConfirmation(null);
-                                      setPartySize(1);
-                                      onClose();
-                                    }, 1200);
+                                    try {
+                                      if (localStorage.getItem('locallane_newsletter_prompted')) {
+                                        setTimeout(() => { setRsvpConfirmation(null); setPartySize(1); onClose(); }, 1200);
+                                      } else {
+                                        setShowNewsletterPrompt(true);
+                                      }
+                                    } catch {
+                                      setTimeout(() => { setRsvpConfirmation(null); setPartySize(1); onClose(); }, 1200);
+                                    }
                                   },
                                   onError: (err) => {
                                     if (err?.message === 'INSUFFICIENT_JOY_COINS') {

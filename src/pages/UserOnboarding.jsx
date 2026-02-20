@@ -61,6 +61,28 @@ export default function UserOnboarding() {
       window.localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
     } catch {}
     updateUserMutation.mutate(payload, {
+      onSuccess: () => {
+        try {
+          window.localStorage.setItem('locallane_newsletter_prompted', 'true');
+        } catch {}
+        if (payload.newsletter_interest && currentUser?.email) {
+          (async () => {
+            try {
+              const email = currentUser.email.trim().toLowerCase();
+              const list = await base44.entities.NewsletterSubscriber.filter({ email }).list();
+              if (!list?.length) {
+                await base44.entities.NewsletterSubscriber.create({
+                  email,
+                  subscribed_at: new Date().toISOString(),
+                  source: 'onboarding',
+                  user_id: currentUser.id,
+                  active: true,
+                });
+              }
+            } catch {}
+          })();
+        }
+      },
       onSettled: () => navigate(createPageUrl('MyLane')),
     });
   };

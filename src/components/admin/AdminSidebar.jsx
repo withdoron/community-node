@@ -24,6 +24,7 @@ import {
   ShieldAlert,
   Coins,
   MessageSquarePlus,
+  Mail,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +38,7 @@ const sections = [
       { to: `${ADMIN_BASE}/concerns`, label: 'Concerns', icon: ShieldAlert },
       { to: `${ADMIN_BASE}/feedback`, label: 'Feedback', icon: MessageSquarePlus },
       { to: `${ADMIN_BASE}/users`, label: 'Users', icon: Users },
+      { to: `${ADMIN_BASE}/newsletter`, label: 'Newsletter', icon: Mail },
       { to: `${ADMIN_BASE}/locations`, label: 'Locations', icon: MapPin },
       { to: `${ADMIN_BASE}/partners`, label: 'Partners', icon: Network },
     ],
