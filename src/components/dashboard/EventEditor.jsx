@@ -193,7 +193,7 @@ export default function EventEditor({
         frequency_limit_period: existingEvent.frequency_limit_period || "",
         refund_policy: existingEvent.refund_policy || "moderate",
         adults_only: existingEvent.adults_only ?? false,
-        network_only: existingEvent.network_only ?? false,
+        network_only: existingEvent?.network_only ?? false,
       });
       const presetMinutes = durationPresets
         .filter((d) => d.active !== false)
@@ -385,7 +385,11 @@ export default function EventEditor({
 
       accepts_rsvps: formData.accepts_rsvps,
       additional_notes: formData.additional_notes?.trim() || null,
+
+      network_only: !!(formData.networks?.length > 0 && formData.network_only),
     };
+
+    console.log('Event payload:', eventData);
 
     try {
       await Promise.resolve(onSave(eventData));
