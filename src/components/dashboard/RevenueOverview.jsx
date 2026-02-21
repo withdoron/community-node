@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { TrendingUp, DollarSign, Users, Coins, Calendar, Info, Lock, ChevronDown, ChevronUp } from 'lucide-react';
+import { TrendingUp, DollarSign, Users, Coins, Calendar, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 
 const DAY_LABELS = {
@@ -70,21 +69,18 @@ export default function RevenueOverview({ business }) {
     return new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   }, []);
 
-  // Basic tier — upgrade prompt
+  // Basic tier — Coming Soon (pricing not finalized)
   if (isBasicTier) {
     return (
       <div className="max-w-6xl mx-auto px-6 py-8">
         <Card className="bg-slate-900 border-slate-800 rounded-xl p-8 text-center">
           <div className="p-4 bg-slate-800 rounded-full inline-block mb-4">
-            <Lock className="h-8 w-8 text-slate-500" />
+            <TrendingUp className="h-8 w-8 text-slate-500" />
           </div>
-          <h2 className="text-xl font-bold text-slate-100 mb-2">Revenue Analytics Available on Standard</h2>
-          <p className="text-slate-400 max-w-md mx-auto mb-6">
-            Upgrade to Standard ($79/mo) to see your pool share, scan trends, and event performance analytics.
+          <h2 className="text-xl font-bold text-slate-100 mb-2">Revenue Analytics — Coming Soon</h2>
+          <p className="text-slate-400 max-w-md mx-auto">
+            Here you&apos;ll see your share of the Community Pass pool, check-in trends by day and event, and how many families you&apos;re serving. We&apos;re building this for you.
           </p>
-          <Button className="bg-amber-500 hover:bg-amber-400 text-black font-bold">
-            Upgrade to Standard
-          </Button>
         </Card>
       </div>
     );

@@ -52,16 +52,12 @@ const tiers = [
   {
     id: 'basic',
     name: 'Basic',
-    price: '$9',
-    period: '/month',
     icon: Star,
     features: ['Business listing', 'Basic profile', 'Contact info', 'Neighbor recommendations']
   },
   {
     id: 'standard',
     name: 'Standard',
-    price: '$29',
-    period: '/month',
     icon: Zap,
     popular: true,
     features: ['Everything in Basic', 'Photo gallery', 'Service listings', 'Priority support']
@@ -69,8 +65,6 @@ const tiers = [
   {
     id: 'partner',
     name: 'Partner',
-    price: '$79',
-    period: '/month',
     icon: Crown,
     features: ['Everything in Standard', 'Partner badge', 'Dedicated account manager', 'Analytics dashboard']
   }
@@ -314,10 +308,12 @@ export default function BusinessDashboardDetail({ business, onBack }) {
                                 }`} />
                               </div>
                               <h3 className="font-semibold text-lg text-white">{planTier.name}</h3>
-                              <p className="text-2xl font-bold mt-1 text-white">
-                                {planTier.price}
-                                <span className="text-sm font-normal text-slate-400">{planTier.period}</span>
-                              </p>
+                              {planTier.price != null && (
+                                <p className="text-2xl font-bold mt-1 text-white">
+                                  {planTier.price}
+                                  <span className="text-sm font-normal text-slate-400">{planTier.period}</span>
+                                </p>
+                              )}
                             </div>
                             <ul className="space-y-2 mb-4">
                               {planTier.features.map((feature) => (

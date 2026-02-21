@@ -27,7 +27,7 @@ const TIER_CONFIG = {
   },
   standard: {
     label: 'Standard',
-    sublabel: '$79/mo',
+    sublabel: '',
     icon: Zap,
     color: 'text-amber-500',
     bg: 'bg-amber-500/20',
@@ -35,7 +35,7 @@ const TIER_CONFIG = {
   },
   partner: {
     label: 'Partner',
-    sublabel: '$149/mo',
+    sublabel: '',
     icon: Crown,
     color: 'text-amber-500',
     bg: 'bg-amber-500/20',
@@ -568,37 +568,22 @@ export default function BusinessSettings({ business, currentUserId }) {
             <div>
               <div className="flex items-center gap-2">
                 <p className="text-slate-100 font-semibold">{tierConfig.label}</p>
-                <Badge className={`${tierConfig.bg} ${tierConfig.color} text-xs border-0`}>
-                  {tierConfig.sublabel}
-                </Badge>
+                {tierConfig.sublabel && (
+                  <Badge className={`${tierConfig.bg} ${tierConfig.color} text-xs border-0`}>
+                    {tierConfig.sublabel}
+                  </Badge>
+                )}
               </div>
               <p className="text-xs text-slate-400 mt-0.5">{tierConfig.description}</p>
             </div>
           </div>
-
-          {tier !== 'partner' && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-transparent border-slate-600 text-slate-300 hover:bg-transparent hover:border-amber-500 hover:text-amber-500 transition-colors"
-            >
-              Upgrade
-            </Button>
-          )}
         </div>
 
-        {tier === 'basic' && (
-          <div className="mt-4 pt-4 border-t border-slate-800">
-            <p className="text-xs text-slate-500 mb-2">Unlock with Standard ($79/mo):</p>
-            <div className="flex flex-wrap gap-2">
-              {['Joy Coins', 'Auto-publish events', 'Revenue analytics', 'Priority listing'].map((feature) => (
-                <span key={feature} className="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full">
-                  {feature}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+        <div className="mt-4 pt-4 border-t border-slate-800">
+          <p className="text-sm text-slate-300">
+            <span className="text-amber-500 font-medium">Founding Member.</span> You believed in LocalLane before there was proof. Thank you for being part of building this community.
+          </p>
+        </div>
       </Card>
 
       {/* Staff Management */}

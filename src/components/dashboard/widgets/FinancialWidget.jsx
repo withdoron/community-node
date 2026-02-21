@@ -39,7 +39,7 @@ export default function FinancialWidget({ business }) {
             <Badge className="bg-amber-500 text-black">{tierLabel}</Badge>
           </div>
           <p className="text-xs text-slate-400">
-            {tierLevel === 1 && 'Upgrade to Standard or Partner to unlock more features'}
+            {tierLevel === 1 && 'More features coming soon.'}
             {tierLevel === 2 && 'Joy Coins, multiple tickets, auto-publish events'}
             {tierLevel === 3 && 'Full features, dedicated node, priority support'}
           </p>
