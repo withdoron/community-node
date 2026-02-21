@@ -79,7 +79,7 @@ export default function RevenueOverview({ business }) {
           </div>
           <h2 className="text-xl font-bold text-slate-100 mb-2">Revenue Analytics — Coming Soon</h2>
           <p className="text-slate-400 max-w-md mx-auto">
-            Here you&apos;ll see your share of the Community Pass pool, check-in trends by day and event, and how many families you&apos;re serving. We&apos;re building this for you.
+            When Community Pass launches, this is where you&apos;ll see your impact — pool share, check-in trends, and the families you&apos;re serving. We&apos;re building this for you.
           </p>
         </Card>
       </div>

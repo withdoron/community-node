@@ -108,7 +108,7 @@ export default function AccessWindowManager({ business }) {
           </div>
           <h2 className="text-xl font-bold text-slate-100 mb-2">Joy Coins — Coming Soon</h2>
           <p className="text-slate-400 max-w-md mx-auto">
-            Joy Coins let Community Pass members visit your business as part of their subscription. You&apos;ll set &quot;access hours&quot; when they can redeem coins, and you&apos;ll earn a share of the monthly pool based on check-ins. We&apos;re rolling this out soon.
+            Interested in accepting Community Pass members? Joy Coins let subscribers support local businesses as part of their membership. If this sounds like a fit, we&apos;d love to include you when we launch.
           </p>
         </Card>
       </div>
