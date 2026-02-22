@@ -6,7 +6,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useConfig } from '@/hooks/useConfig';
-import { Loader2, ChevronRight } from 'lucide-react';
+import { createPageUrl } from '@/utils';
+import { Loader2, ChevronRight, ArrowLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -25,6 +26,14 @@ export default function Networks() {
   return (
     <div className="min-h-screen bg-slate-950">
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Back button */}
+        <Link
+          to={createPageUrl('MyLane')}
+          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors mb-6"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          MyLane
+        </Link>
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white">Networks</h1>
           <p className="text-slate-400 mt-1">Explore community networks and their events.</p>
