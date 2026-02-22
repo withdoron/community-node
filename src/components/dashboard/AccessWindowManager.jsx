@@ -79,15 +79,15 @@ function CommunityPassInterestToggle({ business, currentUserId }) {
   }
 
   return (
-    <div className="flex flex-wrap gap-2 justify-center">
+    <div className="flex flex-wrap gap-3 justify-center">
       <button
         type="button"
         onClick={() => handleSelect('yes')}
         disabled={updateMutation.isPending}
-        className={`rounded-lg px-5 py-2.5 text-sm font-medium transition-colors ${
+        className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
           isYes
             ? 'bg-amber-500 text-white border border-amber-500'
-            : 'border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-400'
+            : 'border border-slate-600 text-slate-300 hover:bg-amber-500/10 hover:border-amber-500/50 hover:text-amber-400'
         }`}
       >
         Yes, I&apos;m interested
@@ -96,10 +96,10 @@ function CommunityPassInterestToggle({ business, currentUserId }) {
         type="button"
         onClick={() => handleSelect('maybe_later')}
         disabled={updateMutation.isPending}
-        className={`rounded-lg px-5 py-2.5 text-sm font-medium transition-colors ${
+        className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
           isMaybe
             ? 'bg-slate-700 text-slate-300 border border-slate-600'
-            : 'border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-400'
+            : 'border border-slate-600 text-slate-300 hover:bg-amber-500/10 hover:border-amber-500/50 hover:text-amber-400'
         }`}
       >
         Maybe later
@@ -182,18 +182,18 @@ export default function AccessWindowManager({ business, currentUserId }) {
   if (isBasicTier) {
     return (
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 max-w-lg mx-auto mt-12 text-center">
-          <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Coins className="w-8 h-8 text-amber-500" />
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 max-w-md mx-auto mt-8 text-center">
+          <div className="w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Coins className="w-6 h-6 text-amber-500" />
           </div>
-          <h2 className="text-xl font-bold text-white mb-3">Joy Coins — Coming Soon</h2>
-          <p className="text-slate-400 leading-relaxed mb-6">
+          <h2 className="text-lg font-bold text-white mb-3">Joy Coins — Coming Soon</h2>
+          <p className="text-slate-400 text-sm leading-relaxed mb-5">
             Joy Coins let Community Pass members support local businesses like yours.
             Members visit participating businesses as part of their subscription, and
             you earn revenue from the community pool based on check-ins.
           </p>
-          <div className="border-t border-slate-700 pt-6">
-            <p className="text-white font-medium mb-4">Interested in participating?</p>
+          <div className="border-t border-slate-700 pt-4">
+            <p className="text-slate-300 text-sm font-medium mb-3">Interested in participating?</p>
             <CommunityPassInterestToggle business={business} currentUserId={currentUserId} />
           </div>
         </div>
