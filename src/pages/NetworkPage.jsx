@@ -148,11 +148,11 @@ export default function NetworkPage() {
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         {/* Back button */}
         <Link
-          to={createPageUrl('MyLane')}
+          to="/networks"
           className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          MyLane
+          Networks
         </Link>
 
         {/* Header */}
