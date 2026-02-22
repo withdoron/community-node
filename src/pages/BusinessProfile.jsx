@@ -38,10 +38,6 @@ export default function BusinessProfile() {
   const urlParams = new URLSearchParams(window.location.search);
   const businessId = urlParams.get('id');
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
   const { data: business, isLoading: businessLoading } = useQuery({
     queryKey: ['business', businessId],
     queryFn: async () => {

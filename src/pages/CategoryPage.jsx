@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -15,13 +15,6 @@ export default function CategoryPage() {
   const urlParams = new URLSearchParams(window.location.search);
   const categoryId = urlParams.get('id');
   const initialSubcategory = urlParams.get('sub') || 'all';
-
-  // Scroll to top when category page loads
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [categoryId]);
-
-
 
   const [selectedSubcategory, setSelectedSubcategory] = useState(initialSubcategory);
 
