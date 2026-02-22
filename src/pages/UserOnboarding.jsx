@@ -18,6 +18,7 @@ export default function UserOnboarding() {
   const [stepIndex, setStepIndex] = useState(0);
   const [networkInterests, setNetworkInterests] = useState([]);
   const [communityPassInterest, setCommunityPassInterest] = useState(null);
+  const [newsletterInterest, setNewsletterInterest] = useState(false);
   const [displayName, setDisplayName] = useState('');
 
   const { data: currentUser, isLoading: userLoading } = useQuery({
@@ -88,6 +89,11 @@ export default function UserOnboarding() {
       },
       onSettled: () => navigate(createPageUrl('MyLane')),
     });
+  };
+
+  const handleNext = (nextIndex) => {
+    window.scrollTo(0, 0);
+    setStepIndex(nextIndex);
   };
 
   const handleSkip = () => {
@@ -190,7 +196,7 @@ export default function UserOnboarding() {
             </div>
             <div className="space-y-3 pt-4">
               <Button
-                onClick={() => setStepIndex(1)}
+                onClick={() => handleNext(1)}
                 className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium py-3 rounded-lg transition-colors"
               >
                 Get Started
@@ -253,7 +259,7 @@ export default function UserOnboarding() {
             )}
             <div className="space-y-3 pt-4">
               <Button
-                onClick={() => setStepIndex(2)}
+                onClick={() => handleNext(2)}
                 className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium py-3 rounded-lg transition-colors"
               >
                 Continue
