@@ -25,6 +25,7 @@ export default function AdminNewsletterSection() {
   const { data: subscribers = [], isLoading } = useQuery({
     queryKey: ['admin-newsletter-subscribers'],
     queryFn: async () => {
+      // No filter — show all subscribers from every source (footer, onboarding, post_rsvp)
       const list = await base44.entities.NewsletterSubscriber.list();
       return Array.isArray(list) ? list : [];
     },
@@ -57,6 +58,7 @@ export default function AdminNewsletterSection() {
             <thead>
               <tr className="border-b border-slate-800 bg-slate-800/50">
                 <th className="text-left py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Email</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Name</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Source</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Subscribed</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Status</th>
@@ -66,6 +68,7 @@ export default function AdminNewsletterSection() {
               {sorted.map((sub) => (
                 <tr key={sub.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
                   <td className="py-3 px-4 text-slate-300">{sub.email}</td>
+                  <td className="py-3 px-4 text-slate-300">{sub.first_name ?? '—'}</td>
                   <td className="py-3 px-4">
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${SOURCE_BADGE[sub.source] ?? 'bg-slate-700 text-slate-300'}`}>
                       {sub.source ?? '—'}
