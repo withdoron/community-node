@@ -51,21 +51,17 @@ function CommunityPassInterestToggle({ business, currentUserId }) {
     },
   });
 
-  const handleSelect = (interest) => {
-    updateMutation.mutate(interest);
+  const handleSelect = () => {
+    updateMutation.mutate('yes');
   };
 
   const isYes = value === 'yes';
-  const isMaybe = value === 'maybe_later';
-  const hasSelection = isYes || isMaybe;
 
-  if (hasSelection && !showChange) {
+  if (isYes && !showChange) {
     return (
       <div className="space-y-2 text-center">
-        <p className="text-sm text-emerald-400/90">Thanks! We&apos;ll reach out when Community Pass is ready.</p>
+        <p className="text-sm text-amber-400">Great! We&apos;ll reach out when Community Pass is ready.</p>
         <p className="text-xs text-slate-400">
-          Your response: {isYes ? "Yes, I'm interested" : 'Maybe later'}
-          {' · '}
           <button
             type="button"
             onClick={() => setShowChange(true)}
@@ -79,10 +75,10 @@ function CommunityPassInterestToggle({ business, currentUserId }) {
   }
 
   return (
-    <div className="flex flex-wrap gap-3 justify-center">
+    <div className="flex justify-center">
       <button
         type="button"
-        onClick={() => handleSelect('yes')}
+        onClick={handleSelect}
         disabled={updateMutation.isPending}
         className={`transition-colors rounded-lg px-4 py-2.5 text-sm ${
           isYes
@@ -91,18 +87,6 @@ function CommunityPassInterestToggle({ business, currentUserId }) {
         }`}
       >
         Yes, I&apos;m interested
-      </button>
-      <button
-        type="button"
-        onClick={() => handleSelect('maybe_later')}
-        disabled={updateMutation.isPending}
-        className={`transition-colors rounded-lg px-4 py-2.5 text-sm ${
-          isMaybe
-            ? 'bg-slate-700 text-slate-300 border border-slate-600'
-            : 'border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-400'
-        }`}
-      >
-        Maybe later
       </button>
     </div>
   );
