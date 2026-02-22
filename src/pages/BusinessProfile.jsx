@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -37,6 +37,10 @@ export default function BusinessProfile() {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const businessId = urlParams.get('id');
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const { data: business, isLoading: businessLoading } = useQuery({
     queryKey: ['business', businessId],
