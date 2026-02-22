@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -8,19 +8,8 @@ import { rankBusinesses } from '@/components/business/rankingUtils';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, Shield, Coins, Calendar, Store } from "lucide-react";
+import { ChevronRight, Shield, ShieldCheck, MapPin, Users, Heart, Store } from "lucide-react";
 import { mainCategories, defaultPopularCategoryIds } from '@/components/categories/categoryData';
-import TextTransition, { presets } from 'react-text-transition';
-import { motion } from 'framer-motion';
-
-const TEXTS = [
-  "Businesses",
-  "Community Groups",
-  "Family Activities",
-  "Local Trades",
-  "Outings",
-  "Service Projects"
-];
 
 export default function Home() {
   const navigate = useNavigate();
@@ -28,16 +17,6 @@ export default function Home() {
 
   // Get active region for this instance
   const { region, isLoading: regionLoading } = useActiveRegion();
-
-  // Text transition for hero
-  const [textIndex, setTextIndex] = useState(0);
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setTextIndex((index) => (index + 1) % TEXTS.length);
-    }, 3000);
-    return () => clearInterval(intervalId);
-  }, []);
 
   const { data: categoryClicks = [] } = useQuery({
     queryKey: ['categoryClicks'],
@@ -101,21 +80,19 @@ export default function Home() {
           <div className="text-center max-w-3xl mx-auto">
             <Badge className="mb-6 bg-white/10 text-white border-white/20 hover:bg-white/20">
               <Shield className="h-3 w-3 mr-1" />
-              Ad‑Free • Trusted • Local
+              Ad‑Free · Local · Community-Powered
             </Badge>
             <h1 className="text-white tracking-tight leading-tight text-center px-4">
-              <span className="block text-3xl sm:text-4xl font-semibold mb-3">Find trusted</span>
-              <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold my-4 break-words">
-                <TextTransition springConfig={presets.wobbly} inline className="text-amber-400">
-                  {TEXTS[textIndex]}
-                </TextTransition>
+              <span className="block text-3xl sm:text-4xl font-semibold mb-3">Discover local</span>
+              <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold my-4 break-words text-amber-400">
+                Businesses & Events
               </span>
               <span className="block text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold mt-3">
                 in the Greater Eugene/Springfield Area
               </span>
             </h1>
             <p className="mt-12 text-lg text-slate-300 max-w-2xl mx-auto">
-              No ads, no spam—just real local community, with the option to support sound money with silver.
+              Real businesses, family-friendly events, and community networks — built by your neighbor, not a corporation.
             </p>
           </div>
 
@@ -181,8 +158,8 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-2xl font-bold text-slate-100">Top Rated Businesses</h2>
-              <p className="text-slate-400 mt-1">Highly recommended by your neighbors</p>
+              <h2 className="text-2xl font-bold text-slate-100">Local Businesses</h2>
+              <p className="text-slate-400 mt-1">The first to join the community</p>
             </div>
             <Button 
               variant="ghost" 
@@ -229,52 +206,27 @@ export default function Home() {
       {/* Why LocalLane */}
       <section className="max-w-6xl mx-auto px-4 py-16">
         <h2 className="text-2xl font-bold text-slate-100 text-center mb-10">Why use Local Lane?</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          <motion.div 
-            className="text-center p-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0 }}
-          >
-            <div className="h-12 w-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Store className="h-6 w-6 text-emerald-400" />
-            </div>
-            <h3 className="font-semibold text-lg text-slate-100">Trusted Local Pros</h3>
-            <p className="text-slate-400 mt-2 text-sm">
-              Every listing is a real local business, vetted by the community. No ads, just quality connections.
-            </p>
-          </motion.div>
-          <motion.div 
-            className="text-center p-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            <div className="h-12 w-12 bg-amber-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Calendar className="h-6 w-6 text-amber-400" />
-            </div>
-            <h3 className="font-semibold text-lg text-slate-100">Events & Activities</h3>
-            <p className="text-slate-400 mt-2 text-sm">
-              From family outings to community meetups—find out what's happening in Eugene/Springfield this weekend.
-            </p>
-          </motion.div>
-          <motion.div 
-            className="text-center p-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <div className="h-12 w-12 bg-yellow-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Coins className="h-6 w-6 text-yellow-400" />
-            </div>
-            <h3 className="font-semibold text-lg text-slate-100">Sound Money Friendly</h3>
-            <p className="text-slate-400 mt-2 text-sm">
-              Support the local economy with the option to support sound money with silver. Always optional, always sound.
-            </p>
-          </motion.div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+            <ShieldCheck className="h-6 w-6 text-amber-500 mb-3" />
+            <h3 className="font-semibold text-lg text-white mb-2">Ad-free, always</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">No promoted listings, no pay-to-play. Every business earns its place through community trust.</p>
+          </div>
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+            <MapPin className="h-6 w-6 text-amber-500 mb-3" />
+            <h3 className="font-semibold text-lg text-white mb-2">Built for Eugene</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">Not a national app with a local filter. Made here, for the people who live here.</p>
+          </div>
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+            <Users className="h-6 w-6 text-amber-500 mb-3" />
+            <h3 className="font-semibold text-lg text-white mb-2">Community-powered</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">Your recommendations and participation shape what thrives. The community decides, not an algorithm.</p>
+          </div>
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+            <Heart className="h-6 w-6 text-amber-500 mb-3" />
+            <h3 className="font-semibold text-lg text-white mb-2">Real connection</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">Events, networks, and neighbors — not engagement metrics and data harvesting.</p>
+          </div>
         </div>
       </section>
 
@@ -283,7 +235,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-white">Be Part of the Community</h2>
           <p className="text-slate-300 mt-4 max-w-xl mx-auto">
-            Whether you run a business or host local events, Local Lane is your place to be seen without paying for ads.
+            Whether you run a business, coach a team, or host community gatherings — Local Lane is your place to be seen without paying for ads.
           </p>
           <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 mt-8">
             <Button 

@@ -138,9 +138,12 @@ export default function Footer() {
 
         {/* Bottom Section */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
-          <p className="text-slate-500">
-            © {currentYear} Local Lane. All rights reserved.
-          </p>
+          <div>
+            <p className="text-slate-500">
+              © {currentYear} Local Lane. All rights reserved.
+            </p>
+            <p className="text-slate-500 text-xs mt-1">Built in Eugene, Oregon by Doron Fletcher</p>
+          </div>
           <p className="text-slate-500">
             Made for Community
           </p>
