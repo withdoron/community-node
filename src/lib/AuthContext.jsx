@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
+import { createPageUrl } from '@/utils';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 import { getFriendlyErrorMessage } from '@/lib/errorMessages';
 
@@ -125,8 +126,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const navigateToLogin = () => {
-    // Use the SDK's redirectToLogin method
-    base44.auth.redirectToLogin(window.location.href);
+    // After login/signup, send users to MyLane (onboarding wizard runs there for new users)
+    const returnUrl = `${window.location.origin}${createPageUrl('MyLane')}`;
+    base44.auth.redirectToLogin(returnUrl);
   };
 
   return (

@@ -41,7 +41,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "Search",
+    mainPage: "MyLane",
     Pages: PAGES,
     Layout: __Layout,
 };
