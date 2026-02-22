@@ -61,7 +61,7 @@ function CommunityPassInterestToggle({ business, currentUserId }) {
 
   if (hasSelection && !showChange) {
     return (
-      <div className="space-y-2">
+      <div className="space-y-2 text-center">
         <p className="text-sm text-emerald-400/90">Thanks! We&apos;ll reach out when Community Pass is ready.</p>
         <p className="text-xs text-slate-400">
           Your response: {isYes ? "Yes, I'm interested" : 'Maybe later'}
@@ -79,15 +79,15 @@ function CommunityPassInterestToggle({ business, currentUserId }) {
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2 justify-center">
       <button
         type="button"
         onClick={() => handleSelect('yes')}
         disabled={updateMutation.isPending}
-        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+        className={`rounded-lg px-5 py-2.5 text-sm font-medium transition-colors ${
           isYes
-            ? 'bg-amber-500 text-white'
-            : 'border border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-300'
+            ? 'bg-amber-500 text-white border border-amber-500'
+            : 'border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-400'
         }`}
       >
         Yes, I&apos;m interested
@@ -96,10 +96,10 @@ function CommunityPassInterestToggle({ business, currentUserId }) {
         type="button"
         onClick={() => handleSelect('maybe_later')}
         disabled={updateMutation.isPending}
-        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+        className={`rounded-lg px-5 py-2.5 text-sm font-medium transition-colors ${
           isMaybe
-            ? 'bg-slate-700 text-slate-300'
-            : 'border border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-300'
+            ? 'bg-slate-700 text-slate-300 border border-slate-600'
+            : 'border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-400'
         }`}
       >
         Maybe later
@@ -178,27 +178,24 @@ export default function AccessWindowManager({ business, currentUserId }) {
     }
   };
 
-  // Basic tier — Coming Soon (educational; pricing not finalized)
+  // Basic tier — single unified Joy Coins + Community Pass interest card
   if (isBasicTier) {
     return (
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <Card className="bg-slate-900 border-slate-800 rounded-xl p-8 text-center">
-          <div className="p-4 bg-slate-800 rounded-full inline-block mb-4">
-            <Coins className="h-8 w-8 text-slate-500" />
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 max-w-lg mx-auto mt-12 text-center">
+          <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Coins className="w-8 h-8 text-amber-500" />
           </div>
-          <h2 className="text-xl font-bold text-slate-100 mb-2">Joy Coins — Coming Soon</h2>
-          <p className="text-slate-400 max-w-md mx-auto">
-            Interested in accepting Community Pass members? Joy Coins let subscribers support local businesses as part of their membership. If this sounds like a fit, we&apos;d love to include you when we launch.
+          <h2 className="text-xl font-bold text-white mb-3">Joy Coins — Coming Soon</h2>
+          <p className="text-slate-400 leading-relaxed mb-6">
+            Joy Coins let Community Pass members support local businesses like yours.
+            Members visit participating businesses as part of their subscription, and
+            you earn revenue from the community pool based on check-ins.
           </p>
-        </Card>
-        <div className="mt-6 bg-slate-800 border border-slate-700 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-2">Community Pass</h3>
-          <p className="text-slate-400 text-sm mb-4">
-            Community Pass is a membership program that connects local families with
-            businesses like yours. Members use Joy Coins to visit participating
-            businesses, and you earn revenue from the community pool. Interested?
-          </p>
-          <CommunityPassInterestToggle business={business} currentUserId={currentUserId} />
+          <div className="border-t border-slate-700 pt-6">
+            <p className="text-white font-medium mb-4">Interested in participating?</p>
+            <CommunityPassInterestToggle business={business} currentUserId={currentUserId} />
+          </div>
         </div>
       </div>
     );
