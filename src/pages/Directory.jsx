@@ -29,6 +29,11 @@ export default function Directory() {
   const [acceptsJoyCoins, setAcceptsJoyCoins] = useState(urlParams.get('joycoins') === '1');
   const [sortBy, setSortBy] = useState(urlParams.get('sort') || 'recommended');
 
+  // Start at top when navigating to Directory
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Debounce search input (300ms)
   useEffect(() => {
     const timer = setTimeout(() => setSearchQuery(searchInput), 300);
