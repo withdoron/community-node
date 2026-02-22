@@ -10,6 +10,14 @@ import { useConfig } from '@/hooks/useConfig';
 
 const ONBOARDING_STORAGE_KEY = 'locallane_onboarding_shown';
 
+/** Taglines for network step when not provided by AdminSettings (platform.networks tagline). */
+const NETWORK_TAGLINES = {
+  recess: 'Move your body, build your crew',
+  harvest: 'Know your farmer, feed your family',
+  creative_alliance: 'Learn together, grow together',
+  gathering_circle: 'Show up for each other',
+};
+
 const activeSteps = userOnboardingConfig.steps.filter((s) => s.active);
 
 export default function UserOnboarding() {
@@ -75,8 +83,10 @@ export default function UserOnboarding() {
                 (sub) => (sub.email || '').toLowerCase() === email
               );
               if (!alreadyExists) {
+                const first_name = (payload.display_name || payload.full_name || '').trim() || undefined;
                 await base44.entities.NewsletterSubscriber.create({
                   email,
+                  first_name,
                   subscribed_at: new Date().toISOString(),
                   source: 'onboarding',
                   user_id: currentUser.id,
@@ -87,7 +97,10 @@ export default function UserOnboarding() {
           })();
         }
       },
-      onSettled: () => navigate(createPageUrl('MyLane')),
+      onSettled: () => {
+        window.scrollTo(0, 0);
+        navigate(createPageUrl('MyLane'));
+      },
     });
   };
 
@@ -232,6 +245,7 @@ export default function UserOnboarding() {
                   const value = net.value ?? net.slug ?? net.id;
                   const label = net.label ?? net.name ?? value;
                   const description = net.description;
+                  const tagline = net.tagline || NETWORK_TAGLINES[value];
                   const isSelected = networkInterests.includes(value);
                   return (
                     <button
@@ -249,6 +263,9 @@ export default function UserOnboarding() {
                       }`}
                     >
                       <h3 className="font-semibold text-slate-100">{label}</h3>
+                      {tagline && (
+                        <p className="text-slate-400 text-xs mt-0.5">{tagline}</p>
+                      )}
                       {description && (
                         <p className="text-sm text-slate-400 mt-1">{description}</p>
                       )}
