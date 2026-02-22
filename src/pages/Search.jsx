@@ -23,13 +23,6 @@ export default function Search() {
   const initialLocation = urlParams.get('location') || '';
   const initialCategory = urlParams.get('category') || 'all';
 
-  // Logged-in users hitting "/" go to MyLane; unauthenticated see landing (Search)
-  useEffect(() => {
-    if (location.pathname === '/' && isAuthenticated) {
-      navigate(createPageUrl('MyLane'), { replace: true });
-    }
-  }, [location.pathname, isAuthenticated, navigate]);
-
   // Get active region for this instance
   const { region, isLoading: regionLoading } = useActiveRegion();
 
