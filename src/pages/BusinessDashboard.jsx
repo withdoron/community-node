@@ -50,6 +50,9 @@ export default function BusinessDashboard() {
   });
   const { isAppAdmin } = useRole();
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
   // Fetch businesses where user is owner
   const { data: ownedBusinesses = [], isLoading: ownedLoading } = useQuery({
     queryKey: ['ownedBusinesses', currentUser?.id],
@@ -284,7 +287,7 @@ export default function BusinessDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-slate-100">
-                  Hello, {(currentUser?.data?.display_name || currentUser?.data?.full_name || currentUser?.full_name || 'there').split(' ')[0]}
+                  {greeting}, {(currentUser?.data?.display_name || currentUser?.data?.full_name || currentUser?.full_name || 'there').split(' ')[0]}
                 </h1>
                 <p className="text-slate-400 text-sm mt-1">Welcome back to your dashboard</p>
               </div>
