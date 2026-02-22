@@ -379,7 +379,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 {/* Communities/Network */}
                 {event.network && (
                   <div className="space-y-3">
-                    <h4 className="font-semibold text-white text-lg">Communities</h4>
+                    <h4 className="font-semibold text-white text-lg">Networks</h4>
                     <div className="flex flex-wrap gap-2">
                       <Badge className="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-3 py-1 capitalize">
                         {event.network}
