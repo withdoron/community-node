@@ -1,12 +1,11 @@
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { getGreeting } from '@/utils/greeting';
 import { Coins } from 'lucide-react';
 import { useRole } from '@/hooks/useRole';
 
 export default function GreetingHeader({ currentUser, joyCoins }) {
   const { isAppAdmin } = useRole();
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   const displayName = currentUser?.data?.display_name || currentUser?.data?.full_name || currentUser?.full_name || 'neighbor';
   const firstName = displayName.split(' ')[0];
 
@@ -14,7 +13,7 @@ export default function GreetingHeader({ currentUser, joyCoins }) {
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-100">
-          {greeting}, {firstName}
+          {getGreeting()}, {firstName}
         </h1>
         <p className="text-slate-400 mt-1">Your community, organized around you.</p>
       </div>

@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { getGreeting } from '@/utils/greeting';
 import BusinessCard from '@/components/dashboard/BusinessCard';
 import EventsWidget from '@/components/dashboard/widgets/EventsWidget';
 import { Button } from "@/components/ui/button";
@@ -49,9 +50,6 @@ export default function BusinessDashboard() {
     queryFn: () => base44.auth.me()
   });
   const { isAppAdmin } = useRole();
-
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   // Fetch businesses where user is owner
   const { data: ownedBusinesses = [], isLoading: ownedLoading } = useQuery({
@@ -287,7 +285,7 @@ export default function BusinessDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-slate-100">
-                  {greeting}, {(currentUser?.data?.display_name || currentUser?.data?.full_name || currentUser?.full_name || 'there').split(' ')[0]}
+                  {getGreeting()}, {(currentUser?.data?.display_name || currentUser?.data?.full_name || currentUser?.full_name || 'there').split(' ')[0]}
                 </h1>
                 <p className="text-slate-400 text-sm mt-1">Welcome back to your dashboard</p>
               </div>
