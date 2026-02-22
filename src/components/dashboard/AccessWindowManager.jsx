@@ -84,10 +84,10 @@ function CommunityPassInterestToggle({ business, currentUserId }) {
         type="button"
         onClick={() => handleSelect('yes')}
         disabled={updateMutation.isPending}
-        className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+        className={`transition-colors rounded-lg px-4 py-2.5 text-sm ${
           isYes
             ? 'bg-amber-500 text-white border border-amber-500'
-            : 'border border-slate-600 text-slate-300 hover:bg-amber-500/10 hover:border-amber-500/50 hover:text-amber-400'
+            : 'border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-400'
         }`}
       >
         Yes, I&apos;m interested
@@ -96,10 +96,10 @@ function CommunityPassInterestToggle({ business, currentUserId }) {
         type="button"
         onClick={() => handleSelect('maybe_later')}
         disabled={updateMutation.isPending}
-        className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+        className={`transition-colors rounded-lg px-4 py-2.5 text-sm ${
           isMaybe
             ? 'bg-slate-700 text-slate-300 border border-slate-600'
-            : 'border border-slate-600 text-slate-300 hover:bg-amber-500/10 hover:border-amber-500/50 hover:text-amber-400'
+            : 'border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-400'
         }`}
       >
         Maybe later
