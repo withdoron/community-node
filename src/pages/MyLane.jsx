@@ -36,7 +36,16 @@ export default function MyLane() {
     queryClient.invalidateQueries({ queryKey: ['currentUser'] });
   };
 
-  if (!userLoading && !currentUser) {
+  // Wait for user to load before deciding auth or onboarding
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!currentUser) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
@@ -56,17 +65,20 @@ export default function MyLane() {
   // Onboarding redirect: server is source of truth; localStorage is fast path to avoid flash
   const ONBOARDING_STORAGE_KEY = 'locallane_onboarding_shown';
   const onboardingComplete =
-    currentUser?.data?.onboarding_complete === true || !!localStorage.getItem(ONBOARDING_STORAGE_KEY);
-  if (currentUser && !onboardingComplete) {
-    return <Navigate to={createPageUrl('welcome')} replace />;
+    currentUser?.onboarding_complete === true ||
+    currentUser?.data?.onboarding_complete === true ||
+    !!localStorage.getItem(ONBOARDING_STORAGE_KEY);
+
+  if (typeof console !== 'undefined' && console.log) {
+    console.log('Onboarding check:', {
+      onboarding_complete: currentUser?.onboarding_complete,
+      data_onboarding_complete: currentUser?.data?.onboarding_complete,
+      currentUser: currentUser ? { id: currentUser.id, hasData: !!currentUser.data } : null,
+    });
   }
 
-  if (userLoading) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
-      </div>
-    );
+  if (!onboardingComplete) {
+    return <Navigate to={createPageUrl('welcome')} replace />;
   }
 
   return (
