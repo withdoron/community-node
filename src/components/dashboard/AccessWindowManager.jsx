@@ -19,14 +19,94 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAccessWindows } from '@/hooks/useAccessWindows';
 import AccessWindowModal from './AccessWindowModal';
+import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
 const DAY_LABELS = {
   monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu',
   friday: 'Fri', saturday: 'Sat', sunday: 'Sun'
 };
+
+function CommunityPassInterestToggle({ business, currentUserId }) {
+  const queryClient = useQueryClient();
+  const value = business?.community_pass_interest ?? null;
+  const [showChange, setShowChange] = useState(false);
+
+  const updateMutation = useMutation({
+    mutationFn: async (interest) => {
+      // Business entity must have community_pass_interest (string, nullable) in Base44
+      await base44.entities.Business.update(business.id, { community_pass_interest: interest });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUserId] });
+      setShowChange(false);
+    },
+    onError: (err) => {
+      console.error('Community Pass interest update error:', err);
+      toast.error('Failed to save. Please try again.');
+    },
+  });
+
+  const handleSelect = (interest) => {
+    updateMutation.mutate(interest);
+  };
+
+  const isYes = value === 'yes';
+  const isMaybe = value === 'maybe_later';
+  const hasSelection = isYes || isMaybe;
+
+  if (hasSelection && !showChange) {
+    return (
+      <div className="space-y-2">
+        <p className="text-sm text-emerald-400/90">Thanks! We&apos;ll reach out when Community Pass is ready.</p>
+        <p className="text-xs text-slate-400">
+          Your response: {isYes ? "Yes, I'm interested" : 'Maybe later'}
+          {' · '}
+          <button
+            type="button"
+            onClick={() => setShowChange(true)}
+            className="text-amber-500 hover:text-amber-400 transition-colors underline"
+          >
+            Change
+          </button>
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <button
+        type="button"
+        onClick={() => handleSelect('yes')}
+        disabled={updateMutation.isPending}
+        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          isYes
+            ? 'bg-amber-500 text-white'
+            : 'border border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-300'
+        }`}
+      >
+        Yes, I&apos;m interested
+      </button>
+      <button
+        type="button"
+        onClick={() => handleSelect('maybe_later')}
+        disabled={updateMutation.isPending}
+        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          isMaybe
+            ? 'bg-slate-700 text-slate-300'
+            : 'border border-slate-700 text-slate-400 hover:border-slate-600 hover:text-slate-300'
+        }`}
+      >
+        Maybe later
+      </button>
+    </div>
+  );
+}
 
 function formatTime(time24) {
   if (!time24) return '';
@@ -37,7 +117,7 @@ function formatTime(time24) {
   return `${h12}:${minutes} ${ampm}`;
 }
 
-export default function AccessWindowManager({ business }) {
+export default function AccessWindowManager({ business, currentUserId }) {
   const tier = business?.subscription_tier || 'basic';
   const isBasicTier = tier === 'basic';
 
@@ -111,6 +191,15 @@ export default function AccessWindowManager({ business }) {
             Interested in accepting Community Pass members? Joy Coins let subscribers support local businesses as part of their membership. If this sounds like a fit, we&apos;d love to include you when we launch.
           </p>
         </Card>
+        <div className="mt-6 bg-slate-800 border border-slate-700 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-white mb-2">Community Pass</h3>
+          <p className="text-slate-400 text-sm mb-4">
+            Community Pass is a membership program that connects local families with
+            businesses like yours. Members use Joy Coins to visit participating
+            businesses, and you earn revenue from the community pool. Interested?
+          </p>
+          <CommunityPassInterestToggle business={business} currentUserId={currentUserId} />
+        </div>
       </div>
     );
   }

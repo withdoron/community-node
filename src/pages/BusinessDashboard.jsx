@@ -571,7 +571,7 @@ export default function BusinessDashboard() {
         )}
 
         {activeTab === 'joy-coins' && (
-          <AccessWindowManager business={selectedBusiness} />
+          <AccessWindowManager business={selectedBusiness} currentUserId={currentUser?.id} />
         )}
 
         {activeTab === 'revenue' && (
