@@ -182,12 +182,12 @@ export default function AccessWindowManager({ business, currentUserId }) {
   if (isBasicTier) {
     return (
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 max-w-md mx-auto mt-8 text-center">
-          <div className="w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Coins className="w-6 h-6 text-amber-500" />
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 text-center">
+          <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Coins className="w-8 h-8 text-amber-500" />
           </div>
-          <h2 className="text-lg font-bold text-white mb-3">Joy Coins — Coming Soon</h2>
-          <p className="text-slate-400 text-sm leading-relaxed mb-5">
+          <h2 className="text-xl font-bold text-white mb-3">Joy Coins — Coming Soon</h2>
+          <p className="text-slate-400 leading-relaxed mb-5">
             Joy Coins let Community Pass members support local businesses like yours.
             Members visit participating businesses as part of their subscription, and
             you earn revenue from the community pool based on check-ins.
