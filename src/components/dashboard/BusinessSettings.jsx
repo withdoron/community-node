@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -49,10 +49,12 @@ const INPUT_CLASS =
 
 function getInitialFormData(business) {
   if (!business) return null;
+  const mainId = business.primary_category || business.main_category || business.category || '';
   return {
     name: business.name || '',
     description: business.description || '',
-    primary_category: business.primary_category || business.category || '',
+    primary_category: mainId,
+    main_category: business.main_category || mainId || '',
     sub_category: business.sub_category || '',
     sub_category_id: business.sub_category_id || '',
     email: business.email || business.contact_email || '',
@@ -68,23 +70,23 @@ function getInitialFormData(business) {
 
 export default function BusinessSettings({ business, currentUserId }) {
   const queryClient = useQueryClient();
-  const { mainCategories } = useCategories();
+  const { mainCategories, getSubcategory } = useCategories();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(null);
   const logoInputRef = React.useRef(null);
 
-  const categoryOptions = useMemo(() => {
-    return mainCategories.flatMap((main) =>
-      main.subcategories.map((sub) => ({
-        value: `${main.id}|${sub.id}`,
-        label: `${main.label} — ${sub.label}`,
-        groupLabel: main.label,
-        subName: sub.label,
-        subId: sub.id,
-        mainId: main.id,
-      }))
-    );
-  }, [mainCategories]);
+  // Compute Select value: must match SelectItem value format "mainId|subId"
+  const categorySelectValue = useMemo(() => {
+    if (!formData) return '';
+    const mainId = formData.primary_category || formData.main_category;
+    const subId = formData.sub_category_id;
+    if (mainId && subId) return `${mainId}|${subId}`;
+    // Legacy: primary_category/sub_category may be labels
+    const main = mainCategories.find((m) => m.id === mainId || m.label === formData.primary_category);
+    const sub = main?.subcategories.find((s) => s.id === subId || s.label === formData.sub_category);
+    if (main && sub) return `${main.id}|${sub.id}`;
+    return '';
+  }, [formData, mainCategories]);
 
   useEffect(() => {
     const next = getInitialFormData(business);
@@ -263,34 +265,43 @@ export default function BusinessSettings({ business, currentUserId }) {
                   Category
                 </Label>
                 <Select
-                  value={
-                    formData.primary_category && formData.sub_category_id
-                      ? `${formData.primary_category}|${formData.sub_category_id}`
-                      : categoryOptions.find((o) => o.mainId === formData.primary_category && o.subName === formData.sub_category)?.value ??
-                        categoryOptions.find((o) => o.groupLabel === formData.primary_category && o.subName === formData.sub_category)?.value ??
-                        ''
-                  }
+                  value={categorySelectValue}
                   onValueChange={(val) => {
-                    const opt = categoryOptions.find((o) => o.value === val);
-                    if (opt) {
-                      handleChange('primary_category', opt.mainId);
-                      handleChange('sub_category', opt.subName);
-                      handleChange('sub_category_id', opt.subId || '');
-                    } else {
-                      handleChange('primary_category', val || '');
+                    if (!val) {
+                      handleChange('primary_category', '');
+                      handleChange('main_category', '');
                       handleChange('sub_category', '');
                       handleChange('sub_category_id', '');
+                      return;
                     }
+                    const [mainId, subId] = val.split('|');
+                    const sub = getSubcategory(mainId, subId);
+                    const subLabel = sub?.label ?? subId;
+                    handleChange('primary_category', mainId);
+                    handleChange('main_category', mainId);
+                    handleChange('sub_category', subLabel);
+                    handleChange('sub_category_id', subId || '');
                   }}
                 >
                   <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg focus:border-amber-500 focus:ring-amber-500/20">
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categoryOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value} className="text-slate-100 focus:bg-slate-800 focus:text-amber-500">
-                        {opt.label}
-                      </SelectItem>
+                    {mainCategories.map((main) => (
+                      <SelectGroup key={main.id}>
+                        <SelectLabel className="text-slate-400 text-xs uppercase tracking-wide px-2 py-1">
+                          {main.label}
+                        </SelectLabel>
+                        {main.subcategories.map((sub) => (
+                          <SelectItem
+                            key={`${main.id}|${sub.id}`}
+                            value={`${main.id}|${sub.id}`}
+                            className="text-slate-300 focus:bg-slate-800 pl-4"
+                          >
+                            {sub.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     ))}
                   </SelectContent>
                 </Select>
