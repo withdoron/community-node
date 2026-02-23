@@ -78,6 +78,31 @@ Deno.serve(async (req) => {
       return Response.json(results);
     }
 
+    // search_user_by_email: lookup user by email (service role); for Add Staff flow (DEC-042)
+    // Any authenticated user can call — used by business owners to add staff by email
+    if (action === 'search_user_by_email') {
+      const { email } = body;
+      if (!email || typeof email !== 'string') {
+        return Response.json({ error: 'email is required for search_user_by_email' }, { status: 400 });
+      }
+      const trimmed = String(email).trim();
+      if (!trimmed) {
+        return Response.json({ user: null });
+      }
+      const users = await base44.asServiceRole.entities.User.filter({ email: trimmed });
+      if (!users || users.length === 0) {
+        return Response.json({ user: null });
+      }
+      const u = users[0];
+      return Response.json({
+        user: {
+          id: u.id,
+          email: u.email ?? trimmed,
+          full_name: u.full_name ?? null,
+        },
+      });
+    }
+
     // accept_invite: user removes their own pending invite (no admin/owner required)
     if (action === 'accept_invite') {
       const { business_id } = body;

@@ -305,9 +305,13 @@ export default function StaffWidget({ business, currentUserId }) {
     setSearchResult(null);
 
     try {
-      const users = await base44.entities.User.filter({ email: searchEmail.trim() }, '', 1);
+      const res = await base44.functions.invoke('updateAdminSettings', {
+        action: 'search_user_by_email',
+        email: searchEmail.trim(),
+      });
+      const user = res?.user ?? null;
 
-      if (!users?.length) {
+      if (!user) {
         const email = searchEmail.trim().toLowerCase();
         const alreadyInvited = (pendingInvites || []).some(
           (inv) => (inv.email || '').toLowerCase() === email
@@ -321,7 +325,6 @@ export default function StaffWidget({ business, currentUserId }) {
         return;
       }
 
-      const user = users[0];
       const alreadyInInstructors = (business?.instructors || []).includes(user.id);
       if (alreadyInInstructors) {
         setSearchError('This user is already a staff member.');
@@ -335,7 +338,7 @@ export default function StaffWidget({ business, currentUserId }) {
 
       setSearchResult(user);
     } catch (err) {
-      setSearchError('Failed to search. Please try again.');
+      setSearchError('No account found with that email.');
     } finally {
       setIsSearching(false);
     }
