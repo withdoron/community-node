@@ -78,48 +78,57 @@ Deno.serve(async (req) => {
       return Response.json(results);
     }
 
-    // search_user_by_email: lookup user by email via auth API (User = base44.auth in this app, not entities.User)
-    // Any authenticated user can call — used by business owners to add staff by email.
-    // Case-insensitive match: try auth.list (service role) then find, else auth.filter with lowercased email.
+    // search_user_by_email: lookup user by email (temporary debug version — clean up after diagnosis)
     if (action === 'search_user_by_email') {
       const { email } = body;
       if (!email || typeof email !== 'string') {
         return Response.json({ error: 'email is required for search_user_by_email' }, { status: 400 });
       }
-      const searchLower = String(email).trim().toLowerCase();
-      if (!searchLower) {
+      const searchEmail = String(email).trim().toLowerCase();
+      if (!searchEmail) {
         return Response.json({ user: null });
       }
-      type AuthUser = { id?: string; email?: string; full_name?: string | null };
-      let u: AuthUser | null = null;
-      const authWithList = (base44 as { asServiceRole?: { auth?: { list?: () => Promise<AuthUser[]> } } }).asServiceRole?.auth;
-      if (authWithList?.list) {
-        try {
-          const allUsers = await authWithList.list!();
-          u = (allUsers || []).find((x) => (x.email ?? '').toLowerCase() === searchLower) ?? null;
-        } catch (_) {
-          // ignore
+
+      try {
+        // Try filter first (exact match). Base44: .filter() returns query builder, chain .list() for data.
+        const filtered = await base44.asServiceRole.entities.User.filter({ email: searchEmail }).list();
+        if (filtered && filtered.length > 0) {
+          const u = filtered[0] as { id: string; email?: string; full_name?: string | null };
+          return Response.json({ user: { id: u.id, email: u.email, full_name: u.full_name ?? null } });
         }
-      }
-      if (!u && typeof (base44.auth as { filter?: (q: { email: string }) => Promise<AuthUser[] | AuthUser> })?.filter === 'function') {
-        try {
-          const filtered = await (base44.auth as { filter: (q: { email: string }) => Promise<AuthUser[] | AuthUser> }).filter({ email: searchLower });
-          const arr = Array.isArray(filtered) ? filtered : [filtered].filter(Boolean);
-          u = (arr[0] as AuthUser) ?? null;
-        } catch (_) {
-          // ignore
+
+        // If filter returned nothing, try list and find (case-insensitive)
+        const allUsers = await base44.asServiceRole.entities.User.list();
+        const found = (allUsers || []).find(
+          (u: { email?: string }) => (u.email ?? '').toLowerCase() === searchEmail
+        );
+        if (found) {
+          return Response.json({
+            user: {
+              id: (found as { id: string }).id,
+              email: (found as { email?: string }).email ?? searchEmail,
+              full_name: (found as { full_name?: string | null }).full_name ?? null,
+            },
+          });
         }
+
+        // Debug: return what we found so we can see what's happening
+        return Response.json({
+          user: null,
+          debug: {
+            searchEmail,
+            totalUsers: (allUsers || []).length,
+            sampleEmails: (allUsers || []).slice(0, 5).map((u: { email?: string }) => u.email),
+            sampleKeys: (allUsers || []).length > 0 ? Object.keys((allUsers as object[])[0]) : [],
+          },
+        });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        return Response.json({
+          user: null,
+          debug: { error: message, searchEmail },
+        });
       }
-      if (!u) {
-        return Response.json({ user: null });
-      }
-      return Response.json({
-        user: {
-          id: u.id,
-          email: u.email ?? searchLower,
-          full_name: u.full_name ?? null,
-        },
-      });
     }
 
     // accept_invite: user removes their own pending invite (no admin/owner required)
