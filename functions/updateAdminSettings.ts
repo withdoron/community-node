@@ -79,25 +79,28 @@ Deno.serve(async (req) => {
     }
 
     // search_user_by_email: lookup user by email (service role); for Add Staff flow (DEC-042)
-    // Any authenticated user can call — used by business owners to add staff by email
+    // Any authenticated user can call — used by business owners to add staff by email.
+    // Case-insensitive match (Base44 .filter() is exact match; list + find avoids case issues).
     if (action === 'search_user_by_email') {
       const { email } = body;
       if (!email || typeof email !== 'string') {
         return Response.json({ error: 'email is required for search_user_by_email' }, { status: 400 });
       }
-      const trimmed = String(email).trim();
-      if (!trimmed) {
+      const searchLower = String(email).trim().toLowerCase();
+      if (!searchLower) {
         return Response.json({ user: null });
       }
-      const users = await base44.asServiceRole.entities.User.filter({ email: trimmed });
-      if (!users || users.length === 0) {
+      const allUsers = await base44.asServiceRole.entities.User.list();
+      const u = (allUsers || []).find(
+        (u: { email?: string }) => (u.email ?? '').toLowerCase() === searchLower
+      );
+      if (!u) {
         return Response.json({ user: null });
       }
-      const u = users[0];
       return Response.json({
         user: {
           id: u.id,
-          email: u.email ?? trimmed,
+          email: u.email ?? searchLower,
           full_name: u.full_name ?? null,
         },
       });
