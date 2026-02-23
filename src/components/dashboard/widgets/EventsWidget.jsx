@@ -39,6 +39,21 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
     queryFn: () => base44.entities.Event.filter({ business_id: business.id, is_active: true }, '-date', 50)
   });
 
+  const { data: eventRsvpCounts = {} } = useQuery({
+    queryKey: ['event-rsvp-counts', business.id, events.map((e) => e.id).join(',')],
+    queryFn: async () => {
+      const counts = {};
+      await Promise.all(
+        events.map(async (e) => {
+          const list = await base44.entities.RSVP.filter({ event_id: e.id, is_active: true });
+          counts[e.id] = list.length;
+        })
+      );
+      return counts;
+    },
+    enabled: events.length > 0,
+  });
+
   const { data: instructors = [] } = useQuery({
     queryKey: ['business-instructors', business.id],
     queryFn: async () => {
@@ -338,6 +353,11 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
                       <Calendar className="h-3 w-3" />
                       {format(new Date(event.date), 'MMM d, yyyy • h:mm a')}
                     </span>
+                    {(eventRsvpCounts[event.id] ?? 0) >= 0 && (
+                      <span>
+                        — {eventRsvpCounts[event.id] === 0 ? 'No RSVPs yet' : `${eventRsvpCounts[event.id]} RSVP${eventRsvpCounts[event.id] !== 1 ? 's' : ''}`}
+                      </span>
+                    )}
                     {event.price > 0 ? (
                       <span>${event.price}</span>
                     ) : (

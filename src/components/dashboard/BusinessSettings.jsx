@@ -70,7 +70,7 @@ function getInitialFormData(business) {
 
 export default function BusinessSettings({ business, currentUserId }) {
   const queryClient = useQueryClient();
-  const { mainCategories, getSubcategory } = useCategories();
+  const { mainCategories, getSubcategory, getLabel, legacyCategoryMapping } = useCategories();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(null);
   const logoInputRef = React.useRef(null);
@@ -514,7 +514,21 @@ export default function BusinessSettings({ business, currentUserId }) {
                 )}
                 <div>
                   <p className="text-slate-100 font-semibold">{business?.name || 'Unnamed Business'}</p>
-                  <p className="text-xs text-slate-400 capitalize">{business?.archetype || 'location'} · {business?.primary_category || business?.category || 'General'}</p>
+                  <p className="text-xs text-slate-400">
+                    {(() => {
+                      const mainId = business?.main_category || business?.primary_category;
+                      const subId = business?.sub_category_id;
+                      let categoryDisplay = mainId ? getLabel(mainId, subId) : null;
+                      if (!categoryDisplay && business?.category && legacyCategoryMapping?.[business.category]) {
+                        const { main, sub } = legacyCategoryMapping[business.category];
+                        categoryDisplay = getLabel(main, sub);
+                      }
+                      if (!categoryDisplay) {
+                        categoryDisplay = `${business?.archetype || 'location'} · ${business?.primary_category || business?.category || 'General'}`;
+                      }
+                      return categoryDisplay;
+                    })()}
+                  </p>
                 </div>
               </div>
 
