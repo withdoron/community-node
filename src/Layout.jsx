@@ -16,6 +16,7 @@ import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles,
 import Footer from '@/components/layout/Footer';
 import { useRole } from '@/hooks/useRole';
 import { useUserOwnedBusinesses } from '@/hooks/useUserOwnedBusinesses';
+import { useUserStaffBusinesses } from '@/hooks/useUserStaffBusinesses';
 import { toast } from 'sonner';
 
 export default function Layout({ children, currentPageName: currentPageNameProp }) {
@@ -32,8 +33,9 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
   });
 
   const { hasOwnedBusinesses } = useUserOwnedBusinesses(currentUser);
+  const { hasStaffBusinesses } = useUserStaffBusinesses(currentUser);
   const { isAppAdmin } = useRole();
-  const showBusinessDashboard = isAppAdmin || hasOwnedBusinesses;
+  const showBusinessDashboard = isAppAdmin || hasOwnedBusinesses || hasStaffBusinesses;
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackType, setFeedbackType] = useState('feedback');
   const [whatHappened, setWhatHappened] = useState('');

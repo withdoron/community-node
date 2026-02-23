@@ -42,6 +42,31 @@ async function findUniqueSlug(
   return candidate;
 }
 
+/** Add business_id to a user's associated_businesses (so Dashboard nav and staff list can use it). */
+async function addBusinessToUserAssociated(
+  base44: Awaited<ReturnType<typeof createClientFromRequest>>,
+  userId: string,
+  businessId: string
+): Promise<void> {
+  try {
+    const existing = await base44.asServiceRole.entities.User.get(userId) as { associated_businesses?: string[]; data?: { associated_businesses?: string[] } } | null;
+    if (!existing) return;
+    const current = existing.associated_businesses ?? existing.data?.associated_businesses ?? [];
+    const list = Array.isArray(current) ? current : [];
+    if (list.includes(businessId)) return;
+    const next = [...list, businessId];
+    if (existing.data && typeof existing.data === 'object' && !Array.isArray(existing.data)) {
+      await base44.asServiceRole.entities.User.update(userId, {
+        data: { ...existing.data, associated_businesses: next },
+      } as Record<string, unknown>);
+    } else {
+      await base44.asServiceRole.entities.User.update(userId, { associated_businesses: next } as Record<string, unknown>);
+    }
+  } catch (e) {
+    console.error('addBusinessToUserAssociated error', e);
+  }
+}
+
 async function canEditBusiness(
   base44: Awaited<ReturnType<typeof createClientFromRequest>>,
   user: { id: string; role?: string; email?: string },
@@ -127,6 +152,7 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.Business.update(business_id, {
           instructors: [...currentInstructors, user.id],
         });
+        await addBusinessToUserAssociated(base44, user.id, business_id);
       }
 
       const rolesKey = `staff_roles:${business_id}`;
@@ -232,7 +258,16 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Forbidden' }, { status: 403 });
       }
 
+      const dataInstructors = (data as { instructors?: string[] }).instructors;
+      const prevInstructors = (await base44.asServiceRole.entities.Business.get(business_id))?.instructors ?? [];
+      const newInstructorIds = Array.isArray(dataInstructors)
+        ? dataInstructors.filter((id: string) => !prevInstructors.includes(id))
+        : [];
+
       const updated = await base44.asServiceRole.entities.Business.update(business_id, data as Record<string, unknown>);
+      for (const uid of newInstructorIds) {
+        await addBusinessToUserAssociated(base44, uid, business_id);
+      }
       return Response.json(updated);
     }
 
