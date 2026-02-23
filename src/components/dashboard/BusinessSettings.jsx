@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Settings, Store, Star, Zap, Crown, ExternalLink, Mail, Phone, Globe, MapPin, Pencil, Loader2, Upload } from 'lucide-react';
+import { Settings, Store, Star, Zap, Crown, ExternalLink, Mail, Phone, Globe, MapPin, Pencil, Loader2, Upload, Users } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -606,8 +606,20 @@ export default function BusinessSettings({ business, currentUserId }) {
         </div>
       </Card>
 
-      {/* Staff Management */}
-      <StaffWidget business={business} currentUserId={currentUserId} />
+      {/* Team Management — feature guarded with Coming Soon (re-enable: render StaffWidget below) */}
+      <Card className="bg-slate-900 border-slate-800 rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-slate-100 uppercase tracking-wider mb-4">Team</h3>
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4">
+            <Users className="w-8 h-8 text-slate-500" />
+          </div>
+          <h3 className="text-lg font-semibold text-slate-200">Team Management — Coming Soon</h3>
+          <p className="text-slate-400 mt-2 max-w-md">
+            Soon you&apos;ll be able to invite co-owners, managers, and staff to help run your business on LocalLane. We&apos;re building this for you.
+          </p>
+        </div>
+      </Card>
+      {false && <StaffWidget business={business} currentUserId={currentUserId} />}
 
       {/* Dev Tier Override */}
       {isDev && (
