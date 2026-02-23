@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -30,7 +30,7 @@ import { US_STATES } from '@/lib/usStates';
 
 export default function BusinessEditDrawer({ business, open, onClose, adminEmail }) {
   const queryClient = useQueryClient();
-  const { mainCategories } = useCategories();
+  const { mainCategories, getSubcategory } = useCategories();
   const [editData, setEditData] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, field: '', value: null, message: '' });
@@ -45,18 +45,17 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const staffSearchRef = useRef(null);
   const logoInputRef = useRef(null);
 
-  const categoryOptions = useMemo(() => {
-    return mainCategories.flatMap((main) =>
-      main.subcategories.map((sub) => ({
-        value: `${main.id}|${sub.id}`,
-        label: `${main.label} — ${sub.label}`,
-        groupLabel: main.label,
-        subName: sub.label,
-        subId: sub.id,
-        mainId: main.id,
-      }))
-    );
-  }, [mainCategories]);
+  // Select value must match SelectItem format "mainId|subId"; same fallback chain as BusinessSettings
+  const categorySelectValue = useMemo(() => {
+    if (!editData) return '';
+    const mainId = editData.primary_category || editData.main_category;
+    const subId = editData.sub_category_id;
+    if (mainId && subId) return `${mainId}|${subId}`;
+    const main = mainCategories.find((m) => m.id === mainId || m.label === editData.primary_category);
+    const sub = main?.subcategories.find((s) => s.id === subId || s.label === editData.sub_category);
+    if (main && sub) return `${main.id}|${sub.id}`;
+    return '';
+  }, [editData, mainCategories]);
 
   useEffect(() => {
     setLocalInstructors(business?.instructors || []);
@@ -145,10 +144,12 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
   useEffect(() => {
     if (business) {
+      const mainId = business.primary_category || business.main_category || business.category || '';
       setEditData({
         name: business.name || '',
         description: business.description || '',
-        primary_category: business.primary_category || business.category || '',
+        primary_category: mainId,
+        main_category: business.main_category || mainId || '',
         sub_category: business.sub_category || '',
         sub_category_id: business.sub_category_id || '',
         address: business.address || '',
@@ -549,15 +550,21 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       is_locally_owned_franchise: editData.is_locally_owned_franchise,
       network_ids: Array.isArray(editData.network_ids) ? editData.network_ids : [],
       is_active: editData.is_active,
+      primary_category: editData.primary_category ?? '',
+      main_category: editData.main_category ?? '',
+      sub_category: editData.sub_category ?? '',
+      sub_category_id: editData.sub_category_id ?? '',
     };
     saveMutation.mutate(payload);
   };
 
   const handleDiscardChanges = () => {
+    const mainId = business.primary_category || business.main_category || business.category || '';
     setEditData({
       name: business.name || '',
       description: business.description || '',
-      primary_category: business.primary_category || business.category || '',
+      primary_category: mainId,
+      main_category: business.main_category || mainId || '',
       sub_category: business.sub_category || '',
       sub_category_id: business.sub_category_id || '',
       address: business.address || '',
@@ -703,34 +710,43 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <div>
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Category</Label>
                   <Select
-                    value={
-                      editData.primary_category && editData.sub_category_id
-                        ? `${editData.primary_category}|${editData.sub_category_id}`
-                        : categoryOptions.find((o) => o.mainId === editData.primary_category && o.subName === editData.sub_category)?.value ??
-                          categoryOptions.find((o) => o.groupLabel === editData.primary_category && o.subName === editData.sub_category)?.value ??
-                          (editData.primary_category || '')
-                    }
+                    value={categorySelectValue}
                     onValueChange={(val) => {
-                      const opt = categoryOptions.find((o) => o.value === val);
-                      if (opt) {
-                        handleFieldChange('primary_category', opt.mainId);
-                        handleFieldChange('sub_category', opt.subName);
-                        handleFieldChange('sub_category_id', opt.subId || '');
-                      } else {
-                        handleFieldChange('primary_category', val || '');
+                      if (!val) {
+                        handleFieldChange('primary_category', '');
+                        handleFieldChange('main_category', '');
                         handleFieldChange('sub_category', '');
                         handleFieldChange('sub_category_id', '');
+                        return;
                       }
+                      const [mainId, subId] = val.split('|');
+                      const sub = getSubcategory(mainId, subId);
+                      const subLabel = sub?.label ?? subId;
+                      handleFieldChange('primary_category', mainId);
+                      handleFieldChange('main_category', mainId);
+                      handleFieldChange('sub_category', subLabel);
+                      handleFieldChange('sub_category_id', subId || '');
                     }}
                   >
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categoryOptions.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value} className="text-slate-100 focus:bg-slate-800 focus:text-amber-500">
-                          {opt.label}
-                        </SelectItem>
+                      {mainCategories.map((main) => (
+                        <SelectGroup key={main.id}>
+                          <SelectLabel className="text-slate-400 text-xs uppercase tracking-wide px-2 py-1">
+                            {main.label}
+                          </SelectLabel>
+                          {main.subcategories.map((sub) => (
+                            <SelectItem
+                              key={`${main.id}|${sub.id}`}
+                              value={`${main.id}|${sub.id}`}
+                              className="text-slate-300 focus:bg-slate-800 pl-4"
+                            >
+                              {sub.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
                       ))}
                     </SelectContent>
                   </Select>
