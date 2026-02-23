@@ -218,7 +218,7 @@ const handleCreate = async (formData) => {
 ```
 
 ### Security Model (DEC-025)
-- 11/18 entities have RLS policies (Phase 1-2 complete)
+- 13/18+ entities have RLS policies (Phase 1-3 in progress, Business/AccessWindow/Location migrated to server functions 2026-02-20)
 - Locked entities reject direct access without valid user context
 - Service role functions required for cross-entity operations
 - See spec-repo DECISIONS.md for full security audit status
@@ -237,7 +237,7 @@ When working on LocalLane, read these files before generating code:
 |admin:{src/pages/Admin.jsx,src/components/admin/}
 |mylane:{src/pages/MyLane.jsx,src/components/mylane/}
 
-For decisions DEC-001 through DEC-048, check DECISIONS.md before assuming behavior.
+For decisions DEC-001 through DEC-054, check DECISIONS.md before assuming behavior.
 
 ---
 
