@@ -5,21 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Zap, Crown, Coins, Store } from "lucide-react";
 import TrustSignal from '@/components/recommendations/TrustSignal';
 
-import { mainCategories, getMainCategory } from '@/components/categories/categoryData';
+import { useCategories } from '@/hooks/useCategories';
 import { getTierLabel } from '@/components/business/rankingUtils';
-
-const legacyCategoryLabels = {
-  carpenter: 'Carpenter',
-  mechanic: 'Mechanic',
-  landscaper: 'Landscaper',
-  farm: 'Farm',
-  bullion_dealer: 'Bullion Dealer',
-  electrician: 'Electrician',
-  plumber: 'Plumber',
-  handyman: 'Handyman',
-  cleaning: 'Cleaning',
-  other: 'Other'
-};
 
 const DARK_TIER_BADGE_CLASSES = {
   partner: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
@@ -27,16 +14,22 @@ const DARK_TIER_BADGE_CLASSES = {
   basic: 'bg-slate-800 text-slate-400 border-slate-700'
 };
 
-function getCategoryLabel(business) {
-  if (business.primary_category) return business.primary_category;
-  if (business.main_category) {
-    const mainCat = getMainCategory(business.main_category);
-    return mainCat?.label || business.main_category;
+function getCategoryLabel(business, getLabel, getMainCategory, legacyCategoryMapping) {
+  const mainId = business.main_category || business.primary_category;
+  const subId = business.subcategory || business.sub_category_id;
+  if (mainId) {
+    const label = getLabel(mainId, subId);
+    if (label) return label;
   }
-  return legacyCategoryLabels[business.category] || business.category || '';
+  if (business.category && legacyCategoryMapping?.[business.category]) {
+    const { main, sub } = legacyCategoryMapping[business.category];
+    return getLabel(main, sub) || business.category;
+  }
+  return business.category || '';
 }
 
 export default function BusinessCard({ business, badgeSettings = null, locationCount = null, showTierBadge = false, showNewToLocalLane = false }) {
+  const { getLabel, getMainCategory, legacyCategoryMapping } = useCategories();
   const showSilverBadge = badgeSettings?.show_accepts_silver_badge !== false;
   const showFranchiseBadge = badgeSettings?.show_locally_owned_franchise_badge !== false;
   const minPrice = business.services?.length > 0
@@ -53,8 +46,8 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
 
   const subtitle = business.description?.trim()
     ? business.description
-    : getCategoryLabel(business)
-      ? getCategoryLabel(business)
+    : getCategoryLabel(business, getLabel, getMainCategory, legacyCategoryMapping)
+      ? getCategoryLabel(business, getLabel, getMainCategory, legacyCategoryMapping)
       : null;
 
   const locationStr = business.city

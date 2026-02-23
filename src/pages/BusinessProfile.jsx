@@ -19,22 +19,23 @@ import {
 } from "lucide-react";
 import { formatAddress, buildMapsQuery } from '@/components/locations/formatAddress';
 import JoyCoinHours from '@/components/business/JoyCoinHours';
+import { useCategories } from '@/hooks/useCategories';
 
-const categoryLabels = {
-  carpenter: 'Carpenter',
-  mechanic: 'Mechanic',
-  landscaper: 'Landscaper',
-  farm: 'Farm',
-  bullion_dealer: 'Bullion Dealer',
-  electrician: 'Electrician',
-  plumber: 'Plumber',
-  handyman: 'Handyman',
-  cleaning: 'Cleaning',
-  other: 'Other'
-};
+function getCategoryDisplayLabel(business, getLabel, legacyCategoryMapping) {
+  const fromMain = getLabel(business.main_category, business.subcategory);
+  if (fromMain) return fromMain;
+  const fromPrimary = getLabel(business.primary_category, business.sub_category_id);
+  if (fromPrimary) return fromPrimary;
+  if (business.category && legacyCategoryMapping?.[business.category]) {
+    const { main, sub } = legacyCategoryMapping[business.category];
+    return getLabel(main, sub) || business.category;
+  }
+  return business.category || '';
+}
 
 export default function BusinessProfile() {
   const navigate = useNavigate();
+  const { getLabel, legacyCategoryMapping } = useCategories();
   const urlParams = new URLSearchParams(window.location.search);
   const businessId = urlParams.get('id');
 
@@ -134,7 +135,7 @@ export default function BusinessProfile() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <Badge variant="secondary" className="bg-slate-800 text-slate-300">
-                      {categoryLabels[business.category] || business.category}
+                      {getCategoryDisplayLabel(business, getLabel, legacyCategoryMapping)}
                     </Badge>
                     {isPartner && (
                       <Badge className="bg-amber-500 text-black">

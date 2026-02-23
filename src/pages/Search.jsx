@@ -9,6 +9,7 @@ import FilterBar from '@/components/search/FilterBar';
 import SearchResultsSection from '@/components/search/SearchResultsSection';
 import { rankBusinesses } from '@/components/business/rankingUtils';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
+import { useCategories } from '@/hooks/useCategories';
 import { Button } from "@/components/ui/button";
 import { Loader2, SearchX, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ export default function Search() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated } = useAuth();
+  const { legacyCategoryMapping } = useCategories();
 
   const urlParams = new URLSearchParams(window.location.search);
   const initialQuery = urlParams.get('q') || '';
@@ -70,9 +72,12 @@ export default function Search() {
       );
     }
 
-    // Category filter
+    // Category filter (main category id; support legacy business.category via mapping)
     if (filters.category && filters.category !== 'all') {
-      result = result.filter(b => b.category === filters.category);
+      result = result.filter(b =>
+        b.main_category === filters.category ||
+        (b.category && legacyCategoryMapping[b.category]?.main === filters.category)
+      );
     }
 
     // Accepts silver filter
@@ -105,7 +110,7 @@ export default function Search() {
     }
 
     return result;
-  }, [businesses, searchParams, filters, sortBy]);
+  }, [businesses, searchParams, filters, sortBy, legacyCategoryMapping]);
 
   const handleSearch = ({ query, location }) => {
     setSearchParams({ query, location });

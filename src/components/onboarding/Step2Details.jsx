@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -7,8 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Upload, X, Loader2, ChevronDown, Check } from "lucide-react";
 import { base44 } from '@/api/base44Client';
+import { useCategories } from '../../hooks/useCategories';
 
 export default function Step2Details({ formData, setFormData, uploading, setUploading }) {
+  const { mainCategories, getLabel } = useCategories();
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -16,33 +17,18 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
   const [expandedCategory, setExpandedCategory] = useState(null);
   const dropdownRef = useRef(null);
 
-  // Fetch all category groups (ADR-001: client-side filter — Base44 filter unreliable)
-  const { data: categoryGroups = [] } = useQuery({
-    queryKey: ['categoryGroups'],
-    queryFn: () => base44.entities.CategoryGroup.list(),
-  });
-
-  const { data: allSubCategories = [] } = useQuery({
-    queryKey: ['subCategories'],
-    queryFn: async () => await base44.entities.SubCategory.list()
-  });
-
-  // Filter to current archetype and transform to UI structure
+  // Category tree from hook (all main categories, no archetype filter)
   const currentArchetypeCategories = useMemo(() => {
-    const filtered = (categoryGroups || []).filter(
-      cat => cat.archetype_id === formData.archetype_id
-    );
-    return filtered.map(group => ({
-      label: group.label,
-      subCategories: allSubCategories
-        .filter(sub => sub.group_id === group.id)
-        .map(sub => ({
-          name: sub.name,
-          keywords: sub.keywords || [],
-          id: sub.id
-        }))
+    return mainCategories.map((main) => ({
+      id: main.id,
+      label: main.label,
+      subCategories: main.subcategories.map((sub) => ({
+        id: sub.id,
+        name: sub.label,
+        keywords: [],
+      })),
     }));
-  }, [categoryGroups, allSubCategories, formData.archetype_id]);
+  }, [mainCategories]);
 
   // Dynamic placeholder from ACTUAL data
   const getDynamicPlaceholder = () => {
@@ -62,28 +48,20 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
     setExpandedCategory(expandedCategory === key ? null : key);
   };
 
-  // Smart Filter Logic with keyword matching
+  // Smart filter: match main label or sub name/keywords
   const filteredCategories = useMemo(() => {
     if (!searchTerm) return currentArchetypeCategories;
-
     const term = searchTerm.toLowerCase();
     return currentArchetypeCategories
-      .map(category => {
+      .map((category) => {
         const labelMatch = category.label.toLowerCase().includes(term);
-        const matchingSubs = category.subCategories.filter(sub => {
+        const matchingSubs = category.subCategories.filter((sub) => {
           const name = typeof sub === 'string' ? sub : sub.name;
           const keywords = typeof sub === 'string' ? [] : sub.keywords || [];
-          
-          // Match on name or any keyword
-          return name.toLowerCase().includes(term) || 
-                 keywords.some(keyword => keyword.toLowerCase().includes(term));
+          return name.toLowerCase().includes(term) || keywords.some((k) => String(k).toLowerCase().includes(term));
         });
-
-        if (labelMatch) {
-          return { ...category };
-        } else if (matchingSubs.length > 0) {
-          return { ...category, subCategories: matchingSubs };
-        }
+        if (labelMatch) return { ...category };
+        if (matchingSubs.length > 0) return { ...category, subCategories: matchingSubs };
         return null;
       })
       .filter(Boolean);
@@ -206,9 +184,9 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 value={
                   isDropdownOpen
                     ? searchTerm
-                    : formData.primary_category && formData.sub_category
-                    ? `${formData.primary_category} → ${formData.sub_category}`
-                    : (formData.primary_category || '')
+                    : formData.primary_category && (formData.sub_category || formData.sub_category_id)
+                    ? getLabel(formData.primary_category, formData.sub_category_id) || `${formData.primary_category} → ${formData.sub_category}`
+                    : (formData.primary_category ? getLabel(formData.primary_category, null) : '') || ''
                 }
                 onChange={handleCategorySearchChange}
                 onFocus={() => {
@@ -221,16 +199,16 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 data-lpignore="true"
                 name="category_search_custom"
                 className={`mt-1.5 pr-10 ${
-                  formData.primary_category && formData.sub_category && !isDropdownOpen
+                  (formData.primary_category && (formData.sub_category || formData.sub_category_id)) && !isDropdownOpen
                     ? 'bg-slate-800/50 border-indigo-500/50 text-emerald-400 font-bold'
                     : 'bg-slate-800/50 border-slate-700 text-slate-300 placeholder-slate-500'
                 }`}
               />
-              {formData.primary_category && formData.sub_category && !isDropdownOpen && (
+              {formData.primary_category && (formData.sub_category || formData.sub_category_id) && !isDropdownOpen && (
                 <button
                   type="button"
                   onClick={() => {
-                    setFormData({ ...formData, primary_category: '', sub_category: '' });
+                    setFormData({ ...formData, primary_category: '', sub_category: '', sub_category_id: '' });
                     setSearchTerm('');
                   }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-400 transition-colors"
@@ -249,20 +227,20 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                     <div>
                       {currentArchetypeCategories.map((cat) => {
                         const subs = cat.subCategories || [];
-                        const isSelected = formData.primary_category === cat.label && !formData.sub_category;
+                        const isSelected = formData.primary_category === cat.id && !formData.sub_category_id;
                         return (
-                        <div key={cat.label}>
+                        <div key={cat.id}>
                           <button
                             type="button"
                             onClick={() => {
                               if (subs.length === 0) {
-                                setFormData({ ...formData, primary_category: cat.label, sub_category: '', sub_category_id: '' });
+                                setFormData({ ...formData, primary_category: cat.id, sub_category: '', sub_category_id: '' });
                                 setSearchTerm('');
                                 setIsEditing(false);
                                 setIsDropdownOpen(false);
                                 setExpandedCategory(null);
                               } else {
-                                setExpandedCategory(expandedCategory === cat.label ? null : cat.label);
+                                setExpandedCategory(expandedCategory === cat.id ? null : cat.id);
                               }
                             }}
                             className="w-full flex justify-between items-center p-3 hover:bg-slate-800 cursor-pointer transition-colors border-b border-slate-800"
@@ -273,26 +251,26 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                             ) : (
                               <ChevronDown 
                                 className={`h-4 w-4 text-slate-400 transition-transform ${
-                                  expandedCategory === cat.label ? 'rotate-180' : ''
+                                  expandedCategory === cat.id ? 'rotate-180' : ''
                                 }`}
                               />
                             )}
                           </button>
-                          {expandedCategory === cat.label && subs.length > 0 && (
+                          {expandedCategory === cat.id && subs.length > 0 && (
                             <div className="bg-slate-800/30">
                               {cat.subCategories.map((sub) => {
                                 const subName = typeof sub === 'string' ? sub : sub.name;
+                                const subId = typeof sub === 'object' && sub?.id != null ? sub.id : '';
                                 return (
                                   <button
-                                    key={subName}
+                                    key={sub.id ?? subName}
                                     type="button"
                                     onClick={() => {
-                                      const subObj = typeof sub === 'object' ? sub : null;
-                                      setFormData({ 
-                                        ...formData, 
-                                        primary_category: cat.label, 
+                                      setFormData({
+                                        ...formData,
+                                        primary_category: cat.id,
                                         sub_category: subName,
-                                        sub_category_id: subObj?.id || ''
+                                        sub_category_id: subId,
                                       });
                                       setSearchTerm('');
                                       setIsEditing(false);
@@ -315,23 +293,23 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                   /* Search Mode - Flat List */
                   filteredCategories.length > 0 ? (
                     filteredCategories.map((cat) => (
-                      <div key={cat.label} className="py-2">
+                      <div key={cat.id ?? cat.label} className="py-2">
                         <div className="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                           {cat.label}
                         </div>
                         {cat.subCategories.map((sub) => {
                           const subName = typeof sub === 'string' ? sub : sub.name;
+                          const subId = typeof sub === 'object' && sub?.id != null ? sub.id : '';
                           return (
                             <button
-                              key={subName}
+                              key={sub.id ?? subName}
                               type="button"
                               onClick={() => {
-                                const subObj = typeof sub === 'object' ? sub : null;
-                                setFormData({ 
-                                  ...formData, 
-                                  primary_category: cat.label, 
+                                setFormData({
+                                  ...formData,
+                                  primary_category: cat.id,
                                   sub_category: subName,
-                                  sub_category_id: subObj?.id || ''
+                                  sub_category_id: subId,
                                 });
                                 setSearchTerm('');
                                 setIsEditing(false);

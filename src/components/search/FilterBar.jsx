@@ -5,20 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ArrowUpDown, Filter, X } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-
-const categories = [
-  { value: 'all', label: 'All Categories' },
-  { value: 'carpenter', label: 'Carpenter' },
-  { value: 'mechanic', label: 'Mechanic' },
-  { value: 'landscaper', label: 'Landscaper' },
-  { value: 'farm', label: 'Farm' },
-  { value: 'bullion_dealer', label: 'Bullion Dealer' },
-  { value: 'electrician', label: 'Electrician' },
-  { value: 'plumber', label: 'Plumber' },
-  { value: 'handyman', label: 'Handyman' },
-  { value: 'cleaning', label: 'Cleaning' },
-  { value: 'other', label: 'Other' }
-];
+import { useCategories } from '@/hooks/useCategories';
 
 const sortOptions = [
   { value: 'recommended', label: 'Recommended' },
@@ -34,6 +21,11 @@ export default function FilterBar({
   onSortChange,
   resultCount = 0 
 }) {
+  const { mainCategories } = useCategories();
+  const categories = [
+    { value: 'all', label: 'All Categories' },
+    ...mainCategories.map((c) => ({ value: c.id, label: c.label })),
+  ];
   const activeFilterCount = [
     filters.category !== 'all' && filters.category,
     filters.acceptsSilver

@@ -8,12 +8,15 @@ import { rankBusinesses } from '@/components/business/rankingUtils';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, Shield, ShieldCheck, MapPin, Users, Heart, Store } from "lucide-react";
-import { mainCategories, defaultPopularCategoryIds } from '@/components/categories/categoryData';
+import { ChevronRight, Shield, ShieldCheck, MapPin, Users, Heart, Store, Sprout, Activity, Palette, Wrench } from "lucide-react";
+import { useCategories } from '@/hooks/useCategories';
+
+const CATEGORY_ICONS = { Sprout, Activity, Palette, Wrench, Heart };
 
 export default function Home() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { mainCategories, defaultPopularCategoryIds } = useCategories();
 
   // Get active region for this instance
   const { region, isLoading: regionLoading } = useActiveRegion();
@@ -138,12 +141,12 @@ export default function Home() {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {popularCategories.map((category) => {
-            const Icon = category.icon;
+            const Icon = CATEGORY_ICONS[category.icon] ?? Store;
             return (
               <button
                 key={category.id}
                 onClick={() => handleCategoryClick(category.id)}
-                className={`p-5 rounded-xl border border-slate-800 ${category.color} transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:border-amber-500/50 text-left bg-slate-900`}
+                className="p-5 rounded-xl border border-slate-800 bg-slate-900 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:border-amber-500/50 text-left"
               >
                 <Icon className="h-8 w-8 mb-3 text-amber-500" />
                 <p className="font-semibold text-slate-100">{category.label}</p>

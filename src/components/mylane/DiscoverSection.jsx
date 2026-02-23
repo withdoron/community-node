@@ -1,10 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { mainCategories, defaultPopularCategoryIds } from '@/components/categories/categoryData';
+import { useCategories } from '@/hooks/useCategories';
 import SectionWrapper from './SectionWrapper';
+import { Sprout, Activity, Palette, Wrench, Heart, Store } from 'lucide-react';
+
+const CATEGORY_ICONS = { Sprout, Activity, Palette, Wrench, Heart };
 
 export default function DiscoverSection() {
+  const { mainCategories, defaultPopularCategoryIds } = useCategories();
   const popularCategories = mainCategories.filter((c) =>
     defaultPopularCategoryIds.includes(c.id)
   );
@@ -17,7 +21,7 @@ export default function DiscoverSection() {
     >
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {popularCategories.map((cat) => {
-          const Icon = cat.icon;
+          const Icon = CATEGORY_ICONS[cat.icon] ?? Store;
           return (
             <Link
               key={cat.id}

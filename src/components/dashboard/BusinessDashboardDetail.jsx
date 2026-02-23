@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from 'date-fns';
-import { mainCategories, getMainCategory } from '@/components/categories/categoryData';
+import { useCategories } from '@/hooks/useCategories';
 import LocationsSection from '@/components/dashboard/LocationsSection';
 
 const US_STATES = [
@@ -72,6 +72,7 @@ const tiers = [
 
 export default function BusinessDashboardDetail({ business, onBack }) {
   const queryClient = useQueryClient();
+  const { mainCategories, getMainCategory } = useCategories();
   const { tier, tierLevel, isPartner } = useOrganization(business);
 
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);

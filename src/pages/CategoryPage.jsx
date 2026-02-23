@@ -3,15 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { mainCategories, getMainCategory, legacyCategoryMapping } from '@/components/categories/categoryData';
+import { useCategories } from '@/hooks/useCategories';
 import BusinessCard from '@/components/business/BusinessCard';
 import { rankBusinesses } from '@/components/business/rankingUtils';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Loader2, SearchX } from "lucide-react";
+import { ChevronLeft, Loader2, SearchX, Sprout, Activity, Palette, Wrench, Heart, Store } from "lucide-react";
+
+const CATEGORY_ICONS = { Sprout, Activity, Palette, Wrench, Heart };
 
 export default function CategoryPage() {
   const navigate = useNavigate();
+  const { getMainCategory, legacyCategoryMapping } = useCategories();
   const urlParams = new URLSearchParams(window.location.search);
   const categoryId = urlParams.get('id');
   const initialSubcategory = urlParams.get('sub') || 'all';
@@ -95,7 +98,7 @@ export default function CategoryPage() {
     );
   }
 
-  const CategoryIcon = category.icon;
+  const CategoryIcon = (category?.icon && CATEGORY_ICONS[category.icon]) ? CATEGORY_ICONS[category.icon] : Store;
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -125,8 +128,8 @@ export default function CategoryPage() {
           {/* Subcategory filters */}
           <div className="flex flex-wrap gap-2">
             {category.subcategories.map((sub) => {
-              const isSelected = selectedSubcategory === sub.id || 
-                (sub.id.startsWith('all_') && (selectedSubcategory === 'all' || selectedSubcategory === sub.id));
+              const isSelected = selectedSubcategory === sub.id ||
+                (typeof sub.id === 'string' && sub.id.startsWith('all_') && (selectedSubcategory === 'all' || selectedSubcategory === sub.id));
               return (
                 <button
                   key={sub.id}

@@ -25,10 +25,12 @@ import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown, Trash2
 import { format } from 'date-fns';
 import { toast } from "sonner";
 import { useConfig } from '@/hooks/useConfig';
+import { useCategories } from '@/hooks/useCategories';
 import { US_STATES } from '@/lib/usStates';
 
 export default function BusinessEditDrawer({ business, open, onClose, adminEmail }) {
   const queryClient = useQueryClient();
+  const { mainCategories } = useCategories();
   const [editData, setEditData] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, field: '', value: null, message: '' });
@@ -43,31 +45,18 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const staffSearchRef = useRef(null);
   const logoInputRef = useRef(null);
 
-  const { data: categoryGroups = [] } = useQuery({
-    queryKey: ['categoryGroups'],
-    queryFn: () => base44.entities.CategoryGroup.list(),
-  });
-  const { data: allSubCategories = [] } = useQuery({
-    queryKey: ['subCategories'],
-    queryFn: () => base44.entities.SubCategory.list(),
-  });
   const categoryOptions = useMemo(() => {
-    const groups = Array.isArray(categoryGroups) ? categoryGroups : [];
-    const subs = Array.isArray(allSubCategories) ? allSubCategories : [];
-    const options = [];
-    groups.forEach((g) => {
-      subs.filter((s) => s.group_id === g.id).forEach((s) => {
-        options.push({
-          value: `${g.label}|${s.name}`,
-          label: `${g.label} — ${s.name}`,
-          groupLabel: g.label,
-          subName: s.name,
-          subId: s.id,
-        });
-      });
-    });
-    return options;
-  }, [categoryGroups, allSubCategories]);
+    return mainCategories.flatMap((main) =>
+      main.subcategories.map((sub) => ({
+        value: `${main.id}|${sub.id}`,
+        label: `${main.label} — ${sub.label}`,
+        groupLabel: main.label,
+        subName: sub.label,
+        subId: sub.id,
+        mainId: main.id,
+      }))
+    );
+  }, [mainCategories]);
 
   useEffect(() => {
     setLocalInstructors(business?.instructors || []);
@@ -714,11 +703,17 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <div>
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Category</Label>
                   <Select
-                    value={editData.primary_category && editData.sub_category ? `${editData.primary_category}|${editData.sub_category}` : (editData.primary_category || '')}
+                    value={
+                      editData.primary_category && editData.sub_category_id
+                        ? `${editData.primary_category}|${editData.sub_category_id}`
+                        : categoryOptions.find((o) => o.mainId === editData.primary_category && o.subName === editData.sub_category)?.value ??
+                          categoryOptions.find((o) => o.groupLabel === editData.primary_category && o.subName === editData.sub_category)?.value ??
+                          (editData.primary_category || '')
+                    }
                     onValueChange={(val) => {
                       const opt = categoryOptions.find((o) => o.value === val);
                       if (opt) {
-                        handleFieldChange('primary_category', opt.groupLabel);
+                        handleFieldChange('primary_category', opt.mainId);
                         handleFieldChange('sub_category', opt.subName);
                         handleFieldChange('sub_category_id', opt.subId || '');
                       } else {

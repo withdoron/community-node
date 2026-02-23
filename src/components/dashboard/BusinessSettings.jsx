@@ -15,6 +15,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { US_STATES } from '@/lib/usStates';
 import StaffWidget from './widgets/StaffWidget';
+import { useCategories } from '@/hooks/useCategories';
 
 const TIER_CONFIG = {
   basic: {
@@ -67,35 +68,23 @@ function getInitialFormData(business) {
 
 export default function BusinessSettings({ business, currentUserId }) {
   const queryClient = useQueryClient();
+  const { mainCategories } = useCategories();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(null);
   const logoInputRef = React.useRef(null);
 
-  const { data: categoryGroups = [] } = useQuery({
-    queryKey: ['categoryGroups'],
-    queryFn: () => base44.entities.CategoryGroup.list(),
-  });
-  const { data: allSubCategories = [] } = useQuery({
-    queryKey: ['subCategories'],
-    queryFn: () => base44.entities.SubCategory.list(),
-  });
   const categoryOptions = useMemo(() => {
-    const groups = Array.isArray(categoryGroups) ? categoryGroups : [];
-    const subs = Array.isArray(allSubCategories) ? allSubCategories : [];
-    const options = [];
-    groups.forEach((g) => {
-      subs.filter((s) => s.group_id === g.id).forEach((s) => {
-        options.push({
-          value: `${g.label}|${s.name}`,
-          label: `${g.label} — ${s.name}`,
-          groupLabel: g.label,
-          subName: s.name,
-          subId: s.id,
-        });
-      });
-    });
-    return options;
-  }, [categoryGroups, allSubCategories]);
+    return mainCategories.flatMap((main) =>
+      main.subcategories.map((sub) => ({
+        value: `${main.id}|${sub.id}`,
+        label: `${main.label} — ${sub.label}`,
+        groupLabel: main.label,
+        subName: sub.label,
+        subId: sub.id,
+        mainId: main.id,
+      }))
+    );
+  }, [mainCategories]);
 
   useEffect(() => {
     const next = getInitialFormData(business);
@@ -274,11 +263,17 @@ export default function BusinessSettings({ business, currentUserId }) {
                   Category
                 </Label>
                 <Select
-                  value={formData.primary_category && formData.sub_category ? `${formData.primary_category}|${formData.sub_category}` : ''}
+                  value={
+                    formData.primary_category && formData.sub_category_id
+                      ? `${formData.primary_category}|${formData.sub_category_id}`
+                      : categoryOptions.find((o) => o.mainId === formData.primary_category && o.subName === formData.sub_category)?.value ??
+                        categoryOptions.find((o) => o.groupLabel === formData.primary_category && o.subName === formData.sub_category)?.value ??
+                        ''
+                  }
                   onValueChange={(val) => {
                     const opt = categoryOptions.find((o) => o.value === val);
                     if (opt) {
-                      handleChange('primary_category', opt.groupLabel);
+                      handleChange('primary_category', opt.mainId);
                       handleChange('sub_category', opt.subName);
                       handleChange('sub_category_id', opt.subId || '');
                     } else {
