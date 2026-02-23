@@ -4,10 +4,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const PROFILE_ALLOWLIST = [
-  'name', 'description', 'primary_category', 'sub_category', 'sub_category_id', 'main_category',
+  'name', 'description', 'primary_category', 'sub_category', 'sub_category_id', 'main_category', 'category',
   'email', 'contact_email', 'phone', 'website',
   'address', 'city', 'state', 'zip_code', 'display_full_address',
   'logo_url', 'instagram_url', 'facebook_url', 'tagline',
+  'accepts_joy_coins', 'accepts_silver', 'services',
 ];
 
 const ADMIN_EXTRA_ALLOWLIST = [

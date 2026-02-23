@@ -545,15 +545,25 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const handleSaveChanges = async () => {
     if (!editData || !business) return;
     const payload = {
+      name: editData.name ?? '',
+      description: editData.description ?? '',
+      primary_category: editData.primary_category ?? '',
+      main_category: editData.main_category ?? '',
+      sub_category: editData.sub_category ?? '',
+      sub_category_id: editData.sub_category_id ?? '',
+      email: editData.email ?? '',
+      phone: editData.phone ?? '',
+      website: editData.website ?? '',
+      address: editData.address ?? '',
+      city: editData.city ?? '',
+      state: editData.state ?? '',
+      zip_code: editData.zip_code ?? '',
+      display_full_address: editData.display_full_address === true,
       subscription_tier: editData.subscription_tier,
       accepts_silver: editData.accepts_silver,
       is_locally_owned_franchise: editData.is_locally_owned_franchise,
       network_ids: Array.isArray(editData.network_ids) ? editData.network_ids : [],
       is_active: editData.is_active,
-      primary_category: editData.primary_category ?? '',
-      main_category: editData.main_category ?? '',
-      sub_category: editData.sub_category ?? '',
-      sub_category_id: editData.sub_category_id ?? '',
     };
     saveMutation.mutate(payload);
   };

@@ -235,7 +235,6 @@ export default function EventEditor({
       e.location = "Location is required";
     }
     if (!formData.description?.trim()) e.description = "Description is required";
-    if (!formData.event_types || formData.event_types.length === 0) e.event_types = "Select at least one event type";
     if (
       formData.pricing_type === "single_price" &&
       (!formData.price || parseFloat(formData.price) <= 0)
@@ -1397,7 +1396,7 @@ export default function EventEditor({
 
         {/* Event Type */}
         <div data-error="event_types">
-          <Label className="text-slate-300">Event Type *</Label>
+          <Label className="text-slate-300">Event Type</Label>
           <div className="flex flex-wrap gap-2 mt-2">
             {(eventTypes || [])
               .filter((t) => t.active !== false)

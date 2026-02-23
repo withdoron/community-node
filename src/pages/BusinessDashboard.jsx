@@ -188,6 +188,22 @@ export default function BusinessDashboard() {
     enabled: !!selectedBusinessId
   });
 
+  // RSVP counts per event (for Home tab Upcoming Events)
+  const { data: eventRsvpCounts = {} } = useQuery({
+    queryKey: ['event-rsvp-counts', selectedBusinessId, businessEvents.map((e) => e.id).join(',')],
+    queryFn: async () => {
+      const counts = {};
+      await Promise.all(
+        businessEvents.map(async (e) => {
+          const list = await base44.entities.RSVP.filter({ event_id: e.id, is_active: true });
+          counts[e.id] = list.length;
+        })
+      );
+      return counts;
+    },
+    enabled: !!selectedBusinessId && businessEvents.length > 0,
+  });
+
   const revenue = useBusinessRevenue(selectedBusinessId);
 
   // Hard delete: Business.delete(id) removes record permanently. Fallback to soft delete if delete not available.
@@ -522,25 +538,33 @@ export default function BusinessDashboard() {
                 }
                 return (
                   <div className="space-y-3">
-                    {upcoming.map((event) => (
-                      <div
-                        key={event.id}
-                        className="bg-slate-900/50 border border-slate-800 rounded-lg p-3 flex justify-between items-center"
-                      >
-                        <div>
-                          <div className="font-medium text-slate-100">{event.title}</div>
-                          <div className="text-sm text-slate-400">
-                            {event.date || event.start_date ? new Date(event.date || event.start_date).toLocaleString() : '—'}
+                    {upcoming.map((event) => {
+                      const rsvpCount = eventRsvpCounts[event.id] ?? 0;
+                      return (
+                        <div
+                          key={event.id}
+                          className="bg-slate-900/50 border border-slate-800 rounded-lg p-3 flex justify-between items-center"
+                        >
+                          <div>
+                            <div className="font-medium text-slate-100">{event.title}</div>
+                            <div className="text-sm text-slate-400">
+                              {event.date || event.start_date ? new Date(event.date || event.start_date).toLocaleString() : '—'}
+                              {rsvpCount !== undefined && (
+                                <span className="ml-2 text-slate-500">
+                                  — {rsvpCount === 0 ? 'No RSVPs yet' : `${rsvpCount} RSVP${rsvpCount !== 1 ? 's' : ''}`}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 text-sm text-slate-400">
+                            {event.joy_coin_enabled && event.joy_coin_cost > 0 && (
+                              <span className="text-amber-500">{event.joy_coin_cost} coin(s)</span>
+                            )}
+                            <span>—</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-slate-400">
-                          {event.joy_coin_enabled && event.joy_coin_cost > 0 && (
-                            <span className="text-amber-500">{event.joy_coin_cost} coin(s)</span>
-                          )}
-                          <span>—</span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 );
               })()}

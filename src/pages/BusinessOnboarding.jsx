@@ -175,7 +175,8 @@ export default function BusinessOnboarding() {
       archetype_id: dbArch?.id || null,
       goals,
       subscription_tier,
-      services: cleanedServices
+      services: cleanedServices,
+      main_category: formData.primary_category || formData.main_category || null,
     };
     createBusiness.mutate(submitData);
   };

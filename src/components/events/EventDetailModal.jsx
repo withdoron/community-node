@@ -57,6 +57,17 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
   const [cancelConfirming, setCancelConfirming] = useState(false);
   const [showNewsletterPrompt, setShowNewsletterPrompt] = useState(false);
 
+  // Auto-close modal 2s after RSVP success when newsletter prompt is not shown
+  useEffect(() => {
+    if (rsvpConfirmation !== 'going' || showNewsletterPrompt) return;
+    const t = setTimeout(() => {
+      setRsvpConfirmation(null);
+      setPartySize(1);
+      onClose();
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [rsvpConfirmation, showNewsletterPrompt, onClose]);
+
   const maxPartySize = event?.max_party_size != null ? event.max_party_size : 10;
   const totalCost = joyCoinCost * partySize;
   const hasEnoughJoyCoins = !isJoyCoinEvent || joyCoinBalance >= totalCost;
@@ -621,6 +632,15 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                           <CheckCircle2 className="h-5 w-5" />
                           You&apos;re in! See you there.
                         </div>
+                        {!showNewsletterPrompt && (
+                          <button
+                            type="button"
+                            onClick={() => { setRsvpConfirmation(null); setPartySize(1); onClose(); }}
+                            className="w-full py-2.5 px-4 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 font-medium transition-colors"
+                          >
+                            Done
+                          </button>
+                        )}
                         {showNewsletterPrompt && (
                           <div className="bg-slate-800/90 border border-amber-500/30 rounded-xl p-4">
                             <div className="flex items-center gap-2 mb-3">
