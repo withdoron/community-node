@@ -71,6 +71,13 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
     queryFn: () => base44.entities.Location.filter({ business_id: business.id, is_active: true }, '-created_date', 50)
   });
 
+  const sortedEvents = useMemo(() => {
+    const list = [...events];
+    const getDate = (e) => new Date(e.date || e.start_date || 0).getTime();
+    list.sort((a, b) => sortOrder === 'asc' ? getDate(a) - getDate(b) : getDate(b) - getDate(a));
+    return list;
+  }, [events, sortOrder]);
+
   // Generate recurring event instances (weekly/biweekly with selected days)
   const generateRecurringEvents = async (eventData) => {
     const startDate = new Date(eventData.date);
@@ -340,7 +347,7 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
         </div>
       ) : (
         <div className="space-y-3">
-          {events.map((event) => (
+          {sortedEvents.map((event) => (
             <div key={event.id} className="border border-slate-700 rounded-lg p-4 bg-slate-800 hover:border-amber-500/30 transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
