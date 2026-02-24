@@ -428,8 +428,17 @@ export default function EventEditor({
       additional_notes: formData.additional_notes?.trim() || null,
 
       network_only: !!(formData.networks?.length > 0 && formData.network_only),
+
+      // Accessibility: array for display/filter + booleans for compatibility
+      accessibility_features: Array.isArray(formData.accessibility_features) ? formData.accessibility_features : [],
+      wheelchair_accessible: formData.accessibility_features?.includes("wheelchair_accessible") ?? false,
+      sensory_friendly: formData.accessibility_features?.includes("sensory_friendly") ?? false,
+      childcare_provided: formData.accessibility_features?.includes("childcare_provided") ?? false,
+      asl_interpreter: formData.accessibility_features?.includes("asl_interpreter") ?? false,
+      free_admission: formData.accessibility_features?.includes("free_admission") ?? false,
     };
 
+    console.log("[EventEditor] save payload accessibility_features:", eventData.accessibility_features);
 
     try {
       await Promise.resolve(onSave(eventData));
@@ -498,12 +507,13 @@ export default function EventEditor({
   };
 
   const toggleAccessibility = (feature) => {
-    setFormData((prev) => ({
-      ...prev,
-      accessibility_features: prev.accessibility_features.includes(feature)
+    setFormData((prev) => {
+      const next = prev.accessibility_features.includes(feature)
         ? prev.accessibility_features.filter((f) => f !== feature)
-        : [...prev.accessibility_features, feature],
-    }));
+        : [...prev.accessibility_features, feature];
+      console.log("[EventEditor] accessibility_features after toggle:", next);
+      return { ...prev, accessibility_features: next };
+    });
   };
 
   const DRAFT_KEY = "event_draft";
