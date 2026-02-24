@@ -255,14 +255,6 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                         Events
                       </Link>
                     </SheetClose>
-                    {currentUser && showBusinessDashboard && (
-                      <SheetClose asChild>
-                        <Link to={createPageUrl('BusinessDashboard')} className={`flex items-center gap-3 ${sheetLinkClass('BusinessDashboard')}`}>
-                          <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
-                          Dashboard
-                        </Link>
-                      </SheetClose>
-                    )}
                   </div>
                   <div className="border-t border-slate-800 my-4" />
                   {currentUser && (
@@ -321,12 +313,17 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                       </button>
                     </div>
                   ) : (
-                    <Button
-                      className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold"
-                      onClick={() => base44.auth.redirectToLogin()}
-                    >
-                      Sign In
-                    </Button>
+                    <div>
+                      <p className="text-sm text-slate-400 mb-3">
+                        Sign in to RSVP for events, follow networks, and discover your lane.
+                      </p>
+                      <Button
+                        className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                        onClick={() => base44.auth.redirectToLogin()}
+                      >
+                        Sign In
+                      </Button>
+                    </div>
                   )}
                 </div>
               </SheetContent>

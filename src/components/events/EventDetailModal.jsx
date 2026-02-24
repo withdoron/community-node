@@ -320,11 +320,26 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                       {event.is_virtual && (
                         <div className="text-slate-400 text-sm mb-2">Virtual event: {event.virtual_platform || 'TBD'}</div>
                       )}
-                      {!event.is_location_tbd && (
-                        <button className="text-amber-500 text-sm flex items-center gap-1 hover:text-amber-400 transition-colors">
-                          View on map <ExternalLink className="h-3 w-3" />
-                        </button>
-                      )}
+                      {!event.is_location_tbd && (() => {
+                        const hasCoords = event.latitude != null && event.longitude != null && !Number.isNaN(Number(event.latitude)) && !Number.isNaN(Number(event.longitude));
+                        const address = (event.location || event.location_address || '').trim();
+                        const mapUrl = hasCoords
+                          ? `https://www.google.com/maps?q=${event.latitude},${event.longitude}`
+                          : address
+                            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+                            : null;
+                        if (!mapUrl) return null;
+                        return (
+                          <a
+                            href={mapUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-amber-500 text-sm inline-flex items-center gap-1 hover:text-amber-400 transition-colors"
+                          >
+                            View on map <ExternalLink className="h-3 w-3" />
+                          </a>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>

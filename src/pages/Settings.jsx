@@ -250,13 +250,15 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* My Household Section */}
-          <div>
-            <HouseholdManager />
-            <p className="text-xs text-slate-500 mt-2 text-center">
-              Household changes are saved automatically
-            </p>
-          </div>
+          {/* My Household — hidden until Community Pass launches (not relevant for pilot) */}
+          {false && (
+            <div>
+              <HouseholdManager />
+              <p className="text-xs text-slate-500 mt-2 text-center">
+                Household changes are saved automatically
+              </p>
+            </div>
+          )}
 
           {/* Account Section */}
           <div>

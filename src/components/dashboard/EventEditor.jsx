@@ -1064,14 +1064,12 @@ export default function EventEditor({
             <Label className="text-slate-300">Pricing Type</Label>
             <div className="grid grid-cols-2 gap-2 mt-2">
               {["free", "single_price", "multiple_tickets", "pay_what_you_wish"].map((type) => {
-                const isLocked = type === "multiple_tickets" && !canUseMultipleTickets;
-                const isDisabled = isLocked;
+                const isDisabled = false;
                 return (
                   <button
                     key={type}
                     type="button"
                     onClick={() =>
-                      !isDisabled &&
                       setFormData((prev) => ({
                         ...prev,
                         pricing_type: type,
@@ -1079,34 +1077,21 @@ export default function EventEditor({
                         min_price: type === "pay_what_you_wish" ? prev.min_price : "",
                       }))
                     }
-                    disabled={isDisabled}
                     className={cn(
                       "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1",
                       formData.pricing_type === type
                         ? "bg-amber-500 text-black"
-                        : isDisabled
-                        ? "bg-slate-800/50 text-slate-500 border border-slate-700 cursor-not-allowed"
                         : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
                     )}
                   >
                     {type === "free" && "Free"}
                     {type === "single_price" && "Single Price"}
-                    {type === "multiple_tickets" && (
-                      <>
-                        Multiple Tickets
-                        {isLocked && <Lock className="h-3 w-3" />}
-                      </>
-                    )}
+                    {type === "multiple_tickets" && "Multiple Tickets"}
                     {type === "pay_what_you_wish" && "Pay What You Wish"}
                   </button>
                 );
               })}
             </div>
-            {!canUseMultipleTickets && (
-              <p className="text-xs text-slate-400 mt-1">
-                Multiple ticket types require Standard tier or higher.
-              </p>
-            )}
             {errors.pricing_type && (
               <p className="text-red-400 text-sm mt-1">{errors.pricing_type}</p>
             )}
