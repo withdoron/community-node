@@ -12,11 +12,32 @@ import { useRole } from '@/hooks/useRole';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
 
+function getPriceBadge(event) {
+  const pt = event.pricing_type;
+  if (!pt) return null;
+  if (pt === 'free') return { text: 'FREE', green: true };
+  if (pt === 'multiple_tickets' || pt === 'multiple') {
+    const tickets = event.ticket_types || event.tickets || [];
+    const prices = tickets.map((t) => Number(t.price));
+    const lowest = prices.length ? Math.min(...prices) : 0;
+    if (lowest === 0) return { text: 'From Free', green: false };
+    return { text: `From $${lowest.toFixed(2)}`, green: false };
+  }
+  if (pt === 'single_price' || pt === 'single') {
+    const p = Number(event.price);
+    if (p === 0) return { text: 'FREE', green: true };
+    return { text: `$${p.toFixed(2)}`, green: false };
+  }
+  if (pt === 'pay_what_you_wish' || pt === 'pwyw') return { text: 'PWYW', green: false };
+  return null;
+}
+
 export default function EventDetailModal({ event, isOpen, onClose }) {
   if (!event) return null;
 
   const eventDate = new Date(event.date || event.start_date);
   const isPast = eventDate < new Date();
+  const priceBadge = getPriceBadge(event);
   const isFree = event.pricing_type === 'free';
   const isCancelled = event.status === 'cancelled';
   // Field mapping: Base44 fields punch_pass_accepted/punch_cost → joy_coin_enabled/joy_coin_cost
@@ -252,14 +273,9 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                               {joyCoinCost === 1 ? '1 Joy Coin' : `${joyCoinCost} Joy Coins`}
                             </Badge>
                           )}
-                          {!acceptsJoyCoins && !isFree && (
-                            <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-                              ${event.price.toFixed(2)}
-                            </Badge>
-                          )}
-                          {isFree && !isJoyCoinEvent && (
-                            <Badge className="bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-                              FREE
+                          {!acceptsJoyCoins && priceBadge && (
+                            <Badge className={priceBadge.green ? 'bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg' : 'bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg'}>
+                              {priceBadge.text}
                             </Badge>
                           )}
                         </>
@@ -282,14 +298,9 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                         {joyCoinCost === 1 ? '1 Joy Coin' : `${joyCoinCost} Joy Coins`}
                       </Badge>
                     )}
-                    {!acceptsJoyCoins && !isFree && event.price > 0 && (
-                      <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold">
-                        ${event.price.toFixed(2)}
-                      </Badge>
-                    )}
-                    {isFree && !isJoyCoinEvent && (
-                      <Badge className="bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold">
-                        FREE
+                    {!acceptsJoyCoins && priceBadge && (
+                      <Badge className={priceBadge.green ? 'bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold' : 'bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold'}>
+                        {priceBadge.text}
                       </Badge>
                     )}
                   </div>
