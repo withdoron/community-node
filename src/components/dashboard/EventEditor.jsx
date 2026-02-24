@@ -185,7 +185,24 @@ export default function EventEditor({
         capacity: existingEvent.capacity ? String(existingEvent.capacity) : "",
         accepts_rsvps: !!existingEvent.accepts_rsvps,
         additional_notes: existingEvent.additional_notes || "",
-        accessibility_features: Array.isArray(existingEvent.accessibility_features) ? existingEvent.accessibility_features : [],
+        accessibility_features: (() => {
+          let arr = existingEvent.accessibility_features;
+          if (typeof arr === "string") {
+            try {
+              arr = JSON.parse(arr);
+            } catch {
+              arr = [];
+            }
+          }
+          arr = Array.isArray(arr) ? arr : [];
+          if (arr.length > 0) return arr;
+          const fromBooleans = [];
+          const boolKeys = ["wheelchair_accessible", "sensory_friendly", "childcare_provided", "asl_interpreter", "free_admission"];
+          boolKeys.forEach((k) => {
+            if (existingEvent[k]) fromBooleans.push(k);
+          });
+          return fromBooleans;
+        })(),
         ticket_types: Array.isArray(existingEvent.ticket_types) && existingEvent.ticket_types.length > 0
           ? existingEvent.ticket_types.map((t) => ({
               name: t.name ?? "",
