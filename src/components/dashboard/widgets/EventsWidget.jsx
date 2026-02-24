@@ -184,6 +184,7 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['business-events', business.id] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
       setEditorOpen(false);
       setEditingEvent(null);
     }
@@ -216,8 +217,10 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
   });
 
   const handleSave = (eventData) => {
-    if (editingEvent?.id) {
-      return updateMutation.mutateAsync({ id: editingEvent.id, data: eventData });
+    if (editingEvent?.id || eventData?.event_id) {
+      const eventId = eventData?.event_id ?? editingEvent?.id;
+      const { event_id: _omit, ...data } = eventData;
+      return updateMutation.mutateAsync({ id: eventId, data });
     }
     return createMutation.mutateAsync(eventData);
   };
@@ -227,8 +230,13 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
     setEditorOpen(true);
   };
 
-  const handleEditEvent = (event) => {
-    setEditingEvent(event);
+  const handleEditEvent = async (event) => {
+    try {
+      const full = await base44.entities.Event.get(event.id);
+      setEditingEvent(full ?? event);
+    } catch {
+      setEditingEvent(event);
+    }
     setEditorOpen(true);
   };
 
@@ -358,10 +366,10 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
                         — {eventRsvpCounts[event.id] === 0 ? 'No RSVPs yet' : `${eventRsvpCounts[event.id]} RSVP${eventRsvpCounts[event.id] !== 1 ? 's' : ''}`}
                       </span>
                     )}
-                    {event.price > 0 ? (
-                      <span>${event.price}</span>
-                    ) : (
+                    {event.pricing_type === 'free' ? (
                       <span className="text-emerald-400 font-semibold">FREE</span>
+                    ) : (
+                      <span>${Number(event.price) || 0}</span>
                     )}
                   </div>
                 </div>

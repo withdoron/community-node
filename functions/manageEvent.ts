@@ -90,7 +90,11 @@ Deno.serve(async (req) => {
       if (!data || typeof data !== 'object' || Array.isArray(data)) {
         return Response.json({ error: 'data object is required for update' }, { status: 400 });
       }
-      const updated = await eventEntity.update(event_id as string, data as Record<string, unknown>);
+      const payload = { ...data } as Record<string, unknown>;
+      delete payload.event_id;
+      delete payload.id;
+      // pricing_type and all other fields (thumbnail_url, images, etc.) are preserved
+      const updated = await eventEntity.update(event_id as string, payload);
       return Response.json(updated);
     }
 

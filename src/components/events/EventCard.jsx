@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 
 export default function EventCard({ event, onClick }) {
   const eventDate = new Date(event.date);
-  const isFree = !event.price || event.price === 0;
+  const isFree = event.pricing_type === 'free';
   const isCancelled = event.status === 'cancelled';
   // Field mapping: Base44 fields punch_pass_accepted/punch_cost → joy_coin_enabled/joy_coin_cost
   const acceptsJoyCoins = event.joy_coin_enabled || event.punch_pass_accepted;

@@ -127,6 +127,8 @@ export default function Events() {
       return Array.isArray(networkInterests) && networkInterests.includes(e.network);
     });
 
+    // Sort soonest upcoming first (date ascending)
+    result.sort((a, b) => new Date(a.date) - new Date(b.date));
     return result;
   }, [events, searchQuery, quickFilter, advancedFilters, currentUser, isAppAdmin]);
 

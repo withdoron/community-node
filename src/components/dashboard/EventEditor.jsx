@@ -134,6 +134,16 @@ export default function EventEditor({
   // Prefill from backend field names: date, punch_pass_accepted/joy_coin_enabled, network, thumbnail_url
   useEffect(() => {
     if (existingEvent) {
+      const toUrl = (v) => (typeof v === "string" && v ? v : v && (v.url || v.src) ? (v.url || v.src) : null);
+      const fromEvent = [
+        existingEvent.thumbnail_url,
+        existingEvent.image,
+        existingEvent.hero_image,
+        existingEvent.photo,
+        ...(Array.isArray(existingEvent.images) ? existingEvent.images : []),
+      ].map(toUrl).filter(Boolean);
+      const initialImages = [...new Set(fromEvent)];
+
       const start = existingEvent.date
         ? parseISO(existingEvent.date)
         : existingEvent.start_date
@@ -153,11 +163,8 @@ export default function EventEditor({
         start_time: start ? format(start, "HH:mm") : "10:00",
         duration_minutes: duration,
         location: existingEvent.location || "",
-        image:
-          existingEvent.thumbnail_url ||
-          (Array.isArray(existingEvent.images) ? existingEvent.images[0] : null) ||
-          existingEvent.image ||
-          "",
+        image: initialImages[0] || "",
+        images: initialImages,
         pricing_type:
           existingEvent.pricing_type ||
           (existingEvent.is_free ? "free" : "single_price"),
@@ -335,6 +342,7 @@ export default function EventEditor({
 
     // Step 3: map to backend field names (date, punch_pass_accepted/joy_coin_enabled, network, thumbnail_url)
     const eventData = {
+      ...(existingEvent?.id && { event_id: existingEvent.id }),
       business_id: business.id,
       title: formData.title.trim(),
       description: formData.description.trim(),
@@ -351,9 +359,23 @@ export default function EventEditor({
       virtual_platform: formData.is_virtual ? formData.virtual_platform || null : null,
       is_location_tbd: formData.is_location_tbd,
 
-      // Image
-      thumbnail_url: formData.images?.[0] || null,
-      images: formData.images || [],
+      // Image: preserve existing when editing and user didn't change images
+      ...(function () {
+        if (formData.images?.length) {
+          return { thumbnail_url: formData.images[0], images: formData.images };
+        }
+        if (!existingEvent) return { thumbnail_url: null, images: [] };
+        const toUrl = (v) => (typeof v === "string" && v ? v : v && (v.url || v.src) ? (v.url || v.src) : null);
+        const fallback = [
+          existingEvent.thumbnail_url,
+          existingEvent.image,
+          existingEvent.hero_image,
+          existingEvent.photo,
+          ...(Array.isArray(existingEvent.images) ? existingEvent.images : []),
+        ].map(toUrl).filter(Boolean);
+        const preserved = [...new Set(fallback)];
+        return { thumbnail_url: preserved[0] ?? null, images: preserved };
+      })(),
 
       // Pricing
       pricing_type: formData.pricing_type,
@@ -511,7 +533,6 @@ export default function EventEditor({
       const next = prev.accessibility_features.includes(feature)
         ? prev.accessibility_features.filter((f) => f !== feature)
         : [...prev.accessibility_features, feature];
-      console.log("[EventEditor] accessibility_features after toggle:", next);
       return { ...prev, accessibility_features: next };
     });
   };
