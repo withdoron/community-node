@@ -32,6 +32,7 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [selectedEventForAction, setSelectedEventForAction] = useState(null);
+  const [sortOrder, setSortOrder] = useState('asc');
   const queryClient = useQueryClient();
 
   const { data: events = [], isLoading } = useQuery({
