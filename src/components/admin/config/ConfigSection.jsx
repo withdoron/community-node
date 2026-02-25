@@ -4,13 +4,14 @@
  * List with Add / Edit / Delete; reorder via Move Up / Move Down buttons.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useConfig, useConfigMutation } from '@/hooks/useConfig';
-import { Loader2, Plus, Pencil, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { Loader2, Plus, Pencil, Trash2, ChevronUp, ChevronDown, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { base44 } from '@/api/base44Client';
 
 const isNetworks = (d, t) => d === 'platform' && t === 'networks';
 
@@ -21,6 +22,9 @@ export default function ConfigSection({ domain, configType, title }) {
   const [editLabel, setEditLabel] = useState('');
   const [editTagline, setEditTagline] = useState('');
   const [editDescription, setEditDescription] = useState('');
+  const [editImage, setEditImage] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const networkImageInputRef = useRef(null);
   const [adding, setAdding] = useState(false);
   const [newValue, setNewValue] = useState('');
   const [newLabel, setNewLabel] = useState('');
@@ -53,6 +57,7 @@ export default function ConfigSection({ domain, configType, title }) {
       if (isNetworks(domain, configType)) {
         updated.tagline = editTagline?.trim() || undefined;
         updated.description = editDescription?.trim() || undefined;
+        updated.image = editImage?.trim() || undefined;
       }
       return updated;
     });
@@ -62,10 +67,32 @@ export default function ConfigSection({ domain, configType, title }) {
         setEditLabel('');
         setEditTagline('');
         setEditDescription('');
+        setEditImage('');
         toast.success('Updated');
       },
       onError: () => toast.error('Failed to save'),
     });
+  };
+
+  const handleNetworkImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      const url = result?.file_url ?? result?.url;
+      if (url) {
+        setEditImage(url);
+        toast.success('Image uploaded');
+      } else {
+        toast.error('Upload failed');
+      }
+    } catch {
+      toast.error('Upload failed');
+    } finally {
+      setUploadingImage(false);
+      if (networkImageInputRef.current) networkImageInputRef.current.value = '';
+    }
   };
 
   const handleDelete = (item) => {
@@ -198,7 +225,7 @@ export default function ConfigSection({ domain, configType, title }) {
                         size="sm"
                         variant="outline"
                         className="border-slate-600 text-slate-300"
-                        onClick={() => { setEditingId(null); setEditLabel(''); setEditTagline(''); setEditDescription(''); }}
+                        onClick={() => { setEditingId(null); setEditLabel(''); setEditTagline(''); setEditDescription(''); setEditImage(''); }}
                       >
                         Cancel
                       </Button>
@@ -226,6 +253,73 @@ export default function ConfigSection({ domain, configType, title }) {
                           className="w-full bg-slate-800 border border-slate-600 text-white rounded px-2 py-1.5 text-sm resize-y"
                         />
                       </div>
+                      <div>
+                        <label className="text-xs text-slate-400 block mb-1">Network Image</label>
+                        {editImage ? (
+                          <div className="space-y-2">
+                            <img
+                              src={editImage}
+                              alt="Network"
+                              className="h-24 w-24 rounded-lg object-cover border border-slate-600"
+                            />
+                            <div className="flex flex-wrap gap-2 items-center">
+                              <input
+                                type="url"
+                                value={editImage}
+                                onChange={(e) => setEditImage(e.target.value)}
+                                placeholder="Image URL"
+                                className="flex-1 min-w-0 bg-slate-800 border border-slate-600 text-white rounded px-2 py-1.5 text-sm max-w-xs"
+                              />
+                              <input
+                                ref={networkImageInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleNetworkImageUpload}
+                              />
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="border-slate-600 text-slate-300"
+                                onClick={() => networkImageInputRef.current?.click()}
+                                disabled={uploadingImage}
+                              >
+                                {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4 mr-1" />}
+                                Replace
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap gap-2 items-center">
+                            <input
+                              type="url"
+                              value={editImage}
+                              onChange={(e) => setEditImage(e.target.value)}
+                              placeholder="Image URL (or upload below)"
+                              className="flex-1 min-w-0 bg-slate-800 border border-slate-600 text-white rounded px-2 py-1.5 text-sm"
+                            />
+                            <input
+                              ref={networkImageInputRef}
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleNetworkImageUpload}
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+                              onClick={() => networkImageInputRef.current?.click()}
+                              disabled={uploadingImage}
+                            >
+                              {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4 mr-1" />}
+                              Upload
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </>
                   )}
                 </div>
@@ -243,6 +337,7 @@ export default function ConfigSection({ domain, configType, title }) {
                         setEditLabel(item.label || '');
                         setEditTagline(item.tagline || '');
                         setEditDescription(item.description || '');
+                        setEditImage(item.image || '');
                       }}
                     >
                       <Pencil className="h-4 w-4" />
