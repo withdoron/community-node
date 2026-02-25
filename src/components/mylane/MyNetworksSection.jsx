@@ -74,11 +74,11 @@ export default function MyNetworksSection({ currentUser }) {
                 )}
                 style={hasImage ? { backgroundImage: `url(${net.image.trim()})` } : undefined}
               >
-                {hasImage && <div className="absolute inset-0 bg-slate-900/88" />}
+                {hasImage && <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/80 to-black/60" />}
                 <div className={cn('flex items-start justify-between gap-2', hasImage && 'relative z-10')}>
                   <div className="min-w-0">
                     <h3 className="text-lg font-semibold text-slate-100">{label}</h3>
-                    {tagline && <p className="text-sm text-slate-400 mt-1">{tagline}</p>}
+                    {tagline && <p className={cn('text-sm mt-1', hasImage ? 'font-semibold text-slate-200' : 'text-slate-400')}>{tagline}</p>}
                   </div>
                   <ChevronRight className="h-5 w-5 shrink-0 text-slate-600" aria-hidden />
                 </div>
@@ -120,11 +120,11 @@ export default function MyNetworksSection({ currentUser }) {
               )}
               style={hasImage ? { backgroundImage: `url(${net.image.trim()})` } : undefined}
             >
-              {hasImage && <div className="absolute inset-0 bg-slate-900/88" />}
+              {hasImage && <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/80 to-black/60" />}
               <div className={cn('flex items-start justify-between gap-2', hasImage && 'relative z-10')}>
                 <div className="min-w-0">
                   <h3 className="text-base font-semibold text-slate-100">{label}</h3>
-                  {tagline && <p className="text-sm text-slate-400 mt-0.5">{tagline}</p>}
+                  {tagline && <p className={cn('text-sm mt-0.5', hasImage ? 'font-semibold text-slate-200' : 'text-slate-400')}>{tagline}</p>}
                 </div>
                 <ChevronRight className="h-5 w-5 shrink-0 text-amber-500/50" aria-hidden />
               </div>
