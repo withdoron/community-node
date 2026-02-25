@@ -74,7 +74,7 @@ export default function MyNetworksSection({ currentUser }) {
                 )}
                 style={hasImage ? { backgroundImage: `url(${net.image.trim()})` } : undefined}
               >
-                {hasImage && <div className="absolute inset-0 bg-slate-900/80" />}
+                {hasImage && <div className="absolute inset-0 bg-slate-900/88" />}
                 <div className={cn('flex items-start justify-between gap-2', hasImage && 'relative z-10')}>
                   <div className="min-w-0">
                     <h3 className="text-lg font-semibold text-slate-100">{label}</h3>
@@ -120,7 +120,7 @@ export default function MyNetworksSection({ currentUser }) {
               )}
               style={hasImage ? { backgroundImage: `url(${net.image.trim()})` } : undefined}
             >
-              {hasImage && <div className="absolute inset-0 bg-slate-900/80" />}
+              {hasImage && <div className="absolute inset-0 bg-slate-900/88" />}
               <div className={cn('flex items-start justify-between gap-2', hasImage && 'relative z-10')}>
                 <div className="min-w-0">
                   <h3 className="text-base font-semibold text-slate-100">{label}</h3>
