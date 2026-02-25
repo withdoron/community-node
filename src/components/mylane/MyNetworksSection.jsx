@@ -6,7 +6,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useConfig } from '@/hooks/useConfig';
 import { ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 const TAGLINE_FALLBACK = {
   recess: 'Move your body, build your crew',
@@ -61,24 +60,16 @@ export default function MyNetworksSection({ currentUser }) {
             const value = net.value ?? net.slug ?? net.id;
             const label = net.label ?? net.name ?? value;
             const tagline = getTagline(net);
-            const hasImage = !!net.image?.trim();
             return (
               <Link
                 key={value}
                 to={`/networks/${value}`}
-                className={cn(
-                  'block rounded-xl p-5 hover:border-amber-500/50 cursor-pointer transition-colors text-left min-h-[100px]',
-                  hasImage
-                    ? 'border border-slate-800 bg-cover bg-center relative overflow-hidden'
-                    : 'bg-slate-900 border border-slate-800'
-                )}
-                style={hasImage ? { backgroundImage: `url(${net.image.trim()})` } : undefined}
+                className="block rounded-xl p-5 hover:border-amber-500/50 cursor-pointer transition-colors text-left min-h-[100px] bg-slate-900 border border-slate-800"
               >
-                {hasImage && <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/80 to-black/60" />}
-                <div className={cn('flex items-start justify-between gap-2', hasImage && 'relative z-10')}>
+                <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <h3 className="text-lg font-semibold text-slate-100">{label}</h3>
-                    {tagline && <p className={cn('text-sm mt-1', hasImage ? 'font-semibold text-slate-200' : 'text-slate-400')}>{tagline}</p>}
+                    {tagline && <p className="text-sm text-slate-400 mt-1">{tagline}</p>}
                   </div>
                   <ChevronRight className="h-5 w-5 shrink-0 text-slate-600" aria-hidden />
                 </div>
@@ -107,24 +98,16 @@ export default function MyNetworksSection({ currentUser }) {
           const value = net.value ?? net.slug ?? net.id;
           const label = net.label ?? net.name ?? value;
           const tagline = getTagline(net);
-          const hasImage = !!net.image?.trim();
           return (
             <Link
               key={value}
               to={`/networks/${value}`}
-              className={cn(
-                'block rounded-xl p-4 hover:border-amber-500/50 cursor-pointer transition-colors text-left min-h-[88px]',
-                hasImage
-                  ? 'border border-amber-500/30 bg-cover bg-center relative overflow-hidden'
-                  : 'bg-slate-900 border border-amber-500/30'
-              )}
-              style={hasImage ? { backgroundImage: `url(${net.image.trim()})` } : undefined}
+              className="block rounded-xl p-4 hover:border-amber-500/50 cursor-pointer transition-colors text-left min-h-[88px] bg-slate-900 border border-amber-500/30"
             >
-              {hasImage && <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/80 to-black/60" />}
-              <div className={cn('flex items-start justify-between gap-2', hasImage && 'relative z-10')}>
+              <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <h3 className="text-base font-semibold text-slate-100">{label}</h3>
-                  {tagline && <p className={cn('text-sm mt-0.5', hasImage ? 'font-semibold text-slate-200' : 'text-slate-400')}>{tagline}</p>}
+                  {tagline && <p className="text-sm text-slate-400 mt-0.5">{tagline}</p>}
                 </div>
                 <ChevronRight className="h-5 w-5 shrink-0 text-amber-500/50" aria-hidden />
               </div>
