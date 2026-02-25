@@ -156,6 +156,17 @@ export default function NetworkPage() {
           Networks
         </Link>
 
+        {/* Network image banner */}
+        {network.image?.trim() && (
+          <div className="w-full rounded-lg overflow-hidden">
+            <img
+              src={network.image.trim()}
+              alt=""
+              className="w-full max-h-[300px] object-cover rounded-lg"
+            />
+          </div>
+        )}
+
         {/* Header */}
         <div className="space-y-4">
           <h1 className="text-3xl font-bold text-white">{displayName}</h1>
