@@ -116,7 +116,17 @@ export default function EventEditor({
   const autoSaveTimer = useRef(null);
   const formDataRef = useRef(formData);
   const hasRestoredDraft = useRef(false);
+  const hasAutoSelectedSingleNetwork = useRef(false);
   formDataRef.current = formData;
+
+  // When business has exactly one assigned network (new event only), pre-select it
+  useEffect(() => {
+    if (hasAutoSelectedSingleNetwork.current) return;
+    if (existingEvent || allowedNetworks.length !== 1) return;
+    const slug = allowedNetworks[0].value ?? allowedNetworks[0].slug ?? allowedNetworks[0].id;
+    hasAutoSelectedSingleNetwork.current = true;
+    setFormData((prev) => ((prev.networks?.length ?? 0) > 0 ? prev : { ...prev, networks: [slug] }));
+  }, [existingEvent, allowedNetworks]);
 
   const toggleDay = (day) => {
     setSelectedDays((prev) =>
@@ -128,6 +138,7 @@ export default function EventEditor({
    * 1. Prefill existingEvent → [existingEvent?.id] — calls setFormData, setEndTimeMode, setEndTime, setEndDate
    * 2. Draft restore → [] — calls setFormData (once, guarded by hasRestoredDraft)
    * 3. Auto-save → [formData.title, existingEvent?.id] — uses formDataRef.current, calls setLastSaved only
+   * 4. Auto-select single network → [existingEvent, allowedNetworks] — sets networks to [slug] once when allowedNetworks.length === 1
    * NONE have formData or formData.accessibility_features in deps (would cause loop).
    */
 
