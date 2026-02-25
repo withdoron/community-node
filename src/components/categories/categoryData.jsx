@@ -91,6 +91,70 @@ export const mainCategories = [
   },
 ];
 
+/**
+ * Vendor-recognizable subcategories by archetype. Used for "What best describes your business?"
+ * dropdown in Business Settings. Single-select; value stored on Business.subcategory.
+ */
+export const archetypeSubcategories = {
+  location_venue: [
+    'Restaurant / Café',
+    'Bar / Brewery / Taproom',
+    'Fitness / Movement Studio',
+    'Art Studio / Gallery',
+    'Community Space / Venue',
+    'Retail Shop',
+    'Salon / Spa',
+    'Coworking / Office',
+    'Other',
+  ],
+  event_organizer: [
+    'Markets & Fairs',
+    'Live Music & Performance',
+    'Workshops & Classes',
+    'Sports & Fitness Events',
+    'Community Gatherings',
+    'Kids & Family Events',
+    'Festivals',
+    'Other',
+  ],
+  community_nonprofit: [
+    'Church / Faith Community',
+    'Youth Organization',
+    'Environmental / Conservation',
+    'Arts & Culture',
+    'Education / Homeschool',
+    'Mutual Aid / Social Services',
+    'Other',
+  ],
+  service_provider: [
+    'Health & Wellness',
+    'Home Services',
+    'Creative & Design',
+    'Tutoring & Education',
+    'Pet Services',
+    'Tech & Repair',
+    'Other',
+  ],
+  product_seller: [
+    'Food & Beverage',
+    'Arts & Crafts',
+    'Farm & Produce',
+    'Health & Wellness Products',
+    'Handmade Goods',
+    'Vintage & Resale',
+    'Other',
+  ],
+  micro_business: [
+    'Farm Fresh / Eggs',
+    'Handmade Goods',
+    'Baked Goods',
+    'Artisan Crafts',
+    'Neighborhood Services',
+    'Kids Business',
+    'Other',
+  ],
+};
+
 /** Default main category IDs for Home tile display (used by Home.jsx, DiscoverSection.jsx). */
 export const defaultPopularCategoryIds = mainCategories.map((c) => c.id);
 

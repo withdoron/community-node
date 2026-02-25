@@ -16,6 +16,8 @@ import { toast } from 'sonner';
 import { US_STATES } from '@/lib/usStates';
 import StaffWidget from './widgets/StaffWidget';
 import { useCategories } from '@/hooks/useCategories';
+import { ARCHETYPE_SLUG_TO_CONFIG } from '@/config/onboardingConfig';
+import { archetypeSubcategories } from '@/components/categories/categoryData';
 
 const TIER_CONFIG = {
   basic: {
@@ -57,6 +59,8 @@ function getInitialFormData(business) {
     main_category: business.main_category || mainId || '',
     sub_category: business.sub_category || '',
     sub_category_id: business.sub_category_id || '',
+    subcategory: business.subcategory || '',
+    business_hours: business.business_hours || '',
     email: business.email || business.contact_email || '',
     phone: business.phone || '',
     website: business.website || '',
@@ -87,6 +91,18 @@ export default function BusinessSettings({ business, currentUserId }) {
     if (main && sub) return `${main.id}|${sub.id}`;
     return '';
   }, [formData, mainCategories]);
+
+  const resolvedArchetype = useMemo(() => {
+    if (!business?.archetype) return null;
+    return archetypeSubcategories[business.archetype]
+      ? business.archetype
+      : ARCHETYPE_SLUG_TO_CONFIG[business.archetype] || business.archetype;
+  }, [business?.archetype]);
+
+  const subcategoryOptions = useMemo(
+    () => (resolvedArchetype ? archetypeSubcategories[resolvedArchetype] || [] : []),
+    [resolvedArchetype]
+  );
 
   useEffect(() => {
     const next = getInitialFormData(business);
@@ -305,6 +321,45 @@ export default function BusinessSettings({ business, currentUserId }) {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              {subcategoryOptions.length > 0 && (
+                <div>
+                  <Label htmlFor="business-subcategory" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                    What best describes your business?
+                  </Label>
+                  <Select
+                    value={formData.subcategory || ''}
+                    onValueChange={(val) => handleChange('subcategory', val)}
+                  >
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg focus:border-amber-500 focus:ring-amber-500/20">
+                      <SelectValue placeholder="Select one" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subcategoryOptions.map((opt) => (
+                        <SelectItem
+                          key={opt}
+                          value={opt}
+                          className="text-slate-300 focus:bg-slate-800 focus:text-amber-500"
+                        >
+                          {opt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div>
+                <Label htmlFor="business-hours" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                  Business Hours
+                </Label>
+                <Textarea
+                  id="business-hours"
+                  value={formData.business_hours}
+                  onChange={(e) => handleChange('business_hours', e.target.value)}
+                  rows={2}
+                  className={INPUT_CLASS}
+                  placeholder="e.g., Mon-Fri 9am-5pm, Sat 10am-2pm"
+                />
               </div>
             </div>
 

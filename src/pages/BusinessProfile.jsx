@@ -157,7 +157,9 @@ export default function BusinessProfile() {
                     )}
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-white">{business.name}</h1>
-                  
+                  {business.subcategory?.trim() && (
+                    <p className="text-slate-400 text-sm mt-1">{business.subcategory.trim()}</p>
+                  )}
                   <div className="mt-3">
                     <TrustSignal business={business} />
                   </div>
@@ -382,6 +384,13 @@ export default function BusinessProfile() {
                     <span className="truncate">{business.website.replace(/^https?:\/\//, '')}</span>
                     <ExternalLink className="h-4 w-4 ml-auto flex-shrink-0" />
                   </a>
+                )}
+
+                {business.business_hours?.trim() && (
+                  <div className="flex items-start gap-3 p-3 rounded-lg border border-slate-700">
+                    <Clock className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-slate-300 text-sm whitespace-pre-line">{business.business_hours.trim()}</span>
+                  </div>
                 )}
 
                 {/* Locations Section */}

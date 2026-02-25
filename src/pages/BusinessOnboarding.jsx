@@ -82,6 +82,7 @@ export default function BusinessOnboarding() {
     mutationFn: async (data) => {
       const business = await base44.entities.Business.create({
         ...data,
+        archetype: data.archetype || null,
         owner_user_id: currentUser?.id,
         owner_email: currentUser?.email,
         slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),

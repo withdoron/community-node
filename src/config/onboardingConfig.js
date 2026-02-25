@@ -41,14 +41,14 @@ export const ONBOARDING_CONFIG = {
       label: 'Service Provider',
       description: 'I offer mobile services or professional skills.',
       icon: 'Briefcase',
-      active: false,
+      active: true,
     },
     {
       value: 'product_seller',
       label: 'Product Seller',
       description: 'I sell physical or digital products.',
       icon: 'Store',
-      active: false,
+      active: true,
     },
   ],
 
@@ -80,4 +80,14 @@ export const ONBOARDING_CONFIG = {
     { value: 'standard', label: 'Standard', price: '$79/mo', active: false },
     { value: 'partner', label: 'Partner', price: 'By invitation', active: false },
   ],
+};
+
+/** DB slug (Archetype entity) → config key (archetypeSubcategories, goalsByArchetype). */
+export const ARCHETYPE_SLUG_TO_CONFIG = {
+  venue: 'location_venue',
+  organizer: 'event_organizer',
+  community: 'community_nonprofit',
+  service: 'service_provider',
+  product: 'product_seller',
+  micro_business: 'micro_business',
 };
