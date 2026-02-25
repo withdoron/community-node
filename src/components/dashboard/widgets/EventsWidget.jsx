@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useConfig } from '@/hooks/useConfig';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
   const [selectedEventForAction, setSelectedEventForAction] = useState(null);
   const [sortOrder, setSortOrder] = useState('asc');
   const queryClient = useQueryClient();
+  const { data: networksConfig = [] } = useConfig('platform', 'networks');
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['business-events', business.id],
@@ -356,7 +358,10 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
                     <h3 className="font-semibold text-slate-100">{event.title}</h3>
                     {event.network && (
                       <Badge variant="outline" className="text-xs border-slate-600 text-slate-300">
-                        {event.network === 'recess' ? 'Recess' : 'TCA'}
+                        {(() => {
+                          const matched = Array.isArray(networksConfig) && networksConfig.find((n) => n.value === event.network);
+                          return matched?.label ?? (event.network && event.network.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())) ?? '';
+                        })()}
                       </Badge>
                     )}
                     {event.boost_end_at && new Date(event.boost_end_at) > new Date() && (

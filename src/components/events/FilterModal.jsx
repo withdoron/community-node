@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -8,9 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { X, Coins } from "lucide-react";
+import { useConfig } from '@/hooks/useConfig';
 
 export default function FilterModal({ open, onOpenChange, filters, onFiltersChange }) {
   const [localFilters, setLocalFilters] = useState(filters);
+  const { data: networksConfig = [] } = useConfig('platform', 'networks');
+  const activeNetworks = useMemo(
+    () => Array.isArray(networksConfig) ? networksConfig.filter((n) => n.active !== false) : [],
+    [networksConfig]
+  );
 
   const handleApply = () => {
     onFiltersChange(localFilters);
@@ -130,33 +136,27 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
           </div>
 
           {/* Networks */}
-          <div>
-            <Label className="text-white font-bold mb-3 block">Networks</Label>
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <Checkbox
-                  checked={localFilters.networks?.includes('recess')}
-                  onCheckedChange={() => toggleNetwork('recess')}
-                  className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
-                />
-                <div className="flex flex-col">
-                  <span className="text-sm text-slate-300">Recess</span>
-                  <span className="text-xs text-slate-500">Accepts Joy Coins</span>
-                </div>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer py-2">
-                <Checkbox
-                  checked={localFilters.networks?.includes('tca')}
-                  onCheckedChange={() => toggleNetwork('tca')}
-                  className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
-                />
-                <div className="flex flex-col">
-                  <span className="text-sm text-slate-300">The Creative Alliance</span>
-                  <span className="text-xs text-slate-500">Accepts Joy Coins</span>
-                </div>
-              </label>
+          {activeNetworks.length > 0 && (
+            <div>
+              <Label className="text-white font-bold mb-3 block">Networks</Label>
+              <div className="space-y-2">
+                {activeNetworks.map((network) => {
+                  const value = network.value ?? network.slug ?? network.id;
+                  const label = network.label ?? network.name ?? value;
+                  return (
+                    <label key={value} className="flex items-center gap-2 cursor-pointer py-2">
+                      <Checkbox
+                        checked={localFilters.networks?.includes(value)}
+                        onCheckedChange={() => toggleNetwork(value)}
+                        className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                      />
+                      <span className="text-sm text-slate-300">{label}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Audience */}
           <div>
