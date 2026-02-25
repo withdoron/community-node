@@ -27,6 +27,8 @@ import { toast } from "sonner";
 import { useConfig } from '@/hooks/useConfig';
 import { useCategories } from '@/hooks/useCategories';
 import { US_STATES } from '@/lib/usStates';
+import { ONBOARDING_CONFIG, ARCHETYPE_SLUG_TO_CONFIG } from '@/config/onboardingConfig';
+import { archetypeSubcategories } from '@/components/categories/categoryData';
 
 export default function BusinessEditDrawer({ business, open, onClose, adminEmail }) {
   const queryClient = useQueryClient();
@@ -142,6 +144,18 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     [networksConfig]
   );
 
+  const resolvedArchetype = useMemo(() => {
+    if (!editData?.archetype) return null;
+    return archetypeSubcategories[editData.archetype]
+      ? editData.archetype
+      : ARCHETYPE_SLUG_TO_CONFIG[editData.archetype] || editData.archetype;
+  }, [editData?.archetype]);
+
+  const subcategoryOptions = useMemo(
+    () => (resolvedArchetype ? archetypeSubcategories[resolvedArchetype] || [] : []),
+    [resolvedArchetype]
+  );
+
   useEffect(() => {
     if (business) {
       const mainId = business.primary_category || business.main_category || business.category || '';
@@ -152,6 +166,9 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         main_category: business.main_category || mainId || '',
         sub_category: business.sub_category || '',
         sub_category_id: business.sub_category_id || '',
+        subcategory: business.subcategory || '',
+        archetype: business.archetype || '',
+        business_hours: business.business_hours || '',
         address: business.address || '',
         city: business.city || '',
         state: business.state || '',
@@ -160,6 +177,11 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         email: business.email || business.contact_email || '',
         phone: business.phone || '',
         website: business.website || '',
+        instagram: business.instagram || '',
+        facebook: business.facebook || '',
+        service_area: business.service_area || '',
+        services_offered: business.services_offered || '',
+        shop_url: business.shop_url || '',
         subscription_tier: business.subscription_tier || 'basic',
         accepts_silver: business.accepts_silver || false,
         is_locally_owned_franchise: business.is_locally_owned_franchise || false,
@@ -544,6 +566,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
   const handleSaveChanges = async () => {
     if (!editData || !business) return;
+    const instagramVal = (editData.instagram ?? '').trim().replace(/^@/, '');
     const payload = {
       name: editData.name ?? '',
       description: editData.description ?? '',
@@ -551,9 +574,17 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       main_category: editData.main_category ?? '',
       sub_category: editData.sub_category ?? '',
       sub_category_id: editData.sub_category_id ?? '',
+      subcategory: editData.subcategory ?? '',
+      archetype: editData.archetype || null,
+      business_hours: editData.business_hours ?? '',
       email: editData.email ?? '',
       phone: editData.phone ?? '',
       website: editData.website ?? '',
+      instagram: instagramVal,
+      facebook: editData.facebook ?? '',
+      service_area: editData.service_area ?? '',
+      services_offered: editData.services_offered ?? '',
+      shop_url: editData.shop_url ?? '',
       address: editData.address ?? '',
       city: editData.city ?? '',
       state: editData.state ?? '',
@@ -577,6 +608,9 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       main_category: business.main_category || mainId || '',
       sub_category: business.sub_category || '',
       sub_category_id: business.sub_category_id || '',
+      subcategory: business.subcategory || '',
+      archetype: business.archetype || '',
+      business_hours: business.business_hours || '',
       address: business.address || '',
       city: business.city || '',
       state: business.state || '',
@@ -585,6 +619,11 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       email: business.email || business.contact_email || '',
       phone: business.phone || '',
       website: business.website || '',
+      instagram: business.instagram || '',
+      facebook: business.facebook || '',
+      service_area: business.service_area || '',
+      services_offered: business.services_offered || '',
+      shop_url: business.shop_url || '',
       subscription_tier: business.subscription_tier || 'basic',
       accepts_silver: business.accepts_silver || false,
       is_locally_owned_franchise: business.is_locally_owned_franchise || false,
@@ -762,6 +801,52 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   </Select>
                 </div>
                 <div>
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Archetype</Label>
+                  <Select
+                    value={editData.archetype ?? ''}
+                    onValueChange={(val) => handleFieldChange('archetype', val)}
+                  >
+                    <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20">
+                      <SelectValue placeholder="Select archetype" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(ONBOARDING_CONFIG.archetypes || []).filter((a) => a.active !== false).map((arch) => (
+                        <SelectItem
+                          key={arch.value}
+                          value={arch.value}
+                          className="text-slate-300 focus:bg-slate-800 focus:text-amber-500"
+                        >
+                          {arch.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {subcategoryOptions.length > 0 && (
+                  <div>
+                    <Label className="text-xs text-slate-400 uppercase tracking-wider">Subcategory</Label>
+                    <Select
+                      value={editData.subcategory ?? ''}
+                      onValueChange={(val) => handleFieldChange('subcategory', val)}
+                    >
+                      <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20">
+                        <SelectValue placeholder="Select subcategory" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subcategoryOptions.map((opt) => (
+                          <SelectItem
+                            key={opt}
+                            value={opt}
+                            className="text-slate-300 focus:bg-slate-800 focus:text-amber-500"
+                          >
+                            {opt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <div>
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Contact email</Label>
                   <Input
                     type="email"
@@ -791,6 +876,68 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     placeholder="https://example.com"
                   />
                 </div>
+                <div>
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Business Hours</Label>
+                  <Textarea
+                    value={editData.business_hours ?? ''}
+                    onChange={(e) => handleFieldChange('business_hours', e.target.value)}
+                    rows={2}
+                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20 resize-none"
+                    placeholder="e.g., Mon-Fri 9am-5pm, Sat 10am-2pm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Instagram</Label>
+                  <Input
+                    value={editData.instagram ?? ''}
+                    onChange={(e) => handleFieldChange('instagram', (e.target.value || '').replace(/^@/, ''))}
+                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    placeholder="@yourbusiness"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Facebook Page</Label>
+                  <Input
+                    value={editData.facebook ?? ''}
+                    onChange={(e) => handleFieldChange('facebook', e.target.value)}
+                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    placeholder="facebook.com/yourbusiness"
+                  />
+                </div>
+                {resolvedArchetype === 'service_provider' && (
+                  <>
+                    <div>
+                      <Label className="text-xs text-slate-400 uppercase tracking-wider">Service Area</Label>
+                      <Input
+                        value={editData.service_area ?? ''}
+                        onChange={(e) => handleFieldChange('service_area', e.target.value)}
+                        className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                        placeholder="e.g., Eugene/Springfield area"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-slate-400 uppercase tracking-wider">Services Offered</Label>
+                      <Textarea
+                        value={editData.services_offered ?? ''}
+                        onChange={(e) => handleFieldChange('services_offered', e.target.value)}
+                        rows={3}
+                        className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20 resize-none"
+                        placeholder="Describe the services you provide"
+                      />
+                    </div>
+                  </>
+                )}
+                {(resolvedArchetype === 'product_seller' || resolvedArchetype === 'micro_business') && (
+                  <div>
+                    <Label className="text-xs text-slate-400 uppercase tracking-wider">Shop URL</Label>
+                    <Input
+                      value={editData.shop_url ?? ''}
+                      onChange={(e) => handleFieldChange('shop_url', e.target.value)}
+                      className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                      placeholder="e.g., etsy.com/shop/yourshop"
+                    />
+                  </div>
+                )}
                 <label className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700 cursor-pointer">
                   <Switch
                     checked={editData.display_full_address === true}
