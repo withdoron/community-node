@@ -8,7 +8,7 @@ import React, { useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useConfig, useConfigMutation } from '@/hooks/useConfig';
-import { Loader2, Plus, Pencil, Trash2, ChevronUp, ChevronDown, Upload } from 'lucide-react';
+import { Loader2, Plus, Pencil, Trash2, ChevronUp, ChevronDown, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { base44 } from '@/api/base44Client';
@@ -68,6 +68,7 @@ export default function ConfigSection({ domain, configType, title }) {
         setEditTagline('');
         setEditDescription('');
         setEditImage('');
+        setEditGallery([]);
         toast.success('Updated');
       },
       onError: () => toast.error('Failed to save'),
@@ -225,7 +226,7 @@ export default function ConfigSection({ domain, configType, title }) {
                         size="sm"
                         variant="outline"
                         className="border-slate-600 text-slate-300"
-                        onClick={() => { setEditingId(null); setEditLabel(''); setEditTagline(''); setEditDescription(''); setEditImage(''); }}
+                        onClick={() => { setEditingId(null); setEditLabel(''); setEditTagline(''); setEditDescription(''); setEditImage(''); setEditGallery([]); }}
                       >
                         Cancel
                       </Button>
@@ -338,6 +339,7 @@ export default function ConfigSection({ domain, configType, title }) {
                         setEditTagline(item.tagline || '');
                         setEditDescription(item.description || '');
                         setEditImage(item.image || '');
+                        setEditGallery(Array.isArray(item.gallery) ? item.gallery : []);
                       }}
                     >
                       <Pencil className="h-4 w-4" />

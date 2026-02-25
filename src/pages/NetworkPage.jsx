@@ -13,13 +13,14 @@ import EventCard from '@/components/events/EventCard';
 import EventDetailModal from '@/components/events/EventDetailModal';
 import BusinessCard from '@/components/business/BusinessCard';
 import { Button } from '@/components/ui/button';
-import { Loader2, Store, Calendar, ArrowLeft } from 'lucide-react';
+import { Loader2, Store, Calendar, ArrowLeft, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function NetworkPage() {
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const [expandedEvent, setExpandedEvent] = useState(null);
+  const [lightboxImage, setLightboxImage] = useState(null);
   const [followHover, setFollowHover] = useState(false);
   const [optimisticFollowing, setOptimisticFollowing] = useState(null);
 
@@ -210,6 +211,22 @@ export default function NetworkPage() {
           </div>
         )}
 
+        {/* Gallery */}
+        {network.gallery?.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {network.gallery.map((url) => (
+              <button
+                key={url}
+                type="button"
+                onClick={() => setLightboxImage(url)}
+                className="aspect-square w-full rounded-lg overflow-hidden bg-slate-800 border border-slate-700 hover:border-amber-500/50 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <img src={url} alt="" className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Upcoming Events */}
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -260,6 +277,32 @@ export default function NetworkPage() {
           )}
         </section>
       </div>
+
+      {/* Lightbox */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setLightboxImage(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image preview"
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxImage(null)}
+            className="absolute top-4 right-4 p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors z-10"
+            aria-label="Close"
+          >
+            <X className="h-6 w-6" />
+          </button>
+          <img
+            src={lightboxImage}
+            alt=""
+            className="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       {expandedEvent && (
         <EventDetailModal
