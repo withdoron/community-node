@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Upload, X, Loader2, ChevronDown, Check } from "lucide-react";
 import { base44 } from '@/api/base44Client';
 import { useCategories } from '../../hooks/useCategories';
+import { archetypeSubcategories } from '@/components/categories/categoryData';
 
 export default function Step2Details({ formData, setFormData, uploading, setUploading }) {
   const { mainCategories, getLabel } = useCategories();
@@ -142,6 +143,15 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
     });
   };
 
+  const subcategoryOptions = useMemo(
+    () => (formData.archetype && archetypeSubcategories[formData.archetype]) ? archetypeSubcategories[formData.archetype] : [],
+    [formData.archetype]
+  );
+
+  const isLocationVenue = formData.archetype === 'location_venue';
+  const isServiceProvider = formData.archetype === 'service_provider';
+  const isProductOrMicro = formData.archetype === 'product_seller' || formData.archetype === 'micro_business';
+
   return (
     <div className="space-y-6">
       <style>{`
@@ -160,8 +170,9 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
       </div>
 
       <div className="grid gap-6">
-        {/* Basic Info */}
+        {/* Basics */}
         <div className="space-y-4">
+          <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Basics</h3>
           <div>
             <Label htmlFor="name" className="text-slate-200">Organization Name <span className="text-amber-500">*</span></Label>
             <Input
@@ -345,102 +356,34 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
           </div>
         </div>
 
-        {/* Location Section */}
-        <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
-          <h3 className="text-lg font-semibold text-white">Location</h3>
-
-          {/* Non-venue archetypes: show toggle */}
-          {formData.archetype !== 'location' && formData.archetype !== 'venue' && (
-            <label className="flex items-center gap-3 p-3 bg-slate-900 rounded-lg cursor-pointer">
-              <Switch
-                checked={formData.display_full_address}
-                onCheckedChange={(checked) => setFormData({ ...formData, display_full_address: checked })}
-                className="data-[state=checked]:bg-amber-500"
-              />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-slate-200">Display full address on map?</p>
-                <p className="text-xs text-slate-500">Off by default to protect privacy</p>
-              </div>
-            </label>
-          )}
-
-          {/* Street Address - show if venue OR if toggle is on */}
-          {(formData.archetype === 'location' || formData.archetype === 'venue' || formData.display_full_address) && (
+        {/* Category — subcategory by archetype */}
+        {subcategoryOptions.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Category</h3>
             <div>
-              <Label htmlFor="address" className="text-slate-200">
-                Street Address <span className="text-amber-500">*</span>
-              </Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                placeholder="123 Main Street"
-                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
-              />
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="city" className="text-slate-200">City <span className="text-amber-500">*</span></Label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                placeholder="Eugene"
-                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
-              />
-            </div>
-            {(formData.archetype === 'location' || formData.archetype === 'venue' || formData.display_full_address) && (
-              <div>
-                <Label htmlFor="state" className="text-slate-200">State <span className="text-amber-500">*</span></Label>
-                <Select
-                  value={formData.state}
-                  onValueChange={(value) => setFormData({ ...formData, state: value })}
-                >
-                  <SelectTrigger className="mt-1.5 bg-slate-900 border-slate-700 text-white">
-                    <SelectValue placeholder="State" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="OR">Oregon</SelectItem>
-                    <SelectItem value="WA">Washington</SelectItem>
-                    <SelectItem value="CA">California</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            <div>
-              <Label htmlFor="zip_code" className="text-slate-200">Zip Code <span className="text-amber-500">*</span></Label>
-              <Input
-                id="zip_code"
-                type="tel"
-                value={formData.zip_code || ''}
-                onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
-                placeholder="97401"
-                maxLength={10}
-                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
-              />
+              <Label htmlFor="subcategory" className="text-slate-200">What best describes your business?</Label>
+              <Select
+                value={formData.subcategory || ''}
+                onValueChange={(val) => setFormData({ ...formData, subcategory: val })}
+              >
+                <SelectTrigger className="mt-1.5 bg-slate-800/50 border-slate-700 text-white">
+                  <SelectValue placeholder="Select one" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subcategoryOptions.map((opt) => (
+                    <SelectItem key={opt} value={opt} className="text-slate-300 focus:bg-slate-800 focus:text-amber-500">
+                      {opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
+        )}
 
-          {formData.archetype === 'service' && (
-            <div>
-              <Label htmlFor="service_area" className="text-slate-200">Service Radius</Label>
-              <Input
-                id="service_area"
-                value={formData.service_area}
-                onChange={(e) => setFormData({ ...formData, service_area: e.target.value })}
-                placeholder="e.g., 25 mile radius"
-                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Contact Info Section */}
-        <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
-          <h3 className="text-lg font-semibold text-white">Contact Information</h3>
-
+        {/* Contact */}
+        <div className="space-y-4">
+          <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Contact</h3>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="phone" className="text-slate-200">Phone <span className="text-amber-500">*</span></Label>
@@ -465,7 +408,6 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
               <p className="text-xs text-slate-500 mt-1">This will be visible to customers</p>
             </div>
           </div>
-
           <div>
             <Label htmlFor="website" className="text-slate-200">Website</Label>
             <Input
@@ -476,7 +418,251 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
               className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
             />
           </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="instagram" className="text-slate-200">Instagram</Label>
+              <Input
+                id="instagram"
+                value={formData.instagram}
+                onChange={(e) => setFormData({ ...formData, instagram: (e.target.value || '').replace(/^@/, '') })}
+                placeholder="@yourbusiness"
+                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+              />
+            </div>
+            <div>
+              <Label htmlFor="facebook" className="text-slate-200">Facebook Page</Label>
+              <Input
+                id="facebook"
+                value={formData.facebook}
+                onChange={(e) => setFormData({ ...formData, facebook: e.target.value })}
+                placeholder="facebook.com/yourbusiness"
+                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+              />
+            </div>
+          </div>
         </div>
+
+        {/* Hours */}
+        <div className="space-y-4">
+          <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Hours</h3>
+          <div>
+            <Label htmlFor="business_hours" className="text-slate-200">Business Hours</Label>
+            <Textarea
+              id="business_hours"
+              value={formData.business_hours}
+              onChange={(e) => setFormData({ ...formData, business_hours: e.target.value })}
+              placeholder="e.g., Mon-Fri 9am-5pm, Sat 10am-2pm"
+              rows={2}
+              className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500"
+            />
+          </div>
+        </div>
+
+        {/* Archetype-specific: Location (location_venue) */}
+        {isLocationVenue && (
+          <div className="space-y-4">
+            <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Location</h3>
+            <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
+              <div>
+                <Label htmlFor="address" className="text-slate-200">Street Address <span className="text-amber-500">*</span></Label>
+                <Input
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  placeholder="123 Main Street"
+                  className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="city" className="text-slate-200">City <span className="text-amber-500">*</span></Label>
+                  <Input
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    placeholder="Eugene"
+                    className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="state" className="text-slate-200">State <span className="text-amber-500">*</span></Label>
+                  <Select
+                    value={formData.state}
+                    onValueChange={(value) => setFormData({ ...formData, state: value })}
+                  >
+                    <SelectTrigger className="mt-1.5 bg-slate-900 border-slate-700 text-white">
+                      <SelectValue placeholder="State" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="OR">Oregon</SelectItem>
+                      <SelectItem value="WA">Washington</SelectItem>
+                      <SelectItem value="CA">California</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="zip_code" className="text-slate-200">Zip Code <span className="text-amber-500">*</span></Label>
+                  <Input
+                    id="zip_code"
+                    type="tel"
+                    value={formData.zip_code || ''}
+                    onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
+                    placeholder="97401"
+                    maxLength={10}
+                    className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Archetype-specific: Your Services (service_provider) */}
+        {isServiceProvider && (
+          <div className="space-y-4">
+            <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Your Services</h3>
+            <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
+              <div>
+                <Label htmlFor="service_area" className="text-slate-200">Service Area</Label>
+                <Input
+                  id="service_area"
+                  value={formData.service_area}
+                  onChange={(e) => setFormData({ ...formData, service_area: e.target.value })}
+                  placeholder="e.g., Eugene/Springfield area, 25 mile radius"
+                  className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                />
+              </div>
+              <div>
+                <Label htmlFor="services_offered" className="text-slate-200">What services do you offer?</Label>
+                <Textarea
+                  id="services_offered"
+                  value={formData.services_offered}
+                  onChange={(e) => setFormData({ ...formData, services_offered: e.target.value })}
+                  placeholder="Describe the services you provide"
+                  rows={3}
+                  className="mt-1.5 bg-slate-900 border-slate-700 text-slate-100 placeholder-slate-500"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Archetype-specific: Your Shop (product_seller / micro_business) */}
+        {isProductOrMicro && (
+          <div className="space-y-4">
+            <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Your Shop</h3>
+            <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+              <div>
+                <Label htmlFor="shop_url" className="text-slate-200">Where can people buy from you online?</Label>
+                <Input
+                  id="shop_url"
+                  value={formData.shop_url}
+                  onChange={(e) => setFormData({ ...formData, shop_url: e.target.value })}
+                  placeholder="e.g., etsy.com/shop/yourshop or your website"
+                  className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Location — for non-venue archetypes (optional address) */}
+        {!isLocationVenue && (
+          <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
+            <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Location</h3>
+            <label className="flex items-center gap-3 p-3 bg-slate-900 rounded-lg cursor-pointer">
+              <Switch
+                checked={formData.display_full_address}
+                onCheckedChange={(checked) => setFormData({ ...formData, display_full_address: checked })}
+                className="data-[state=checked]:bg-amber-500"
+              />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-slate-200">Display full address on map?</p>
+                <p className="text-xs text-slate-500">Off by default to protect privacy</p>
+              </div>
+            </label>
+            {formData.display_full_address && (
+              <>
+                <div>
+                  <Label htmlFor="address_opt" className="text-slate-200">Street Address</Label>
+                  <Input
+                    id="address_opt"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    placeholder="123 Main Street"
+                    className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                  />
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="city_nv" className="text-slate-200">City <span className="text-amber-500">*</span></Label>
+                    <Input
+                      id="city_nv"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      placeholder="Eugene"
+                      className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="state_nv" className="text-slate-200">State <span className="text-amber-500">*</span></Label>
+                    <Select
+                      value={formData.state}
+                      onValueChange={(value) => setFormData({ ...formData, state: value })}
+                    >
+                      <SelectTrigger className="mt-1.5 bg-slate-900 border-slate-700 text-white">
+                        <SelectValue placeholder="State" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="OR">Oregon</SelectItem>
+                        <SelectItem value="WA">Washington</SelectItem>
+                        <SelectItem value="CA">California</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="zip_code_nv" className="text-slate-200">Zip Code <span className="text-amber-500">*</span></Label>
+                    <Input
+                      id="zip_code_nv"
+                      type="tel"
+                      value={formData.zip_code || ''}
+                      onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
+                      placeholder="97401"
+                      maxLength={10}
+                      className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+            {!formData.display_full_address && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="city_nv2" className="text-slate-200">City <span className="text-amber-500">*</span></Label>
+                  <Input
+                    id="city_nv2"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    placeholder="Eugene"
+                    className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="zip_code_nv2" className="text-slate-200">Zip Code <span className="text-amber-500">*</span></Label>
+                  <Input
+                    id="zip_code_nv2"
+                    type="tel"
+                    value={formData.zip_code || ''}
+                    onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
+                    placeholder="97401"
+                    maxLength={10}
+                    className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Brand/Profile Image */}
         <div>

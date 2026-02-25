@@ -7,9 +7,10 @@ const PROFILE_ALLOWLIST = [
   'name', 'description', 'primary_category', 'sub_category', 'sub_category_id', 'main_category', 'category',
   'email', 'contact_email', 'phone', 'website',
   'address', 'city', 'state', 'zip_code', 'display_full_address',
-  'logo_url', 'instagram_url', 'facebook_url', 'tagline',
+  'logo_url', 'instagram_url', 'facebook_url', 'instagram', 'facebook', 'tagline',
   'accepts_joy_coins', 'accepts_silver', 'services',
   'business_hours', 'subcategory', 'archetype',
+  'shop_url', 'services_offered', 'service_area',
 ];
 
 const ADMIN_EXTRA_ALLOWLIST = [

@@ -15,7 +15,7 @@ import VouchCard from '@/components/recommendations/VouchCard';
 import {
   Phone, Mail, Globe, MapPin, Clock, ChevronLeft,
   Share2, Heart, CheckCircle, Coins, Navigation, ExternalLink,
-  Loader2, ThumbsUp, BookOpen, Shield
+  Loader2, ThumbsUp, BookOpen, Shield, Instagram, Facebook, ShoppingBag
 } from "lucide-react";
 import { formatAddress, buildMapsQuery } from '@/components/locations/formatAddress';
 import JoyCoinHours from '@/components/business/JoyCoinHours';
@@ -185,11 +185,16 @@ export default function BusinessProfile() {
                 {business.description || 'No description available.'}
               </p>
 
-              {business.service_area && (
-                <p className="text-sm text-slate-400 mt-4 flex items-center gap-1.5">
-                  <Navigation className="h-4 w-4" />
-                  Service area: {business.service_area}
+              {business.service_area?.trim() && (
+                <p className="text-slate-300 mt-4 flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4 flex-shrink-0 text-slate-400" />
+                  Serves: {business.service_area.trim()}
                 </p>
+              )}
+              {business.services_offered?.trim() && (
+                <div className="mt-4">
+                  <p className="text-slate-300 whitespace-pre-line">{business.services_offered.trim()}</p>
+                </div>
               )}
             </Card>
 
@@ -219,6 +224,10 @@ export default function BusinessProfile() {
                         )}
                       </div>
                     ))
+                  ) : business.services_offered?.trim() ? (
+                    <div className="p-4">
+                      <p className="text-slate-300 whitespace-pre-line">{business.services_offered.trim()}</p>
+                    </div>
                   ) : (
                     <div className="p-8 text-center text-slate-400">
                       No services listed yet
@@ -391,6 +400,45 @@ export default function BusinessProfile() {
                     <Clock className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
                     <span className="text-slate-300 text-sm whitespace-pre-line">{business.business_hours.trim()}</span>
                   </div>
+                )}
+
+                {business.instagram?.trim() && (
+                  <a
+                    href={business.instagram.trim().startsWith('http') ? business.instagram.trim() : `https://instagram.com/${business.instagram.trim().replace(/^@/, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-700 text-amber-500 hover:text-amber-400 underline underline-offset-2 transition-colors"
+                  >
+                    <Instagram className="h-5 w-5 flex-shrink-0 text-amber-500" />
+                    <span className="truncate">@{business.instagram.trim().replace(/^@/, '')}</span>
+                    <ExternalLink className="h-4 w-4 ml-auto flex-shrink-0" />
+                  </a>
+                )}
+
+                {business.facebook?.trim() && (
+                  <a
+                    href={business.facebook.trim().startsWith('http') ? business.facebook.trim() : `https://${business.facebook.trim()}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-700 text-amber-500 hover:text-amber-400 underline underline-offset-2 transition-colors"
+                  >
+                    <Facebook className="h-5 w-5 flex-shrink-0 text-amber-500" />
+                    <span className="truncate">{business.facebook.trim().replace(/^https?:\/\//, '')}</span>
+                    <ExternalLink className="h-4 w-4 ml-auto flex-shrink-0" />
+                  </a>
+                )}
+
+                {business.shop_url?.trim() && (
+                  <a
+                    href={business.shop_url.trim().startsWith('http') ? business.shop_url.trim() : `https://${business.shop_url.trim()}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-700 text-amber-500 hover:text-amber-400 underline underline-offset-2 transition-colors"
+                  >
+                    <ShoppingBag className="h-5 w-5 flex-shrink-0 text-amber-500" />
+                    <span>Shop Online</span>
+                    <ExternalLink className="h-4 w-4 ml-auto flex-shrink-0" />
+                  </a>
                 )}
 
                 {/* Locations Section */}

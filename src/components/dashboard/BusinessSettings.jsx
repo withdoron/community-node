@@ -64,11 +64,16 @@ function getInitialFormData(business) {
     email: business.email || business.contact_email || '',
     phone: business.phone || '',
     website: business.website || '',
+    instagram: business.instagram || '',
+    facebook: business.facebook || '',
     address: business.address || '',
     city: business.city || '',
     state: business.state || '',
     zip_code: business.zip_code || '',
     display_full_address: business.display_full_address === true,
+    service_area: business.service_area || '',
+    services_offered: business.services_offered || '',
+    shop_url: business.shop_url || '',
   };
 }
 
@@ -407,7 +412,86 @@ export default function BusinessSettings({ business, currentUserId }) {
                   placeholder="https://example.com"
                 />
               </div>
+              <div>
+                <Label htmlFor="business-instagram" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                  Instagram
+                </Label>
+                <Input
+                  id="business-instagram"
+                  value={formData.instagram}
+                  onChange={(e) => handleChange('instagram', (e.target.value || '').replace(/^@/, ''))}
+                  className={INPUT_CLASS}
+                  placeholder="@yourbusiness"
+                />
+              </div>
+              <div>
+                <Label htmlFor="business-facebook" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                  Facebook Page
+                </Label>
+                <Input
+                  id="business-facebook"
+                  value={formData.facebook}
+                  onChange={(e) => handleChange('facebook', e.target.value)}
+                  className={INPUT_CLASS}
+                  placeholder="facebook.com/yourbusiness"
+                />
+              </div>
             </div>
+
+            {/* Archetype-specific: Your Services (service_provider) */}
+            {resolvedArchetype === 'service_provider' && (
+              <div className="space-y-4">
+                <div className="border-b border-slate-700 pb-2">
+                  <h4 className="text-xs text-slate-400 uppercase tracking-wider">Your Services</h4>
+                </div>
+                <div>
+                  <Label htmlFor="business-service-area" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                    Service Area
+                  </Label>
+                  <Input
+                    id="business-service-area"
+                    value={formData.service_area}
+                    onChange={(e) => handleChange('service_area', e.target.value)}
+                    className={INPUT_CLASS}
+                    placeholder="e.g., Eugene/Springfield area"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="business-services-offered" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                    What services do you offer?
+                  </Label>
+                  <Textarea
+                    id="business-services-offered"
+                    value={formData.services_offered}
+                    onChange={(e) => handleChange('services_offered', e.target.value)}
+                    rows={3}
+                    className={INPUT_CLASS}
+                    placeholder="Describe the services you provide"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Archetype-specific: Your Shop (product_seller / micro_business) */}
+            {(resolvedArchetype === 'product_seller' || resolvedArchetype === 'micro_business') && (
+              <div className="space-y-4">
+                <div className="border-b border-slate-700 pb-2">
+                  <h4 className="text-xs text-slate-400 uppercase tracking-wider">Your Shop</h4>
+                </div>
+                <div>
+                  <Label htmlFor="business-shop-url" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                    Where can people buy from you online?
+                  </Label>
+                  <Input
+                    id="business-shop-url"
+                    value={formData.shop_url}
+                    onChange={(e) => handleChange('shop_url', e.target.value)}
+                    className={INPUT_CLASS}
+                    placeholder="e.g., etsy.com/shop/yourshop"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Location */}
             <div className="space-y-4">

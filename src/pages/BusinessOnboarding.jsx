@@ -37,6 +37,7 @@ export default function BusinessOnboarding() {
     primary_category: '',
     sub_category: '',
     sub_category_id: '',
+    subcategory: '',
     description: '',
     address: '',
     city: '',
@@ -45,8 +46,13 @@ export default function BusinessOnboarding() {
     phone: '',
     email: '',
     website: '',
+    instagram: '',
+    facebook: '',
+    business_hours: '',
     display_full_address: false,
     service_area: '',
+    services_offered: '',
+    shop_url: '',
     primary_skill: '',
     organization_type: '',
     typical_event_size: '',
@@ -80,14 +86,19 @@ export default function BusinessOnboarding() {
 
   const createBusiness = useMutation({
     mutationFn: async (data) => {
+      const optionalFields = ['subcategory', 'business_hours', 'instagram', 'facebook', 'shop_url', 'service_area', 'services_offered'];
+      const payload = { ...data };
+      optionalFields.forEach((key) => {
+        if (payload[key] === '' || payload[key] == null) delete payload[key];
+      });
       const business = await base44.entities.Business.create({
-        ...data,
-        archetype: data.archetype || null,
+        ...payload,
+        archetype: payload.archetype || null,
         owner_user_id: currentUser?.id,
         owner_email: currentUser?.email,
-        slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+        slug: (payload.name || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
         is_active: true,
-        sub_category_id: data.sub_category_id || null
+        sub_category_id: payload.sub_category_id || null
       });
 
       // Update user to be a business owner (if not already)
