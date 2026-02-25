@@ -56,14 +56,13 @@ export default function EventEditor({
   const { data: networksRaw = [] } = useConfig("platform", "networks");
   const allowedNetworks = React.useMemo(() => {
     const active = (networksRaw || []).filter((n) => n.active !== false);
-    if (isAppAdmin) return active;
     const businessSlugs = Array.isArray(business?.network_ids) ? business.network_ids : [];
     if (businessSlugs.length === 0) return [];
     return active.filter((n) => {
       const slug = n.value ?? n.slug ?? n.id;
       return businessSlugs.includes(slug);
     });
-  }, [networksRaw, isAppAdmin, business?.network_ids]);
+  }, [networksRaw, business?.network_ids]);
   const { data: ageGroups = [] } = useConfig("events", "age_groups");
   const { data: durationPresets = [] } = useConfig("events", "duration_presets");
   const { data: accessibilityOptions = [] } = useConfig("events", "accessibility_features");
