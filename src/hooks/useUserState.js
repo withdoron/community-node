@@ -15,19 +15,18 @@ export function useUserState(userId) {
     enabled: !!userId
   });
 
-  // Reads from legacy PunchPass entity — field mapping to Joy Coins terminology
   const { data: joyCoins } = useQuery({
-    queryKey: ['legacyJoyCoins', userId],
+    queryKey: ['joyCoins', userId],
     queryFn: async () => {
       if (!userId) return null;
-      const records = await base44.entities.PunchPass.filter({ user_id: userId });
+      const records = await base44.entities.JoyCoins.filter({ user_id: userId });
       return records[0] || null;
     },
     enabled: !!userId
   });
 
   const recCount = recommendations.length;
-  const hasJoyCoinActivity = joyCoins && (joyCoins.total_used > 0 || (joyCoins.current_balance || 0) > 0);
+  const hasJoyCoinActivity = joyCoins && ((joyCoins.lifetime_spent || 0) > 0 || (joyCoins.balance || 0) > 0);
 
   let state = 'explorer';
   if (recCount >= 5 || hasJoyCoinActivity) {

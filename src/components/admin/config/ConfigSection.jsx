@@ -25,6 +25,9 @@ export default function ConfigSection({ domain, configType, title }) {
   const [editImage, setEditImage] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const networkImageInputRef = useRef(null);
+  const [editGallery, setEditGallery] = useState([]);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const galleryInputRef = useRef(null);
   const [adding, setAdding] = useState(false);
   const [newValue, setNewValue] = useState('');
   const [newLabel, setNewLabel] = useState('');
@@ -58,6 +61,7 @@ export default function ConfigSection({ domain, configType, title }) {
         updated.tagline = editTagline?.trim() || undefined;
         updated.description = editDescription?.trim() || undefined;
         updated.image = editImage?.trim() || undefined;
+        updated.gallery = Array.isArray(editGallery) ? editGallery : [];
       }
       return updated;
     });
@@ -93,6 +97,27 @@ export default function ConfigSection({ domain, configType, title }) {
     } finally {
       setUploadingImage(false);
       if (networkImageInputRef.current) networkImageInputRef.current.value = '';
+    }
+  };
+
+  const handleGalleryUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingGallery(true);
+    try {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      const url = result?.file_url ?? result?.url;
+      if (url) {
+        setEditGallery((prev) => [...prev, url]);
+        toast.success('Photo added');
+      } else {
+        toast.error('Upload failed');
+      }
+    } catch {
+      toast.error('Upload failed');
+    } finally {
+      setUploadingGallery(false);
+      if (galleryInputRef.current) galleryInputRef.current.value = '';
     }
   };
 
@@ -320,6 +345,42 @@ export default function ConfigSection({ domain, configType, title }) {
                             </Button>
                           </div>
                         )}
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-400 block mb-1">Gallery Images</label>
+                        <div className="grid grid-cols-4 gap-2 mb-2">
+                          {(editGallery || []).map((url) => (
+                            <div key={url} className="relative w-20 aspect-square rounded border border-slate-600 overflow-hidden">
+                              <img src={url} alt="" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                className="absolute top-0 right-0 bg-red-600 rounded-full w-5 h-5 text-xs flex items-center justify-center text-white hover:bg-red-500 transition-colors"
+                                onClick={() => setEditGallery((prev) => prev.filter((u) => u !== url))}
+                                aria-label="Remove photo"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <input
+                          ref={galleryInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleGalleryUpload}
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="border-slate-600 text-slate-300"
+                          onClick={() => galleryInputRef.current?.click()}
+                          disabled={uploadingGallery}
+                        >
+                          {uploadingGallery ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Upload className="h-4 w-4 mr-1" />}
+                          Add Photo
+                        </Button>
                       </div>
                     </>
                   )}

@@ -52,11 +52,10 @@ export default function AdminUsersSection({ businesses = [] }) {
     enabled: !!selectedUser?.id
   });
 
-  // Reads from legacy PunchPass entity — field mapping to Joy Coins terminology
-  const { data: userLegacyJoyCoinRecords = [] } = useQuery({
-    queryKey: ['admin-user-legacy-joycoins', selectedUser?.id],
+  const { data: userJoyCoinRecords = [] } = useQuery({
+    queryKey: ['admin-user-joycoins', selectedUser?.id],
     queryFn: () =>
-      base44.entities.PunchPass.filter({ user_id: String(selectedUser.id) }),
+      base44.entities.JoyCoins.filter({ user_id: String(selectedUser.id) }),
     enabled: !!selectedUser?.id
   });
 
@@ -109,7 +108,7 @@ export default function AdminUsersSection({ businesses = [] }) {
   }, [selectedUser, businesses]);
 
   const joyCoinBalance =
-    userLegacyJoyCoinRecords.length > 0 ? userLegacyJoyCoinRecords[0].current_balance || 0 : 0;
+    userJoyCoinRecords.length > 0 ? userJoyCoinRecords[0].balance || 0 : 0;
 
   const initials = (name) =>
     name
