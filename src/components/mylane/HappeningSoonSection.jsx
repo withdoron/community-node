@@ -3,8 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
 import { useRole } from '@/hooks/useRole';
-import EventCard from '@/components/events/EventCard';
 import EventDetailModal from '@/components/events/EventDetailModal';
+import WeekCalendarStrip from '@/components/events/WeekCalendarStrip';
 import SectionWrapper from './SectionWrapper';
 import { Loader2 } from 'lucide-react';
 import { isFriday, isSaturday, isSunday, isToday } from 'date-fns';
@@ -105,20 +105,12 @@ export default function HappeningSoonSection() {
           <div className="flex justify-center py-12">
             <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
           </div>
-        ) : filteredEvents.length === 0 ? (
-          <p className="text-slate-400 text-center py-8">
-            Your community is getting started — check back soon!
-          </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filteredEvents.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                onClick={() => setExpandedEvent(event)}
-              />
-            ))}
-          </div>
+          <WeekCalendarStrip
+            events={filteredEvents}
+            onEventClick={setExpandedEvent}
+            emptyMessage="Your community is getting started — check back soon!"
+          />
         )}
       </div>
 

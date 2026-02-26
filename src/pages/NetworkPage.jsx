@@ -9,8 +9,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useConfig } from '@/hooks/useConfig';
 import { createPageUrl } from '@/utils';
-import EventCard from '@/components/events/EventCard';
 import EventDetailModal from '@/components/events/EventDetailModal';
+import WeekCalendarStrip from '@/components/events/WeekCalendarStrip';
 import BusinessCard from '@/components/business/BusinessCard';
 import { Button } from '@/components/ui/button';
 import { Loader2, Store, Calendar, ArrowLeft, X } from 'lucide-react';
@@ -237,18 +237,12 @@ export default function NetworkPage() {
             <div className="flex justify-center py-12">
               <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
             </div>
-          ) : upcomingEvents.length === 0 ? (
-            <p className="text-slate-500 py-8">No upcoming events in {displayName} yet.</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {upcomingEvents.map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  onClick={() => setExpandedEvent(event)}
-                />
-              ))}
-            </div>
+            <WeekCalendarStrip
+              events={upcomingEvents}
+              onEventClick={setExpandedEvent}
+              emptyMessage={`No upcoming events in ${displayName} yet.`}
+            />
           )}
         </section>
 
