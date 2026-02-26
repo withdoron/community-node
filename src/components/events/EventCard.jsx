@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Tag, Coins } from "lucide-react";
+import { Calendar, MapPin, Tag, Coins, Repeat } from "lucide-react";
 import { format } from 'date-fns';
 
 function getPriceBadge(event) {
@@ -113,6 +113,14 @@ export default function EventCard({ event, onClick }) {
             {format(eventDate, 'EEE, MMM d')} · {format(eventDate, 'h:mm a')}
           </span>
         </div>
+
+        {/* Recurring indicator — when event is grouped from multiple dates */}
+        {event._groupSize > 1 && (
+          <div className="flex items-center gap-1.5 text-slate-400 text-xs">
+            <Repeat className="h-3.5 w-3.5" />
+            <span>Recurring · {event._groupSize - 1} more date{event._groupSize - 1 !== 1 ? 's' : ''}</span>
+          </div>
+        )}
 
         {/* Location */}
         <div className="flex items-center gap-2 text-slate-300 text-sm">

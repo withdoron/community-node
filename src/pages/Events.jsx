@@ -11,6 +11,22 @@ import { useRole } from '@/hooks/useRole';
 import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
 import { isToday } from 'date-fns';
 
+function groupRecurringEvents(events) {
+  const groups = {};
+  events.forEach((event) => {
+    const key = (event.title || '').trim().toLowerCase();
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(event);
+  });
+  return Object.values(groups).map((group) => {
+    group.sort((a, b) => new Date(a.date) - new Date(b.date));
+    const displayEvent = { ...group[0] };
+    displayEvent._groupedDates = group.slice(1).map((e) => e.date);
+    displayEvent._groupSize = group.length;
+    return displayEvent;
+  });
+}
+
 export default function Events() {
   const [searchQuery, setSearchQuery] = useState('');
   const [quickFilter, setQuickFilter] = useState('all');
@@ -132,6 +148,12 @@ export default function Events() {
     return result;
   }, [events, searchQuery, quickFilter, advancedFilters, currentUser, isAppAdmin]);
 
+  const groupedEvents = useMemo(() => {
+    const grouped = groupRecurringEvents(filteredEvents);
+    grouped.sort((a, b) => new Date(a.date) - new Date(b.date));
+    return grouped;
+  }, [filteredEvents]);
+
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (advancedFilters.priceRange[1] < 100) count++;
@@ -211,9 +233,12 @@ export default function Events() {
           </Button>
         </div>
 
-        {/* Results count */}
+        {/* Results count — ungrouped count; note when grouping reduced cards */}
         <div className="text-sm text-slate-400 mb-4">
           {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'} found
+          {groupedEvents.length < filteredEvents.length && (
+            <span className="text-slate-500"> (grouped)</span>
+          )}
         </div>
 
         {/* Event grid */}
@@ -229,7 +254,7 @@ export default function Events() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredEvents.map((event) => (
+              {groupedEvents.map((event) => (
                 <EventCard
                   key={event.id}
                   event={event}
