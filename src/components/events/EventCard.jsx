@@ -130,20 +130,20 @@ export default function EventCard({ event, onClick }) {
               <span>Recurring · {event._groupSize - 1} more date{event._groupSize - 1 !== 1 ? 's' : ''}</span>
               <ChevronDown className={`h-3 w-3 transition-transform flex-shrink-0 ${showDates ? 'rotate-180' : ''}`} />
             </button>
-            {showDates && event._groupedEvents && event._groupedEvents.length > 0 && (
-              <div className="mt-2 space-y-1 pl-6" onClick={(e) => e.stopPropagation()}>
-                {event._groupedEvents.map((ev) => (
-                  <button
-                    key={ev.id}
-                    type="button"
+            {showDates && event._groupedEvents?.length > 0 && (
+              <div className="mt-2 space-y-1 pl-6">
+                {event._groupedEvents.map((ge) => (
+                  <div
+                    key={ge.id}
                     onClick={(e) => {
                       e.stopPropagation();
-                      onClick(ev);
+                      onClick?.(ge);
                     }}
-                    className="block w-full text-left text-slate-400 text-xs hover:text-amber-500 cursor-pointer transition-colors"
+                    className="text-slate-400 text-xs hover:text-amber-500 cursor-pointer transition-colors py-1"
                   >
-                    {format(new Date(ev.date), 'EEE, MMM d')} · {format(new Date(ev.date), 'h:mm a')}
-                  </button>
+                    {new Date(ge.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                    {ge.start_time ? ` · ${ge.start_time}` : ''}
+                  </div>
                 ))}
               </div>
             )}

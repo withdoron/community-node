@@ -22,6 +22,7 @@ function groupRecurringEvents(events) {
     group.sort((a, b) => new Date(a.date) - new Date(b.date));
     const displayEvent = { ...group[0] };
     displayEvent._groupedDates = group.slice(1).map((e) => e.date);
+    displayEvent._groupedEvents = group.slice(1);
     displayEvent._groupSize = group.length;
     return displayEvent;
   });
