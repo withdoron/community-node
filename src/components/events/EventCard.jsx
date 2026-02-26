@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Tag, Coins, Repeat } from "lucide-react";
+import { Calendar, MapPin, Tag, Coins, Repeat, ChevronDown } from "lucide-react";
 import { format } from 'date-fns';
 
 function getPriceBadge(event) {
@@ -25,6 +25,7 @@ function getPriceBadge(event) {
 }
 
 export default function EventCard({ event, onClick }) {
+  const [showDates, setShowDates] = useState(false);
   const eventDate = new Date(event.date);
   const priceBadge = getPriceBadge(event);
   const isCancelled = event.status === 'cancelled';
@@ -48,7 +49,7 @@ export default function EventCard({ event, onClick }) {
       className={`bg-slate-900 border-slate-800 transition-all cursor-pointer overflow-hidden ${
         isCancelled ? 'opacity-60 hover:border-red-500/50' : 'hover:border-amber-500/50'
       }`}
-      onClick={onClick}
+      onClick={() => onClick()}
     >
       {/* Hero Image */}
       <div className="relative h-48 bg-slate-800">
@@ -114,11 +115,38 @@ export default function EventCard({ event, onClick }) {
           </span>
         </div>
 
-        {/* Recurring indicator — when event is grouped from multiple dates */}
+        {/* Recurring indicator — when event is grouped from multiple dates; expandable to show all dates */}
         {event._groupSize > 1 && (
-          <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-            <Repeat className="h-3.5 w-3.5" />
-            <span>Recurring · {event._groupSize - 1} more date{event._groupSize - 1 !== 1 ? 's' : ''}</span>
+          <div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDates(!showDates);
+              }}
+              className="flex items-center gap-1.5 text-slate-400 text-xs cursor-pointer hover:text-slate-300 transition-colors"
+            >
+              <Repeat className="h-3.5 w-3.5" />
+              <span>Recurring · {event._groupSize - 1} more date{event._groupSize - 1 !== 1 ? 's' : ''}</span>
+              <ChevronDown className={`h-3 w-3 transition-transform flex-shrink-0 ${showDates ? 'rotate-180' : ''}`} />
+            </button>
+            {showDates && event._groupedEvents && event._groupedEvents.length > 0 && (
+              <div className="mt-2 space-y-1 pl-6" onClick={(e) => e.stopPropagation()}>
+                {event._groupedEvents.map((ev) => (
+                  <button
+                    key={ev.id}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onClick(ev);
+                    }}
+                    className="block w-full text-left text-slate-400 text-xs hover:text-amber-500 cursor-pointer transition-colors"
+                  >
+                    {format(new Date(ev.date), 'EEE, MMM d')} · {format(new Date(ev.date), 'h:mm a')}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

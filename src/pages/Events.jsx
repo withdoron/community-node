@@ -258,7 +258,7 @@ export default function Events() {
                 <EventCard
                   key={event.id}
                   event={event}
-                  onClick={() => setExpandedEventId(event.id)}
+                  onClick={(clickedEvent) => setExpandedEventId((clickedEvent || event).id)}
                 />
               ))}
             </div>
