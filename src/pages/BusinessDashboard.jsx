@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { getGreeting } from '@/utils/greeting';
 import BusinessCard from '@/components/dashboard/BusinessCard';
@@ -17,17 +17,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Store, Wallet, Ticket, Plus, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ArrowLeft, Store, Wallet, Ticket, Plus, Loader2, Users } from "lucide-react";
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { useRole } from '@/hooks/useRole';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
-import { ARCHETYPE_TITLES, getBusinessTabs } from '@/config/workspaceTypes';
+import { ARCHETYPE_TITLES, getBusinessTabs, WORKSPACE_TYPES } from '@/config/workspaceTypes';
 import { toast } from "sonner";
 
 export default function BusinessDashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedBusinessId, setSelectedBusinessId] = useState(null);
+  const [selectedTeamId, setSelectedTeamId] = useState(null);
+  const [typePickerOpen, setTypePickerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [checkInEvent, setCheckInEvent] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
@@ -141,6 +150,60 @@ export default function BusinessDashboard() {
 
   const businessesLoading = ownedLoading || staffLoading;
 
+  // Sync selectedTeamId from URL (?team=id) when coming back from TeamOnboarding
+  useEffect(() => {
+    const teamId = searchParams.get('team');
+    if (teamId) {
+      setSelectedTeamId(teamId);
+      setSelectedBusinessId(null);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  // Fetch teams where user is owner (coach)
+  const { data: ownedTeams = [], isLoading: teamsLoading } = useQuery({
+    queryKey: ['ownedTeams', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      const list = await base44.entities.Team.filter(
+        { owner_id: currentUser.id, status: 'active' },
+        '-created_date',
+        100
+      );
+      return Array.isArray(list) ? list : [];
+    },
+    enabled: !!currentUser?.id,
+  });
+
+  // Team members for selected team
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['team-members', selectedTeamId],
+    queryFn: async () => {
+      if (!selectedTeamId) return [];
+      const list = await base44.entities.TeamMember.filter(
+        { team_id: selectedTeamId, status: 'active' }
+      );
+      return Array.isArray(list) ? list : [];
+    },
+    enabled: !!selectedTeamId,
+  });
+
+  // Member counts per team (for landing cards)
+  const { data: teamMemberCounts = {} } = useQuery({
+    queryKey: ['team-member-counts', ownedTeams.map((t) => t.id).join(',')],
+    queryFn: async () => {
+      const counts = {};
+      await Promise.all(
+        ownedTeams.map(async (t) => {
+          const list = await base44.entities.TeamMember.filter({ team_id: t.id, status: 'active' });
+          counts[t.id] = Array.isArray(list) ? list.length : 0;
+        })
+      );
+      return counts;
+    },
+    enabled: ownedTeams.length > 0,
+  });
+
   // Fetch event counts for each business
   const { data: eventCounts = {} } = useQuery({
     queryKey: ['business-event-counts', associatedBusinesses.map(b => b.id)],
@@ -216,13 +279,49 @@ export default function BusinessDashboard() {
     },
   });
 
-  const isLoading = userLoading || businessesLoading;
+  const isLoading = userLoading || businessesLoading || teamsLoading;
 
   const getUserRole = (business) => {
     if (business?.owner_user_id === currentUser?.id) return 'owner';
     if (business?.instructors?.includes(currentUser?.id)) return 'staff';
     return 'none';
   };
+
+  const renderTypePickerModal = () => (
+    <Dialog open={typePickerOpen} onOpenChange={setTypePickerOpen}>
+      <DialogContent className="bg-slate-900 border-slate-800 max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-slate-100">Add workspace</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-3 py-2">
+          {availableTypes.map((type) => {
+            const Icon = type.icon === 'Users' ? Users : Store;
+            const handleChoose = () => {
+              setTypePickerOpen(false);
+              if (type.id === 'business') navigate(createPageUrl('BusinessOnboarding'));
+              else if (type.id === 'team') navigate(createPageUrl('TeamOnboarding'));
+            };
+            return (
+              <button
+                key={type.id}
+                type="button"
+                onClick={handleChoose}
+                className="flex items-start gap-4 p-4 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-left transition-colors min-h-[44px]"
+              >
+                <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                  <Icon className="h-5 w-5 text-amber-500" />
+                </div>
+                <div>
+                  <div className="font-semibold text-slate-100">{type.label}</div>
+                  <div className="text-sm text-slate-400">{type.description}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 
   if (isLoading) {
     return (
@@ -232,54 +331,53 @@ export default function BusinessDashboard() {
     );
   }
 
-  // STEP 1: No business associations - Show empty state with CTA to create business
-  if (!associatedBusinesses || associatedBusinesses.length === 0) {
+  const hasAnyWorkspace = (associatedBusinesses?.length > 0) || (ownedTeams?.length > 0);
+  const availableTypes = Object.values(WORKSPACE_TYPES).filter((t) => t.available);
+
+  // STEP 1: No workspaces — empty state with type picker
+  if (!hasAnyWorkspace) {
     return (
       <div className="min-h-screen bg-slate-950">
-        {/* Header */}
         <div className="bg-slate-900 border-b border-slate-800">
           <div className="max-w-6xl mx-auto px-6 py-4">
             <div className="flex items-center gap-3">
               <Store className="h-5 w-5 text-amber-500" />
               <div>
-                <h1 className="text-lg font-bold text-slate-100">Business Dashboard</h1>
-                <p className="text-xs text-slate-400">Manage your businesses and events</p>
+                <h1 className="text-lg font-bold text-slate-100">Workspaces</h1>
+                <p className="text-xs text-slate-400">Manage the things you lead</p>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Empty State */}
         <div className="max-w-2xl mx-auto px-6 py-16">
           <div className="text-center">
             <div className="h-20 w-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <Store className="h-10 w-10 text-amber-500" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-100 mb-3">
-              No Businesses Yet
-            </h2>
+            <h2 className="text-2xl font-bold text-slate-100 mb-3">No workspaces yet</h2>
             <p className="text-slate-400 mb-8 max-w-md mx-auto">
-              Create your first business or organization to start managing events, accepting bookings, and connecting with your community.
+              Create a business or team to get started.
             </p>
-            <Button 
-              onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
-              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-8 py-6 text-lg"
+            <Button
+              onClick={() => setTypePickerOpen(true)}
+              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-8 py-6 text-lg min-h-[44px]"
               size="lg"
             >
               <Plus className="h-5 w-5 mr-2" />
-              Create Your First Business
+              Add Workspace
             </Button>
             <p className="text-sm text-slate-500 mt-6">
               Or <Link to={createPageUrl('MyLane')} className="text-amber-500 hover:text-amber-400 underline">go to your personal dashboard</Link>
             </p>
           </div>
         </div>
+        {renderTypePickerModal()}
       </div>
     );
   }
 
-  // STEP 2: Has businesses but none selected - Show Smart Dashboard Hub
-  if (!selectedBusinessId) {
+  // STEP 2: Has workspaces but none selected — landing with business + team cards
+  if (!selectedBusinessId && !selectedTeamId) {
     return (
       <div className="min-h-screen bg-slate-950">
         {/* Personal Header - "Wallet Strip" */}
@@ -324,10 +422,9 @@ export default function BusinessDashboard() {
                 Manage the things you lead
               </p>
             </div>
-            {/* TODO: Build 1b+ — type picker modal before launching creation wizard */}
-            <Button 
-              onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
-              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+            <Button
+              onClick={() => setTypePickerOpen(true)}
+              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Workspace
@@ -341,22 +438,143 @@ export default function BusinessDashboard() {
                 business={business}
                 userRole={getUserRole(business)}
                 eventCount={eventCounts[business.id] || 0}
-                onClick={() => setSelectedBusinessId(business.id)}
+                onClick={() => { setSelectedBusinessId(business.id); setSelectedTeamId(null); setActiveTab('home'); }}
                 workspaceTypeLabel="Business"
               />
             ))}
+            {ownedTeams.map((team) => {
+              const memberCount = 0; // could be from a count query per team; for now show 0 or we fetch later
+              return (
+                <div
+                  key={team.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => { setSelectedTeamId(team.id); setSelectedBusinessId(null); setActiveTab('home'); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedTeamId(team.id); setSelectedBusinessId(null); setActiveTab('home'); } }}
+                  className="bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-6 cursor-pointer transition-colors min-h-[44px]"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-14 h-14 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                      <Users className="h-6 w-6 text-amber-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+                        <h3 className="font-bold text-lg text-slate-100 truncate">{team.name}</h3>
+                        <Badge className="bg-amber-500 text-black text-xs">HEAD COACH</Badge>
+                        <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">Team</span>
+                      </div>
+                      <p className="text-sm text-slate-400 mb-1">
+                        {team.sport === 'flag_football' ? 'Flag Football' : team.sport || 'Team'} · {team.format || '—'}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {teamMemberCounts[team.id] ?? 0} players · {team.season || '—'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+        </div>
+        {renderTypePickerModal()}
+      </div>
+    );
+  }
+
+  const selectedTeam = ownedTeams.find((t) => t.id === selectedTeamId);
+
+  // STEP 3a: Team selected — show team workspace
+  if (selectedTeamId && selectedTeam) {
+    const teamTabs = WORKSPACE_TYPES.team.tabs;
+    const teamScope = {
+      team: selectedTeam,
+      members: teamMembers,
+      currentUserId: currentUser?.id,
+      isCoach: selectedTeam.owner_id === currentUser?.id,
+      onNavigateTab: setActiveTab,
+      onCopyInviteLink: () => {
+        const link = selectedTeam.invite_code ? `locallane.app/join/${selectedTeam.invite_code}` : '';
+        if (link) {
+          navigator.clipboard.writeText(link);
+          toast.success('Invite link copied');
+        }
+      },
+      onArchived: () => {
+        setSelectedTeamId(null);
+        queryClient.invalidateQueries({ queryKey: ['ownedTeams'] });
+      },
+    };
+
+    return (
+      <div className="min-h-screen bg-slate-950">
+        <div className="bg-slate-900 border-b border-slate-800">
+          <div className="max-w-6xl mx-auto px-6 py-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setSelectedTeamId(null); setSelectedBusinessId(null); }}
+                className="text-slate-400 hover:text-slate-100 min-h-[44px]"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Workspaces
+              </Button>
+              <div className="h-4 w-px bg-slate-700" />
+              <div className="flex items-center gap-3">
+                <Users className="h-5 w-5 text-amber-500" />
+                <div>
+                  <h1 className="text-lg font-bold text-slate-100">{selectedTeam.name}</h1>
+                  <p className="text-xs text-slate-400">
+                    {selectedTeam.sport === 'flag_football' ? 'Flag Football' : selectedTeam.sport || 'Team'} · {selectedTeam.format || ''}
+                  </p>
+                </div>
+                <Badge className="ml-2 bg-amber-500 text-black">HEAD COACH</Badge>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1">
+            {teamTabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors min-h-[44px] ${isActive ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          {(() => {
+            const activeTabConfig = teamTabs.find((t) => t.id === activeTab);
+            if (!activeTabConfig) return null;
+            const TabComponent = activeTabConfig.component;
+            const props = activeTabConfig.getProps ? activeTabConfig.getProps(teamScope) : {};
+            return <TabComponent {...props} />;
+          })()}
         </div>
       </div>
     );
   }
 
-  // STEP 3: Business selected - Show role-based dashboard
+  // Clear selectedTeamId if team no longer in list (e.g. archived)
+  useEffect(() => {
+    if (selectedTeamId && ownedTeams.length > 0 && !ownedTeams.find((t) => t.id === selectedTeamId)) {
+      setSelectedTeamId(null);
+    }
+  }, [selectedTeamId, ownedTeams]);
+
   const selectedBusiness = associatedBusinesses.find(b => b.id === selectedBusinessId);
-  if (!selectedBusiness) {
-    setSelectedBusinessId(null);
-    return null;
-  }
+  if (selectedTeamId && !selectedTeam) return null;
+  if (!selectedBusiness) return null;
+
+  // STEP 3b: Business selected — show business workspace
 
   const userRole = getUserRole(selectedBusiness);
   const archetype = selectedBusiness.archetype || 'location';
@@ -382,7 +600,7 @@ export default function BusinessDashboard() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setSelectedBusinessId(null)}
+              onClick={() => { setSelectedBusinessId(null); setSelectedTeamId(null); }}
               className="text-slate-400 hover:text-slate-100"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />

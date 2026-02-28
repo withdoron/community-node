@@ -10,12 +10,21 @@ import {
   TrendingUp,
   Calendar,
   Settings,
+  BookOpen,
+  Users,
+  MessageSquare,
 } from 'lucide-react';
 import DashboardHome from '@/components/dashboard/DashboardHome';
 import AccessWindowManager from '@/components/dashboard/AccessWindowManager';
 import RevenueOverview from '@/components/dashboard/RevenueOverview';
 import EventsWidget from '@/components/dashboard/widgets/EventsWidget';
 import DashboardSettings from '@/components/dashboard/DashboardSettings';
+import TeamHome from '@/components/team/TeamHome';
+import TeamPlaybook from '@/components/team/TeamPlaybook';
+import TeamSchedule from '@/components/team/TeamSchedule';
+import TeamRoster from '@/components/team/TeamRoster';
+import TeamMessages from '@/components/team/TeamMessages';
+import TeamSettings from '@/components/team/TeamSettings';
 
 // ——— Archetype display titles (subtitle under business name) ———
 export const ARCHETYPE_TITLES = {
@@ -133,16 +142,23 @@ export const WORKSPACE_TYPES = {
     label: 'Team',
     icon: 'Users',
     description: 'Manage a sports team — roster, playbook, schedule, communication',
-    tabs: [],
+    archetypeSupport: false,
+    networkAffinity: true,
+    available: true,
+    createWizard: 'TeamOnboarding',
     roles: {
       owner: 'Head Coach',
       co_owner: 'Co-Coach',
       staff: 'Assistant Coach',
       member: 'Player/Parent',
     },
-    createWizard: null,
-    networkAffinity: true,
-    archetypeSupport: false,
-    available: false, // not yet launchable
+    tabs: [
+      { id: 'home', label: 'Home', icon: LayoutDashboard, component: TeamHome, getProps: (scope) => ({ team: scope.team, members: scope.members, onNavigateTab: scope.onNavigateTab, onCopyInviteLink: scope.onCopyInviteLink }) },
+      { id: 'playbook', label: 'Playbook', icon: BookOpen, component: TeamPlaybook, getProps: () => ({}) },
+      { id: 'schedule', label: 'Schedule', icon: Calendar, component: TeamSchedule, getProps: () => ({}) },
+      { id: 'roster', label: 'Roster', icon: Users, component: TeamRoster, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach }) },
+      { id: 'messages', label: 'Messages', icon: MessageSquare, component: TeamMessages, getProps: () => ({}) },
+      { id: 'settings', label: 'Settings', icon: Settings, component: TeamSettings, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach, onArchived: scope.onArchived }) },
+    ],
   },
 };

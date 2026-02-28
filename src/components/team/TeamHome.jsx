@@ -1,0 +1,62 @@
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Users, BookOpen, Calendar, UserPlus, Share2 } from 'lucide-react';
+
+const PLAYER_COUNT_ROLES = ['player'];
+
+export default function TeamHome({ team, members = [], onNavigateTab, onCopyInviteLink }) {
+  const playerCount = members.filter((m) => PLAYER_COUNT_ROLES.includes(m.role)).length;
+  const sportLabel = team?.sport === 'flag_football' ? 'Flag Football' : (team?.sport || 'Team');
+  const season = team?.season || '—';
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-bold text-slate-100">{team?.name}</h2>
+        {season && season !== '—' && <p className="text-sm text-slate-400">{season}</p>}
+      </div>
+
+      <p className="text-slate-400">
+        Welcome to your team! Start by adding your players to the roster.
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <Users className="h-5 w-5 text-amber-500 mb-2" />
+          <div className="text-2xl font-bold text-slate-100">{playerCount}</div>
+          <div className="text-sm text-slate-400">Roster</div>
+        </div>
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <BookOpen className="h-5 w-5 text-amber-500 mb-2" />
+          <div className="text-2xl font-bold text-slate-100">0</div>
+          <div className="text-sm text-slate-400">Playbook <span className="text-slate-500">(Coming soon)</span></div>
+        </div>
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <Calendar className="h-5 w-5 text-amber-500 mb-2" />
+          <div className="text-2xl font-bold text-slate-100">—</div>
+          <div className="text-sm text-slate-400">Schedule <span className="text-slate-500">(No events yet)</span></div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <Button
+          type="button"
+          className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
+          onClick={() => onNavigateTab?.('roster')}
+        >
+          <UserPlus className="h-4 w-4 mr-2" />
+          Add Player
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px] transition-colors"
+          onClick={() => onCopyInviteLink?.()}
+        >
+          <Share2 className="h-4 w-4 mr-2" />
+          Share Invite Code
+        </Button>
+      </div>
+    </div>
+  );
+}

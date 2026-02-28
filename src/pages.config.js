@@ -16,6 +16,7 @@ import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Recommend from './pages/Recommend';
 import UserOnboarding from './pages/UserOnboarding';
+import TeamOnboarding from './pages/TeamOnboarding';
 import __Layout from './Layout.jsx';
 
 
@@ -38,6 +39,7 @@ export const PAGES = {
     "Terms": Terms,
     "Recommend": Recommend,
     "welcome": UserOnboarding,
+    "TeamOnboarding": TeamOnboarding,
 }
 
 export const pagesConfig = {
