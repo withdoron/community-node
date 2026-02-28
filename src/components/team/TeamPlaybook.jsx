@@ -60,24 +60,27 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
     return list;
   }, [playsForSide, gameDayOnly]);
 
-  const { data: assignmentsByPlayId = {} } = useQuery({
+  const { data: allAssignments } = useQuery({
     queryKey: ['play-assignments-bulk', team?.id, playsForSide.map((p) => p.id).sort().join(',')],
     queryFn: async () => {
-      const map = {};
-      await Promise.all(
-        playsForSide.map(async (p) => {
-          const list = await base44.entities.PlayAssignment.filter({ play_id: p.id }).list();
-          map[p.id] = Array.isArray(list) ? list : [];
-        })
+      if (!playsForSide?.length) return [];
+      const results = await Promise.all(
+        playsForSide.map((p) => base44.entities.PlayAssignment.filter({ play_id: p.id }).list())
       );
-      return map;
+      return results.flat();
     },
     enabled: !!team?.id && playsForSide.length > 0,
   });
 
-  console.log('[Playbook] Raw assignments query result:', assignmentsByPlayId);
-  console.log('[Playbook] assignmentsByPlayId:', assignmentsByPlayId);
-  console.log('[Playbook] plays for side:', playsForSide?.map((p) => ({ id: p.id, name: p.name })));
+  const assignmentsByPlayId = useMemo(() => {
+    if (!allAssignments) return {};
+    const map = {};
+    allAssignments.forEach((a) => {
+      if (!map[a.play_id]) map[a.play_id] = [];
+      map[a.play_id].push(a);
+    });
+    return map;
+  }, [allAssignments]);
 
   const playsByFormation = useMemo(() => {
     const map = {};
@@ -272,7 +275,6 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
               : 0
           }
         />
-        </>
       )}
 
       {/* Sideline Mode overlay (coach, md+) */}
