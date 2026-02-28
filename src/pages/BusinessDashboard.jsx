@@ -256,6 +256,13 @@ export default function BusinessDashboard() {
 
   const revenue = useBusinessRevenue(selectedBusinessId);
 
+  // Clear selectedTeamId if team no longer in list (e.g. archived)
+  useEffect(() => {
+    if (selectedTeamId && ownedTeams.length > 0 && !ownedTeams.find((t) => t.id === selectedTeamId)) {
+      setSelectedTeamId(null);
+    }
+  }, [selectedTeamId, ownedTeams]);
+
   // Hard delete: Business.delete(id) removes record permanently. Fallback to soft delete if delete not available.
   const deleteMutation = useMutation({
     mutationFn: async (businessId) => {
@@ -562,13 +569,6 @@ export default function BusinessDashboard() {
       </div>
     );
   }
-
-  // Clear selectedTeamId if team no longer in list (e.g. archived)
-  useEffect(() => {
-    if (selectedTeamId && ownedTeams.length > 0 && !ownedTeams.find((t) => t.id === selectedTeamId)) {
-      setSelectedTeamId(null);
-    }
-  }, [selectedTeamId, ownedTeams]);
 
   const selectedBusiness = associatedBusinesses.find(b => b.id === selectedBusinessId);
   if (selectedTeamId && !selectedTeam) return null;
