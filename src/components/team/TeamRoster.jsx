@@ -91,6 +91,12 @@ export default function TeamRoster({ team, members = [], isCoach }) {
 
   const players = members.filter((m) => m.role === 'player');
 
+  const getLinkedPlayer = (member) => {
+    if (member.role !== 'parent' || !member.linked_player_id) return null;
+    return members.find((m) => m.id === member.linked_player_id);
+  };
+  const getLinkedParents = (member) => members.filter((m) => m.role === 'parent' && m.linked_player_id === member.id);
+
   return (
     <div className="space-y-4">
       {isCoach && (
@@ -124,18 +130,34 @@ export default function TeamRoster({ team, members = [], isCoach }) {
                 </td>
               </tr>
             ) : (
-              sortedMembers.map((m) => (
-                <tr key={m.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-100">{m.jersey_name || '—'}</td>
-                  <td className="px-4 py-3 text-slate-400">{m.jersey_number || '—'}</td>
-                  <td className="px-4 py-3">
-                    {m.position ? <span className="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded">{m.position}</span> : '—'}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={roleBadgeClass(m.role)}>{roleLabel(m.role)}</span>
-                  </td>
-                </tr>
-              ))
+              sortedMembers.map((m) => {
+                const linkedPlayer = getLinkedPlayer(m);
+                const linkedParents = getLinkedParents(m);
+                const isUnclaimedPlayer = m.role === 'player' && !m.user_id;
+                return (
+                  <tr key={m.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-slate-100">{m.jersey_name || '—'}</div>
+                      {isUnclaimedPlayer && (
+                        <span className="inline-block mt-1 text-xs bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded">Pending</span>
+                      )}
+                      {m.role === 'parent' && linkedPlayer && (
+                        <span className="inline-block mt-1 text-xs text-slate-400">Linked: {linkedPlayer.jersey_name || '—'}</span>
+                      )}
+                      {m.role === 'player' && linkedParents.length > 0 && (
+                        <span className="inline-block mt-1 text-xs text-slate-400">Parent: {linkedParents.map((p) => p.jersey_name).filter(Boolean).join(', ') || '—'}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-slate-400">{m.jersey_number || '—'}</td>
+                    <td className="px-4 py-3">
+                      {m.position ? <span className="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded">{m.position}</span> : '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={roleBadgeClass(m.role)}>{roleLabel(m.role)}</span>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

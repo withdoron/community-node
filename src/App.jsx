@@ -15,6 +15,7 @@ import JoyCoinsHistory from '@/pages/JoyCoinsHistory';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import NetworkPage from '@/pages/NetworkPage';
 import Networks from '@/pages/Networks';
+import JoinTeam from '@/pages/JoinTeam';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -102,6 +103,14 @@ const AuthenticatedApp = () => {
         element={
           <LayoutWrapper currentPageName="Networks">
             <NetworkPage />
+          </LayoutWrapper>
+        }
+      />
+      <Route
+        path="/join/:inviteCode"
+        element={
+          <LayoutWrapper currentPageName="JoinTeam">
+            <JoinTeam />
           </LayoutWrapper>
         }
       />
