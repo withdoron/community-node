@@ -171,15 +171,17 @@ export default function JoinTeam() {
         </p>
         <p className="text-slate-300 mb-4">How are you joining?</p>
         <div className="space-y-3">
-          <button
-            type="button"
-            onClick={() => setJoinPath('player')}
-            className="w-full flex items-center gap-3 p-4 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-left transition-colors min-h-[56px]"
-          >
-            <Users className="h-6 w-6 text-amber-500" />
-            <span className="font-medium text-white">I'm a player</span>
-            <span className="text-slate-400 text-sm ml-auto">Claim my roster spot</span>
-          </button>
+          {false && (
+            <button
+              type="button"
+              onClick={() => setJoinPath('player')}
+              className="w-full flex items-center gap-3 p-4 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-left transition-colors min-h-[56px]"
+            >
+              <Users className="h-6 w-6 text-amber-500" />
+              <span className="font-medium text-white">I'm a player</span>
+              <span className="text-slate-400 text-sm ml-auto">Claim my roster spot</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setJoinPath('parent')}
@@ -189,6 +191,7 @@ export default function JoinTeam() {
             <span className="font-medium text-white">I'm a parent</span>
             <span className="text-slate-400 text-sm ml-auto">Link to my child</span>
           </button>
+          <p className="text-slate-400 text-sm">Players join through a parent account for now.</p>
         </div>
       </div>
     );
