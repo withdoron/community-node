@@ -6,7 +6,7 @@ import { Users, BookOpen, Calendar, UserPlus, Share2 } from 'lucide-react';
 
 const PLAYER_COUNT_ROLES = ['player'];
 
-export default function TeamHome({ team, members = [], onNavigateTab, onCopyInviteLink }) {
+export default function TeamHome({ team, members = [], onNavigateTab, onCopyInviteLink, viewingAsMember, effectiveRole }) {
   const playerCount = members.filter((m) => PLAYER_COUNT_ROLES.includes(m.role)).length;
   const { data: plays = [] } = useQuery({
     queryKey: ['plays-count', team?.id],
@@ -20,6 +20,48 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
   const playCount = plays.length;
   const sportLabel = team?.sport === 'flag_football' ? 'Flag Football' : (team?.sport || 'Team');
   const season = team?.season || '—';
+  const isViewingAsChild = !!viewingAsMember && viewingAsMember.role === 'player';
+
+  if (isViewingAsChild) {
+    const name = viewingAsMember.jersey_name || 'Player';
+    const position = viewingAsMember.position || '—';
+    return (
+      <div className="space-y-6">
+        <div className="bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3">
+          <p className="text-xs text-slate-400 uppercase tracking-wider">Viewing as</p>
+          <p className="text-lg font-bold text-amber-500">{name} — {position}</p>
+        </div>
+        <p className="text-slate-300">
+          This is what {name} sees: playbook stats and quick actions.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <BookOpen className="h-5 w-5 text-amber-500 mb-2" />
+            <div className="text-2xl font-bold text-slate-100">{playCount}</div>
+            <div className="text-sm text-slate-400">Plays in playbook</div>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <Calendar className="h-5 w-5 text-amber-500 mb-2" />
+            <div className="text-2xl font-bold text-slate-100">—</div>
+            <div className="text-sm text-slate-400">Schedule</div>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <Users className="h-5 w-5 text-amber-500 mb-2" />
+            <div className="text-2xl font-bold text-slate-100">{playerCount}</div>
+            <div className="text-sm text-slate-400">Teammates</div>
+          </div>
+        </div>
+        <Button
+          type="button"
+          className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
+          onClick={() => onNavigateTab?.('playbook')}
+        >
+          <BookOpen className="h-4 w-4 mr-2" />
+          Study plays
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

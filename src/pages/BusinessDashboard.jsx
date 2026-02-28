@@ -28,6 +28,7 @@ import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { useRole } from '@/hooks/useRole';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
 import { ARCHETYPE_TITLES, getBusinessTabs, WORKSPACE_TYPES } from '@/config/workspaceTypes';
+import TeamContextSwitcher from '@/components/team/TeamContextSwitcher';
 import { toast } from "sonner";
 
 export default function BusinessDashboard() {
@@ -40,6 +41,7 @@ export default function BusinessDashboard() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [checkInEvent, setCheckInEvent] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
+  const [viewingAsPlayerId, setViewingAsPlayerId] = useState(null);
 
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -187,6 +189,18 @@ export default function BusinessDashboard() {
     },
     enabled: !!selectedTeamId,
   });
+
+  // Parent-child context: parent records and effective view (for team workspace only)
+  const parentRecords = (teamMembers || []).filter(
+    (m) => m.user_id === currentUser?.id && m.role === 'parent'
+  );
+  const isParent = parentRecords.length > 0;
+  const viewingAsMember = viewingAsPlayerId
+    ? (teamMembers || []).find((m) => m.id === viewingAsPlayerId)
+    : null;
+  const effectivePosition = viewingAsMember?.position ?? null;
+  const currentTeamMember = (teamMembers || []).find((m) => m.user_id === currentUser?.id);
+  const effectiveRole = viewingAsMember ? viewingAsMember.role : currentTeamMember?.role;
 
   // Member counts per team (for landing cards)
   const { data: teamMemberCounts = {} } = useQuery({
@@ -510,6 +524,9 @@ export default function BusinessDashboard() {
         setSelectedTeamId(null);
         queryClient.invalidateQueries({ queryKey: ['ownedTeams'] });
       },
+      viewingAsMember,
+      effectiveRole,
+      effectivePosition,
     };
 
     return (
@@ -520,7 +537,7 @@ export default function BusinessDashboard() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setSelectedTeamId(null); setSelectedBusinessId(null); }}
+                onClick={() => { setSelectedTeamId(null); setSelectedBusinessId(null); setViewingAsPlayerId(null); }}
                 className="text-slate-400 hover:text-slate-100 min-h-[44px]"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -556,6 +573,14 @@ export default function BusinessDashboard() {
               );
             })}
           </div>
+          {isParent && (
+            <TeamContextSwitcher
+              parentRecords={parentRecords}
+              teamMembers={teamMembers}
+              viewingAsPlayerId={viewingAsPlayerId}
+              onSwitch={setViewingAsPlayerId}
+            />
+          )}
         </div>
         <div className="max-w-6xl mx-auto px-6 py-8">
           {(() => {
@@ -563,7 +588,13 @@ export default function BusinessDashboard() {
             if (!activeTabConfig) return null;
             const TabComponent = activeTabConfig.component;
             const props = activeTabConfig.getProps ? activeTabConfig.getProps(teamScope) : {};
-            return <TabComponent {...props} />;
+            const extraProps =
+              activeTabConfig.id === 'home'
+                ? { viewingAsMember, effectiveRole }
+                : activeTabConfig.id === 'playbook'
+                  ? { playerPosition: effectivePosition }
+                  : {};
+            return <TabComponent {...props} {...extraProps} />;
           })()}
         </div>
       </div>

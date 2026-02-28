@@ -9,7 +9,7 @@ import PlayCreateModal from './PlayCreateModal';
 import StudyMode from './StudyMode';
 import SidelineMode from './SidelineMode';
 
-export default function TeamPlaybook({ team, members = [], isCoach, currentUserId }) {
+export default function TeamPlaybook({ team, members = [], isCoach, currentUserId, playerPosition: playerPositionProp }) {
   const queryClient = useQueryClient();
   const [side, setSide] = useState('offense');
   const [gameDayOnly, setGameDayOnly] = useState(false);
@@ -71,7 +71,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
   }, [filteredPlays]);
 
   const currentUserMember = members.find((m) => m.user_id === currentUserId);
-  const playerPosition = currentUserMember?.position || null;
+  const playerPosition = playerPositionProp ?? currentUserMember?.position ?? null;
 
   const handleEdit = (play) => {
     setEditPlay(play);
