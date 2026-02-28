@@ -618,7 +618,11 @@ export default function BusinessDashboard() {
                 ? { viewingAsMember, effectiveRole }
                 : activeTabConfig.id === 'playbook'
                   ? { playerPosition: effectivePosition }
-                  : {};
+                  : activeTabConfig.id === 'schedule'
+                    ? { teamId: selectedTeam?.id, teamScope }
+                    : activeTabConfig.id === 'messages'
+                      ? { teamId: selectedTeam?.id, teamScope }
+                      : {};
             return <TabComponent {...props} {...extraProps} />;
           })()}
         </div>
