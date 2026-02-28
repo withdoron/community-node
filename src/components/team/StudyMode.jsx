@@ -32,12 +32,18 @@ export default function StudyMode({
   const play = filteredPlays[currentIndex];
   const playAssignments = play ? (assignments[play.id] || []) : [];
   const sortedAssignments = [...playAssignments].sort(
-    (a, b) => POSITION_ORDER.indexOf(a.position) - POSITION_ORDER.indexOf(b.position)
+    (a, b) =>
+      POSITION_ORDER.indexOf((a.position || '').toUpperCase()) -
+      POSITION_ORDER.indexOf((b.position || '').toUpperCase())
   );
   // In My Assignment view: coaches use viewAsPosition (or null); players use playerPosition
   const displayPosition = viewMode === 'my' && isCoach ? viewAsPosition : playerPosition;
-  const myAssignment = displayPosition ? playAssignments.find((a) => a.position === displayPosition) : null;
-  const otherAssignments = sortedAssignments.filter((a) => a.position !== displayPosition);
+  const myAssignment = displayPosition
+    ? playAssignments.find((a) => a.position?.toLowerCase() === displayPosition?.toLowerCase())
+    : null;
+  const otherAssignments = sortedAssignments.filter(
+    (a) => a.position?.toLowerCase() !== displayPosition?.toLowerCase()
+  );
 
   const markViewed = useCallback((playId) => {
     setViewedPlays((prev) => new Set(prev).add(playId));
@@ -240,7 +246,7 @@ export default function StudyMode({
               <>
                 <div className="space-y-2">
                   {sortedAssignments.map((a) => {
-                    const isMyPos = playerPosition && a.position === playerPosition;
+                    const isMyPos = playerPosition && a.position?.toLowerCase() === playerPosition?.toLowerCase();
                     return (
                       <div
                         key={a.id}
