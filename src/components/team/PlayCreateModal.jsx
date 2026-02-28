@@ -83,7 +83,7 @@ export default function PlayCreateModal({
     game_day: false,
     coach_notes: '',
   });
-  const [assignments, setAssignments] = useState(initialAssignments);
+  const [assignments, setAssignments] = useState(initialAssignments());
 
   useEffect(() => {
     if (!open) return;
