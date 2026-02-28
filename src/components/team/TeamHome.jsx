@@ -63,6 +63,8 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     );
   }
 
+  const isCoach = effectiveRole === 'coach' || effectiveRole === 'assistant_coach';
+
   return (
     <div className="space-y-6">
       <div>
@@ -70,9 +72,15 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
         {season && season !== '—' && <p className="text-sm text-slate-400">{season}</p>}
       </div>
 
-      <p className="text-slate-400">
-        Welcome to your team! Start by adding your players to the roster.
-      </p>
+      {isCoach ? (
+        <p className="text-slate-400">
+          Welcome to your team! Start by adding your players to the roster.
+        </p>
+      ) : (
+        <p className="text-slate-400">
+          Your team
+        </p>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
@@ -92,25 +100,27 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <Button
-          type="button"
-          className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
-          onClick={() => onNavigateTab?.('roster')}
-        >
-          <UserPlus className="h-4 w-4 mr-2" />
-          Add Player
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px] transition-colors"
-          onClick={() => onCopyInviteLink?.()}
-        >
-          <Share2 className="h-4 w-4 mr-2" />
-          Share Invite Code
-        </Button>
-      </div>
+      {isCoach && (
+        <div className="flex flex-wrap gap-3">
+          <Button
+            type="button"
+            className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
+            onClick={() => onNavigateTab?.('roster')}
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            Add Player
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px] transition-colors"
+            onClick={() => onCopyInviteLink?.()}
+          >
+            <Share2 className="h-4 w-4 mr-2" />
+            Share Invite Code
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

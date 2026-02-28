@@ -263,28 +263,32 @@ export default function JoinTeam() {
         ) : (
           <>
             <div className="space-y-2">
-              {players.map((m) => (
-                <label
-                  key={m.id}
-                  className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors min-h-[56px] ${
-                    parentSelectedIds.has(m.id)
-                      ? 'bg-slate-800 border-amber-500'
-                      : 'bg-slate-800 border-slate-700 hover:border-amber-500/50'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={parentSelectedIds.has(m.id)}
-                    onChange={() => toggleParentChild(m.id)}
+              {players.map((m) => {
+                const checked = parentSelectedIds.has(m.id);
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => !parentLinking && toggleParentChild(m.id)}
                     disabled={parentLinking}
-                    className="w-5 h-5 rounded border-2 border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500 focus:ring-offset-0"
-                  />
-                  <span className="font-medium text-white flex-1">{m.jersey_name || 'Unnamed'}</span>
-                  {m.jersey_number && <span className="text-slate-400">#{m.jersey_number}</span>}
-                  {m.position && <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded">{m.position}</span>}
-                  {!m.user_id && <span className="text-xs bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded">Pending</span>}
-                </label>
-              ))}
+                    className={`w-full flex items-center gap-3 p-4 rounded-xl border text-left transition-colors min-h-[56px] disabled:opacity-60 ${
+                      checked ? 'bg-slate-800 border-amber-500' : 'bg-slate-800 border-slate-700 hover:border-amber-500/50'
+                    }`}
+                  >
+                    <div
+                      className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center ${
+                        checked ? 'bg-amber-500 border-amber-500' : 'bg-transparent border-amber-500'
+                      }`}
+                    >
+                      {checked && <span className="text-black font-bold text-sm leading-none">✓</span>}
+                    </div>
+                    <span className="font-medium text-white flex-1">{m.jersey_name || 'Unnamed'}</span>
+                    {m.jersey_number && <span className="text-slate-400">#{m.jersey_number}</span>}
+                    {m.position && <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded">{m.position}</span>}
+                    {!m.user_id && <span className="text-xs bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded">Pending</span>}
+                  </button>
+                );
+              })}
             </div>
             {selectedCount > 0 && (
               <p className="text-slate-400 text-sm mt-3">

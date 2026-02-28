@@ -571,7 +571,13 @@ export default function BusinessDashboard() {
                     {selectedTeam.sport === 'flag_football' ? 'Flag Football' : selectedTeam.sport || 'Team'} · {selectedTeam.format || ''}
                   </p>
                 </div>
-                <Badge className="ml-2 bg-amber-500 text-black">HEAD COACH</Badge>
+                {(() => {
+                  const memberRecord = (teamMembers || []).find((m) => m.user_id === currentUser?.id);
+                  const role = memberRecord?.role;
+                  const isOwner = selectedTeam.owner_id === currentUser?.id;
+                  const badgeText = isOwner || role === 'coach' ? 'HEAD COACH' : role === 'assistant_coach' ? 'COACH' : role === 'player' ? 'PLAYER' : role === 'parent' ? 'PARENT' : 'MEMBER';
+                  return <Badge className="ml-2 bg-amber-500 text-black">{badgeText}</Badge>;
+                })()}
               </div>
             </div>
           </div>

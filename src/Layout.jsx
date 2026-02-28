@@ -122,17 +122,17 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
 
           {/* Center-right: Desktop nav */}
           <nav className="hidden md:flex items-center gap-8 ml-auto">
+            {currentUser && (
+              <Link to={createPageUrl('BusinessDashboard')} className={navLinkClass('BusinessDashboard')}>
+                Dashboard
+              </Link>
+            )}
             <Link to={createPageUrl('Directory')} className={navLinkClass('Directory')}>
               Directory
             </Link>
             <Link to={createPageUrl('Events')} className={navLinkClass('Events')}>
               Events
             </Link>
-            {currentUser && showBusinessDashboard && (
-              <Link to={createPageUrl('BusinessDashboard')} className={navLinkClass('BusinessDashboard')}>
-                Dashboard
-              </Link>
-            )}
 
             {/* Separator */}
             <div className="w-px h-5 bg-slate-700 mx-3" />
