@@ -5,10 +5,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { getGreeting } from '@/utils/greeting';
 import BusinessCard from '@/components/dashboard/BusinessCard';
-import EventsWidget from '@/components/dashboard/widgets/EventsWidget';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,23 +17,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Store, Wallet, Ticket, Plus, Users, TrendingUp, Trash2, Settings, Loader2, LayoutDashboard, Coins, Calendar } from "lucide-react";
+import { ArrowLeft, Store, Wallet, Ticket, Plus, Loader2 } from "lucide-react";
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { useRole } from '@/hooks/useRole';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
-import AccessWindowManager from '@/components/dashboard/AccessWindowManager';
-import RevenueOverview from '@/components/dashboard/RevenueOverview';
-import BusinessSettings from '@/components/dashboard/BusinessSettings';
+import { ARCHETYPE_TITLES, getBusinessTabs } from '@/config/workspaceTypes';
 import { toast } from "sonner";
-
-const ARCHETYPE_TITLES = {
-  location: 'Storefront Management',
-  venue: 'Storefront Management',
-  service: 'Artist Command Center',
-  talent: 'Artist Command Center',
-  community: 'Group Hub',
-  organizer: 'Event Command Center'
-};
 
 export default function BusinessDashboard() {
   const navigate = useNavigate();
@@ -373,6 +360,7 @@ export default function BusinessDashboard() {
   const archetype = selectedBusiness.archetype || 'location';
   const archetypeTitle = ARCHETYPE_TITLES[archetype] || 'Business Dashboard';
   const isOwner = userRole === 'owner';
+  const tabs = getBusinessTabs(archetype);
 
   if (checkInEvent) {
     return (
@@ -413,233 +401,48 @@ export default function BusinessDashboard() {
             </div>
           </div>
         </div>
-        {/* Tab bar */}
+        {/* Tab bar — config-driven */}
         <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1">
-          <button
-            type="button"
-            onClick={() => setActiveTab('home')}
-            className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${activeTab === 'home' ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
-          >
-            <LayoutDashboard className="h-4 w-4" />
-            Home
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('joy-coins')}
-            className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${activeTab === 'joy-coins' ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
-          >
-            <Coins className="h-4 w-4" />
-            Joy Coins
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('revenue')}
-            className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${activeTab === 'revenue' ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
-          >
-            <TrendingUp className="h-4 w-4" />
-            Revenue
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('events')}
-            className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${activeTab === 'events' ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
-          >
-            <Calendar className="h-4 w-4" />
-            Events
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('settings')}
-            className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${activeTab === 'settings' ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
-          >
-            <Settings className="h-4 w-4" />
-            Settings
-          </button>
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${isActive ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
+              >
+                <Icon className="h-4 w-4" />
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Tab content */}
+      {/* Tab content — config-driven */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {activeTab === 'home' && (
-          <>
-            <p className="text-lg text-slate-300 mb-6">
-              {revenue.totalRedemptions > 0 ? (
-                <>
-                  This month, {revenue.uniqueFamilies} families visited through LocalLane. Your estimated pool share:{' '}
-                  <span className="text-amber-500 font-bold">${Number(revenue.estimatedPayout).toFixed(2)}</span>
-                </>
-              ) : (
-                'Welcome to your LocalLane dashboard! Set your Joy Coin access hours and create events to start receiving families.'
-              )}
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-                <Users className="h-5 w-5 text-amber-500 mb-2" />
-                <div className="text-2xl font-bold text-slate-100">{revenue.uniqueFamilies}</div>
-                <div className="text-sm text-slate-400">Families Served</div>
-              </div>
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-                <Coins className="h-5 w-5 text-amber-500 mb-2" />
-                <div className="text-2xl font-bold text-slate-100">{revenue.totalCoinsRedeemed}</div>
-                <div className="text-sm text-slate-400">Joy Coins Redeemed</div>
-              </div>
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-                <Wallet className="h-5 w-5 text-amber-500 mb-2" />
-                <div className="text-2xl font-bold text-slate-100">
-                  ${Number(revenue.estimatedPayout).toFixed(2)}
-                </div>
-                <div className="text-sm text-slate-400">Pool Share</div>
-              </div>
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-                <Calendar className="h-5 w-5 text-amber-500 mb-2" />
-                <div className="text-2xl font-bold text-slate-100">
-                  {(() => {
-                    const now = new Date();
-                    const thisMonth = businessEvents.filter((e) => {
-                      const d = new Date(e.date || e.start_date);
-                      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-                    }).length;
-                    return thisMonth;
-                  })()}
-                </div>
-                <div className="text-sm text-slate-400">Events This Month</div>
-              </div>
-            </div>
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-slate-100">Upcoming Events</h2>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('events')}
-                  className="text-sm text-amber-500 hover:text-amber-400"
-                >
-                  See All →
-                </button>
-              </div>
-              {(() => {
-                const now = new Date();
-                const upcoming = businessEvents
-                  .filter((e) => new Date(e.date || e.start_date) >= now)
-                  .sort((a, b) => new Date(a.date || a.start_date) - new Date(b.date || b.start_date))
-                  .slice(0, 3);
-                if (upcoming.length === 0) {
-                  return (
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 text-center">
-                      <p className="text-slate-400 mb-4">No upcoming events. Create one to start attracting families.</p>
-                      <Button
-                        variant="outline"
-                        className="bg-transparent border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
-                        onClick={() => setActiveTab('events')}
-                      >
-                        Create Event
-                      </Button>
-                    </div>
-                  );
-                }
-                return (
-                  <div className="space-y-3">
-                    {upcoming.map((event) => {
-                      const rsvpCount = eventRsvpCounts[event.id] ?? 0;
-                      return (
-                        <div
-                          key={event.id}
-                          className="bg-slate-900/50 border border-slate-800 rounded-lg p-3 flex justify-between items-center"
-                        >
-                          <div>
-                            <div className="font-medium text-slate-100">{event.title}</div>
-                            <div className="text-sm text-slate-400">
-                              {event.date || event.start_date ? new Date(event.date || event.start_date).toLocaleString() : '—'}
-                              {rsvpCount !== undefined && (
-                                <span className="ml-2 text-slate-500">
-                                  — {rsvpCount === 0 ? 'No RSVPs yet' : `${rsvpCount} RSVP${rsvpCount !== 1 ? 's' : ''}`}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3 text-sm text-slate-400">
-                            {event.joy_coin_enabled && event.joy_coin_cost > 0 && (
-                              <span className="text-amber-500">{event.joy_coin_cost} coin(s)</span>
-                            )}
-                            <span>—</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button
-                variant="outline"
-                className="bg-transparent border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
-                onClick={() => setActiveTab('events')}
-              >
-                Create Event
-              </Button>
-              <Button
-                variant="outline"
-                className="bg-transparent border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
-                onClick={() => setActiveTab('joy-coins')}
-              >
-                Joy Coin Hours
-              </Button>
-              <Button
-                variant="outline"
-                className="bg-transparent border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
-                onClick={() => setActiveTab('revenue')}
-              >
-                View Revenue
-              </Button>
-            </div>
-          </>
-        )}
-
-        {activeTab === 'joy-coins' && (
-          <AccessWindowManager business={selectedBusiness} currentUserId={currentUser?.id} />
-        )}
-
-        {activeTab === 'revenue' && (
-          <RevenueOverview business={selectedBusiness} />
-        )}
-
-        {activeTab === 'events' && (
-          <EventsWidget
-            business={selectedBusiness}
-            allowEdit={true}
-            userRole={userRole}
-            onEnterCheckIn={setCheckInEvent}
-          />
-        )}
-
-        {activeTab === 'settings' && (
-          <div className="space-y-6">
-            <BusinessSettings business={selectedBusiness} currentUserId={currentUser?.id} />
-            {isOwner && (
-              <Card className="p-6 bg-slate-900 border-slate-800">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <Settings className="h-5 w-5 text-slate-400" />
-                    <h2 className="text-xl font-bold text-slate-100">Business settings</h2>
-                  </div>
-                </div>
-                <p className="text-sm text-slate-400 mb-4">
-                  Permanently remove this business and its data. This action uses a soft delete (business is marked deleted).
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
-                  onClick={() => setDeleteDialogOpen(true)}
-                  disabled={deleteMutation.isPending}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Business
-                </Button>
-              </Card>
-            )}
-          </div>
-        )}
+        {(() => {
+          const activeTabConfig = tabs.find((t) => t.id === activeTab);
+          if (!activeTabConfig) return null;
+          const scope = {
+            business: selectedBusiness,
+            currentUser,
+            userRole,
+            revenue,
+            businessEvents,
+            eventRsvpCounts,
+            setActiveTab,
+            setCheckInEvent,
+            setDeleteDialogOpen,
+            deleteMutation,
+            isOwner,
+          };
+          const TabComponent = activeTabConfig.component;
+          const props = activeTabConfig.getProps ? activeTabConfig.getProps(scope) : {};
+          return <TabComponent {...props} />;
+        })()}
       </div>
 
       {/* Delete Business confirmation - Owner only */}
