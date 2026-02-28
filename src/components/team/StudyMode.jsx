@@ -30,6 +30,9 @@ export default function StudyMode({
   }, [filteredPlays.length]);
 
   const play = filteredPlays[currentIndex];
+  console.log('[StudyMode] assignments prop:', assignments);
+  console.log('[StudyMode] current play ID:', play?.id);
+  console.log('[StudyMode] assignments for current play:', assignments?.[play?.id]);
   const playAssignments = play ? (assignments[play.id] || []) : [];
   const sortedAssignments = [...playAssignments].sort(
     (a, b) =>

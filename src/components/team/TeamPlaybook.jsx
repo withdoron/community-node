@@ -75,6 +75,10 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
     enabled: !!team?.id && playsForSide.length > 0,
   });
 
+  console.log('[Playbook] Raw assignments query result:', assignmentsByPlayId);
+  console.log('[Playbook] assignmentsByPlayId:', assignmentsByPlayId);
+  console.log('[Playbook] plays for side:', playsForSide?.map((p) => ({ id: p.id, name: p.name })));
+
   const playsByFormation = useMemo(() => {
     const map = {};
     filteredPlays.forEach((p) => {
@@ -254,9 +258,11 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
 
       {/* Study Mode overlay */}
       {studyModeOpen && (
-        <StudyMode
-          plays={playsForSide}
-          assignments={assignmentsByPlayId}
+        <>
+          {console.log('[Playbook] Passing to StudyMode - assignments:', assignmentsByPlayId)}
+          <StudyMode
+            plays={playsForSide}
+            assignments={assignmentsByPlayId}
           playerPosition={playerPosition}
           isCoach={isCoach}
           onClose={() => { setStudyModeOpen(false); setStudyModeInitialPlayId(null); }}
@@ -266,6 +272,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
               : 0
           }
         />
+        </>
       )}
 
       {/* Sideline Mode overlay (coach, md+) */}
