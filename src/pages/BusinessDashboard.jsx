@@ -153,8 +153,17 @@ export default function BusinessDashboard() {
 
   const businessesLoading = ownedLoading || staffLoading;
 
-  // Sync selectedTeamId from URL (?team=id) when coming back from TeamOnboarding
+  // Handle URL params: ?landing=1 resets to grid, ?team=id / ?finance=id opens workspace
   useEffect(() => {
+    const landing = searchParams.get('landing');
+    if (landing) {
+      setSelectedBusinessId(null);
+      setSelectedTeamId(null);
+      setSelectedFinanceId(null);
+      setActiveTab('home');
+      setSearchParams({}, { replace: true });
+      return;
+    }
     const teamId = searchParams.get('team');
     if (teamId) {
       setSelectedTeamId(teamId);
@@ -694,7 +703,7 @@ export default function BusinessDashboard() {
   const selectedProfile = financeProfiles.find((p) => p.id === selectedFinanceId);
   if (selectedFinanceId && selectedProfile) {
     const financeTabs = WORKSPACE_TYPES.finance.tabs;
-    const financeScope = { profile: selectedProfile };
+    const financeScope = { profile: selectedProfile, currentUser, onNavigateTab: setActiveTab };
     return (
       <div className="min-h-screen bg-slate-950">
         <div className="bg-slate-900 border-b border-slate-800">

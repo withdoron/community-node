@@ -185,8 +185,8 @@ export const WORKSPACE_TYPES = {
       owner: 'Owner',
     },
     tabs: [
-      { id: 'home', label: 'Home', icon: LayoutDashboard, component: FinanceHome, getProps: (scope) => ({ profile: scope.profile }) },
-      { id: 'transactions', label: 'Transactions', icon: ArrowDownUp, component: FinanceTransactions, getProps: (scope) => ({ profile: scope.profile }) },
+      { id: 'home', label: 'Home', icon: LayoutDashboard, component: FinanceHome, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
+      { id: 'transactions', label: 'Transactions', icon: ArrowDownUp, component: FinanceTransactions, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
       { id: 'recurring', label: 'Recurring', icon: Repeat, component: FinanceRecurring, getProps: (scope) => ({ profile: scope.profile }) },
       { id: 'debts', label: 'Debts', icon: Landmark, component: FinanceDebts, getProps: (scope) => ({ profile: scope.profile }) },
       { id: 'import', label: 'Import', icon: Upload, component: FinanceImport, getProps: (scope) => ({ profile: scope.profile }) },

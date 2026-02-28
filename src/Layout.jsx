@@ -129,7 +129,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
               Events
             </Link>
             {currentUser && (
-              <Link to={createPageUrl('BusinessDashboard')} className={navLinkClass('BusinessDashboard')}>
+              <Link to={createPageUrl('BusinessDashboard') + '?landing=1'} className={navLinkClass('BusinessDashboard')}>
                 Dashboard
               </Link>
             )}
@@ -171,9 +171,9 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                   </DropdownMenuItem>
                   {showBusinessDashboard && (
                     <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
-                      <Link to={createPageUrl('BusinessDashboard')} className="flex items-center">
+                      <Link to={createPageUrl('BusinessDashboard') + '?landing=1'} className="flex items-center">
                         <LayoutDashboard className="h-4 w-4 mr-2" />
-                        Business Dashboard
+                        Dashboard
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -267,9 +267,9 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                       </SheetClose>
                       {showBusinessDashboard && (
                         <SheetClose asChild>
-                          <Link to={createPageUrl('BusinessDashboard')} className={`flex items-center gap-3 ${sheetLinkClass('BusinessDashboard')}`}>
+                          <Link to={createPageUrl('BusinessDashboard') + '?landing=1'} className={`flex items-center gap-3 ${sheetLinkClass('BusinessDashboard')}`}>
                             <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
-                            Business Dashboard
+                            Dashboard
                           </Link>
                         </SheetClose>
                       )}
