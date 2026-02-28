@@ -166,37 +166,42 @@ export default function PlayCreateModal({
   };
 
   const createPlay = useMutation({
-    mutationFn: async () => {
-      const formation = form.formation === 'Custom' ? (form.formation_custom?.trim() || 'Custom') : form.formation;
+    mutationFn: async (variables) => {
+      const formToUse = variables?.form ?? form;
+      const assignmentsToUse = variables?.assignments ?? assignments;
+      const formation = formToUse.formation === 'Custom' ? (formToUse.formation_custom?.trim() || 'Custom') : formToUse.formation;
       const payload = {
         team_id: teamId,
-        side: form.side,
-        name: form.name.trim(),
+        side: formToUse.side,
+        name: formToUse.name.trim(),
         formation,
         status: 'active',
         created_by: createdBy,
       };
-      if (form.nickname?.trim()) payload.nickname = form.nickname.trim();
-      if (form.diagram_image) payload.diagram_image = form.diagram_image;
-      payload.is_mirrorable = !!form.is_mirrorable;
-      if (form.tags) payload.tags = form.tags;
-      payload.game_day = !!form.game_day;
-      if (form.coach_notes?.trim()) payload.coach_notes = form.coach_notes.trim();
+      if (formToUse.nickname?.trim()) payload.nickname = formToUse.nickname.trim();
+      if (formToUse.diagram_image) payload.diagram_image = formToUse.diagram_image;
+      payload.is_mirrorable = !!formToUse.is_mirrorable;
+      payload.tags = (formToUse.tags ?? '').trim();
+      payload.game_day = !!formToUse.game_day;
+      if (formToUse.coach_notes?.trim()) payload.coach_notes = formToUse.coach_notes.trim();
       if (editPlay?.id) {
+        console.log('[PlayCreateModal] Saving play, tags string:', payload.tags);
         await base44.entities.Play.update(editPlay.id, payload);
-        return { id: editPlay.id, ...payload };
+        return { id: editPlay.id, ...payload, _assignments: assignmentsToUse };
       }
-      return base44.entities.Play.create(payload);
+      const created = await base44.entities.Play.create(payload);
+      return { ...created, _assignments: assignmentsToUse };
     },
     onSuccess: async (play) => {
       const playId = play.id;
+      const assignmentsToUse = play._assignments ?? assignments;
       if (editPlay?.id) {
         const existing = await base44.entities.PlayAssignment.filter({ play_id: playId }).then((r) => r ?? []);
         const list = Array.isArray(existing) ? existing : [];
         for (const a of list) await base44.entities.PlayAssignment.delete(a.id);
       }
       for (const pos of POSITIONS) {
-        const a = assignments[pos];
+        const a = assignmentsToUse[pos];
         if (!a || (!a.route?.trim() && !a.assignment_text?.trim())) continue;
         await base44.entities.PlayAssignment.create({
           play_id: playId,
@@ -219,7 +224,7 @@ export default function PlayCreateModal({
       toast.error('Enter a play name');
       return;
     }
-    createPlay.mutate();
+    createPlay.mutate({ form, assignments });
   };
 
   return (

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Pencil, Archive, X } from 'lucide-react';
+import { ArrowLeft, Pencil, Archive, X, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { parseTags } from './PlayCard';
 
@@ -13,6 +13,7 @@ export default function PlayDetail({
   onClose,
   onEdit,
   onArchive,
+  onStudyThisPlay,
 }) {
   const [mirrored, setMirrored] = useState(false);
   const tags = parseTags(play?.tags);
@@ -43,28 +44,42 @@ export default function PlayDetail({
               </span>
             )}
           </div>
-          {isCoach && (
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1">
+            {onStudyThisPlay && (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-slate-400 hover:text-amber-500 p-2"
-                onClick={() => onEdit?.(play)}
+                className="text-slate-400 hover:text-amber-500 p-2 flex items-center gap-1.5"
+                onClick={onStudyThisPlay}
               >
-                <Pencil className="h-4 w-4" />
+                <BookOpen className="h-4 w-4" />
+                <span className="text-sm">Study</span>
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-slate-400 hover:text-red-400 p-2"
-                onClick={() => onArchive?.(play)}
-              >
-                <Archive className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+            )}
+            {isCoach && (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-400 hover:text-amber-500 p-2"
+                  onClick={() => onEdit?.(play)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-400 hover:text-red-400 p-2"
+                  onClick={() => onArchive?.(play)}
+                >
+                  <Archive className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="px-4 py-4 space-y-4">

@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Plus } from 'lucide-react';
+import { Plus, BookOpen, Monitor } from 'lucide-react';
 import { toast } from 'sonner';
 import PlayCard from './PlayCard';
 import PlayDetail from './PlayDetail';
 import PlayCreateModal from './PlayCreateModal';
+import StudyMode from './StudyMode';
+import SidelineMode from './SidelineMode';
 
 export default function TeamPlaybook({ team, members = [], isCoach, currentUserId }) {
   const queryClient = useQueryClient();
@@ -14,6 +16,9 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
   const [selectedPlay, setSelectedPlay] = useState(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editPlay, setEditPlay] = useState(null);
+  const [studyModeOpen, setStudyModeOpen] = useState(false);
+  const [sidelineModeOpen, setSidelineModeOpen] = useState(false);
+  const [studyModeInitialPlayId, setStudyModeInitialPlayId] = useState(null);
 
   const { data: plays = [] } = useQuery({
     queryKey: ['plays', team?.id],
@@ -47,11 +52,28 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
     onError: (err) => toast.error(err?.message || 'Failed to archive'),
   });
 
+  const playsForSide = useMemo(() => plays.filter((p) => p.side === side), [plays, side]);
+
   const filteredPlays = useMemo(() => {
-    let list = plays.filter((p) => p.side === side);
+    let list = playsForSide;
     if (gameDayOnly) list = list.filter((p) => p.game_day);
     return list;
-  }, [plays, side, gameDayOnly]);
+  }, [playsForSide, gameDayOnly]);
+
+  const { data: assignmentsByPlayId = {} } = useQuery({
+    queryKey: ['play-assignments-bulk', team?.id, playsForSide.map((p) => p.id).sort().join(',')],
+    queryFn: async () => {
+      const map = {};
+      await Promise.all(
+        playsForSide.map(async (p) => {
+          const list = await base44.entities.PlayAssignment.filter({ play_id: p.id }).list();
+          map[p.id] = Array.isArray(list) ? list : [];
+        })
+      );
+      return map;
+    },
+    enabled: !!team?.id && playsForSide.length > 0,
+  });
 
   const playsByFormation = useMemo(() => {
     const map = {};
@@ -130,6 +152,28 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           </button>
         </div>
         <span className="text-slate-500 text-sm">{filteredPlays.length} play{filteredPlays.length !== 1 ? 's' : ''}</span>
+        <div className="flex items-center gap-2">
+          {playsForSide.length > 0 && (
+            <button
+              type="button"
+              onClick={() => { setStudyModeInitialPlayId(null); setStudyModeOpen(true); }}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+            >
+              <BookOpen className="h-4 w-4" />
+              Study
+            </button>
+          )}
+          {isCoach && (
+            <button
+              type="button"
+              onClick={() => setSidelineModeOpen(true)}
+              className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+            >
+              <Monitor className="h-4 w-4" />
+              Sideline
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Play grid by formation */}
@@ -188,6 +232,11 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           onClose={() => setSelectedPlay(null)}
           onEdit={handleEdit}
           onArchive={handleArchive}
+          onStudyThisPlay={() => {
+            setStudyModeInitialPlayId(selectedPlay.id);
+            setSelectedPlay(null);
+            setStudyModeOpen(true);
+          }}
         />
       )}
 
@@ -202,6 +251,31 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
         editAssignments={editPlay ? selectedAssignments : []}
         onSuccess={() => queryClient.invalidateQueries({ queryKey: ['plays', team?.id] })}
       />
+
+      {/* Study Mode overlay */}
+      {studyModeOpen && (
+        <StudyMode
+          plays={playsForSide}
+          assignments={assignmentsByPlayId}
+          playerPosition={playerPosition}
+          isCoach={isCoach}
+          onClose={() => { setStudyModeOpen(false); setStudyModeInitialPlayId(null); }}
+          initialIndex={
+            studyModeInitialPlayId
+              ? Math.max(0, playsForSide.findIndex((p) => p.id === studyModeInitialPlayId))
+              : 0
+          }
+        />
+      )}
+
+      {/* Sideline Mode overlay (coach, md+) */}
+      {sidelineModeOpen && (
+        <SidelineMode
+          plays={playsForSide}
+          assignments={assignmentsByPlayId}
+          onClose={() => setSidelineModeOpen(false)}
+        />
+      )}
     </div>
   );
 }
