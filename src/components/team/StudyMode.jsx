@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -32,15 +31,24 @@ export default function StudyMode({
 
   const play = filteredPlays[currentIndex];
 
-  const { data: currentAssignments = [] } = useQuery({
-    queryKey: ['play-assignments', play?.id],
-    queryFn: async () => {
-      if (!play?.id) return [];
-      const list = await base44.entities.PlayAssignment.filter({ play_id: play.id }).list();
-      return Array.isArray(list) ? list : [];
-    },
-    enabled: !!play?.id,
-  });
+  const [currentAssignments, setCurrentAssignments] = useState([]);
+
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      if (!play?.id) {
+        setCurrentAssignments([]);
+        return;
+      }
+      try {
+        const result = await base44.entities.PlayAssignment.filter({ play_id: play.id });
+        setCurrentAssignments(Array.isArray(result) ? result : []);
+      } catch (err) {
+        console.error('Failed to fetch assignments:', err);
+        setCurrentAssignments([]);
+      }
+    };
+    fetchAssignments();
+  }, [play?.id]);
 
   const playAssignments = currentAssignments;
   const sortedAssignments = [...playAssignments].sort(
