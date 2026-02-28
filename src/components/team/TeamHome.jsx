@@ -1,4 +1,6 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Users, BookOpen, Calendar, UserPlus, Share2 } from 'lucide-react';
 
@@ -6,6 +8,16 @@ const PLAYER_COUNT_ROLES = ['player'];
 
 export default function TeamHome({ team, members = [], onNavigateTab, onCopyInviteLink }) {
   const playerCount = members.filter((m) => PLAYER_COUNT_ROLES.includes(m.role)).length;
+  const { data: plays = [] } = useQuery({
+    queryKey: ['plays-count', team?.id],
+    queryFn: async () => {
+      if (!team?.id) return [];
+      const list = await base44.entities.Play.filter({ team_id: team.id, status: 'active' });
+      return Array.isArray(list) ? list : [];
+    },
+    enabled: !!team?.id,
+  });
+  const playCount = plays.length;
   const sportLabel = team?.sport === 'flag_football' ? 'Flag Football' : (team?.sport || 'Team');
   const season = team?.season || '—';
 
@@ -28,8 +40,8 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
         </div>
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <BookOpen className="h-5 w-5 text-amber-500 mb-2" />
-          <div className="text-2xl font-bold text-slate-100">0</div>
-          <div className="text-sm text-slate-400">Playbook <span className="text-slate-500">(Coming soon)</span></div>
+          <div className="text-2xl font-bold text-slate-100">{playCount}</div>
+          <div className="text-sm text-slate-400">Playbook</div>
         </div>
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <Calendar className="h-5 w-5 text-amber-500 mb-2" />
