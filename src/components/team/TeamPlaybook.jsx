@@ -60,28 +60,6 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
     return list;
   }, [playsForSide, gameDayOnly]);
 
-  const { data: allAssignments } = useQuery({
-    queryKey: ['play-assignments-bulk', team?.id, playsForSide.map((p) => p.id).sort().join(',')],
-    queryFn: async () => {
-      if (!playsForSide?.length) return [];
-      const results = await Promise.all(
-        playsForSide.map((p) => base44.entities.PlayAssignment.filter({ play_id: p.id }).list())
-      );
-      return results.flat();
-    },
-    enabled: !!team?.id && playsForSide.length > 0,
-  });
-
-  const assignmentsByPlayId = useMemo(() => {
-    if (!allAssignments) return {};
-    const map = {};
-    allAssignments.forEach((a) => {
-      if (!map[a.play_id]) map[a.play_id] = [];
-      map[a.play_id].push(a);
-    });
-    return map;
-  }, [allAssignments]);
-
   const playsByFormation = useMemo(() => {
     const map = {};
     filteredPlays.forEach((p) => {
@@ -259,13 +237,10 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
         onSuccess={() => queryClient.invalidateQueries({ queryKey: ['plays', team?.id] })}
       />
 
-      {/* Study Mode overlay */}
+      {/* Study Mode overlay — fetches assignments per play (same pattern as PlayDetail) */}
       {studyModeOpen && (
-        <>
-          {console.log('[Playbook] Passing to StudyMode - assignments:', assignmentsByPlayId)}
-          <StudyMode
-            plays={playsForSide}
-            assignments={assignmentsByPlayId}
+        <StudyMode
+          plays={playsForSide}
           playerPosition={playerPosition}
           isCoach={isCoach}
           onClose={() => { setStudyModeOpen(false); setStudyModeInitialPlayId(null); }}
@@ -277,11 +252,10 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
         />
       )}
 
-      {/* Sideline Mode overlay (coach, md+) */}
+      {/* Sideline Mode overlay (coach, md+) — fetches assignments per play */}
       {sidelineModeOpen && (
         <SidelineMode
           plays={playsForSide}
-          assignments={assignmentsByPlayId}
           onClose={() => setSidelineModeOpen(false)}
         />
       )}

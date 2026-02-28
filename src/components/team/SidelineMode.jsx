@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const POSITIONS = ['C', 'QB', 'RB', 'X', 'Z'];
 
 export default function SidelineMode({
   plays = [],
-  assignments = {},
   onClose,
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -19,8 +20,18 @@ export default function SidelineMode({
   }, [plays, gameDayOnly]);
 
   const play = filteredPlays[currentIndex];
-  const playAssignments = play ? (assignments[play.id] || []) : [];
-  const assignmentByPos = Object.fromEntries(playAssignments.map((a) => [a.position, a]));
+
+  const { data: currentAssignments = [] } = useQuery({
+    queryKey: ['play-assignments', play?.id],
+    queryFn: async () => {
+      if (!play?.id) return [];
+      const list = await base44.entities.PlayAssignment.filter({ play_id: play.id }).list();
+      return Array.isArray(list) ? list : [];
+    },
+    enabled: !!play?.id,
+  });
+
+  const assignmentByPos = Object.fromEntries(currentAssignments.map((a) => [a.position, a]));
 
   const goNext = () => {
     if (currentIndex < filteredPlays.length - 1) {

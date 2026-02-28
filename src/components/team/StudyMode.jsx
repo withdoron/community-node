@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const POSITION_ORDER = ['C', 'QB', 'RB', 'X', 'Z'];
 
 export default function StudyMode({
   plays = [],
-  assignments = {},
   playerPosition,
   isCoach,
   onClose,
@@ -30,10 +31,18 @@ export default function StudyMode({
   }, [filteredPlays.length]);
 
   const play = filteredPlays[currentIndex];
-  console.log('[StudyMode] assignments prop:', assignments);
-  console.log('[StudyMode] current play ID:', play?.id);
-  console.log('[StudyMode] assignments for current play:', assignments?.[play?.id]);
-  const playAssignments = play ? (assignments[play.id] || []) : [];
+
+  const { data: currentAssignments = [] } = useQuery({
+    queryKey: ['play-assignments', play?.id],
+    queryFn: async () => {
+      if (!play?.id) return [];
+      const list = await base44.entities.PlayAssignment.filter({ play_id: play.id }).list();
+      return Array.isArray(list) ? list : [];
+    },
+    enabled: !!play?.id,
+  });
+
+  const playAssignments = currentAssignments;
   const sortedAssignments = [...playAssignments].sort(
     (a, b) =>
       POSITION_ORDER.indexOf((a.position || '').toUpperCase()) -
