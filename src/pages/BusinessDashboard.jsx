@@ -294,6 +294,11 @@ export default function BusinessDashboard() {
     }
   }, [selectedTeamId, allTeams]);
 
+  // Scroll to top when switching tabs
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [activeTab]);
+
   // Hard delete: Business.delete(id) removes record permanently. Fallback to soft delete if delete not available.
   const deleteMutation = useMutation({
     mutationFn: async (businessId) => {
@@ -622,7 +627,9 @@ export default function BusinessDashboard() {
                     ? { teamId: selectedTeam?.id, teamScope }
                     : activeTabConfig.id === 'messages'
                       ? { teamId: selectedTeam?.id, teamScope }
-                      : {};
+                      : activeTabConfig.id === 'settings'
+                        ? { teamId: selectedTeam?.id, teamScope }
+                        : {};
             return <TabComponent {...props} {...extraProps} />;
           })()}
         </div>
