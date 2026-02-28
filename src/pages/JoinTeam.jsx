@@ -16,7 +16,8 @@ export default function JoinTeam() {
   const { user, isAuthenticated, navigateToLogin } = useAuth();
   const [joinPath, setJoinPath] = useState(null); // 'player' | 'parent'
   const [claimingId, setClaimingId] = useState(null);
-  const [parentLinkingId, setParentLinkingId] = useState(null);
+  const [parentSelectedIds, setParentSelectedIds] = useState(new Set()); // child TeamMember ids
+  const [parentLinking, setParentLinking] = useState(false);
 
   // Persist invite code for redirect after auth
   useEffect(() => {
@@ -77,24 +78,35 @@ export default function JoinTeam() {
     }
   };
 
-  const handleJoinAsParent = async (linkedPlayerMemberId) => {
-    if (!user?.id || !team?.id) return;
-    setParentLinkingId(linkedPlayerMemberId);
+  const toggleParentChild = (memberId) => {
+    setParentSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(memberId)) next.delete(memberId);
+      else next.add(memberId);
+      return next;
+    });
+  };
+
+  const handleLinkChildren = async () => {
+    if (!user?.id || !team?.id || parentSelectedIds.size === 0) return;
+    setParentLinking(true);
+    const displayName = user?.data?.display_name || user?.data?.full_name || user?.email || 'Parent';
     try {
-      const displayName = user?.data?.display_name || user?.data?.full_name || user?.email || 'Parent';
-      await base44.entities.TeamMember.create({
-        team_id: team.id,
-        user_id: user.id,
-        role: 'parent',
-        jersey_name: displayName,
-        status: 'active',
-        linked_player_id: linkedPlayerMemberId,
-      });
-      toast.success("You've joined as a parent.");
+      for (const linkedPlayerMemberId of parentSelectedIds) {
+        await base44.entities.TeamMember.create({
+          team_id: team.id,
+          user_id: user.id,
+          role: 'parent',
+          jersey_name: displayName,
+          status: 'active',
+          linked_player_id: linkedPlayerMemberId,
+        });
+      }
+      toast.success(parentSelectedIds.size === 1 ? "You've joined as a parent." : `Linked ${parentSelectedIds.size} children.`);
       navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
     } catch (err) {
-      toast.error(err?.message || 'Failed to join');
-      setParentLinkingId(null);
+      toast.error(err?.message || 'Failed to link');
+      setParentLinking(false);
     }
   };
 
@@ -231,7 +243,8 @@ export default function JoinTeam() {
   }
 
   if (joinPath === 'parent') {
-    const playersToLink = [...claimedPlayers, ...unclaimedPlayers];
+    const players = [...claimedPlayers, ...unclaimedPlayers];
+    const selectedCount = parentSelectedIds.size;
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col p-6 max-w-md mx-auto">
         <button
@@ -241,33 +254,52 @@ export default function JoinTeam() {
         >
           ← Back
         </button>
-        <h1 className="text-xl font-bold text-white mb-1">Link to your child</h1>
-        <p className="text-slate-400 text-sm mb-6">Select your child so you can see their schedule and team info.</p>
-        {playersToLink.length === 0 ? (
+        <h1 className="text-xl font-bold text-white mb-1">Link your children</h1>
+        <p className="text-slate-400 text-sm mb-6">Select each child on this team. You can switch to their view in the team later.</p>
+        {players.length === 0 ? (
           <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 text-center">
             <p className="text-slate-400">No players on the roster yet.</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {playersToLink.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => handleJoinAsParent(m.id)}
-                disabled={parentLinkingId !== null}
-                className="w-full flex items-center justify-between p-4 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-500/50 transition-colors min-h-[56px] disabled:opacity-60"
-              >
-                <span className="font-medium text-white">{m.jersey_name || 'Unnamed'}</span>
-                {m.jersey_number && <span className="text-slate-400">#{m.jersey_number}</span>}
-                {!m.user_id && <span className="text-xs bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded">Pending</span>}
-                {parentLinkingId === m.id ? (
-                  <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
-                ) : (
-                  <span className="text-amber-500 text-sm font-medium">Link as my child</span>
-                )}
-              </button>
-            ))}
-          </div>
+          <>
+            <div className="space-y-2">
+              {players.map((m) => (
+                <label
+                  key={m.id}
+                  className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors min-h-[56px] ${
+                    parentSelectedIds.has(m.id)
+                      ? 'bg-slate-800 border-amber-500'
+                      : 'bg-slate-800 border-slate-700 hover:border-amber-500/50'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={parentSelectedIds.has(m.id)}
+                    onChange={() => toggleParentChild(m.id)}
+                    disabled={parentLinking}
+                    className="w-5 h-5 rounded border-2 border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500 focus:ring-offset-0"
+                  />
+                  <span className="font-medium text-white flex-1">{m.jersey_name || 'Unnamed'}</span>
+                  {m.jersey_number && <span className="text-slate-400">#{m.jersey_number}</span>}
+                  {m.position && <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded">{m.position}</span>}
+                  {!m.user_id && <span className="text-xs bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded">Pending</span>}
+                </label>
+              ))}
+            </div>
+            {selectedCount > 0 && (
+              <p className="text-slate-400 text-sm mt-3">
+                {selectedCount} {selectedCount === 1 ? 'child' : 'children'} selected
+              </p>
+            )}
+            <Button
+              type="button"
+              onClick={handleLinkChildren}
+              disabled={selectedCount === 0 || parentLinking}
+              className="mt-6 w-full bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px]"
+            >
+              {parentLinking ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : `Link ${selectedCount === 0 ? 'children' : selectedCount === 1 ? 'child' : 'children'}`}
+            </Button>
+          </>
         )}
       </div>
     );

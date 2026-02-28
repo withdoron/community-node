@@ -162,19 +162,36 @@ export default function BusinessDashboard() {
     }
   }, [searchParams, setSearchParams]);
 
-  // Fetch teams where user is owner (coach)
-  const { data: ownedTeams = [], isLoading: teamsLoading } = useQuery({
-    queryKey: ['ownedTeams', currentUser?.id],
+  // Fetch teams where user has ANY membership (owner, assistant_coach, player, parent)
+  const { data: myTeamMemberships = [], isLoading: membershipsLoading } = useQuery({
+    queryKey: ['my-team-memberships', currentUser?.id],
     queryFn: async () => {
       if (!currentUser?.id) return [];
-      const list = await base44.entities.Team.filter(
-        { owner_id: currentUser.id, status: 'active' },
-        '-created_date',
-        100
-      );
-      return Array.isArray(list) ? list : [];
+      const result = await base44.entities.TeamMember.filter({ user_id: currentUser.id, status: 'active' });
+      return Array.isArray(result) ? result : result ? [result] : [];
     },
     enabled: !!currentUser?.id,
+  });
+
+  const teamIdsFromMemberships = [...new Set((myTeamMemberships || []).map((m) => m.team_id).filter(Boolean))];
+
+  const { data: allTeams = [], isLoading: teamsLoading } = useQuery({
+    queryKey: ['dashboard-teams', currentUser?.id, teamIdsFromMemberships.sort().join(',')],
+    queryFn: async () => {
+      if (teamIdsFromMemberships.length === 0) return [];
+      const teams = await Promise.all(
+        teamIdsFromMemberships.map((id) => base44.entities.Team.get(id))
+      );
+      const active = (teams || []).filter((t) => t && t.status === 'active');
+      const byOwner = (a, b) => {
+        const aOwn = a.owner_id === currentUser?.id ? 1 : 0;
+        const bOwn = b.owner_id === currentUser?.id ? 1 : 0;
+        if (bOwn !== aOwn) return bOwn - aOwn;
+        return (a.name || '').localeCompare(b.name || '');
+      };
+      return active.sort(byOwner);
+    },
+    enabled: !!currentUser?.id && teamIdsFromMemberships.length > 0,
   });
 
   // Team members for selected team
@@ -204,18 +221,18 @@ export default function BusinessDashboard() {
 
   // Member counts per team (for landing cards)
   const { data: teamMemberCounts = {} } = useQuery({
-    queryKey: ['team-member-counts', ownedTeams.map((t) => t.id).join(',')],
+    queryKey: ['team-member-counts', allTeams.map((t) => t.id).join(',')],
     queryFn: async () => {
       const counts = {};
       await Promise.all(
-        ownedTeams.map(async (t) => {
+        allTeams.map(async (t) => {
           const list = await base44.entities.TeamMember.filter({ team_id: t.id, status: 'active' });
           counts[t.id] = Array.isArray(list) ? list.length : 0;
         })
       );
       return counts;
     },
-    enabled: ownedTeams.length > 0,
+    enabled: allTeams.length > 0,
   });
 
   // Fetch event counts for each business
@@ -272,10 +289,10 @@ export default function BusinessDashboard() {
 
   // Clear selectedTeamId if team no longer in list (e.g. archived)
   useEffect(() => {
-    if (selectedTeamId && ownedTeams.length > 0 && !ownedTeams.find((t) => t.id === selectedTeamId)) {
+    if (selectedTeamId && allTeams.length > 0 && !allTeams.find((t) => t.id === selectedTeamId)) {
       setSelectedTeamId(null);
     }
-  }, [selectedTeamId, ownedTeams]);
+  }, [selectedTeamId, allTeams]);
 
   // Hard delete: Business.delete(id) removes record permanently. Fallback to soft delete if delete not available.
   const deleteMutation = useMutation({
@@ -300,7 +317,7 @@ export default function BusinessDashboard() {
     },
   });
 
-  const isLoading = userLoading || businessesLoading || teamsLoading;
+  const isLoading = userLoading || businessesLoading || membershipsLoading || teamsLoading;
 
   const getUserRole = (business) => {
     if (business?.owner_user_id === currentUser?.id) return 'owner';
@@ -352,7 +369,7 @@ export default function BusinessDashboard() {
     );
   }
 
-  const hasAnyWorkspace = (associatedBusinesses?.length > 0) || (ownedTeams?.length > 0);
+  const hasAnyWorkspace = (associatedBusinesses?.length > 0) || (allTeams?.length > 0);
   const availableTypes = Object.values(WORKSPACE_TYPES).filter((t) => t.available);
 
   // STEP 1: No workspaces — empty state with type picker
@@ -463,8 +480,9 @@ export default function BusinessDashboard() {
                 workspaceTypeLabel="Business"
               />
             ))}
-            {ownedTeams.map((team) => {
-              const memberCount = 0; // could be from a count query per team; for now show 0 or we fetch later
+            {allTeams.map((team) => {
+              const membership = myTeamMemberships.find((m) => m.team_id === team.id);
+              const roleLabel = team.owner_id === currentUser?.id ? 'HEAD COACH' : (membership?.role === 'assistant_coach' ? 'COACH' : membership?.role === 'player' ? 'PLAYER' : membership?.role === 'parent' ? 'PARENT' : 'MEMBER');
               return (
                 <div
                   key={team.id}
@@ -481,7 +499,7 @@ export default function BusinessDashboard() {
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                         <h3 className="font-bold text-lg text-slate-100 truncate">{team.name}</h3>
-                        <Badge className="bg-amber-500 text-black text-xs">HEAD COACH</Badge>
+                        <Badge className="bg-amber-500 text-black text-xs">{roleLabel}</Badge>
                         <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">Team</span>
                       </div>
                       <p className="text-sm text-slate-400 mb-1">
@@ -502,7 +520,7 @@ export default function BusinessDashboard() {
     );
   }
 
-  const selectedTeam = ownedTeams.find((t) => t.id === selectedTeamId);
+  const selectedTeam = allTeams.find((t) => t.id === selectedTeamId);
 
   // STEP 3a: Team selected — show team workspace
   if (selectedTeamId && selectedTeam) {
@@ -522,7 +540,8 @@ export default function BusinessDashboard() {
       },
       onArchived: () => {
         setSelectedTeamId(null);
-        queryClient.invalidateQueries({ queryKey: ['ownedTeams'] });
+        queryClient.invalidateQueries({ queryKey: ['my-team-memberships', currentUser?.id] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard-teams'] });
       },
       viewingAsMember,
       effectiveRole,
