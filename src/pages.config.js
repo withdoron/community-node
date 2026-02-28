@@ -17,6 +17,7 @@ import Terms from './pages/Terms';
 import Recommend from './pages/Recommend';
 import UserOnboarding from './pages/UserOnboarding';
 import TeamOnboarding from './pages/TeamOnboarding';
+import FinanceOnboarding from './pages/FinanceOnboarding';
 import JoinTeam from './pages/JoinTeam';
 import __Layout from './Layout.jsx';
 
@@ -41,6 +42,7 @@ export const PAGES = {
     "Recommend": Recommend,
     "welcome": UserOnboarding,
     "TeamOnboarding": TeamOnboarding,
+    "FinanceOnboarding": FinanceOnboarding,
     "JoinTeam": JoinTeam,
 }
 

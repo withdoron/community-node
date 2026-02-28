@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Store, Wallet, Ticket, Plus, Loader2, Users } from "lucide-react";
+import { ArrowLeft, Store, Wallet, Ticket, Plus, Loader2, Users, DollarSign } from "lucide-react";
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { useRole } from '@/hooks/useRole';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
@@ -37,6 +37,7 @@ export default function BusinessDashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedBusinessId, setSelectedBusinessId] = useState(null);
   const [selectedTeamId, setSelectedTeamId] = useState(null);
+  const [selectedFinanceId, setSelectedFinanceId] = useState(null);
   const [typePickerOpen, setTypePickerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [checkInEvent, setCheckInEvent] = useState(null);
@@ -158,6 +159,14 @@ export default function BusinessDashboard() {
     if (teamId) {
       setSelectedTeamId(teamId);
       setSelectedBusinessId(null);
+      setSelectedFinanceId(null);
+      setSearchParams({}, { replace: true });
+    }
+    const financeId = searchParams.get('finance');
+    if (financeId) {
+      setSelectedFinanceId(financeId);
+      setSelectedBusinessId(null);
+      setSelectedTeamId(null);
       setSearchParams({}, { replace: true });
     }
   }, [searchParams, setSearchParams]);
@@ -233,6 +242,17 @@ export default function BusinessDashboard() {
       return counts;
     },
     enabled: allTeams.length > 0,
+  });
+
+  // Fetch finance profiles for current user
+  const { data: financeProfiles = [], isLoading: financeLoading } = useQuery({
+    queryKey: ['finance-profiles', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      const list = await base44.entities.FinancialProfile.filter({ user_id: currentUser.id });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!currentUser?.id,
   });
 
   // Fetch event counts for each business
@@ -322,13 +342,15 @@ export default function BusinessDashboard() {
     },
   });
 
-  const isLoading = userLoading || businessesLoading || membershipsLoading || teamsLoading;
+  const isLoading = userLoading || businessesLoading || membershipsLoading || teamsLoading || financeLoading;
 
   const getUserRole = (business) => {
     if (business?.owner_user_id === currentUser?.id) return 'owner';
     if (business?.instructors?.includes(currentUser?.id)) return 'staff';
     return 'none';
   };
+
+  const TYPE_ICON_MAP = { Users, Store, DollarSign };
 
   const renderTypePickerModal = () => (
     <Dialog open={typePickerOpen} onOpenChange={setTypePickerOpen}>
@@ -338,11 +360,12 @@ export default function BusinessDashboard() {
         </DialogHeader>
         <div className="grid gap-3 py-2">
           {availableTypes.map((type) => {
-            const Icon = type.icon === 'Users' ? Users : Store;
+            const Icon = TYPE_ICON_MAP[type.icon] || Store;
             const handleChoose = () => {
               setTypePickerOpen(false);
               if (type.id === 'business') navigate(createPageUrl('BusinessOnboarding'));
               else if (type.id === 'team') navigate(createPageUrl('TeamOnboarding'));
+              else if (type.id === 'finance') navigate(createPageUrl('FinanceOnboarding'));
             };
             return (
               <button
@@ -374,7 +397,7 @@ export default function BusinessDashboard() {
     );
   }
 
-  const hasAnyWorkspace = (associatedBusinesses?.length > 0) || (allTeams?.length > 0);
+  const hasAnyWorkspace = (associatedBusinesses?.length > 0) || (allTeams?.length > 0) || (financeProfiles?.length > 0);
   const availableTypes = Object.values(WORKSPACE_TYPES).filter((t) => t.available);
 
   // STEP 1: No workspaces — empty state with type picker
@@ -399,7 +422,7 @@ export default function BusinessDashboard() {
             </div>
             <h2 className="text-2xl font-bold text-slate-100 mb-3">No workspaces yet</h2>
             <p className="text-slate-400 mb-8 max-w-md mx-auto">
-              Create a business or team to get started.
+              Create a business, team, or finance workspace to get started.
             </p>
             <Button
               onClick={() => setTypePickerOpen(true)}
@@ -419,8 +442,8 @@ export default function BusinessDashboard() {
     );
   }
 
-  // STEP 2: Has workspaces but none selected — landing with business + team cards
-  if (!selectedBusinessId && !selectedTeamId) {
+  // STEP 2: Has workspaces but none selected — landing with business + team + finance cards
+  if (!selectedBusinessId && !selectedTeamId && !selectedFinanceId) {
     return (
       <div className="min-h-screen bg-slate-950">
         {/* Personal Header - "Wallet Strip" */}
@@ -481,7 +504,7 @@ export default function BusinessDashboard() {
                 business={business}
                 userRole={getUserRole(business)}
                 eventCount={eventCounts[business.id] || 0}
-                onClick={() => { setSelectedBusinessId(business.id); setSelectedTeamId(null); setActiveTab('home'); }}
+                onClick={() => { setSelectedBusinessId(business.id); setSelectedTeamId(null); setSelectedFinanceId(null); setActiveTab('home'); }}
                 workspaceTypeLabel="Business"
               />
             ))}
@@ -493,8 +516,8 @@ export default function BusinessDashboard() {
                   key={team.id}
                   role="button"
                   tabIndex={0}
-                  onClick={() => { setSelectedTeamId(team.id); setSelectedBusinessId(null); setActiveTab('home'); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedTeamId(team.id); setSelectedBusinessId(null); setActiveTab('home'); } }}
+                  onClick={() => { setSelectedTeamId(team.id); setSelectedBusinessId(null); setSelectedFinanceId(null); setActiveTab('home'); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedTeamId(team.id); setSelectedBusinessId(null); setSelectedFinanceId(null); setActiveTab('home'); } }}
                   className="bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-6 cursor-pointer transition-colors min-h-[44px]"
                 >
                   <div className="flex items-start gap-4">
@@ -512,6 +535,36 @@ export default function BusinessDashboard() {
                       </p>
                       <p className="text-xs text-slate-500">
                         {teamMemberCounts[team.id] ?? 0} players · {team.season || '—'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {financeProfiles.map((profile) => {
+              const enoughTarget = profile.enough_number || 0;
+              const fmtUsd = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n || 0);
+              return (
+                <div
+                  key={profile.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => { setSelectedFinanceId(profile.id); setSelectedBusinessId(null); setSelectedTeamId(null); setActiveTab('home'); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedFinanceId(profile.id); setSelectedBusinessId(null); setSelectedTeamId(null); setActiveTab('home'); } }}
+                  className="bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-6 cursor-pointer transition-colors min-h-[44px]"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-14 h-14 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                      <DollarSign className="h-6 w-6 text-amber-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+                        <h3 className="font-bold text-lg text-slate-100 truncate">{profile.workspace_name || 'My Finances'}</h3>
+                        <Badge className="bg-amber-500 text-black text-xs">OWNER</Badge>
+                        <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">Finance</span>
+                      </div>
+                      <p className="text-sm text-slate-400">
+                        Enough: {fmtUsd(0)} / {fmtUsd(enoughTarget)} target
                       </p>
                     </div>
                   </div>
@@ -637,8 +690,70 @@ export default function BusinessDashboard() {
     );
   }
 
+  // STEP 3c: Finance workspace selected
+  const selectedProfile = financeProfiles.find((p) => p.id === selectedFinanceId);
+  if (selectedFinanceId && selectedProfile) {
+    const financeTabs = WORKSPACE_TYPES.finance.tabs;
+    const financeScope = { profile: selectedProfile };
+    return (
+      <div className="min-h-screen bg-slate-950">
+        <div className="bg-slate-900 border-b border-slate-800">
+          <div className="max-w-6xl mx-auto px-6 py-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setSelectedFinanceId(null); setSelectedBusinessId(null); setSelectedTeamId(null); }}
+                className="text-slate-400 hover:text-slate-100 min-h-[44px]"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Workspaces
+              </Button>
+              <div className="h-4 w-px bg-slate-700" />
+              <div className="flex items-center gap-3">
+                <DollarSign className="h-5 w-5 text-amber-500" />
+                <div>
+                  <h1 className="text-lg font-bold text-slate-100">{selectedProfile.workspace_name || 'My Finances'}</h1>
+                  <p className="text-xs text-slate-400">Personal Finance</p>
+                </div>
+                <Badge className="ml-2 bg-amber-500 text-black">OWNER</Badge>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1">
+            {financeTabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors min-h-[44px] ${isActive ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          {(() => {
+            const activeTabConfig = financeTabs.find((t) => t.id === activeTab);
+            if (!activeTabConfig) return null;
+            const TabComponent = activeTabConfig.component;
+            const props = activeTabConfig.getProps ? activeTabConfig.getProps(financeScope) : {};
+            return <TabComponent {...props} />;
+          })()}
+        </div>
+      </div>
+    );
+  }
+
   const selectedBusiness = associatedBusinesses.find(b => b.id === selectedBusinessId);
   if (selectedTeamId && !selectedTeam) return null;
+  if (selectedFinanceId && !selectedProfile) return null;
   if (!selectedBusiness) return null;
 
   // STEP 3b: Business selected — show business workspace
@@ -667,7 +782,7 @@ export default function BusinessDashboard() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => { setSelectedBusinessId(null); setSelectedTeamId(null); }}
+              onClick={() => { setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); }}
               className="text-slate-400 hover:text-slate-100"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
