@@ -9,11 +9,11 @@ import { Label } from '@/components/ui/label';
 import { DollarSign, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-const DEFAULT_CONTEXTS = [
-  { id: 'personal', label: 'Personal', tax_schedule: 'none', is_active: true },
-  { id: 'rental', label: 'Rental Property', tax_schedule: 'schedule_e', is_active: true },
-  { id: 'business', label: 'Business', tax_schedule: 'schedule_c', is_active: true },
-];
+const DEFAULT_CONTEXTS = {
+  personal: { label: 'Personal', tax_schedule: 'none', is_active: true },
+  rental: { label: 'Rental Property', tax_schedule: 'schedule_e', is_active: true },
+  business: { label: 'Business', tax_schedule: 'schedule_c', is_active: true },
+};
 
 const DEFAULT_CATEGORIES = {
   personal: [
