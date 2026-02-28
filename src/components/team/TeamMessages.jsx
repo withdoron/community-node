@@ -47,7 +47,7 @@ export default function TeamMessages({ teamId, teamScope }) {
     queryKey: ['team-messages', teamId],
     queryFn: async () => {
       if (!teamId) return [];
-      const list = await base44.entities.TeamMessage.filter({ team_id: teamId }).list();
+      const list = await base44.entities.TeamMessage.filter({ team_id: teamId });
       return Array.isArray(list) ? list : [];
     },
     enabled: !!teamId,

@@ -103,7 +103,7 @@ export default function TeamSchedule({ teamId, teamScope }) {
     queryKey: ['team-events', teamId],
     queryFn: async () => {
       if (!teamId) return [];
-      const list = await base44.entities.TeamEvent.filter({ team_id: teamId }).list();
+      const list = await base44.entities.TeamEvent.filter({ team_id: teamId });
       return Array.isArray(list) ? list : [];
     },
     enabled: !!teamId,
@@ -336,7 +336,7 @@ export default function TeamSchedule({ teamId, teamScope }) {
                   type="date"
                   value={form.start_date}
                   onChange={(e) => updateForm({ start_date: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none [color-scheme:dark]"
                 />
               </div>
               <div>
@@ -345,7 +345,7 @@ export default function TeamSchedule({ teamId, teamScope }) {
                   type="time"
                   value={form.start_time}
                   onChange={(e) => updateForm({ start_time: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none [color-scheme:dark]"
                 />
               </div>
             </div>
@@ -392,21 +392,27 @@ export default function TeamSchedule({ teamId, teamScope }) {
               />
             </div>
             <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="recurring"
-                checked={form.recurring}
-                onChange={(e) => updateForm({ recurring: e.target.checked })}
-                className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-amber-500 focus:ring-amber-500"
-              />
-              <label htmlFor="recurring" className="text-sm text-slate-300">Recurring</label>
+              <button
+                type="button"
+                onClick={() => updateForm({ recurring: !form.recurring })}
+                className="flex items-center gap-3 text-left"
+              >
+                <div
+                  className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                    form.recurring ? 'bg-amber-500 border-amber-500' : 'bg-transparent border-amber-500'
+                  }`}
+                >
+                  {form.recurring && <span className="text-black font-bold text-sm leading-none">✓</span>}
+                </div>
+                <span className="text-sm text-slate-300">Recurring</span>
+              </button>
             </div>
             {form.recurring && (
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-2 flex-wrap items-center">
                 <select
                   value={form.recurring_freq}
                   onChange={(e) => updateForm({ recurring_freq: e.target.value })}
-                  className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none"
+                  className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none"
                 >
                   <option value="weekly">Weekly</option>
                   <option value="biweekly">Biweekly</option>
@@ -414,13 +420,12 @@ export default function TeamSchedule({ teamId, teamScope }) {
                 <select
                   value={form.recurring_day}
                   onChange={(e) => updateForm({ recurring_day: e.target.value })}
-                  className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none"
+                  className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none"
                 >
                   {DAYS.map((d) => (
                     <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
                   ))}
                 </select>
-                <span className="text-slate-400 text-sm self-center">→ stored as "{form.recurring_rule || `${form.recurring_freq}:${form.recurring_day}`}"</span>
               </div>
             )}
           </div>
