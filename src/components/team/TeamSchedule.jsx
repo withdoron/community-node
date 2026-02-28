@@ -30,7 +30,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { useUser } from '@/hooks/useUser';
 
 const EVENT_TYPES = [
   { value: 'practice', label: 'Practice', icon: ClipboardList },
@@ -78,7 +77,7 @@ function getEventBadgeClass(type) {
 }
 
 export default function TeamSchedule({ teamId, teamScope }) {
-  const { user: currentUser } = useUser();
+  const currentUserId = teamScope?.currentUserId;
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
@@ -187,7 +186,7 @@ export default function TeamSchedule({ teamId, teamScope }) {
       const created = await base44.entities.TeamEvent.create({
         team_id: teamId,
         ...payload,
-        created_by: currentUser?.id,
+        created_by: currentUserId,
       });
       return created;
     },
