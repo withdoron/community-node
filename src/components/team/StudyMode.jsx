@@ -17,6 +17,7 @@ export default function StudyMode({
   const [viewedPlays, setViewedPlays] = useState(() => new Set());
   const [touchStart, setTouchStart] = useState(null);
   const [mirrored, setMirrored] = useState(false);
+  const [viewAsPosition, setViewAsPosition] = useState(null); // coach-only: which position to preview in My Assignment view
 
   const filteredPlays = React.useMemo(() => {
     let list = plays;
@@ -33,8 +34,10 @@ export default function StudyMode({
   const sortedAssignments = [...playAssignments].sort(
     (a, b) => POSITION_ORDER.indexOf(a.position) - POSITION_ORDER.indexOf(b.position)
   );
-  const myAssignment = playerPosition ? playAssignments.find((a) => a.position === playerPosition) : null;
-  const otherAssignments = sortedAssignments.filter((a) => a.position !== playerPosition);
+  // In My Assignment view: coaches use viewAsPosition (or null); players use playerPosition
+  const displayPosition = viewMode === 'my' && isCoach ? viewAsPosition : playerPosition;
+  const myAssignment = displayPosition ? playAssignments.find((a) => a.position === displayPosition) : null;
+  const otherAssignments = sortedAssignments.filter((a) => a.position !== displayPosition);
 
   const markViewed = useCallback((playId) => {
     setViewedPlays((prev) => new Set(prev).add(playId));
@@ -130,6 +133,29 @@ export default function StudyMode({
         </button>
       </div>
 
+      {/* View as position selector — coaches only, My Assignment view */}
+      {isCoach && viewMode === 'my' && (
+        <div className="mx-4 mt-3 flex-shrink-0">
+          <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">View as</p>
+          <div className="flex justify-center gap-2">
+            {POSITION_ORDER.map((pos) => (
+              <button
+                key={pos}
+                type="button"
+                onClick={() => setViewAsPosition((prev) => (prev === pos ? null : pos))}
+                className={`min-w-[44px] min-h-[44px] rounded-lg border text-sm font-bold transition-colors ${
+                  viewAsPosition === pos
+                    ? 'bg-slate-800 border-amber-500 text-amber-500'
+                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-amber-500/50 hover:text-amber-500'
+                }`}
+              >
+                {pos}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Main card area — touch swipe */}
       <div
         className="flex-1 overflow-y-auto flex flex-col min-h-0"
@@ -168,8 +194,15 @@ export default function StudyMode({
 
             {viewMode === 'my' ? (
               <>
-                {myAssignment ? (
+                {isCoach && !viewAsPosition ? (
+                  <div className="bg-slate-800/50 rounded-xl p-4 mb-4 border border-slate-700">
+                    <p className="text-slate-400">Select a position to preview</p>
+                  </div>
+                ) : myAssignment ? (
                   <div className="bg-slate-900 border-l-4 border-amber-500 rounded-r-xl p-4 mb-4">
+                    {isCoach && viewAsPosition && (
+                      <p className="text-amber-500 text-xs font-semibold uppercase tracking-wider mb-2">Your assignment</p>
+                    )}
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-amber-500 text-2xl font-bold">{myAssignment.position}</span>
                       <span className="bg-slate-800 text-slate-300 text-sm px-2 py-0.5 rounded">
@@ -178,9 +211,9 @@ export default function StudyMode({
                     </div>
                     <p className="text-white text-lg min-h-[18px]">{myAssignment.assignment_text || 'No assignment'}</p>
                   </div>
-                ) : playerPosition ? (
+                ) : displayPosition ? (
                   <div className="bg-slate-800/50 rounded-xl p-4 mb-4 border border-slate-700">
-                    <p className="text-slate-400">No assignment for {playerPosition} on this play.</p>
+                    <p className="text-slate-400">No assignment for {displayPosition} on this play.</p>
                   </div>
                 ) : null}
 
@@ -193,6 +226,13 @@ export default function StudyMode({
                         <span>{a.route || '—'}</span>
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {isCoach && play.coach_notes && (
+                  <div className="mt-4 bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
+                    <p className="text-xs font-semibold text-amber-500 uppercase tracking-wider mb-2">Coach notes</p>
+                    <p className="text-slate-300 text-sm whitespace-pre-wrap">{play.coach_notes}</p>
                   </div>
                 )}
               </>
