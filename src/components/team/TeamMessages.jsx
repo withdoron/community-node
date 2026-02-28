@@ -71,6 +71,10 @@ export default function TeamMessages({ teamId, teamScope }) {
     });
   }, [rawMessages, messageType]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   useEffect(() => scrollToBottom(), [messages.length, activeChannel]);
 
