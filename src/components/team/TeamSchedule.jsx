@@ -47,8 +47,6 @@ const EVENT_TYPE_SUGGESTIONS = {
   social: 'Team Social',
 };
 
-const DAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-
 function formatEventDate(dateStr, timeStr) {
   if (!dateStr) return '—';
   const d = new Date(dateStr);
@@ -92,8 +90,9 @@ export default function TeamSchedule({ teamId, teamScope }) {
     opponent: '',
     notes: '',
     recurring: false,
-    recurring_freq: 'weekly',
-    recurring_day: 'tuesday',
+    recurring_pattern: 'weekly',
+    recurring_days: [],
+    recurring_end_date: '',
     recurring_rule: '',
   });
 
@@ -140,8 +139,9 @@ export default function TeamSchedule({ teamId, teamScope }) {
       opponent: '',
       notes: '',
       recurring: false,
-      recurring_freq: 'weekly',
-      recurring_day: 'tuesday',
+      recurring_pattern: 'weekly',
+      recurring_days: [],
+      recurring_end_date: '',
       recurring_rule: '',
     });
     setModalOpen(true);
@@ -149,6 +149,13 @@ export default function TeamSchedule({ teamId, teamScope }) {
 
   const openEdit = (event) => {
     setEditingEvent(event);
+    const rule = event.recurring_rule || '';
+    const pattern = rule.startsWith('biweekly') ? 'biweekly' : 'weekly';
+    const daysPart = rule.includes(':') ? rule.split(':')[1].trim() : '';
+    const recurring_days = daysPart ? daysPart.split(',').map((s) => {
+      const d = s.trim().slice(0, 3);
+      return d.charAt(0).toUpperCase() + d.slice(1).toLowerCase();
+    }).filter(Boolean) : [];
     setForm({
       event_type: event.event_type || 'practice',
       title: event.title || '',
@@ -159,9 +166,10 @@ export default function TeamSchedule({ teamId, teamScope }) {
       opponent: event.opponent || '',
       notes: event.notes || '',
       recurring: !!event.recurring_rule,
-      recurring_freq: (event.recurring_rule && event.recurring_rule.startsWith('biweekly')) ? 'biweekly' : 'weekly',
-      recurring_day: (event.recurring_rule && event.recurring_rule.includes(':')) ? event.recurring_rule.split(':')[1] : 'tuesday',
-      recurring_rule: event.recurring_rule || '',
+      recurring_pattern: pattern,
+      recurring_days,
+      recurring_end_date: event.recurring_end_date ? event.recurring_end_date.slice(0, 10) : '',
+      recurring_rule: rule,
     });
     setModalOpen(true);
   };
@@ -173,7 +181,7 @@ export default function TeamSchedule({ teamId, teamScope }) {
         next.title = EVENT_TYPE_SUGGESTIONS[updates.event_type] ?? next.title;
       }
       if (next.recurring) {
-        next.recurring_rule = `${next.recurring_freq}:${next.recurring_day}`;
+        next.recurring_rule = `${next.recurring_pattern || 'weekly'}:${(next.recurring_days || []).join(',')}`;
       } else {
         next.recurring_rule = '';
       }
@@ -229,7 +237,8 @@ export default function TeamSchedule({ teamId, teamScope }) {
       location: form.location || null,
       opponent: ['game', 'scrimmage'].includes(form.event_type) ? (form.opponent || null) : null,
       notes: form.notes || null,
-      recurring_rule: form.recurring ? form.recurring_rule : null,
+      recurring_rule: form.recurring ? `${form.recurring_pattern || 'weekly'}:${(form.recurring_days || []).join(',')}` : null,
+      recurring_end_date: form.recurring && form.recurring_end_date ? form.recurring_end_date : null,
     };
     if (editingEvent) {
       updateMutation.mutate({ id: editingEvent.id, ...payload });
@@ -391,41 +400,75 @@ export default function TeamSchedule({ teamId, teamScope }) {
                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none resize-none"
               />
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => updateForm({ recurring: !form.recurring })}
-                className="flex items-center gap-3 text-left"
+            <div
+              onClick={() => updateForm({ recurring: !form.recurring })}
+              className="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700 rounded-xl mt-2 transition-colors hover:border-amber-500/50 cursor-pointer"
+            >
+              <div className="flex-1">
+                <p className="text-slate-200 font-medium">This event repeats</p>
+                <p className="text-slate-400 text-sm">Create multiple event instances on a schedule</p>
+              </div>
+              <div
+                className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${form.recurring ? 'bg-amber-500' : 'bg-slate-600'}`}
               >
                 <div
-                  className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                    form.recurring ? 'bg-amber-500 border-amber-500' : 'bg-transparent border-amber-500'
-                  }`}
-                >
-                  {form.recurring && <span className="text-black font-bold text-sm leading-none">✓</span>}
-                </div>
-                <span className="text-sm text-slate-300">Recurring</span>
-              </button>
+                  className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${form.recurring ? 'translate-x-5' : 'translate-x-0.5'}`}
+                />
+              </div>
             </div>
             {form.recurring && (
-              <div className="flex gap-2 flex-wrap items-center">
-                <select
-                  value={form.recurring_freq}
-                  onChange={(e) => updateForm({ recurring_freq: e.target.value })}
-                  className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none"
-                >
-                  <option value="weekly">Weekly</option>
-                  <option value="biweekly">Biweekly</option>
-                </select>
-                <select
-                  value={form.recurring_day}
-                  onChange={(e) => updateForm({ recurring_day: e.target.value })}
-                  className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none"
-                >
-                  {DAYS.map((d) => (
-                    <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
-                  ))}
-                </select>
+              <div className="space-y-4 pl-7">
+                <div className="space-y-2">
+                  <label className="text-slate-200 text-sm">Pattern</label>
+                  <select
+                    value={form.recurring_pattern || 'weekly'}
+                    onChange={(e) => updateForm({ recurring_pattern: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-3 py-2 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                  >
+                    <option value="weekly">Weekly</option>
+                    <option value="biweekly">Bi-weekly</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-slate-200 text-sm">Repeats on</label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => {
+                          const currentDays = form.recurring_days || [];
+                          const days = currentDays.includes(day)
+                            ? currentDays.filter((d) => d !== day)
+                            : [...currentDays, day];
+                          updateForm({ recurring_days: days });
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
+                          (form.recurring_days || []).includes(day)
+                            ? 'bg-amber-500 text-black font-medium'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-slate-200 text-sm">Ends on (Optional)</label>
+                  <input
+                    type="date"
+                    value={form.recurring_end_date || ''}
+                    onChange={(e) => updateForm({ recurring_end_date: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-3 py-2 [color-scheme:dark] focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                    placeholder="Select end date"
+                  />
+                </div>
+                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                  <p className="text-xs text-amber-500">
+                    ⓘ Each occurrence will be created as a separate event
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -489,7 +532,14 @@ function EventCard({ event, isCoach, onEdit, onDelete }) {
             <p className="text-slate-400 text-sm mt-0.5">vs {event.opponent}</p>
           )}
           {event.recurring_rule && (
-            <p className="text-slate-500 text-xs mt-1">Recurring: {event.recurring_rule}</p>
+            <p className="text-slate-400 text-xs mt-1">
+              {(() => {
+                const [pattern, daysPart] = event.recurring_rule.includes(':') ? event.recurring_rule.split(':') : [event.recurring_rule, ''];
+                const label = pattern === 'biweekly' ? 'Bi-weekly' : 'Weekly';
+                const days = daysPart ? daysPart.split(',').map((d) => d.trim()).filter(Boolean).join(', ') : '';
+                return days ? `${label} · ${days}` : label;
+              })()}
+            </p>
           )}
         </div>
       </div>
