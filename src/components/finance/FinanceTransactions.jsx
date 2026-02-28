@@ -76,10 +76,20 @@ export default function FinanceTransactions({ profile, currentUser }) {
     .filter(([, ctx]) => ctx.is_active)
     .map(([id, ctx]) => ({ id, label: ctx.label }));
 
-  // Categories for current context filter
-  const filterCategories = contextFilter !== 'all'
-    ? (profile?.categories?.[contextFilter] || [])
-    : [];
+  // Categories for current context filter — combine income + expense for filtering
+  const filterCategories = useMemo(() => {
+    if (contextFilter === 'all') return [];
+    const contextCats = profile?.categories?.[contextFilter];
+    if (!contextCats) return [];
+    // New nested format { income: [], expense: [] }
+    if (contextCats.income || contextCats.expense) {
+      const combined = [...(contextCats.income || []), ...(contextCats.expense || [])];
+      return [...new Set(combined)]; // deduplicate
+    }
+    // Old flat format — just an array
+    if (Array.isArray(contextCats)) return contextCats;
+    return [];
+  }, [contextFilter, profile?.categories]);
 
   // Reset category filter when context changes
   const handleContextFilterChange = (val) => {

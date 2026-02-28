@@ -16,20 +16,23 @@ const DEFAULT_CONTEXTS = {
 };
 
 const DEFAULT_CATEGORIES = {
-  personal: [
-    'Housing', 'Food', 'Transportation', 'Healthcare', 'Children',
-    'Education', 'Entertainment', 'Clothing', 'Giving/Tithing',
-    'Debt Payments', 'Savings', 'Other',
-  ],
-  rental: [
-    'Advertising', 'Auto/Travel', 'Cleaning', 'Commissions', 'Insurance',
-    'Legal', 'Management Fees', 'Mortgage Interest', 'Repairs', 'Supplies',
-    'Taxes', 'Utilities', 'Depreciation', 'Other',
-  ],
-  business: [
-    'Advertising', 'Car/Truck', 'Insurance', 'Legal', 'Office',
-    'Supplies', 'Travel', 'Utilities', 'Software/Tools', 'Contractors', 'Other',
-  ],
+  personal: {
+    income: ['Salary/Wages', 'Client Payment', 'Reimbursement', 'Gift', 'Government Benefits', 'Other Income'],
+    expense: ['Housing', 'Food', 'Transportation', 'Healthcare', 'Children',
+      'Education', 'Entertainment', 'Clothing', 'Giving/Tithing',
+      'Debt Payments', 'Savings', 'Other'],
+  },
+  rental: {
+    income: ['Rental Income', 'Late Fees', 'Other Income'],
+    expense: ['Advertising', 'Auto/Travel', 'Cleaning', 'Commissions', 'Insurance',
+      'Legal', 'Management Fees', 'Mortgage Interest', 'Repairs', 'Supplies',
+      'Taxes', 'Utilities', 'Depreciation', 'Other'],
+  },
+  business: {
+    income: ['Client Payment', 'Project Revenue', 'Consulting', 'Reimbursement', 'Other Income'],
+    expense: ['Advertising', 'Car/Truck', 'Insurance', 'Legal', 'Office',
+      'Supplies', 'Travel', 'Utilities', 'Software/Tools', 'Contractors', 'Other'],
+  },
 };
 
 export default function FinanceOnboarding() {
@@ -111,7 +114,7 @@ export default function FinanceOnboarding() {
               </li>
               <li className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                Pre-configured expense categories for each context
+                Pre-configured income &amp; expense categories for each context
               </li>
               <li className="flex items-center gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />

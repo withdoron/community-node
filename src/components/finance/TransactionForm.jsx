@@ -53,7 +53,22 @@ export default function TransactionForm({
     .filter(([, ctx]) => ctx.is_active)
     .map(([id, ctx]) => ({ id, label: ctx.label }));
 
-  const availableCategories = profile?.categories?.[context] || [];
+  // Resolve categories: new format is { context: { income: [], expense: [] } }
+  // Old format was { context: [] } — treat flat array as expense list, use defaults for income
+  const DEFAULT_INCOME_CATS = ['Salary/Wages', 'Client Payment', 'Reimbursement', 'Gift', 'Other Income'];
+  const contextCats = profile?.categories?.[context];
+  const availableCategories = (() => {
+    if (!contextCats) return [];
+    // New nested format
+    if (contextCats.income || contextCats.expense) {
+      return contextCats[type] || [];
+    }
+    // Old flat format — treat array as expense, use defaults for income
+    if (Array.isArray(contextCats)) {
+      return type === 'expense' ? contextCats : DEFAULT_INCOME_CATS;
+    }
+    return [];
+  })();
 
   const saveMutation = useMutation({
     mutationFn: async () => {
