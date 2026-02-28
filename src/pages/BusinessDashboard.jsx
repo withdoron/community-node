@@ -319,17 +319,18 @@ export default function BusinessDashboard() {
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-slate-100">My Businesses & Workspaces</h2>
+              <h2 className="text-2xl font-bold text-slate-100">My Workspaces</h2>
               <p className="text-slate-400 text-sm mt-1">
-                Manage your business listings and team workspaces
+                Manage the things you lead
               </p>
             </div>
+            {/* TODO: Build 1b+ — type picker modal before launching creation wizard */}
             <Button 
               onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
               className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add Business
+              Add Workspace
             </Button>
           </div>
 
@@ -341,6 +342,7 @@ export default function BusinessDashboard() {
                 userRole={getUserRole(business)}
                 eventCount={eventCounts[business.id] || 0}
                 onClick={() => setSelectedBusinessId(business.id)}
+                workspaceTypeLabel="Business"
               />
             ))}
           </div>
@@ -384,7 +386,7 @@ export default function BusinessDashboard() {
               className="text-slate-400 hover:text-slate-100"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Businesses
+              Back to Workspaces
             </Button>
             <div className="h-4 w-px bg-slate-700" />
             <div className="flex items-center gap-3">

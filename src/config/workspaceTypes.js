@@ -10,7 +10,6 @@ import {
   TrendingUp,
   Calendar,
   Settings,
-  Users,
 } from 'lucide-react';
 import DashboardHome from '@/components/dashboard/DashboardHome';
 import AccessWindowManager from '@/components/dashboard/AccessWindowManager';
@@ -110,19 +109,40 @@ export function getBusinessTabs(archetype) {
 // ——— Workspace type registry (outer layer). ———
 // business: archetypeSupport true → tabs from BUSINESS_TAB_CONFIG[archetype]
 // team: archetypeSupport false → tabs from type.tabs (future)
+// icon as string for type picker; getTabs/components stay in business for dashboard.
 export const WORKSPACE_TYPES = {
   business: {
     id: 'business',
     label: 'Business',
-    icon: LayoutDashboard,
+    icon: 'Storefront',
+    description: 'List your business, host events, and connect with the community',
     archetypeSupport: true,
     getTabs: (workspace) => getBusinessTabs(workspace?.archetype || 'location'),
+    roles: {
+      owner: 'Owner',
+      co_owner: 'Co-Owner',
+      staff: 'Staff/Manager',
+      member: 'Customer',
+    },
+    createWizard: null, // navigates to BusinessOnboarding for now
+    networkAffinity: true,
+    available: true,
   },
   team: {
     id: 'team',
     label: 'Team',
-    icon: Users,
+    icon: 'Users',
+    description: 'Manage a sports team — roster, playbook, schedule, communication',
+    tabs: [],
+    roles: {
+      owner: 'Head Coach',
+      co_owner: 'Co-Coach',
+      staff: 'Assistant Coach',
+      member: 'Player/Parent',
+    },
+    createWizard: null,
+    networkAffinity: true,
     archetypeSupport: false,
-    tabs: [], // no tabs until Team workspace UI exists
+    available: false, // not yet launchable
   },
 };

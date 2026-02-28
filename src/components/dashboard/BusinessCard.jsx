@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Store, ChevronRight, Calendar, Users, Crown, Shield, UserCircle } from "lucide-react";
 
-export default function BusinessCard({ business, userRole, eventCount = 0, onClick }) {
+export default function BusinessCard({ business, userRole, eventCount = 0, onClick, workspaceTypeLabel }) {
   const roleConfig = {
     owner: {
       label: 'OWNER',
@@ -67,6 +67,9 @@ export default function BusinessCard({ business, userRole, eventCount = 0, onCli
                 <RoleIcon className="h-3 w-3 mr-1" />
                 {role.label}
               </Badge>
+              {workspaceTypeLabel && (
+                <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">{workspaceTypeLabel}</span>
+              )}
             </div>
 
             <p className="text-sm text-slate-400 mb-3">
