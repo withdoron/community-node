@@ -12,46 +12,37 @@ const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
 
 // ─── CSV Parser (no PapaParse dependency) ──────────
-function parseCSV(text) {
-  const lines = [];
+function parseCsvLine(line) {
+  const fields = [];
   let current = '';
   let inQuotes = false;
 
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
     if (ch === '"') {
-      if (inQuotes && text[i + 1] === '"') {
+      if (inQuotes && line[i + 1] === '"') {
         current += '"';
         i++;
       } else {
         inQuotes = !inQuotes;
       }
     } else if (ch === ',' && !inQuotes) {
-      lines.push(current);
+      fields.push(current);
       current = '';
-    } else if ((ch === '\n' || (ch === '\r' && text[i + 1] === '\n')) && !inQuotes) {
-      lines.push(current);
-      current = '';
-      if (ch === '\r') i++; // skip \n after \r
-      // finalize row
-      if (lines.length > 0) {
-        yield lines.splice(0);
-      }
     } else {
       current += ch;
     }
   }
-  // last field + row
-  lines.push(current);
-  if (lines.some((f) => f.trim() !== '')) {
-    yield lines;
-  }
+  fields.push(current);
+  return fields;
 }
 
 function parseCSVString(text) {
+  const rawLines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
   const rows = [];
-  for (const row of parseCSV(text)) {
-    rows.push(row.map((f) => f.trim()));
+  for (const line of rawLines) {
+    if (line.trim() === '') continue;
+    rows.push(parseCsvLine(line).map((f) => f.trim()));
   }
   return rows;
 }
