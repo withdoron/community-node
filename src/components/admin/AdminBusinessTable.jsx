@@ -24,6 +24,7 @@ export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpd
         <TableHeader>
           <TableRow className="bg-slate-800/50 border-b border-slate-700">
             <TableHead className="font-semibold text-slate-400">Business</TableHead>
+            <TableHead className="font-semibold text-slate-400">Owner</TableHead>
             <TableHead className="font-semibold text-slate-400">City</TableHead>
             <TableHead className="font-semibold text-slate-400">Tier</TableHead>
             <TableHead className="font-semibold text-center text-slate-400">Silver</TableHead>
@@ -54,6 +55,17 @@ export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpd
                     </p>
                     <p className="text-xs text-slate-500 truncate max-w-[200px]">{business.owner_email}</p>
                   </div>
+                </TableCell>
+                <TableCell>
+                  {business.owner_user_id ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      Claimed
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                      Unclaimed
+                    </span>
+                  )}
                 </TableCell>
                 <TableCell className="text-slate-300">{business.city || '—'}</TableCell>
                 

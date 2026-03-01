@@ -15,6 +15,7 @@ const PROFILE_ALLOWLIST = [
 
 const ADMIN_EXTRA_ALLOWLIST = [
   'subscription_tier', 'accepts_silver', 'is_locally_owned_franchise', 'network_ids', 'is_active',
+  'claim_token', 'claim_email', 'claim_sent_at',
 ];
 
 function slugFromName(name: string): string {
@@ -185,6 +186,90 @@ Deno.serve(async (req) => {
       }
 
       return Response.json({ success: true });
+    }
+
+    // Admin-only: create a new business listing (no owner)
+    if (action === 'create_admin') {
+      if (user.role !== 'admin') {
+        return Response.json({ error: 'Only admins can create businesses via this action' }, { status: 403 });
+      }
+
+      const { data } = body;
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        return Response.json({ error: 'data object is required for create_admin' }, { status: 400 });
+      }
+
+      const d = data as Record<string, unknown>;
+      if (!d.name || typeof d.name !== 'string' || !d.name.trim()) {
+        return Response.json({ error: 'Business name is required' }, { status: 400 });
+      }
+
+      const baseSlug = slugFromName(String(d.name));
+      const slug = await findUniqueSlug(base44, baseSlug, '');
+
+      const allowlist = [...PROFILE_ALLOWLIST, ...ADMIN_EXTRA_ALLOWLIST];
+      const filtered: Record<string, unknown> = {};
+      for (const key of Object.keys(d)) {
+        if (allowlist.includes(key)) {
+          filtered[key] = d[key];
+        }
+      }
+
+      const created = await base44.asServiceRole.entities.Business.create({
+        ...filtered,
+        slug,
+        is_active: true,
+        subscription_tier: (filtered.subscription_tier as string) || 'basic',
+        // No owner — unclaimed
+        owner_user_id: null,
+        owner_email: null,
+      });
+
+      return Response.json(created);
+    }
+
+    // Claim a business using a claim token
+    if (action === 'claim_business') {
+      const { claim_token } = body;
+      if (!claim_token || typeof claim_token !== 'string') {
+        return Response.json({ error: 'claim_token is required' }, { status: 400 });
+      }
+
+      // Find business by claim_token
+      const businesses = await base44.asServiceRole.entities.Business.filter({ claim_token });
+      if (!businesses || businesses.length === 0) {
+        return Response.json({ error: 'Invalid or expired claim token' }, { status: 404 });
+      }
+
+      const business = businesses[0] as Record<string, unknown>;
+
+      // Verify business is unclaimed
+      if (business.owner_user_id) {
+        return Response.json({ error: 'This business has already been claimed' }, { status: 400 });
+      }
+
+      // Claim the business
+      const updated = await base44.asServiceRole.entities.Business.update(business.id as string, {
+        owner_user_id: user.id,
+        owner_email: user.email,
+        claim_token: null,
+        claim_email: null,
+        claim_sent_at: null,
+      });
+
+      // Update user to be a business owner
+      try {
+        await base44.asServiceRole.entities.User.update(user.id, {
+          is_business_owner: true,
+        });
+      } catch (e) {
+        console.error('Failed to update user is_business_owner:', e);
+      }
+
+      // Add to user's associated_businesses
+      await addBusinessToUserAssociated(base44, user.id, business.id as string);
+
+      return Response.json(updated);
     }
 
     if (action === 'update_profile') {

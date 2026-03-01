@@ -6,9 +6,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, ShieldAlert, ChevronLeft, MapPin, Network } from "lucide-react";
+import { Loader2, ShieldAlert, ChevronLeft, MapPin, Network, Plus } from "lucide-react";
 import AdminBusinessTable from '@/components/admin/AdminBusinessTable';
 import AdminFilters from '@/components/admin/AdminFilters';
+import AdminCreateBusinessModal from '@/components/admin/AdminCreateBusinessModal';
 import BusinessEditDrawer from '@/components/admin/BusinessEditDrawer';
 import AdminSettingsPanel from '@/components/admin/AdminSettingsPanel';
 import AdminLocationsTable from '@/components/admin/AdminLocationsTable';
@@ -31,6 +32,7 @@ function PlaceholderSection({ title, description }) {
 
 export default function Admin() {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [filters, setFilters] = useState({
     search: '',
     ownerSearch: '',
@@ -39,6 +41,7 @@ export default function Admin() {
     acceptsSilver: 'all',
     localFranchise: 'all',
     status: 'all',
+    ownership: 'all',
   });
 
   const { data: currentUser, isLoading: userLoading } = useQuery({
@@ -104,6 +107,8 @@ export default function Admin() {
       if (filters.localFranchise === 'no' && b.is_locally_owned_franchise) return false;
       if (filters.status === 'active' && b.is_active === false) return false;
       if (filters.status === 'inactive' && b.is_active !== false) return false;
+      if (filters.ownership === 'claimed' && !b.owner_user_id) return false;
+      if (filters.ownership === 'unclaimed' && b.owner_user_id) return false;
       return true;
     });
   }, [businesses, filters]);
@@ -163,8 +168,17 @@ export default function Admin() {
 
             <Route path="businesses" element={
               <Card className="p-6 bg-slate-900 border-slate-700">
-                <div className="mb-6">
-                  <AdminFilters filters={filters} onFiltersChange={setFilters} />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex-1">
+                    <AdminFilters filters={filters} onFiltersChange={setFilters} />
+                  </div>
+                  <Button
+                    onClick={() => setCreateModalOpen(true)}
+                    className="bg-amber-500 hover:bg-amber-400 text-black font-semibold ml-4 shrink-0"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Create Business
+                  </Button>
                 </div>
                 <div className="mb-4 text-sm text-slate-400">
                   Showing {filteredBusinesses.length} of {businesses.length} businesses
@@ -312,6 +326,11 @@ export default function Admin() {
         open={!!selectedBusiness}
         onClose={() => setSelectedBusiness(null)}
         adminEmail={currentUser?.email}
+      />
+
+      <AdminCreateBusinessModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
       />
     </div>
   );

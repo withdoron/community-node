@@ -17,15 +17,17 @@ export default function AdminFilters({ filters, onFiltersChange }) {
       acceptsSilver: 'all',
       localFranchise: 'all',
       status: 'all',
+      ownership: 'all',
     });
   };
 
-  const hasActiveFilters = filters.search || 
+  const hasActiveFilters = filters.search ||
     filters.ownerSearch ||
-    filters.tier !== 'all' || 
-    filters.acceptsSilver !== 'all' || 
-    filters.localFranchise !== 'all' || 
-    filters.status !== 'all';
+    filters.tier !== 'all' ||
+    filters.acceptsSilver !== 'all' ||
+    filters.localFranchise !== 'all' ||
+    filters.status !== 'all' ||
+    filters.ownership !== 'all';
 
   return (
     <div className="space-y-4">
@@ -99,6 +101,17 @@ export default function AdminFilters({ filters, onFiltersChange }) {
             <SelectItem value="all" className="text-slate-300 focus:bg-slate-800">All Status</SelectItem>
             <SelectItem value="active" className="text-slate-300 focus:bg-slate-800">Active</SelectItem>
             <SelectItem value="inactive" className="text-slate-300 focus:bg-slate-800">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={filters.ownership || 'all'} onValueChange={(v) => updateFilter('ownership', v)}>
+          <SelectTrigger className="flex-1 min-w-[120px] bg-slate-800 border-slate-700 text-slate-300">
+            <SelectValue placeholder="Ownership" />
+          </SelectTrigger>
+          <SelectContent className="bg-slate-900 border-slate-800">
+            <SelectItem value="all" className="text-slate-300 focus:bg-slate-800">All Ownership</SelectItem>
+            <SelectItem value="claimed" className="text-slate-300 focus:bg-slate-800">Claimed</SelectItem>
+            <SelectItem value="unclaimed" className="text-slate-300 focus:bg-slate-800">Unclaimed</SelectItem>
           </SelectContent>
         </Select>
 

@@ -16,6 +16,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import NetworkPage from '@/pages/NetworkPage';
 import Networks from '@/pages/Networks';
 import JoinTeam from '@/pages/JoinTeam';
+import ClaimBusiness from '@/pages/ClaimBusiness';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -103,6 +104,14 @@ const AuthenticatedApp = () => {
         element={
           <LayoutWrapper currentPageName="Networks">
             <NetworkPage />
+          </LayoutWrapper>
+        }
+      />
+      <Route
+        path="/claim-business"
+        element={
+          <LayoutWrapper currentPageName="ClaimBusiness">
+            <ClaimBusiness />
           </LayoutWrapper>
         }
       />

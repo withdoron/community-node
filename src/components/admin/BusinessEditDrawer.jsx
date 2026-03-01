@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown, Trash2, Link2, X, Globe, Upload } from "lucide-react";
+import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown, Trash2, Link2, X, Globe, Upload, Send, Copy, Check } from "lucide-react";
 import { format } from 'date-fns';
 import { toast } from "sonner";
 import { useConfig } from '@/hooks/useConfig';
@@ -44,6 +44,9 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const [isSearchingStaff, setIsSearchingStaff] = useState(false);
   const [selectedRole, setSelectedRole] = useState('instructor');
   const [localInstructors, setLocalInstructors] = useState([]);
+  const [claimInviteOpen, setClaimInviteOpen] = useState(false);
+  const [claimEmail, setClaimEmail] = useState('');
+  const [claimUrlCopied, setClaimUrlCopied] = useState(false);
   const staffSearchRef = useRef(null);
   const logoInputRef = useRef(null);
 
@@ -329,6 +332,36 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         toast.error(getFriendlyErrorMessage(error, 'Failed to link owner. Please try again.'));
       }
       console.error(error);
+    },
+  });
+
+  const generateClaimInviteMutation = useMutation({
+    mutationFn: async (email) => {
+      const token = crypto.randomUUID();
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update',
+        business_id: business.id,
+        data: {
+          claim_token: token,
+          claim_email: email || null,
+          claim_sent_at: new Date().toISOString(),
+        },
+      });
+      return token;
+    },
+    onSuccess: (token) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
+      const claimUrl = `${window.location.origin}/claim-business?token=${token}`;
+      navigator.clipboard.writeText(claimUrl).then(() => {
+        setClaimUrlCopied(true);
+        setTimeout(() => setClaimUrlCopied(false), 3000);
+      });
+      toast.success('Claim link generated and copied to clipboard');
+      setClaimInviteOpen(false);
+    },
+    onError: (error) => {
+      console.error('Generate claim invite error:', error);
+      toast.error('Failed to generate claim invite');
     },
   });
 
@@ -726,6 +759,95 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   <p className="text-xs text-slate-500 mt-2">Set owner email first to link.</p>
                 )}
               </div>
+
+              {/* Claim Invite — only for unclaimed businesses */}
+              {!business.owner_user_id && (
+                <div className="mt-3 pt-3 border-t border-slate-700">
+                  {!claimInviteOpen ? (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+                        onClick={() => {
+                          setClaimEmail(business.email || business.contact_email || '');
+                          setClaimInviteOpen(true);
+                        }}
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        Send Claim Invite
+                      </Button>
+                      {business.claim_token && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="border-slate-600 text-slate-300 hover:bg-slate-800"
+                          onClick={() => {
+                            const url = `${window.location.origin}/claim-business?token=${business.claim_token}`;
+                            navigator.clipboard.writeText(url);
+                            setClaimUrlCopied(true);
+                            setTimeout(() => setClaimUrlCopied(false), 3000);
+                            toast.success('Claim link copied');
+                          }}
+                        >
+                          {claimUrlCopied ? (
+                            <Check className="h-4 w-4 mr-1 text-emerald-400" />
+                          ) : (
+                            <Copy className="h-4 w-4 mr-1" />
+                          )}
+                          Copy Link
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-slate-400">Send claim invite to:</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="email"
+                          value={claimEmail}
+                          onChange={(e) => setClaimEmail(e.target.value)}
+                          className="bg-slate-800 border-slate-700 text-slate-100 text-sm focus:border-amber-500 focus:ring-amber-500/20"
+                          placeholder="owner@example.com"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="bg-amber-500 hover:bg-amber-400 text-black font-semibold shrink-0"
+                          onClick={() => generateClaimInviteMutation.mutate(claimEmail)}
+                          disabled={generateClaimInviteMutation.isPending}
+                        >
+                          {generateClaimInviteMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            'Generate Link'
+                          )}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-slate-400 hover:text-slate-200 shrink-0"
+                          onClick={() => setClaimInviteOpen(false)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        Generates a claim link you can copy and send manually.
+                      </p>
+                    </div>
+                  )}
+                  {business.claim_token && business.claim_sent_at && (
+                    <p className="text-xs text-slate-500 mt-2">
+                      Invite sent {format(new Date(business.claim_sent_at), 'MMM d, yyyy')}
+                      {business.claim_email && ` to ${business.claim_email}`}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <Separator />
