@@ -424,9 +424,12 @@ export default function FinanceDebts({ profile, currentUser }) {
 
                   <button type="button" onClick={() => openEdit(debt)} className="flex-1 text-left min-w-0">
                     <p className="text-sm font-medium text-slate-100 truncate">{debt.name}</p>
-                    <div className="flex gap-3 text-xs text-slate-400 mt-0.5">
+                    <div className="flex gap-3 text-xs text-slate-400 mt-0.5 flex-wrap">
                       {debt.interest_rate > 0 && <span>{debt.interest_rate}% APR</span>}
                       {debt.minimum_payment > 0 && <span>Min: {fmt(debt.minimum_payment)}</span>}
+                      {debt.interest_rate > 0 && debt.current_balance > 0 && (
+                        <span className="text-slate-500">~{fmt((debt.current_balance * debt.interest_rate / 100) / 12)}/mo interest</span>
+                      )}
                     </div>
                   </button>
 
