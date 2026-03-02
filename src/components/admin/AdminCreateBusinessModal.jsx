@@ -20,6 +20,13 @@ import { mainCategories } from '@/components/categories/categoryData';
 import { useConfig } from '@/hooks/useConfig';
 import { US_STATES } from '@/lib/usStates';
 
+function formatPhone(value) {
+  const digits = (value || '').replace(/\D/g, '').slice(0, 10);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 const initialFormData = {
   name: '',
   primary_category: '',
@@ -216,7 +223,7 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
               <Input
                 type="tel"
                 value={formData.phone}
-                onChange={(e) => updateField('phone', e.target.value)}
+                onChange={(e) => updateField('phone', formatPhone(e.target.value))}
                 className="bg-slate-800 border-slate-700 text-slate-100 mt-1 focus:border-amber-500 focus:ring-amber-500/20"
                 placeholder="(541) 555-1234"
               />

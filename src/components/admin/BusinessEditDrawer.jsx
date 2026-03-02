@@ -30,6 +30,13 @@ import { US_STATES } from '@/lib/usStates';
 import { ONBOARDING_CONFIG, ARCHETYPE_SLUG_TO_CONFIG } from '@/config/onboardingConfig';
 import { archetypeSubcategories } from '@/components/categories/categoryData';
 
+function formatPhone(value) {
+  const digits = (value || '').replace(/\D/g, '').slice(0, 10);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 export default function BusinessEditDrawer({ business, open, onClose, adminEmail }) {
   const queryClient = useQueryClient();
   const { mainCategories, getSubcategory } = useCategories();
@@ -983,7 +990,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   <Input
                     type="tel"
                     value={editData.phone ?? ''}
-                    onChange={(e) => handleFieldChange('phone', e.target.value)}
+                    onChange={(e) => handleFieldChange('phone', formatPhone(e.target.value))}
                     className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
                     placeholder="(541) 555-1234"
                   />
