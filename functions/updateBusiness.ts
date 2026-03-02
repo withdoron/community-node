@@ -303,26 +303,37 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Not authorized to update this business' }, { status: 403 });
       }
 
+      // Diff-based save: client sends only changed fields.
+      // Non-admin users are still restricted to the allowlist.
+      // Admins can update any field — the server function IS the permission gate.
       const isAdmin = user.role === 'admin';
-      const allowlist = isAdmin ? [...PROFILE_ALLOWLIST, ...ADMIN_EXTRA_ALLOWLIST] : PROFILE_ALLOWLIST;
-      const filtered: Record<string, unknown> = {};
-      for (const key of Object.keys(data as Record<string, unknown>)) {
-        if (allowlist.includes(key)) {
-          filtered[key] = (data as Record<string, unknown>)[key];
+      const raw = data as Record<string, unknown>;
+      let payload: Record<string, unknown>;
+
+      if (isAdmin) {
+        // Admin: pass all fields through (no allowlist filtering)
+        payload = { ...raw };
+      } else {
+        // Non-admin: filter through allowlist
+        payload = {};
+        for (const key of Object.keys(raw)) {
+          if (PROFILE_ALLOWLIST.includes(key)) {
+            payload[key] = raw[key];
+          }
         }
       }
 
-      if (filtered.name != null && String(filtered.name).trim() !== '') {
-        const baseSlug = slugFromName(String(filtered.name));
-        filtered.slug = await findUniqueSlug(base44, baseSlug, business_id);
+      if (payload.name != null && String(payload.name).trim() !== '') {
+        const baseSlug = slugFromName(String(payload.name));
+        payload.slug = await findUniqueSlug(base44, baseSlug, business_id);
       }
 
-      if (Object.keys(filtered).length === 0) {
+      if (Object.keys(payload).length === 0) {
         const existing = await base44.asServiceRole.entities.Business.get(business_id);
         return Response.json(existing);
       }
 
-      const updated = await base44.asServiceRole.entities.Business.update(business_id, filtered);
+      const updated = await base44.asServiceRole.entities.Business.update(business_id, payload);
       return Response.json(updated);
     }
 

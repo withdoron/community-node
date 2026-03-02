@@ -40,7 +40,8 @@ function formatPhone(value) {
 export default function BusinessEditDrawer({ business, open, onClose, adminEmail }) {
   const queryClient = useQueryClient();
   const { mainCategories, getSubcategory } = useCategories();
-  const [editData, setEditData] = useState(null);
+  const [originalState, setOriginalState] = useState(null);
+  const [formState, setFormState] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, field: '', value: null, message: '' });
   const [unsavedCloseDialogOpen, setUnsavedCloseDialogOpen] = useState(false);
@@ -58,8 +59,13 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const staffSearchRef = useRef(null);
   const logoInputRef = useRef(null);
 
+  // Universal field update handler — every input uses this
+  const updateField = (field, value) => {
+    setFormState((prev) => ({ ...prev, [field]: value }));
+  };
+
   const toggleSubcategory = (subId) => {
-    const current = Array.isArray(editData.subcategories) ? editData.subcategories : [];
+    const current = Array.isArray(formState.subcategories) ? formState.subcategories : [];
     const next = current.includes(subId)
       ? current.filter((id) => id !== subId)
       : [...current, subId];
@@ -81,7 +87,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       }
     }
 
-    setEditData((prev) => ({
+    setFormState((prev) => ({
       ...prev,
       subcategories: next,
       primary_category: primaryCategory,
@@ -89,7 +95,6 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       sub_category: subCategory,
       sub_category_id: subCategoryId,
     }));
-    setHasChanges(true);
   };
 
   useEffect(() => {
@@ -178,11 +183,11 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   );
 
   const resolvedArchetype = useMemo(() => {
-    if (!editData?.archetype) return null;
-    return archetypeSubcategories[editData.archetype]
-      ? editData.archetype
-      : ARCHETYPE_SLUG_TO_CONFIG[editData.archetype] || editData.archetype;
-  }, [editData?.archetype]);
+    if (!formState?.archetype) return null;
+    return archetypeSubcategories[formState.archetype]
+      ? formState.archetype
+      : ARCHETYPE_SLUG_TO_CONFIG[formState.archetype] || formState.archetype;
+  }, [formState?.archetype]);
 
   const subcategoryOptions = useMemo(
     () => (resolvedArchetype ? archetypeSubcategories[resolvedArchetype] || [] : []),
@@ -191,48 +196,31 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
   useEffect(() => {
     if (business) {
-      const mainId = business.primary_category || business.main_category || business.category || '';
-      setEditData({
-        name: business.name || '',
-        description: business.description || '',
-        primary_category: mainId,
-        main_category: business.main_category || mainId || '',
-        sub_category: business.sub_category || '',
-        sub_category_id: business.sub_category_id || '',
-        subcategories: Array.isArray(business.subcategories) ? [...business.subcategories] : [],
-        subcategory: business.subcategory || '',
-        archetype: business.archetype || '',
-        business_hours: business.business_hours || '',
-        address: business.address || '',
-        city: business.city || '',
-        state: business.state || '',
-        zip_code: business.zip_code || '',
-        display_full_address: business.display_full_address === true,
-        email: business.email || business.contact_email || '',
-        phone: business.phone || '',
-        website: business.website || '',
-        instagram: business.instagram || '',
-        facebook: business.facebook || '',
-        service_area: business.service_area || '',
-        services_offered: business.services_offered || '',
-        shop_url: business.shop_url || '',
-        subscription_tier: business.subscription_tier || 'basic',
-        accepts_silver: business.accepts_silver || false,
-        is_locally_owned_franchise: business.is_locally_owned_franchise || false,
-        is_active: business.is_active !== false,
-        network_ids: Array.isArray(business.network_ids) ? business.network_ids : [],
-      });
+      const snapshot = { ...business };
+      setOriginalState(snapshot);
+      setFormState({ ...snapshot });
       setHasChanges(false);
       setUploadedLogoUrl(null);
     }
   }, [business]);
 
+  // Compute hasChanges by diffing formState against originalState
+  useEffect(() => {
+    if (!formState || !originalState) return;
+    const changed = Object.keys(formState).some((key) => {
+      const orig = JSON.stringify(originalState[key] ?? null);
+      const curr = JSON.stringify(formState[key] ?? null);
+      return orig !== curr;
+    });
+    setHasChanges(changed);
+  }, [formState, originalState]);
+
   const saveMutation = useMutation({
-    mutationFn: async (payload) => {
+    mutationFn: async (changedFields) => {
       await base44.functions.invoke('updateBusiness', {
         action: 'update_profile',
         business_id: business.id,
-        data: payload,
+        data: changedFields,
       });
       try {
         await base44.entities.AdminAuditLog.create({
@@ -240,15 +228,11 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
           business_id: business.id,
           business_name: business.name,
           action_type: 'drawer_save',
-          field_changed: 'multiple',
-          old_value: JSON.stringify({
-            subscription_tier: business.subscription_tier,
-            accepts_silver: business.accepts_silver,
-            is_locally_owned_franchise: business.is_locally_owned_franchise,
-            is_active: business.is_active,
-            network_ids: business.network_ids,
-          }),
-          new_value: JSON.stringify(payload),
+          field_changed: Object.keys(changedFields).join(', '),
+          old_value: JSON.stringify(
+            Object.fromEntries(Object.keys(changedFields).map((k) => [k, originalState?.[k]]))
+          ),
+          new_value: JSON.stringify(changedFields),
         });
       } catch (auditErr) {
         // Audit log failed; business was still updated
@@ -271,13 +255,12 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       const result = await base44.integrations.Core.UploadFile({ file });
       const url = result?.file_url ?? result?.url;
       if (!url) throw new Error('No URL returned');
-      await base44.entities.Business.update(business.id, { logo_url: url });
       return url;
     },
     onSuccess: (url) => {
       setUploadedLogoUrl(url);
-      queryClient.invalidateQueries(['admin-businesses']);
-      toast.success('Logo uploaded successfully');
+      updateField('logo_url', url);
+      toast.success('Logo uploaded — click Save Changes to persist');
     },
     onError: () => {
       toast.error('Failed to upload logo');
@@ -614,88 +597,51 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     if (confirmMessage) {
       setConfirmDialog({ open: true, field, value, actionType, message: confirmMessage });
     } else {
-      setEditData((prev) => ({ ...prev, [field]: value }));
-      setHasChanges(true);
+      updateField(field, value);
     }
   };
 
   const confirmChange = () => {
     const { field, value } = confirmDialog;
-    setEditData((prev) => ({ ...prev, [field]: value }));
-    setHasChanges(true);
+    updateField(field, value);
     setConfirmDialog({ open: false, field: '', value: null, message: '' });
   };
 
+  // Read-only fields managed by Base44 — never send in updates
+  const READONLY_KEYS = new Set([
+    'id', 'created_date', 'updated_date', 'owner_user_id', 'owner_email',
+    'claim_token', 'claim_email', 'claim_sent_at', 'instructors',
+    'recommendation_count', 'nod_count', 'story_count', 'vouch_count', 'concern_count',
+    'slug',
+  ]);
+
   const handleSaveChanges = async () => {
-    if (!editData || !business) return;
-    const instagramVal = (editData.instagram ?? '').trim().replace(/^@/, '');
-    const payload = {
-      name: editData.name ?? '',
-      description: editData.description ?? '',
-      primary_category: editData.primary_category ?? '',
-      main_category: editData.main_category ?? '',
-      sub_category: editData.sub_category ?? '',
-      sub_category_id: editData.sub_category_id ?? '',
-      subcategories: Array.isArray(editData.subcategories) ? editData.subcategories : [],
-      subcategory: editData.subcategory ?? '',
-      archetype: editData.archetype || null,
-      business_hours: editData.business_hours ?? '',
-      email: editData.email ?? '',
-      phone: editData.phone ?? '',
-      website: editData.website ?? '',
-      instagram: instagramVal,
-      facebook: editData.facebook ?? '',
-      service_area: editData.service_area ?? '',
-      services_offered: editData.services_offered ?? '',
-      shop_url: editData.shop_url ?? '',
-      address: editData.address ?? '',
-      city: editData.city ?? '',
-      state: editData.state ?? '',
-      zip_code: editData.zip_code ?? '',
-      display_full_address: editData.display_full_address === true,
-      subscription_tier: editData.subscription_tier,
-      accepts_silver: editData.accepts_silver,
-      is_locally_owned_franchise: editData.is_locally_owned_franchise,
-      network_ids: Array.isArray(editData.network_ids) ? editData.network_ids : [],
-      is_active: editData.is_active,
-    };
-    saveMutation.mutate(payload);
+    if (!formState || !originalState || !business) return;
+
+    // Build diff: only send fields that actually changed
+    const changedFields = {};
+    for (const key of Object.keys(formState)) {
+      if (READONLY_KEYS.has(key)) continue;
+      const orig = JSON.stringify(originalState[key] ?? null);
+      const curr = JSON.stringify(formState[key] ?? null);
+      if (orig !== curr) {
+        changedFields[key] = formState[key];
+      }
+    }
+
+    // Strip instagram @ prefix if instagram changed
+    if (changedFields.instagram != null) {
+      changedFields.instagram = (changedFields.instagram ?? '').trim().replace(/^@/, '');
+    }
+
+    if (Object.keys(changedFields).length === 0) return;
+
+    saveMutation.mutate(changedFields);
   };
 
   const handleDiscardChanges = () => {
-    const mainId = business.primary_category || business.main_category || business.category || '';
-    setEditData({
-      name: business.name || '',
-      description: business.description || '',
-      primary_category: mainId,
-      main_category: business.main_category || mainId || '',
-      sub_category: business.sub_category || '',
-      sub_category_id: business.sub_category_id || '',
-      subcategories: Array.isArray(business.subcategories) ? [...business.subcategories] : [],
-      subcategory: business.subcategory || '',
-      archetype: business.archetype || '',
-      business_hours: business.business_hours || '',
-      address: business.address || '',
-      city: business.city || '',
-      state: business.state || '',
-      zip_code: business.zip_code || '',
-      display_full_address: business.display_full_address === true,
-      email: business.email || business.contact_email || '',
-      phone: business.phone || '',
-      website: business.website || '',
-      instagram: business.instagram || '',
-      facebook: business.facebook || '',
-      service_area: business.service_area || '',
-      services_offered: business.services_offered || '',
-      shop_url: business.shop_url || '',
-      subscription_tier: business.subscription_tier || 'basic',
-      accepts_silver: business.accepts_silver || false,
-      is_locally_owned_franchise: business.is_locally_owned_franchise || false,
-      is_active: business.is_active !== false,
-      network_ids: Array.isArray(business.network_ids) ? business.network_ids : [],
-    });
+    setFormState({ ...originalState });
     setUploadedLogoUrl(null);
-    setHasChanges(false);
     setUnsavedCloseDialogOpen(false);
   };
 
@@ -704,7 +650,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     onClose();
   };
 
-  if (!business || !editData) return null;
+  if (!business || !formState) return null;
 
   const tierLabels = {
     basic: { label: 'Basic', icon: Star, color: 'bg-slate-700 text-slate-300' },
@@ -894,7 +840,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <div>
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Business name</Label>
                   <Input
-                    value={editData.name ?? ''}
+                    value={formState.name ?? ''}
                     onChange={(e) => handleFieldChange('name', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
                     placeholder="Business name"
@@ -903,7 +849,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <div>
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Description</Label>
                   <Textarea
-                    value={editData.description ?? ''}
+                    value={formState.description ?? ''}
                     onChange={(e) => handleFieldChange('description', e.target.value)}
                     rows={3}
                     className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20 resize-none"
@@ -913,17 +859,17 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <div>
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">
                     Categories
-                    {editData.subcategories?.length > 0 && (
+                    {formState.subcategories?.length > 0 && (
                       <span className="ml-2 text-amber-500 normal-case">
-                        ({editData.subcategories.length} selected)
+                        ({formState.subcategories.length} selected)
                       </span>
                     )}
                   </Label>
 
                   {/* Selected chips */}
-                  {editData.subcategories?.length > 0 && (
+                  {formState.subcategories?.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1.5 mb-1.5">
-                      {editData.subcategories.map((subId) => (
+                      {formState.subcategories.map((subId) => (
                         <span
                           key={subId}
                           className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-xs border border-amber-500/30 cursor-pointer hover:bg-amber-500/30"
@@ -946,7 +892,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                         <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">{main.label}</p>
                         <div className="space-y-0.5">
                           {main.subcategories.map((sub) => {
-                            const isSelected = editData.subcategories?.includes(sub.id);
+                            const isSelected = formState.subcategories?.includes(sub.id);
                             return (
                               <div
                                 key={sub.id}
@@ -972,7 +918,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <div>
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Archetype</Label>
                   <Select
-                    value={editData.archetype ?? ''}
+                    value={formState.archetype ?? ''}
                     onValueChange={(val) => handleFieldChange('archetype', val)}
                   >
                     <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20">
@@ -995,7 +941,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   <div>
                     <Label className="text-xs text-slate-400 uppercase tracking-wider">Subcategory</Label>
                     <Select
-                      value={editData.subcategory ?? ''}
+                      value={formState.subcategory ?? ''}
                       onValueChange={(val) => handleFieldChange('subcategory', val)}
                     >
                       <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20">
@@ -1019,7 +965,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Contact email</Label>
                   <Input
                     type="email"
-                    value={editData.email ?? ''}
+                    value={formState.email ?? ''}
                     onChange={(e) => handleFieldChange('email', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
                     placeholder="contact@example.com"
@@ -1029,7 +975,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Contact phone</Label>
                   <Input
                     type="tel"
-                    value={editData.phone ?? ''}
+                    value={formState.phone ?? ''}
                     onChange={(e) => handleFieldChange('phone', formatPhone(e.target.value))}
                     className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
                     placeholder="(541) 555-1234"
@@ -1039,7 +985,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Website</Label>
                   <Input
                     type="url"
-                    value={editData.website ?? ''}
+                    value={formState.website ?? ''}
                     onChange={(e) => handleFieldChange('website', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
                     placeholder="https://example.com"
@@ -1048,7 +994,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <div>
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Business Hours</Label>
                   <Textarea
-                    value={editData.business_hours ?? ''}
+                    value={formState.business_hours ?? ''}
                     onChange={(e) => handleFieldChange('business_hours', e.target.value)}
                     rows={2}
                     className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20 resize-none"
@@ -1058,7 +1004,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <div>
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Instagram</Label>
                   <Input
-                    value={editData.instagram ?? ''}
+                    value={formState.instagram ?? ''}
                     onChange={(e) => handleFieldChange('instagram', (e.target.value || '').replace(/^@/, ''))}
                     className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
                     placeholder="@yourbusiness"
@@ -1067,7 +1013,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <div>
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Facebook Page</Label>
                   <Input
-                    value={editData.facebook ?? ''}
+                    value={formState.facebook ?? ''}
                     onChange={(e) => handleFieldChange('facebook', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
                     placeholder="facebook.com/yourbusiness"
@@ -1078,7 +1024,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     <div>
                       <Label className="text-xs text-slate-400 uppercase tracking-wider">Service Area</Label>
                       <Input
-                        value={editData.service_area ?? ''}
+                        value={formState.service_area ?? ''}
                         onChange={(e) => handleFieldChange('service_area', e.target.value)}
                         className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
                         placeholder="e.g., Eugene/Springfield area"
@@ -1087,7 +1033,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     <div>
                       <Label className="text-xs text-slate-400 uppercase tracking-wider">Services Offered</Label>
                       <Textarea
-                        value={editData.services_offered ?? ''}
+                        value={formState.services_offered ?? ''}
                         onChange={(e) => handleFieldChange('services_offered', e.target.value)}
                         rows={3}
                         className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20 resize-none"
@@ -1100,7 +1046,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   <div>
                     <Label className="text-xs text-slate-400 uppercase tracking-wider">Shop URL</Label>
                     <Input
-                      value={editData.shop_url ?? ''}
+                      value={formState.shop_url ?? ''}
                       onChange={(e) => handleFieldChange('shop_url', e.target.value)}
                       className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
                       placeholder="e.g., etsy.com/shop/yourshop"
@@ -1109,7 +1055,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 )}
                 <label className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700 cursor-pointer">
                   <Switch
-                    checked={editData.display_full_address === true}
+                    checked={formState.display_full_address === true}
                     onCheckedChange={(checked) => handleFieldChange('display_full_address', checked)}
                     className="data-[state=checked]:bg-amber-500"
                   />
@@ -1121,7 +1067,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <div>
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Street address <span className="text-amber-500">*</span></Label>
                   <Input
-                    value={editData.address ?? ''}
+                    value={formState.address ?? ''}
                     onChange={(e) => handleFieldChange('address', e.target.value)}
                     className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
                     placeholder="123 Main Street"
@@ -1131,7 +1077,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   <div>
                     <Label className="text-xs text-slate-400 uppercase tracking-wider">City <span className="text-amber-500">*</span></Label>
                     <Input
-                      value={editData.city ?? ''}
+                      value={formState.city ?? ''}
                       onChange={(e) => handleFieldChange('city', e.target.value)}
                       className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
                       placeholder="City"
@@ -1140,7 +1086,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   <div>
                     <Label className="text-xs text-slate-400 uppercase tracking-wider">State <span className="text-amber-500">*</span></Label>
                     <Select
-                      value={editData.state ?? ''}
+                      value={formState.state ?? ''}
                       onValueChange={(val) => handleFieldChange('state', val)}
                     >
                       <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20">
@@ -1158,7 +1104,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   <div>
                     <Label className="text-xs text-slate-400 uppercase tracking-wider">Zip <span className="text-amber-500">*</span></Label>
                     <Input
-                      value={editData.zip_code ?? ''}
+                      value={formState.zip_code ?? ''}
                       onChange={(e) => handleFieldChange('zip_code', e.target.value)}
                       className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
                       placeholder="97401"
@@ -1167,8 +1113,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   </div>
                 </div>
                 <div className="flex items-center gap-3 pt-2">
-                  {(uploadedLogoUrl || business?.logo_url) ? (
-                    <img src={uploadedLogoUrl || business.logo_url} alt={business.name} className="h-20 w-20 rounded-lg object-cover border border-slate-700" />
+                  {(uploadedLogoUrl || formState.logo_url) ? (
+                    <img src={uploadedLogoUrl || formState.logo_url} alt={business.name} className="h-20 w-20 rounded-lg object-cover border border-slate-700" />
                   ) : (
                     <div className="h-20 w-20 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
                       <Store className="h-8 w-8 text-slate-500" />
@@ -1205,7 +1151,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
             <div className="space-y-3">
               <Label className="text-base font-medium text-slate-100">Subscription Tier</Label>
               <Select
-                value={editData.subscription_tier}
+                value={formState.subscription_tier}
                 onValueChange={(value) => handleFieldChange(
                   'subscription_tier',
                   value,
@@ -1256,7 +1202,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   </div>
                 </div>
                 <Switch
-                  checked={editData.accepts_silver}
+                  checked={formState.accepts_silver}
                   onCheckedChange={(checked) => handleFieldChange(
                     'accepts_silver',
                     checked,
@@ -1277,7 +1223,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   </div>
                 </div>
                 <Switch
-                  checked={editData.is_locally_owned_franchise}
+                  checked={formState.is_locally_owned_franchise}
                   onCheckedChange={(checked) => handleFieldChange(
                     'is_locally_owned_franchise',
                     checked,
@@ -1301,7 +1247,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 networks.map((network) => {
                   const networkId = network.value ?? network.slug ?? network.id;
                   const displayName = network.label ?? network.name ?? networkId;
-                  const currentIds = Array.isArray(editData.network_ids) ? editData.network_ids : [];
+                  const currentIds = Array.isArray(formState.network_ids) ? formState.network_ids : [];
                   const isChecked = currentIds.includes(networkId);
                   return (
                     <div key={networkId} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-700">
@@ -1338,7 +1284,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 <p className="text-sm text-slate-400">Listing is visible to the public</p>
               </div>
               <Switch
-                checked={editData.is_active}
+                checked={formState.is_active}
                 onCheckedChange={(checked) => handleFieldChange(
                   'is_active',
                   checked,
