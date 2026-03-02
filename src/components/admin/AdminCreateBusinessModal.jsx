@@ -55,11 +55,23 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      const result = await base44.functions.invoke('updateBusiness', {
-        action: 'create_admin',
-        data,
+      // Client-side create — same pattern as BusinessOnboarding
+      const optionalFields = ['description', 'email', 'phone', 'address', 'city', 'state', 'zip_code'];
+      const payload = { ...data };
+      optionalFields.forEach((key) => {
+        if (payload[key] === '' || payload[key] == null) delete payload[key];
       });
-      return result;
+
+      const business = await base44.entities.Business.create({
+        ...payload,
+        slug: (payload.name || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+        is_active: true,
+        subscription_tier: 'basic',
+        sub_category_id: payload.sub_category_id || null,
+        // No owner — this is an admin-seeded unclaimed listing
+      });
+
+      return business;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
@@ -80,16 +92,11 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
       return;
     }
     const payload = { ...formData };
-    // Clean empty optional fields — don't send empty strings or null to Base44
+    // Clean empty optional fields
     Object.keys(payload).forEach((key) => {
       const val = payload[key];
-      if (val === '' || val == null) {
-        delete payload[key];
-      }
-      // Remove empty arrays
-      if (Array.isArray(val) && val.length === 0) {
-        delete payload[key];
-      }
+      if (val === '' || val == null) delete payload[key];
+      if (Array.isArray(val) && val.length === 0) delete payload[key];
     });
     createMutation.mutate(payload);
   };
