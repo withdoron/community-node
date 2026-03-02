@@ -80,14 +80,17 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
       return;
     }
     const payload = { ...formData };
-    // Clean empty optional fields
+    // Clean empty optional fields — don't send empty strings or null to Base44
     Object.keys(payload).forEach((key) => {
-      if (payload[key] === '' || payload[key] == null) {
+      const val = payload[key];
+      if (val === '' || val == null) {
+        delete payload[key];
+      }
+      // Remove empty arrays
+      if (Array.isArray(val) && val.length === 0) {
         delete payload[key];
       }
     });
-    // Keep network_ids even if empty array
-    payload.network_ids = formData.network_ids;
     createMutation.mutate(payload);
   };
 

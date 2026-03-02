@@ -204,28 +204,45 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Business name is required' }, { status: 400 });
       }
 
+      console.log('[create_admin] incoming data keys:', Object.keys(d));
+
       const baseSlug = slugFromName(String(d.name));
       const slug = await findUniqueSlug(base44, baseSlug, '');
+      console.log('[create_admin] generated slug:', slug);
 
       const allowlist = [...PROFILE_ALLOWLIST, ...ADMIN_EXTRA_ALLOWLIST];
       const filtered: Record<string, unknown> = {};
       for (const key of Object.keys(d)) {
         if (allowlist.includes(key)) {
-          filtered[key] = d[key];
+          const val = d[key];
+          // Skip empty strings, null, undefined — don't send them to Base44
+          if (val === '' || val === null || val === undefined) continue;
+          // Skip empty arrays
+          if (Array.isArray(val) && val.length === 0) continue;
+          filtered[key] = val;
         }
       }
 
-      const created = await base44.asServiceRole.entities.Business.create({
+      // Build the create payload — only include fields with real values
+      const createPayload: Record<string, unknown> = {
         ...filtered,
+        name: String(d.name).trim(),
         slug,
         is_active: true,
         subscription_tier: (filtered.subscription_tier as string) || 'basic',
-        // No owner — unclaimed
-        owner_user_id: null,
-        owner_email: null,
-      });
+      };
 
-      return Response.json(created);
+      console.log('[create_admin] final payload keys:', Object.keys(createPayload));
+
+      try {
+        const created = await base44.asServiceRole.entities.Business.create(createPayload);
+        console.log('[create_admin] success, id:', created?.id);
+        return Response.json(created);
+      } catch (createErr) {
+        console.error('[create_admin] Business.create failed:', (createErr as Error).message);
+        console.error('[create_admin] payload was:', JSON.stringify(createPayload));
+        return Response.json({ error: `Failed to create business: ${(createErr as Error).message}` }, { status: 500 });
+      }
     }
 
     // Claim a business using a claim token
