@@ -9,7 +9,7 @@ const PROFILE_ALLOWLIST = [
   'address', 'city', 'state', 'zip_code', 'display_full_address',
   'logo_url', 'instagram_url', 'facebook_url', 'instagram', 'facebook', 'tagline',
   'accepts_joy_coins', 'accepts_silver', 'services',
-  'business_hours', 'subcategory', 'archetype',
+  'business_hours', 'subcategory', 'subcategories', 'archetype',
   'shop_url', 'services_offered', 'service_area',
 ];
 

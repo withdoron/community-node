@@ -28,7 +28,7 @@ import { useConfig } from '@/hooks/useConfig';
 import { useCategories } from '@/hooks/useCategories';
 import { US_STATES } from '@/lib/usStates';
 import { ONBOARDING_CONFIG, ARCHETYPE_SLUG_TO_CONFIG } from '@/config/onboardingConfig';
-import { archetypeSubcategories } from '@/components/categories/categoryData';
+import { archetypeSubcategories, getSubcategoryLabel } from '@/components/categories/categoryData';
 
 function formatPhone(value) {
   const digits = (value || '').replace(/\D/g, '').slice(0, 10);
@@ -57,17 +57,39 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const staffSearchRef = useRef(null);
   const logoInputRef = useRef(null);
 
-  // Select value must match SelectItem format "mainId|subId"; same fallback chain as BusinessSettings
-  const categorySelectValue = useMemo(() => {
-    if (!editData) return '';
-    const mainId = editData.primary_category || editData.main_category;
-    const subId = editData.sub_category_id;
-    if (mainId && subId) return `${mainId}|${subId}`;
-    const main = mainCategories.find((m) => m.id === mainId || m.label === editData.primary_category);
-    const sub = main?.subcategories.find((s) => s.id === subId || s.label === editData.sub_category);
-    if (main && sub) return `${main.id}|${sub.id}`;
-    return '';
-  }, [editData, mainCategories]);
+  const toggleSubcategory = (subId) => {
+    const current = Array.isArray(editData.subcategories) ? editData.subcategories : [];
+    const next = current.includes(subId)
+      ? current.filter((id) => id !== subId)
+      : [...current, subId];
+
+    // Derive primary fields from first selected subcategory
+    const firstSubId = next[0];
+    let primaryCategory = '';
+    let mainCat = '';
+    let subCategory = '';
+    let subCategoryId = '';
+    if (firstSubId) {
+      const main = mainCategories.find((m) => m.subcategories.some((s) => s.id === firstSubId));
+      if (main) {
+        primaryCategory = main.id;
+        mainCat = main.id;
+        const sub = main.subcategories.find((s) => s.id === firstSubId);
+        subCategory = sub?.label ?? firstSubId;
+        subCategoryId = firstSubId;
+      }
+    }
+
+    setEditData((prev) => ({
+      ...prev,
+      subcategories: next,
+      primary_category: primaryCategory,
+      main_category: mainCat,
+      sub_category: subCategory,
+      sub_category_id: subCategoryId,
+    }));
+    setHasChanges(true);
+  };
 
   useEffect(() => {
     setLocalInstructors(business?.instructors || []);
@@ -176,6 +198,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         main_category: business.main_category || mainId || '',
         sub_category: business.sub_category || '',
         sub_category_id: business.sub_category_id || '',
+        subcategories: Array.isArray(business.subcategories) ? [...business.subcategories] : [],
         subcategory: business.subcategory || '',
         archetype: business.archetype || '',
         business_hours: business.business_hours || '',
@@ -614,6 +637,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       main_category: editData.main_category ?? '',
       sub_category: editData.sub_category ?? '',
       sub_category_id: editData.sub_category_id ?? '',
+      subcategories: Array.isArray(editData.subcategories) ? editData.subcategories : [],
       subcategory: editData.subcategory ?? '',
       archetype: editData.archetype || null,
       business_hours: editData.business_hours ?? '',
@@ -648,6 +672,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       main_category: business.main_category || mainId || '',
       sub_category: business.sub_category || '',
       sub_category_id: business.sub_category_id || '',
+      subcategories: Array.isArray(business.subcategories) ? [...business.subcategories] : [],
       subcategory: business.subcategory || '',
       archetype: business.archetype || '',
       business_hours: business.business_hours || '',
@@ -886,48 +911,63 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Category</Label>
-                  <Select
-                    value={categorySelectValue}
-                    onValueChange={(val) => {
-                      if (!val) {
-                        handleFieldChange('primary_category', '');
-                        handleFieldChange('main_category', '');
-                        handleFieldChange('sub_category', '');
-                        handleFieldChange('sub_category_id', '');
-                        return;
-                      }
-                      const [mainId, subId] = val.split('|');
-                      const sub = getSubcategory(mainId, subId);
-                      const subLabel = sub?.label ?? subId;
-                      handleFieldChange('primary_category', mainId);
-                      handleFieldChange('main_category', mainId);
-                      handleFieldChange('sub_category', subLabel);
-                      handleFieldChange('sub_category_id', subId || '');
-                    }}
-                  >
-                    <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20">
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mainCategories.map((main) => (
-                        <SelectGroup key={main.id}>
-                          <SelectLabel className="text-slate-400 text-xs uppercase tracking-wide px-2 py-1">
-                            {main.label}
-                          </SelectLabel>
-                          {main.subcategories.map((sub) => (
-                            <SelectItem
-                              key={`${main.id}|${sub.id}`}
-                              value={`${main.id}|${sub.id}`}
-                              className="text-slate-300 focus:bg-slate-800 pl-4"
-                            >
-                              {sub.label}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider">
+                    Categories
+                    {editData.subcategories?.length > 0 && (
+                      <span className="ml-2 text-amber-500 normal-case">
+                        ({editData.subcategories.length} selected)
+                      </span>
+                    )}
+                  </Label>
+
+                  {/* Selected chips */}
+                  {editData.subcategories?.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5 mb-1.5">
+                      {editData.subcategories.map((subId) => (
+                        <span
+                          key={subId}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-xs border border-amber-500/30 cursor-pointer hover:bg-amber-500/30"
+                          onClick={() => toggleSubcategory(subId)}
+                        >
+                          {getSubcategoryLabel(subId)}
+                          <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </span>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </div>
+                  )}
+
+                  {/* Grouped checkboxes */}
+                  <div className="mt-1 border border-slate-700 rounded-lg bg-slate-800 max-h-52 overflow-y-auto">
+                    {mainCategories.map((main) => (
+                      <div key={main.id} className="px-2 py-1.5">
+                        <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">{main.label}</p>
+                        <div className="space-y-0.5">
+                          {main.subcategories.map((sub) => {
+                            const isSelected = editData.subcategories?.includes(sub.id);
+                            return (
+                              <div
+                                key={sub.id}
+                                className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-slate-700/50 ${isSelected ? 'bg-slate-700/30' : ''}`}
+                                onClick={() => toggleSubcategory(sub.id)}
+                              >
+                                <div className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-amber-500 border-amber-500' : 'border-slate-600 bg-transparent'}`}>
+                                  {isSelected && (
+                                    <svg className="h-3 w-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                      <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                  )}
+                                </div>
+                                <span className="text-sm text-slate-300">{sub.label}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <div>
                   <Label className="text-xs text-slate-400 uppercase tracking-wider">Archetype</Label>

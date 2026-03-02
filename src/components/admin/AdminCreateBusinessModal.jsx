@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGr
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Globe } from 'lucide-react';
 import { toast } from 'sonner';
-import { mainCategories } from '@/components/categories/categoryData';
+import { mainCategories, getSubcategoryLabel } from '@/components/categories/categoryData';
 import { useConfig } from '@/hooks/useConfig';
 import { US_STATES } from '@/lib/usStates';
 
@@ -33,6 +33,7 @@ const initialFormData = {
   main_category: '',
   sub_category: '',
   sub_category_id: '',
+  subcategories: [],
   description: '',
   email: '',
   phone: '',
@@ -53,12 +54,40 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
     [networksConfig]
   );
 
-  const categorySelectValue = React.useMemo(() => {
-    const mainId = formData.primary_category;
-    const subId = formData.sub_category_id;
-    if (mainId && subId) return `${mainId}|${subId}`;
-    return '';
-  }, [formData.primary_category, formData.sub_category_id]);
+  const toggleSubcategory = (subId) => {
+    setFormData((prev) => {
+      const current = Array.isArray(prev.subcategories) ? prev.subcategories : [];
+      const next = current.includes(subId)
+        ? current.filter((id) => id !== subId)
+        : [...current, subId];
+
+      // Derive primary fields from first selected subcategory
+      const firstSubId = next[0];
+      let primaryCategory = '';
+      let mainCategory = '';
+      let subCategory = '';
+      let subCategoryId = '';
+      if (firstSubId) {
+        const main = mainCategories.find((m) => m.subcategories.some((s) => s.id === firstSubId));
+        if (main) {
+          primaryCategory = main.id;
+          mainCategory = main.id;
+          const sub = main.subcategories.find((s) => s.id === firstSubId);
+          subCategory = sub?.label ?? firstSubId;
+          subCategoryId = firstSubId;
+        }
+      }
+
+      return {
+        ...prev,
+        subcategories: next,
+        primary_category: primaryCategory,
+        main_category: mainCategory,
+        sub_category: subCategory,
+        sub_category_id: subCategoryId,
+      };
+    });
+  };
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
@@ -75,8 +104,8 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
         is_active: true,
         subscription_tier: 'basic',
         sub_category_id: payload.sub_category_id || null,
-        // CategoryPage filters on subcategories array, not sub_category_id
-        subcategories: payload.sub_category_id ? [payload.sub_category_id] : [],
+        // CategoryPage filters on subcategories array — supports multi-category
+        subcategories: Array.isArray(payload.subcategories) ? payload.subcategories : [],
         owner_email: payload.email || 'unclaimed@locallane.app',
         // No owner_user_id — this is an admin-seeded unclaimed listing
       });
@@ -115,26 +144,6 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleCategoryChange = (val) => {
-    if (!val) {
-      updateField('primary_category', '');
-      updateField('main_category', '');
-      updateField('sub_category', '');
-      updateField('sub_category_id', '');
-      return;
-    }
-    const [mainId, subId] = val.split('|');
-    const main = mainCategories.find((m) => m.id === mainId);
-    const sub = main?.subcategories.find((s) => s.id === subId);
-    setFormData((prev) => ({
-      ...prev,
-      primary_category: mainId,
-      main_category: mainId,
-      sub_category: sub?.label ?? subId,
-      sub_category_id: subId || '',
-    }));
-  };
-
   const toggleNetwork = (networkId, checked) => {
     const current = Array.isArray(formData.network_ids) ? formData.network_ids : [];
     const next = checked
@@ -168,32 +177,65 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
             />
           </div>
 
-          {/* Category */}
+          {/* Categories (Multi-select) */}
           <div>
-            <Label className="text-xs text-slate-400 uppercase tracking-wider">Category</Label>
-            <Select value={categorySelectValue} onValueChange={handleCategoryChange}>
-              <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 mt-1 focus:border-amber-500 focus:ring-amber-500/20">
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-slate-800">
-                {mainCategories.map((main) => (
-                  <SelectGroup key={main.id}>
-                    <SelectLabel className="text-slate-400 text-xs uppercase tracking-wide px-2 py-1">
-                      {main.label}
-                    </SelectLabel>
-                    {main.subcategories.map((sub) => (
-                      <SelectItem
-                        key={`${main.id}|${sub.id}`}
-                        value={`${main.id}|${sub.id}`}
-                        className="text-slate-300 focus:bg-slate-800 pl-4"
-                      >
-                        {sub.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
+            <Label className="text-xs text-slate-400 uppercase tracking-wider">
+              Categories
+              {formData.subcategories?.length > 0 && (
+                <span className="ml-2 text-amber-500 normal-case">
+                  ({formData.subcategories.length} selected)
+                </span>
+              )}
+            </Label>
+
+            {/* Selected chips */}
+            {formData.subcategories?.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1.5 mb-1.5">
+                {formData.subcategories.map((subId) => (
+                  <span
+                    key={subId}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-xs border border-amber-500/30 cursor-pointer hover:bg-amber-500/30"
+                    onClick={() => toggleSubcategory(subId)}
+                  >
+                    {getSubcategoryLabel(subId)}
+                    <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </span>
                 ))}
-              </SelectContent>
-            </Select>
+              </div>
+            )}
+
+            {/* Grouped checkboxes */}
+            <div className="mt-1 border border-slate-700 rounded-lg bg-slate-800 max-h-52 overflow-y-auto">
+              {mainCategories.map((main) => (
+                <div key={main.id} className="px-2 py-1.5">
+                  <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">{main.label}</p>
+                  <div className="space-y-0.5">
+                    {main.subcategories.map((sub) => {
+                      const isSelected = formData.subcategories?.includes(sub.id);
+                      return (
+                        <div
+                          key={sub.id}
+                          className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-slate-700/50 ${isSelected ? 'bg-slate-700/30' : ''}`}
+                          onClick={() => toggleSubcategory(sub.id)}
+                        >
+                          <div className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-amber-500 border-amber-500' : 'border-slate-600 bg-transparent'}`}>
+                            {isSelected && (
+                              <svg className="h-3 w-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            )}
+                          </div>
+                          <span className="text-sm text-slate-300">{sub.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Description */}
