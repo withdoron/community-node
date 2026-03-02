@@ -271,11 +271,10 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       const result = await base44.integrations.Core.UploadFile({ file });
       const url = result?.file_url ?? result?.url;
       if (!url) throw new Error('No URL returned');
-      await base44.functions.invoke('updateBusiness', {
-        action: 'update_profile',
-        business_id: business.id,
-        data: { logo_url: url },
-      });
+      // Direct entity update — server function invoke can silently fail
+      // for admin users on unclaimed businesses. Client-side update matches
+      // the pattern that works for admin business creation.
+      await base44.entities.Business.update(business.id, { logo_url: url });
       return url;
     },
     onSuccess: (url) => {
@@ -283,7 +282,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       queryClient.invalidateQueries(['admin-businesses']);
       toast.success('Logo uploaded successfully');
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Logo upload failed:', error);
       toast.error('Failed to upload logo');
     },
   });
