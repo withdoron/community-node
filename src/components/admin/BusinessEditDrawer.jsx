@@ -221,6 +221,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         is_locally_owned_franchise: business.is_locally_owned_franchise || false,
         is_active: business.is_active !== false,
         network_ids: Array.isArray(business.network_ids) ? business.network_ids : [],
+        logo_url: business.logo_url || null,
       });
       setHasChanges(false);
       setUploadedLogoUrl(null);
@@ -271,16 +272,13 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       const result = await base44.integrations.Core.UploadFile({ file });
       const url = result?.file_url ?? result?.url;
       if (!url) throw new Error('No URL returned');
-      // Direct entity update — server function invoke can silently fail
-      // for admin users on unclaimed businesses. Client-side update matches
-      // the pattern that works for admin business creation.
-      await base44.entities.Business.update(business.id, { logo_url: url });
       return url;
     },
     onSuccess: (url) => {
       setUploadedLogoUrl(url);
-      queryClient.invalidateQueries(['admin-businesses']);
-      toast.success('Logo uploaded successfully');
+      setEditData((prev) => ({ ...prev, logo_url: url }));
+      setHasChanges(true);
+      toast.success('Logo uploaded — click Save Changes to persist');
     },
     onError: (error) => {
       console.error('Logo upload failed:', error);
@@ -662,8 +660,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       is_locally_owned_franchise: editData.is_locally_owned_franchise,
       network_ids: Array.isArray(editData.network_ids) ? editData.network_ids : [],
       is_active: editData.is_active,
-      // Preserve logo_url so it isn't wiped when saving other edits
-      logo_url: uploadedLogoUrl || business?.logo_url || null,
+      logo_url: editData.logo_url || business?.logo_url || null,
     };
     saveMutation.mutate(payload);
   };
@@ -699,7 +696,9 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       is_locally_owned_franchise: business.is_locally_owned_franchise || false,
       is_active: business.is_active !== false,
       network_ids: Array.isArray(business.network_ids) ? business.network_ids : [],
+      logo_url: business.logo_url || null,
     });
+    setUploadedLogoUrl(null);
     setHasChanges(false);
     setUnsavedCloseDialogOpen(false);
   };
