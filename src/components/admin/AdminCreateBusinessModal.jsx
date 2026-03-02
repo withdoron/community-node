@@ -75,6 +75,8 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
         is_active: true,
         subscription_tier: 'basic',
         sub_category_id: payload.sub_category_id || null,
+        // CategoryPage filters on subcategories array, not sub_category_id
+        subcategories: payload.sub_category_id ? [payload.sub_category_id] : [],
         owner_email: payload.email || 'unclaimed@locallane.app',
         // No owner_user_id — this is an admin-seeded unclaimed listing
       });
