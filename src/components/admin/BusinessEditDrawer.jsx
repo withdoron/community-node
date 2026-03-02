@@ -230,11 +230,13 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
   const saveMutation = useMutation({
     mutationFn: async (payload) => {
-      await base44.functions.invoke('updateBusiness', {
+      const invokeResult = await base44.functions.invoke('updateBusiness', {
         action: 'update_profile',
         business_id: business.id,
         data: payload,
       });
+      console.log('[DrawerSave] invoke result:', invokeResult);
+      console.log('[DrawerSave] result logo_url:', invokeResult?.logo_url);
       try {
         await base44.entities.AdminAuditLog.create({
           admin_email: adminEmail,
@@ -662,6 +664,10 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       is_active: editData.is_active,
       logo_url: editData.logo_url || business?.logo_url || null,
     };
+    console.log('[DrawerSave] logo_url in payload:', payload.logo_url);
+    console.log('[DrawerSave] editData.logo_url:', editData.logo_url);
+    console.log('[DrawerSave] business.logo_url:', business?.logo_url);
+    console.log('[DrawerSave] uploadedLogoUrl:', uploadedLogoUrl);
     saveMutation.mutate(payload);
   };
 

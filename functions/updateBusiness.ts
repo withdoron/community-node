@@ -312,6 +312,11 @@ Deno.serve(async (req) => {
         }
       }
 
+      console.log('[update_profile] incoming data keys:', Object.keys(data as Record<string, unknown>));
+      console.log('[update_profile] incoming logo_url:', (data as Record<string, unknown>).logo_url);
+      console.log('[update_profile] filtered keys:', Object.keys(filtered));
+      console.log('[update_profile] filtered logo_url:', filtered.logo_url);
+
       if (filtered.name != null && String(filtered.name).trim() !== '') {
         const baseSlug = slugFromName(String(filtered.name));
         filtered.slug = await findUniqueSlug(base44, baseSlug, business_id);
@@ -322,7 +327,9 @@ Deno.serve(async (req) => {
         return Response.json(existing);
       }
 
+      console.log('[update_profile] final update payload keys:', Object.keys(filtered));
       const updated = await base44.asServiceRole.entities.Business.update(business_id, filtered);
+      console.log('[update_profile] updated logo_url:', (updated as Record<string, unknown>).logo_url);
       return Response.json(updated);
     }
 
