@@ -54,6 +54,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const [claimInviteOpen, setClaimInviteOpen] = useState(false);
   const [claimEmail, setClaimEmail] = useState('');
   const [claimUrlCopied, setClaimUrlCopied] = useState(false);
+  const [uploadedLogoUrl, setUploadedLogoUrl] = useState(null);
   const staffSearchRef = useRef(null);
   const logoInputRef = useRef(null);
 
@@ -222,6 +223,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         network_ids: Array.isArray(business.network_ids) ? business.network_ids : [],
       });
       setHasChanges(false);
+      setUploadedLogoUrl(null);
     }
   }, [business]);
 
@@ -276,7 +278,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       });
       return url;
     },
-    onSuccess: () => {
+    onSuccess: (url) => {
+      setUploadedLogoUrl(url);
       queryClient.invalidateQueries(['admin-businesses']);
       toast.success('Logo uploaded successfully');
     },
@@ -1167,8 +1170,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   </div>
                 </div>
                 <div className="flex items-center gap-3 pt-2">
-                  {business?.logo_url ? (
-                    <img src={business.logo_url} alt={business.name} className="h-20 w-20 rounded-lg object-cover border border-slate-700" />
+                  {(uploadedLogoUrl || business?.logo_url) ? (
+                    <img src={uploadedLogoUrl || business.logo_url} alt={business.name} className="h-20 w-20 rounded-lg object-cover border border-slate-700" />
                   ) : (
                     <div className="h-20 w-20 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
                       <Store className="h-8 w-8 text-slate-500" />

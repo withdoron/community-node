@@ -42,9 +42,10 @@ export default function CategoryPage() {
 
     // Filter to businesses in this main category
     let result = businesses.filter(b => {
-      // Check new main_category field
+      // Check main_category field
       if (b.main_category === categoryId) return true;
-      
+      // Fallback: check primary_category
+      if (b.primary_category === categoryId) return true;
       // Fallback: check legacy category mapping
       if (b.category && legacyCategoryMapping[b.category]) {
         return legacyCategoryMapping[b.category].main === categoryId;
@@ -55,9 +56,10 @@ export default function CategoryPage() {
     // Filter by subcategory if not "all"
     if (selectedSubcategory !== 'all' && !selectedSubcategory.startsWith('all_')) {
       result = result.filter(b => {
-        // Check new subcategories array
+        // Check subcategories array (multi-category)
         if (b.subcategories?.includes(selectedSubcategory)) return true;
-        
+        // Fallback: check sub_category_id (single category / admin-created)
+        if (b.sub_category_id === selectedSubcategory) return true;
         // Fallback: check legacy category mapping
         if (b.category && legacyCategoryMapping[b.category]) {
           return legacyCategoryMapping[b.category].sub === selectedSubcategory;
