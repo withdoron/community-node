@@ -662,6 +662,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       is_locally_owned_franchise: editData.is_locally_owned_franchise,
       network_ids: Array.isArray(editData.network_ids) ? editData.network_ids : [],
       is_active: editData.is_active,
+      // Preserve logo_url so it isn't wiped when saving other edits
+      logo_url: uploadedLogoUrl || business?.logo_url || null,
     };
     saveMutation.mutate(payload);
   };
