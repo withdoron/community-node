@@ -221,7 +221,6 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         is_locally_owned_franchise: business.is_locally_owned_franchise || false,
         is_active: business.is_active !== false,
         network_ids: Array.isArray(business.network_ids) ? business.network_ids : [],
-        logo_url: business.logo_url || null,
       });
       setHasChanges(false);
       setUploadedLogoUrl(null);
@@ -230,13 +229,11 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
   const saveMutation = useMutation({
     mutationFn: async (payload) => {
-      const invokeResult = await base44.functions.invoke('updateBusiness', {
+      await base44.functions.invoke('updateBusiness', {
         action: 'update_profile',
         business_id: business.id,
         data: payload,
       });
-      console.log('[DrawerSave] invoke result:', invokeResult);
-      console.log('[DrawerSave] result logo_url:', invokeResult?.logo_url);
       try {
         await base44.entities.AdminAuditLog.create({
           admin_email: adminEmail,
@@ -274,16 +271,15 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       const result = await base44.integrations.Core.UploadFile({ file });
       const url = result?.file_url ?? result?.url;
       if (!url) throw new Error('No URL returned');
+      await base44.entities.Business.update(business.id, { logo_url: url });
       return url;
     },
     onSuccess: (url) => {
       setUploadedLogoUrl(url);
-      setEditData((prev) => ({ ...prev, logo_url: url }));
-      setHasChanges(true);
-      toast.success('Logo uploaded — click Save Changes to persist');
+      queryClient.invalidateQueries(['admin-businesses']);
+      toast.success('Logo uploaded successfully');
     },
-    onError: (error) => {
-      console.error('Logo upload failed:', error);
+    onError: () => {
       toast.error('Failed to upload logo');
     },
   });
@@ -662,12 +658,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       is_locally_owned_franchise: editData.is_locally_owned_franchise,
       network_ids: Array.isArray(editData.network_ids) ? editData.network_ids : [],
       is_active: editData.is_active,
-      logo_url: editData.logo_url || business?.logo_url || null,
     };
-    console.log('[DrawerSave] logo_url in payload:', payload.logo_url);
-    console.log('[DrawerSave] editData.logo_url:', editData.logo_url);
-    console.log('[DrawerSave] business.logo_url:', business?.logo_url);
-    console.log('[DrawerSave] uploadedLogoUrl:', uploadedLogoUrl);
     saveMutation.mutate(payload);
   };
 
@@ -702,7 +693,6 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       is_locally_owned_franchise: business.is_locally_owned_franchise || false,
       is_active: business.is_active !== false,
       network_ids: Array.isArray(business.network_ids) ? business.network_ids : [],
-      logo_url: business.logo_url || null,
     });
     setUploadedLogoUrl(null);
     setHasChanges(false);
