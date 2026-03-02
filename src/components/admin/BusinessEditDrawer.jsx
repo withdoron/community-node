@@ -255,12 +255,19 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       const result = await base44.integrations.Core.UploadFile({ file });
       const url = result?.file_url ?? result?.url;
       if (!url) throw new Error('No URL returned');
+      // Persist immediately via server function (the only write path that works)
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update_profile',
+        business_id: business.id,
+        data: { logo_url: url },
+      });
       return url;
     },
     onSuccess: (url) => {
       setUploadedLogoUrl(url);
       updateField('logo_url', url);
-      toast.success('Logo uploaded — click Save Changes to persist');
+      queryClient.invalidateQueries(['admin-businesses']);
+      toast.success('Logo uploaded successfully');
     },
     onError: () => {
       toast.error('Failed to upload logo');

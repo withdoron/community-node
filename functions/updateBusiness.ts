@@ -310,6 +310,10 @@ Deno.serve(async (req) => {
       const raw = data as Record<string, unknown>;
       let payload: Record<string, unknown>;
 
+      console.log('[update_profile] user.role:', user.role, 'isAdmin:', isAdmin);
+      console.log('[update_profile] incoming data keys:', Object.keys(raw));
+      console.log('[update_profile] incoming data:', JSON.stringify(raw));
+
       if (isAdmin) {
         // Admin: pass all fields through (no allowlist filtering)
         payload = { ...raw };
@@ -329,11 +333,15 @@ Deno.serve(async (req) => {
       }
 
       if (Object.keys(payload).length === 0) {
+        console.log('[update_profile] no fields to update after filtering');
         const existing = await base44.asServiceRole.entities.Business.get(business_id);
         return Response.json(existing);
       }
 
+      console.log('[update_profile] final payload keys:', Object.keys(payload));
+      console.log('[update_profile] final payload:', JSON.stringify(payload));
       const updated = await base44.asServiceRole.entities.Business.update(business_id, payload);
+      console.log('[update_profile] update result id:', (updated as Record<string, unknown>)?.id, 'logo_url:', (updated as Record<string, unknown>)?.logo_url);
       return Response.json(updated);
     }
 
