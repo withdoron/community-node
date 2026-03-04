@@ -185,7 +185,6 @@ export default function PlayCreateModal({
       payload.game_day = !!formToUse.game_day;
       if (formToUse.coach_notes?.trim()) payload.coach_notes = formToUse.coach_notes.trim();
       if (editPlay?.id) {
-        console.log('[PlayCreateModal] Saving play, tags string:', payload.tags);
         await base44.entities.Play.update(editPlay.id, payload);
         return { id: editPlay.id, ...payload, _assignments: assignmentsToUse };
       }

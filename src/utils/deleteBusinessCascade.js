@@ -5,13 +5,10 @@ import { base44 } from '@/api/base44Client';
  * Deletes: Locations, Events, staff_invites, staff_roles, then the Business itself.
  */
 export async function deleteBusinessCascade(businessId) {
-  console.log('[Cascade Delete] Starting for business:', businessId);
-
   try {
     const locations = await base44.entities.Location.filter({ business_id: businessId });
     if (locations.length > 0) {
       await Promise.all(locations.map(loc => base44.entities.Location.delete(loc.id)));
-      console.log(`[Cascade Delete] Deleted ${locations.length} locations`);
     }
   } catch (err) {
     console.warn('[Cascade Delete] Location cleanup failed:', err);
@@ -21,7 +18,6 @@ export async function deleteBusinessCascade(businessId) {
     const events = await base44.entities.Event.filter({ business_id: businessId });
     if (events.length > 0) {
       await Promise.all(events.map(evt => base44.entities.Event.delete(evt.id)));
-      console.log(`[Cascade Delete] Deleted ${events.length} events`);
     }
   } catch (err) {
     console.warn('[Cascade Delete] Event cleanup failed:', err);
@@ -32,7 +28,6 @@ export async function deleteBusinessCascade(businessId) {
     const inviteSettings = await base44.entities.AdminSettings.filter({ key: inviteKey });
     if (inviteSettings.length > 0) {
       await Promise.all(inviteSettings.map(s => base44.entities.AdminSettings.delete(s.id)));
-      console.log('[Cascade Delete] Deleted staff invites');
     }
   } catch (err) {
     console.warn('[Cascade Delete] Staff invites cleanup failed:', err);
@@ -43,7 +38,6 @@ export async function deleteBusinessCascade(businessId) {
     const rolesSettings = await base44.entities.AdminSettings.filter({ key: rolesKey });
     if (rolesSettings.length > 0) {
       await Promise.all(rolesSettings.map(s => base44.entities.AdminSettings.delete(s.id)));
-      console.log('[Cascade Delete] Deleted staff roles');
     }
   } catch (err) {
     console.warn('[Cascade Delete] Staff roles cleanup failed:', err);
@@ -58,7 +52,6 @@ export async function deleteBusinessCascade(businessId) {
       await base44.entities.Business.update(businessId, { status: 'deleted' });
     }
   }
-  console.log('[Cascade Delete] Complete for business:', businessId);
 }
 
 /**
@@ -74,6 +67,5 @@ export async function cleanupOrphanedLocations() {
   if (orphans.length > 0) {
     await Promise.all(orphans.map(loc => base44.entities.Location.delete(loc.id)));
   }
-  console.log(`[Orphan Cleanup] Deleted ${orphans.length} orphaned locations`);
   return orphans.length;
 }

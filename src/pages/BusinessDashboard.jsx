@@ -81,8 +81,6 @@ export default function BusinessDashboard() {
             b.instructors?.includes(currentUser.id) &&
             b.owner_user_id !== currentUser.id
         );
-        console.log('[Dashboard] staffBusinesses (associated_businesses path):', result);
-        result.forEach((b) => console.log('[Dashboard] business', b.id, 'instructors:', b.instructors));
         return result;
       }
       const allBusinesses = await base44.entities.Business.list('-created_date', 500);
@@ -91,8 +89,6 @@ export default function BusinessDashboard() {
           b.instructors?.includes(currentUser.id) &&
           b.owner_user_id !== currentUser.id
       );
-      console.log('[Dashboard] staffBusinesses (list path):', result);
-      result.forEach((b) => console.log('[Dashboard] business', b.id, 'instructors:', b.instructors));
       return result;
     },
     enabled: !!currentUser?.id,
@@ -119,8 +115,6 @@ export default function BusinessDashboard() {
           );
           if (!myInvite) continue;
 
-          console.log('[Dashboard] Found pending invite for', currentUser.email, 'at business', businessId);
-
           await base44.functions.invoke('updateBusiness', {
             action: 'add_staff_from_invite',
             business_id: businessId,
@@ -133,7 +127,6 @@ export default function BusinessDashboard() {
 
           queryClient.invalidateQueries({ queryKey: ['staffInvites', businessId] });
           queryClient.invalidateQueries({ queryKey: ['staffRoles', businessId] });
-          console.log('[Dashboard] Auto-linked user to business', businessId);
         }
 
         queryClient.invalidateQueries({ queryKey: ['ownedBusinesses'] });
@@ -331,13 +324,10 @@ export default function BusinessDashboard() {
   // Hard delete: Business.delete(id) removes record permanently. Fallback to soft delete if delete not available.
   const deleteMutation = useMutation({
     mutationFn: async (businessId) => {
-      console.log('[Dashboard Delete] Starting cascade delete for business id:', businessId);
       const { deleteBusinessCascade } = await import('@/utils/deleteBusinessCascade');
       await deleteBusinessCascade(businessId);
-      console.log('[Dashboard Delete] Cascade delete complete for id:', businessId);
     },
     onSuccess: () => {
-      console.log('[Dashboard Delete] onSuccess');
       queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUser?.id] });
       queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUser?.id] });
       setSelectedBusinessId(null);
@@ -869,7 +859,6 @@ export default function BusinessDashboard() {
             <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                console.log('[Dashboard Delete] Confirmation clicked, calling mutate(', selectedBusiness?.id, ')');
                 deleteMutation.mutate(selectedBusiness.id);
               }}
               className="bg-red-600 hover:bg-red-500 text-white"

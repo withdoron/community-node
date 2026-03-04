@@ -1329,7 +1329,6 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                       variant="ghost"
                       size="icon"
                       onClick={() => {
-                        console.log('[Admin] Removing user:', user.id);
                         removeStaffMutation.mutate(user.id);
                       }}
                       className="h-8 w-8 text-slate-400 hover:text-red-400"

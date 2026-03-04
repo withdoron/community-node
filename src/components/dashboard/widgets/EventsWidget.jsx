@@ -140,8 +140,6 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
             end_date: instanceEnd.toISOString(),
             recurring_series_id: seriesId,
           };
-          console.log('[EventsWidget] Creating recurring event', iteration, 'of', totalDates, ':', eventPayload.date);
-
           try {
             const result = await base44.functions.invoke('manageEvent', {
               action: 'create',

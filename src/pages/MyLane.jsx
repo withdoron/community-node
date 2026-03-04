@@ -69,14 +69,6 @@ export default function MyLane() {
     currentUser?.data?.onboarding_complete === true ||
     !!localStorage.getItem(ONBOARDING_STORAGE_KEY);
 
-  if (typeof console !== 'undefined' && console.log) {
-    console.log('Onboarding check:', {
-      onboarding_complete: currentUser?.onboarding_complete,
-      data_onboarding_complete: currentUser?.data?.onboarding_complete,
-      currentUser: currentUser ? { id: currentUser.id, hasData: !!currentUser.data } : null,
-    });
-  }
-
   if (!onboardingComplete) {
     return <Navigate to={createPageUrl('welcome')} replace />;
   }

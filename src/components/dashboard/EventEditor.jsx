@@ -470,8 +470,6 @@ export default function EventEditor({
       free_admission: formData.accessibility_features?.includes("free_admission") ?? false,
     };
 
-    console.log("[EventEditor] save payload accessibility_features:", eventData.accessibility_features);
-
     try {
       await Promise.resolve(onSave(eventData));
       if (typeof window !== "undefined") localStorage.removeItem("event_draft");
