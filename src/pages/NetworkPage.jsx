@@ -150,7 +150,7 @@ export default function NetworkPage() {
         {/* Back button */}
         <Link
           to="/networks"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-amber-500 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Networks
