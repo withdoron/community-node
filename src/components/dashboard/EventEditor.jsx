@@ -254,6 +254,12 @@ export default function EventEditor({
         const endDay = end ? format(end, "yyyy-MM-dd") : "";
         setEndDate(start && end && endDay !== startDay ? end : null);
       }
+
+      // Restore recurrence state from existing event
+      setIsRecurring(!!existingEvent.is_recurring);
+      setRecurrencePattern(existingEvent.recurrence_pattern || "weekly");
+      setSelectedDays(Array.isArray(existingEvent.recurrence_days) ? existingEvent.recurrence_days : []);
+      setRecurrenceEndDate(existingEvent.recurrence_end_date ? parseISO(existingEvent.recurrence_end_date) : null);
     }
   // Only re-run when editing a different event (existingEvent?.id). Do NOT depend on
   // networks/ageGroups/durationPresets — they get new refs each render and cause infinite loop.

@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format, addWeeks, addDays, addMonths } from "date-fns";
+import { toast } from "sonner";
 import EventEditor from '../EventEditor';
 
 export default function EventsWidget({ business, allowEdit, userRole, onEnterCheckIn }) {
@@ -162,6 +163,7 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
     }
 
     // Create each instance through the manageEvent server function
+    let created = 0;
     for (const eventDate of dates) {
       eventDate.setHours(startDate.getHours(), startDate.getMinutes(), 0, 0);
       const instanceEnd = new Date(eventDate.getTime() + durationMs);
@@ -178,11 +180,13 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
           business_id: business.id,
           data: eventPayload,
         });
+        created++;
       } catch (err) {
         console.error('[EventsWidget] Recurring event failed:', err);
       }
     }
 
+    toast.success(`Created ${created} recurring event${created !== 1 ? 's' : ''}`);
     return null; // success handled by invalidation
   };
 
