@@ -16,11 +16,7 @@
  */
 
 import { base44 } from '@/api/base44Client';
-
-const DEFAULT_SUBSCRIPTION_PRICE = 50;
-const DEFAULT_MONTHLY_GRANT = 15;
-const BUSINESS_SHARE_PERCENT = 0.75;
-const PLATFORM_SHARE_PERCENT = 0.25;
+import { DEFAULT_SUBSCRIPTION_PRICE, DEFAULT_MONTHLY_GRANT, BUSINESS_SHARE_PERCENT, PLATFORM_SHARE_PERCENT } from '@/config/pricing';
 
 export function getCoinValue(
   subscriptionPrice = DEFAULT_SUBSCRIPTION_PRICE,

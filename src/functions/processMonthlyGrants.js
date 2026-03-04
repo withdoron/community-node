@@ -18,8 +18,7 @@
  */
 
 import { base44 } from '@/api/base44Client';
-
-const DEFAULT_MONTHLY_GRANT = 15;
+import { DEFAULT_MONTHLY_GRANT } from '@/config/pricing';
 
 /**
  * Process monthly grant for a single user.

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
+import { ESTIMATED_PER_COIN_VALUE } from '@/config/pricing';
 
 export function useBusinessRevenue(businessId, dateRange = {}) {
   const [redemptions, setRedemptions] = useState([]);
@@ -107,8 +108,8 @@ export function useBusinessRevenue(businessId, dateRange = {}) {
       // Estimated payout uses per-coin value from DEC-032
       // Actual calculation happens server-side via calculateRevenueShare.js
       // This is a client-side estimate for display (DEC-037)
-      estimatedPerCoinValue: 2.5,
-      estimatedPayout: totalCoinsRedeemed * 2.5
+      estimatedPerCoinValue: ESTIMATED_PER_COIN_VALUE,
+      estimatedPayout: totalCoinsRedeemed * ESTIMATED_PER_COIN_VALUE
     };
   }, [redemptions, events]);
 

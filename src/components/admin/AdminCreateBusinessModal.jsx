@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { UNCLAIMED_EMAIL } from '@/config/pricing';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
@@ -106,7 +107,7 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
         sub_category_id: payload.sub_category_id || null,
         // CategoryPage filters on subcategories array — supports multi-category
         subcategories: Array.isArray(payload.subcategories) ? payload.subcategories : [],
-        owner_email: payload.email || 'unclaimed@locallane.app',
+        owner_email: payload.email || UNCLAIMED_EMAIL,
         // No owner_user_id — this is an admin-seeded unclaimed listing
       });
 
