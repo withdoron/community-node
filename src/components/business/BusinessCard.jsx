@@ -1,8 +1,22 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { createPageUrl } from '@/utils';
 import { useCategories } from '@/hooks/useCategories';
 import { useConfig } from '@/hooks/useConfig';
+
+/**
+ * Category accent colors — muted tones that signal identity, not hierarchy.
+ * Maps main_category id → Tailwind border-l class.
+ */
+const CATEGORY_ACCENT_COLORS = {
+  food_farm: 'border-l-amber-700',
+  movement_wellness: 'border-l-teal-700',
+  learning_creative: 'border-l-violet-700',
+  services: 'border-l-sky-700',
+  community: 'border-l-rose-700',
+};
+const DEFAULT_ACCENT = 'border-l-slate-600';
 
 function getCategoryLabel(business, getLabel, getMainCategory, legacyCategoryMapping) {
   const mainId = business.main_category || business.primary_category;
@@ -18,10 +32,21 @@ function getCategoryLabel(business, getLabel, getMainCategory, legacyCategoryMap
   return business.category || '';
 }
 
+function resolveCategoryAccent(business, legacyCategoryMapping) {
+  const mainId = business.main_category || business.primary_category;
+  if (mainId && CATEGORY_ACCENT_COLORS[mainId]) return CATEGORY_ACCENT_COLORS[mainId];
+  // Legacy fallback — resolve old category string to main id
+  if (business.category && legacyCategoryMapping?.[business.category]) {
+    const { main } = legacyCategoryMapping[business.category];
+    if (main && CATEGORY_ACCENT_COLORS[main]) return CATEGORY_ACCENT_COLORS[main];
+  }
+  return DEFAULT_ACCENT;
+}
+
 /**
- * DEC-060: Living Directory — Typographic business card.
- * No images, logos, or cover photos on cards. Equal visual weight for every business.
- * Photos and logos remain on the full BusinessProfile page.
+ * DEC-060: Living Directory — Typographic business card with ambient life signals.
+ * No images, logos, or cover photos. Equal visual weight for every business.
+ * Category accent bar signals identity. Hover warmth signals aliveness.
  */
 export default function BusinessCard({ business }) {
   const { getLabel, getMainCategory, legacyCategoryMapping } = useCategories();
@@ -29,6 +54,7 @@ export default function BusinessCard({ business }) {
 
   const profileUrl = createPageUrl(`BusinessProfile?id=${business.id}`);
   const categoryLabel = getCategoryLabel(business, getLabel, getMainCategory, legacyCategoryMapping);
+  const accentColor = resolveCategoryAccent(business, legacyCategoryMapping);
   const tier = business.subscription_tier || 'basic';
 
   const locationStr = business.city
@@ -47,15 +73,22 @@ export default function BusinessCard({ business }) {
     })
     .filter(Boolean);
 
-  // DEC-060: Vitality warmth — data-vitality drives ambient border glow via community reciprocity. Not built yet.
   return (
     <Link
       to={profileUrl}
-      className="block bg-slate-800 border border-slate-700 rounded-lg p-5 cursor-pointer hover:border-amber-500/50 transition-colors"
+      className={cn(
+        "block rounded-lg p-5 cursor-pointer",
+        "bg-gradient-to-br from-slate-800 to-slate-800/90",
+        "border border-slate-700 border-l-[3px]",
+        accentColor,
+        "hover:border-amber-500/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)]",
+        "hover:-translate-y-0.5",
+        "transition-all duration-300 ease-out"
+      )}
       data-vitality="neutral"
     >
       {/* Business Name */}
-      <h3 className="text-lg font-semibold text-white line-clamp-1">
+      <h3 className="text-lg font-semibold text-slate-50 line-clamp-1">
         {business.name}
       </h3>
 

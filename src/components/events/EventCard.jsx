@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Repeat, ChevronDown, Coins } from "lucide-react";
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 function getPriceBadge(event) {
   const pt = event.pricing_type;
@@ -23,8 +24,34 @@ function getPriceBadge(event) {
 }
 
 /**
- * DEC-060: Living Directory — Typographic event card.
+ * Network → accent color mapping for events.
+ * Falls back to slate when no network is present.
+ */
+const NETWORK_ACCENT_COLORS = {
+  recess: 'border-l-teal-700',
+  harvest_network: 'border-l-amber-700',
+  creative_alliance: 'border-l-violet-700',
+  gathering_circle: 'border-l-rose-700',
+};
+const DEFAULT_ACCENT = 'border-l-slate-600';
+
+function resolveEventAccent(event) {
+  const network = event.network;
+  if (network && NETWORK_ACCENT_COLORS[network]) return NETWORK_ACCENT_COLORS[network];
+  // Try networks array (some events store as array)
+  const networks = event.networks;
+  if (Array.isArray(networks) && networks.length > 0) {
+    for (const n of networks) {
+      if (NETWORK_ACCENT_COLORS[n]) return NETWORK_ACCENT_COLORS[n];
+    }
+  }
+  return DEFAULT_ACCENT;
+}
+
+/**
+ * DEC-060: Living Directory — Typographic event card with ambient life signals.
  * No hero images or thumbnails on cards. Rich media remains on EventDetailModal.
+ * Network accent bar signals community identity. Hover warmth signals aliveness.
  */
 export default function EventCard({ event, onClick }) {
   const [showDates, setShowDates] = useState(false);
@@ -34,6 +61,7 @@ export default function EventCard({ event, onClick }) {
   const acceptsJoyCoins = event.joy_coin_enabled || event.punch_pass_accepted;
   const joyCoinCost = event.joy_coin_cost ?? event.punch_cost ?? (acceptsJoyCoins ? Math.max(1, Math.round((event.price || 0) / 10)) : 0);
   const isJoyCoinEvent = acceptsJoyCoins && joyCoinCost > 0;
+  const accentColor = resolveEventAccent(event);
 
   // Format end time if available
   const endDate = event.end_date ? new Date(event.end_date) : null;
@@ -43,21 +71,29 @@ export default function EventCard({ event, onClick }) {
 
   return (
     <div
-      className={`bg-slate-800 border border-slate-700 rounded-lg p-5 cursor-pointer transition-colors ${
-        isCancelled ? 'opacity-60 hover:border-slate-600' : 'hover:border-amber-500/50'
-      }`}
+      className={cn(
+        "rounded-lg p-5 cursor-pointer",
+        "bg-gradient-to-br from-slate-800 to-slate-800/90",
+        "border border-slate-700 border-l-[3px]",
+        accentColor,
+        isCancelled
+          ? "opacity-60 hover:border-slate-600"
+          : "hover:border-amber-500/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)] hover:-translate-y-0.5",
+        "transition-all duration-300 ease-out"
+      )}
       onClick={() => onClick?.()}
       data-vitality="neutral"
     >
       {/* Event Title */}
-      <h3 className={`text-lg font-semibold text-white line-clamp-1 ${
-        isCancelled ? 'line-through text-slate-400' : ''
-      }`}>
+      <h3 className={cn(
+        "text-lg font-semibold text-slate-50 line-clamp-1",
+        isCancelled && "line-through text-slate-400"
+      )}>
         {event.title}
       </h3>
 
-      {/* Date + Time */}
-      <p className="text-sm text-slate-400 mt-1">
+      {/* Date + Time — amber because time is actionable */}
+      <p className="text-sm text-amber-400 mt-1">
         {format(eventDate, 'EEE, MMM d')} · {timeStr}
       </p>
 
@@ -68,7 +104,7 @@ export default function EventCard({ event, onClick }) {
 
       {/* Business name — shown if available (enriched by parent page) */}
       {(event.business_name || event._businessName) && (
-        <p className="text-sm text-slate-300 mt-2">
+        <p className="text-sm text-slate-400 mt-2">
           {event.business_name || event._businessName}
         </p>
       )}
@@ -93,7 +129,7 @@ export default function EventCard({ event, onClick }) {
           >
             <Repeat className="h-3.5 w-3.5" />
             <span>Recurring · {event._groupSize - 1} more date{event._groupSize - 1 !== 1 ? 's' : ''}</span>
-            <ChevronDown className={`h-3 w-3 transition-transform flex-shrink-0 ${showDates ? 'rotate-180' : ''}`} />
+            <ChevronDown className={cn("h-3 w-3 transition-transform flex-shrink-0", showDates && "rotate-180")} />
           </button>
           {showDates && event._groupedEvents?.length > 0 && (
             <div className="mt-2 space-y-1 pl-6">

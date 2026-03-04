@@ -157,3 +157,17 @@ select:-webkit-autofill:focus {
     background-color: rgb(15 23 42) !important; /* slate-900 */
   }
 }
+
+/* DEC-060: Vitality warmth hooks — planted for Organism Phase 1.
+   Cards set data-vitality="neutral" now; future builds will drive warm/cool
+   based on community reciprocity signals (RSVP activity, nods, stories). */
+[data-vitality="warm"] {
+  --card-glow-opacity: 0.12;
+  border-left-color: rgb(245 158 11 / 0.5);
+}
+[data-vitality="cool"] {
+  --card-glow-opacity: 0.04;
+}
+[data-vitality="neutral"] {
+  --card-glow-opacity: 0.08;
+}
