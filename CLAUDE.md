@@ -54,14 +54,14 @@ Key source files to read before coding:
 | What | Where |
 |------|-------|
 | Entities & SDK | `src/api/entities.js`, `src/api/base44Client.js` |
-| Auth & user | `src/hooks/useUser.js` |
+| Auth & user | `src/lib/AuthContext.jsx` (provides `useAuth` hook) |
 | Tier system | `src/hooks/useOrganization.js` |
-| Organism vitality | `src/hooks/useVitality.js` |
+| Organism vitality | Not yet implemented (planned) |
 | RSVP logic | `src/hooks/useRSVP.js` |
 | Admin panel | `src/pages/Admin.jsx`, `src/components/admin/` |
 | MyLane | `src/pages/MyLane.jsx`, `src/components/mylane/` |
 | Dashboard | `src/pages/BusinessDashboard.jsx`, `src/components/dashboard/` |
-| Config data | `src/data/`, `src/config/` |
+| Config data | `src/config/` |
 
 ---
 
@@ -78,9 +78,16 @@ EntityTable.filter({ field: value }).list()  // → filtered array
 EntityTable.update(id, data)           // → updated record
 EntityTable.delete(id)                 // → hard delete (permanent, DEC-004)
 
-// Auth
-import { useUser } from '@/hooks/useUser'
-const { user, isLoading, isAuthenticated } = useUser()
+// Auth (two patterns used in the codebase)
+// Pattern 1: useAuth hook (preferred for components needing auth context)
+import { useAuth } from '@/lib/AuthContext';
+const { user, isAuthenticated } = useAuth();
+
+// Pattern 2: inline query (used in most pages)
+const { data: currentUser } = useQuery({
+  queryKey: ['currentUser'],
+  queryFn: () => base44.auth.me()
+});
 
 // Fetch pattern
 useEffect(() => {
@@ -194,7 +201,7 @@ Use `Intl.NumberFormat` — never `.toFixed(2)`.
 | Generic UI primitives | `src/components/ui/` (shadcn only) |
 | Feature components | `src/components/{feature}/` |
 | Shared utilities | `src/utils/` |
-| Static data/config | `src/data/`, `src/config/` |
+| Static data/config | `src/config/` |
 | Hooks | `src/hooks/` |
 | Business-logic components | `src/components/dashboard/` (NOT `src/components/ui/`) |
 
