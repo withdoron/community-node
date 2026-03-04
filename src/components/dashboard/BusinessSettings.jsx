@@ -201,9 +201,6 @@ export default function BusinessSettings({ business, currentUserId }) {
     setIsEditing(false);
   };
 
-  // Dev tier override (only in development)
-  const isDev = import.meta.env.DEV || window.location.hostname === 'localhost';
-
   if (!business || !formData) return null;
 
   return (
@@ -760,46 +757,6 @@ export default function BusinessSettings({ business, currentUserId }) {
       </Card>
       {false && <StaffWidget business={business} currentUserId={currentUserId} />}
 
-      {/* Dev Tier Override */}
-      {isDev && (
-        <Card className="bg-slate-900 border-red-900/30 rounded-xl p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <Badge className="bg-red-500/20 text-red-400 text-xs border-0">DEV ONLY</Badge>
-            <h3 className="text-sm font-semibold text-slate-100">Tier Override</h3>
-          </div>
-          <p className="text-xs text-slate-400 mb-3">
-            Override subscription tier for testing. Changes are saved to the database.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(TIER_CONFIG).map(([key, config]) => (
-              <Button
-                key={key}
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  try {
-                    // Dev-only: direct update so tier can be toggled without admin role; production profile updates use update_profile server function.
-                    await base44.entities.Business.update(business.id, { subscription_tier: key });
-                    queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUserId] });
-                    queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUserId] });
-                    window.location.reload();
-                  } catch (err) {
-                    console.error('Failed to update tier:', err);
-                    toast.error('Failed to update tier');
-                  }
-                }}
-                className={`${
-                  tier === key
-                    ? 'border-amber-500 text-amber-500'
-                    : 'border-slate-600 text-slate-400 hover:border-slate-500'
-                } bg-transparent hover:bg-transparent transition-colors`}
-              >
-                {config.label}
-              </Button>
-            ))}
-          </div>
-        </Card>
-      )}
     </div>
   );
 }
