@@ -1,176 +1,158 @@
 import React, { useState } from 'react';
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Tag, Coins, Repeat, ChevronDown } from "lucide-react";
+import { Repeat, ChevronDown, Coins } from "lucide-react";
 import { format } from 'date-fns';
 
 function getPriceBadge(event) {
   const pt = event.pricing_type;
   if (!pt) return null;
-  if (pt === 'free') return { text: 'FREE', green: true };
+  if (pt === 'free') return { text: 'FREE' };
   if (pt === 'multiple_tickets' || pt === 'multiple') {
     const tickets = event.ticket_types || event.tickets || [];
     const prices = tickets.map((t) => Number(t.price));
     const lowest = prices.length ? Math.min(...prices) : 0;
-    if (lowest === 0) return { text: 'From Free', green: false };
-    return { text: `From $${lowest.toFixed(2)}`, green: false };
+    if (lowest === 0) return { text: 'From Free' };
+    return { text: `From $${lowest.toFixed(2)}` };
   }
   if (pt === 'single_price' || pt === 'single') {
     const p = Number(event.price);
-    if (p === 0) return { text: 'FREE', green: true };
-    return { text: `$${p.toFixed(2)}`, green: false };
+    if (p === 0) return { text: 'FREE' };
+    return { text: `$${p.toFixed(2)}` };
   }
-  if (pt === 'pay_what_you_wish' || pt === 'pwyw') return { text: 'PWYW', green: false };
+  if (pt === 'pay_what_you_wish' || pt === 'pwyw') return { text: 'PWYW' };
   return null;
 }
 
+/**
+ * DEC-060: Living Directory — Typographic event card.
+ * No hero images or thumbnails on cards. Rich media remains on EventDetailModal.
+ */
 export default function EventCard({ event, onClick }) {
   const [showDates, setShowDates] = useState(false);
   const eventDate = new Date(event.date);
   const priceBadge = getPriceBadge(event);
   const isCancelled = event.status === 'cancelled';
-  // Field mapping: Base44 fields punch_pass_accepted/punch_cost → joy_coin_enabled/joy_coin_cost
   const acceptsJoyCoins = event.joy_coin_enabled || event.punch_pass_accepted;
   const joyCoinCost = event.joy_coin_cost ?? event.punch_cost ?? (acceptsJoyCoins ? Math.max(1, Math.round((event.price || 0) / 10)) : 0);
   const isJoyCoinEvent = acceptsJoyCoins && joyCoinCost > 0;
 
-  // Get up to 2 event type badges
-  const eventTypes = [];
-  if (event.event_type) {
-    eventTypes.push(event.event_type.replace(/_+/g, ' '));
-  }
-  if (event.network) {
-    eventTypes.push(event.network);
-  }
-  const displayTypes = eventTypes.slice(0, 2);
+  // Format end time if available
+  const endDate = event.end_date ? new Date(event.end_date) : null;
+  const timeStr = endDate
+    ? `${format(eventDate, 'h:mm a')} – ${format(endDate, 'h:mm a')}`
+    : format(eventDate, 'h:mm a');
 
   return (
-    <Card 
-      className={`bg-slate-900 border-slate-800 transition-all cursor-pointer overflow-hidden ${
-        isCancelled ? 'opacity-60 hover:border-red-500/50' : 'hover:border-amber-500/50'
+    <div
+      className={`bg-slate-800 border border-slate-700 rounded-lg p-5 cursor-pointer transition-colors ${
+        isCancelled ? 'opacity-60 hover:border-slate-600' : 'hover:border-amber-500/50'
       }`}
-      onClick={() => onClick()}
+      onClick={() => onClick?.()}
+      data-vitality="neutral"
     >
-      {/* Hero Image */}
-      <div className="relative h-48 bg-slate-800">
-        {event.thumbnail_url ? (
-          <img 
-            src={event.thumbnail_url} 
-            alt={event.title}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Calendar className="h-12 w-12 text-slate-600" />
-          </div>
-        )}
-        
-        {/* Network-only badge - Top Left */}
-        {event.network_only && event.network && (
-          <div className="absolute top-3 left-3">
-            <span className="bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded-full capitalize">
-              {event.network.replace(/_/g, ' ')} Only
-            </span>
-          </div>
-        )}
+      {/* Event Title */}
+      <h3 className={`text-lg font-semibold text-white line-clamp-1 ${
+        isCancelled ? 'line-through text-slate-400' : ''
+      }`}>
+        {event.title}
+      </h3>
 
-        {/* Price badges - Top Right */}
-        <div className="absolute top-3 right-3 flex flex-col gap-2">
-          {isCancelled ? (
-            <Badge className="bg-red-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-              CANCELLED
-            </Badge>
-          ) : (
-            <>
-              {isJoyCoinEvent && (
-                <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full px-3 py-1 font-semibold shadow-lg flex items-center gap-1">
-                  <Coins className="h-3 w-3" />
-                  {joyCoinCost === 1 ? '1 Joy Coin' : `${joyCoinCost} Joy Coins`}
-                </Badge>
-              )}
-              {!isJoyCoinEvent && priceBadge && (
-                <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
-                  {priceBadge.text}
-                </Badge>
-              )}
-            </>
+      {/* Date + Time */}
+      <p className="text-sm text-slate-400 mt-1">
+        {format(eventDate, 'EEE, MMM d')} · {timeStr}
+      </p>
+
+      {/* Cancelled label */}
+      {isCancelled && (
+        <p className="text-xs text-slate-500 mt-1 uppercase tracking-wide">Cancelled</p>
+      )}
+
+      {/* Business name — shown if available (enriched by parent page) */}
+      {(event.business_name || event._businessName) && (
+        <p className="text-sm text-slate-300 mt-2">
+          {event.business_name || event._businessName}
+        </p>
+      )}
+
+      {/* Location */}
+      {event.location && (
+        <p className="text-sm text-slate-500 mt-1 line-clamp-1">
+          {event.location}
+        </p>
+      )}
+
+      {/* Recurring indicator */}
+      {event._groupSize > 1 && (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowDates(!showDates);
+            }}
+            className="flex items-center gap-1.5 text-slate-400 text-xs cursor-pointer hover:text-slate-300 transition-colors"
+          >
+            <Repeat className="h-3.5 w-3.5" />
+            <span>Recurring · {event._groupSize - 1} more date{event._groupSize - 1 !== 1 ? 's' : ''}</span>
+            <ChevronDown className={`h-3 w-3 transition-transform flex-shrink-0 ${showDates ? 'rotate-180' : ''}`} />
+          </button>
+          {showDates && event._groupedEvents?.length > 0 && (
+            <div className="mt-2 space-y-1 pl-6">
+              {event._groupedEvents.map((ge) => (
+                <div
+                  key={ge.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClick?.(ge);
+                  }}
+                  className="text-slate-400 text-xs hover:text-amber-500 cursor-pointer transition-colors py-1"
+                >
+                  {new Date(ge.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  {ge.start_time ? ` · ${ge.start_time}` : ''}
+                </div>
+              ))}
+            </div>
           )}
         </div>
-      </div>
+      )}
 
-      {/* Content */}
-      <div className="p-4 space-y-3">
-        {/* Event Title */}
-        <h3 className={`font-bold text-slate-100 text-lg line-clamp-2 leading-tight ${
-          isCancelled ? 'line-through text-slate-400' : ''
-        }`}>
-          {event.title}
-        </h3>
-
-        {/* Date & Time */}
-        <div className="flex items-center gap-2 text-slate-300 text-sm">
-          <Calendar className="h-4 w-4 text-amber-500" />
-          <span>
-            {format(eventDate, 'EEE, MMM d')} · {format(eventDate, 'h:mm a')}
+      {/* Chips row: network + pricing + joy coins */}
+      <div className="flex flex-wrap items-center gap-1.5 mt-3">
+        {/* Network badge */}
+        {event.network && (
+          <span className="bg-amber-500/10 text-amber-500 text-xs px-2 py-0.5 rounded-full capitalize">
+            {event.network.replace(/_/g, ' ')}
           </span>
-        </div>
-
-        {/* Recurring indicator — when event is grouped from multiple dates; expandable to show all dates */}
-        {event._groupSize > 1 && (
-          <div>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowDates(!showDates);
-              }}
-              className="flex items-center gap-1.5 text-slate-400 text-xs cursor-pointer hover:text-slate-300 transition-colors"
-            >
-              <Repeat className="h-3.5 w-3.5" />
-              <span>Recurring · {event._groupSize - 1} more date{event._groupSize - 1 !== 1 ? 's' : ''}</span>
-              <ChevronDown className={`h-3 w-3 transition-transform flex-shrink-0 ${showDates ? 'rotate-180' : ''}`} />
-            </button>
-            {showDates && event._groupedEvents?.length > 0 && (
-              <div className="mt-2 space-y-1 pl-6">
-                {event._groupedEvents.map((ge) => (
-                  <div
-                    key={ge.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onClick?.(ge);
-                    }}
-                    className="text-slate-400 text-xs hover:text-amber-500 cursor-pointer transition-colors py-1"
-                  >
-                    {new Date(ge.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                    {ge.start_time ? ` · ${ge.start_time}` : ''}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         )}
 
-        {/* Location */}
-        <div className="flex items-center gap-2 text-slate-300 text-sm">
-          <MapPin className="h-4 w-4 text-amber-500" />
-          <span className="truncate">{event.location}</span>
-        </div>
+        {/* Network-only indicator */}
+        {event.network_only && event.network && (
+          <span className="bg-slate-700 text-slate-400 text-xs px-2 py-0.5 rounded-full">
+            Members Only
+          </span>
+        )}
 
-        {/* Event Type Badges */}
-        {displayTypes.length > 0 && (
-          <div className="flex items-center gap-2 pt-2">
-            {displayTypes.map((type, index) => (
-              <div 
-                key={index}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 text-xs border border-slate-700"
-              >
-                <Tag className="h-3 w-3" />
-                <span className="capitalize">{type}</span>
-              </div>
-            ))}
-          </div>
+        {/* Price badge */}
+        {!isCancelled && !isJoyCoinEvent && priceBadge && (
+          <span className="bg-amber-500/20 text-amber-500 text-xs px-2 py-0.5 rounded-full font-medium">
+            {priceBadge.text}
+          </span>
+        )}
+
+        {/* Joy Coins badge */}
+        {!isCancelled && isJoyCoinEvent && (
+          <span className="bg-amber-500/20 text-amber-400 text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+            <Coins className="h-3 w-3" />
+            {joyCoinCost === 1 ? '1 Joy Coin' : `${joyCoinCost} Joy Coins`}
+          </span>
         )}
       </div>
-    </Card>
+
+      {/* RSVP count — shown if enriched by parent */}
+      {event._rsvpCount > 0 && (
+        <p className="text-xs text-slate-500 mt-2">
+          {event._rsvpCount} going
+        </p>
+      )}
+    </div>
   );
 }
