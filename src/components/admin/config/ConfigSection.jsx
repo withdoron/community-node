@@ -387,9 +387,41 @@ export default function ConfigSection({ domain, configType, title }) {
                 </div>
               ) : (
                 <div className="flex flex-1 items-center justify-between min-w-0">
-                  <span className="text-slate-200 truncate">{item.label}</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={cn("truncate", item.active === false ? "text-slate-500 line-through" : "text-slate-200")}>{item.label}</span>
+                    {item.active === false && (
+                      <span className="text-xs text-slate-500 flex-shrink-0">Hidden</span>
+                    )}
+                  </div>
                   <span className="text-slate-500 text-sm font-mono mr-2 flex-shrink-0 hidden sm:inline">{item.value}</span>
-                  <div className="flex gap-1 flex-shrink-0">
+                  <div className="flex gap-1 items-center flex-shrink-0">
+                    {/* Active toggle — controls visibility to community */}
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={item.active !== false}
+                      aria-label={`${item.active !== false ? 'Hide' : 'Show'} ${item.label}`}
+                      onClick={() => {
+                        const next = items.map((i) => {
+                          if ((i.value ?? i.id) !== itemId) return i;
+                          return { ...i, active: !(i.active !== false) };
+                        });
+                        mutation.mutate(next, {
+                          onSuccess: () => toast.success(item.active !== false ? 'Hidden from community' : 'Visible to community'),
+                          onError: () => toast.error('Failed to update'),
+                        });
+                      }}
+                      className={cn(
+                        "relative w-9 h-5 rounded-full transition-colors flex-shrink-0",
+                        item.active !== false ? "bg-amber-500" : "bg-slate-600"
+                      )}
+                      title={item.active !== false ? 'Visible to community' : 'Hidden from community'}
+                    >
+                      <span className={cn(
+                        "absolute top-0.5 w-4 h-4 rounded-full bg-slate-100 transition-transform",
+                        item.active !== false ? "left-[18px]" : "left-0.5"
+                      )} />
+                    </button>
                     <Button
                       size="sm"
                       variant="ghost"

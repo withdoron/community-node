@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ChevronLeft, ChevronRight, Loader2, Copy, Check, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { useConfig } from '@/hooks/useConfig';
 
 const SPORTS = [
   { value: 'flag_football', label: 'Flag Football' },
@@ -15,13 +16,6 @@ const SPORTS = [
   { value: 'basketball', label: 'Basketball' },
   { value: 'baseball', label: 'Baseball' },
   { value: 'other', label: 'Other' },
-];
-
-const NETWORKS = [
-  { id: 'recess', name: 'Recess' },
-  { id: 'creative_alliance', name: 'Creative Alliance' },
-  { id: 'gathering_circle', name: 'Gathering Circle' },
-  { id: 'harvest_network', name: 'Harvest Network' },
 ];
 
 function generateInviteCode() {
@@ -44,6 +38,9 @@ export default function TeamOnboarding() {
     network_id: '',
   });
   const [copied, setCopied] = useState(false);
+
+  const { data: networksConfig = [] } = useConfig('platform', 'networks');
+  const activeNetworks = (networksConfig || []).filter((n) => n.active !== false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -236,9 +233,13 @@ export default function TeamOnboarding() {
                   className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 mt-1"
                 >
                   <option value="">Select a network</option>
-                  {NETWORKS.map((n) => (
-                    <option key={n.id} value={n.id}>{n.name}</option>
-                  ))}
+                  {activeNetworks.map((n) => {
+                    const value = n.value ?? n.slug ?? n.id;
+                    const label = n.label ?? n.name ?? value;
+                    return (
+                      <option key={value} value={value}>{label}</option>
+                    );
+                  })}
                 </select>
                 <p className="text-xs text-slate-500 mt-1">Team events will appear in the network for LocalLane members.</p>
               </div>
