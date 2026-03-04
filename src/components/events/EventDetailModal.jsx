@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, MapPin, DollarSign, Repeat2, Users, CheckCircle2, Tag, ExternalLink, UserCheck, UserPlus, Coins, Lock, Mail } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, DollarSign, Repeat2, Users, CheckCircle2, Tag, ExternalLink, UserCheck, UserPlus, Coins, Lock, Mail, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -194,9 +194,9 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
             <div className="bg-slate-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-800">
-              {/* Header with close button */}
+              {/* Header with share + close buttons */}
               <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/95 backdrop-blur-sm">
-                <div className="flex-1 pr-8">
+                <div className="flex-1 pr-4">
                   <h1 className={`text-xl sm:text-2xl font-bold ${isCancelled ? 'text-slate-400 line-through' : 'text-white'}`}>
                     {event.title}
                   </h1>
@@ -206,12 +206,35 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                     </Badge>
                   )}
                 </div>
-                <button
-                  onClick={onClose}
-                  className="p-3 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-slate-100"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={async () => {
+                      const url = `${window.location.origin}/Events/${event.id}`;
+                      try {
+                        await navigator.clipboard.writeText(url);
+                        toast.success('Link copied to clipboard');
+                      } catch {
+                        const input = document.createElement('input');
+                        input.value = url;
+                        document.body.appendChild(input);
+                        input.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(input);
+                        toast.success('Link copied to clipboard');
+                      }
+                    }}
+                    className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-amber-500 transition-colors"
+                    title="Copy link to share"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={onClose}
+                    className="p-3 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-slate-100"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
 
               {/* Content */}

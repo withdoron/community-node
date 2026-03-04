@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import FilterModal from '@/components/events/FilterModal';
 import { useRole } from '@/hooks/useRole';
 import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
 import { isToday } from 'date-fns';
+import { toast } from 'sonner';
 
 function groupRecurringEvents(events) {
   const groups = {};
@@ -29,6 +31,8 @@ function groupRecurringEvents(events) {
 }
 
 export default function Events() {
+  const { eventId } = useParams();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [quickFilter, setQuickFilter] = useState('all');
   const [filterModalOpen, setFilterModalOpen] = useState(false);
@@ -155,6 +159,19 @@ export default function Events() {
     return grouped;
   }, [filteredEvents]);
 
+  // URL-driven modal: open event from /Events/:eventId deep link
+  useEffect(() => {
+    if (!eventId || events.length === 0) return;
+    // Search full unfiltered events list (event may not match current filters)
+    const target = events.find((e) => e.id === eventId);
+    if (target) {
+      setExpandedEventId(target.id);
+    } else {
+      toast.error('Event not found');
+      navigate('/Events', { replace: true });
+    }
+  }, [eventId, events, navigate]);
+
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (advancedFilters.priceRange[1] < 100) count++;
@@ -259,7 +276,11 @@ export default function Events() {
                 <EventCard
                   key={event.id}
                   event={event}
-                  onClick={(clickedEvent) => setExpandedEventId((clickedEvent || event).id)}
+                  onClick={(clickedEvent) => {
+                    const targetId = (clickedEvent || event).id;
+                    setExpandedEventId(targetId);
+                    navigate(`/Events/${targetId}`, { replace: true });
+                  }}
                 />
               ))}
             </div>
@@ -268,9 +289,12 @@ export default function Events() {
       </div>
 
       <EventDetailModal
-        event={filteredEvents.find(e => e.id === expandedEventId)}
+        event={events.find(e => e.id === expandedEventId) || filteredEvents.find(e => e.id === expandedEventId)}
         isOpen={!!expandedEventId}
-        onClose={() => setExpandedEventId(null)}
+        onClose={() => {
+          setExpandedEventId(null);
+          if (eventId) navigate('/Events', { replace: true });
+        }}
       />
 
       <FilterModal

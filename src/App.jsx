@@ -83,6 +83,15 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      {/* Shareable event deep-link — reuses Events page with URL-driven modal */}
+      <Route
+        path="/Events/:eventId"
+        element={
+          <LayoutWrapper currentPageName="Events">
+            {Pages.Events ? <Pages.Events /> : <PageNotFound />}
+          </LayoutWrapper>
+        }
+      />
       <Route
         path="/my-lane/transactions"
         element={
