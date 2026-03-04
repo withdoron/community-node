@@ -25,7 +25,7 @@ function getPriceBadge(event) {
 
 /**
  * Network → accent color mapping for events.
- * Falls back to slate when no network is present.
+ * Falls back to visible slate when no network is present.
  */
 const NETWORK_ACCENT_COLORS = {
   recess: 'border-l-teal-700',
@@ -33,18 +33,21 @@ const NETWORK_ACCENT_COLORS = {
   creative_alliance: 'border-l-violet-700',
   gathering_circle: 'border-l-rose-700',
 };
-const DEFAULT_ACCENT = 'border-l-slate-600';
+const DEFAULT_ACCENT = 'border-l-slate-500';
 
 function resolveEventAccent(event) {
+  // 1. Single network field
   const network = event.network;
   if (network && NETWORK_ACCENT_COLORS[network]) return NETWORK_ACCENT_COLORS[network];
-  // Try networks array (some events store as array)
+
+  // 2. Networks array (some events store as array)
   const networks = event.networks;
   if (Array.isArray(networks) && networks.length > 0) {
     for (const n of networks) {
       if (NETWORK_ACCENT_COLORS[n]) return NETWORK_ACCENT_COLORS[n];
     }
   }
+
   return DEFAULT_ACCENT;
 }
 
@@ -74,12 +77,13 @@ export default function EventCard({ event, onClick }) {
       className={cn(
         "rounded-lg p-5 cursor-pointer",
         "bg-gradient-to-br from-slate-800 to-slate-800/90",
-        "border border-slate-700 border-l-[3px]",
-        accentColor,
+        "border border-slate-700",
         isCancelled
           ? "opacity-60 hover:border-slate-600"
           : "hover:border-amber-500/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)] hover:-translate-y-0.5",
-        "transition-all duration-300 ease-out"
+        "transition-all duration-300 ease-out",
+        "border-l-4",
+        accentColor
       )}
       onClick={() => onClick?.()}
       data-vitality="neutral"

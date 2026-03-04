@@ -16,7 +16,18 @@ const CATEGORY_ACCENT_COLORS = {
   services: 'border-l-sky-700',
   community: 'border-l-rose-700',
 };
-const DEFAULT_ACCENT = 'border-l-slate-600';
+
+/** Archetype fallback — used when main_category isn't set */
+const ARCHETYPE_ACCENT_COLORS = {
+  location_venue: 'border-l-amber-700',
+  event_organizer: 'border-l-violet-700',
+  service_provider: 'border-l-sky-700',
+  community_nonprofit: 'border-l-rose-700',
+  micro_business: 'border-l-teal-700',
+  product_seller: 'border-l-amber-700',
+};
+
+const DEFAULT_ACCENT = 'border-l-slate-500';
 
 function getCategoryLabel(business, getLabel, getMainCategory, legacyCategoryMapping) {
   const mainId = business.main_category || business.primary_category;
@@ -33,13 +44,26 @@ function getCategoryLabel(business, getLabel, getMainCategory, legacyCategoryMap
 }
 
 function resolveCategoryAccent(business, legacyCategoryMapping) {
+  // 1. Direct main_category match
   const mainId = business.main_category || business.primary_category;
   if (mainId && CATEGORY_ACCENT_COLORS[mainId]) return CATEGORY_ACCENT_COLORS[mainId];
-  // Legacy fallback — resolve old category string to main id
+
+  // 2. Legacy category string → resolved main id
   if (business.category && legacyCategoryMapping?.[business.category]) {
     const { main } = legacyCategoryMapping[business.category];
     if (main && CATEGORY_ACCENT_COLORS[main]) return CATEGORY_ACCENT_COLORS[main];
   }
+
+  // 3. Raw category string as direct key (some businesses store the main id in .category)
+  if (business.category && CATEGORY_ACCENT_COLORS[business.category]) {
+    return CATEGORY_ACCENT_COLORS[business.category];
+  }
+
+  // 4. Archetype fallback
+  if (business.archetype && ARCHETYPE_ACCENT_COLORS[business.archetype]) {
+    return ARCHETYPE_ACCENT_COLORS[business.archetype];
+  }
+
   return DEFAULT_ACCENT;
 }
 
@@ -79,11 +103,12 @@ export default function BusinessCard({ business }) {
       className={cn(
         "block rounded-lg p-5 cursor-pointer",
         "bg-gradient-to-br from-slate-800 to-slate-800/90",
-        "border border-slate-700 border-l-[3px]",
-        accentColor,
+        "border border-slate-700",
         "hover:border-amber-500/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)]",
         "hover:-translate-y-0.5",
-        "transition-all duration-300 ease-out"
+        "transition-all duration-300 ease-out",
+        "border-l-4",
+        accentColor
       )}
       data-vitality="neutral"
     >
