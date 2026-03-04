@@ -102,6 +102,7 @@ const BUSINESS_TABS = [
       isOwner: scope.isOwner,
       onDeleteClick: scope.setDeleteDialogOpen,
       deleteMutation: scope.deleteMutation,
+      onNavigateTab: scope.setActiveTab,
     }),
   },
 ];

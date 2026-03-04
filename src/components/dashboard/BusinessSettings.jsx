@@ -77,7 +77,7 @@ function getInitialFormData(business) {
   };
 }
 
-export default function BusinessSettings({ business, currentUserId }) {
+export default function BusinessSettings({ business, currentUserId, onNavigateTab }) {
   const queryClient = useQueryClient();
   const { mainCategories, getSubcategory, getLabel, legacyCategoryMapping } = useCategories();
   const [isEditing, setIsEditing] = useState(false);
@@ -139,6 +139,7 @@ export default function BusinessSettings({ business, currentUserId }) {
       queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUserId] });
       toast.success('Business profile updated');
       setIsEditing(false);
+      if (onNavigateTab) onNavigateTab('home');
     },
     onError: (err) => {
       console.error('Business profile save error:', err);

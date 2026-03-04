@@ -15,10 +15,11 @@ export default function DashboardSettings({
   isOwner,
   onDeleteClick,
   deleteMutation,
+  onNavigateTab,
 }) {
   return (
     <div className="space-y-6">
-      <BusinessSettings business={business} currentUserId={currentUserId} />
+      <BusinessSettings business={business} currentUserId={currentUserId} onNavigateTab={onNavigateTab} />
       {isOwner && (
         <Card className="p-6 bg-slate-900 border-slate-800">
           <div className="flex items-center justify-between mb-4">

@@ -138,12 +138,11 @@ export default function BusinessProfile() {
               alt={business.name}
               className="w-full h-full object-contain"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           </div>
         ) : null;
       })()}
 
-      <div className={`max-w-6xl mx-auto px-4 relative z-10 ${(business.photos?.[0] || business.logo_url) ? '-mt-20' : 'mt-0'}`}>
+      <div className="max-w-6xl mx-auto px-4 relative z-10 mt-4">
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
