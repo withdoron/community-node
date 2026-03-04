@@ -62,12 +62,11 @@ export default function MyLane() {
     );
   }
 
-  // Onboarding redirect: server is source of truth; localStorage is fast path to avoid flash
-  const ONBOARDING_STORAGE_KEY = 'locallane_onboarding_shown';
+  // Onboarding redirect: server-side user record is the only gate.
+  // No localStorage — that was device-scoped, not user-scoped.
   const onboardingComplete =
     currentUser?.onboarding_complete === true ||
-    currentUser?.data?.onboarding_complete === true ||
-    !!localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    currentUser?.data?.onboarding_complete === true;
 
   if (!onboardingComplete) {
     return <Navigate to={createPageUrl('welcome')} replace />;

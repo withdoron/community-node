@@ -8,8 +8,6 @@ import { MapPin, Users, Heart, Loader2, ChevronRight, Mail } from 'lucide-react'
 import { userOnboardingConfig } from '@/config/userOnboardingConfig';
 import { useConfig } from '@/hooks/useConfig';
 
-const ONBOARDING_STORAGE_KEY = 'locallane_onboarding_shown';
-
 /** Taglines for network step when not provided by AdminSettings (platform.networks tagline). */
 const NETWORK_TAGLINES = {
   recess: 'Move your body, build your crew',
@@ -66,9 +64,6 @@ export default function UserOnboarding() {
   });
 
   const markCompleteAndGo = (payload) => {
-    try {
-      window.localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
-    } catch {}
     updateUserMutation.mutate(payload, {
       onSuccess: () => {
         try {
