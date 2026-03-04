@@ -3,7 +3,7 @@
 > Read at the start of every Claude Code session.
 > Lean by design — uses @imports for details. Only what Claude cannot guess lives here.
 > Update this file when a mistake should never recur or a new convention is established.
-> Last updated: 2026-03-03
+> Last updated: 2026-03-04
 
 ---
 
@@ -15,6 +15,16 @@ LocalLane — community-first platform in Eugene, Oregon. Base44 backend, React/
 
 @context/PROJECT-BRAIN.md
 @context/ACTIVE-CONTEXT.md
+
+---
+
+## Git Workflow
+
+**Always commit and push directly to main.** No feature branches, no PRs, no worktrees. Base44 auto-syncs from main — branches don't deploy.
+
+```bash
+git add -A && git commit -m "descriptive message" && git push origin main
+```
 
 ---
 
@@ -37,7 +47,7 @@ For decisions DEC-001 through DEC-060, check DECISIONS.md before assuming behavi
 4. Test — Doron checks browser, reports with screenshots
 5. Learn — update this file with new pitfalls or conventions
 6. Document — update spec-repo if decisions were made
-7. Push — single descriptive commit
+7. Push — single descriptive commit to main
 
 **At session end:** Remind Doron to update `context/ACTIVE-CONTEXT.md` and append to `context/SESSION-LOG.md`.
 
@@ -155,6 +165,28 @@ Staff roles and invites use AdminSettings key-value store (DEC-016):
 ---
 
 ## Known Pitfalls — Do Not Repeat These
+
+### Git: Push to Main Only
+
+Claude Code defaults to creating branches. **Always push directly to main.** Base44 only syncs from main — branches create extra merge steps for Doron.
+
+### Onboarding Gate: Server-Side Only (2026-03-04)
+
+The onboarding wizard gate uses `currentUser.onboarding_complete` from the user record. **Do NOT use localStorage for auth or gating logic** — localStorage is per-device, not per-user. A second user on the same device inherits the first user's flags.
+
+### React Query Cache Race: Use Optimistic Updates (2026-03-04)
+
+When a mutation updates a field and then navigates to a page that gates on that field, the page may render with stale cached data before the background refetch completes. Fix: use `queryClient.setQueryData()` to optimistically update the cache BEFORE navigating. Example:
+
+```javascript
+onSuccess: () => {
+  queryClient.setQueryData(['currentUser'], (old) => {
+    if (!old) return old;
+    return { ...old, onboarding_complete: true };
+  });
+  queryClient.invalidateQueries(['currentUser']);
+}
+```
 
 ### shadcn/ui Checkbox & Switch Infinite Loop (DEC-018)
 
