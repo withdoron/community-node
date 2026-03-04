@@ -59,6 +59,11 @@ export default function UserOnboarding() {
       });
     },
     onSuccess: () => {
+      // Optimistically update cached user so MyLane gate sees onboarding_complete immediately
+      queryClient.setQueryData(['currentUser'], (old) => {
+        if (!old) return old;
+        return { ...old, onboarding_complete: true };
+      });
       queryClient.invalidateQueries(['currentUser']);
     },
   });
