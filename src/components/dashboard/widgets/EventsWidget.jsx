@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { format, addWeeks } from "date-fns";
+import { format, addWeeks, addDays, addMonths } from "date-fns";
 import EventEditor from '../EventEditor';
 
 export default function EventsWidget({ business, allowEdit, userRole, onEnterCheckIn }) {
@@ -81,20 +81,79 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
     return list;
   }, [events, sortOrder]);
 
-  // Generate recurring event instances (weekly/biweekly with selected days)
+  // NOTE: Recurring instances are only generated on NEW event creation.
+  // Editing an existing event to add recurrence does not generate instances.
+  // To create a recurring series, create a new event with recurrence enabled.
+
+  // Generate recurring event instances for all patterns: daily, weekly, biweekly, monthly
   const generateRecurringEvents = async (eventData) => {
+    const pattern = eventData.recurrence_pattern;
     const startDate = new Date(eventData.date);
-    const endDate = eventData.recurrence_end_date
-      ? new Date(eventData.recurrence_end_date)
-      : addWeeks(startDate, 12);
-    const dayMap = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 0 };
+    const durationMs = (eventData.duration_minutes || 60) * 60 * 1000;
     const seriesId = `series_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    const selectedDays = (eventData.recurrence_days || [])
-      .map((d) => dayMap[d])
-      .filter((n) => n !== undefined)
-      .sort((a, b) => a - b);
-    if (selectedDays.length === 0) {
+    // Instance caps to prevent runaway creation
+    const MAX_INSTANCES = { daily: 365, weekly: 52, biweekly: 52, monthly: 24 };
+    const maxInstances = MAX_INSTANCES[pattern] || 52;
+
+    // Default end dates when none specified
+    const defaultEnd = {
+      daily: addWeeks(startDate, 4),
+      weekly: addWeeks(startDate, 12),
+      biweekly: addWeeks(startDate, 24),
+      monthly: addMonths(startDate, 12),
+    };
+    const endDate = eventData.recurrence_end_date
+      ? new Date(eventData.recurrence_end_date)
+      : defaultEnd[pattern] || addWeeks(startDate, 12);
+
+    // Build array of event dates based on pattern
+    const dates = [];
+
+    if (pattern === 'daily') {
+      let current = new Date(startDate);
+      while (current <= endDate && dates.length < maxInstances) {
+        dates.push(new Date(current));
+        current = addDays(current, 1);
+      }
+    } else if (pattern === 'weekly' || pattern === 'biweekly') {
+      const dayMap = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 0 };
+      const selectedDays = (eventData.recurrence_days || [])
+        .map((d) => dayMap[d])
+        .filter((n) => n !== undefined)
+        .sort((a, b) => a - b);
+
+      // If no days selected for weekly/biweekly, use the start date's day
+      if (selectedDays.length === 0) {
+        selectedDays.push(startDate.getDay());
+      }
+
+      let weekStart = new Date(startDate);
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+      const weekStep = pattern === 'biweekly' ? 2 : 1;
+
+      while (weekStart <= endDate && dates.length < maxInstances) {
+        for (const dayNum of selectedDays) {
+          const d = new Date(weekStart);
+          d.setDate(weekStart.getDate() + dayNum);
+          if (d >= startDate && d <= endDate && dates.length < maxInstances) {
+            dates.push(d);
+          }
+        }
+        weekStart = addWeeks(weekStart, weekStep);
+      }
+    } else if (pattern === 'monthly') {
+      let current = new Date(startDate);
+      while (current <= endDate && dates.length < maxInstances) {
+        dates.push(new Date(current));
+        current = addMonths(current, 1);
+        // Handle end-of-month edge cases (Jan 31 → Feb 28)
+        // addMonths from date-fns handles this automatically
+      }
+    }
+
+    if (dates.length === 0) {
+      // Fallback: create a single event
       return base44.functions.invoke('manageEvent', {
         action: 'create',
         business_id: business.id,
@@ -102,57 +161,26 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
       });
     }
 
-    let currentWeekStart = new Date(startDate);
-    currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
-    const durationMs = (eventData.duration_minutes || 60) * 60 * 1000;
-    const originalStart = new Date(eventData.date);
+    // Create each instance through the manageEvent server function
+    for (const eventDate of dates) {
+      eventDate.setHours(startDate.getHours(), startDate.getMinutes(), 0, 0);
+      const instanceEnd = new Date(eventDate.getTime() + durationMs);
 
-    let totalDates = 0;
-    const tempWeek = new Date(currentWeekStart);
-    while (tempWeek <= endDate) {
-      for (const dayNum of selectedDays) {
-        const d = new Date(tempWeek);
-        d.setDate(tempWeek.getDate() + dayNum);
-        if (d >= startDate && d <= endDate) totalDates++;
+      const eventPayload = {
+        ...eventData,
+        date: eventDate.toISOString(),
+        end_date: instanceEnd.toISOString(),
+        recurring_series_id: seriesId,
+      };
+      try {
+        await base44.functions.invoke('manageEvent', {
+          action: 'create',
+          business_id: business.id,
+          data: eventPayload,
+        });
+      } catch (err) {
+        console.error('[EventsWidget] Recurring event failed:', err);
       }
-      tempWeek.setDate(tempWeek.getDate() + (eventData.recurrence_pattern === "biweekly" ? 14 : 7));
-    }
-
-    let iteration = 0;
-    while (currentWeekStart <= endDate) {
-      for (const dayNum of selectedDays) {
-        const eventDate = new Date(currentWeekStart);
-        eventDate.setDate(currentWeekStart.getDate() + dayNum);
-
-        if (eventDate >= startDate && eventDate <= endDate) {
-          eventDate.setHours(
-            originalStart.getHours(),
-            originalStart.getMinutes(),
-            0,
-            0
-          );
-          const instanceEnd = new Date(eventDate.getTime() + durationMs);
-          iteration++;
-
-          const eventPayload = {
-            ...eventData,
-            date: eventDate.toISOString(),
-            end_date: instanceEnd.toISOString(),
-            recurring_series_id: seriesId,
-          };
-          try {
-            const result = await base44.functions.invoke('manageEvent', {
-              action: 'create',
-              business_id: business.id,
-              data: eventPayload,
-            });
-          } catch (err) {
-            console.error('[EventsWidget] Recurring event failed:', err);
-          }
-        }
-      }
-      const weeksToAdd = eventData.recurrence_pattern === "biweekly" ? 2 : 1;
-      currentWeekStart = addWeeks(currentWeekStart, weeksToAdd);
     }
 
     return null; // success handled by invalidation
@@ -160,12 +188,7 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
 
   const createMutation = useMutation({
     mutationFn: async (eventData) => {
-      if (
-        eventData.is_recurring &&
-        (eventData.recurrence_pattern === "weekly" ||
-          eventData.recurrence_pattern === "biweekly") &&
-        eventData.recurrence_days?.length > 0
-      ) {
+      if (eventData.is_recurring && eventData.recurrence_pattern) {
         await generateRecurringEvents(eventData);
         return {};
       }
