@@ -129,16 +129,18 @@ export default function BusinessProfile() {
       </div>
 
       {/* Hero Image */}
-      <div className="relative h-64 sm:h-80 bg-slate-900">
-        <img
-          src={business.photos?.[0] || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=600&fit=crop'}
-          alt={business.name}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-      </div>
+      {business.photos?.[0] && (
+        <div className="relative max-h-48 sm:max-h-64 w-full overflow-hidden bg-slate-900">
+          <img
+            src={business.photos[0]}
+            alt={business.name}
+            className="w-full h-full object-contain"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        </div>
+      )}
 
-      <div className="max-w-6xl mx-auto px-4 -mt-20 relative z-10">
+      <div className={`max-w-6xl mx-auto px-4 relative z-10 ${business.photos?.[0] ? '-mt-20' : 'mt-0'}`}>
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">

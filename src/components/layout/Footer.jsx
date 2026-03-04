@@ -142,7 +142,7 @@ export default function Footer() {
             <p className="text-slate-500">
               © {currentYear} Local Lane. All rights reserved.
             </p>
-            <p className="text-slate-500 text-xs mt-1">Built in Eugene, Oregon by Doron Fletcher</p>
+            <p className="text-slate-500 text-xs mt-1">Built in Eugene, Oregon</p>
           </div>
           <p className="text-slate-500">
             Made for Community

@@ -83,8 +83,8 @@ export default function BusinessCard({ business }) {
 
   const locationStr = business.city
     ? business.state
-      ? `${business.city}, ${business.state}`
-      : business.city
+      ? `${business.city.trim()}, ${business.state.trim()}`
+      : business.city.trim()
     : null;
 
   // Resolve network slugs + labels

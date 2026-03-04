@@ -1,6 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useCategories } from '@/hooks/useCategories';
@@ -18,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Search, MapPin, Loader2, SearchX, Coins } from "lucide-react";
 
 export default function Directory() {
-  const navigate = useNavigate();
   const { mainCategories, getMainCategory, getSubcategoryLabel, legacyCategoryMapping } = useCategories();
   const { region, isLoading: regionLoading } = useActiveRegion();
 
@@ -145,10 +142,6 @@ export default function Directory() {
     setSortBy('recommended');
   };
 
-  const handleCategoryTileClick = (categoryId) => {
-    navigate(createPageUrl(`CategoryPage?id=${categoryId}`));
-  };
-
   return (
     <div className="min-h-screen bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -219,12 +212,12 @@ export default function Directory() {
         </div>
 
         {/* Results header */}
-        <div className="flex items-center justify-between mt-4 mb-4">
-          <span className="text-sm text-slate-400">
+        <div className="flex items-center justify-between mt-4 mb-4 gap-2">
+          <span className="text-sm text-slate-400 flex-shrink-0">
             {filteredBusinesses.length} {filteredBusinesses.length === 1 ? 'business' : 'businesses'}
           </span>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[160px] h-9 bg-slate-800 border-slate-700 text-slate-300 text-sm">
+            <SelectTrigger className="w-[140px] sm:w-[160px] h-9 bg-slate-800 border-slate-700 text-slate-300 text-sm">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-700">
@@ -274,26 +267,6 @@ export default function Directory() {
           )}
         </div>
 
-        {/* Browse by Category */}
-        <section className="mt-16 border-t border-slate-800 pt-12">
-          <h2 className="text-xl font-bold text-slate-100">Browse by Category</h2>
-          <p className="text-slate-400 mt-1 mb-6">Explore all {mainCategories.length} categories</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {mainCategories.map((category) => {
-              const Icon = category.icon;
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => handleCategoryTileClick(category.id)}
-                  className="p-3 rounded-lg border border-slate-800 bg-slate-900 hover:border-amber-500/50 hover:bg-slate-800/50 transition-all text-left group flex items-start gap-2.5"
-                >
-                  <Icon className="h-5 w-5 text-slate-400 group-hover:text-amber-500 transition-colors flex-shrink-0 mt-0.5" />
-                  <span className="text-sm font-medium text-slate-200 group-hover:text-white transition-colors">{category.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
       </div>
     </div>
   );
