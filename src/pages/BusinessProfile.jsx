@@ -14,10 +14,11 @@ import NodAvatars from '@/components/recommendations/NodAvatars';
 import VouchCard from '@/components/recommendations/VouchCard';
 import {
   Phone, Mail, Globe, MapPin, Clock, ChevronLeft,
-  Share2, Heart, CheckCircle, Coins, ExternalLink,
+  Share2, CheckCircle, Coins, ExternalLink,
   Loader2, ThumbsUp, BookOpen, Shield, Instagram, Facebook, ShoppingBag
 } from "lucide-react";
 import { formatAddress, buildMapsQuery } from '@/components/locations/formatAddress';
+import { toast } from 'sonner';
 import JoyCoinHours from '@/components/business/JoyCoinHours';
 import { useCategories } from '@/hooks/useCategories';
 import { useConfig } from '@/hooks/useConfig';
@@ -117,14 +118,21 @@ export default function BusinessProfile() {
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back
           </Button>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="hover:bg-slate-800">
-              <Heart className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="hover:bg-slate-800">
-              <Share2 className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hover:bg-slate-800"
+            onClick={() => {
+              const url = window.location.href;
+              navigator.clipboard.writeText(url).then(() => {
+                toast.success('Link copied!');
+              }).catch(() => {
+                toast.error('Could not copy link');
+              });
+            }}
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
