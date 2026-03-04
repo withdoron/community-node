@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import BusinessCard from '@/components/business/BusinessCard';
+import EventCard from '@/components/events/EventCard';
 import { rankBusinesses } from '@/components/business/rankingUtils';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
 import { Button } from "@/components/ui/button";
@@ -30,8 +31,8 @@ export default function Home() {
     mutationFn: async (categoryId) => {
       const existing = categoryClicks.find(c => c.category === categoryId);
       if (existing) {
-        await base44.entities.CategoryClick.update(existing.id, { 
-          click_count: (existing.click_count || 0) + 1 
+        await base44.entities.CategoryClick.update(existing.id, {
+          click_count: (existing.click_count || 0) + 1
         });
       } else {
         await base44.entities.CategoryClick.create({ category: categoryId, click_count: 1 });
@@ -40,7 +41,7 @@ export default function Home() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categoryClicks'] })
   });
 
-  // Top Rated Businesses - filtered by region
+  // Businesses — filtered by region
   const { data: featuredBusinesses = [], isLoading } = useQuery({
     queryKey: ['featured-businesses', region?.id],
     queryFn: async () => {
@@ -49,11 +50,32 @@ export default function Home() {
         '-created_date',
         50
       );
-      // Filter by region, then rank and take top 6
-      const regionalBusinesses = filterBusinessesByRegion(businesses, region);
-      return rankBusinesses(regionalBusinesses).slice(0, 6);
+      return filterBusinessesByRegion(businesses, region);
     },
     enabled: !!region
+  });
+
+  // Shuffle businesses once per data load — random rotation each visit
+  const displayedBusinesses = useMemo(() => {
+    if (!featuredBusinesses?.length) return [];
+    const shuffled = [...featuredBusinesses].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 4);
+  }, [featuredBusinesses]);
+
+  // Upcoming public events — soonest first
+  const { data: upcomingEvents = [] } = useQuery({
+    queryKey: ['homepage-upcoming-events'],
+    queryFn: async () => {
+      const now = new Date().toISOString();
+      const events = await base44.entities.Event.filter(
+        { is_active: true },
+        'date',
+        20
+      );
+      return events
+        .filter((e) => e.date >= now && !e.network_only && e.status !== 'cancelled')
+        .slice(0, 4);
+    }
   });
 
   const handleCategoryClick = (categoryId) => {
@@ -78,12 +100,12 @@ export default function Home() {
           <div className="absolute top-20 left-20 w-72 h-72 bg-amber-400 rounded-full blur-[120px]" />
           <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500 rounded-full blur-[150px]" />
         </div>
-        
+
         <div className="relative max-w-6xl mx-auto px-4 py-20 sm:py-32">
           <div className="text-center max-w-3xl mx-auto">
             <Badge className="mb-6 bg-white/10 text-white border-white/20 hover:bg-white/20">
               <Shield className="h-3 w-3 mr-1" />
-              Ad‑Free · Local · Community-Powered
+              Built in Eugene · For Eugene
             </Badge>
             <h1 className="text-white tracking-tight leading-tight text-center px-4">
               <span className="block text-3xl sm:text-4xl font-semibold mb-3">Discover local</span>
@@ -101,14 +123,14 @@ export default function Home() {
 
           <div className="mt-12 max-w-3xl mx-auto px-4">
             <div className="flex flex-row items-center justify-center gap-3 sm:gap-4">
-              <Button 
+              <Button
                 size="lg"
                 className="bg-amber-400 hover:bg-amber-500 hover:brightness-110 text-slate-900 font-semibold px-6 sm:px-10 py-4 text-base sm:text-lg h-auto flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
                 onClick={() => navigate(createPageUrl('Directory'))}
               >
                 Browse Directory
               </Button>
-              <Button 
+              <Button
                 size="lg"
                 variant="outline"
                 className="bg-transparent hover:bg-transparent text-white border-2 border-white/30 hover:border-amber-500 hover:text-amber-500 font-semibold px-6 sm:px-10 py-4 text-base sm:text-lg h-auto flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
@@ -122,6 +144,33 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Happening Soon — proof of life for first-time visitors */}
+      {upcomingEvents.length > 0 && (
+        <section className="max-w-6xl mx-auto px-4 py-16">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl font-bold text-white">Happening Soon</h2>
+              <p className="text-slate-400 text-sm mt-1">What's coming up in your community</p>
+            </div>
+            <button
+              onClick={() => navigate('/Events')}
+              className="text-amber-500 hover:text-amber-400 text-sm font-medium transition-colors"
+            >
+              View all events →
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {upcomingEvents.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                onClick={() => navigate(`/Events/${event.id}`)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Categories */}
       <section id="categories" className="max-w-6xl mx-auto px-4 py-16">
         <div className="flex items-center justify-between mb-8">
@@ -129,8 +178,8 @@ export default function Home() {
             <h2 className="text-2xl font-bold text-slate-100">Browse by Category</h2>
             <p className="text-slate-400 mt-1">Find exactly what you need</p>
           </div>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className="text-slate-400 hover:text-amber-500"
             onClick={() => navigate(createPageUrl('Directory'))}
           >
@@ -156,16 +205,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Top Rated Businesses (organic, no Featured badge) */}
+      {/* Local Businesses — randomized rotation */}
       <section className="bg-slate-900 py-16">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-2xl font-bold text-slate-100">Local Businesses</h2>
-              <p className="text-slate-400 mt-1">The first to join the community</p>
+              <p className="text-slate-400 mt-1">Discover who's here</p>
             </div>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="text-slate-400 hover:text-amber-500"
               onClick={() => navigate(createPageUrl('Directory'))}
             >
@@ -175,12 +224,12 @@ export default function Home() {
           </div>
 
           {isLoading ? (
-            <div className="grid gap-4">
-              {[1, 2, 3].map((i) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="h-40 bg-slate-800 rounded-xl animate-pulse" />
               ))}
             </div>
-          ) : featuredBusinesses.length === 0 ? (
+          ) : displayedBusinesses.length === 0 ? (
             <div className="text-center py-16 bg-slate-900 border border-slate-800 rounded-xl">
               <Store className="h-12 w-12 text-slate-500 mx-auto mb-3" />
               <p className="text-slate-300 font-medium">No businesses in your area yet</p>
@@ -194,10 +243,10 @@ export default function Home() {
               </Button>
             </div>
           ) : (
-            <div className="grid gap-4">
-              {featuredBusinesses.map((business) => (
-                <BusinessCard 
-                  key={business.id} 
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {displayedBusinesses.map((business) => (
+                <BusinessCard
+                  key={business.id}
                   business={business}
                 />
               ))}
@@ -206,26 +255,26 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why LocalLane */}
+      {/* Why LocalLane — living tile treatment */}
       <section className="max-w-6xl mx-auto px-4 py-16">
         <h2 className="text-2xl font-bold text-slate-100 text-center mb-10">Why use Local Lane?</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-800/90 border border-slate-700 rounded-xl p-6 hover:border-amber-500/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)] hover:-translate-y-0.5 transition-all duration-300 ease-out">
             <ShieldCheck className="h-6 w-6 text-amber-500 mb-3" />
             <h3 className="font-semibold text-lg text-white mb-2">Ad-free, always</h3>
             <p className="text-slate-400 text-sm leading-relaxed">No promoted listings, no pay-to-play. Every business earns its place through community trust.</p>
           </div>
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-800/90 border border-slate-700 rounded-xl p-6 hover:border-amber-500/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)] hover:-translate-y-0.5 transition-all duration-300 ease-out">
             <MapPin className="h-6 w-6 text-amber-500 mb-3" />
             <h3 className="font-semibold text-lg text-white mb-2">Built for Eugene</h3>
             <p className="text-slate-400 text-sm leading-relaxed">Not a national app with a local filter. Made here, for the people who live here.</p>
           </div>
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-800/90 border border-slate-700 rounded-xl p-6 hover:border-amber-500/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)] hover:-translate-y-0.5 transition-all duration-300 ease-out">
             <Users className="h-6 w-6 text-amber-500 mb-3" />
             <h3 className="font-semibold text-lg text-white mb-2">Community-powered</h3>
             <p className="text-slate-400 text-sm leading-relaxed">Your recommendations and participation shape what thrives. The community decides, not an algorithm.</p>
           </div>
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-800/90 border border-slate-700 rounded-xl p-6 hover:border-amber-500/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)] hover:-translate-y-0.5 transition-all duration-300 ease-out">
             <Heart className="h-6 w-6 text-amber-500 mb-3" />
             <h3 className="font-semibold text-lg text-white mb-2">Real connection</h3>
             <p className="text-slate-400 text-sm leading-relaxed">Events, networks, and neighbors — not engagement metrics and data harvesting.</p>
@@ -241,7 +290,7 @@ export default function Home() {
             Whether you run a business, coach a team, or host community gatherings — Local Lane is your place to be seen without paying for ads.
           </p>
           <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 mt-8">
-            <Button 
+            <Button
               size="lg"
               className="bg-amber-400 hover:bg-amber-500 hover:brightness-110 text-slate-900 font-semibold px-6 sm:px-8 py-4 flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
               onClick={() => navigate(createPageUrl('BusinessOnboarding'))}
@@ -249,7 +298,7 @@ export default function Home() {
               List Your Business
               <ChevronRight className="h-4 w-4 ml-2" />
             </Button>
-            <Button 
+            <Button
               size="lg"
               variant="outline"
               className="bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-semibold px-6 sm:px-8 py-4 flex-1 sm:flex-none sm:w-64 transition-all duration-300 ease-out hover:scale-105 hover:shadow-xl"
