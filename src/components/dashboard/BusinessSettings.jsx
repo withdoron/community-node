@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Settings, Store, Star, Zap, Crown, ExternalLink, Mail, Phone, Globe, MapPin, Pencil, Loader2, Upload, Users } from 'lucide-react';
+import { Settings, Store, Star, Zap, Crown, ExternalLink, Mail, Phone, Globe, MapPin, Pencil, Loader2, Upload, Users, ImageIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -83,6 +83,7 @@ export default function BusinessSettings({ business, currentUserId }) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(null);
   const logoInputRef = React.useRef(null);
+  const bannerInputRef = React.useRef(null);
 
   // Compute Select value: must match SelectItem value format "mainId|subId"
   const categorySelectValue = useMemo(() => {
@@ -167,11 +168,43 @@ export default function BusinessSettings({ business, currentUserId }) {
     },
   });
 
+  const bannerUploadMutation = useMutation({
+    mutationFn: async (file) => {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      const url = result?.file_url ?? result?.url;
+      if (!url) throw new Error('No URL returned');
+      // Preserve existing photos beyond the first (banner) slot
+      const existing = business.photos || [];
+      const updated = [url, ...existing.slice(1)];
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update_profile',
+        business_id: business.id,
+        data: { photos: updated },
+      });
+      return url;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUserId] });
+      toast.success('Banner image uploaded successfully');
+    },
+    onError: () => {
+      toast.error('Failed to upload banner image');
+    },
+  });
+
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     logoUploadMutation.mutate(file);
     if (logoInputRef.current) logoInputRef.current.value = '';
+  };
+
+  const handleBannerUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    bannerUploadMutation.mutate(file);
+    if (bannerInputRef.current) bannerInputRef.current.value = '';
   };
 
   const handleChange = (field, value) => {
@@ -604,6 +637,54 @@ export default function BusinessSettings({ business, currentUserId }) {
                   Upload New
                 </Button>
                 <p className="text-xs text-slate-500 mt-1">Recommended: 200x200px, PNG or JPG</p>
+              </div>
+            </div>
+
+            {/* Banner Image */}
+            <div className="space-y-3 pt-2">
+              <div className="border-b border-slate-700 pb-2">
+                <h4 className="text-xs text-slate-400 uppercase tracking-wider">Banner Image</h4>
+              </div>
+              {business?.photos?.[0] ? (
+                <div className="relative rounded-lg overflow-hidden border border-slate-700 bg-slate-900">
+                  <img
+                    src={business.photos[0]}
+                    alt="Banner"
+                    className="w-full max-h-40 object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-32 rounded-lg bg-slate-800 border border-dashed border-slate-600">
+                  <div className="text-center">
+                    <ImageIcon className="h-8 w-8 text-slate-500 mx-auto mb-1" />
+                    <p className="text-xs text-slate-500">No banner image</p>
+                  </div>
+                </div>
+              )}
+              <div>
+                <input
+                  ref={bannerInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  className="hidden"
+                  onChange={handleBannerUpload}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
+                  onClick={() => bannerInputRef.current?.click()}
+                  disabled={bannerUploadMutation.isPending}
+                >
+                  {bannerUploadMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-2" />
+                  )}
+                  {business?.photos?.[0] ? 'Change Banner' : 'Upload Banner Image'}
+                </Button>
+                <p className="text-xs text-slate-500 mt-1">Recommended: 1200x400px, PNG or JPG. Shown on your public profile page.</p>
               </div>
             </div>
 

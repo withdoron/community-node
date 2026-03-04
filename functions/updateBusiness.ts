@@ -11,6 +11,7 @@ const PROFILE_ALLOWLIST = [
   'accepts_joy_coins', 'accepts_silver', 'services',
   'business_hours', 'subcategory', 'subcategories', 'archetype',
   'shop_url', 'services_offered', 'service_area',
+  'photos',
 ];
 
 const ADMIN_EXTRA_ALLOWLIST = [
