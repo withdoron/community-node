@@ -4,11 +4,12 @@
  * Lists active networks as typographic living tiles with link to /networks/:slug.
  */
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useConfig } from '@/hooks/useConfig';
 import { Loader2, ArrowLeft } from 'lucide-react';
 
 export default function Networks() {
+  const navigate = useNavigate();
   const { data: networksConfig = [], isLoading } = useConfig('platform', 'networks');
   const networks = (networksConfig || []).filter((n) => n.active !== false);
 
@@ -23,13 +24,14 @@ export default function Networks() {
   return (
     <div className="min-h-screen bg-slate-950">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <Link
-          to="/MyLane"
+        <button
+          type="button"
+          onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/MyLane')}
           className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-amber-500 transition-colors mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
-          MyLane
-        </Link>
+          Back
+        </button>
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white">Networks</h1>
           <p className="text-slate-400 mt-1">Explore community networks and their events.</p>

@@ -4,7 +4,7 @@
  * Public page; follow/unfollow requires auth.
  */
 import React, { useState, useMemo, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useConfig } from '@/hooks/useConfig';
@@ -17,6 +17,7 @@ import { Loader2, Store, Calendar, ArrowLeft, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function NetworkPage() {
+  const navigate = useNavigate();
   const { slug } = useParams();
   const queryClient = useQueryClient();
   const [expandedEvent, setExpandedEvent] = useState(null);
@@ -148,13 +149,14 @@ export default function NetworkPage() {
     <div className="min-h-screen bg-slate-950">
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         {/* Back button */}
-        <Link
-          to="/networks"
+        <button
+          type="button"
+          onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/MyLane')}
           className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-amber-500 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Networks
-        </Link>
+          Back
+        </button>
 
         {/* Network image banner */}
         {network.image?.trim() && (
