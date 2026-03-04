@@ -169,7 +169,7 @@ export default function NetworkPage() {
 
         {/* Header */}
         <div className="space-y-4">
-          <h1 className="text-3xl font-bold text-white">{displayName}</h1>
+          <h1 className="font-serif text-3xl font-bold text-white">{displayName}</h1>
           {tagline && <p className="text-slate-400 text-lg">{tagline}</p>}
           <div className="flex flex-wrap items-center gap-3">
             {!currentUser ? (
@@ -205,7 +205,7 @@ export default function NetworkPage() {
 
         {/* Description */}
         {description && (
-          <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-800/90 border border-slate-700 rounded-lg p-6">
             <p className="text-slate-300 whitespace-pre-line">{description}</p>
           </div>
         )}
@@ -218,7 +218,7 @@ export default function NetworkPage() {
                 key={url}
                 type="button"
                 onClick={() => setLightboxImage(url)}
-                className="aspect-square w-full rounded-lg overflow-hidden bg-slate-800 border border-slate-700 hover:border-amber-500/50 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="aspect-square w-full rounded-lg overflow-hidden bg-slate-800 border border-slate-700 hover:border-amber-500/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)] transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
                 <img src={url} alt="" className="w-full h-full object-cover" />
               </button>
@@ -228,7 +228,7 @@ export default function NetworkPage() {
 
         {/* Upcoming Events */}
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          <h2 className="font-serif text-xl font-bold text-white flex items-center gap-2">
             <Calendar className="h-5 w-5 text-amber-500" />
             Upcoming Events
             <span className="text-slate-400 font-normal text-base">({upcomingEvents.length})</span>
@@ -248,7 +248,7 @@ export default function NetworkPage() {
 
         {/* Network Businesses */}
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          <h2 className="font-serif text-xl font-bold text-white flex items-center gap-2">
             <Store className="h-5 w-5 text-amber-500" />
             Businesses in {displayName}
             <span className="text-slate-400 font-normal text-base">({businesses.length})</span>

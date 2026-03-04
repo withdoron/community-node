@@ -1,11 +1,11 @@
 /**
  * My Networks section for MyLane — discovery (no networks) vs navigation (following networks).
  * DEC-050: follow/unfollow lives on NetworkPage; here we only link to network pages.
+ * DEC-060: Living tile aesthetic — typographic cards with amber accent, warm hover.
  */
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useConfig } from '@/hooks/useConfig';
-import { ChevronRight } from 'lucide-react';
 
 const TAGLINE_FALLBACK = {
   recess: 'Move your body, build your crew',
@@ -37,7 +37,7 @@ export default function MyNetworksSection({ currentUser }) {
           {[1, 2].map((i) => (
             <div
               key={i}
-              className="h-24 rounded-xl border border-slate-700 bg-slate-800/50 animate-pulse"
+              className="h-24 rounded-lg border border-slate-700 bg-slate-800/50 animate-pulse"
             />
           ))}
         </div>
@@ -64,15 +64,11 @@ export default function MyNetworksSection({ currentUser }) {
               <Link
                 key={value}
                 to={`/networks/${value}`}
-                className="block rounded-xl p-5 hover:border-amber-500/50 cursor-pointer transition-colors text-left min-h-[100px] bg-slate-900 border border-slate-800"
+                className="block rounded-lg p-5 cursor-pointer text-left bg-gradient-to-br from-slate-800 to-slate-800/90 border border-slate-700 hover:border-amber-500/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)] hover:-translate-y-0.5 transition-all duration-300 ease-out border-l-4 border-l-amber-500/60"
+                data-vitality="neutral"
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <h3 className="text-lg font-semibold text-slate-100">{label}</h3>
-                    {tagline && <p className="text-sm text-slate-400 mt-1">{tagline}</p>}
-                  </div>
-                  <ChevronRight className="h-5 w-5 shrink-0 text-slate-600" aria-hidden />
-                </div>
+                <h3 className="font-serif text-lg font-semibold text-white">{label}</h3>
+                {tagline && <p className="text-sm text-slate-400 mt-1">{tagline}</p>}
               </Link>
             );
           })}
@@ -102,15 +98,11 @@ export default function MyNetworksSection({ currentUser }) {
             <Link
               key={value}
               to={`/networks/${value}`}
-              className="block rounded-xl p-4 hover:border-amber-500/50 cursor-pointer transition-colors text-left min-h-[88px] bg-slate-900 border border-amber-500/30"
+              className="block rounded-lg p-4 cursor-pointer text-left bg-gradient-to-br from-slate-800 to-slate-800/90 border border-amber-500/30 hover:border-amber-500/50 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)] hover:-translate-y-0.5 transition-all duration-300 ease-out border-l-4 border-l-amber-500/60"
+              data-vitality="neutral"
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <h3 className="text-base font-semibold text-slate-100">{label}</h3>
-                  {tagline && <p className="text-sm text-slate-400 mt-0.5">{tagline}</p>}
-                </div>
-                <ChevronRight className="h-5 w-5 shrink-0 text-amber-500/50" aria-hidden />
-              </div>
+              <h3 className="font-serif text-base font-semibold text-white">{label}</h3>
+              {tagline && <p className="text-sm text-slate-400 mt-0.5">{tagline}</p>}
             </Link>
           );
         })}
