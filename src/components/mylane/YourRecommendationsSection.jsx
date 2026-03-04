@@ -57,12 +57,12 @@ export default function YourRecommendationsSection({ recommendations }) {
                       </Badge>
                     )}
                     {userRecs.some((r) => r.type === 'story') && (
-                      <Badge className="bg-purple-500/10 text-purple-400 border-purple-500/30 text-xs">
+                      <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/30 text-xs">
                         📖 Story
                       </Badge>
                     )}
                     {userRecs.some((r) => r.type === 'vouch') && (
-                      <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-xs">
+                      <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/30 text-xs">
                         🛡️ Vouched
                       </Badge>
                     )}

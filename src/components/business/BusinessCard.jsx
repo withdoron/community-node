@@ -10,7 +10,7 @@ import { getTierLabel } from '@/components/business/rankingUtils';
 
 const DARK_TIER_BADGE_CLASSES = {
   partner: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  standard: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  standard: 'bg-slate-700/50 text-slate-300 border-slate-600',
   basic: 'bg-slate-800 text-slate-400 border-slate-700'
 };
 
@@ -78,7 +78,7 @@ export default function BusinessCard({ business, badgeSettings = null, locationC
         {/* Badges overlay top-left */}
         <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1">
           {showNewToLocalLane && (
-            <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs">
+            <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs">
               New to LocalLane
             </Badge>
           )}

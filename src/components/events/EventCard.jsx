@@ -89,7 +89,7 @@ export default function EventCard({ event, onClick }) {
                 </Badge>
               )}
               {!isJoyCoinEvent && priceBadge && (
-                <Badge className={priceBadge.green ? 'bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg' : 'bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg'}>
+                <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
                   {priceBadge.text}
                 </Badge>
               )}

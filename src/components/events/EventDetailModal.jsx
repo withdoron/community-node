@@ -197,11 +197,11 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
               {/* Header with close button */}
               <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/95 backdrop-blur-sm">
                 <div className="flex-1 pr-8">
-                  <h1 className={`text-xl sm:text-2xl font-bold ${isCancelled ? 'text-red-400 line-through' : 'text-white'}`}>
+                  <h1 className={`text-xl sm:text-2xl font-bold ${isCancelled ? 'text-slate-400 line-through' : 'text-white'}`}>
                     {event.title}
                   </h1>
                   {isCancelled && (
-                    <Badge className="mt-2 bg-red-500 text-white border-0 rounded-full px-3 py-1 font-semibold">
+                    <Badge className="mt-2 bg-slate-700 text-slate-300 border-0 rounded-full px-3 py-1 font-semibold">
                       EVENT CANCELLED
                     </Badge>
                   )}
@@ -257,7 +257,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                     />
                     <div className="absolute top-4 right-4 flex flex-col gap-2">
                       {isCancelled ? (
-                        <Badge className="bg-red-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
+                        <Badge className="bg-slate-700 text-slate-300 border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
                           CANCELLED
                         </Badge>
                       ) : (
@@ -274,7 +274,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                             </Badge>
                           )}
                           {!acceptsJoyCoins && priceBadge && (
-                            <Badge className={priceBadge.green ? 'bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold shadow-lg' : 'bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg'}>
+                            <Badge className={'bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg'}>
                               {priceBadge.text}
                             </Badge>
                           )}
@@ -299,7 +299,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                       </Badge>
                     )}
                     {!acceptsJoyCoins && priceBadge && (
-                      <Badge className={priceBadge.green ? 'bg-emerald-500 text-white border-0 rounded-full px-3 py-1 font-semibold' : 'bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold'}>
+                      <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold">
                         {priceBadge.text}
                       </Badge>
                     )}
@@ -522,7 +522,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                         {hasJoyCoins && !joyCoinsLoading && (
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-slate-400">Your balance</span>
-                            <span className={hasEnoughJoyCoins ? 'text-slate-200' : 'text-red-400'}>
+                            <span className={hasEnoughJoyCoins ? 'text-slate-200' : 'text-amber-400'}>
                               {joyCoinBalance} coins {!hasEnoughJoyCoins && totalCost > joyCoinBalance && `(need ${totalCost - joyCoinBalance} more)`}
                             </span>
                           </div>
@@ -584,7 +584,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                       </div>
                     )}
                     {currentUser && hasJoyCoins && !joyCoinsLoading && (isGoing || rsvpConfirmation !== null) && (
-                      <span className={`text-sm font-medium ${hasEnoughJoyCoins ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <span className={`text-sm font-medium ${hasEnoughJoyCoins ? 'text-amber-400' : 'text-slate-400'}`}>
                         Your balance: {joyCoinBalance}
                       </span>
                     )}
@@ -654,7 +654,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                   <div className="space-y-3 pt-2">
                     {rsvpConfirmation === 'going' && (
                       <div className="space-y-3">
-                        <div className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold">
+                        <div className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 font-semibold">
                           <CheckCircle2 className="h-5 w-5" />
                           You&apos;re in! See you there.
                         </div>
@@ -755,7 +755,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                           isGoing ? (
                             cancelConfirming && hasJoyCoinReservation ? (
                               <div className="space-y-3">
-                                <div className={`py-3 px-4 rounded-lg text-sm font-medium ${willRefundOnCancel ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'}`}>
+                                <div className={`py-3 px-4 rounded-lg text-sm font-medium ${willRefundOnCancel ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400' : 'bg-slate-700 border border-slate-600 text-slate-300'}`}>
                                   {willRefundOnCancel
                                     ? `${joyCoinCancelAmount} coin${joyCoinCancelAmount !== 1 ? 's' : ''} will be refunded`
                                     : `${joyCoinCancelAmount} coin${joyCoinCancelAmount !== 1 ? 's' : ''} will be forfeited (outside refund window)`}
