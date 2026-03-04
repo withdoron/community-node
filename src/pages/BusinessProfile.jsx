@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -20,6 +20,7 @@ import {
 import { formatAddress, buildMapsQuery } from '@/components/locations/formatAddress';
 import { toast } from 'sonner';
 import JoyCoinHours from '@/components/business/JoyCoinHours';
+import EventCard from '@/components/events/EventCard';
 import { useCategories } from '@/hooks/useCategories';
 import { useConfig } from '@/hooks/useConfig';
 
@@ -76,6 +77,24 @@ export default function BusinessProfile() {
 
   // Primary location (first one, or use business-level address as fallback)
   const primaryLocation = locations[0] || null;
+
+  // Fetch upcoming events for this business
+  const { data: allBusinessEvents = [] } = useQuery({
+    queryKey: ['business-events', businessId],
+    queryFn: async () => {
+      return await base44.entities.Event.filter({ business_id: businessId, is_active: true }, 'date', 50);
+    },
+    enabled: !!businessId
+  });
+
+  const upcomingEvents = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return allBusinessEvents
+      .filter(e => !e.is_deleted && new Date(e.date) >= today)
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .slice(0, 4);
+  }, [allBusinessEvents]);
 
   // Resolve network slugs + labels
   const networks = (business?.network_ids || [])
@@ -231,6 +250,32 @@ export default function BusinessProfile() {
                 </div>
               )}
             </Card>
+
+            {/* Upcoming Events */}
+            {upcomingEvents.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-semibold text-white font-serif">Upcoming Events</h2>
+                  <Link
+                    to="/Events"
+                    className="text-sm text-amber-500 hover:text-amber-400 transition-colors"
+                  >
+                    See all
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {upcomingEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      onClick={(clickedEvent) => {
+                        navigate(`/Events/${(clickedEvent || event).id}`);
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Tabs */}
             <Tabs defaultValue="services" className="w-full">
