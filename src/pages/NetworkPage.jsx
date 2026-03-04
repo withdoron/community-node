@@ -4,7 +4,7 @@
  * Public page; follow/unfollow requires auth.
  */
 import React, { useState, useMemo, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useConfig } from '@/hooks/useConfig';

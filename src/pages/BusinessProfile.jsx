@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -14,7 +14,7 @@ import NodAvatars from '@/components/recommendations/NodAvatars';
 import VouchCard from '@/components/recommendations/VouchCard';
 import {
   Phone, Mail, Globe, MapPin, Clock, ChevronLeft,
-  Share2, Heart, CheckCircle, Coins, Navigation, ExternalLink,
+  Share2, Heart, CheckCircle, Coins, ExternalLink,
   Loader2, ThumbsUp, BookOpen, Shield, Instagram, Facebook, ShoppingBag
 } from "lucide-react";
 import { formatAddress, buildMapsQuery } from '@/components/locations/formatAddress';
