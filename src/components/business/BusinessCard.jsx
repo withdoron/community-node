@@ -87,13 +87,14 @@ export default function BusinessCard({ business }) {
       : business.city
     : null;
 
-  // Resolve network labels from slugs
-  const networkLabels = (business.network_ids || [])
+  // Resolve network slugs + labels
+  const networks = (business.network_ids || [])
     .map((slug) => {
       const match = Array.isArray(networksConfig)
         ? networksConfig.find((n) => n.value === slug)
         : null;
-      return match?.label || slug?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      const label = match?.label || slug?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      return label ? { slug, label } : null;
     })
     .filter(Boolean);
 
@@ -132,15 +133,17 @@ export default function BusinessCard({ business }) {
       )}
 
       {/* Network chips */}
-      {networkLabels.length > 0 && (
+      {networks.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-3">
-          {networkLabels.map((label) => (
-            <span
-              key={label}
-              className="bg-amber-500/10 text-amber-500 text-xs px-2 py-0.5 rounded-full"
+          {networks.map(({ slug, label }) => (
+            <Link
+              key={slug}
+              to={`/networks/${slug}`}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-amber-500/10 text-amber-500 text-xs px-2 py-0.5 rounded-full hover:bg-amber-500/20 transition-colors"
             >
               {label}
-            </span>
+            </Link>
           ))}
         </div>
       )}

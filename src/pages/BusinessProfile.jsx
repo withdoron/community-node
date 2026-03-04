@@ -20,6 +20,7 @@ import {
 import { formatAddress, buildMapsQuery } from '@/components/locations/formatAddress';
 import JoyCoinHours from '@/components/business/JoyCoinHours';
 import { useCategories } from '@/hooks/useCategories';
+import { useConfig } from '@/hooks/useConfig';
 
 function getCategoryDisplayLabel(business, getLabel, legacyCategoryMapping) {
   const fromMain = getLabel(business.main_category, business.subcategory);
@@ -36,6 +37,7 @@ function getCategoryDisplayLabel(business, getLabel, legacyCategoryMapping) {
 export default function BusinessProfile() {
   const navigate = useNavigate();
   const { getLabel, legacyCategoryMapping } = useCategories();
+  const { data: networksConfig = [] } = useConfig('platform', 'networks');
   const urlParams = new URLSearchParams(window.location.search);
   const businessId = urlParams.get('id');
 
@@ -73,6 +75,17 @@ export default function BusinessProfile() {
 
   // Primary location (first one, or use business-level address as fallback)
   const primaryLocation = locations[0] || null;
+
+  // Resolve network slugs + labels
+  const networks = (business?.network_ids || [])
+    .map((slug) => {
+      const match = Array.isArray(networksConfig)
+        ? networksConfig.find((n) => n.value === slug)
+        : null;
+      const label = match?.label || slug?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      return label ? { slug, label } : null;
+    })
+    .filter(Boolean);
 
   if (businessLoading) {
     return (
@@ -133,7 +146,7 @@ export default function BusinessProfile() {
             <Card className="p-6">
               <div className="flex items-start gap-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
                     <Badge variant="secondary" className="bg-slate-800 text-slate-300">
                       {getCategoryDisplayLabel(business, getLabel, legacyCategoryMapping)}
                     </Badge>
@@ -155,6 +168,15 @@ export default function BusinessProfile() {
                         Accepts Joy Coins
                       </Badge>
                     )}
+                    {networks.map(({ slug, label }) => (
+                      <Link
+                        key={slug}
+                        to={`/networks/${slug}`}
+                        className="bg-amber-500/10 text-amber-500 text-xs px-2 py-0.5 rounded-full hover:bg-amber-500/20 transition-colors"
+                      >
+                        {label}
+                      </Link>
+                    ))}
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-white">{business.name}</h1>
                   {business.subcategory?.trim() && (
