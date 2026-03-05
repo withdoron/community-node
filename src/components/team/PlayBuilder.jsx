@@ -305,7 +305,7 @@ export default function PlayBuilder({
         tags: tags.join(','),
         coach_notes: coachNotes.trim() || null,
         custom_positions:
-          customPositions.length > 0 ? JSON.stringify(customPositions) : null,
+          customPositions.length > 0 ? customPositions : null,
         status: 'active',
       };
 
@@ -341,9 +341,7 @@ export default function PlayBuilder({
             start_x: Math.round(pos.x * 10) / 10,
             start_y: Math.round(pos.y * 10) / 10,
             movement_type: route.movementType || '',
-            route_path: route.routePath
-              ? JSON.stringify(route.routePath)
-              : null,
+            route_path: route.routePath || null,
             assignment_text: route.assignmentText || '',
           };
 
@@ -383,9 +381,7 @@ export default function PlayBuilder({
             start_x: Math.round(pos.x * 10) / 10,
             start_y: Math.round(pos.y * 10) / 10,
             movement_type: route.movementType || '',
-            route_path: route.routePath
-              ? JSON.stringify(route.routePath)
-              : null,
+            route_path: route.routePath || null,
             assignment_text: route.assignmentText || '',
           });
         }
