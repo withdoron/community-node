@@ -107,7 +107,7 @@ const formations = {
 // fieldSide: 'left' (x < 50), 'right' (x > 50), 'center' (x === 50)
 // "toward center" = right from left side, left from right side
 // "toward sideline" = left from left side, right from right side
-// Y axis: lower Y = further upfield (offense faces up). ~1.5 units per yard.
+// Y axis: lower Y = further upfield (offense faces up). ~2.5 units per yard.
 function getFieldSide(startX) {
   if (startX < 45) return 'left';
   if (startX > 55) return 'right';
@@ -124,84 +124,206 @@ function sidelineDir(fieldSide) {
   return -centerDir(fieldSide);
 }
 
+// Clamp coordinates to stay within field bounds
+function clamp(val, min, max) {
+  return Math.max(min, Math.min(max, val));
+}
+function clampPt(x, y) {
+  return { x: clamp(x, 5, 95), y: clamp(y, 5, 95) };
+}
+
 const routeTemplates = {
+  // ——— Receiver routes ———
   slant: ({ startX, startY, fieldSide }) => {
     const cd = centerDir(fieldSide);
     return [
       { x: startX, y: startY },
-      { x: startX, y: startY - 3 },
-      { x: startX + 8 * cd, y: startY - 11 },
+      clampPt(startX, startY - 5),
+      clampPt(startX + 12 * cd, startY - 17),
     ];
   },
   out: ({ startX, startY, fieldSide }) => {
     const sd = sidelineDir(fieldSide);
     return [
       { x: startX, y: startY },
-      { x: startX, y: startY - 12 },
-      { x: startX + 10 * sd, y: startY - 12 },
+      clampPt(startX, startY - 12),
+      clampPt(startX + 15 * sd, startY - 12),
     ];
   },
   post: ({ startX, startY, fieldSide }) => {
     const cd = centerDir(fieldSide);
     return [
       { x: startX, y: startY },
-      { x: startX, y: startY - 15 },
-      { x: startX + 10 * cd, y: startY - 25 },
+      clampPt(startX, startY - 20),
+      clampPt(startX + 12 * cd, startY - 32),
     ];
   },
   fly: ({ startX, startY }) => {
     return [
       { x: startX, y: startY },
-      { x: startX, y: startY - 25 },
+      clampPt(startX, startY - 35),
     ];
   },
   curl: ({ startX, startY }) => {
     return [
       { x: startX, y: startY },
-      { x: startX, y: startY - 12 },
-      { x: startX, y: startY - 10 },
+      clampPt(startX, startY - 18),
+      clampPt(startX, startY - 15),
     ];
   },
   drag: ({ startX, startY, fieldSide }) => {
     const cd = centerDir(fieldSide);
     return [
       { x: startX, y: startY },
-      { x: startX, y: startY - 3 },
-      { x: startX + 20 * cd, y: startY - 3 },
+      clampPt(startX, startY - 5),
+      clampPt(startX + 30 * cd, startY - 5),
     ];
   },
   flat: ({ startX, startY, fieldSide }) => {
     const sd = sidelineDir(fieldSide);
     return [
       { x: startX, y: startY },
-      { x: startX + 10 * sd, y: startY - 7 },
+      clampPt(startX + 15 * sd, startY - 15),
     ];
   },
   corner: ({ startX, startY, fieldSide }) => {
     const sd = sidelineDir(fieldSide);
     return [
       { x: startX, y: startY },
-      { x: startX, y: startY - 15 },
-      { x: startX + 10 * sd, y: startY - 25 },
+      clampPt(startX, startY - 20),
+      clampPt(startX + 12 * sd, startY - 32),
     ];
   },
   hitch: ({ startX, startY }) => {
     return [
       { x: startX, y: startY },
-      { x: startX, y: startY - 8 },
-      { x: startX, y: startY - 7 },
+      clampPt(startX, startY - 12),
+      clampPt(startX, startY - 10),
     ];
   },
   block: ({ startX, startY }) => {
     return [{ x: startX, y: startY }];
   },
+
+  // ——— QB routes ———
+  drop_back: ({ startX, startY }) => {
+    return [
+      { x: startX, y: startY },
+      clampPt(startX, startY + 8),
+    ];
+  },
+  rollout_left: ({ startX, startY }) => {
+    return [
+      { x: startX, y: startY },
+      clampPt(startX, startY + 5),
+      clampPt(startX - 15, startY + 5),
+    ];
+  },
+  rollout_right: ({ startX, startY }) => {
+    return [
+      { x: startX, y: startY },
+      clampPt(startX, startY + 5),
+      clampPt(startX + 15, startY + 5),
+    ];
+  },
+  pitch_left: ({ startX, startY }) => {
+    return [
+      { x: startX, y: startY },
+      clampPt(startX - 10, startY + 3),
+    ];
+  },
+  pitch_right: ({ startX, startY }) => {
+    return [
+      { x: startX, y: startY },
+      clampPt(startX + 10, startY + 3),
+    ];
+  },
+  keeper: ({ startX, startY }) => {
+    return [
+      { x: startX, y: startY },
+      clampPt(startX, startY - 15),
+    ];
+  },
+  scramble: ({ startX, startY }) => {
+    return [
+      { x: startX, y: startY },
+      clampPt(startX + 10, startY),
+      clampPt(startX + 10, startY - 10),
+    ];
+  },
+  handoff: ({ startX, startY }) => {
+    return [
+      { x: startX, y: startY },
+      clampPt(startX, startY - 2),
+    ];
+  },
+
+  // ——— Center routes ———
+  snap_block: ({ startX, startY }) => {
+    return [{ x: startX, y: startY }];
+  },
+  pull_left: ({ startX, startY }) => {
+    return [
+      { x: startX, y: startY },
+      clampPt(startX - 20, startY),
+      clampPt(startX - 20, startY - 8),
+    ];
+  },
+  pull_right: ({ startX, startY }) => {
+    return [
+      { x: startX, y: startY },
+      clampPt(startX + 20, startY),
+      clampPt(startX + 20, startY - 8),
+    ];
+  },
+
+  // ——— RB routes ———
+  sweep_left: ({ startX, startY }) => {
+    return [
+      { x: startX, y: startY },
+      clampPt(startX - 25, startY),
+      clampPt(startX - 25, startY - 15),
+    ];
+  },
+  sweep_right: ({ startX, startY }) => {
+    return [
+      { x: startX, y: startY },
+      clampPt(startX + 25, startY),
+      clampPt(startX + 25, startY - 15),
+    ];
+  },
+  dive: ({ startX, startY }) => {
+    return [
+      { x: startX, y: startY },
+      clampPt(startX, startY - 15),
+    ];
+  },
+  screen: ({ startX, startY, fieldSide }) => {
+    const sd = sidelineDir(fieldSide);
+    return [
+      { x: startX, y: startY },
+      clampPt(startX + 15 * sd, startY),
+      clampPt(startX + 15 * sd, startY - 10),
+    ];
+  },
+  delay: ({ startX, startY, fieldSide }) => {
+    const sd = sidelineDir(fieldSide);
+    return [
+      { x: startX, y: startY },
+      clampPt(startX, startY - 2),
+      clampPt(startX, startY - 10),
+      clampPt(startX + 10 * sd, startY - 10),
+    ];
+  },
+
+  // ——— Custom freehand ———
   custom: () => {
     return [];
   },
 };
 
-// ——— Offense Route Options ———
-const OFFENSE_ROUTES = [
+// ——— Position-Specific Route Menus ———
+const RECEIVER_ROUTES = [
   { id: 'slant', label: 'Slant' },
   { id: 'out', label: 'Out' },
   { id: 'post', label: 'Post' },
@@ -214,6 +336,45 @@ const OFFENSE_ROUTES = [
   { id: 'block', label: 'Block' },
   { id: 'custom', label: 'Custom' },
 ];
+
+const POSITION_ROUTES = {
+  QB: [
+    { id: 'drop_back', label: 'Drop Back' },
+    { id: 'rollout_left', label: 'Rollout Left' },
+    { id: 'rollout_right', label: 'Rollout Right' },
+    { id: 'pitch_left', label: 'Pitch Left' },
+    { id: 'pitch_right', label: 'Pitch Right' },
+    { id: 'keeper', label: 'Keeper' },
+    { id: 'scramble', label: 'Scramble' },
+    { id: 'handoff', label: 'Handoff' },
+    { id: 'custom', label: 'Custom' },
+  ],
+  C: [
+    { id: 'snap_block', label: 'Snap & Block' },
+    { id: 'pull_left', label: 'Pull Left' },
+    { id: 'pull_right', label: 'Pull Right' },
+    { id: 'block', label: 'Block' },
+    { id: 'custom', label: 'Custom' },
+  ],
+  RB: [
+    { id: 'sweep_left', label: 'Sweep Left' },
+    { id: 'sweep_right', label: 'Sweep Right' },
+    { id: 'dive', label: 'Dive' },
+    { id: 'screen', label: 'Screen' },
+    { id: 'flat', label: 'Flat' },
+    { id: 'delay', label: 'Delay' },
+    { id: 'block', label: 'Block' },
+    { id: 'custom', label: 'Custom' },
+  ],
+  X: RECEIVER_ROUTES,
+  Z: RECEIVER_ROUTES,
+  // 7v7 positions
+  Y: RECEIVER_ROUTES,
+  TE: RECEIVER_ROUTES,
+};
+
+// Legacy export — full receiver route list (kept for backward compat)
+const OFFENSE_ROUTES = RECEIVER_ROUTES;
 
 const DEFAULT_FORMAT = '5v5';
 
@@ -233,6 +394,14 @@ function getFormationDefaults(formationId, formatId) {
   return result;
 }
 
+/**
+ * Get the route menu for a given position ID.
+ * Falls back to receiver routes for unknown/custom positions.
+ */
+function getRoutesForPosition(positionId) {
+  return POSITION_ROUTES[positionId] || RECEIVER_ROUTES;
+}
+
 // ——— Custom Position Colors ———
 const CUSTOM_POSITION_COLORS = [
   '#94a3b8', '#d4a046', '#22c55e', '#3b82f6',
@@ -250,8 +419,11 @@ export const FLAG_FOOTBALL = {
 
 export {
   OFFENSE_ROUTES,
+  POSITION_ROUTES,
+  RECEIVER_ROUTES,
   DEFAULT_FORMAT,
   CUSTOM_POSITION_COLORS,
   getPositionsForFormat,
   getFormationDefaults,
+  getRoutesForPosition,
 };

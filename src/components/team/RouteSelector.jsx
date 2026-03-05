@@ -1,13 +1,14 @@
 import React from 'react';
 import { X, Pencil, Trash2 } from 'lucide-react';
-import { OFFENSE_ROUTES } from '@/config/flagFootball';
+import { getRoutesForPosition } from '@/config/flagFootball';
 
 /**
  * Route assignment panel for a single position.
- * Shows route preset grid, custom draw button, clear, and assignment text.
+ * Shows position-specific route grid, custom draw button, clear, and assignment text.
  */
 export default function RouteSelector({
   position, // { id, label, shortLabel, color }
+  positionId, // position ID for route menu lookup (e.g. 'QB', 'X', 'custom_123')
   currentRoute, // { movementType, routePath } or null
   onSelectPreset, // (routeId: string) => void
   onDrawCustom, // () => void
@@ -17,6 +18,9 @@ export default function RouteSelector({
   onClose, // () => void — dismiss the panel
 }) {
   const currentMovement = currentRoute?.movementType || '';
+  const routes = getRoutesForPosition(positionId || position?.id);
+  // Separate custom from presets
+  const presetRoutes = routes.filter((r) => r.id !== 'custom');
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
@@ -58,7 +62,7 @@ export default function RouteSelector({
         <div>
           <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Route</p>
           <div className="grid grid-cols-3 gap-2">
-            {OFFENSE_ROUTES.filter((r) => r.id !== 'custom').map((route) => {
+            {presetRoutes.map((route) => {
               const isActive = currentMovement === route.id;
               return (
                 <button

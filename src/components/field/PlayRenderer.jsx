@@ -99,8 +99,11 @@ export default function PlayRenderer({
   const isInteractive = mode === 'sideline' || (mode === 'view' && !!onPositionTap);
   const isMini = mode === 'mini';
 
+  // min-height per mode: mini = none, view/study = responsive, sideline = none (flex fills)
+  const heightClass = isMini ? '' : 'min-h-[200px] md:min-h-[300px]';
+
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${heightClass} ${className}`}>
       <FlagFootballField
         viewBox={viewBox}
         showScrimmage={!isMini}

@@ -193,7 +193,7 @@ export default function StudyMode({
           <div className="p-4 pb-2 flex-1 flex flex-col">
             {/* Diagram — visual renderer or photo */}
             {play.use_renderer ? (
-              <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 flex-shrink-0">
+              <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 flex-shrink-0" style={{ minHeight: '40vh' }}>
                 <PlayRenderer
                   play={play}
                   assignments={currentAssignments}

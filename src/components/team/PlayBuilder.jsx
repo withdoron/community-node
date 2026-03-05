@@ -450,7 +450,7 @@ export default function PlayBuilder({
 
       {/* SVG Field */}
       <div
-        className="relative rounded-xl overflow-hidden border border-slate-700"
+        className="relative rounded-xl overflow-hidden border border-slate-700 min-h-[250px] md:min-h-[350px]"
         style={{ touchAction: isDrawingRoute ? 'none' : 'auto' }}
       >
         <FlagFootballField viewBox={viewBox} showScrimmage scrimmageY={55}>
@@ -609,6 +609,7 @@ export default function PlayBuilder({
           {routePanelOpen && (
             <RouteSelector
               position={selectedConfig}
+              positionId={selectedPosition}
               currentRoute={routes[selectedPosition] || null}
               onSelectPreset={handleSelectPresetRoute}
               onDrawCustom={handleDrawCustom}
