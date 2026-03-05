@@ -19,7 +19,7 @@ export const QUIZ_TYPES = {
   identify_route: {
     id: 'identify_route',
     label: 'Identify the Route',
-    description: 'See a position highlighted, name the route',
+    description: 'See a route on the field, name it',
     icon: 'Route',
   },
 };

@@ -27,7 +27,7 @@ export default function PlayRenderer({
   const viewBox = FLAG_FOOTBALL.field.viewBox;
 
   // Backward compat: don't render for photo-based plays
-  if (!play?.use_renderer) return null;
+  if (play?.use_renderer !== true && play?.use_renderer !== 'true') return null;
 
   // Build position config map (base + custom)
   const formatId = play.format || DEFAULT_FORMAT;

@@ -338,25 +338,26 @@ export default function QuizMode({
         {/* Question area */}
         <div className="flex-1 overflow-y-auto flex flex-col p-4 min-h-0">
           {/* Visual area */}
-          {selectedType === 'name_that_play' && q.play.use_renderer ? (
-            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4" style={{ minHeight: '35vh' }}>
+          {selectedType === 'name_that_play' && (q.play.use_renderer === true || q.play.use_renderer === 'true') ? (
+            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 max-h-[250px] md:max-h-[350px]">
               <PlayRenderer
                 play={q.play}
                 assignments={q.assignments}
                 mode="view"
+                className="w-full h-full max-h-[250px] md:max-h-[350px]"
               />
             </div>
           ) : selectedType === 'name_that_play' && q.play.diagram_image ? (
             <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4">
               <img src={q.play.diagram_image} alt="" className="w-full aspect-video object-contain" />
             </div>
-          ) : selectedType === 'identify_route' && q.play.use_renderer ? (
-            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4" style={{ minHeight: '35vh' }}>
+          ) : selectedType === 'identify_route' && q.routePath ? (
+            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 max-h-[250px] md:max-h-[350px]">
               <PlayRenderer
-                play={q.play}
-                assignments={q.assignments}
-                highlightPosition={q.highlightPosition}
-                mode="study"
+                play={q.fakePlay}
+                assignments={q.fakeAssignments}
+                mode="view"
+                className="w-full h-full max-h-[250px] md:max-h-[350px]"
               />
             </div>
           ) : selectedType === 'know_your_job' ? (

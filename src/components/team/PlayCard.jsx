@@ -21,7 +21,7 @@ export default function PlayCard({ play, assignments = [], onClick }) {
       className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden cursor-pointer hover:border-slate-700 transition-colors min-h-[44px]"
     >
       <div className="aspect-video bg-slate-800 overflow-hidden">
-        {play?.use_renderer ? (
+        {(play?.use_renderer === true || play?.use_renderer === 'true') && assignments.length > 0 ? (
           <PlayRenderer play={play} assignments={assignments} mode="mini" className="w-full h-full" />
         ) : play?.diagram_image ? (
           <img src={play.diagram_image} alt={play.name} className="w-full h-full object-cover" />

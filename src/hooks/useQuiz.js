@@ -1,7 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { DIFFICULTY_SETTINGS, STREAK_CELEBRATION } from '@/config/quizConfig';
-import { getRoutesForPosition } from '@/config/flagFootball';
+import { getRoutesForPosition, FLAG_FOOTBALL } from '@/config/flagFootball';
+
+const { routeTemplates } = FLAG_FOOTBALL;
 
 /**
  * Shuffle an array in place (Fisher-Yates).
@@ -38,7 +40,9 @@ function generateQuestions({ quizType, plays, assignmentsByPlayId, playerPositio
 
     for (const play of targetPlays) {
       const playAssignments = assignmentsByPlayId[play.id] || [];
-      if (play.use_renderer && playAssignments.length === 0) continue;
+      // For name_that_play, we need at least a photo or renderer with assignments to show a diagram
+      const hasRenderer = play.use_renderer === true || play.use_renderer === 'true';
+      if (hasRenderer && playAssignments.length === 0 && !play.diagram_image) continue;
 
       const correctAnswer = play.name;
       const wrongCount = Math.min(diffSettings.optionCount - 1, allPlayNames.length - 1);
@@ -72,9 +76,10 @@ function generateQuestions({ quizType, plays, assignmentsByPlayId, playerPositio
         }
       }
 
-      // Ensure no duplicates
+      // Ensure no duplicates and at least 1 wrong answer — skip if we can't make a real question
       const uniqueWrong = [...new Set(wrongAnswers)].filter((n) => n !== correctAnswer);
-      const options = shuffle([correctAnswer, ...uniqueWrong.slice(0, Math.max(1, diffSettings.optionCount - 1))]);
+      if (uniqueWrong.length === 0) continue; // Need at least 1 wrong answer for a valid question
+      const options = shuffle([correctAnswer, ...uniqueWrong.slice(0, diffSettings.optionCount - 1)]);
 
       questions.push({
         playId: play.id,
@@ -133,40 +138,61 @@ function generateQuestions({ quizType, plays, assignmentsByPlayId, playerPositio
   }
 
   if (quizType === 'identify_route') {
-    const pos = playerPosition || 'X';
-
+    // Collect all unique routes used in the playbook (scan all assignments)
+    const routePool = new Set();
     for (const play of targetPlays) {
-      if (!play.use_renderer) continue; // Only visual builder plays
-
+      const hasRenderer = play.use_renderer === true || play.use_renderer === 'true';
+      if (!hasRenderer) continue;
       const playAssignments = assignmentsByPlayId[play.id] || [];
-      const myAssignment = playAssignments.find(
-        (a) => a.position?.toLowerCase() === pos?.toLowerCase()
-      );
-      if (!myAssignment?.movement_type) continue;
+      for (const a of playAssignments) {
+        if (a.movement_type && a.movement_type !== 'block' && a.movement_type !== 'custom' && a.movement_type !== 'snap_block') {
+          routePool.add(a.movement_type);
+        }
+      }
+    }
 
-      const correctAnswer = myAssignment.movement_type;
+    const routeArray = [...routePool];
+    if (routeArray.length < 2) return questions; // Need at least 2 routes for a quiz
 
-      // Wrong answers: other route names from this position's route menu
-      const routeMenu = getRoutesForPosition(pos.toUpperCase());
-      const allRouteIds = routeMenu
-        .filter((r) => r.id !== 'custom' && r.id !== 'block')
-        .map((r) => r.id);
+    // Generate one question per unique route
+    for (const routeId of routeArray) {
+      const correctAnswer = routeId;
 
-      const wrongCount = Math.min(diffSettings.optionCount - 1, allRouteIds.length - 1);
-      const wrongAnswers = pickRandom(allRouteIds, wrongCount, new Set([correctAnswer]));
+      const wrongCount = Math.min(diffSettings.optionCount - 1, routeArray.length - 1);
+      const wrongAnswers = pickRandom(routeArray, wrongCount, new Set([correctAnswer]));
 
       if (wrongAnswers.length === 0) continue;
 
       const options = shuffle([correctAnswer, ...wrongAnswers]);
 
+      // Build a fake play/assignment to render just this one route on the field
+      // Use a generic receiver position (x:25, y:55, left side)
+      const startX = 25;
+      const startY = 55;
+      const fieldSide = 'left';
+      let routePath = null;
+      if (routeTemplates[routeId]) {
+        routePath = routeTemplates[routeId]({ startX, startY, fieldSide });
+      }
+
       questions.push({
-        playId: play.id,
-        play,
-        assignments: playAssignments,
-        questionText: `What route does ${pos.toUpperCase()} run?`,
+        playId: null,
+        play: { name: routeId, use_renderer: true, formation: 'spread', format: '5v5' },
+        assignments: [],
+        questionText: 'What route is this?',
         correctAnswer,
         options,
-        highlightPosition: pos.toUpperCase(),
+        highlightPosition: null,
+        // Custom fields for identify_route rendering
+        routePath,
+        fakePlay: { use_renderer: true, formation: 'spread', format: '5v5' },
+        fakeAssignments: routePath ? [{
+          position: 'X',
+          start_x: startX,
+          start_y: startY,
+          route_path: routePath,
+          movement_type: routeId,
+        }] : [],
       });
     }
   }

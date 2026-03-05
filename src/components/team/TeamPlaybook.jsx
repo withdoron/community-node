@@ -47,7 +47,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
 
   // Batch-fetch assignments for all visual (use_renderer) plays — needed for PlayCard mini renderer + Quiz
   const rendererPlayIds = useMemo(
-    () => plays.filter((p) => p.use_renderer).map((p) => p.id),
+    () => plays.filter((p) => p.use_renderer === true || p.use_renderer === 'true').map((p) => p.id),
     [plays]
   );
   const { data: allRendererAssignments = [] } = useQuery({
