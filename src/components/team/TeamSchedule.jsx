@@ -412,7 +412,7 @@ export default function TeamSchedule({ teamId, teamScope }) {
                 className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${form.recurring ? 'bg-amber-500' : 'bg-slate-600'}`}
               >
                 <div
-                  className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${form.recurring ? 'translate-x-5' : 'translate-x-0.5'}`}
+                  className={`w-5 h-5 bg-slate-100 rounded-full absolute top-0.5 transition-transform ${form.recurring ? 'translate-x-5' : 'translate-x-0.5'}`}
                 />
               </div>
             </div>

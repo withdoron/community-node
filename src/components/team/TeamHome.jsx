@@ -37,7 +37,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     queryKey: ['team-events', team?.id],
     queryFn: async () => {
       if (!team?.id) return [];
-      const list = await base44.entities.TeamEvent.filter({ team_id: team.id }).list();
+      const list = await base44.entities.TeamEvent.filter({ team_id: team.id });
       return Array.isArray(list) ? list : [];
     },
     enabled: !!team?.id,
@@ -46,7 +46,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     queryKey: ['team-messages', team?.id],
     queryFn: async () => {
       if (!team?.id) return [];
-      const list = await base44.entities.TeamMessage.filter({ team_id: team.id }).list();
+      const list = await base44.entities.TeamMessage.filter({ team_id: team.id });
       return Array.isArray(list) ? list : [];
     },
     enabled: !!team?.id,

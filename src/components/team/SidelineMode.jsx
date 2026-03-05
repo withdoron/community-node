@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import PlayRenderer from '@/components/field/PlayRenderer';
 
 const POSITIONS = ['C', 'QB', 'RB', 'X', 'Z'];
 
@@ -25,7 +26,7 @@ export default function SidelineMode({
     queryKey: ['play-assignments', play?.id],
     queryFn: async () => {
       if (!play?.id) return [];
-      const list = await base44.entities.PlayAssignment.filter({ play_id: play.id }).list();
+      const list = await base44.entities.PlayAssignment.filter({ play_id: play.id });
       return Array.isArray(list) ? list : [];
     },
     enabled: !!play?.id,
@@ -93,7 +94,18 @@ export default function SidelineMode({
 
       {/* Main: large play card */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        {play?.diagram_image && (
+        {play?.use_renderer ? (
+          <div className="flex-1 flex items-center justify-center p-4 min-h-0">
+            <PlayRenderer
+              play={play}
+              assignments={currentAssignments}
+              highlightPosition={positionOverlay}
+              mode="sideline"
+              onPositionTap={(posId) => setPositionOverlay(posId)}
+              className="w-full max-h-full"
+            />
+          </div>
+        ) : play?.diagram_image ? (
           <div className="flex-1 flex items-center justify-center p-4 min-h-0">
             <img
               src={play.diagram_image}
@@ -101,7 +113,7 @@ export default function SidelineMode({
               className="max-h-full w-auto max-w-full object-contain"
             />
           </div>
-        )}
+        ) : null}
         <div className="px-4 pb-2 flex-shrink-0">
           <h2 className="text-2xl font-bold text-white">{play?.name}</h2>
           <span className="inline-block mt-1 bg-slate-800 text-slate-300 text-sm px-3 py-1 rounded">

@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import PlayRenderer from '@/components/field/PlayRenderer';
 
 const POSITION_ORDER = ['C', 'QB', 'RB', 'X', 'Z'];
 
@@ -190,8 +191,29 @@ export default function StudyMode({
       >
         {play && (
           <div className="p-4 pb-2 flex-1 flex flex-col">
-            {/* Diagram */}
-            {play.diagram_image && (
+            {/* Diagram — visual renderer or photo */}
+            {play.use_renderer ? (
+              <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 flex-shrink-0">
+                <PlayRenderer
+                  play={play}
+                  assignments={currentAssignments}
+                  mirrored={mirrored}
+                  highlightPosition={viewMode === 'my' ? displayPosition : null}
+                  mode="study"
+                />
+                {play.is_mirrorable && (
+                  <div className="p-2 border-t border-slate-700">
+                    <button
+                      type="button"
+                      onClick={() => setMirrored((m) => !m)}
+                      className="w-full py-2 text-sm text-slate-300 border border-slate-600 rounded-lg hover:border-amber-500/50"
+                    >
+                      {mirrored ? 'Show normal' : 'Mirror view'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : play.diagram_image ? (
               <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 flex-shrink-0">
                 <div
                   className="w-full aspect-video overflow-hidden"
@@ -204,14 +226,14 @@ export default function StudyMode({
                     <button
                       type="button"
                       onClick={() => setMirrored((m) => !m)}
-                      className="w-full py-2 text-sm text-slate-300 border border-slate-600 rounded-lg"
+                      className="w-full py-2 text-sm text-slate-300 border border-slate-600 rounded-lg hover:border-amber-500/50"
                     >
                       {mirrored ? 'Show normal' : 'Mirror view'}
                     </button>
                   </div>
                 )}
               </div>
-            )}
+            ) : null}
 
             <div className="flex items-center gap-2 flex-wrap mb-3">
               <h2 className="text-lg font-bold text-white">{play.name}</h2>

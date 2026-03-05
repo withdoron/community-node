@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Pencil, Archive, X, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { parseTags } from './PlayCard';
+import PlayRenderer from '@/components/field/PlayRenderer';
 
 const POSITION_ORDER = ['C', 'QB', 'RB', 'X', 'Z'];
 
@@ -91,8 +92,31 @@ export default function PlayDetail({
             </span>
           </div>
 
-          {/* Diagram */}
-          {play?.diagram_image && (
+          {/* Diagram — visual renderer or photo */}
+          {play?.use_renderer ? (
+            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700">
+              <PlayRenderer
+                play={play}
+                assignments={assignments}
+                mirrored={mirrored}
+                highlightPosition={playerPosition}
+                mode="view"
+              />
+              {play?.is_mirrorable && (
+                <div className="p-2 border-t border-slate-700">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
+                    onClick={() => setMirrored((m) => !m)}
+                  >
+                    {mirrored ? 'Show normal' : 'Mirror view'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : play?.diagram_image ? (
             <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700">
               <div
                 className="aspect-video overflow-hidden"
@@ -110,7 +134,7 @@ export default function PlayDetail({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="w-full border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500"
+                    className="w-full border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
                     onClick={() => setMirrored((m) => !m)}
                   >
                     {mirrored ? 'Show normal' : 'Mirror view'}
@@ -118,7 +142,7 @@ export default function PlayDetail({
                 </div>
               )}
             </div>
-          )}
+          ) : null}
 
           {/* Tags */}
           {tags.length > 0 && (
