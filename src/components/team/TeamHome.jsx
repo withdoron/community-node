@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Users, BookOpen, Calendar, UserPlus, Share2, MessageSquare, Clock, MapPin } from 'lucide-react';
+import { Users, BookOpen, Calendar, UserPlus, Share2, MessageSquare, Clock, MapPin, Gamepad2, Flame } from 'lucide-react';
+import usePlayerStats from '@/hooks/usePlayerStats';
 
 const PLAYER_COUNT_ROLES = ['player'];
 
@@ -21,8 +22,9 @@ function formatEventWhen(startDate, startTime) {
   return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + (startTime ? ` · ${d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}` : '');
 }
 
-export default function TeamHome({ team, members = [], onNavigateTab, onCopyInviteLink, viewingAsMember, effectiveRole }) {
+export default function TeamHome({ team, members = [], onNavigateTab, onCopyInviteLink, viewingAsMember, effectiveRole, currentUserId }) {
   const playerCount = members.filter((m) => PLAYER_COUNT_ROLES.includes(m.role)).length;
+  const { stats: playerStats, isLoading: statsLoading } = usePlayerStats({ userId: currentUserId, teamId: team?.id });
   const { data: plays = [] } = useQuery({
     queryKey: ['plays-count', team?.id],
     queryFn: async () => {
@@ -158,6 +160,31 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
             <div className="text-sm text-slate-400">Teammates</div>
           </div>
         </div>
+        {/* Quiz Me card */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Gamepad2 className="h-5 w-5 text-amber-500" />
+            <span className="font-semibold text-slate-100">Quiz Me</span>
+          </div>
+          <div className="flex items-center gap-4 mb-3">
+            <div className="flex items-center gap-1.5">
+              <Flame className="h-4 w-4 text-amber-500" />
+              <span className="text-slate-300 text-sm font-medium">{playerStats.current_streak} streak</span>
+            </div>
+            <div className="text-slate-400 text-sm">
+              {playerStats.plays_mastered} play{playerStats.plays_mastered !== 1 ? 's' : ''} mastered
+            </div>
+          </div>
+          <Button
+            type="button"
+            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
+            onClick={() => onNavigateTab?.('playbook')}
+          >
+            <Gamepad2 className="h-4 w-4 mr-2" />
+            Open Playbook to Quiz
+          </Button>
+        </div>
+
         <Button
           type="button"
           className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
@@ -208,6 +235,31 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
           </div>
           <div className="text-sm text-slate-400">Schedule</div>
         </div>
+      </div>
+
+      {/* Quiz Me card — visible to coaches and players */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Gamepad2 className="h-5 w-5 text-amber-500" />
+          <span className="font-semibold text-slate-100">Quiz Me</span>
+        </div>
+        <div className="flex items-center gap-4 mb-3">
+          <div className="flex items-center gap-1.5">
+            <Flame className="h-4 w-4 text-amber-500" />
+            <span className="text-slate-300 text-sm font-medium">{playerStats.current_streak} streak</span>
+          </div>
+          <div className="text-slate-400 text-sm">
+            {playerStats.plays_mastered} play{playerStats.plays_mastered !== 1 ? 's' : ''} mastered
+          </div>
+        </div>
+        <Button
+          type="button"
+          className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-amber-500 font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors border border-slate-700"
+          onClick={() => onNavigateTab?.('playbook')}
+        >
+          <Gamepad2 className="h-4 w-4 mr-2" />
+          Open Playbook to Quiz
+        </Button>
       </div>
 
       {isCoach && (

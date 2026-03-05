@@ -165,7 +165,7 @@ export const WORKSPACE_TYPES = {
       member: 'Player/Parent',
     },
     tabs: [
-      { id: 'home', label: 'Home', icon: LayoutDashboard, component: TeamHome, getProps: (scope) => ({ team: scope.team, members: scope.members, onNavigateTab: scope.onNavigateTab, onCopyInviteLink: scope.onCopyInviteLink }) },
+      { id: 'home', label: 'Home', icon: LayoutDashboard, component: TeamHome, getProps: (scope) => ({ team: scope.team, members: scope.members, onNavigateTab: scope.onNavigateTab, onCopyInviteLink: scope.onCopyInviteLink, currentUserId: scope.currentUserId }) },
       { id: 'playbook', label: 'Playbook', icon: BookOpen, component: TeamPlaybook, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach, currentUserId: scope.currentUserId }) },
       { id: 'schedule', label: 'Schedule', icon: Calendar, component: TeamSchedule, getProps: () => ({}) },
       { id: 'roster', label: 'Roster', icon: Users, component: TeamRoster, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach }) },

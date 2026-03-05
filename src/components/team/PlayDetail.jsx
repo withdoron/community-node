@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Pencil, Archive, X, BookOpen } from 'lucide-react';
+import { ArrowLeft, Pencil, Archive, X, BookOpen, Gamepad2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { parseTags } from './PlayCard';
 import PlayRenderer from '@/components/field/PlayRenderer';
@@ -15,6 +15,7 @@ export default function PlayDetail({
   onEdit,
   onArchive,
   onStudyThisPlay,
+  onQuizThisPlay,
 }) {
   const [mirrored, setMirrored] = useState(false);
   const tags = parseTags(play?.tags);
@@ -56,6 +57,18 @@ export default function PlayDetail({
               >
                 <BookOpen className="h-4 w-4" />
                 <span className="text-sm">Study</span>
+              </Button>
+            )}
+            {onQuizThisPlay && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-slate-400 hover:text-amber-500 p-2 flex items-center gap-1.5"
+                onClick={onQuizThisPlay}
+              >
+                <Gamepad2 className="h-4 w-4" />
+                <span className="text-sm">Quiz</span>
               </Button>
             )}
             {isCoach && (

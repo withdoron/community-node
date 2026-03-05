@@ -1,13 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Plus, BookOpen, Monitor } from 'lucide-react';
+import { Plus, BookOpen, Monitor, Gamepad2 } from 'lucide-react';
 import { toast } from 'sonner';
 import PlayCard from './PlayCard';
 import PlayDetail from './PlayDetail';
 import PlayCreateModal from './PlayCreateModal';
 import StudyMode from './StudyMode';
 import SidelineMode from './SidelineMode';
+import QuizMode from './QuizMode';
 
 export default function TeamPlaybook({ team, members = [], isCoach, currentUserId, playerPosition: playerPositionProp }) {
   const queryClient = useQueryClient();
@@ -19,6 +20,8 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
   const [studyModeOpen, setStudyModeOpen] = useState(false);
   const [sidelineModeOpen, setSidelineModeOpen] = useState(false);
   const [studyModeInitialPlayId, setStudyModeInitialPlayId] = useState(null);
+  const [quizModeOpen, setQuizModeOpen] = useState(false);
+  const [quizPlayFilter, setQuizPlayFilter] = useState(null); // array of play IDs or null
 
   const { data: plays = [] } = useQuery({
     queryKey: ['plays', team?.id],
@@ -42,7 +45,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
     enabled: !!selectedPlay?.id,
   });
 
-  // Batch-fetch assignments for all visual (use_renderer) plays — needed for PlayCard mini renderer
+  // Batch-fetch assignments for all visual (use_renderer) plays — needed for PlayCard mini renderer + Quiz
   const rendererPlayIds = useMemo(
     () => plays.filter((p) => p.use_renderer).map((p) => p.id),
     [plays]
@@ -167,14 +170,24 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
         <span className="text-slate-500 text-sm">{filteredPlays.length} play{filteredPlays.length !== 1 ? 's' : ''}</span>
         <div className="flex items-center gap-2">
           {playsForSide.length > 0 && (
-            <button
-              type="button"
-              onClick={() => { setStudyModeInitialPlayId(null); setStudyModeOpen(true); }}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
-            >
-              <BookOpen className="h-4 w-4" />
-              Study
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => { setStudyModeInitialPlayId(null); setStudyModeOpen(true); }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+              >
+                <BookOpen className="h-4 w-4" />
+                Study
+              </button>
+              <button
+                type="button"
+                onClick={() => { setQuizPlayFilter(null); setQuizModeOpen(true); }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+              >
+                <Gamepad2 className="h-4 w-4" />
+                Quiz
+              </button>
+            </>
           )}
           {isCoach && (
             <button
@@ -251,6 +264,11 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
             setSelectedPlay(null);
             setStudyModeOpen(true);
           }}
+          onQuizThisPlay={() => {
+            setQuizPlayFilter([selectedPlay.id]);
+            setSelectedPlay(null);
+            setQuizModeOpen(true);
+          }}
         />
       )}
 
@@ -266,7 +284,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
         onSuccess={() => queryClient.invalidateQueries({ queryKey: ['plays', team?.id] })}
       />
 
-      {/* Study Mode overlay — fetches assignments per play (same pattern as PlayDetail) */}
+      {/* Study Mode overlay */}
       {studyModeOpen && (
         <StudyMode
           plays={playsForSide}
@@ -281,11 +299,25 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
         />
       )}
 
-      {/* Sideline Mode overlay (coach, md+) — fetches assignments per play */}
+      {/* Sideline Mode overlay (coach, md+) */}
       {sidelineModeOpen && (
         <SidelineMode
           plays={playsForSide}
           onClose={() => setSidelineModeOpen(false)}
+        />
+      )}
+
+      {/* Quiz Mode overlay */}
+      {quizModeOpen && (
+        <QuizMode
+          team={team}
+          plays={plays}
+          assignmentsByPlayId={assignmentsByPlayId}
+          isCoach={isCoach}
+          currentUserId={currentUserId}
+          playerPosition={playerPosition}
+          onClose={() => { setQuizModeOpen(false); setQuizPlayFilter(null); }}
+          initialPlayFilter={quizPlayFilter}
         />
       )}
     </div>
