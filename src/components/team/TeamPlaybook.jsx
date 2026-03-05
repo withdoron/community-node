@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Plus, BookOpen, Monitor, Gamepad2 } from 'lucide-react';
+import { Plus, BookOpen, Monitor, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import PlayCard from './PlayCard';
 import PlayDetail from './PlayDetail';
@@ -184,8 +184,8 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
                 onClick={() => { setQuizPlayFilter(null); setQuizModeOpen(true); }}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
               >
-                <Gamepad2 className="h-4 w-4" />
-                Quiz
+                <Zap className="h-4 w-4" />
+                Play
               </button>
             </>
           )}

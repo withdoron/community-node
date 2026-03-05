@@ -1,13 +1,22 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { DIFFICULTY_SETTINGS, STREAK_CELEBRATION } from '@/config/quizConfig';
-import { getRoutesForPosition, FLAG_FOOTBALL } from '@/config/flagFootball';
+import {
+  MASTERY_LEVELS,
+  deriveMasteryLevel,
+  MASTERY_WEIGHTS,
+  STARTING_LIVES,
+  MAX_LIVES,
+  calculatePoints,
+  STREAK_CELEBRATIONS,
+  SIMILAR_ROUTES,
+  QUIZ_TYPES,
+} from '@/config/quizConfig';
+import { FLAG_FOOTBALL } from '@/config/flagFootball';
 
 const { routeTemplates } = FLAG_FOOTBALL;
 
-/**
- * Shuffle an array in place (Fisher-Yates).
- */
+// ——— Utilities ———
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -17,191 +26,272 @@ function shuffle(arr) {
   return a;
 }
 
-/**
- * Pick N random items from arr, excluding items in excludeSet.
- */
 function pickRandom(arr, n, excludeSet = new Set()) {
   const filtered = arr.filter((item) => !excludeSet.has(item));
   return shuffle(filtered).slice(0, n);
 }
 
-/**
- * Generate questions for a quiz session.
- */
-function generateQuestions({ quizType, plays, assignmentsByPlayId, playerPosition, difficulty, gameDayOnly }) {
-  const diffSettings = DIFFICULTY_SETTINGS[difficulty] || DIFFICULTY_SETTINGS.medium;
-  let targetPlays = plays.filter((p) => p.side === 'offense' && p.status === 'active');
-  if (gameDayOnly) targetPlays = targetPlays.filter((p) => p.game_day);
+// ——— High Score — approximate from QuizAttempt sessions ———
 
-  const questions = [];
+function calculateHighScore(attempts) {
+  if (!attempts || attempts.length === 0) return 0;
 
-  if (quizType === 'name_that_play') {
-    const allPlayNames = targetPlays.map((p) => p.name);
+  const sorted = [...attempts].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
 
-    for (const play of targetPlays) {
-      const playAssignments = assignmentsByPlayId[play.id] || [];
-      // For name_that_play, we need at least a photo or renderer with assignments to show a diagram
-      const hasRenderer = play.use_renderer === true || play.use_renderer === 'true';
-      if (hasRenderer && playAssignments.length === 0 && !play.diagram_image) continue;
+  // Group into sessions (consecutive within 5 minutes)
+  const sessions = [];
+  let session = [sorted[0]];
+  for (let i = 1; i < sorted.length; i++) {
+    const gap = new Date(sorted[i].created_at).getTime() - new Date(sorted[i - 1].created_at).getTime();
+    if (gap <= 5 * 60 * 1000) {
+      session.push(sorted[i]);
+    } else {
+      sessions.push(session);
+      session = [sorted[i]];
+    }
+  }
+  sessions.push(session);
 
-      const correctAnswer = play.name;
-      const wrongCount = Math.min(diffSettings.optionCount - 1, allPlayNames.length - 1);
-
-      // Prefer plays with different formations for wrong answers (easier to distinguish)
-      const differentFormation = targetPlays
-        .filter((p) => p.id !== play.id && p.formation !== play.formation)
-        .map((p) => p.name);
-      const sameFormation = targetPlays
-        .filter((p) => p.id !== play.id && p.formation === play.formation)
-        .map((p) => p.name);
-
-      let wrongAnswers;
-      if (difficulty === 'hard') {
-        // Hard: prefer same formation (harder to distinguish)
-        wrongAnswers = pickRandom(sameFormation, wrongCount);
-        if (wrongAnswers.length < wrongCount) {
-          wrongAnswers = [
-            ...wrongAnswers,
-            ...pickRandom(differentFormation, wrongCount - wrongAnswers.length, new Set(wrongAnswers)),
-          ];
-        }
+  // Estimate score per session
+  let best = 0;
+  for (const s of sessions) {
+    let total = 0;
+    let stk = 0;
+    for (const a of s) {
+      if (a.is_correct) {
+        stk++;
+        let pts = 150;
+        if (stk >= 10) pts *= 3;
+        else if (stk >= 5) pts *= 2;
+        total += pts;
       } else {
-        // Easy/Medium: prefer different formations
-        wrongAnswers = pickRandom(differentFormation, wrongCount);
-        if (wrongAnswers.length < wrongCount) {
-          wrongAnswers = [
-            ...wrongAnswers,
-            ...pickRandom(sameFormation, wrongCount - wrongAnswers.length, new Set(wrongAnswers)),
-          ];
-        }
+        stk = 0;
       }
+    }
+    best = Math.max(best, total);
+  }
+  return best;
+}
 
-      // Ensure no duplicates and at least 1 wrong answer — skip if we can't make a real question
-      const uniqueWrong = [...new Set(wrongAnswers)].filter((n) => n !== correctAnswer);
-      if (uniqueWrong.length === 0) continue; // Need at least 1 wrong answer for a valid question
-      const options = shuffle([correctAnswer, ...uniqueWrong.slice(0, diffSettings.optionCount - 1)]);
+// ——— Question Generators (one per quiz type) ———
 
-      questions.push({
-        playId: play.id,
-        play,
-        assignments: playAssignments,
-        questionText: 'What play is this?',
-        correctAnswer,
-        options,
-        highlightPosition: null,
-      });
+function genNameThatPlay({ play, playAssignments, mc, targetPlays }) {
+  const hasRenderer = play.use_renderer === true || play.use_renderer === 'true';
+  if (hasRenderer && playAssignments.length === 0 && !play.diagram_image) return null;
+
+  const correct = play.name;
+
+  // Build wrong-answer pool — mastered prefers same formation (harder)
+  let pool;
+  if (mc.useSimilarDistracters) {
+    const same = targetPlays.filter((p) => p.id !== play.id && p.formation === play.formation).map((p) => p.name);
+    const diff = targetPlays.filter((p) => p.id !== play.id && p.formation !== play.formation).map((p) => p.name);
+    pool = [...same, ...diff];
+  } else {
+    const diff = targetPlays.filter((p) => p.id !== play.id && p.formation !== play.formation).map((p) => p.name);
+    const same = targetPlays.filter((p) => p.id !== play.id && p.formation === play.formation).map((p) => p.name);
+    pool = [...diff, ...same];
+  }
+
+  const uniq = [...new Set(pool)].filter((n) => n !== correct);
+  if (uniq.length === 0) return null;
+
+  const wrong = uniq.slice(0, mc.optionCount - 1);
+  return {
+    type: 'name_that_play',
+    playId: play.id,
+    play,
+    assignments: playAssignments,
+    questionText: 'What play is this?',
+    correctAnswer: correct,
+    options: shuffle([correct, ...wrong]),
+    highlightPosition: null,
+    mirrored: mc.useMirror && Math.random() > 0.5,
+    showLabels: mc.showPositionLabels,
+    showFormationHint: mc.showFormationHint,
+    timerSeconds: mc.timerSeconds,
+    basePoints: mc.basePoints,
+  };
+}
+
+function genKnowYourJob({ play, playAssignments, mc, targetPlays, playerPosition, assignmentsByPlayId }) {
+  if (!playerPosition) return null;
+
+  const mine = playAssignments.find(
+    (a) => a.position?.toLowerCase() === playerPosition?.toLowerCase()
+  );
+  if (!mine?.assignment_text) return null;
+
+  const correct = mine.assignment_text;
+
+  const pool = targetPlays
+    .filter((p) => p.id !== play.id)
+    .map((p) => {
+      const as = assignmentsByPlayId[p.id] || [];
+      const a = as.find((a2) => a2.position?.toLowerCase() === playerPosition?.toLowerCase());
+      return a?.assignment_text;
+    })
+    .filter(Boolean)
+    .filter((t) => t !== correct);
+
+  const uniq = [...new Set(pool)];
+  if (uniq.length === 0) return null;
+
+  const wrong = pickRandom(uniq, mc.optionCount - 1);
+  return {
+    type: 'know_your_job',
+    playId: play.id,
+    play,
+    assignments: playAssignments,
+    questionText: `What's your assignment on ${play.name}?`,
+    correctAnswer: correct,
+    options: shuffle([correct, ...wrong]),
+    highlightPosition: null,
+    mirrored: false,
+    showLabels: true,
+    showFormationHint: mc.showFormationHint,
+    timerSeconds: mc.timerSeconds,
+    basePoints: mc.basePoints,
+  };
+}
+
+function genIdentifyRoute({ play, playAssignments, mc, targetPlays, assignmentsByPlayId }) {
+  const hasRenderer = play.use_renderer === true || play.use_renderer === 'true';
+  if (!hasRenderer) return null;
+
+  const routeAs = playAssignments.filter(
+    (a) => a.movement_type && !['block', 'custom', 'snap_block'].includes(a.movement_type)
+  );
+  if (routeAs.length === 0) return null;
+
+  const assignment = routeAs[Math.floor(Math.random() * routeAs.length)];
+  const correct = assignment.movement_type;
+
+  // Gather all routes in playbook for wrong answers
+  const allRoutes = new Set();
+  for (const p of targetPlays) {
+    if (p.use_renderer !== true && p.use_renderer !== 'true') continue;
+    for (const a of (assignmentsByPlayId[p.id] || [])) {
+      if (a.movement_type && !['block', 'custom', 'snap_block'].includes(a.movement_type)) {
+        allRoutes.add(a.movement_type);
+      }
     }
   }
 
-  if (quizType === 'know_your_job') {
-    if (!playerPosition) return [];
-
-    for (const play of targetPlays) {
-      const playAssignments = assignmentsByPlayId[play.id] || [];
-      const myAssignment = playAssignments.find(
-        (a) => a.position?.toLowerCase() === playerPosition?.toLowerCase()
-      );
-      if (!myAssignment?.assignment_text) continue;
-
-      const correctAnswer = myAssignment.assignment_text;
-
-      // Wrong answers: same position from other plays
-      const otherAssignmentTexts = targetPlays
-        .filter((p) => p.id !== play.id)
-        .map((p) => {
-          const assignments = assignmentsByPlayId[p.id] || [];
-          const a = assignments.find(
-            (a2) => a2.position?.toLowerCase() === playerPosition?.toLowerCase()
-          );
-          return a?.assignment_text;
-        })
-        .filter(Boolean)
-        .filter((t) => t !== correctAnswer);
-
-      const wrongCount = Math.min(diffSettings.optionCount - 1, otherAssignmentTexts.length);
-      const wrongAnswers = pickRandom([...new Set(otherAssignmentTexts)], wrongCount);
-
-      if (wrongAnswers.length === 0) continue; // Need at least 1 wrong answer
-
-      const options = shuffle([correctAnswer, ...wrongAnswers]);
-
-      questions.push({
-        playId: play.id,
-        play,
-        assignments: playAssignments,
-        questionText: `What's your assignment on ${play.name}?`,
-        correctAnswer,
-        options,
-        highlightPosition: null,
-      });
+  // Mastered: prefer similar routes as distracters
+  let wrongPool;
+  if (mc.useSimilarDistracters) {
+    let similar = [];
+    for (const routes of Object.values(SIMILAR_ROUTES)) {
+      if (routes.includes(correct)) {
+        similar = routes.filter((r) => r !== correct);
+        break;
+      }
     }
+    wrongPool = [...similar, ...[...allRoutes].filter((r) => r !== correct && !similar.includes(r))];
+  } else {
+    wrongPool = [...allRoutes].filter((r) => r !== correct);
   }
 
-  if (quizType === 'identify_route') {
-    // Collect all unique routes used in the playbook (scan all assignments)
-    const routePool = new Set();
-    for (const play of targetPlays) {
-      const hasRenderer = play.use_renderer === true || play.use_renderer === 'true';
-      if (!hasRenderer) continue;
-      const playAssignments = assignmentsByPlayId[play.id] || [];
-      for (const a of playAssignments) {
-        if (a.movement_type && a.movement_type !== 'block' && a.movement_type !== 'custom' && a.movement_type !== 'snap_block') {
-          routePool.add(a.movement_type);
-        }
-      }
+  if (wrongPool.length === 0) return null;
+
+  const wrong = pickRandom(wrongPool, mc.optionCount - 1);
+  const options = shuffle([correct, ...wrong]);
+
+  // Build single-route visual
+  const startX = assignment.start_x || 25;
+  const startY = assignment.start_y || 55;
+  const fieldSide = startX < 45 ? 'left' : startX > 55 ? 'right' : 'center';
+  let routePath = null;
+  if (routeTemplates[correct]) {
+    routePath = routeTemplates[correct]({ startX, startY, fieldSide });
+  } else if (assignment.route_path) {
+    try {
+      routePath = typeof assignment.route_path === 'string'
+        ? JSON.parse(assignment.route_path)
+        : assignment.route_path;
+    } catch { routePath = null; }
+  }
+
+  return {
+    type: 'identify_route',
+    playId: play.id,
+    play: { name: correct, use_renderer: true, formation: 'spread', format: play.format || '5v5' },
+    assignments: [],
+    questionText: 'What route is this?',
+    correctAnswer: correct,
+    options,
+    highlightPosition: null,
+    mirrored: mc.useMirror && Math.random() > 0.5,
+    showLabels: mc.showRouteLabel,
+    showFormationHint: false,
+    timerSeconds: mc.timerSeconds,
+    basePoints: mc.basePoints,
+    routePath,
+    fakePlay: { use_renderer: true, formation: 'spread', format: play.format || '5v5' },
+    fakeAssignments: routePath
+      ? [{ position: assignment.position || 'X', start_x: startX, start_y: startY, route_path: routePath, movement_type: correct }]
+      : [],
+  };
+}
+
+// ——— Weighted Pool Builder ———
+
+function generateWeightedPool({ plays, assignmentsByPlayId, playerPosition, playMastery, gameDayOnly }) {
+  let target = plays.filter((p) => p.side === 'offense' && p.status === 'active');
+  if (gameDayOnly) target = target.filter((p) => p.game_day);
+  if (target.length === 0) return [];
+
+  // Weight plays by mastery — weaker plays appear more
+  const weighted = [];
+  for (const play of target) {
+    const mastery = playMastery[play.id] || 'new';
+    const w = MASTERY_WEIGHTS[mastery] || MASTERY_WEIGHTS.new;
+    for (let i = 0; i < w; i++) weighted.push(play);
+  }
+
+  const pool = shuffle(weighted);
+  const questions = [];
+  const seen = new Set();
+
+  for (const play of pool) {
+    const mastery = playMastery[play.id] || 'new';
+    const mc = MASTERY_LEVELS[mastery];
+    const playAs = assignmentsByPlayId[play.id] || [];
+
+    // Pick a random quiz type
+    const qt = QUIZ_TYPES[Math.floor(Math.random() * QUIZ_TYPES.length)];
+
+    let q = null;
+    if (qt === 'name_that_play') {
+      q = genNameThatPlay({ play, playAssignments: playAs, mc, targetPlays: target });
+    } else if (qt === 'know_your_job') {
+      q = genKnowYourJob({ play, playAssignments: playAs, mc, targetPlays: target, playerPosition, assignmentsByPlayId });
+      if (!q) q = genNameThatPlay({ play, playAssignments: playAs, mc, targetPlays: target });
+    } else if (qt === 'identify_route') {
+      q = genIdentifyRoute({ play, playAssignments: playAs, mc, targetPlays: target, assignmentsByPlayId });
+      if (!q) q = genNameThatPlay({ play, playAssignments: playAs, mc, targetPlays: target });
     }
 
-    const routeArray = [...routePool];
-    if (routeArray.length < 2) return questions; // Need at least 2 routes for a quiz
-
-    // Generate one question per unique route
-    for (const routeId of routeArray) {
-      const correctAnswer = routeId;
-
-      const wrongCount = Math.min(diffSettings.optionCount - 1, routeArray.length - 1);
-      const wrongAnswers = pickRandom(routeArray, wrongCount, new Set([correctAnswer]));
-
-      if (wrongAnswers.length === 0) continue;
-
-      const options = shuffle([correctAnswer, ...wrongAnswers]);
-
-      // Build a fake play/assignment to render just this one route on the field
-      // Use a generic receiver position (x:25, y:55, left side)
-      const startX = 25;
-      const startY = 55;
-      const fieldSide = 'left';
-      let routePath = null;
-      if (routeTemplates[routeId]) {
-        routePath = routeTemplates[routeId]({ startX, startY, fieldSide });
+    if (q) {
+      const key = `${q.type}-${q.playId}-${q.correctAnswer}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        questions.push(q);
       }
-
-      questions.push({
-        playId: null,
-        play: { name: routeId, use_renderer: true, formation: 'spread', format: '5v5' },
-        assignments: [],
-        questionText: 'What route is this?',
-        correctAnswer,
-        options,
-        highlightPosition: null,
-        // Custom fields for identify_route rendering
-        routePath,
-        fakePlay: { use_renderer: true, formation: 'spread', format: '5v5' },
-        fakeAssignments: routePath ? [{
-          position: 'X',
-          start_x: startX,
-          start_y: startY,
-          route_path: routePath,
-          movement_type: routeId,
-        }] : [],
-      });
     }
   }
 
   return shuffle(questions);
 }
 
+// ——— Main Hook ———
+
 /**
- * useQuiz — manages quiz state, scoring, timer, and Base44 persistence.
+ * useQuiz — Playbook Pro arcade game engine.
+ * Manages lives, score, high score, adaptive mastery, weighted questions, and streaks.
  */
 export default function useQuiz({
   teamId,
@@ -209,57 +299,82 @@ export default function useQuiz({
   plays = [],
   assignmentsByPlayId = {},
   playerPosition,
-  quizType = 'name_that_play',
-  difficulty = 'medium',
   gameDayOnly = false,
 }) {
-  const [questions, setQuestions] = useState([]);
+  // Game state
+  const [gameState, setGameState] = useState('ready'); // 'ready' | 'playing' | 'gameover'
+  const [lives, setLives] = useState(STARTING_LIVES);
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+  const [questionsAnswered, setQuestionsAnswered] = useState(0);
+  const [questionsCorrect, setQuestionsCorrect] = useState(0);
+  const [questionQueue, setQuestionQueue] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [score, setScore] = useState({ correct: 0, total: 0, streak: 0, bestStreak: 0 });
-  const [isComplete, setIsComplete] = useState(false);
+  const [playMastery, setPlayMastery] = useState({});
+  const [celebration, setCelebration] = useState(null);
+  const [isNewHighScore, setIsNewHighScore] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(null);
-  const [lastAnswerCorrect, setLastAnswerCorrect] = useState(null); // null | true | false
+  const [lastAnswerCorrect, setLastAnswerCorrect] = useState(null);
   const [lastCorrectAnswer, setLastCorrectAnswer] = useState(null);
-  const [showCelebration, setShowCelebration] = useState(false);
-  const [results, setResults] = useState([]); // per-play results
-  const [quizStartTime] = useState(() => Date.now());
+  const [lastPointsEarned, setLastPointsEarned] = useState(0);
+  const [results, setResults] = useState([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+
   const timerRef = useRef(null);
   const questionStartRef = useRef(Date.now());
+  const gameStartRef = useRef(Date.now());
+  // Refs for values needed inside callbacks without stale closures
+  const scoreRef = useRef(0);
+  const highScoreRef = useRef(0);
 
-  const diffSettings = DIFFICULTY_SETTINGS[difficulty] || DIFFICULTY_SETTINGS.medium;
-  const currentQuestion = questions[currentIdx] || null;
+  useEffect(() => { scoreRef.current = score; }, [score]);
+  useEffect(() => { highScoreRef.current = highScore; }, [highScore]);
 
-  // Initialize questions
-  const startQuiz = useCallback(() => {
-    const qs = generateQuestions({
-      quizType,
-      plays,
-      assignmentsByPlayId,
-      playerPosition,
-      difficulty,
-      gameDayOnly,
-    });
-    setQuestions(qs);
-    setCurrentIdx(0);
-    setScore({ correct: 0, total: 0, streak: 0, bestStreak: 0 });
-    setIsComplete(false);
-    setLastAnswerCorrect(null);
-    setLastCorrectAnswer(null);
-    setShowCelebration(false);
-    setResults([]);
-    questionStartRef.current = Date.now();
+  const currentQuestion = questionQueue[currentIdx] || null;
 
-    if (diffSettings.timerSeconds) {
-      setTimeRemaining(diffSettings.timerSeconds);
-    } else {
-      setTimeRemaining(null);
-    }
-  }, [quizType, plays, assignmentsByPlayId, playerPosition, difficulty, gameDayOnly, diffSettings.timerSeconds]);
+  // ——— Initialize: fetch history, derive mastery, load high score ———
+  useEffect(() => {
+    const init = async () => {
+      if (!userId || !teamId) {
+        setIsInitialized(true);
+        return;
+      }
+      try {
+        const raw = await base44.entities.QuizAttempt.filter({ user_id: userId, team_id: teamId });
+        const attempts = Array.isArray(raw) ? raw : [];
 
-  // Timer countdown
+        // Derive per-play mastery
+        const byPlay = {};
+        attempts.forEach((a) => {
+          if (!a.play_id) return;
+          if (!byPlay[a.play_id]) byPlay[a.play_id] = [];
+          byPlay[a.play_id].push(a);
+        });
+        const mMap = {};
+        for (const [pid, pa] of Object.entries(byPlay)) {
+          mMap[pid] = deriveMasteryLevel(pa);
+        }
+        setPlayMastery(mMap);
+
+        // High score from session approximation
+        const hs = calculateHighScore(attempts);
+        setHighScore(hs);
+        highScoreRef.current = hs;
+      } catch (err) {
+        console.error('Failed to init quiz data:', err);
+      } finally {
+        setIsInitialized(true);
+      }
+    };
+    init();
+  }, [userId, teamId]);
+
+  // ——— Timer ———
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
-    if (timeRemaining == null || timeRemaining <= 0 || isComplete || lastAnswerCorrect != null) return;
+    if (timeRemaining == null || timeRemaining <= 0 || gameState !== 'playing' || lastAnswerCorrect != null) return;
 
     timerRef.current = setInterval(() => {
       setTimeRemaining((prev) => {
@@ -272,118 +387,212 @@ export default function useQuiz({
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-  }, [timeRemaining, isComplete, lastAnswerCorrect]);
+  }, [timeRemaining, gameState, lastAnswerCorrect]);
 
-  // Auto-submit when timer hits 0
+  // Auto-submit on timeout
   useEffect(() => {
-    if (timeRemaining === 0 && lastAnswerCorrect == null && currentQuestion) {
-      submitAnswer(null); // timeout = incorrect
+    if (timeRemaining === 0 && lastAnswerCorrect == null && currentQuestion && gameState === 'playing') {
+      submitAnswer(null);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeRemaining]);
 
-  const submitAnswer = useCallback(async (answer) => {
-    if (!currentQuestion || lastAnswerCorrect != null) return;
-
-    const isCorrect = answer === currentQuestion.correctAnswer;
-    const elapsed = Math.round((Date.now() - questionStartRef.current) / 1000);
-
-    setLastAnswerCorrect(isCorrect);
-    setLastCorrectAnswer(currentQuestion.correctAnswer);
-
-    setScore((prev) => {
-      const newStreak = isCorrect ? prev.streak + 1 : 0;
-      const newBest = Math.max(prev.bestStreak, newStreak);
-      return {
-        correct: prev.correct + (isCorrect ? 1 : 0),
-        total: prev.total + 1,
-        streak: newStreak,
-        bestStreak: newBest,
-      };
+  // ——— Start Game ———
+  const startGame = useCallback(() => {
+    const qs = generateWeightedPool({
+      plays,
+      assignmentsByPlayId,
+      playerPosition,
+      playMastery,
+      gameDayOnly,
     });
 
-    setResults((prev) => [
-      ...prev,
-      {
-        playId: currentQuestion.playId,
-        playName: currentQuestion.play.name,
-        isCorrect,
-        answer,
-        correctAnswer: currentQuestion.correctAnswer,
-      },
-    ]);
+    setQuestionQueue(qs);
+    setCurrentIdx(0);
+    setLives(STARTING_LIVES);
+    setScore(0);
+    scoreRef.current = 0;
+    setStreak(0);
+    setBestStreak(0);
+    setQuestionsAnswered(0);
+    setQuestionsCorrect(0);
+    setCelebration(null);
+    setIsNewHighScore(false);
+    setLastAnswerCorrect(null);
+    setLastCorrectAnswer(null);
+    setLastPointsEarned(0);
+    setResults([]);
+    setGameState('playing');
+    gameStartRef.current = Date.now();
+    questionStartRef.current = Date.now();
 
-    // Check celebration
-    if (isCorrect) {
-      setScore((prev) => {
-        if (prev.streak > 0 && prev.streak % STREAK_CELEBRATION === 0) {
-          setShowCelebration(true);
-          setTimeout(() => setShowCelebration(false), 2000);
+    if (qs.length > 0 && qs[0].timerSeconds) {
+      setTimeRemaining(qs[0].timerSeconds);
+    } else {
+      setTimeRemaining(null);
+    }
+  }, [plays, assignmentsByPlayId, playerPosition, playMastery, gameDayOnly]);
+
+  // ——— Submit Answer ———
+  const submitAnswer = useCallback(
+    async (answer) => {
+      if (!currentQuestion || lastAnswerCorrect != null || gameState !== 'playing') return;
+
+      const isCorrect = answer === currentQuestion.correctAnswer;
+      const elapsed = Math.round((Date.now() - questionStartRef.current) / 1000);
+
+      setLastAnswerCorrect(isCorrect);
+      setLastCorrectAnswer(currentQuestion.correctAnswer);
+      setQuestionsAnswered((p) => p + 1);
+
+      let newStreak = 0;
+      let pointsEarned = 0;
+
+      if (isCorrect) {
+        setQuestionsCorrect((p) => p + 1);
+        newStreak = streak + 1;
+        setStreak(newStreak);
+        setBestStreak((p) => Math.max(p, newStreak));
+
+        // Points
+        pointsEarned = calculatePoints(
+          currentQuestion.basePoints || 100,
+          timeRemaining,
+          currentQuestion.timerSeconds,
+          newStreak
+        );
+        setScore((p) => p + pointsEarned);
+        scoreRef.current = scoreRef.current + pointsEarned;
+        setLastPointsEarned(pointsEarned);
+
+        // Streak celebration check (exact match)
+        const cel = [...STREAK_CELEBRATIONS].reverse().find((c) => newStreak === c.streak);
+        if (cel) {
+          setCelebration(cel);
+          setTimeout(() => setCelebration(null), 2500);
+
+          // Life recovery from celebration
+          if (cel.recoversLife) {
+            setLives((prev) => Math.min(prev + 1, MAX_LIVES));
+          }
         }
-        return prev;
-      });
-    }
+      } else {
+        setStreak(0);
+        setLastPointsEarned(0);
 
-    // Save QuizAttempt to Base44
-    try {
-      await base44.entities.QuizAttempt.create({
-        user_id: userId,
-        team_id: teamId,
-        play_id: currentQuestion.playId,
-        quiz_type: quizType,
-        question_data: {
-          question: currentQuestion.questionText,
-          options: currentQuestion.options,
+        // Lose a life
+        setLives((prev) => prev - 1);
+      }
+
+      // Result record
+      setResults((prev) => [
+        ...prev,
+        {
+          playId: currentQuestion.playId,
+          playName: currentQuestion.play?.name || currentQuestion.correctAnswer,
+          type: currentQuestion.type,
+          isCorrect,
+          answer,
           correctAnswer: currentQuestion.correctAnswer,
+          pointsEarned: isCorrect ? pointsEarned : 0,
         },
-        answer: answer || '(timeout)',
-        is_correct: isCorrect,
-        time_seconds: elapsed,
-        difficulty,
-      });
-    } catch (err) {
-      console.error('Failed to save QuizAttempt:', err);
-    }
-  }, [currentQuestion, lastAnswerCorrect, userId, teamId, quizType, difficulty]);
+      ]);
 
+      // Persist QuizAttempt
+      try {
+        await base44.entities.QuizAttempt.create({
+          user_id: userId,
+          team_id: teamId,
+          play_id: currentQuestion.playId,
+          quiz_type: currentQuestion.type,
+          question_data: {
+            question: currentQuestion.questionText,
+            options: currentQuestion.options,
+            correctAnswer: currentQuestion.correctAnswer,
+          },
+          answer: answer || '(timeout)',
+          is_correct: isCorrect,
+          time_seconds: elapsed,
+          difficulty: 'adaptive',
+        });
+      } catch (err) {
+        console.error('Failed to save QuizAttempt:', err);
+      }
+    },
+    [currentQuestion, lastAnswerCorrect, gameState, streak, timeRemaining, userId, teamId]
+  );
+
+  // ——— Next Question (or Game Over) ———
   const nextQuestion = useCallback(() => {
-    if (currentIdx >= questions.length - 1) {
-      setIsComplete(true);
+    // Game over: no lives
+    if (lives <= 0) {
+      setGameState('gameover');
       setLastAnswerCorrect(null);
       setLastCorrectAnswer(null);
+      if (scoreRef.current > highScoreRef.current) {
+        setHighScore(scoreRef.current);
+        highScoreRef.current = scoreRef.current;
+        setIsNewHighScore(true);
+      }
       return;
     }
 
-    setCurrentIdx((prev) => prev + 1);
+    // Game over: no more questions
+    if (currentIdx >= questionQueue.length - 1) {
+      setGameState('gameover');
+      setLastAnswerCorrect(null);
+      setLastCorrectAnswer(null);
+      if (scoreRef.current > highScoreRef.current) {
+        setHighScore(scoreRef.current);
+        highScoreRef.current = scoreRef.current;
+        setIsNewHighScore(true);
+      }
+      return;
+    }
+
+    const nextIdx = currentIdx + 1;
+    setCurrentIdx(nextIdx);
     setLastAnswerCorrect(null);
     setLastCorrectAnswer(null);
+    setLastPointsEarned(0);
     questionStartRef.current = Date.now();
 
-    if (diffSettings.timerSeconds) {
-      setTimeRemaining(diffSettings.timerSeconds);
+    const nextQ = questionQueue[nextIdx];
+    if (nextQ?.timerSeconds) {
+      setTimeRemaining(nextQ.timerSeconds);
+    } else {
+      setTimeRemaining(null);
     }
-  }, [currentIdx, questions.length, diffSettings.timerSeconds]);
+  }, [currentIdx, questionQueue, lives]);
 
-  const resetQuiz = useCallback(() => {
-    startQuiz();
-  }, [startQuiz]);
-
+  // ——— Public API ———
   return {
-    currentQuestion,
-    questions,
-    currentIdx,
+    // State
+    gameState,
+    lives,
     score,
-    isComplete,
+    highScore,
+    streak,
+    bestStreak,
+    questionsAnswered,
+    questionsCorrect,
+    currentQuestion,
+    questionQueue,
+    currentIdx,
+    celebration,
+    isNewHighScore,
     timeRemaining,
-    timerSeconds: diffSettings.timerSeconds,
     lastAnswerCorrect,
     lastCorrectAnswer,
-    showCelebration,
+    lastPointsEarned,
     results,
-    totalTime: Math.round((Date.now() - quizStartTime) / 1000),
-    startQuiz,
+    isInitialized,
+    playMastery,
+    totalTime: Math.round((Date.now() - gameStartRef.current) / 1000),
+
+    // Actions
+    startGame,
     submitAnswer,
     nextQuestion,
-    resetQuiz,
   };
 }

@@ -2,10 +2,56 @@ import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Users, BookOpen, Calendar, UserPlus, Share2, MessageSquare, Clock, MapPin, Gamepad2, Flame } from 'lucide-react';
+import { Users, BookOpen, Calendar, UserPlus, Share2, MessageSquare, Clock, MapPin, Zap, Trophy, Flame } from 'lucide-react';
 import usePlayerStats from '@/hooks/usePlayerStats';
 
 const PLAYER_COUNT_ROLES = ['player'];
+const MEDALS = ['🥇', '🥈', '🥉'];
+
+function Leaderboard({ teamStats, members }) {
+  if (!teamStats || teamStats.length === 0) return null;
+
+  // Build member name lookup
+  const memberMap = {};
+  members.forEach((m) => {
+    memberMap[m.user_id] = m.jersey_name || m.name || 'Player';
+  });
+
+  // Rank by high_score descending
+  const ranked = [...teamStats]
+    .filter((s) => (s.high_score || 0) > 0)
+    .sort((a, b) => (b.high_score || 0) - (a.high_score || 0))
+    .slice(0, 10);
+
+  if (ranked.length === 0) return null;
+
+  return (
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <Trophy className="h-5 w-5 text-amber-500" />
+        <span className="font-semibold text-slate-100">Leaderboard</span>
+      </div>
+      <div className="space-y-2">
+        {ranked.map((s, i) => (
+          <div
+            key={s.user_id || i}
+            className="flex items-center gap-3 p-2 rounded-lg bg-slate-800/50"
+          >
+            <span className="w-6 text-center text-sm">
+              {i < 3 ? MEDALS[i] : <span className="text-slate-500">{i + 1}</span>}
+            </span>
+            <span className="flex-1 text-sm text-slate-200 font-medium truncate">
+              {memberMap[s.user_id] || 'Player'}
+            </span>
+            <span className="text-amber-500 text-sm font-bold tabular-nums">
+              {(s.high_score || 0).toLocaleString()}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function formatEventWhen(startDate, startTime) {
   if (!startDate) return null;
@@ -40,6 +86,15 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     queryFn: async () => {
       if (!team?.id) return [];
       const list = await base44.entities.TeamEvent.filter({ team_id: team.id });
+      return Array.isArray(list) ? list : [];
+    },
+    enabled: !!team?.id,
+  });
+  const { data: teamPlayerStats = [] } = useQuery({
+    queryKey: ['team-player-stats', team?.id],
+    queryFn: async () => {
+      if (!team?.id) return [];
+      const list = await base44.entities.PlayerStats.filter({ team_id: team.id });
       return Array.isArray(list) ? list : [];
     },
     enabled: !!team?.id,
@@ -160,16 +215,16 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
             <div className="text-sm text-slate-400">Teammates</div>
           </div>
         </div>
-        {/* Quiz Me card */}
+        {/* Playbook Pro card */}
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Gamepad2 className="h-5 w-5 text-amber-500" />
-            <span className="font-semibold text-slate-100">Quiz Me</span>
+            <Zap className="h-5 w-5 text-amber-500" />
+            <span className="font-semibold text-slate-100">Playbook Pro</span>
           </div>
           <div className="flex items-center gap-4 mb-3">
             <div className="flex items-center gap-1.5">
-              <Flame className="h-4 w-4 text-amber-500" />
-              <span className="text-slate-300 text-sm font-medium">{playerStats.current_streak} streak</span>
+              <Trophy className="h-4 w-4 text-amber-500" />
+              <span className="text-slate-300 text-sm font-medium">{(playerStats.high_score || 0).toLocaleString()} pts</span>
             </div>
             <div className="text-slate-400 text-sm">
               {playerStats.plays_mastered} play{playerStats.plays_mastered !== 1 ? 's' : ''} mastered
@@ -180,10 +235,13 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
             className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
             onClick={() => onNavigateTab?.('playbook')}
           >
-            <Gamepad2 className="h-4 w-4 mr-2" />
-            Open Playbook to Quiz
+            <Zap className="h-4 w-4 mr-2" />
+            Open Playbook Pro
           </Button>
         </div>
+
+        {/* Leaderboard */}
+        <Leaderboard teamStats={teamPlayerStats} members={members} />
 
         <Button
           type="button"
@@ -237,16 +295,16 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
         </div>
       </div>
 
-      {/* Quiz Me card — visible to coaches and players */}
+      {/* Playbook Pro card — visible to coaches and players */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Gamepad2 className="h-5 w-5 text-amber-500" />
-          <span className="font-semibold text-slate-100">Quiz Me</span>
+          <Zap className="h-5 w-5 text-amber-500" />
+          <span className="font-semibold text-slate-100">Playbook Pro</span>
         </div>
         <div className="flex items-center gap-4 mb-3">
           <div className="flex items-center gap-1.5">
-            <Flame className="h-4 w-4 text-amber-500" />
-            <span className="text-slate-300 text-sm font-medium">{playerStats.current_streak} streak</span>
+            <Trophy className="h-4 w-4 text-amber-500" />
+            <span className="text-slate-300 text-sm font-medium">{(playerStats.high_score || 0).toLocaleString()} pts</span>
           </div>
           <div className="text-slate-400 text-sm">
             {playerStats.plays_mastered} play{playerStats.plays_mastered !== 1 ? 's' : ''} mastered
@@ -257,10 +315,13 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
           className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-amber-500 font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors border border-slate-700"
           onClick={() => onNavigateTab?.('playbook')}
         >
-          <Gamepad2 className="h-4 w-4 mr-2" />
-          Open Playbook to Quiz
+          <Zap className="h-4 w-4 mr-2" />
+          Open Playbook Pro
         </Button>
       </div>
+
+      {/* Leaderboard */}
+      <Leaderboard teamStats={teamPlayerStats} members={members} />
 
       {isCoach && (
         <div className="flex flex-wrap gap-3">

@@ -1,49 +1,44 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { X, Eye, Target, Route, Trophy, Flame, Check, XIcon, RotateCcw, BookOpen } from 'lucide-react';
+import { X, Heart, Trophy, Flame, Check, XIcon, RotateCcw, BookOpen, Zap, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PlayRenderer from '@/components/field/PlayRenderer';
 import useQuiz from '@/hooks/useQuiz';
 import usePlayerStats from '@/hooks/usePlayerStats';
-import { QUIZ_TYPES, DIFFICULTY_SETTINGS, STREAK_CELEBRATION } from '@/config/quizConfig';
+import { STARTING_LIVES, MAX_LIVES } from '@/config/quizConfig';
 
-const ICON_MAP = { Eye, Target, Route };
+// ——— Sub-components at module level (no focus loss) ———
 
-// ——— Sub-components defined at module level (no focus loss) ———
-
-function QuizTypeCard({ type, isSelected, onClick }) {
-  const Icon = ICON_MAP[type.icon] || Eye;
+function Hearts({ lives, maxLives = MAX_LIVES, lostLife }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`p-4 rounded-xl border text-left transition-colors min-h-[44px] ${
-        isSelected
-          ? 'bg-amber-500/10 border-amber-500 text-white'
-          : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-600'
-      }`}
-    >
-      <div className="flex items-center gap-3 mb-2">
-        <Icon className={`h-5 w-5 ${isSelected ? 'text-amber-500' : 'text-slate-400'}`} />
-        <span className="font-semibold">{type.label}</span>
-      </div>
-      <p className="text-sm text-slate-400">{type.description}</p>
-    </button>
+    <div className="flex items-center gap-1">
+      {Array.from({ length: maxLives }).map((_, i) => (
+        <Heart
+          key={i}
+          className={`h-5 w-5 transition-all duration-300 ${
+            i < lives
+              ? 'text-red-500 fill-red-500'
+              : 'text-slate-700 fill-slate-700'
+          } ${lostLife && i === lives ? 'animate-heartLose' : ''}`}
+        />
+      ))}
+    </div>
   );
 }
 
-function DifficultyChip({ id, label, isSelected, onClick }) {
+function ScoreDisplay({ score, lastPoints }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
-        isSelected
-          ? 'bg-amber-500 text-black'
-          : 'bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600'
-      }`}
-    >
-      {label}
-    </button>
+    <div className="relative flex items-center gap-1.5">
+      <Zap className="h-4 w-4 text-amber-500" />
+      <span className="text-amber-500 font-bold text-lg tabular-nums">{score.toLocaleString()}</span>
+      {lastPoints > 0 && (
+        <span
+          key={`pts-${score}`}
+          className="absolute -top-5 right-0 text-green-400 text-sm font-bold animate-scoreUp pointer-events-none"
+        >
+          +{lastPoints}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -63,14 +58,19 @@ function TimerBar({ timeRemaining, timerSeconds }) {
   );
 }
 
-function StreakCelebration() {
+function CelebrationOverlay({ celebration }) {
+  if (!celebration) return null;
   return (
     <div className="fixed inset-0 z-[70] pointer-events-none flex items-center justify-center">
       <div className="animate-bounce">
-        <div className="bg-amber-500/20 border border-amber-500/50 rounded-2xl px-8 py-6 flex flex-col items-center gap-2">
-          <Flame className="h-12 w-12 text-amber-500" />
-          <span className="text-amber-500 text-xl font-bold">On Fire!</span>
-          <span className="text-slate-400 text-sm">{STREAK_CELEBRATION} in a row!</span>
+        <div className="bg-amber-500/20 border border-amber-500/50 rounded-2xl px-8 py-6 flex flex-col items-center gap-2 backdrop-blur-sm">
+          <span className="text-4xl">{celebration.emoji}</span>
+          <span className="text-amber-500 text-xl font-bold">{celebration.message}</span>
+          {celebration.recoversLife && (
+            <span className="text-green-400 text-sm font-medium flex items-center gap-1">
+              <Heart className="h-3.5 w-3.5 fill-green-400" /> +1 Life
+            </span>
+          )}
         </div>
       </div>
     </div>
@@ -79,20 +79,29 @@ function StreakCelebration() {
 
 function ResultRow({ result }) {
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-lg ${
-      result.isCorrect ? 'bg-green-500/10' : 'bg-red-500/10'
-    }`}>
+    <div
+      className={`flex items-center gap-3 p-3 rounded-lg ${
+        result.isCorrect ? 'bg-green-500/10' : 'bg-red-500/10'
+      }`}
+    >
       {result.isCorrect ? (
         <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
       ) : (
         <XIcon className="h-5 w-5 text-red-500 flex-shrink-0" />
       )}
       <div className="flex-1 min-w-0">
-        <span className="text-white text-sm font-medium truncate block">{result.playName}</span>
+        <span className="text-white text-sm font-medium truncate block">
+          {formatRouteLabel(result.playName)}
+        </span>
         {!result.isCorrect && (
-          <span className="text-slate-400 text-xs">Correct: {formatRouteLabel(result.correctAnswer)}</span>
+          <span className="text-slate-400 text-xs">
+            Correct: {formatRouteLabel(result.correctAnswer)}
+          </span>
         )}
       </div>
+      {result.isCorrect && result.pointsEarned > 0 && (
+        <span className="text-amber-500 text-sm font-medium">+{result.pointsEarned}</span>
+      )}
     </div>
   );
 }
@@ -100,10 +109,24 @@ function ResultRow({ result }) {
 /** Format route IDs into readable labels */
 function formatRouteLabel(value) {
   if (!value) return '—';
-  return value
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+// ——— Inline keyframe styles (injected once) ———
+const ANIM_STYLES = `
+@keyframes heartLose {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.4); }
+  60% { transform: scale(0.6); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes scoreUp {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-20px); }
+}
+.animate-heartLose { animation: heartLose 0.5s ease-out; }
+.animate-scoreUp { animation: scoreUp 0.8s ease-out forwards; }
+`;
 
 // ——— Main Component ———
 
@@ -115,15 +138,9 @@ export default function QuizMode({
   currentUserId,
   playerPosition,
   onClose,
-  initialQuizType,
   initialPlayFilter,
 }) {
-  const [phase, setPhase] = useState('start'); // 'start' | 'quiz' | 'results'
-  const [selectedType, setSelectedType] = useState(initialQuizType || 'name_that_play');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('medium');
-  const [gameDayFilter, setGameDayFilter] = useState(false);
-
-  // Filter plays if initial filter provided (e.g., single play quiz)
+  // Filter plays if initial filter provided (e.g., single play practice)
   const quizPlays = useMemo(() => {
     if (initialPlayFilter) {
       return plays.filter((p) => initialPlayFilter.includes(p.id));
@@ -131,66 +148,92 @@ export default function QuizMode({
     return plays;
   }, [plays, initialPlayFilter]);
 
+  const [gameDayFilter, setGameDayFilter] = useState(false);
+  const [lostLife, setLostLife] = useState(false);
+
   const { stats, updateStats } = usePlayerStats({
     userId: currentUserId,
     teamId: team?.id,
   });
 
-  const quiz = useQuiz({
+  const game = useQuiz({
     teamId: team?.id,
     userId: currentUserId,
     plays: quizPlays,
     assignmentsByPlayId,
     playerPosition,
-    quizType: selectedType,
-    difficulty: selectedDifficulty,
     gameDayOnly: gameDayFilter,
   });
 
   // Auto-advance after answering
   useEffect(() => {
-    if (quiz.lastAnswerCorrect == null) return;
-    const delay = quiz.lastAnswerCorrect ? 1500 : 3000;
+    if (game.lastAnswerCorrect == null) return;
+    const delay = game.lastAnswerCorrect ? 1500 : 2500;
     const timer = setTimeout(() => {
-      quiz.nextQuestion();
+      game.nextQuestion();
     }, delay);
     return () => clearTimeout(timer);
-  }, [quiz.lastAnswerCorrect]);
+  }, [game.lastAnswerCorrect]);
 
-  // When quiz completes, update stats and switch to results
+  // Trigger lost-life animation
   useEffect(() => {
-    if (quiz.isComplete && phase === 'quiz') {
-      setPhase('results');
+    if (game.lastAnswerCorrect === false) {
+      setLostLife(true);
+      setTimeout(() => setLostLife(false), 600);
+    }
+  }, [game.lastAnswerCorrect]);
+
+  // When game ends, update stats
+  useEffect(() => {
+    if (game.gameState === 'gameover') {
       const gameDayPlays = plays.filter((p) => p.game_day && p.side === 'offense');
       updateStats(
-        { streak: quiz.score.streak, bestStreak: quiz.score.bestStreak },
+        { score: game.score, streak: game.streak, bestStreak: game.bestStreak },
         gameDayPlays
       );
     }
-  }, [quiz.isComplete, phase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [game.gameState]);
 
   const handleStart = useCallback(() => {
-    quiz.startQuiz();
-    setPhase('quiz');
-  }, [quiz]);
+    game.startGame();
+  }, [game]);
 
   const handlePlayAgain = useCallback(() => {
-    setPhase('start');
+    game.startGame();
+  }, [game]);
+
+  // Inject animation styles
+  useEffect(() => {
+    const id = 'playbook-pro-anims';
+    if (!document.getElementById(id)) {
+      const style = document.createElement('style');
+      style.id = id;
+      style.textContent = ANIM_STYLES;
+      document.head.appendChild(style);
+    }
   }, []);
 
   // ——— START SCREEN ———
-  if (phase === 'start') {
+  if (game.gameState === 'ready') {
     const offensePlays = quizPlays.filter((p) => p.side === 'offense' && p.status === 'active');
     const availableCount = gameDayFilter
       ? offensePlays.filter((p) => p.game_day).length
       : offensePlays.length;
+
+    // Count mastery levels
+    const masteryBreakdown = { new: 0, learning: 0, familiar: 0, mastered: 0 };
+    offensePlays.forEach((p) => {
+      const m = game.playMastery[p.id] || 'new';
+      masteryBreakdown[m]++;
+    });
 
     return (
       <div className="fixed inset-0 z-50 bg-slate-950 overflow-y-auto">
         <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-white">Quiz Time!</h1>
+            <h1 className="text-2xl font-bold text-white">Playbook Pro</h1>
             <button
               type="button"
               onClick={onClose}
@@ -200,66 +243,72 @@ export default function QuizMode({
             </button>
           </div>
 
-          {/* Quiz type selector */}
-          <div className="space-y-3">
-            <p className="text-xs text-slate-400 uppercase tracking-wider">Quiz Type</p>
-            {Object.values(QUIZ_TYPES).map((type) => (
-              <QuizTypeCard
-                key={type.id}
-                type={type}
-                isSelected={selectedType === type.id}
-                onClick={() => setSelectedType(type.id)}
-              />
-            ))}
+          {/* Lives + High Score */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-4">
+              <Hearts lives={STARTING_LIVES} />
+              <div className="flex items-center gap-2 text-slate-400 text-sm">
+                <Trophy className="h-4 w-4 text-amber-500" />
+                <span className="font-medium">Best: {game.highScore.toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Mastery breakdown */}
+            <div className="grid grid-cols-4 gap-2 text-center">
+              <div>
+                <div className="text-lg font-bold text-slate-400">{masteryBreakdown.new}</div>
+                <div className="text-xs text-slate-500">New</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold text-blue-400">{masteryBreakdown.learning}</div>
+                <div className="text-xs text-slate-500">Learning</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold text-purple-400">{masteryBreakdown.familiar}</div>
+                <div className="text-xs text-slate-500">Familiar</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold text-amber-500">{masteryBreakdown.mastered}</div>
+                <div className="text-xs text-slate-500">Mastered</div>
+              </div>
+            </div>
           </div>
 
-          {/* Difficulty */}
-          <div>
-            <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Difficulty</p>
-            <div className="flex gap-2">
-              {Object.entries(DIFFICULTY_SETTINGS).map(([id, { label }]) => (
-                <DifficultyChip
-                  key={id}
-                  id={id}
-                  label={label}
-                  isSelected={selectedDifficulty === id}
-                  onClick={() => setSelectedDifficulty(id)}
-                />
-              ))}
-            </div>
+          {/* How it works */}
+          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 space-y-2">
+            <p className="text-sm text-slate-300 font-medium">How it works</p>
+            <ul className="text-sm text-slate-400 space-y-1">
+              <li className="flex items-center gap-2">
+                <Heart className="h-3.5 w-3.5 text-red-500 fill-red-500 flex-shrink-0" />
+                3 lives — wrong answers cost a life
+              </li>
+              <li className="flex items-center gap-2">
+                <Flame className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
+                Streaks multiply your score
+              </li>
+              <li className="flex items-center gap-2">
+                <Star className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
+                Weaker plays appear more often
+              </li>
+            </ul>
           </div>
 
           {/* Game day filter */}
           <div
             onClick={() => setGameDayFilter(!gameDayFilter)}
-            className="flex items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-xl cursor-pointer"
+            className="flex items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-xl cursor-pointer min-h-[44px]"
           >
             <span className="text-slate-300 text-sm">Game Day plays only</span>
-            <div className={`relative w-10 h-5 rounded-full transition-colors ${
-              gameDayFilter ? 'bg-amber-500' : 'bg-slate-700'
-            }`}>
-              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-slate-100 transition-transform ${
-                gameDayFilter ? 'left-5' : 'left-0.5'
-              }`} />
-            </div>
-          </div>
-
-          {/* Stats summary */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <p className="text-xs text-slate-400 uppercase tracking-wider mb-3">Your Stats</p>
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div>
-                <div className="text-2xl font-bold text-amber-500">{stats.plays_mastered}</div>
-                <div className="text-xs text-slate-400">Mastered</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-white">{stats.current_streak}</div>
-                <div className="text-xs text-slate-400">Streak</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-white">{stats.best_streak}</div>
-                <div className="text-xs text-slate-400">Best</div>
-              </div>
+            <div
+              className={`relative w-10 h-5 rounded-full transition-colors ${
+                gameDayFilter ? 'bg-amber-500' : 'bg-slate-700'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 w-4 h-4 rounded-full bg-slate-100 transition-transform ${
+                  gameDayFilter ? 'left-5' : 'left-0.5'
+                }`}
+              />
             </div>
           </div>
 
@@ -267,105 +316,113 @@ export default function QuizMode({
           <Button
             type="button"
             onClick={handleStart}
-            disabled={availableCount === 0}
+            disabled={availableCount === 0 || !game.isInitialized}
             className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold text-lg py-6 min-h-[56px]"
           >
-            {availableCount === 0
-              ? 'No plays available'
-              : `Start Quiz (${availableCount} play${availableCount !== 1 ? 's' : ''})`}
+            {!game.isInitialized
+              ? 'Loading…'
+              : availableCount === 0
+                ? 'No plays available'
+                : `Play (${availableCount} play${availableCount !== 1 ? 's' : ''})`}
           </Button>
         </div>
       </div>
     );
   }
 
-  // ——— QUIZ SCREEN ———
-  if (phase === 'quiz') {
-    const q = quiz.currentQuestion;
+  // ——— GAME SCREEN ———
+  if (game.gameState === 'playing') {
+    const q = game.currentQuestion;
     if (!q) {
-      // Edge case: no questions generated
       return (
         <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6">
-          <p className="text-slate-400 text-lg mb-4">No questions available for this quiz type.</p>
-          <Button onClick={onClose} className="bg-amber-500 hover:bg-amber-400 text-black font-medium">
+          <p className="text-slate-400 text-lg mb-4">No questions available.</p>
+          <Button
+            onClick={onClose}
+            className="bg-amber-500 hover:bg-amber-400 text-black font-medium"
+          >
             Close
           </Button>
         </div>
       );
     }
 
-    const progressPct = ((quiz.currentIdx + 1) / quiz.questions.length) * 100;
-
     return (
       <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col">
-        {quiz.showCelebration && <StreakCelebration />}
+        <CelebrationOverlay celebration={game.celebration} />
 
-        {/* Top bar */}
+        {/* Top bar: hearts, score, streak */}
         <div className="flex-shrink-0 px-4 pt-3 pb-2 space-y-2">
           <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-2 -ml-2 text-slate-400 hover:text-white min-w-[44px] min-h-[44px] flex items-center justify-center"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <span className="text-slate-400 text-sm">
-              {quiz.currentIdx + 1} / {quiz.questions.length}
-            </span>
+            <Hearts lives={game.lives} lostLife={lostLife} />
+            <ScoreDisplay score={game.score} lastPoints={game.lastPointsEarned} />
             <div className="flex items-center gap-2">
-              {quiz.score.streak > 0 && (
+              {game.streak > 0 && (
                 <span className="flex items-center gap-1 text-amber-500 text-sm font-medium">
                   <Flame className="h-4 w-4" />
-                  {quiz.score.streak}
+                  {game.streak}
                 </span>
               )}
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-2 -mr-2 text-slate-400 hover:text-white min-w-[44px] min-h-[44px] flex items-center justify-center"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
           </div>
 
-          {/* Progress bar */}
-          <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-amber-500 rounded-full transition-all duration-300"
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
-
           {/* Timer */}
-          <TimerBar timeRemaining={quiz.timeRemaining} timerSeconds={quiz.timerSeconds} />
+          <TimerBar timeRemaining={game.timeRemaining} timerSeconds={q.timerSeconds} />
         </div>
 
         {/* Question area */}
         <div className="flex-1 overflow-y-auto flex flex-col p-4 min-h-0">
+          {/* Formation hint */}
+          {q.showFormationHint && q.play?.formation && (
+            <div className="text-center mb-2">
+              <span className="bg-slate-800 text-slate-400 text-xs px-3 py-1 rounded-full">
+                Formation: {formatRouteLabel(q.play.formation)}
+              </span>
+            </div>
+          )}
+
           {/* Visual area */}
-          {selectedType === 'name_that_play' && (q.play.use_renderer === true || q.play.use_renderer === 'true') ? (
+          {q.type === 'name_that_play' && (q.play.use_renderer === true || q.play.use_renderer === 'true') ? (
             <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 max-h-[250px] md:max-h-[350px]">
               <PlayRenderer
                 play={q.play}
                 assignments={q.assignments}
                 mode="view"
+                mirrored={q.mirrored}
+                showLabels={q.showLabels}
                 className="w-full h-full max-h-[250px] md:max-h-[350px]"
               />
             </div>
-          ) : selectedType === 'name_that_play' && q.play.diagram_image ? (
+          ) : q.type === 'name_that_play' && q.play.diagram_image ? (
             <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4">
               <img src={q.play.diagram_image} alt="" className="w-full aspect-video object-contain" />
             </div>
-          ) : selectedType === 'identify_route' && q.routePath ? (
+          ) : q.type === 'identify_route' && q.routePath ? (
             <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 max-h-[250px] md:max-h-[350px]">
               <PlayRenderer
                 play={q.fakePlay}
                 assignments={q.fakeAssignments}
                 mode="view"
+                mirrored={q.mirrored}
+                showLabels={q.showLabels}
                 className="w-full h-full max-h-[250px] md:max-h-[350px]"
               />
             </div>
-          ) : selectedType === 'know_your_job' ? (
+          ) : q.type === 'know_your_job' ? (
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-4 text-center">
               <h2 className="text-2xl font-bold text-white mb-2">{q.play.name}</h2>
-              <span className="bg-slate-800 text-slate-300 text-sm px-3 py-1 rounded">
-                {q.play.formation || '—'}
-              </span>
+              {q.showFormationHint && q.play.formation && (
+                <span className="bg-slate-800 text-slate-300 text-sm px-3 py-1 rounded">
+                  {formatRouteLabel(q.play.formation)}
+                </span>
+              )}
             </div>
           ) : null}
 
@@ -377,12 +434,11 @@ export default function QuizMode({
             {q.options.map((option, i) => {
               let btnClass = 'bg-slate-800 border-slate-700 text-white hover:border-slate-600';
 
-              if (quiz.lastAnswerCorrect != null) {
-                if (option === quiz.lastCorrectAnswer) {
+              if (game.lastAnswerCorrect != null) {
+                if (option === game.lastCorrectAnswer) {
                   btnClass = 'bg-green-500/20 border-green-500 text-green-400';
-                } else if (option === quiz.lastAnswerCorrect === false && option !== quiz.lastCorrectAnswer) {
-                  // Check if this was the selected wrong answer
-                  const lastResult = quiz.results[quiz.results.length - 1];
+                } else {
+                  const lastResult = game.results[game.results.length - 1];
                   if (lastResult?.answer === option && !lastResult?.isCorrect) {
                     btnClass = 'bg-red-500/20 border-red-500 text-red-400';
                   }
@@ -393,8 +449,8 @@ export default function QuizMode({
                 <button
                   key={`${option}-${i}`}
                   type="button"
-                  onClick={() => quiz.submitAnswer(option)}
-                  disabled={quiz.lastAnswerCorrect != null}
+                  onClick={() => game.submitAnswer(option)}
+                  disabled={game.lastAnswerCorrect != null}
                   className={`w-full p-4 rounded-xl border text-left font-medium transition-colors min-h-[56px] ${btnClass} disabled:cursor-default`}
                 >
                   {formatRouteLabel(option)}
@@ -407,20 +463,22 @@ export default function QuizMode({
     );
   }
 
-  // ——— RESULTS SCREEN ———
-  if (phase === 'results') {
-    const pct = quiz.score.total > 0 ? Math.round((quiz.score.correct / quiz.score.total) * 100) : 0;
-    const totalTime = quiz.totalTime;
+  // ——— GAME OVER SCREEN ———
+  if (game.gameState === 'gameover') {
+    const totalTime = game.totalTime;
     const minutes = Math.floor(totalTime / 60);
     const seconds = totalTime % 60;
-    const isNewBest = quiz.score.bestStreak > (stats.best_streak || 0);
+    const pct =
+      game.questionsAnswered > 0
+        ? Math.round((game.questionsCorrect / game.questionsAnswered) * 100)
+        : 0;
 
     return (
       <div className="fixed inset-0 z-50 bg-slate-950 overflow-y-auto">
         <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-white">Results</h1>
+            <h1 className="text-2xl font-bold text-white">Game Over</h1>
             <button
               type="button"
               onClick={onClose}
@@ -432,17 +490,18 @@ export default function QuizMode({
 
           {/* Score card */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center">
-            {isNewBest && (
-              <div className="flex items-center justify-center gap-2 mb-3 text-amber-500">
+            {game.isNewHighScore && (
+              <div className="flex items-center justify-center gap-2 mb-3 text-amber-500 animate-bounce">
                 <Trophy className="h-6 w-6" />
-                <span className="font-bold">New Best Streak!</span>
+                <span className="font-bold text-lg">New High Score!</span>
               </div>
             )}
-            <div className="text-5xl font-bold text-white mb-1">
-              {quiz.score.correct} / {quiz.score.total}
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Zap className="h-8 w-8 text-amber-500" />
+              <span className="text-5xl font-bold text-white">{game.score.toLocaleString()}</span>
             </div>
-            <div className={`text-2xl font-semibold ${pct >= 80 ? 'text-green-400' : pct >= 50 ? 'text-amber-500' : 'text-red-400'}`}>
-              {pct}%
+            <div className="text-slate-400 text-sm">
+              {game.questionsCorrect} / {game.questionsAnswered} correct ({pct}%)
             </div>
           </div>
 
@@ -457,25 +516,30 @@ export default function QuizMode({
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
               <div className="text-lg font-bold text-amber-500 flex items-center justify-center gap-1">
                 <Flame className="h-4 w-4" />
-                {quiz.score.bestStreak}
+                {game.bestStreak}
               </div>
               <div className="text-xs text-slate-400">Best streak</div>
             </div>
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
-              <div className="text-lg font-bold text-white">{stats.plays_mastered}</div>
-              <div className="text-xs text-slate-400">Mastered</div>
+              <div className="text-lg font-bold text-white flex items-center justify-center gap-1">
+                <Trophy className="h-4 w-4 text-amber-500" />
+                {game.highScore.toLocaleString()}
+              </div>
+              <div className="text-xs text-slate-400">High score</div>
             </div>
           </div>
 
-          {/* Per-play breakdown */}
-          <div>
-            <p className="text-xs text-slate-400 uppercase tracking-wider mb-3">Breakdown</p>
-            <div className="space-y-2">
-              {quiz.results.map((result, i) => (
-                <ResultRow key={i} result={result} />
-              ))}
+          {/* Per-question breakdown */}
+          {game.results.length > 0 && (
+            <div>
+              <p className="text-xs text-slate-400 uppercase tracking-wider mb-3">Breakdown</p>
+              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                {game.results.map((result, i) => (
+                  <ResultRow key={i} result={result} />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3">

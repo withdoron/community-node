@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { MASTERY_THRESHOLD } from '@/config/quizConfig';
+import { deriveMasteryLevel } from '@/config/quizConfig';
 
 const DEFAULT_STATS = {
   plays_mastered: 0,
@@ -10,19 +10,66 @@ const DEFAULT_STATS = {
   best_streak: 0,
   game_day_readiness: 0,
   last_quiz_date: null,
+  high_score: 0,
 };
 
 /**
+ * Approximate high score from QuizAttempt history.
+ * Groups consecutive attempts within 5 minutes into sessions,
+ * estimates points per session, returns the max.
+ */
+function approximateHighScore(attempts) {
+  if (!attempts || attempts.length === 0) return 0;
+
+  const sorted = [...attempts].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
+
+  const sessions = [];
+  let session = [sorted[0]];
+  for (let i = 1; i < sorted.length; i++) {
+    const gap = new Date(sorted[i].created_at).getTime() - new Date(sorted[i - 1].created_at).getTime();
+    if (gap <= 5 * 60 * 1000) {
+      session.push(sorted[i]);
+    } else {
+      sessions.push(session);
+      session = [sorted[i]];
+    }
+  }
+  sessions.push(session);
+
+  let best = 0;
+  for (const s of sessions) {
+    let total = 0;
+    let streak = 0;
+    for (const a of s) {
+      if (a.is_correct) {
+        streak++;
+        let pts = 150;
+        if (streak >= 10) pts *= 3;
+        else if (streak >= 5) pts *= 2;
+        total += pts;
+      } else {
+        streak = 0;
+      }
+    }
+    best = Math.max(best, total);
+  }
+  return best;
+}
+
+/**
  * usePlayerStats — manages PlayerStats entity for a user + team.
+ * Includes high score approximation from QuizAttempt history.
  */
 export default function usePlayerStats({ userId, teamId }) {
   const [stats, setStats] = useState(DEFAULT_STATS);
-  const [statsRecord, setStatsRecord] = useState(null); // the full Base44 record
+  const [statsRecord, setStatsRecord] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch existing stats
   useEffect(() => {
-    const fetch = async () => {
+    const load = async () => {
       if (!userId || !teamId) {
         setStats(DEFAULT_STATS);
         setIsLoading(false);
@@ -45,6 +92,7 @@ export default function usePlayerStats({ userId, teamId }) {
             best_streak: record.best_streak || 0,
             game_day_readiness: record.game_day_readiness || 0,
             last_quiz_date: record.last_quiz_date || null,
+            high_score: record.high_score || 0,
           });
         }
       } catch (err) {
@@ -53,40 +101,39 @@ export default function usePlayerStats({ userId, teamId }) {
         setIsLoading(false);
       }
     };
-    fetch();
+    load();
   }, [userId, teamId]);
 
   /**
-   * Recalculate and save stats after a quiz session.
-   * @param {Object} quizResults - { streak, bestStreak }
+   * Recalculate and save stats after a game session.
+   * @param {Object} gameResults - { score, bestStreak, streak }
    * @param {Array} gameDayPlays - plays marked as game_day
    */
-  const updateStats = useCallback(async (quizResults, gameDayPlays = []) => {
+  const updateStats = useCallback(async (gameResults, gameDayPlays = []) => {
     if (!userId || !teamId) return;
 
     try {
       // Fetch all attempts for this user + team
-      const allAttempts = await base44.entities.QuizAttempt.filter({
+      const raw = await base44.entities.QuizAttempt.filter({
         user_id: userId,
         team_id: teamId,
       });
-      const attempts = Array.isArray(allAttempts) ? allAttempts : [];
+      const attempts = Array.isArray(raw) ? raw : [];
 
       const totalAttempts = attempts.length;
       const totalCorrect = attempts.filter((a) => a.is_correct).length;
 
-      // Calculate plays mastered: plays with >80% correct rate
-      const attemptsByPlay = {};
+      // Plays mastered: derived from attempt history
+      const byPlay = {};
       attempts.forEach((a) => {
-        if (!attemptsByPlay[a.play_id]) attemptsByPlay[a.play_id] = { correct: 0, total: 0 };
-        attemptsByPlay[a.play_id].total++;
-        if (a.is_correct) attemptsByPlay[a.play_id].correct++;
+        if (!a.play_id) return;
+        if (!byPlay[a.play_id]) byPlay[a.play_id] = [];
+        byPlay[a.play_id].push(a);
       });
 
       let playsMastered = 0;
-      for (const playId of Object.keys(attemptsByPlay)) {
-        const { correct, total } = attemptsByPlay[playId];
-        if (total >= 2 && (correct / total) * 100 >= MASTERY_THRESHOLD) {
+      for (const playAttempts of Object.values(byPlay)) {
+        if (deriveMasteryLevel(playAttempts) === 'mastered') {
           playsMastered++;
         }
       }
@@ -94,20 +141,27 @@ export default function usePlayerStats({ userId, teamId }) {
       // Game day readiness
       let gameDayReadiness = 0;
       if (gameDayPlays.length > 0) {
-        const gameDayPlayIds = new Set(gameDayPlays.map((p) => p.id));
-        let masteredGameDay = 0;
-        for (const playId of gameDayPlayIds) {
-          const stats = attemptsByPlay[playId];
-          if (stats && stats.total >= 2 && (stats.correct / stats.total) * 100 >= MASTERY_THRESHOLD) {
-            masteredGameDay++;
+        const gameDayIds = new Set(gameDayPlays.map((p) => p.id));
+        let masteredGD = 0;
+        for (const pid of gameDayIds) {
+          if (byPlay[pid] && deriveMasteryLevel(byPlay[pid]) === 'mastered') {
+            masteredGD++;
           }
         }
-        gameDayReadiness = Math.round((masteredGameDay / gameDayPlays.length) * 100);
+        gameDayReadiness = Math.round((masteredGD / gameDayPlays.length) * 100);
       }
 
-      // Best streak: max across session and historical
+      // High score: max of current game score and historical approximation
+      const approxHS = approximateHighScore(attempts);
+      const currentHS = Math.max(
+        gameResults?.score || 0,
+        statsRecord?.high_score || 0,
+        approxHS
+      );
+
+      // Best streak: max of session and historical
       const bestStreak = Math.max(
-        quizResults?.bestStreak || 0,
+        gameResults?.bestStreak || 0,
         statsRecord?.best_streak || 0
       );
 
@@ -117,10 +171,11 @@ export default function usePlayerStats({ userId, teamId }) {
         plays_mastered: playsMastered,
         total_attempts: totalAttempts,
         total_correct: totalCorrect,
-        current_streak: quizResults?.streak || 0,
+        current_streak: gameResults?.streak || 0,
         best_streak: bestStreak,
         game_day_readiness: gameDayReadiness,
         last_quiz_date: new Date().toISOString(),
+        high_score: currentHS,
       };
 
       // Upsert
@@ -139,6 +194,7 @@ export default function usePlayerStats({ userId, teamId }) {
         best_streak: newStats.best_streak,
         game_day_readiness: newStats.game_day_readiness,
         last_quiz_date: newStats.last_quiz_date,
+        high_score: newStats.high_score,
       });
     } catch (err) {
       console.error('Failed to update PlayerStats:', err);
