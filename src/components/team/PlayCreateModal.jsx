@@ -14,6 +14,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import PlayBuilder from './PlayBuilder';
 
 const SIDES = [{ value: 'offense', label: 'Offense' }, { value: 'defense', label: 'Defense' }];
 
@@ -57,6 +58,7 @@ export default function PlayCreateModal({
 }) {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const [mode, setMode] = useState('visual'); // 'visual' | 'photo'
 
   const { data: editAssignmentsFetched = [] } = useQuery({
     queryKey: ['play-assignments-edit', editPlay?.id],
@@ -133,6 +135,14 @@ export default function PlayCreateModal({
       });
     }
   }, [open, editPlay?.id, defaultSide]);
+
+  // Auto-detect mode based on play type
+  useEffect(() => {
+    if (!open) return;
+    if (editPlay?.use_renderer) setMode('visual');
+    else if (editPlay) setMode('photo');
+    else setMode('visual'); // default for new plays
+  }, [open, editPlay?.id]);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -228,10 +238,47 @@ export default function PlayCreateModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-900 border-slate-800 max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className={`bg-slate-900 border-slate-800 max-h-[90vh] overflow-y-auto ${mode === 'visual' ? 'max-w-3xl w-[95vw]' : 'max-w-lg'}`}>
         <DialogHeader>
           <DialogTitle className="text-slate-100">{editPlay ? 'Edit play' : 'New play'}</DialogTitle>
         </DialogHeader>
+
+        {/* Mode toggle */}
+        <div className="flex gap-2 p-1 bg-slate-800 rounded-xl">
+          <button
+            type="button"
+            onClick={() => setMode('visual')}
+            className={`flex-1 py-2.5 text-center font-medium rounded-lg transition-colors min-h-[44px] text-sm ${
+              mode === 'visual' ? 'bg-amber-500 text-black' : 'text-slate-400 bg-transparent hover:bg-slate-700'
+            }`}
+          >
+            Visual Builder
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('photo')}
+            className={`flex-1 py-2.5 text-center font-medium rounded-lg transition-colors min-h-[44px] text-sm ${
+              mode === 'photo' ? 'bg-amber-500 text-black' : 'text-slate-400 bg-transparent hover:bg-slate-700'
+            }`}
+          >
+            Upload Photo
+          </button>
+        </div>
+
+        {mode === 'visual' ? (
+          <PlayBuilder
+            team={{ id: teamId }}
+            initialPlay={editPlay}
+            initialAssignments={assignmentsFromEdit}
+            currentUserId={createdBy}
+            onSave={() => {
+              queryClient.invalidateQueries({ queryKey: ['plays', teamId] });
+              onOpenChange(false);
+              onSuccess?.();
+            }}
+            onCancel={() => onOpenChange(false)}
+          />
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-2">
             {SIDES.map((s) => (
@@ -325,7 +372,7 @@ export default function PlayCreateModal({
               onClick={() => setForm((f) => ({ ...f, is_mirrorable: !f.is_mirrorable }))}
               className={`relative w-11 h-6 rounded-full transition-colors ${form.is_mirrorable ? 'bg-amber-500' : 'bg-slate-700'}`}
             >
-              <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${form.is_mirrorable ? 'left-6' : 'left-1'}`} />
+              <span className={`absolute top-1 w-4 h-4 rounded-full bg-slate-100 transition-transform ${form.is_mirrorable ? 'left-6' : 'left-1'}`} />
             </button>
           </div>
 
@@ -357,7 +404,7 @@ export default function PlayCreateModal({
               onClick={() => setForm((f) => ({ ...f, game_day: !f.game_day }))}
               className={`relative w-11 h-6 rounded-full transition-colors ${form.game_day ? 'bg-amber-500' : 'bg-slate-700'}`}
             >
-              <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${form.game_day ? 'left-6' : 'left-1'}`} />
+              <span className={`absolute top-1 w-4 h-4 rounded-full bg-slate-100 transition-transform ${form.game_day ? 'left-6' : 'left-1'}`} />
             </button>
           </div>
 
@@ -401,7 +448,7 @@ export default function PlayCreateModal({
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" className="border-slate-600 text-slate-300" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" className="border-slate-600 text-slate-300 hover:bg-transparent" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-medium" disabled={createPlay.isPending}>
@@ -409,6 +456,7 @@ export default function PlayCreateModal({
             </Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );

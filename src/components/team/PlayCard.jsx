@@ -1,5 +1,6 @@
 import React from 'react';
 import { BookOpen } from 'lucide-react';
+import PlayRenderer from '@/components/field/PlayRenderer';
 
 /** Parse tags from comma-separated string */
 export function parseTags(tagsStr) {
@@ -7,7 +8,7 @@ export function parseTags(tagsStr) {
   return tagsStr.split(',').map((t) => t.trim()).filter(Boolean);
 }
 
-export default function PlayCard({ play, onClick }) {
+export default function PlayCard({ play, assignments = [], onClick }) {
   const tags = parseTags(play?.tags);
   const previewTags = tags.slice(0, 3);
 
@@ -20,7 +21,9 @@ export default function PlayCard({ play, onClick }) {
       className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden cursor-pointer hover:border-slate-700 transition-colors min-h-[44px]"
     >
       <div className="aspect-video bg-slate-800 overflow-hidden">
-        {play?.diagram_image ? (
+        {play?.use_renderer ? (
+          <PlayRenderer play={play} assignments={assignments} mode="mini" className="w-full h-full" />
+        ) : play?.diagram_image ? (
           <img src={play.diagram_image} alt={play.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

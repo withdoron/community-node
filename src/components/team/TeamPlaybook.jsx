@@ -42,6 +42,34 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
     enabled: !!selectedPlay?.id,
   });
 
+  // Batch-fetch assignments for all visual (use_renderer) plays — needed for PlayCard mini renderer
+  const rendererPlayIds = useMemo(
+    () => plays.filter((p) => p.use_renderer).map((p) => p.id),
+    [plays]
+  );
+  const { data: allRendererAssignments = [] } = useQuery({
+    queryKey: ['renderer-play-assignments', team?.id, rendererPlayIds.join(',')],
+    queryFn: async () => {
+      if (!rendererPlayIds.length) return [];
+      const results = await Promise.all(
+        rendererPlayIds.map(async (pid) => {
+          const list = await base44.entities.PlayAssignment.filter({ play_id: pid });
+          return Array.isArray(list) ? list : [];
+        })
+      );
+      return results.flat();
+    },
+    enabled: !!team?.id && rendererPlayIds.length > 0,
+  });
+  const assignmentsByPlayId = useMemo(() => {
+    const map = {};
+    allRendererAssignments.forEach((a) => {
+      if (!map[a.play_id]) map[a.play_id] = [];
+      map[a.play_id].push(a);
+    });
+    return map;
+  }, [allRendererAssignments]);
+
   const archiveMutation = useMutation({
     mutationFn: (play) => base44.entities.Play.update(play.id, { status: 'archived' }),
     onSuccess: () => {
@@ -185,6 +213,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
                   <PlayCard
                     key={play.id}
                     play={play}
+                    assignments={assignmentsByPlayId[play.id] || []}
                     onClick={() => setSelectedPlay(play)}
                   />
                 ))}
