@@ -17,6 +17,7 @@ export default function PositionMarker({
   isHighlighted = false,
   isDraggable = false,
   dimmed = false,
+  showLabel = true,
   onClick,
   onDragEnd,
   viewBox = '0 0 400 200',
@@ -152,19 +153,21 @@ export default function PositionMarker({
         strokeWidth="1"
       />
 
-      {/* Label */}
-      <text
-        x="0"
-        y="0"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill="#ffffff"
-        fontSize={FONT_SIZE}
-        fontWeight="bold"
-        style={{ pointerEvents: 'none', userSelect: 'none' }}
-      >
-        {position.shortLabel}
-      </text>
+      {/* Label — only when showLabel is true */}
+      {showLabel && (
+        <text
+          x="0"
+          y="0"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fill="#ffffff"
+          fontSize={FONT_SIZE}
+          fontWeight="bold"
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
+        >
+          {position.shortLabel}
+        </text>
+      )}
     </g>
   );
 }

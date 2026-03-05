@@ -68,8 +68,9 @@ export default function FlagFootballField({
   return (
     <svg
       viewBox={viewBox}
-      className={`w-full ${className}`}
-      style={{ aspectRatio: '2 / 1' }}
+      width="100%"
+      preserveAspectRatio="xMidYMid meet"
+      className={className}
       xmlns="http://www.w3.org/2000/svg"
     >
       {/* Field background */}

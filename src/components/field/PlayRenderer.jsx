@@ -5,7 +5,7 @@ import RoutePath from './RoutePath';
 import { FLAG_FOOTBALL, DEFAULT_FORMAT, getPositionsForFormat } from '@/config/flagFootball';
 
 /**
- * Shared renderer for visual plays. Used in PlayCard, PlayDetail, StudyMode, SidelineMode.
+ * Shared renderer for visual plays. Used in PlayCard, PlayDetail, StudyMode, SidelineMode, Playbook Pro.
  *
  * Returns null if play.use_renderer is falsy (backward compat with photo plays).
  *
@@ -20,6 +20,7 @@ export default function PlayRenderer({
   assignments = [],
   highlightPosition = null,
   mirrored = false,
+  showLabels = true,
   mode = 'view', // "view" | "study" | "sideline" | "mini"
   onPositionTap,
   className = '',
@@ -99,11 +100,8 @@ export default function PlayRenderer({
   const isInteractive = mode === 'sideline' || (mode === 'view' && !!onPositionTap);
   const isMini = mode === 'mini';
 
-  // min-height per mode: mini = none, view/study = responsive, sideline = none (flex fills)
-  const heightClass = isMini ? '' : 'min-h-[200px] md:min-h-[300px]';
-
   return (
-    <div className={`relative ${heightClass} ${className}`}>
+    <div className={`relative ${className}`}>
       <FlagFootballField
         viewBox={viewBox}
         showScrimmage={!isMini}
@@ -143,6 +141,7 @@ export default function PlayRenderer({
               isHighlighted={isHighlighted}
               dimmed={isDimmed}
               isDraggable={false}
+              showLabel={showLabels}
               onClick={isInteractive ? onPositionTap : undefined}
               viewBox={viewBox}
             />
