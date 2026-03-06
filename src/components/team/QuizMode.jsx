@@ -5,47 +5,116 @@ import PlayRenderer from '@/components/field/PlayRenderer';
 import useQuiz from '@/hooks/useQuiz';
 import usePlayerStats from '@/hooks/usePlayerStats';
 import { STARTING_LIVES, MAX_LIVES } from '@/config/quizConfig';
-import { ROUTE_GLOSSARY, FLAG_FOOTBALL } from '@/config/flagFootball';
+import { ROUTE_GLOSSARY } from '@/config/flagFootball';
 
 // ——— Utilities at module level ———
 
 /**
- * Compute a crop viewBox centered on a single route's bounding box.
- * Returns a string like "60 20 280 160" for the SVG viewBox attribute.
- * The resulting aspect ratio is taller than the default 2:1 field,
- * giving routes and markers more visual space in the vertical game layout.
+ * Scale a single route's percentage points into a 300×300 SVG space.
+ * Start anchored at (150, 200) with the route filling available space.
+ * Returns array of {x, y} in SVG coords, or null if no valid route.
  */
-function computeRouteViewBox(fakeAssignment) {
-  if (!fakeAssignment) return '0 10 400 170'; // safe fallback — full width, slight vertical crop
+function scaleRouteToSvg(routePath, mirrored) {
+  if (!routePath || routePath.length < 2) return null;
 
-  const pts = [
-    { x: fakeAssignment.start_x, y: fakeAssignment.start_y },
-    ...(fakeAssignment.route_path || []),
-  ];
+  // Apply mirror in percentage space
+  const pctPts = routePath.map((p) => ({
+    x: mirrored ? 100 - p.x : p.x,
+    y: p.y,
+  }));
 
-  // Convert percentage (0-100) to SVG coordinates (0-400, 0-200)
-  const [, , vbW, vbH] = FLAG_FOOTBALL.field.viewBox.split(' ').map(Number);
-  const svgPts = pts.map((p) => ({ x: (p.x / 100) * vbW, y: (p.y / 100) * vbH }));
-  const xs = svgPts.map((p) => p.x);
-  const ys = svgPts.map((p) => p.y);
+  const startX = pctPts[0].x;
+  const startY = pctPts[0].y;
+  const deltas = pctPts.map((p) => ({ dx: p.x - startX, dy: p.y - startY }));
 
-  const centerX = (Math.min(...xs) + Math.max(...xs)) / 2;
-  const centerY = (Math.min(...ys) + Math.max(...ys)) / 2;
-  const rangeX = Math.max(...xs) - Math.min(...xs);
-  const rangeY = Math.max(...ys) - Math.min(...ys);
+  // Find extremes
+  const dxMin = Math.min(0, ...deltas.map((d) => d.dx));
+  const dxMax = Math.max(0, ...deltas.map((d) => d.dx));
+  const dyMin = Math.min(0, ...deltas.map((d) => d.dy)); // negative = upfield
+  const dyMax = Math.max(0, ...deltas.map((d) => d.dy)); // positive = downfield
 
-  // Generous padding so the route doesn't touch the edges
-  const pad = 50;
-  const w = Math.max(rangeX + pad * 2, 180); // at least 180 units wide
-  const h = Math.max(rangeY + pad * 2, 140); // at least 140 units tall
+  // Available space from anchor (150, 200) with 30px padding on all sides
+  // Left: 120   Right: 120   Up: 170   Down: 70
+  const scales = [12]; // max cap prevents tiny routes from exploding
+  if (dxMin < 0) scales.push(120 / Math.abs(dxMin));
+  if (dxMax > 0) scales.push(120 / dxMax);
+  if (dyMin < 0) scales.push(170 / Math.abs(dyMin));
+  if (dyMax > 0) scales.push(70 / dyMax);
 
-  // Center on the route, then clamp to field bounds
-  let x = centerX - w / 2;
-  let y = centerY - h / 2;
-  x = Math.max(0, Math.min(vbW - w, x));
-  y = Math.max(0, Math.min(vbH - h, y));
+  const scale = Math.min(...scales);
 
-  return `${Math.round(x)} ${Math.round(y)} ${Math.round(w)} ${Math.round(h)}`;
+  return deltas.map((d) => ({
+    x: 150 + d.dx * scale,
+    y: 200 + d.dy * scale,
+  }));
+}
+
+/**
+ * Standalone SVG for identify_route questions.
+ * Bypasses PlayRenderer/FlagFootballField entirely — simple, guaranteed visible.
+ */
+function RouteVisual({ routePath, positionColor, mirrored }) {
+  const pts = scaleRouteToSvg(routePath, mirrored);
+  if (!pts) return null;
+
+  const startPt = pts[0];
+  const pointsStr = pts.map((p) => `${p.x},${p.y}`).join(' ');
+
+  // Arrowhead at route end
+  const lastPt = pts[pts.length - 1];
+  const prevPt = pts[pts.length - 2];
+  const dx = lastPt.x - prevPt.x;
+  const dy = lastPt.y - prevPt.y;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  let arrowPts = null;
+  if (len > 0) {
+    const ux = dx / len;
+    const uy = dy / len;
+    const px = -uy;
+    const py = ux;
+    const as = 8;
+    const bx = lastPt.x - ux * as;
+    const by = lastPt.y - uy * as;
+    arrowPts = `${lastPt.x},${lastPt.y} ${bx + px * as * 0.5},${by + py * as * 0.5} ${bx - px * as * 0.5},${by - py * as * 0.5}`;
+  }
+
+  return (
+    <div className="flex justify-center mb-4">
+      <svg
+        viewBox="0 0 300 300"
+        width="100%"
+        preserveAspectRatio="xMidYMid meet"
+        className="rounded-xl border border-amber-500/30"
+        style={{ minHeight: 200, maxHeight: 300 }}
+      >
+        {/* Field background */}
+        <rect x="0" y="0" width="300" height="300" fill="#2d5a27" rx="12" />
+
+        {/* Scrimmage line at the start y */}
+        <line
+          x1="20" y1={startPt.y} x2="280" y2={startPt.y}
+          stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeDasharray="6 4"
+        />
+
+        {/* Route line */}
+        <polyline
+          points={pointsStr}
+          fill="none" stroke="#d4a046" strokeWidth="3"
+          strokeLinejoin="round" strokeLinecap="round"
+        />
+
+        {/* Arrowhead */}
+        {arrowPts && <polygon points={arrowPts} fill="#d4a046" />}
+
+        {/* Position marker */}
+        <circle
+          cx={startPt.x} cy={startPt.y} r="15"
+          fill={positionColor || '#94a3b8'}
+          stroke="rgba(0,0,0,0.3)" strokeWidth="1"
+        />
+      </svg>
+    </div>
+  );
 }
 
 // ——— Sub-components at module level (no focus loss) ———
@@ -493,16 +562,11 @@ export default function QuizMode({
               <img src={q.play.diagram_image} alt="" className="w-full aspect-video object-contain" />
             </div>
           ) : q.type === 'identify_route' && q.routePath ? (
-            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 min-h-[40vh]">
-              <PlayRenderer
-                play={q.fakePlay}
-                assignments={q.fakeAssignments}
-                mode="view"
-                mirrored={q.mirrored}
-                showLabels={q.showLabels}
-                viewBoxOverride={computeRouteViewBox(q.fakeAssignments?.[0])}
-              />
-            </div>
+            <RouteVisual
+              routePath={q.routePath}
+              positionColor={q.positionColor}
+              mirrored={q.mirrored}
+            />
           ) : q.type === 'know_your_job' ? (
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-4 text-center">
               <h2 className="text-2xl font-bold text-white mb-2">{q.play.name}</h2>
