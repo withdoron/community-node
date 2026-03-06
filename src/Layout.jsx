@@ -103,6 +103,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
 
   return (
     <div className="min-h-screen bg-slate-950">
+      <style dangerouslySetInnerHTML={{ __html: `@keyframes breathe { 0%, 100% { box-shadow: 0 0 0px rgba(212, 160, 70, 0); } 50% { box-shadow: 0 0 10px rgba(212, 160, 70, 0.25); } }` }} />
       <header className="sticky top-0 z-50 bg-slate-900 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           {/* Left: Logo */}
@@ -139,13 +140,25 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
 
             {/* Far right: User area */}
             {!currentUser ? (
-              <Button
-                variant="outline"
-                className="border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500"
-                onClick={() => base44.auth.redirectToLogin()}
-              >
-                Sign In
-              </Button>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => base44.auth.redirectToLogin()}
+                  className="text-slate-400 hover:text-amber-500 text-sm transition-colors"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => base44.auth.redirectToLogin()}
+                  className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-5 py-2 rounded-lg transition-colors"
+                  style={{
+                    fontFamily: 'Georgia, serif',
+                    letterSpacing: '0.02em',
+                    animation: 'breathe 4s ease-in-out infinite',
+                  }}
+                >
+                  Become
+                </button>
+              </div>
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -213,14 +226,17 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
           {/* Mobile: Hamburger */}
           <div className="md:hidden flex items-center gap-2">
             {!currentUser ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500"
+              <button
                 onClick={() => base44.auth.redirectToLogin()}
+                className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-4 py-1.5 rounded-lg text-sm transition-colors"
+                style={{
+                  fontFamily: 'Georgia, serif',
+                  letterSpacing: '0.02em',
+                  animation: 'breathe 4s ease-in-out infinite',
+                }}
               >
-                Sign In
-              </Button>
+                Become
+              </button>
             ) : null}
             <Sheet>
               <SheetTrigger asChild>
@@ -313,16 +329,23 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                       </button>
                     </div>
                   ) : (
-                    <div>
-                      <p className="text-sm text-slate-400 mb-3">
-                        Sign in to RSVP for events, follow networks, and discover your lane.
+                    <div className="space-y-3">
+                      <p className="text-sm text-slate-400">
+                        Join the community. Support your neighbors.
                       </p>
                       <Button
-                        className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                        className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold"
                         onClick={() => base44.auth.redirectToLogin()}
+                        style={{ fontFamily: 'Georgia, serif', letterSpacing: '0.02em' }}
+                      >
+                        Become
+                      </Button>
+                      <button
+                        onClick={() => base44.auth.redirectToLogin()}
+                        className="w-full text-center text-slate-400 hover:text-amber-500 text-sm transition-colors py-1"
                       >
                         Sign In
-                      </Button>
+                      </button>
                     </div>
                   )}
                 </div>
