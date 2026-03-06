@@ -5,7 +5,48 @@ import PlayRenderer from '@/components/field/PlayRenderer';
 import useQuiz from '@/hooks/useQuiz';
 import usePlayerStats from '@/hooks/usePlayerStats';
 import { STARTING_LIVES, MAX_LIVES } from '@/config/quizConfig';
-import { ROUTE_GLOSSARY } from '@/config/flagFootball';
+import { ROUTE_GLOSSARY, FLAG_FOOTBALL } from '@/config/flagFootball';
+
+// ——— Utilities at module level ———
+
+/**
+ * Compute a crop viewBox centered on a single route's bounding box.
+ * Returns a string like "60 20 280 160" for the SVG viewBox attribute.
+ * The resulting aspect ratio is taller than the default 2:1 field,
+ * giving routes and markers more visual space in the vertical game layout.
+ */
+function computeRouteViewBox(fakeAssignment) {
+  if (!fakeAssignment) return '0 10 400 170'; // safe fallback — full width, slight vertical crop
+
+  const pts = [
+    { x: fakeAssignment.start_x, y: fakeAssignment.start_y },
+    ...(fakeAssignment.route_path || []),
+  ];
+
+  // Convert percentage (0-100) to SVG coordinates (0-400, 0-200)
+  const [, , vbW, vbH] = FLAG_FOOTBALL.field.viewBox.split(' ').map(Number);
+  const svgPts = pts.map((p) => ({ x: (p.x / 100) * vbW, y: (p.y / 100) * vbH }));
+  const xs = svgPts.map((p) => p.x);
+  const ys = svgPts.map((p) => p.y);
+
+  const centerX = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const centerY = (Math.min(...ys) + Math.max(...ys)) / 2;
+  const rangeX = Math.max(...xs) - Math.min(...xs);
+  const rangeY = Math.max(...ys) - Math.min(...ys);
+
+  // Generous padding so the route doesn't touch the edges
+  const pad = 50;
+  const w = Math.max(rangeX + pad * 2, 180); // at least 180 units wide
+  const h = Math.max(rangeY + pad * 2, 140); // at least 140 units tall
+
+  // Center on the route, then clamp to field bounds
+  let x = centerX - w / 2;
+  let y = centerY - h / 2;
+  x = Math.max(0, Math.min(vbW - w, x));
+  y = Math.max(0, Math.min(vbH - h, y));
+
+  return `${Math.round(x)} ${Math.round(y)} ${Math.round(w)} ${Math.round(h)}`;
+}
 
 // ——— Sub-components at module level (no focus loss) ———
 
@@ -459,7 +500,7 @@ export default function QuizMode({
                 mode="view"
                 mirrored={q.mirrored}
                 showLabels={q.showLabels}
-                viewBoxOverride="50 0 300 180"
+                viewBoxOverride={computeRouteViewBox(q.fakeAssignments?.[0])}
               />
             </div>
           ) : q.type === 'know_your_job' ? (
