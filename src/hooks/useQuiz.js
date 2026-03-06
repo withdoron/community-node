@@ -11,7 +11,7 @@ import {
   SIMILAR_ROUTES,
   QUIZ_TYPES,
 } from '@/config/quizConfig';
-import { FLAG_FOOTBALL } from '@/config/flagFootball';
+import { FLAG_FOOTBALL, getPositionsForFormat } from '@/config/flagFootball';
 
 const { routeTemplates } = FLAG_FOOTBALL;
 
@@ -139,13 +139,20 @@ function genKnowYourJob({ play, playAssignments, mc, targetPlays, playerPosition
   const uniq = [...new Set(pool)];
   if (uniq.length === 0) return null;
 
+  // Look up full position label (e.g. "Quarterback")
+  const positions = getPositionsForFormat(play.format || '5v5');
+  const posConfig = positions.find((p) => p.id.toLowerCase() === playerPosition?.toLowerCase());
+  const posLabel = posConfig?.label || playerPosition;
+  const posShort = posConfig?.shortLabel || playerPosition;
+  const posColor = posConfig?.color || '#94a3b8';
+
   const wrong = pickRandom(uniq, mc.optionCount - 1);
   return {
     type: 'know_your_job',
     playId: play.id,
     play,
     assignments: playAssignments,
-    questionText: `What's your assignment on ${play.name}?`,
+    questionText: `What does the ${posLabel} (${posShort}) do on ${play.name}?`,
     correctAnswer: correct,
     options: shuffle([correct, ...wrong]),
     highlightPosition: null,
@@ -154,6 +161,9 @@ function genKnowYourJob({ play, playAssignments, mc, targetPlays, playerPosition
     showFormationHint: mc.showFormationHint,
     timerSeconds: mc.timerSeconds,
     basePoints: mc.basePoints,
+    positionId: posShort,
+    positionLabel: posLabel,
+    positionColor: posColor,
   };
 }
 
@@ -215,25 +225,36 @@ function genIdentifyRoute({ play, playAssignments, mc, targetPlays, assignmentsB
     } catch { routePath = null; }
   }
 
+  // Look up position context for the route runner
+  const posId = assignment.position || 'X';
+  const positions = getPositionsForFormat(play.format || '5v5');
+  const posConfig = positions.find((p) => p.id === posId);
+  const posLabel = posConfig?.label || posId;
+  const posColor = posConfig?.color || '#94a3b8';
+
   return {
     type: 'identify_route',
     playId: play.id,
     play: { name: correct, use_renderer: true, formation: 'spread', format: play.format || '5v5' },
     assignments: [],
-    questionText: 'What route is this?',
+    questionText: `What route is this? (${posLabel})`,
     correctAnswer: correct,
     options,
     highlightPosition: null,
     mirrored: mc.useMirror && Math.random() > 0.5,
     showLabels: mc.showRouteLabel,
     showFormationHint: false,
+    showPositionContext: mc.showPositionLabels,
     timerSeconds: mc.timerSeconds,
     basePoints: mc.basePoints,
     routePath,
     fakePlay: { use_renderer: true, formation: 'spread', format: play.format || '5v5' },
     fakeAssignments: routePath
-      ? [{ position: assignment.position || 'X', start_x: startX, start_y: startY, route_path: routePath, movement_type: correct }]
+      ? [{ position: posId, start_x: startX, start_y: startY, route_path: routePath, movement_type: correct }]
       : [],
+    positionId: posId,
+    positionLabel: posLabel,
+    positionColor: posColor,
   };
 }
 

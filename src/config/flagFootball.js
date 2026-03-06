@@ -402,6 +402,43 @@ function getRoutesForPosition(positionId) {
   return POSITION_ROUTES[positionId] || RECEIVER_ROUTES;
 }
 
+// ——— Route Glossary (kid-friendly descriptions for vocabulary learning) ———
+export const ROUTE_GLOSSARY = {
+  // Receiver routes
+  slant:        { name: 'Slant',        description: 'Cut 45° toward the middle of the field' },
+  out:          { name: 'Out',          description: 'Run upfield then cut 90° toward the sideline' },
+  post:         { name: 'Post',         description: 'Run deep then angle toward the goalpost' },
+  fly:          { name: 'Fly',          description: 'Sprint straight upfield as fast as you can' },
+  curl:         { name: 'Curl',         description: 'Run upfield then turn back toward the QB' },
+  drag:         { name: 'Drag',         description: 'Short route across the middle of the field' },
+  flat:         { name: 'Flat',         description: 'Quick angle toward the sideline' },
+  corner:       { name: 'Corner',       description: 'Run deep then cut toward the corner of the end zone' },
+  hitch:        { name: 'Hitch',        description: 'Run a few yards upfield then stop and turn around' },
+  block:        { name: 'Block',        description: 'Stay and protect — block the defender in front of you' },
+
+  // QB routes
+  drop_back:    { name: 'Drop Back',    description: 'Step backward from center to set up a pass' },
+  rollout_left: { name: 'Rollout Left', description: 'Move left behind the line before throwing' },
+  rollout_right:{ name: 'Rollout Right',description: 'Move right behind the line before throwing' },
+  pitch_left:   { name: 'Pitch Left',   description: 'Toss the ball to a teammate on the left' },
+  pitch_right:  { name: 'Pitch Right',  description: 'Toss the ball to a teammate on the right' },
+  keeper:       { name: 'Keeper',       description: 'QB keeps the ball and runs upfield' },
+  scramble:     { name: 'Scramble',     description: 'QB escapes the pocket and improvises' },
+  handoff:      { name: 'Handoff',      description: 'Hand the ball to the running back' },
+
+  // Center routes
+  snap_block:   { name: 'Snap & Block', description: 'Snap the ball then block the closest defender' },
+  pull_left:    { name: 'Pull Left',    description: 'Move left along the line to lead block' },
+  pull_right:   { name: 'Pull Right',   description: 'Move right along the line to lead block' },
+
+  // RB routes
+  sweep_left:   { name: 'Sweep Left',   description: 'Run wide to the left before turning upfield' },
+  sweep_right:  { name: 'Sweep Right',  description: 'Run wide to the right before turning upfield' },
+  dive:         { name: 'Dive',         description: 'Run straight ahead through the middle' },
+  screen:       { name: 'Screen',       description: 'Slip out to the side for a short catch behind blockers' },
+  delay:        { name: 'Delay',        description: 'Wait a beat, then sneak out as a receiver' },
+};
+
 // ——— Custom Position Colors ———
 const CUSTOM_POSITION_COLORS = [
   '#94a3b8', '#d4a046', '#22c55e', '#3b82f6',
@@ -426,4 +463,5 @@ export {
   getPositionsForFormat,
   getFormationDefaults,
   getRoutesForPosition,
+  ROUTE_GLOSSARY,
 };

@@ -5,6 +5,7 @@ import PlayRenderer from '@/components/field/PlayRenderer';
 import useQuiz from '@/hooks/useQuiz';
 import usePlayerStats from '@/hooks/usePlayerStats';
 import { STARTING_LIVES, MAX_LIVES } from '@/config/quizConfig';
+import { ROUTE_GLOSSARY } from '@/config/flagFootball';
 
 // ——— Sub-components at module level (no focus loss) ———
 
@@ -112,6 +113,52 @@ function formatRouteLabel(value) {
   return value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function PositionBadge({ positionLabel, positionColor }) {
+  if (!positionLabel) return null;
+  return (
+    <div className="flex items-center justify-center gap-2 mb-2">
+      <span
+        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+        style={{ backgroundColor: positionColor || '#94a3b8' }}
+      />
+      <span className="text-slate-300 text-sm font-medium">{positionLabel}</span>
+    </div>
+  );
+}
+
+function WrongAnswerCard({ question }) {
+  if (!question) return null;
+
+  let heading = '';
+  let description = '';
+
+  if (question.type === 'identify_route') {
+    const glossary = ROUTE_GLOSSARY[question.correctAnswer];
+    heading = glossary?.name || formatRouteLabel(question.correctAnswer);
+    description = glossary?.description || '';
+  } else if (question.type === 'name_that_play') {
+    heading = question.play?.name || '';
+    const formation = question.play?.formation;
+    description = formation ? `Formation: ${formatRouteLabel(formation)}` : '';
+  } else if (question.type === 'know_your_job') {
+    heading = question.positionLabel
+      ? `${question.positionLabel} assignment`
+      : 'Your assignment';
+    description = question.correctAnswer || '';
+  }
+
+  if (!heading) return null;
+
+  return (
+    <div className="mt-3 bg-slate-800/50 rounded-xl p-4">
+      <p className="text-amber-500 font-semibold text-sm">{heading}</p>
+      {description && (
+        <p className="text-slate-400 text-sm mt-1">{description}</p>
+      )}
+    </div>
+  );
+}
+
 // ——— Inline keyframe styles (injected once) ———
 const ANIM_STYLES = `
 @keyframes heartLose {
@@ -168,7 +215,7 @@ export default function QuizMode({
   // Auto-advance after answering
   useEffect(() => {
     if (game.lastAnswerCorrect == null) return;
-    const delay = game.lastAnswerCorrect ? 1500 : 2500;
+    const delay = game.lastAnswerCorrect ? 1500 : 3000;
     const timer = setTimeout(() => {
       game.nextQuestion();
     }, delay);
@@ -426,6 +473,22 @@ export default function QuizMode({
             </div>
           ) : null}
 
+          {/* Position context below field (identify_route at new/learning only) */}
+          {q.type === 'identify_route' && q.showPositionContext && q.positionLabel && (
+            <div className="flex items-center justify-center gap-2 mb-2 -mt-2">
+              <span
+                className="w-2 h-2 rounded-full flex-shrink-0"
+                style={{ backgroundColor: q.positionColor || '#94a3b8' }}
+              />
+              <span className="text-slate-500 text-xs">{q.positionLabel}</span>
+            </div>
+          )}
+
+          {/* Position badge (know_your_job always) */}
+          {q.type === 'know_your_job' && (
+            <PositionBadge positionLabel={q.positionLabel} positionColor={q.positionColor} />
+          )}
+
           {/* Question text */}
           <p className="text-white text-lg font-semibold mb-4 text-center">{q.questionText}</p>
 
@@ -458,6 +521,11 @@ export default function QuizMode({
               );
             })}
           </div>
+
+          {/* Wrong-answer learning card */}
+          {game.lastAnswerCorrect === false && (
+            <WrongAnswerCard question={q} />
+          )}
         </div>
       </div>
     );
