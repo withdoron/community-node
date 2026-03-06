@@ -463,5 +463,4 @@ export {
   getPositionsForFormat,
   getFormationDefaults,
   getRoutesForPosition,
-  ROUTE_GLOSSARY,
 };
