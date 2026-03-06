@@ -24,6 +24,7 @@ export default function PlayRenderer({
   mode = 'view', // "view" | "study" | "sideline" | "mini"
   onPositionTap,
   className = '',
+  viewBoxOverride,  // optional crop viewBox for zoom — e.g. "50 0 300 180"
 }) {
   const viewBox = FLAG_FOOTBALL.field.viewBox;
 
@@ -104,6 +105,7 @@ export default function PlayRenderer({
     <div className={`relative ${className}`}>
       <FlagFootballField
         viewBox={viewBox}
+        cropViewBox={viewBoxOverride}
         showScrimmage={!isMini}
         scrimmageY={55}
       >

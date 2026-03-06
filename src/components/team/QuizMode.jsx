@@ -444,6 +444,7 @@ export default function QuizMode({
                 mode="view"
                 mirrored={q.mirrored}
                 showLabels={q.showLabels}
+                viewBoxOverride="0 10 400 180"
               />
             </div>
           ) : q.type === 'name_that_play' && q.play.diagram_image ? (
@@ -458,6 +459,7 @@ export default function QuizMode({
                 mode="view"
                 mirrored={q.mirrored}
                 showLabels={q.showLabels}
+                viewBoxOverride="50 0 300 180"
               />
             </div>
           ) : q.type === 'know_your_job' ? (

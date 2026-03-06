@@ -40,6 +40,7 @@ const SCRIMMAGE_AMBER = '#d4a046';
  */
 export default function FlagFootballField({
   viewBox = '0 0 400 200',
+  cropViewBox,       // optional — e.g. "50 0 300 180" to zoom/crop the visible area
   scrimmageY = 55,
   showScrimmage = false,
   className = '',
@@ -47,6 +48,10 @@ export default function FlagFootballField({
 }) {
   const parts = viewBox.split(' ').map(Number);
   const [, , vbW, vbH] = parts;
+  // Use cropViewBox for the <svg> element if provided; all internal
+  // drawing still uses the full viewBox dimensions so the field,
+  // end zones, and yard lines render at correct absolute positions.
+  const svgViewBox = cropViewBox || viewBox;
 
   // End zone boundaries
   const ezTop = vbH * 0.15;       // top end zone bottom edge
@@ -67,7 +72,7 @@ export default function FlagFootballField({
 
   return (
     <svg
-      viewBox={viewBox}
+      viewBox={svgViewBox}
       width="100%"
       preserveAspectRatio="xMidYMid meet"
       className={className}
