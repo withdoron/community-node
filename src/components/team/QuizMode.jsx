@@ -437,7 +437,7 @@ export default function QuizMode({
 
           {/* Visual area */}
           {q.type === 'name_that_play' && (q.play.use_renderer === true || q.play.use_renderer === 'true') ? (
-            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4">
+            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 min-h-[40vh]">
               <PlayRenderer
                 play={q.play}
                 assignments={q.assignments}
@@ -451,7 +451,7 @@ export default function QuizMode({
               <img src={q.play.diagram_image} alt="" className="w-full aspect-video object-contain" />
             </div>
           ) : q.type === 'identify_route' && q.routePath ? (
-            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4">
+            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 min-h-[40vh]">
               <PlayRenderer
                 play={q.fakePlay}
                 assignments={q.fakeAssignments}

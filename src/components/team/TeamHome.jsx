@@ -223,32 +223,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     const position = viewingAsMember.position || '—';
     return (
       <div className="space-y-6">
-        {sharedTopSection}
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3">
-          <p className="text-xs text-slate-400 uppercase tracking-wider">Viewing as</p>
-          <p className="text-lg font-bold text-amber-500">{name} — {position}</p>
-        </div>
-        <p className="text-slate-300">
-          This is what {name} sees: playbook stats and quick actions.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <BookOpen className="h-5 w-5 text-amber-500 mb-2" />
-            <div className="text-2xl font-bold text-slate-100">{playCount}</div>
-            <div className="text-sm text-slate-400">Plays in playbook</div>
-          </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <Calendar className="h-5 w-5 text-amber-500 mb-2" />
-            <div className="text-2xl font-bold text-slate-100">—</div>
-            <div className="text-sm text-slate-400">Schedule</div>
-          </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <Users className="h-5 w-5 text-amber-500 mb-2" />
-            <div className="text-2xl font-bold text-slate-100">{playerCount}</div>
-            <div className="text-sm text-slate-400">Teammates</div>
-          </div>
-        </div>
-        {/* Playbook Pro card */}
+        {/* Playbook Pro card — top of page */}
         <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-5">
           <h3
             className="text-amber-500 font-bold text-lg tracking-wide mb-3"
@@ -287,6 +262,34 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
         {/* Leaderboard */}
         <Leaderboard teamStats={teamPlayerStats} members={members} />
 
+        {/* Stats grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <BookOpen className="h-5 w-5 text-amber-500 mb-2" />
+            <div className="text-2xl font-bold text-slate-100">{playCount}</div>
+            <div className="text-sm text-slate-400">Plays in playbook</div>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <Calendar className="h-5 w-5 text-amber-500 mb-2" />
+            <div className="text-2xl font-bold text-slate-100">—</div>
+            <div className="text-sm text-slate-400">Schedule</div>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <Users className="h-5 w-5 text-amber-500 mb-2" />
+            <div className="text-2xl font-bold text-slate-100">{playerCount}</div>
+            <div className="text-sm text-slate-400">Teammates</div>
+          </div>
+        </div>
+
+        {/* Next event + Recent messages */}
+        {sharedTopSection}
+
+        {/* Viewing-as context (coach preview) */}
+        <div className="bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3">
+          <p className="text-xs text-slate-400 uppercase tracking-wider">Viewing as</p>
+          <p className="text-lg font-bold text-amber-500">{name} — {position}</p>
+        </div>
+
         <Button
           type="button"
           className="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-amber-500 font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors border border-slate-700"
@@ -313,43 +316,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
 
   return (
     <div className="space-y-6">
-      {sharedTopSection}
-      <div>
-        <h2 className="text-xl font-bold text-slate-100">{team?.name}</h2>
-        {season && season !== '—' && <p className="text-sm text-slate-400">{season}</p>}
-      </div>
-
-      {isCoach ? (
-        <p className="text-slate-400">
-          Welcome to your team! Start by adding your players to the roster.
-        </p>
-      ) : (
-        <p className="text-slate-400">
-          Your team
-        </p>
-      )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <Users className="h-5 w-5 text-amber-500 mb-2" />
-          <div className="text-2xl font-bold text-slate-100">{playerCount}</div>
-          <div className="text-sm text-slate-400">Roster</div>
-        </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <BookOpen className="h-5 w-5 text-amber-500 mb-2" />
-          <div className="text-2xl font-bold text-slate-100">{playCount}</div>
-          <div className="text-sm text-slate-400">Playbook</div>
-        </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <Calendar className="h-5 w-5 text-amber-500 mb-2" />
-          <div className="text-2xl font-bold text-slate-100">
-            {teamEvents.filter((e) => e.start_date && new Date(e.start_date + (e.start_time ? `T${e.start_time}` : '')).getTime() >= Date.now()).length}
-          </div>
-          <div className="text-sm text-slate-400">Schedule</div>
-        </div>
-      </div>
-
-      {/* Playbook Pro card — visible to coaches and players */}
+      {/* Playbook Pro card — top of page */}
       <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-5">
         <h3
           className="text-amber-500 font-bold text-lg tracking-wide mb-3"
@@ -388,6 +355,47 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
       {/* Leaderboard */}
       <Leaderboard teamStats={teamPlayerStats} members={members} />
 
+      {/* Team header */}
+      <div>
+        <h2 className="text-xl font-bold text-slate-100">{team?.name}</h2>
+        {season && season !== '—' && <p className="text-sm text-slate-400">{season}</p>}
+      </div>
+
+      {isCoach ? (
+        <p className="text-slate-400">
+          Welcome to your team! Start by adding your players to the roster.
+        </p>
+      ) : (
+        <p className="text-slate-400">
+          Your team
+        </p>
+      )}
+
+      {/* Stats grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <Users className="h-5 w-5 text-amber-500 mb-2" />
+          <div className="text-2xl font-bold text-slate-100">{playerCount}</div>
+          <div className="text-sm text-slate-400">Roster</div>
+        </div>
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <BookOpen className="h-5 w-5 text-amber-500 mb-2" />
+          <div className="text-2xl font-bold text-slate-100">{playCount}</div>
+          <div className="text-sm text-slate-400">Playbook</div>
+        </div>
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <Calendar className="h-5 w-5 text-amber-500 mb-2" />
+          <div className="text-2xl font-bold text-slate-100">
+            {teamEvents.filter((e) => e.start_date && new Date(e.start_date + (e.start_time ? `T${e.start_time}` : '')).getTime() >= Date.now()).length}
+          </div>
+          <div className="text-sm text-slate-400">Schedule</div>
+        </div>
+      </div>
+
+      {/* Next event + Recent messages */}
+      {sharedTopSection}
+
+      {/* Coach actions */}
       {isCoach && (
         <div className="flex flex-wrap gap-3">
           <Button
