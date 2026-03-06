@@ -181,11 +181,13 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
               </button>
               <button
                 type="button"
+                title="Playbook Pro"
                 onClick={() => { setQuizPlayFilter(null); setQuizModeOpen(true); }}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
               >
                 <Zap className="h-4 w-4" />
-                Play
+                <span className="hidden sm:inline">Playbook Pro</span>
+                <span className="sm:hidden">Play</span>
               </button>
             </>
           )}

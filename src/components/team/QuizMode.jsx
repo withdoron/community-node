@@ -437,14 +437,13 @@ export default function QuizMode({
 
           {/* Visual area */}
           {q.type === 'name_that_play' && (q.play.use_renderer === true || q.play.use_renderer === 'true') ? (
-            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 max-h-[250px] md:max-h-[350px]">
+            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4">
               <PlayRenderer
                 play={q.play}
                 assignments={q.assignments}
                 mode="view"
                 mirrored={q.mirrored}
                 showLabels={q.showLabels}
-                className="w-full h-full max-h-[250px] md:max-h-[350px]"
               />
             </div>
           ) : q.type === 'name_that_play' && q.play.diagram_image ? (
@@ -452,14 +451,13 @@ export default function QuizMode({
               <img src={q.play.diagram_image} alt="" className="w-full aspect-video object-contain" />
             </div>
           ) : q.type === 'identify_route' && q.routePath ? (
-            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 max-h-[250px] md:max-h-[350px]">
+            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4">
               <PlayRenderer
                 play={q.fakePlay}
                 assignments={q.fakeAssignments}
                 mode="view"
                 mirrored={q.mirrored}
                 showLabels={q.showLabels}
-                className="w-full h-full max-h-[250px] md:max-h-[350px]"
               />
             </div>
           ) : q.type === 'know_your_job' ? (

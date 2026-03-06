@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Users, BookOpen, Calendar, UserPlus, Share2, MessageSquare, Clock, MapPin, Zap, Trophy, Flame } from 'lucide-react';
+import { Users, BookOpen, Calendar, UserPlus, Share2, MessageSquare, Clock, MapPin, Zap, Trophy, Flame, Heart } from 'lucide-react';
 import usePlayerStats from '@/hooks/usePlayerStats';
+import QuizMode from './QuizMode';
 
 const PLAYER_COUNT_ROLES = ['player'];
 const MEDALS = ['🥇', '🥈', '🥉'];
@@ -81,6 +82,35 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     enabled: !!team?.id,
   });
   const playCount = plays.length;
+
+  // Fetch assignments for renderer plays (needed for QuizMode)
+  const rendererPlayIds = useMemo(
+    () => plays.filter((p) => p.use_renderer === true || p.use_renderer === 'true').map((p) => p.id),
+    [plays]
+  );
+  const { data: allRendererAssignments = [] } = useQuery({
+    queryKey: ['renderer-play-assignments-home', team?.id, rendererPlayIds.join(',')],
+    queryFn: async () => {
+      if (!rendererPlayIds.length) return [];
+      const results = await Promise.all(
+        rendererPlayIds.map(async (pid) => {
+          const list = await base44.entities.PlayAssignment.filter({ play_id: pid });
+          return Array.isArray(list) ? list : [];
+        })
+      );
+      return results.flat();
+    },
+    enabled: !!team?.id && rendererPlayIds.length > 0,
+  });
+  const assignmentsByPlayId = useMemo(() => {
+    const map = {};
+    allRendererAssignments.forEach((a) => {
+      if (!map[a.play_id]) map[a.play_id] = [];
+      map[a.play_id].push(a);
+    });
+    return map;
+  }, [allRendererAssignments]);
+
   const { data: teamEvents = [] } = useQuery({
     queryKey: ['team-events', team?.id],
     queryFn: async () => {
@@ -122,6 +152,9 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
   const sportLabel = team?.sport === 'flag_football' ? 'Flag Football' : (team?.sport || 'Team');
   const season = team?.season || '—';
   const isViewingAsChild = !!viewingAsMember && viewingAsMember.role === 'player';
+  const isCoach = effectiveRole === 'coach' || effectiveRole === 'assistant_coach';
+  const playerPosition = viewingAsMember?.position || members.find((m) => m.user_id === currentUserId)?.position || null;
+  const [quizModeOpen, setQuizModeOpen] = useState(false);
 
   const nextEventWhen = nextEvent ? formatEventWhen(nextEvent.start_date, nextEvent.start_time) : null;
   const nextEventTime = nextEvent && (nextEvent.start_date || nextEvent.start_time)
@@ -216,27 +249,38 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
           </div>
         </div>
         {/* Playbook Pro card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Zap className="h-5 w-5 text-amber-500" />
-            <span className="font-semibold text-slate-100">Playbook Pro</span>
-          </div>
-          <div className="flex items-center gap-4 mb-3">
+        <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-5">
+          <h3
+            className="text-amber-500 font-bold text-lg tracking-wide mb-3"
+            style={{ fontFamily: 'Georgia, serif' }}
+          >
+            PLAYBOOK PRO
+          </h3>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center gap-1">
+              {[0, 1, 2].map((i) => (
+                <Heart key={i} className="h-4 w-4 text-red-500 fill-red-500" />
+              ))}
+            </div>
             <div className="flex items-center gap-1.5">
               <Trophy className="h-4 w-4 text-amber-500" />
-              <span className="text-slate-300 text-sm font-medium">{(playerStats.high_score || 0).toLocaleString()} pts</span>
+              <span className="text-slate-300 text-sm font-medium">{(playerStats.high_score || 0).toLocaleString()}</span>
             </div>
-            <div className="text-slate-400 text-sm">
-              {playerStats.plays_mastered} play{playerStats.plays_mastered !== 1 ? 's' : ''} mastered
-            </div>
+            {(playerStats.best_streak || 0) > 0 && (
+              <div className="flex items-center gap-1">
+                <Flame className="h-4 w-4 text-amber-500" />
+                <span className="text-slate-300 text-sm font-medium">{playerStats.best_streak}</span>
+              </div>
+            )}
           </div>
           <Button
             type="button"
-            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
-            onClick={() => onNavigateTab?.('playbook')}
+            onClick={() => setQuizModeOpen(true)}
+            disabled={playCount === 0}
+            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold text-lg py-5 min-h-[56px]"
           >
-            <Zap className="h-4 w-4 mr-2" />
-            Open Playbook Pro
+            <Zap className="h-5 w-5 mr-2" />
+            LET'S GO!
           </Button>
         </div>
 
@@ -245,17 +289,27 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
 
         <Button
           type="button"
-          className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
+          className="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-amber-500 font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors border border-slate-700"
           onClick={() => onNavigateTab?.('playbook')}
         >
           <BookOpen className="h-4 w-4 mr-2" />
           Study plays
         </Button>
+
+        {quizModeOpen && (
+          <QuizMode
+            team={team}
+            plays={plays}
+            assignmentsByPlayId={assignmentsByPlayId}
+            isCoach={isCoach}
+            currentUserId={currentUserId}
+            playerPosition={playerPosition}
+            onClose={() => setQuizModeOpen(false)}
+          />
+        )}
       </div>
     );
   }
-
-  const isCoach = effectiveRole === 'coach' || effectiveRole === 'assistant_coach';
 
   return (
     <div className="space-y-6">
@@ -296,27 +350,38 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
       </div>
 
       {/* Playbook Pro card — visible to coaches and players */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Zap className="h-5 w-5 text-amber-500" />
-          <span className="font-semibold text-slate-100">Playbook Pro</span>
-        </div>
-        <div className="flex items-center gap-4 mb-3">
+      <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-5">
+        <h3
+          className="text-amber-500 font-bold text-lg tracking-wide mb-3"
+          style={{ fontFamily: 'Georgia, serif' }}
+        >
+          PLAYBOOK PRO
+        </h3>
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-1">
+            {[0, 1, 2].map((i) => (
+              <Heart key={i} className="h-4 w-4 text-red-500 fill-red-500" />
+            ))}
+          </div>
           <div className="flex items-center gap-1.5">
             <Trophy className="h-4 w-4 text-amber-500" />
-            <span className="text-slate-300 text-sm font-medium">{(playerStats.high_score || 0).toLocaleString()} pts</span>
+            <span className="text-slate-300 text-sm font-medium">{(playerStats.high_score || 0).toLocaleString()}</span>
           </div>
-          <div className="text-slate-400 text-sm">
-            {playerStats.plays_mastered} play{playerStats.plays_mastered !== 1 ? 's' : ''} mastered
-          </div>
+          {(playerStats.best_streak || 0) > 0 && (
+            <div className="flex items-center gap-1">
+              <Flame className="h-4 w-4 text-amber-500" />
+              <span className="text-slate-300 text-sm font-medium">{playerStats.best_streak}</span>
+            </div>
+          )}
         </div>
         <Button
           type="button"
-          className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-amber-500 font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors border border-slate-700"
-          onClick={() => onNavigateTab?.('playbook')}
+          onClick={() => setQuizModeOpen(true)}
+          disabled={playCount === 0}
+          className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold text-lg py-5 min-h-[56px]"
         >
-          <Zap className="h-4 w-4 mr-2" />
-          Open Playbook Pro
+          <Zap className="h-5 w-5 mr-2" />
+          LET'S GO!
         </Button>
       </div>
 
@@ -343,6 +408,18 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
             Share Invite Code
           </Button>
         </div>
+      )}
+
+      {quizModeOpen && (
+        <QuizMode
+          team={team}
+          plays={plays}
+          assignmentsByPlayId={assignmentsByPlayId}
+          isCoach={isCoach}
+          currentUserId={currentUserId}
+          playerPosition={playerPosition}
+          onClose={() => setQuizModeOpen(false)}
+        />
       )}
     </div>
   );
