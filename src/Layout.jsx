@@ -140,25 +140,17 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
 
             {/* Far right: User area */}
             {!currentUser ? (
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => base44.auth.redirectToLogin()}
-                  className="text-slate-400 hover:text-amber-500 text-sm transition-colors"
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => base44.auth.redirectToLogin()}
-                  className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-5 py-2 rounded-lg transition-colors"
-                  style={{
-                    fontFamily: 'Georgia, serif',
-                    letterSpacing: '0.02em',
-                    animation: 'breathe 4s ease-in-out infinite',
-                  }}
-                >
-                  Become
-                </button>
-              </div>
+              <button
+                onClick={() => base44.auth.redirectToLogin()}
+                className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-5 py-2 rounded-lg transition-colors"
+                style={{
+                  fontFamily: 'Georgia, serif',
+                  letterSpacing: '0.02em',
+                  animation: 'breathe 4s ease-in-out infinite',
+                }}
+              >
+                Become
+              </button>
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -340,12 +332,6 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                       >
                         Become
                       </Button>
-                      <button
-                        onClick={() => base44.auth.redirectToLogin()}
-                        className="w-full text-center text-slate-400 hover:text-amber-500 text-sm transition-colors py-1"
-                      >
-                        Sign In
-                      </button>
                     </div>
                   )}
                 </div>
