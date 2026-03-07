@@ -83,6 +83,26 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
     onError: (err) => toast.error(err?.message || 'Failed to archive'),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (play) => {
+      // 1. Delete all assignments for this play FIRST (foreign key order)
+      const assignments = await base44.entities.PlayAssignment.filter({ play_id: play.id });
+      const assignmentList = Array.isArray(assignments) ? assignments : [];
+      for (const a of assignmentList) {
+        await base44.entities.PlayAssignment.delete(a.id);
+      }
+      // 2. Delete the play itself
+      await base44.entities.Play.delete(play.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['plays', team?.id] });
+      queryClient.invalidateQueries({ queryKey: ['renderer-play-assignments'] });
+      setSelectedPlay(null);
+      toast.success('Play deleted');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to delete play'),
+  });
+
   const playsForSide = useMemo(() => plays.filter((p) => p.side === side), [plays, side]);
 
   const filteredPlays = useMemo(() => {
@@ -119,6 +139,10 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
     if (window.confirm('Archive this play? It will be removed from the playbook.')) {
       archiveMutation.mutate(play);
     }
+  };
+
+  const handleDelete = (play) => {
+    deleteMutation.mutate(play);
   };
 
   return (
@@ -261,6 +285,8 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           onClose={() => setSelectedPlay(null)}
           onEdit={handleEdit}
           onArchive={handleArchive}
+          onDelete={handleDelete}
+          isDeleting={deleteMutation.isPending}
           onStudyThisPlay={() => {
             setStudyModeInitialPlayId(selectedPlay.id);
             setSelectedPlay(null);

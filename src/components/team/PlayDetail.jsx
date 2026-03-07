@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Pencil, Archive, X, BookOpen, Target } from 'lucide-react';
+import { ArrowLeft, Pencil, Archive, X, BookOpen, Target, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { parseTags } from './PlayCard';
 import PlayRenderer from '@/components/field/PlayRenderer';
@@ -14,10 +14,13 @@ export default function PlayDetail({
   onClose,
   onEdit,
   onArchive,
+  onDelete,
+  isDeleting = false,
   onStudyThisPlay,
   onQuizThisPlay,
 }) {
   const [mirrored, setMirrored] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const tags = parseTags(play?.tags);
   const sortedAssignments = [...assignments].sort(
     (a, b) => POSITION_ORDER.indexOf(a.position) - POSITION_ORDER.indexOf(b.position)
@@ -214,6 +217,59 @@ export default function PlayDetail({
               </div>
             )}
           </div>
+
+          {/* Delete play — coach only */}
+          {isCoach && onDelete && (
+            <div className="pt-6 mt-6 border-t border-slate-800">
+              {!confirmDelete ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setConfirmDelete(true)}
+                  disabled={isDeleting}
+                  className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-400 min-h-[44px]"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete play
+                </Button>
+              ) : (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 space-y-3">
+                  <p className="text-red-400 text-sm font-medium">
+                    Delete this play? This cannot be undone.
+                  </p>
+                  <p className="text-slate-400 text-xs">
+                    The play and all {sortedAssignments.length} position assignment{sortedAssignments.length !== 1 ? 's' : ''} will be permanently removed.
+                  </p>
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setConfirmDelete(false)}
+                      disabled={isDeleting}
+                      className="flex-1 border-slate-600 text-slate-300 hover:bg-transparent hover:border-slate-500 hover:text-white min-h-[44px]"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => onDelete(play)}
+                      disabled={isDeleting}
+                      className="flex-1 bg-red-600 hover:bg-red-500 text-white font-medium min-h-[44px]"
+                    >
+                      {isDeleting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Deleting…
+                        </>
+                      ) : (
+                        'Delete permanently'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
