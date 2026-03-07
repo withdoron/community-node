@@ -92,9 +92,11 @@ export default function PlayBuilder({
         let segments = null;
         if (a.route_segments) {
           try {
-            segments = typeof a.route_segments === 'string'
+            const raw = typeof a.route_segments === 'string'
               ? JSON.parse(a.route_segments)
               : a.route_segments;
+            // Handle both wrapped { segments: [...] } and unwrapped [...] formats
+            segments = raw?.segments || raw;
           } catch { segments = null; }
         }
         map[a.position] = {
@@ -407,7 +409,7 @@ export default function PlayBuilder({
             movement_type: route.movementType || '',
             route_path: route.routePath || null,
             assignment_text: route.assignmentText || '',
-            route_segments: route.segments || null,
+            route_segments: route.segments ? { segments: route.segments } : null,
           };
 
           if (existingByPosition[posId]) {
@@ -448,7 +450,7 @@ export default function PlayBuilder({
             movement_type: route.movementType || '',
             route_path: route.routePath || null,
             assignment_text: route.assignmentText || '',
-            route_segments: route.segments || null,
+            route_segments: route.segments ? { segments: route.segments } : null,
           });
         }
       }
