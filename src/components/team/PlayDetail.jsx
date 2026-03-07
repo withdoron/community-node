@@ -188,6 +188,18 @@ export default function PlayDetail({
               <div className="space-y-2">
                 {sortedAssignments.map((a) => {
                   const isMyAssignment = playerPosition && a.position === playerPosition;
+                  // Route name: movement_type (visual builder) or route (photo mode)
+                  const rawRoute = a.movement_type || a.route || '';
+                  // Format compound routes: "curl-drag" → "Curl → Drag"
+                  const routeDisplay = rawRoute
+                    ? rawRoute
+                        .split('-')
+                        .map((seg) => {
+                          const s = seg.replace(/_/g, ' ').trim();
+                          return s.charAt(0).toUpperCase() + s.slice(1);
+                        })
+                        .join(' → ')
+                    : '';
                   return (
                     <div
                       key={a.id}
@@ -202,9 +214,9 @@ export default function PlayDetail({
                       )}
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-amber-500 font-bold">{a.position}</span>
-                        {a.route && (
+                        {routeDisplay && (
                           <span className="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded">
-                            {a.route.replace(/_/g, ' ')}
+                            {routeDisplay}
                           </span>
                         )}
                       </div>

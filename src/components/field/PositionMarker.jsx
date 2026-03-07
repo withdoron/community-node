@@ -1,13 +1,15 @@
 import React, { useRef, useCallback } from 'react';
 import { percentToSvg, svgToPercent } from './FlagFootballField';
 
-const MARKER_RADIUS = 12;
-const SELECTED_RADIUS = 14;
-const FONT_SIZE = 8;
+const MARKER_RADIUS = 8;
+const SELECTED_RADIUS = 10;
+const FONT_SIZE = 6;
+const DRAG_THRESHOLD = 5; // pixels on screen — moves under this are treated as taps
 
 /**
  * Draggable position marker on the SVG field.
  * Coordinates are percentage-based (0-100), converted to SVG internally.
+ * Uses a drag threshold to distinguish taps (select) from drags (move).
  */
 export default function PositionMarker({
   position, // { id, shortLabel, color }
@@ -23,6 +25,8 @@ export default function PositionMarker({
   viewBox = '0 0 400 200',
 }) {
   const dragging = useRef(false);
+  const hasDragged = useRef(false);
+  const startClientPos = useRef(null);
   const dragPos = useRef({ x, y });
   const groupRef = useRef(null);
   const svgRef = useRef(null);
@@ -66,6 +70,8 @@ export default function PositionMarker({
       e.preventDefault();
       e.stopPropagation();
       dragging.current = true;
+      hasDragged.current = false;
+      startClientPos.current = { x: e.clientX, y: e.clientY };
       dragPos.current = { x, y };
       e.target.setPointerCapture(e.pointerId);
     },
@@ -76,6 +82,15 @@ export default function PositionMarker({
     (e) => {
       if (!dragging.current) return;
       e.preventDefault();
+
+      // Check drag threshold before entering drag mode
+      if (!hasDragged.current && startClientPos.current) {
+        const dx = e.clientX - startClientPos.current.x;
+        const dy = e.clientY - startClientPos.current.y;
+        if (Math.sqrt(dx * dx + dy * dy) < DRAG_THRESHOLD) return;
+        hasDragged.current = true;
+      }
+
       const pct = pointerToPercent(e);
       dragPos.current = pct;
       // Live update the marker position via transform
@@ -91,17 +106,26 @@ export default function PositionMarker({
     (e) => {
       if (!dragging.current) return;
       dragging.current = false;
-      const pct = pointerToPercent(e);
-      if (onDragEnd) {
-        onDragEnd(position.id, pct);
+
+      if (hasDragged.current) {
+        // Real drag — commit the new position
+        const pct = pointerToPercent(e);
+        if (onDragEnd) {
+          onDragEnd(position.id, pct);
+        }
       }
+      // If !hasDragged, this was a tap — let handleClick fire naturally
     },
     [onDragEnd, pointerToPercent, position.id]
   );
 
   const handleClick = useCallback(
     (e) => {
-      // Only fire click if we didn't just drag
+      if (hasDragged.current) {
+        // Suppress click event that fires after a drag
+        hasDragged.current = false;
+        return;
+      }
       if (onClick) {
         e.stopPropagation();
         onClick(position.id);
@@ -127,10 +151,10 @@ export default function PositionMarker({
       {/* Highlight ring */}
       {isHighlighted && (
         <circle
-          r={r + 4}
+          r={r + 3}
           fill="none"
           stroke="#d4a046"
-          strokeWidth="2"
+          strokeWidth="1.5"
           opacity="0.6"
         />
       )}
@@ -141,7 +165,7 @@ export default function PositionMarker({
           r={r + 2}
           fill="none"
           stroke="#d4a046"
-          strokeWidth="2"
+          strokeWidth="1.5"
         />
       )}
 

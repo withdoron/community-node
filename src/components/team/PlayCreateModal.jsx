@@ -60,7 +60,7 @@ export default function PlayCreateModal({
   const [uploading, setUploading] = useState(false);
   const [mode, setMode] = useState('visual'); // 'visual' | 'photo'
 
-  const { data: editAssignmentsFetched = [] } = useQuery({
+  const { data: editAssignmentsFetched = [], isLoading: editAssignmentsLoading } = useQuery({
     queryKey: ['play-assignments-edit', editPlay?.id],
     queryFn: async () => {
       if (!editPlay?.id) return [];
@@ -71,6 +71,9 @@ export default function PlayCreateModal({
   });
 
   const assignmentsFromEdit = editPlay ? editAssignmentsFetched : editAssignments;
+  // Don't render PlayBuilder until edit assignments have loaded — prevents
+  // useState initializer from falling through to default Spread formation
+  const editDataReady = !editPlay || (!editAssignmentsLoading && editAssignmentsFetched.length > 0);
 
   const [form, setForm] = useState({
     side: defaultSide,
@@ -266,18 +269,25 @@ export default function PlayCreateModal({
         </div>
 
         {mode === 'visual' ? (
-          <PlayBuilder
-            team={{ id: teamId }}
-            initialPlay={editPlay}
-            initialAssignments={assignmentsFromEdit}
-            currentUserId={createdBy}
-            onSave={() => {
-              queryClient.invalidateQueries({ queryKey: ['plays', teamId] });
-              onOpenChange(false);
-              onSuccess?.();
-            }}
-            onCancel={() => onOpenChange(false)}
-          />
+          editDataReady ? (
+            <PlayBuilder
+              key={editPlay?.id || 'new'}
+              team={{ id: teamId }}
+              initialPlay={editPlay}
+              initialAssignments={assignmentsFromEdit}
+              currentUserId={createdBy}
+              onSave={() => {
+                queryClient.invalidateQueries({ queryKey: ['plays', teamId] });
+                onOpenChange(false);
+                onSuccess?.();
+              }}
+              onCancel={() => onOpenChange(false)}
+            />
+          ) : (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
+            </div>
+          )
         ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-2">
