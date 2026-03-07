@@ -12,6 +12,8 @@ export default function RoutePath({
   isPreview = false,
   dimmed = false,
   viewBox = '0 0 400 200',
+  strokeWidthOverride,  // optional — force specific strokeWidth (e.g. game mode)
+  opacityOverride,      // optional — force specific opacity (e.g. game mode)
 }) {
   const svgPoints = useMemo(() => {
     return routePath.map((pt) => percentToSvg(pt.x, pt.y, viewBox));
@@ -21,8 +23,8 @@ export default function RoutePath({
 
   const pointsStr = svgPoints.map((p) => `${p.x},${p.y}`).join(' ');
 
-  const strokeWidth = isHighlighted ? 3 : 1.5;
-  const opacity = dimmed ? 0.2 : isHighlighted ? 1 : 0.6;
+  const strokeWidth = strokeWidthOverride ?? (isHighlighted ? 3 : 1.5);
+  const opacity = opacityOverride ?? (dimmed ? 0.2 : isHighlighted ? 1 : 0.6);
   const dashArray = isPreview ? '4 3' : 'none';
 
   // Arrow at the end — small triangle pointing in the direction of the last segment

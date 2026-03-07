@@ -43,11 +43,16 @@ export default function FlagFootballField({
   cropViewBox,       // optional — e.g. "50 0 300 180" to zoom/crop the visible area
   scrimmageY = 55,
   showScrimmage = false,
+  subtleLines = false, // reduce line opacity for game context
   className = '',
   children,
 }) {
   const parts = viewBox.split(' ').map(Number);
   const [, , vbW, vbH] = parts;
+
+  // Line opacities — subtle mode dims lines so routes pop
+  const lineWhite = subtleLines ? 'rgba(255,255,255,0.15)' : LINE_WHITE;
+  const lineBold = subtleLines ? 'rgba(255,255,255,0.22)' : LINE_WHITE_BOLD;
   // Use cropViewBox for the <svg> element if provided; all internal
   // drawing still uses the full viewBox dimensions so the field,
   // end zones, and yard lines render at correct absolute positions.
@@ -87,26 +92,26 @@ export default function FlagFootballField({
       <rect x="0" y={ezBottom} width={vbW} height={vbH - ezBottom} fill={END_ZONE_GREEN} rx="4" />
 
       {/* End zone boundary lines */}
-      <line x1="0" y1={ezTop} x2={vbW} y2={ezTop} stroke={LINE_WHITE_BOLD} strokeWidth="1" />
-      <line x1="0" y1={ezBottom} x2={vbW} y2={ezBottom} stroke={LINE_WHITE_BOLD} strokeWidth="1" />
+      <line x1="0" y1={ezTop} x2={vbW} y2={ezTop} stroke={lineBold} strokeWidth="1" />
+      <line x1="0" y1={ezBottom} x2={vbW} y2={ezBottom} stroke={lineBold} strokeWidth="1" />
 
       {/* Yard lines */}
       {yardLines.map((y, i) => (
         <g key={i}>
           <line
             x1="0" y1={y} x2={vbW} y2={y}
-            stroke={LINE_WHITE}
+            stroke={lineWhite}
             strokeWidth="0.5"
           />
           {/* Hash marks */}
-          <line x1={vbW * 0.33} y1={y - 2} x2={vbW * 0.33} y2={y + 2} stroke={LINE_WHITE} strokeWidth="0.5" />
-          <line x1={vbW * 0.67} y1={y - 2} x2={vbW * 0.67} y2={y + 2} stroke={LINE_WHITE} strokeWidth="0.5" />
+          <line x1={vbW * 0.33} y1={y - 2} x2={vbW * 0.33} y2={y + 2} stroke={lineWhite} strokeWidth="0.5" />
+          <line x1={vbW * 0.67} y1={y - 2} x2={vbW * 0.67} y2={y + 2} stroke={lineWhite} strokeWidth="0.5" />
         </g>
       ))}
 
       {/* Sidelines */}
-      <line x1="1" y1={ezTop} x2="1" y2={ezBottom} stroke={LINE_WHITE} strokeWidth="0.5" />
-      <line x1={vbW - 1} y1={ezTop} x2={vbW - 1} y2={ezBottom} stroke={LINE_WHITE} strokeWidth="0.5" />
+      <line x1="1" y1={ezTop} x2="1" y2={ezBottom} stroke={lineWhite} strokeWidth="0.5" />
+      <line x1={vbW - 1} y1={ezTop} x2={vbW - 1} y2={ezBottom} stroke={lineWhite} strokeWidth="0.5" />
 
       {/* Scrimmage line */}
       {showScrimmage && (

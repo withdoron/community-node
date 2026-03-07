@@ -10,6 +10,81 @@ import { ROUTE_GLOSSARY } from '@/config/flagFootball';
 // ——— Utilities at module level ———
 
 /**
+ * Compute a viewBox that frames ALL routes in a play with padding.
+ * Returns a viewBox string like "10 -20 380 220".
+ * The viewBox may extend beyond the 0-0-400-200 field to improve aspect ratio.
+ */
+function computePlayViewBox(assignments, mirrored) {
+  const pts = [];
+  (assignments || []).forEach((a) => {
+    if (a.start_x == null || a.start_y == null) return;
+    const sx = mirrored ? 100 - a.start_x : a.start_x;
+    pts.push({ x: sx, y: a.start_y });
+
+    let rp = a.route_path;
+    if (rp) {
+      try {
+        if (typeof rp === 'string') rp = JSON.parse(rp);
+        if (Array.isArray(rp)) {
+          rp.forEach((pt) =>
+            pts.push({ x: mirrored ? 100 - pt.x : pt.x, y: pt.y })
+          );
+        }
+      } catch {
+        /* ignore parse errors */
+      }
+    }
+  });
+
+  if (pts.length === 0) return null; // fallback to default
+
+  // Bounding box in SVG coords (field is 400×200)
+  const xs = pts.map((p) => (p.x / 100) * 400);
+  const ys = pts.map((p) => (p.y / 100) * 200);
+  let x1 = Math.min(...xs);
+  let x2 = Math.max(...xs);
+  let y1 = Math.min(...ys);
+  let y2 = Math.max(...ys);
+
+  // Generous padding (30 SVG units ≈ 15% of field height)
+  const pad = 30;
+  x1 = Math.max(0, x1 - pad);
+  x2 = Math.min(400, x2 + pad);
+  y1 = Math.max(0, y1 - pad);
+  y2 = Math.min(200, y2 + pad);
+
+  let w = x2 - x1;
+  let h = y2 - y1;
+
+  // Ensure minimum dimensions
+  if (w < 200) {
+    const diff = 200 - w;
+    x1 = Math.max(0, x1 - diff / 2);
+    w = 200;
+    if (x1 + w > 400) x1 = 400 - w;
+  }
+  if (h < 100) {
+    const diff = 100 - h;
+    y1 = Math.max(0, y1 - diff / 2);
+    h = 100;
+    if (y1 + h > 200) y1 = 200 - h;
+  }
+
+  // Improve aspect ratio for vertical display.
+  // If too wide & short, extend viewBox BEYOND field to add breathing room.
+  // Target max ratio: 2.2:1 — anything wider gets padded vertically.
+  const maxRatio = 2.2;
+  if (h > 0 && w / h > maxRatio) {
+    const targetH = w / maxRatio;
+    const extra = targetH - h;
+    y1 -= extra / 2; // extend above and below (can go negative)
+    h = targetH;
+  }
+
+  return `${Math.round(x1)} ${Math.round(y1)} ${Math.round(w)} ${Math.round(h)}`;
+}
+
+/**
  * Scale a single route's percentage points into a 300×300 SVG space.
  * Start anchored at (150, 200) with the route filling available space.
  * Returns array of {x, y} in SVG coords, or null if no valid route.
@@ -72,11 +147,14 @@ function RouteVisual({ routePath, positionColor, mirrored }) {
     const uy = dy / len;
     const px = -uy;
     const py = ux;
-    const as = 8;
+    const as = 10;
     const bx = lastPt.x - ux * as;
     const by = lastPt.y - uy * as;
     arrowPts = `${lastPt.x},${lastPt.y} ${bx + px * as * 0.5},${by + py * as * 0.5} ${bx - px * as * 0.5},${by - py * as * 0.5}`;
   }
+
+  // Subtle yard lines for field context
+  const yardLineYs = [60, 100, 140, 180, 220, 260];
 
   return (
     <div className="flex justify-center mb-4">
@@ -85,15 +163,31 @@ function RouteVisual({ routePath, positionColor, mirrored }) {
         width="100%"
         preserveAspectRatio="xMidYMid meet"
         className="rounded-xl border border-amber-500/30"
-        style={{ minHeight: 200, maxHeight: 300 }}
+        style={{ minHeight: 220, maxHeight: 320 }}
       >
         {/* Field background */}
         <rect x="0" y="0" width="300" height="300" fill="#2d5a27" rx="12" />
+
+        {/* Subtle yard lines */}
+        {yardLineYs.map((yy) => (
+          <line
+            key={yy}
+            x1="20" y1={yy} x2="280" y2={yy}
+            stroke="rgba(255,255,255,0.12)" strokeWidth="0.5"
+          />
+        ))}
 
         {/* Scrimmage line at the start y */}
         <line
           x1="20" y1={startPt.y} x2="280" y2={startPt.y}
           stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" strokeDasharray="6 4"
+        />
+
+        {/* Route outline (white glow for pop) */}
+        <polyline
+          points={pointsStr}
+          fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="6"
+          strokeLinejoin="round" strokeLinecap="round"
         />
 
         {/* Route line */}
@@ -110,7 +204,7 @@ function RouteVisual({ routePath, positionColor, mirrored }) {
         <circle
           cx={startPt.x} cy={startPt.y} r="15"
           fill={positionColor || '#94a3b8'}
-          stroke="rgba(0,0,0,0.3)" strokeWidth="1"
+          stroke="rgba(0,0,0,0.4)" strokeWidth="1.5"
         />
       </svg>
     </div>
@@ -547,14 +641,18 @@ export default function QuizMode({
 
           {/* Visual area */}
           {q.type === 'name_that_play' && (q.play.use_renderer === true || q.play.use_renderer === 'true') ? (
-            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 min-h-[40vh]">
+            <div
+              className="rounded-xl overflow-hidden bg-slate-900 border border-slate-700 mb-4 flex items-center justify-center"
+              style={{ minHeight: 250 }}
+            >
               <PlayRenderer
                 play={q.play}
                 assignments={q.assignments}
                 mode="view"
                 mirrored={q.mirrored}
                 showLabels={q.showLabels}
-                viewBoxOverride="0 10 400 180"
+                viewBoxOverride={computePlayViewBox(q.assignments, q.mirrored)}
+                gameMode
               />
             </div>
           ) : q.type === 'name_that_play' && q.play.diagram_image ? (

@@ -4,6 +4,12 @@ import PositionMarker from './PositionMarker';
 import RoutePath from './RoutePath';
 import { FLAG_FOOTBALL, DEFAULT_FORMAT, getPositionsForFormat } from '@/config/flagFootball';
 
+// High-contrast route colors for game mode — replace low-contrast colors
+const GAME_ROUTE_COLORS = {
+  C: '#ffffff',    // gray → white (gray disappears on green)
+  QB: '#60a5fa',   // light blue (distinct from amber accent)
+};
+
 /**
  * Shared renderer for visual plays. Used in PlayCard, PlayDetail, StudyMode, SidelineMode, Playbook Pro.
  *
@@ -14,6 +20,7 @@ import { FLAG_FOOTBALL, DEFAULT_FORMAT, getPositionsForFormat } from '@/config/f
  *   "study"    — highlighted position full opacity, others at 20%
  *   "sideline" — all visible, larger, tappable
  *   "mini"     — compact card thumbnail, non-interactive
+ *   gameMode   — high-contrast routes for Playbook Pro (thicker, full opacity, subtle field)
  */
 export default function PlayRenderer({
   play,
@@ -25,6 +32,7 @@ export default function PlayRenderer({
   onPositionTap,
   className = '',
   viewBoxOverride,  // optional crop viewBox for zoom — e.g. "50 0 300 180"
+  gameMode = false,  // high-contrast routes for Playbook Pro
 }) {
   const viewBox = FLAG_FOOTBALL.field.viewBox;
 
@@ -108,6 +116,7 @@ export default function PlayRenderer({
         cropViewBox={viewBoxOverride}
         showScrimmage={!isMini}
         scrimmageY={55}
+        subtleLines={gameMode}
       >
         {/* Route paths (render behind markers) */}
         {renderData.map((rd) => {
@@ -116,14 +125,21 @@ export default function PlayRenderer({
           const isHighlighted = highlightPosition === rd.positionId;
           const isDimmed = mode === 'study' && highlightPosition && !isHighlighted;
 
+          // Game mode: swap low-contrast colors, thicken strokes, full opacity
+          const routeColor = gameMode
+            ? (GAME_ROUTE_COLORS[rd.positionId] || rd.posConfig.color)
+            : rd.posConfig.color;
+
           return (
             <RoutePath
               key={`route-${rd.positionId}`}
               routePath={rd.routePath}
-              color={rd.posConfig.color}
+              color={routeColor}
               isHighlighted={isHighlighted}
               dimmed={isDimmed}
               viewBox={viewBox}
+              strokeWidthOverride={gameMode ? 2.5 : undefined}
+              opacityOverride={gameMode ? 1 : undefined}
             />
           );
         })}
