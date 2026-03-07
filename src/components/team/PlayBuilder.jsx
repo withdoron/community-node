@@ -16,6 +16,8 @@ import {
   CUSTOM_POSITION_COLORS,
   getPositionsForFormat,
   getFormationDefaults,
+  buildChainedRoutePath,
+  ROUTE_SEGMENT_DEFAULTS,
 } from '@/config/flagFootball';
 
 const viewBox = FLAG_FOOTBALL.field.viewBox;
@@ -74,7 +76,7 @@ export default function PlayBuilder({
     return buildPositionsFromFormation('spread', formatId, configPositions);
   });
 
-  // Route state: { [positionId]: { movementType, routePath, assignmentText } }
+  // Route state: { [positionId]: { movementType, routePath, assignmentText, segments } }
   const [routes, setRoutes] = useState(() => {
     if (initialAssignments.length > 0) {
       const map = {};
@@ -87,10 +89,19 @@ export default function PlayBuilder({
               : a.route_path;
           } catch { routePath = null; }
         }
+        let segments = null;
+        if (a.route_segments) {
+          try {
+            segments = typeof a.route_segments === 'string'
+              ? JSON.parse(a.route_segments)
+              : a.route_segments;
+          } catch { segments = null; }
+        }
         map[a.position] = {
           movementType: a.movement_type || a.route || '',
           routePath,
           assignmentText: a.assignment_text || '',
+          segments,
         };
       });
       return map;
@@ -159,10 +170,19 @@ export default function PlayBuilder({
       ...prev,
       [posId]: { ...prev[posId], x: newCoords.x, y: newCoords.y },
     }));
-    // Update route start point if route exists
+    // Rebuild route from new position
     setRoutes((prev) => {
       const existing = prev[posId];
       if (!existing?.routePath || existing.routePath.length === 0) return prev;
+
+      // If segments exist, regenerate entire chained path from new start
+      if (existing.segments && existing.segments.length > 0) {
+        const fieldSide = FLAG_FOOTBALL.getFieldSide(newCoords.x);
+        const newPath = buildChainedRoutePath(existing.segments, newCoords.x, newCoords.y, fieldSide);
+        return { ...prev, [posId]: { ...existing, routePath: newPath.length >= 2 ? newPath : null } };
+      }
+
+      // Legacy: just update first point
       const updatedPath = [...existing.routePath];
       updatedPath[0] = { x: newCoords.x, y: newCoords.y };
       return { ...prev, [posId]: { ...existing, routePath: updatedPath } };
@@ -189,12 +209,54 @@ export default function PlayBuilder({
         fieldSide,
       });
 
+      // Store single-segment metadata for future chaining
+      const yards = ROUTE_SEGMENT_DEFAULTS[routeId] || 10;
+      const segments = [{ routeId, yards }];
+
       setRoutes((prev) => ({
         ...prev,
         [selectedPosition]: {
           ...prev[selectedPosition],
           movementType: routeId,
           routePath: routePath.length >= 2 ? routePath : null,
+          segments,
+        },
+      }));
+      setIsDrawingRoute(false);
+    },
+    [selectedPosition, positions]
+  );
+
+  const handleSegmentsChange = useCallback(
+    (segments) => {
+      if (!selectedPosition || !positions[selectedPosition]) return;
+      const pos = positions[selectedPosition];
+
+      if (!segments || segments.length === 0) {
+        // Cleared — remove route
+        setRoutes((prev) => ({
+          ...prev,
+          [selectedPosition]: {
+            ...prev[selectedPosition],
+            movementType: '',
+            routePath: null,
+            segments: null,
+          },
+        }));
+        return;
+      }
+
+      const fieldSide = FLAG_FOOTBALL.getFieldSide(pos.x);
+      const routePath = buildChainedRoutePath(segments, pos.x, pos.y, fieldSide);
+      const movementType = segments.map((s) => s.routeId).join('-');
+
+      setRoutes((prev) => ({
+        ...prev,
+        [selectedPosition]: {
+          ...prev[selectedPosition],
+          movementType,
+          routePath: routePath.length >= 2 ? routePath : null,
+          segments,
         },
       }));
       setIsDrawingRoute(false);
@@ -216,6 +278,7 @@ export default function PlayBuilder({
           ...prev[selectedPosition],
           movementType: 'custom',
           routePath: path,
+          segments: null, // custom draw overrides segments
         },
       }));
       setIsDrawingRoute(false);
@@ -231,6 +294,7 @@ export default function PlayBuilder({
         ...prev[selectedPosition],
         movementType: '',
         routePath: null,
+        segments: null,
       },
     }));
   }, [selectedPosition]);
@@ -343,6 +407,7 @@ export default function PlayBuilder({
             movement_type: route.movementType || '',
             route_path: route.routePath || null,
             assignment_text: route.assignmentText || '',
+            route_segments: route.segments || null,
           };
 
           if (existingByPosition[posId]) {
@@ -383,6 +448,7 @@ export default function PlayBuilder({
             movement_type: route.movementType || '',
             route_path: route.routePath || null,
             assignment_text: route.assignmentText || '',
+            route_segments: route.segments || null,
           });
         }
       }
@@ -612,6 +678,7 @@ export default function PlayBuilder({
               positionId={selectedPosition}
               currentRoute={routes[selectedPosition] || null}
               onSelectPreset={handleSelectPresetRoute}
+              onSegmentsChange={handleSegmentsChange}
               onDrawCustom={handleDrawCustom}
               onClearRoute={handleClearRoute}
               onAssignmentTextChange={handleAssignmentTextChange}

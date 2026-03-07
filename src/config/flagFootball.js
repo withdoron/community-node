@@ -439,6 +439,219 @@ export const ROUTE_GLOSSARY = {
   delay:        { name: 'Delay',        description: 'Wait a beat, then sneak out as a receiver' },
 };
 
+// ——— Route Chaining (compound routes) ———
+const YARDS_TO_PCT = 70 / 60; // ≈ 1.167 pct units per yard (70 pct playing field / 60 yards)
+
+const ROUTE_SEGMENT_DEFAULTS = {
+  // Receiver
+  slant: 10, out: 10, post: 15, fly: 15, curl: 10,
+  drag: 10, flat: 8, corner: 15, hitch: 8,
+  // QB
+  drop_back: 5, rollout_left: 8, rollout_right: 8,
+  keeper: 10, scramble: 8,
+  // RB
+  sweep_left: 10, sweep_right: 10, dive: 10, screen: 8, delay: 8,
+  // Center
+  pull_left: 8, pull_right: 8,
+};
+
+const NON_CHAINABLE_ROUTES = new Set(['block', 'snap_block', 'custom', 'handoff']);
+
+function isChainableRoute(routeId) {
+  return !NON_CHAINABLE_ROUTES.has(routeId);
+}
+
+/**
+ * Generate points for a single route segment, scaled by yards.
+ * Returns [{x,y}] in percentage coordinates. First point = start.
+ * Shape proportions match the existing route templates.
+ */
+function generateSegmentPoints(routeId, startX, startY, fieldSide, yards) {
+  const d = yards * YARDS_TO_PCT;
+  const cd = centerDir(fieldSide);
+  const sd = sidelineDir(fieldSide);
+
+  switch (routeId) {
+    // ——— Receiver ———
+    case 'slant':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY - d * 0.3),
+        clampPt(startX + d * 0.7 * cd, startY - d),
+      ];
+    case 'out':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY - d * 0.7),
+        clampPt(startX + d * 0.7 * sd, startY - d * 0.7),
+      ];
+    case 'post':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY - d * 0.6),
+        clampPt(startX + d * 0.5 * cd, startY - d),
+      ];
+    case 'fly':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY - d),
+      ];
+    case 'curl':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY - d),
+        clampPt(startX, startY - d * 0.85),
+      ];
+    case 'drag':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY - d * 0.15),
+        clampPt(startX + d * 0.85 * cd, startY - d * 0.15),
+      ];
+    case 'flat':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX + d * 0.7 * sd, startY - d * 0.7),
+      ];
+    case 'corner':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY - d * 0.6),
+        clampPt(startX + d * 0.5 * sd, startY - d),
+      ];
+    case 'hitch':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY - d),
+        clampPt(startX, startY - d * 0.85),
+      ];
+    // ——— QB ———
+    case 'drop_back':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY + d),
+      ];
+    case 'rollout_left':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY + d * 0.4),
+        clampPt(startX - d, startY + d * 0.4),
+      ];
+    case 'rollout_right':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY + d * 0.4),
+        clampPt(startX + d, startY + d * 0.4),
+      ];
+    case 'keeper':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY - d),
+      ];
+    case 'scramble':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX + d * 0.6, startY),
+        clampPt(startX + d * 0.6, startY - d * 0.6),
+      ];
+    // ——— RB ———
+    case 'sweep_left':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX - d, startY),
+        clampPt(startX - d, startY - d * 0.6),
+      ];
+    case 'sweep_right':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX + d, startY),
+        clampPt(startX + d, startY - d * 0.6),
+      ];
+    case 'dive':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY - d),
+      ];
+    case 'screen':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX + d * 0.7 * sd, startY),
+        clampPt(startX + d * 0.7 * sd, startY - d * 0.5),
+      ];
+    case 'delay':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY - d * 0.15),
+        clampPt(startX, startY - d * 0.7),
+        clampPt(startX + d * 0.5 * sd, startY - d * 0.7),
+      ];
+    // ——— Center ———
+    case 'pull_left':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX - d, startY),
+        clampPt(startX - d, startY - d * 0.4),
+      ];
+    case 'pull_right':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX + d, startY),
+        clampPt(startX + d, startY - d * 0.4),
+      ];
+    // QB pitch routes
+    case 'pitch_left':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX - d * 0.7, startY + d * 0.3),
+      ];
+    case 'pitch_right':
+      return [
+        { x: startX, y: startY },
+        clampPt(startX + d * 0.7, startY + d * 0.3),
+      ];
+    default:
+      // Fallback: straight upfield
+      return [
+        { x: startX, y: startY },
+        clampPt(startX, startY - d),
+      ];
+  }
+}
+
+/**
+ * Build a chained route path from an array of segments.
+ * Each segment: { routeId, yards }
+ * Returns flat [{x,y}] array — backwards compatible with route_path.
+ */
+function buildChainedRoutePath(segments, startX, startY, fieldSide) {
+  if (!segments || segments.length === 0) return [];
+
+  let allPoints = [];
+  let curX = startX;
+  let curY = startY;
+
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    const points = generateSegmentPoints(seg.routeId, curX, curY, fieldSide, seg.yards);
+
+    if (i === 0) {
+      allPoints = [...points];
+    } else if (points.length > 0) {
+      // Skip first point (it's the junction = last point of previous segment)
+      allPoints = allPoints.concat(points.slice(1));
+    }
+
+    // Next segment starts where this one ends
+    if (points.length > 0) {
+      const last = points[points.length - 1];
+      curX = last.x;
+      curY = last.y;
+    }
+  }
+
+  return allPoints;
+}
+
 // ——— Custom Position Colors ———
 const CUSTOM_POSITION_COLORS = [
   '#94a3b8', '#d4a046', '#22c55e', '#3b82f6',
@@ -463,4 +676,11 @@ export {
   getPositionsForFormat,
   getFormationDefaults,
   getRoutesForPosition,
+  // Route chaining
+  YARDS_TO_PCT,
+  ROUTE_SEGMENT_DEFAULTS,
+  NON_CHAINABLE_ROUTES,
+  isChainableRoute,
+  generateSegmentPoints,
+  buildChainedRoutePath,
 };
