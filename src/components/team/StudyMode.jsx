@@ -5,6 +5,23 @@ import PlayRenderer from '@/components/field/PlayRenderer';
 
 const POSITION_ORDER = ['C', 'QB', 'RB', 'X', 'Z'];
 
+/** Format movement_type or route into readable label: "curl-drag" → "Curl → Drag" */
+function formatRoute(raw) {
+  if (!raw) return '';
+  return raw
+    .split('-')
+    .map((seg) => {
+      const s = seg.replace(/_/g, ' ').trim();
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    })
+    .join(' → ');
+}
+
+/** Get the best available route label from an assignment (visual builder or photo-mode) */
+function getRouteDisplay(assignment) {
+  return formatRoute(assignment?.movement_type || assignment?.route);
+}
+
 export default function StudyMode({
   plays = [],
   playerPosition,
@@ -253,11 +270,17 @@ export default function StudyMode({
                     )}
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-amber-500 text-2xl font-bold">{myAssignment.position}</span>
-                      <span className="bg-slate-800 text-slate-300 text-sm px-2 py-0.5 rounded">
-                        {myAssignment.route || '—'}
-                      </span>
+                      {getRouteDisplay(myAssignment) && (
+                        <span className="bg-slate-800 text-amber-400 text-sm font-semibold px-2 py-0.5 rounded">
+                          {getRouteDisplay(myAssignment)}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-white text-lg min-h-[18px]">{myAssignment.assignment_text || 'No assignment'}</p>
+                    {myAssignment.assignment_text ? (
+                      <p className="text-white text-lg min-h-[18px]">{myAssignment.assignment_text}</p>
+                    ) : getRouteDisplay(myAssignment) ? null : (
+                      <p className="text-slate-400 text-lg min-h-[18px]">No assignment</p>
+                    )}
                   </div>
                 ) : displayPosition ? (
                   <div className="bg-slate-800/50 rounded-xl p-4 mb-4 border border-slate-700">
@@ -268,12 +291,19 @@ export default function StudyMode({
                 {otherAssignments.length > 0 && (
                   <div className="space-y-1">
                     <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">Other positions</p>
-                    {otherAssignments.map((a) => (
-                      <div key={a.id} className="flex items-center gap-2 text-slate-500 text-sm">
-                        <span className="font-medium w-8">{a.position}</span>
-                        <span>{a.route || '—'}</span>
-                      </div>
-                    ))}
+                    {otherAssignments.map((a) => {
+                      const routeLabel = getRouteDisplay(a);
+                      return (
+                        <div key={a.id} className="flex items-start gap-2 text-slate-500 text-sm py-0.5">
+                          <span className="font-medium w-8 flex-shrink-0">{a.position}</span>
+                          <div className="flex flex-col gap-0.5">
+                            {routeLabel && <span className="text-slate-400 font-medium">{routeLabel}</span>}
+                            {a.assignment_text && <span className="text-slate-500">{a.assignment_text}</span>}
+                            {!routeLabel && !a.assignment_text && <span>—</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 
@@ -297,7 +327,11 @@ export default function StudyMode({
                         {isMyPos && <p className="text-amber-500 text-xs font-semibold uppercase tracking-wider mb-1">Your assignment</p>}
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-amber-500 font-bold">{a.position}</span>
-                          <span className="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded">{a.route || '—'}</span>
+                          {getRouteDisplay(a) && (
+                            <span className="bg-slate-800 text-amber-400 text-xs font-semibold px-2 py-0.5 rounded">
+                              {getRouteDisplay(a)}
+                            </span>
+                          )}
                         </div>
                         {a.assignment_text && <p className="text-slate-300 text-sm mt-1">{a.assignment_text}</p>}
                       </div>

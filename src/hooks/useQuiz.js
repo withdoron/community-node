@@ -31,6 +31,27 @@ function pickRandom(arr, n, excludeSet = new Set()) {
   return shuffle(filtered).slice(0, n);
 }
 
+/** Format a movement_type slug into readable text: "curl_drag" → "Curl Drag" */
+function formatMoveLabel(raw) {
+  if (!raw) return '';
+  return raw
+    .split(/[-_]/)
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join(' ');
+}
+
+/**
+ * Build a combined assignment label from route + instruction text.
+ * Returns e.g. "Curl: hike ball and sweep to RB" or just "Curl" or just the instruction.
+ */
+function buildAssignmentLabel(assignment) {
+  if (!assignment) return '';
+  const route = formatMoveLabel(assignment.movement_type || assignment.route);
+  const text = assignment.assignment_text?.trim();
+  if (route && text) return `${route}: ${text}`;
+  return route || text || '';
+}
+
 // ——— High Score — approximate from QuizAttempt sessions ———
 
 function calculateHighScore(attempts) {
@@ -122,16 +143,15 @@ function genKnowYourJob({ play, playAssignments, mc, targetPlays, playerPosition
   const mine = playAssignments.find(
     (a) => a.position?.toLowerCase() === playerPosition?.toLowerCase()
   );
-  if (!mine?.assignment_text) return null;
-
-  const correct = mine.assignment_text;
+  const correct = buildAssignmentLabel(mine);
+  if (!correct) return null;
 
   const pool = targetPlays
     .filter((p) => p.id !== play.id)
     .map((p) => {
       const as = assignmentsByPlayId[p.id] || [];
       const a = as.find((a2) => a2.position?.toLowerCase() === playerPosition?.toLowerCase());
-      return a?.assignment_text;
+      return buildAssignmentLabel(a);
     })
     .filter(Boolean)
     .filter((t) => t !== correct);
