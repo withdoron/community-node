@@ -54,14 +54,69 @@ function buildAssignmentLabel(assignment) {
 }
 
 /**
+ * Mirror display name — distinguishes original from mirrored plays in answers.
+ * Swaps Left/Right if present (Option B), otherwise appends "(Mirror)" (Option A).
+ */
+function getMirrorDisplayName(playName, mirrored) {
+  if (!mirrored || !playName) return playName;
+  // Check for directional words and swap
+  const hasLeft = /\bLeft\b/.test(playName);
+  const hasRight = /\bRight\b/.test(playName);
+  if (hasLeft || hasRight) {
+    // Two-pass swap: Left→__R__, Right→Left, __R__→Right
+    let swapped = playName.replace(/\bLeft\b/g, '__SWAP_R__');
+    swapped = swapped.replace(/\bRight\b/g, 'Left');
+    swapped = swapped.replace(/__SWAP_R__/g, 'Right');
+    return swapped;
+  }
+  return `${playName} (Mirror)`;
+}
+
+/**
+ * Dispatch a question generator by type string.
+ */
+function dispatchGenerator(type, args) {
+  switch (type) {
+    case 'name_that_play': return genNameThatPlay(args);
+    case 'know_your_job': return genKnowYourJob(args);
+    case 'identify_route': return genIdentifyRoute(args);
+    case 'which_position': return genWhichPosition(args);
+    case 'true_false': return genTrueFalse(args);
+    case 'coach_says': return genCoachSays(args);
+    case 'odd_one_out': return genOddOneOut(args);
+    default: return genNameThatPlay(args);
+  }
+}
+
+/**
+ * Estimate the total unique question pool size for dedup tracking.
+ */
+function estimateUniquePool(plays, assignmentsByPlayId) {
+  const target = plays.filter((p) => p.side === 'offense' && p.status === 'active');
+  let estimate = 0;
+  for (const play of target) {
+    estimate += 3; // name_that_play, true_false, odd_one_out (approximately)
+    const as = assignmentsByPlayId[play.id] || [];
+    const routeAs = as.filter((a) => a.movement_type && !['block', 'custom', 'snap_block'].includes(a.movement_type));
+    estimate += routeAs.length * 2; // identify_route + which_position per route
+    const withText = as.filter((a) => a.assignment_text?.trim());
+    estimate += withText.length; // coach_says per assignment with text
+  }
+  return Math.max(estimate, 10);
+}
+
+/**
  * Apply progressive difficulty phase overlay to a question.
  * Trims options, adjusts timer, controls mirror and labels.
  */
 function applyPhaseOverlay(q, phase) {
   const adjusted = { ...q };
+  const mirrorChance = phase.mirrorFrequency || 0;
 
-  // Trim options to phase count (keep correct answer)
-  if (adjusted.options && adjusted.options.length > phase.optionCount) {
+  // Trim options to phase count — but skip for fixed-option types
+  if (adjusted.type === 'true_false' || adjusted.type === 'odd_one_out') {
+    // true_false always 2 options, odd_one_out always 4 — don't trim
+  } else if (adjusted.options && adjusted.options.length > phase.optionCount) {
     const correct = adjusted.correctAnswer;
     const wrong = adjusted.options.filter((o) => o !== correct);
     adjusted.options = shuffle([correct, ...wrong.slice(0, phase.optionCount - 1)]);
@@ -77,14 +132,30 @@ function applyPhaseOverlay(q, phase) {
     adjusted.showFormationHint = true;
   }
 
-  // Mirror based on phase + play's mirrorability
+  // Mirror based on phase frequency + play's mirrorability
   if (adjusted.type === 'name_that_play') {
     const isMirrorable = adjusted.play?.is_mirrorable === true || adjusted.play?.is_mirrorable === 'true';
-    adjusted.mirrored = isMirrorable && phase.useMirror && Math.random() > 0.5;
-  } else if (adjusted.type === 'identify_route') {
-    adjusted.mirrored = phase.useMirror && Math.random() > 0.5;
+    adjusted.mirrored = isMirrorable && mirrorChance > 0 && Math.random() < mirrorChance;
+  } else if (adjusted.type === 'identify_route' || adjusted.type === 'which_position') {
+    adjusted.mirrored = mirrorChance > 0 && Math.random() < mirrorChance;
   } else {
     adjusted.mirrored = false;
+  }
+
+  // Mirror naming for name_that_play — transform correct answer and add original as distracter
+  if (adjusted.mirrored && adjusted.type === 'name_that_play') {
+    const originalName = adjusted.correctAnswer;
+    const mirrorName = getMirrorDisplayName(originalName, true);
+    adjusted.options = adjusted.options.map((opt) => (opt === originalName ? mirrorName : opt));
+    adjusted.correctAnswer = mirrorName;
+    // Add original play name as a compelling distracter if not already present
+    if (!adjusted.options.includes(originalName)) {
+      const wrongIdx = adjusted.options.findIndex((o) => o !== mirrorName);
+      if (wrongIdx >= 0) {
+        adjusted.options[wrongIdx] = originalName;
+        adjusted.options = shuffle(adjusted.options);
+      }
+    }
   }
 
   // Store phase info for display
@@ -321,6 +392,237 @@ function genIdentifyRoute({ play, playAssignments, mc, targetPlays, assignmentsB
   };
 }
 
+// ——— New Question Generators ———
+
+function genWhichPosition({ play, playAssignments, mc, targetPlays, assignmentsByPlayId }) {
+  const hasRenderer = play.use_renderer === true || play.use_renderer === 'true';
+  if (!hasRenderer) return null;
+
+  const routeAs = playAssignments.filter(
+    (a) => a.movement_type && !['block', 'custom', 'snap_block'].includes(a.movement_type)
+  );
+  if (routeAs.length === 0) return null;
+
+  const assignment = routeAs[Math.floor(Math.random() * routeAs.length)];
+  const correctPosId = assignment.position || 'X';
+
+  const positions = getPositionsForFormat(play.format || '5v5');
+  const posConfig = positions.find((p) => p.id === correctPosId);
+  const correctLabel = posConfig?.label || correctPosId;
+
+  const wrongPool = positions
+    .filter((p) => p.id !== correctPosId)
+    .map((p) => p.label);
+  if (wrongPool.length === 0) return null;
+
+  const wrong = pickRandom(wrongPool, mc.optionCount - 1);
+
+  const startX = assignment.start_x || 25;
+  const startY = assignment.start_y || 55;
+  const fieldSide = startX < 45 ? 'left' : startX > 55 ? 'right' : 'center';
+  let routePath = null;
+  const routeType = assignment.movement_type;
+  if (routeTemplates[routeType]) {
+    routePath = routeTemplates[routeType]({ startX, startY, fieldSide });
+  } else if (assignment.route_path) {
+    try {
+      routePath = typeof assignment.route_path === 'string'
+        ? JSON.parse(assignment.route_path) : assignment.route_path;
+    } catch { routePath = null; }
+  }
+
+  return {
+    type: 'which_position',
+    playId: play.id,
+    play,
+    assignments: playAssignments,
+    questionText: `Which position runs this route in ${play.name}?`,
+    correctAnswer: correctLabel,
+    options: shuffle([correctLabel, ...wrong]),
+    highlightPosition: null,
+    mirrored: false,
+    showLabels: false,
+    timerSeconds: mc.timerSeconds,
+    basePoints: mc.basePoints,
+    routePath,
+    routeMovementType: routeType,
+    positionId: correctPosId,
+    positionLabel: correctLabel,
+    positionColor: posConfig?.color || '#94a3b8',
+  };
+}
+
+function genTrueFalse({ play, playAssignments, mc, targetPlays, assignmentsByPlayId }) {
+  const hasRenderer = play.use_renderer === true || play.use_renderer === 'true';
+  if (!hasRenderer) return null;
+
+  const routeAs = playAssignments.filter(
+    (a) => a.movement_type && !['block', 'custom', 'snap_block'].includes(a.movement_type)
+  );
+  if (routeAs.length === 0) return null;
+
+  const assignment = routeAs[Math.floor(Math.random() * routeAs.length)];
+  const posId = assignment.position || 'X';
+  const positions = getPositionsForFormat(play.format || '5v5');
+  const posConfig = positions.find((p) => p.id === posId);
+  const posLabel = posConfig?.label || posId;
+
+  const isTrue = Math.random() > 0.5;
+  let routeShown;
+  let correctAnswer;
+
+  if (isTrue) {
+    routeShown = formatMoveLabel(assignment.movement_type);
+    correctAnswer = 'True';
+  } else {
+    const actualRoutes = new Set(routeAs.map((a) => a.movement_type));
+    const allRoutes = new Set();
+    for (const p of targetPlays) {
+      for (const a of (assignmentsByPlayId[p.id] || [])) {
+        if (a.movement_type && !['block', 'custom', 'snap_block'].includes(a.movement_type)) {
+          allRoutes.add(a.movement_type);
+        }
+      }
+    }
+    const wrongRoutes = [...allRoutes].filter((r) => !actualRoutes.has(r));
+    if (wrongRoutes.length === 0) return null;
+    routeShown = formatMoveLabel(wrongRoutes[Math.floor(Math.random() * wrongRoutes.length)]);
+    correctAnswer = 'False';
+  }
+
+  return {
+    type: 'true_false',
+    playId: play.id,
+    play,
+    assignments: playAssignments,
+    questionText: `The ${posLabel} runs a ${routeShown} in ${play.name}`,
+    correctAnswer,
+    options: ['True', 'False'],
+    highlightPosition: null,
+    mirrored: false,
+    showLabels: false,
+    timerSeconds: mc.timerSeconds,
+    basePoints: Math.round(mc.basePoints * 0.75),
+    positionId: posId,
+    positionLabel: posLabel,
+    positionColor: posConfig?.color || '#94a3b8',
+    statementRoute: routeShown,
+    isStatementTrue: isTrue,
+  };
+}
+
+function genCoachSays({ play, playAssignments, mc, targetPlays, assignmentsByPlayId }) {
+  const withText = playAssignments.filter((a) => a.assignment_text?.trim());
+  if (withText.length === 0) return null;
+
+  const assignment = withText[Math.floor(Math.random() * withText.length)];
+  const text = assignment.assignment_text.trim();
+
+  const positions = getPositionsForFormat(play.format || '5v5');
+  const askPosition = Math.random() > 0.5;
+
+  if (askPosition) {
+    const correctPosId = assignment.position || 'X';
+    const posConfig = positions.find((p) => p.id === correctPosId);
+    const correctLabel = posConfig?.label || correctPosId;
+
+    const wrongPool = positions
+      .filter((p) => p.id !== correctPosId)
+      .map((p) => p.label);
+    if (wrongPool.length === 0) return null;
+    const wrong = pickRandom(wrongPool, mc.optionCount - 1);
+
+    return {
+      type: 'coach_says',
+      playId: play.id,
+      play,
+      assignments: playAssignments,
+      questionText: `Which position has this assignment in ${play.name}?`,
+      correctAnswer: correctLabel,
+      options: shuffle([correctLabel, ...wrong]),
+      highlightPosition: null,
+      mirrored: false,
+      showLabels: false,
+      timerSeconds: mc.timerSeconds,
+      basePoints: mc.basePoints,
+      assignmentDisplay: text,
+      coachSaysVariant: 'position',
+      positionId: correctPosId,
+      positionLabel: correctLabel,
+      positionColor: posConfig?.color || '#94a3b8',
+    };
+  } else {
+    const correct = play.name;
+    const wrongPool = targetPlays
+      .filter((p) => p.id !== play.id)
+      .map((p) => p.name);
+    const uniq = [...new Set(wrongPool)].filter((n) => n !== correct);
+    if (uniq.length === 0) return null;
+    const wrong = pickRandom(uniq, mc.optionCount - 1);
+
+    return {
+      type: 'coach_says',
+      playId: play.id,
+      play,
+      assignments: playAssignments,
+      questionText: `Which play has this assignment?`,
+      correctAnswer: correct,
+      options: shuffle([correct, ...wrong]),
+      highlightPosition: null,
+      mirrored: false,
+      showLabels: false,
+      timerSeconds: mc.timerSeconds,
+      basePoints: mc.basePoints,
+      assignmentDisplay: text,
+      coachSaysVariant: 'play',
+    };
+  }
+}
+
+function genOddOneOut({ play, playAssignments, mc, targetPlays, assignmentsByPlayId }) {
+  const hasRenderer = play.use_renderer === true || play.use_renderer === 'true';
+  if (!hasRenderer) return null;
+
+  const routeAs = playAssignments.filter(
+    (a) => a.movement_type && !['block', 'custom', 'snap_block'].includes(a.movement_type)
+  );
+  if (routeAs.length < 3) return null;
+
+  const selectedRoutes = pickRandom(routeAs.map((a) => a.movement_type), 3);
+
+  const thisPlayRoutes = new Set(routeAs.map((a) => a.movement_type));
+  const oddPool = [];
+  for (const p of targetPlays) {
+    if (p.id === play.id) continue;
+    for (const a of (assignmentsByPlayId[p.id] || [])) {
+      if (a.movement_type && !['block', 'custom', 'snap_block'].includes(a.movement_type)) {
+        if (!thisPlayRoutes.has(a.movement_type)) {
+          oddPool.push(a.movement_type);
+        }
+      }
+    }
+  }
+  const oddUniq = [...new Set(oddPool)];
+  if (oddUniq.length === 0) return null;
+
+  const oddRoute = oddUniq[Math.floor(Math.random() * oddUniq.length)];
+
+  return {
+    type: 'odd_one_out',
+    playId: play.id,
+    play,
+    assignments: playAssignments,
+    questionText: `Three of these routes are in ${play.name}. Which one doesn't belong?`,
+    correctAnswer: oddRoute,
+    options: shuffle([...selectedRoutes, oddRoute]),
+    highlightPosition: null,
+    mirrored: false,
+    showLabels: false,
+    timerSeconds: mc.timerSeconds,
+    basePoints: Math.round(mc.basePoints * 1.25),
+  };
+}
+
 // ——— Weighted Pool Builder ———
 
 function generateWeightedPool({ plays, assignmentsByPlayId, playerPosition, playMastery, gameDayOnly }) {
@@ -371,6 +673,59 @@ function generateWeightedPool({ plays, assignmentsByPlayId, playerPosition, play
   }
 
   return shuffle(questions);
+}
+
+// ——— Endless Survival — on-demand batch generation ———
+
+function generateNextBatch({ plays, assignmentsByPlayId, playerPosition, playMastery, gameDayOnly, batchSize = 10, askedSet, questionNumber, poolExhausted }) {
+  let target = plays.filter((p) => p.side === 'offense' && p.status === 'active');
+  if (gameDayOnly) target = target.filter((p) => p.game_day);
+  if (target.length === 0) return [];
+
+  const weighted = [];
+  for (const play of target) {
+    const mastery = playMastery[play.id] || 'new';
+    const w = MASTERY_WEIGHTS[mastery] || MASTERY_WEIGHTS.new;
+    for (let i = 0; i < w; i++) weighted.push(play);
+  }
+
+  // Generate more candidates than needed to account for dedup filtering
+  const pool = shuffle(weighted).slice(0, batchSize * 3);
+  const questions = [];
+
+  for (const play of pool) {
+    if (questions.length >= batchSize) break;
+
+    const mastery = playMastery[play.id] || 'new';
+    const mc = MASTERY_LEVELS[mastery];
+    const genMc = { ...mc, optionCount: 4 };
+    const playAs = assignmentsByPlayId[play.id] || [];
+
+    const qNum = questionNumber + questions.length;
+    const phase = getDifficultyPhase(qNum);
+    const allowedTypes = phase.allowedTypes || QUIZ_TYPES;
+    const qt = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
+
+    let q = dispatchGenerator(qt, {
+      play, playAssignments: playAs, mc: genMc,
+      targetPlays: target, playerPosition, assignmentsByPlayId,
+    });
+
+    // Fallback chain
+    if (!q) q = genNameThatPlay({ play, playAssignments: playAs, mc: genMc, targetPlays: target });
+    if (!q) q = genTrueFalse({ play, playAssignments: playAs, mc: genMc, targetPlays: target, assignmentsByPlayId });
+
+    if (q) {
+      const key = `${q.type}-${q.playId}-${q.correctAnswer}-${q.positionId || ''}`;
+      if (!askedSet.has(key) || poolExhausted) {
+        q = applyPhaseOverlay(q, phase);
+        questions.push(q);
+        askedSet.add(key);
+      }
+    }
+  }
+
+  return questions;
 }
 
 // ——— Practice Mode — comprehensive drill for 1-2 plays ———
@@ -509,9 +864,14 @@ export default function useQuiz({
   const [results, setResults] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isPracticeMode, setIsPracticeMode] = useState(false);
+  const [showPhaseTransition, setShowPhaseTransition] = useState(false);
+  const [currentPhaseLabel, setCurrentPhaseLabel] = useState(null);
 
   const timerRef = useRef(null);
   const recoveryRef = useRef(false);
+  const askedSetRef = useRef(new Set());
+  const askedCountRef = useRef(0);
+  const poolExhaustedRef = useRef(false);
   const questionStartRef = useRef(Date.now());
   const gameStartRef = useRef(Date.now());
   // Refs for values needed inside callbacks without stale closures
@@ -591,8 +951,13 @@ export default function useQuiz({
     const offenseActive = plays.filter((p) => p.side === 'offense' && p.status === 'active');
     let qs;
 
+    // Reset dedup tracking
+    askedSetRef.current = new Set();
+    askedCountRef.current = 0;
+    poolExhaustedRef.current = false;
+
     if (offenseActive.length > 0 && offenseActive.length <= 2) {
-      // Practice mode — comprehensive drill per play (no phase overlay)
+      // Practice mode — comprehensive drill per play (no phase overlay, finite)
       qs = [];
       for (const play of offenseActive) {
         qs.push(...generatePracticeQuestions({
@@ -606,15 +971,13 @@ export default function useQuiz({
       qs = shuffle(qs);
       setIsPracticeMode(true);
     } else {
-      // Normal game mode — apply progressive difficulty phases
-      qs = generateWeightedPool({
-        plays,
-        assignmentsByPlayId,
-        playerPosition,
-        playMastery,
-        gameDayOnly,
+      // Endless survival mode — generate first batch with phase overlay
+      qs = generateNextBatch({
+        plays, assignmentsByPlayId, playerPosition, playMastery, gameDayOnly,
+        batchSize: 15, askedSet: askedSetRef.current, questionNumber: 1,
+        poolExhausted: false,
       });
-      qs = qs.map((q, i) => applyPhaseOverlay(q, getDifficultyPhase(i + 1)));
+      askedCountRef.current = qs.length;
       setIsPracticeMode(false);
     }
 
@@ -635,6 +998,8 @@ export default function useQuiz({
     setLastPointsEarned(0);
     setResults([]);
     setGameState('playing');
+    setShowPhaseTransition(false);
+    setCurrentPhaseLabel(null);
     gameStartRef.current = Date.now();
     questionStartRef.current = Date.now();
 
@@ -740,7 +1105,7 @@ export default function useQuiz({
 
   // ——— Next Question (or Game Over) ———
   const nextQuestion = useCallback(() => {
-    // Game over: no lives
+    // Game over: no lives — the ONLY end condition in endless mode
     if (lives <= 0) {
       setGameState('gameover');
       setLastAnswerCorrect(null);
@@ -753,8 +1118,8 @@ export default function useQuiz({
       return;
     }
 
-    // Game over: no more questions
-    if (currentIdx >= questionQueue.length - 1) {
+    // Practice mode retains queue-exhaustion end condition (finite drill)
+    if (isPracticeMode && currentIdx >= questionQueue.length - 1) {
       setGameState('gameover');
       setLastAnswerCorrect(null);
       setLastCorrectAnswer(null);
@@ -766,12 +1131,38 @@ export default function useQuiz({
       return;
     }
 
+    // Endless mode: refill queue when running low (3 questions buffer)
+    if (!isPracticeMode && currentIdx >= questionQueue.length - 3) {
+      const estPool = estimateUniquePool(plays, assignmentsByPlayId);
+      if (askedSetRef.current.size >= estPool * 0.8) {
+        poolExhaustedRef.current = true;
+      }
+
+      const newBatch = generateNextBatch({
+        plays, assignmentsByPlayId, playerPosition, playMastery, gameDayOnly,
+        batchSize: 10, askedSet: askedSetRef.current,
+        questionNumber: askedCountRef.current + 1,
+        poolExhausted: poolExhaustedRef.current,
+      });
+      askedCountRef.current += newBatch.length;
+      setQuestionQueue((prev) => [...prev, ...newBatch]);
+    }
+
     const nextIdx = currentIdx + 1;
     setCurrentIdx(nextIdx);
     setLastAnswerCorrect(null);
     setLastCorrectAnswer(null);
     setLastPointsEarned(0);
     questionStartRef.current = Date.now();
+
+    // Phase transition detection
+    const prevPhase = getDifficultyPhase(currentIdx + 1);
+    const nextPhase = getDifficultyPhase(nextIdx + 1);
+    if (prevPhase.name !== nextPhase.name) {
+      setCurrentPhaseLabel(nextPhase.label);
+      setShowPhaseTransition(true);
+      setTimeout(() => setShowPhaseTransition(false), 2000);
+    }
 
     const nextQ = questionQueue[nextIdx];
     if (recoveryRef.current) {
@@ -783,7 +1174,7 @@ export default function useQuiz({
     } else {
       setTimeRemaining(null);
     }
-  }, [currentIdx, questionQueue, lives]);
+  }, [currentIdx, questionQueue, lives, isPracticeMode, plays, assignmentsByPlayId, playerPosition, playMastery, gameDayOnly]);
 
   // ——— Public API ———
   return {
@@ -811,6 +1202,8 @@ export default function useQuiz({
     playMastery,
     difficultyPhase: isPracticeMode ? null : getDifficultyPhase(currentIdx + 1),
     totalTime: Math.round((Date.now() - gameStartRef.current) / 1000),
+    showPhaseTransition,
+    currentPhaseLabel,
 
     // Actions
     startGame,

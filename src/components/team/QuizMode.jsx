@@ -282,6 +282,19 @@ function CelebrationOverlay({ celebration }) {
   );
 }
 
+function PhaseTransition({ label, visible }) {
+  if (!visible) return null;
+  return (
+    <div className="fixed inset-0 z-[60] pointer-events-none flex items-center justify-center">
+      <div className="animate-pulse">
+        <div className="bg-slate-900/90 border border-amber-500/30 rounded-2xl px-8 py-4 text-center backdrop-blur-sm">
+          <span className="text-amber-500 text-xs uppercase tracking-widest font-bold">{label}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ResultRow({ result }) {
   return (
     <div
@@ -355,6 +368,22 @@ function WrongAnswerCard({ question }) {
       ? `${question.positionLabel} assignment`
       : 'Your assignment';
     description = question.correctAnswer || '';
+  } else if (question.type === 'which_position') {
+    heading = question.correctAnswer || 'Position';
+    const routeName = ROUTE_GLOSSARY[question.routeMovementType]?.name || formatRouteLabel(question.routeMovementType);
+    description = `Runs the ${routeName} in ${question.play?.name || 'this play'}`;
+  } else if (question.type === 'true_false') {
+    heading = question.correctAnswer === 'True' ? 'True' : 'False';
+    description = question.questionText || '';
+  } else if (question.type === 'coach_says') {
+    heading = question.coachSaysVariant === 'position'
+      ? `${question.correctAnswer}'s assignment`
+      : question.correctAnswer || 'Play';
+    description = question.assignmentDisplay || '';
+  } else if (question.type === 'odd_one_out') {
+    heading = formatRouteLabel(question.correctAnswer);
+    const glossary = ROUTE_GLOSSARY[question.correctAnswer];
+    description = glossary?.description || 'This route is not in the play';
   }
 
   if (!heading) return null;
@@ -608,6 +637,7 @@ export default function QuizMode({
     return (
       <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col">
         <CelebrationOverlay celebration={game.celebration} />
+        <PhaseTransition label={game.currentPhaseLabel} visible={game.showPhaseTransition} />
 
         {/* Top bar: hearts, score, streak */}
         <div className="flex-shrink-0 px-4 pt-3 pb-2 space-y-2">
@@ -695,6 +725,34 @@ export default function QuizMode({
                 </span>
               )}
             </div>
+          ) : q.type === 'which_position' && q.routePath ? (
+            <RouteVisual
+              routePath={q.routePath}
+              positionColor="#94a3b8"
+              mirrored={q.mirrored}
+            />
+          ) : q.type === 'true_false' ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-4 text-center">
+              <h2 className="text-xl font-bold text-white mb-3">{q.play.name}</h2>
+              <p className="text-slate-300 text-base italic">
+                &ldquo;{q.questionText}&rdquo;
+              </p>
+            </div>
+          ) : q.type === 'coach_says' ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-4">
+              <div className="border-l-4 border-amber-500 pl-4">
+                <p className="text-xs text-amber-500 uppercase tracking-wider font-bold mb-2">Coach Says</p>
+                <p className="text-white text-lg italic">&ldquo;{q.assignmentDisplay}&rdquo;</p>
+              </div>
+              {q.coachSaysVariant === 'position' && (
+                <p className="text-slate-400 text-sm mt-3 text-center">In: {q.play.name}</p>
+              )}
+            </div>
+          ) : q.type === 'odd_one_out' ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-4 text-center">
+              <h2 className="text-2xl font-bold text-white mb-2">{q.play.name}</h2>
+              <p className="text-slate-400 text-sm">Three routes below are from this play</p>
+            </div>
           ) : null}
 
           {/* Position context below field (identify_route at new/learning only) */}
@@ -714,37 +772,68 @@ export default function QuizMode({
           )}
 
           {/* Question text */}
-          <p className="text-white text-lg font-semibold mb-4 text-center">{q.questionText}</p>
+          <p className="text-white text-lg font-semibold mb-4 text-center">
+            {q.type === 'true_false' ? 'True or False?' : q.questionText}
+          </p>
 
           {/* Answer options */}
-          <div className="space-y-3">
-            {q.options.map((option, i) => {
-              let btnClass = 'bg-slate-800 border-slate-700 text-white hover:border-slate-600';
-
-              if (game.lastAnswerCorrect != null) {
-                if (option === game.lastCorrectAnswer) {
-                  btnClass = 'bg-green-500/20 border-green-500 text-green-400';
-                } else {
-                  const lastResult = game.results[game.results.length - 1];
-                  if (lastResult?.answer === option && !lastResult?.isCorrect) {
-                    btnClass = 'bg-red-500/20 border-red-500 text-red-400';
+          {q.type === 'true_false' ? (
+            <div className="flex gap-3">
+              {q.options.map((option, i) => {
+                let btnClass = 'bg-slate-800 border-slate-700 text-white hover:border-slate-600';
+                if (game.lastAnswerCorrect != null) {
+                  if (option === game.lastCorrectAnswer) {
+                    btnClass = 'bg-green-500/20 border-green-500 text-green-400';
+                  } else {
+                    const lastResult = game.results[game.results.length - 1];
+                    if (lastResult?.answer === option && !lastResult?.isCorrect) {
+                      btnClass = 'bg-red-500/20 border-red-500 text-red-400';
+                    }
                   }
                 }
-              }
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => game.submitAnswer(option)}
+                    disabled={game.lastAnswerCorrect != null}
+                    className={`flex-1 p-4 rounded-xl border font-bold text-lg text-center transition-colors min-h-[56px] ${btnClass} disabled:cursor-default`}
+                  >
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {q.options.map((option, i) => {
+                let btnClass = 'bg-slate-800 border-slate-700 text-white hover:border-slate-600';
 
-              return (
-                <button
-                  key={`${option}-${i}`}
-                  type="button"
-                  onClick={() => game.submitAnswer(option)}
-                  disabled={game.lastAnswerCorrect != null}
-                  className={`w-full p-4 rounded-xl border text-left font-medium transition-colors min-h-[56px] ${btnClass} disabled:cursor-default`}
-                >
-                  {formatRouteLabel(option)}
-                </button>
-              );
-            })}
-          </div>
+                if (game.lastAnswerCorrect != null) {
+                  if (option === game.lastCorrectAnswer) {
+                    btnClass = 'bg-green-500/20 border-green-500 text-green-400';
+                  } else {
+                    const lastResult = game.results[game.results.length - 1];
+                    if (lastResult?.answer === option && !lastResult?.isCorrect) {
+                      btnClass = 'bg-red-500/20 border-red-500 text-red-400';
+                    }
+                  }
+                }
+
+                return (
+                  <button
+                    key={`${option}-${i}`}
+                    type="button"
+                    onClick={() => game.submitAnswer(option)}
+                    disabled={game.lastAnswerCorrect != null}
+                    className={`w-full p-4 rounded-xl border text-left font-medium transition-colors min-h-[56px] ${btnClass} disabled:cursor-default`}
+                  >
+                    {formatRouteLabel(option)}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Wrong-answer learning card */}
           {game.lastAnswerCorrect === false && (

@@ -135,15 +135,44 @@ export const SIMILAR_ROUTES = {
 };
 
 // Quiz types — mixed automatically, player doesn't choose
-export const QUIZ_TYPES = ['name_that_play', 'know_your_job', 'identify_route'];
+export const QUIZ_TYPES = [
+  'name_that_play', 'know_your_job', 'identify_route',
+  'which_position', 'true_false', 'coach_says', 'odd_one_out',
+];
 
 // Progressive difficulty phases — layered on top of mastery system
-// Controls presentation during a game session (option count, timer, mirrors)
+// Controls presentation during a game session (option count, timer, mirrors, allowed types)
 export const DIFFICULTY_PHASES = [
-  { name: 'warm_up', label: 'Warm Up', upTo: 3, optionCount: 2, timerSeconds: null, useMirror: false, showLabels: true },
-  { name: 'building', label: 'Building', upTo: 7, optionCount: 3, timerSeconds: null, useMirror: false, showLabels: false },
-  { name: 'challenging', label: 'Challenging', upTo: 12, optionCount: 4, timerSeconds: 15, useMirror: false, showLabels: false },
-  { name: 'hard', label: 'Hard', upTo: Infinity, optionCount: 4, timerSeconds: 10, useMirror: true, showLabels: false },
+  {
+    name: 'warm_up', label: 'Warm Up', upTo: 3,
+    optionCount: 2, timerSeconds: null, useMirror: false, mirrorFrequency: 0, showLabels: true,
+    allowedTypes: ['name_that_play', 'true_false'],
+  },
+  {
+    name: 'building', label: 'Building', upTo: 7,
+    optionCount: 3, timerSeconds: null, useMirror: false, mirrorFrequency: 0, showLabels: false,
+    allowedTypes: ['name_that_play', 'identify_route', 'true_false'],
+  },
+  {
+    name: 'challenging', label: 'Challenging', upTo: 12,
+    optionCount: 4, timerSeconds: 15, useMirror: true, mirrorFrequency: 0.3, showLabels: false,
+    allowedTypes: ['name_that_play', 'identify_route', 'know_your_job', 'true_false', 'which_position', 'coach_says'],
+  },
+  {
+    name: 'hard', label: 'Hard', upTo: 20,
+    optionCount: 4, timerSeconds: 10, useMirror: true, mirrorFrequency: 0.5, showLabels: false,
+    allowedTypes: ['name_that_play', 'identify_route', 'know_your_job', 'true_false', 'which_position', 'coach_says', 'odd_one_out'],
+  },
+  {
+    name: 'expert', label: 'Expert', upTo: 30,
+    optionCount: 4, timerSeconds: 8, useMirror: true, mirrorFrequency: 0.5, showLabels: false,
+    allowedTypes: ['name_that_play', 'identify_route', 'know_your_job', 'true_false', 'which_position', 'coach_says', 'odd_one_out'],
+  },
+  {
+    name: 'legendary', label: 'Legendary', upTo: Infinity,
+    optionCount: 4, timerSeconds: 6, useMirror: true, mirrorFrequency: 0.8, showLabels: false,
+    allowedTypes: ['name_that_play', 'identify_route', 'know_your_job', 'true_false', 'which_position', 'coach_says', 'odd_one_out'],
+  },
 ];
 
 export function getDifficultyPhase(questionNumber) {
