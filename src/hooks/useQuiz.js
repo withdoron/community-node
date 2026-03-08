@@ -10,6 +10,7 @@ import {
   STREAK_CELEBRATIONS,
   SIMILAR_ROUTES,
   QUIZ_TYPES,
+  getDifficultyPhase,
 } from '@/config/quizConfig';
 import { FLAG_FOOTBALL, getPositionsForFormat } from '@/config/flagFootball';
 
@@ -50,6 +51,47 @@ function buildAssignmentLabel(assignment) {
   const text = assignment.assignment_text?.trim();
   if (route && text) return `${route}: ${text}`;
   return route || text || '';
+}
+
+/**
+ * Apply progressive difficulty phase overlay to a question.
+ * Trims options, adjusts timer, controls mirror and labels.
+ */
+function applyPhaseOverlay(q, phase) {
+  const adjusted = { ...q };
+
+  // Trim options to phase count (keep correct answer)
+  if (adjusted.options && adjusted.options.length > phase.optionCount) {
+    const correct = adjusted.correctAnswer;
+    const wrong = adjusted.options.filter((o) => o !== correct);
+    adjusted.options = shuffle([correct, ...wrong.slice(0, phase.optionCount - 1)]);
+  }
+
+  // Override timer
+  adjusted.timerSeconds = phase.timerSeconds;
+
+  // Show labels in early phases (additive — doesn't remove mastery-based labels)
+  if (phase.showLabels) {
+    adjusted.showLabels = true;
+    adjusted.showPositionContext = true;
+    adjusted.showFormationHint = true;
+  }
+
+  // Mirror based on phase + play's mirrorability
+  if (adjusted.type === 'name_that_play') {
+    const isMirrorable = adjusted.play?.is_mirrorable === true || adjusted.play?.is_mirrorable === 'true';
+    adjusted.mirrored = isMirrorable && phase.useMirror && Math.random() > 0.5;
+  } else if (adjusted.type === 'identify_route') {
+    adjusted.mirrored = phase.useMirror && Math.random() > 0.5;
+  } else {
+    adjusted.mirrored = false;
+  }
+
+  // Store phase info for display
+  adjusted.phaseName = phase.name;
+  adjusted.phaseLabel = phase.label;
+
+  return adjusted;
 }
 
 // ——— High Score — approximate from QuizAttempt sessions ———
@@ -120,6 +162,7 @@ function genNameThatPlay({ play, playAssignments, mc, targetPlays }) {
   if (uniq.length === 0) return null;
 
   const wrong = uniq.slice(0, mc.optionCount - 1);
+  const isMirrorable = play.is_mirrorable === true || play.is_mirrorable === 'true';
   return {
     type: 'name_that_play',
     playId: play.id,
@@ -129,7 +172,7 @@ function genNameThatPlay({ play, playAssignments, mc, targetPlays }) {
     correctAnswer: correct,
     options: shuffle([correct, ...wrong]),
     highlightPosition: null,
-    mirrored: mc.useMirror && Math.random() > 0.5,
+    mirrored: mc.useMirror && isMirrorable && Math.random() > 0.5,
     showLabels: mc.showPositionLabels,
     showFormationHint: mc.showFormationHint,
     timerSeconds: mc.timerSeconds,
@@ -300,6 +343,8 @@ function generateWeightedPool({ plays, assignmentsByPlayId, playerPosition, play
   for (const play of pool) {
     const mastery = playMastery[play.id] || 'new';
     const mc = MASTERY_LEVELS[mastery];
+    // Generate with max options — phase overlay trims to the right count
+    const genMc = { ...mc, optionCount: 4 };
     const playAs = assignmentsByPlayId[play.id] || [];
 
     // Pick a random quiz type
@@ -307,13 +352,13 @@ function generateWeightedPool({ plays, assignmentsByPlayId, playerPosition, play
 
     let q = null;
     if (qt === 'name_that_play') {
-      q = genNameThatPlay({ play, playAssignments: playAs, mc, targetPlays: target });
+      q = genNameThatPlay({ play, playAssignments: playAs, mc: genMc, targetPlays: target });
     } else if (qt === 'know_your_job') {
-      q = genKnowYourJob({ play, playAssignments: playAs, mc, targetPlays: target, playerPosition, assignmentsByPlayId });
-      if (!q) q = genNameThatPlay({ play, playAssignments: playAs, mc, targetPlays: target });
+      q = genKnowYourJob({ play, playAssignments: playAs, mc: genMc, targetPlays: target, playerPosition, assignmentsByPlayId });
+      if (!q) q = genNameThatPlay({ play, playAssignments: playAs, mc: genMc, targetPlays: target });
     } else if (qt === 'identify_route') {
-      q = genIdentifyRoute({ play, playAssignments: playAs, mc, targetPlays: target, assignmentsByPlayId });
-      if (!q) q = genNameThatPlay({ play, playAssignments: playAs, mc, targetPlays: target });
+      q = genIdentifyRoute({ play, playAssignments: playAs, mc: genMc, targetPlays: target, assignmentsByPlayId });
+      if (!q) q = genNameThatPlay({ play, playAssignments: playAs, mc: genMc, targetPlays: target });
     }
 
     if (q) {
@@ -463,8 +508,10 @@ export default function useQuiz({
   const [lastPointsEarned, setLastPointsEarned] = useState(0);
   const [results, setResults] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isPracticeMode, setIsPracticeMode] = useState(false);
 
   const timerRef = useRef(null);
+  const recoveryRef = useRef(false);
   const questionStartRef = useRef(Date.now());
   const gameStartRef = useRef(Date.now());
   // Refs for values needed inside callbacks without stale closures
@@ -545,7 +592,7 @@ export default function useQuiz({
     let qs;
 
     if (offenseActive.length > 0 && offenseActive.length <= 2) {
-      // Practice mode — comprehensive drill per play (1x name_that_play + identify_route per position + know_your_job)
+      // Practice mode — comprehensive drill per play (no phase overlay)
       qs = [];
       for (const play of offenseActive) {
         qs.push(...generatePracticeQuestions({
@@ -557,7 +604,9 @@ export default function useQuiz({
         }));
       }
       qs = shuffle(qs);
+      setIsPracticeMode(true);
     } else {
+      // Normal game mode — apply progressive difficulty phases
       qs = generateWeightedPool({
         plays,
         assignmentsByPlayId,
@@ -565,8 +614,11 @@ export default function useQuiz({
         playMastery,
         gameDayOnly,
       });
+      qs = qs.map((q, i) => applyPhaseOverlay(q, getDifficultyPhase(i + 1)));
+      setIsPracticeMode(false);
     }
 
+    recoveryRef.current = false;
     setQuestionQueue(qs);
     setCurrentIdx(0);
     setLives(STARTING_LIVES);
@@ -642,6 +694,9 @@ export default function useQuiz({
 
         // Lose a life
         setLives((prev) => prev - 1);
+
+        // Next question gets a recovery breather (no timer)
+        recoveryRef.current = true;
       }
 
       // Result record
@@ -719,7 +774,11 @@ export default function useQuiz({
     questionStartRef.current = Date.now();
 
     const nextQ = questionQueue[nextIdx];
-    if (nextQ?.timerSeconds) {
+    if (recoveryRef.current) {
+      // Recovery breather — no timer pressure after losing a life
+      setTimeRemaining(null);
+      recoveryRef.current = false;
+    } else if (nextQ?.timerSeconds) {
       setTimeRemaining(nextQ.timerSeconds);
     } else {
       setTimeRemaining(null);
@@ -748,7 +807,9 @@ export default function useQuiz({
     lastPointsEarned,
     results,
     isInitialized,
+    isPracticeMode,
     playMastery,
+    difficultyPhase: isPracticeMode ? null : getDifficultyPhase(currentIdx + 1),
     totalTime: Math.round((Date.now() - gameStartRef.current) / 1000),
 
     // Actions

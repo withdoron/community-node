@@ -615,6 +615,11 @@ export default function QuizMode({
             <Hearts lives={game.lives} lostLife={lostLife} />
             <ScoreDisplay score={game.score} lastPoints={game.lastPointsEarned} />
             <div className="flex items-center gap-2">
+              {game.difficultyPhase && (
+                <span className="text-[10px] text-slate-600 uppercase tracking-wider font-medium">
+                  {game.difficultyPhase.label}
+                </span>
+              )}
               {game.streak > 0 && (
                 <span className="flex items-center gap-1 text-amber-500 text-sm font-medium">
                   <Flame className="h-4 w-4" />
@@ -637,6 +642,15 @@ export default function QuizMode({
 
         {/* Question area */}
         <div className="flex-1 overflow-y-auto flex flex-col p-4 min-h-0">
+          {/* Mirror badge */}
+          {q.mirrored && (
+            <div className="flex items-center justify-center mb-2">
+              <span className="bg-purple-500/20 text-purple-400 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                ↔ Mirrored
+              </span>
+            </div>
+          )}
+
           {/* Formation hint */}
           {q.showFormationHint && q.play?.formation && (
             <div className="text-center mb-2">

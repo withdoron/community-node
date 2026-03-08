@@ -136,3 +136,16 @@ export const SIMILAR_ROUTES = {
 
 // Quiz types — mixed automatically, player doesn't choose
 export const QUIZ_TYPES = ['name_that_play', 'know_your_job', 'identify_route'];
+
+// Progressive difficulty phases — layered on top of mastery system
+// Controls presentation during a game session (option count, timer, mirrors)
+export const DIFFICULTY_PHASES = [
+  { name: 'warm_up', label: 'Warm Up', upTo: 3, optionCount: 2, timerSeconds: null, useMirror: false, showLabels: true },
+  { name: 'building', label: 'Building', upTo: 7, optionCount: 3, timerSeconds: null, useMirror: false, showLabels: false },
+  { name: 'challenging', label: 'Challenging', upTo: 12, optionCount: 4, timerSeconds: 15, useMirror: false, showLabels: false },
+  { name: 'hard', label: 'Hard', upTo: Infinity, optionCount: 4, timerSeconds: 10, useMirror: true, showLabels: false },
+];
+
+export function getDifficultyPhase(questionNumber) {
+  return DIFFICULTY_PHASES.find((p) => questionNumber <= p.upTo) || DIFFICULTY_PHASES[DIFFICULTY_PHASES.length - 1];
+}
