@@ -308,6 +308,106 @@ function generateWeightedPool({ plays, assignmentsByPlayId, playerPosition, play
   return shuffle(questions);
 }
 
+// ——— Practice Mode — comprehensive drill for 1-2 plays ———
+
+function generatePracticeQuestions({ play, assignmentsByPlayId, allPlays, playerPosition, playMastery }) {
+  const mastery = playMastery[play.id] || 'new';
+  const mc = MASTERY_LEVELS[mastery];
+  const playAs = assignmentsByPlayId[play.id] || [];
+
+  // Use ALL offense plays for distracter pools (not just the 1-2 practice plays)
+  const allOffense = allPlays.filter((p) => p.side === 'offense' && p.status === 'active');
+
+  const questions = [];
+
+  // 1. Name that play — use allOffense for wrong-answer play names
+  const nameQ = genNameThatPlay({ play, playAssignments: playAs, mc, targetPlays: allOffense });
+  if (nameQ) questions.push(nameQ);
+
+  // 2. Identify route — one per position with a route
+  const hasRenderer = play.use_renderer === true || play.use_renderer === 'true';
+  if (hasRenderer) {
+    // Build full route pool from ALL plays + templates for distracters
+    const allRoutes = new Set();
+    for (const p of allOffense) {
+      if (p.use_renderer !== true && p.use_renderer !== 'true') continue;
+      for (const a of (assignmentsByPlayId[p.id] || [])) {
+        if (a.movement_type && !['block', 'custom', 'snap_block'].includes(a.movement_type)) {
+          allRoutes.add(a.movement_type);
+        }
+      }
+    }
+    // Fallback: add from route template keys so there are always enough distracters
+    Object.keys(routeTemplates).forEach((r) => {
+      if (!['block', 'custom', 'snap_block', 'handoff'].includes(r)) allRoutes.add(r);
+    });
+
+    const routeAs = playAs.filter(
+      (a) => a.movement_type && !['block', 'custom', 'snap_block'].includes(a.movement_type)
+    );
+
+    for (const assignment of routeAs) {
+      const correct = assignment.movement_type;
+      const wrongPool = [...allRoutes].filter((r) => r !== correct);
+      if (wrongPool.length === 0) continue;
+
+      const wrong = pickRandom(wrongPool, mc.optionCount - 1);
+      const startX = assignment.start_x || 25;
+      const startY = assignment.start_y || 55;
+      const fieldSide = startX < 45 ? 'left' : startX > 55 ? 'right' : 'center';
+      let routePath = null;
+      if (routeTemplates[correct]) {
+        routePath = routeTemplates[correct]({ startX, startY, fieldSide });
+      } else if (assignment.route_path) {
+        try {
+          routePath = typeof assignment.route_path === 'string'
+            ? JSON.parse(assignment.route_path) : assignment.route_path;
+        } catch { routePath = null; }
+      }
+
+      const posId = assignment.position || 'X';
+      const positions = getPositionsForFormat(play.format || '5v5');
+      const posConfig = positions.find((p) => p.id === posId);
+      const posLabel = posConfig?.label || posId;
+      const posColor = posConfig?.color || '#94a3b8';
+
+      questions.push({
+        type: 'identify_route',
+        playId: play.id,
+        play: { name: correct, use_renderer: true, formation: play.formation || 'spread', format: play.format || '5v5' },
+        assignments: [],
+        questionText: `What route is this? (${posLabel})`,
+        correctAnswer: correct,
+        options: shuffle([correct, ...wrong]),
+        highlightPosition: null,
+        mirrored: mc.useMirror && Math.random() > 0.5,
+        showLabels: mc.showRouteLabel,
+        showFormationHint: false,
+        showPositionContext: mc.showPositionLabels,
+        timerSeconds: mc.timerSeconds,
+        basePoints: mc.basePoints,
+        routePath,
+        fakePlay: { use_renderer: true, formation: play.formation || 'spread', format: play.format || '5v5' },
+        fakeAssignments: routePath
+          ? [{ position: posId, start_x: startX, start_y: startY, route_path: routePath, movement_type: correct }]
+          : [],
+        positionId: posId,
+        positionLabel: posLabel,
+        positionColor: posColor,
+      });
+    }
+  }
+
+  // 3. Know your job — one question for the player's position
+  const knowQ = genKnowYourJob({
+    play, playAssignments: playAs, mc, targetPlays: allOffense,
+    playerPosition, assignmentsByPlayId,
+  });
+  if (knowQ) questions.push(knowQ);
+
+  return questions;
+}
+
 // ——— Main Hook ———
 
 /**
@@ -318,6 +418,7 @@ export default function useQuiz({
   teamId,
   userId,
   plays = [],
+  allPlays = [],
   assignmentsByPlayId = {},
   playerPosition,
   gameDayOnly = false,
@@ -420,13 +521,31 @@ export default function useQuiz({
 
   // ——— Start Game ———
   const startGame = useCallback(() => {
-    const qs = generateWeightedPool({
-      plays,
-      assignmentsByPlayId,
-      playerPosition,
-      playMastery,
-      gameDayOnly,
-    });
+    const offenseActive = plays.filter((p) => p.side === 'offense' && p.status === 'active');
+    let qs;
+
+    if (offenseActive.length > 0 && offenseActive.length <= 2) {
+      // Practice mode — comprehensive drill per play (1x name_that_play + identify_route per position + know_your_job)
+      qs = [];
+      for (const play of offenseActive) {
+        qs.push(...generatePracticeQuestions({
+          play,
+          assignmentsByPlayId,
+          allPlays,
+          playerPosition,
+          playMastery,
+        }));
+      }
+      qs = shuffle(qs);
+    } else {
+      qs = generateWeightedPool({
+        plays,
+        assignmentsByPlayId,
+        playerPosition,
+        playMastery,
+        gameDayOnly,
+      });
+    }
 
     setQuestionQueue(qs);
     setCurrentIdx(0);
@@ -452,7 +571,7 @@ export default function useQuiz({
     } else {
       setTimeRemaining(null);
     }
-  }, [plays, assignmentsByPlayId, playerPosition, playMastery, gameDayOnly]);
+  }, [plays, allPlays, assignmentsByPlayId, playerPosition, playMastery, gameDayOnly]);
 
   // ——— Submit Answer ———
   const submitAnswer = useCallback(
@@ -512,6 +631,7 @@ export default function useQuiz({
           playId: currentQuestion.playId,
           playName: currentQuestion.play?.name || currentQuestion.correctAnswer,
           type: currentQuestion.type,
+          questionText: currentQuestion.questionText,
           isCorrect,
           answer,
           correctAnswer: currentQuestion.correctAnswer,

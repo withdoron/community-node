@@ -295,13 +295,19 @@ function ResultRow({ result }) {
         <XIcon className="h-5 w-5 text-red-500 flex-shrink-0" />
       )}
       <div className="flex-1 min-w-0">
-        <span className="text-white text-sm font-medium truncate block">
-          {formatRouteLabel(result.playName)}
-        </span>
-        {!result.isCorrect && (
-          <span className="text-slate-400 text-xs">
-            Correct: {formatRouteLabel(result.correctAnswer)}
+        {result.isCorrect ? (
+          <span className="text-white text-sm font-medium truncate block">
+            {formatRouteLabel(result.correctAnswer)}
           </span>
+        ) : (
+          <>
+            <span className="text-red-400 text-sm truncate block">
+              You said: {formatRouteLabel(result.answer || '(timeout)')}
+            </span>
+            <span className="text-green-400 text-xs">
+              Correct: {formatRouteLabel(result.correctAnswer)}
+            </span>
+          </>
         )}
       </div>
       {result.isCorrect && result.pointsEarned > 0 && (
@@ -411,6 +417,7 @@ export default function QuizMode({
     teamId: team?.id,
     userId: currentUserId,
     plays: quizPlays,
+    allPlays: plays,
     assignmentsByPlayId,
     playerPosition,
     gameDayOnly: gameDayFilter,
