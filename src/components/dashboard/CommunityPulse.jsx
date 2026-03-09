@@ -19,8 +19,12 @@ export default function CommunityPulse() {
   const { data: memberCount = null } = useQuery({
     queryKey: ['community-pulse-members'],
     queryFn: async () => {
-      const users = await base44.entities.User.list('', 1000);
-      return Array.isArray(users) ? users.length : 0;
+      try {
+        const users = await base44.entities.User.filter({});
+        return Array.isArray(users) ? users.length : 0;
+      } catch {
+        return null;
+      }
     },
     staleTime: 5 * 60 * 1000,
   });

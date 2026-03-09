@@ -434,7 +434,7 @@ export default function BusinessDashboard() {
               Create Your First Workspace
             </Button>
             <p className="text-sm text-slate-500 mt-6">
-              Or <Link to={createPageUrl('MyLane')} className="text-amber-500 hover:text-amber-400 underline">go to your personal dashboard</Link>
+              Or <Link to={createPageUrl('MyLane')} className="text-amber-500 hover:text-amber-400 underline">go to My Lane</Link>
             </p>
           </div>
         </div>
