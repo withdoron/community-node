@@ -273,14 +273,12 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                           My Lane
                         </Link>
                       </SheetClose>
-                      {showBusinessDashboard && (
-                        <SheetClose asChild>
-                          <Link to={createPageUrl('BusinessDashboard') + '?landing=1'} className={`flex items-center gap-3 ${sheetLinkClass('BusinessDashboard')}`}>
-                            <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
-                            Dashboard
-                          </Link>
-                        </SheetClose>
-                      )}
+                      <SheetClose asChild>
+                        <Link to={createPageUrl('BusinessDashboard') + '?landing=1'} className={`flex items-center gap-3 ${sheetLinkClass('BusinessDashboard')}`}>
+                          <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
+                          Dashboard
+                        </Link>
+                      </SheetClose>
                       {currentUser.role === 'admin' && (
                         <SheetClose asChild>
                           <Link to={createPageUrl('Admin')} className={`flex items-center gap-3 ${sheetLinkClass('Admin')}`}>

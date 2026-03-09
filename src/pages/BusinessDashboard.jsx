@@ -30,6 +30,7 @@ import { CheckInMode } from '@/components/dashboard/CheckInMode';
 import { ARCHETYPE_TITLES, getBusinessTabs, WORKSPACE_TYPES } from '@/config/workspaceTypes';
 import TeamContextSwitcher from '@/components/team/TeamContextSwitcher';
 import { toast } from "sonner";
+import CommunityPulse from '@/components/dashboard/CommunityPulse';
 
 export default function BusinessDashboard() {
   const navigate = useNavigate();
@@ -399,7 +400,7 @@ export default function BusinessDashboard() {
   const hasAnyWorkspace = (associatedBusinesses?.length > 0) || (allTeams?.length > 0) || (financeProfiles?.length > 0);
   const availableTypes = Object.values(WORKSPACE_TYPES).filter((t) => t.available);
 
-  // STEP 1: No workspaces — empty state with type picker
+  // STEP 1: No workspaces — community pulse + explainer + workspace CTA
   if (!hasAnyWorkspace) {
     return (
       <div className="min-h-screen bg-slate-950">
@@ -408,20 +409,21 @@ export default function BusinessDashboard() {
             <div className="flex items-center gap-3">
               <Store className="h-5 w-5 text-amber-500" />
               <div>
-                <h1 className="text-lg font-bold text-slate-100">Workspaces</h1>
-                <p className="text-xs text-slate-400">Manage the things you lead</p>
+                <h1 className="text-lg font-bold text-slate-100">Dashboard</h1>
+                <p className="text-xs text-slate-400">Your community at a glance</p>
               </div>
             </div>
           </div>
         </div>
-        <div className="max-w-2xl mx-auto px-6 py-16">
-          <div className="text-center">
-            <div className="h-20 w-20 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Store className="h-10 w-10 text-amber-500" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-100 mb-3">No workspaces yet</h2>
-            <p className="text-slate-400 mb-8 max-w-md mx-auto">
-              Create a business, team, or finance workspace to get started.
+        <div className="max-w-2xl mx-auto px-6 py-8 space-y-6">
+          <CommunityPulse />
+
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+            <h2 className="text-xl font-bold text-slate-100 mb-3">Your Workspaces</h2>
+            <p className="text-slate-400 text-sm max-w-md mx-auto mb-8">
+              Manage your business, create events, and connect with local families.
+              Workspaces are also where development of the platform itself comes
+              from — every business shapes what LocalLane becomes.
             </p>
             <Button
               onClick={() => setTypePickerOpen(true)}
@@ -429,7 +431,7 @@ export default function BusinessDashboard() {
               size="lg"
             >
               <Plus className="h-5 w-5 mr-2" />
-              Add Workspace
+              Create Your First Workspace
             </Button>
             <p className="text-sm text-slate-500 mt-6">
               Or <Link to={createPageUrl('MyLane')} className="text-amber-500 hover:text-amber-400 underline">go to your personal dashboard</Link>
@@ -476,6 +478,11 @@ export default function BusinessDashboard() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Community Pulse */}
+        <div className="max-w-7xl mx-auto px-6 pt-8">
+          <CommunityPulse />
         </div>
 
         {/* Business Grid - "The Pro Section" */}
