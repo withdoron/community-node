@@ -31,6 +31,7 @@ import { ARCHETYPE_TITLES, getBusinessTabs, WORKSPACE_TYPES } from '@/config/wor
 import TeamContextSwitcher from '@/components/team/TeamContextSwitcher';
 import { toast } from "sonner";
 import CommunityPulse from '@/components/dashboard/CommunityPulse';
+import IdeasBoard from '@/components/dashboard/IdeasBoard';
 
 export default function BusinessDashboard() {
   const navigate = useNavigate();
@@ -417,6 +418,7 @@ export default function BusinessDashboard() {
         </div>
         <div className="max-w-2xl mx-auto px-6 py-8 space-y-6">
           <CommunityPulse />
+          <IdeasBoard currentUser={currentUser} />
 
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
             <h2 className="text-xl font-bold text-slate-100 mb-3">Your Workspaces</h2>
@@ -483,6 +485,11 @@ export default function BusinessDashboard() {
         {/* Community Pulse */}
         <div className="max-w-7xl mx-auto px-6 pt-8">
           <CommunityPulse />
+        </div>
+
+        {/* Ideas Board */}
+        <div className="max-w-7xl mx-auto px-6 pt-6">
+          <IdeasBoard currentUser={currentUser} />
         </div>
 
         {/* Business Grid - "The Pro Section" */}
