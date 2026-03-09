@@ -1,14 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { MapPin, Users, Heart, Loader2, ChevronRight, Mail } from 'lucide-react';
+import { Loader2, ChevronRight, User, Users } from 'lucide-react';
 import { userOnboardingConfig } from '@/config/userOnboardingConfig';
 import { useConfig } from '@/hooks/useConfig';
 
-/** Taglines for network step when not provided by AdminSettings (platform.networks tagline). */
+/** Fallback taglines when admin config doesn't provide them. */
 const NETWORK_TAGLINES = {
   recess: 'Move your body, build your crew',
   harvest: 'Know your farmer, feed your family',
@@ -16,16 +16,142 @@ const NETWORK_TAGLINES = {
   gathering_circle: 'Show up for each other',
 };
 
+/** Philosophy statements for Step 2. */
+const VALUES = [
+  {
+    title: 'No ads. No algorithms.',
+    description: 'Businesses earn visibility through community, not ad spend.',
+  },
+  {
+    title: 'Built by neighbors.',
+    description: 'Features come from real conversations with real people.',
+  },
+  {
+    title: 'Your money stays local.',
+    description: 'Circulation over extraction. Support the people who live where you live.',
+  },
+];
+
 const activeSteps = userOnboardingConfig.steps.filter((s) => s.active);
 
+// ─── Simplified Mycelium Background ─────────────────────────────────
+function MyceliumBackground() {
+  const canvasRef = useRef(null);
+  const animRef = useRef(null);
+  const nodesRef = useRef([]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const isMobile = window.innerWidth < 768;
+    const NODE_COUNT = isMobile ? 12 : 20;
+    const CONNECTION_DIST = 120;
+
+    function resize() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+
+    function createNodes() {
+      nodesRef.current = Array.from({ length: NODE_COUNT }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.15,
+        vy: (Math.random() - 0.5) * 0.15,
+        r: 1 + Math.random() * 1,
+      }));
+    }
+
+    function draw(time) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const nodes = nodesRef.current;
+      const sineVal = Math.sin(time / 4000) * 0.5 + 0.5;
+
+      for (const n of nodes) {
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
+        if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
+      }
+
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < CONNECTION_DIST) {
+            const alpha = (1 - dist / CONNECTION_DIST) * 0.25 * (0.5 + sineVal * 0.5);
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            ctx.strokeStyle = `rgba(212, 160, 70, ${alpha})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+
+      for (const n of nodes) {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(212, 160, 70, ${0.2 + sineVal * 0.15})`;
+        ctx.fill();
+      }
+
+      animRef.current = requestAnimationFrame(draw);
+    }
+
+    resize();
+    createNodes();
+    animRef.current = requestAnimationFrame(draw);
+
+    const handleResize = () => {
+      resize();
+      createNodes();
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full"
+      style={{ opacity: 0.25 }}
+    />
+  );
+}
+
+// ─── Progress Dots ──────────────────────────────────────────────────
+function ProgressDots({ stepIndex, totalSteps }) {
+  return (
+    <div className="flex items-center justify-center gap-2.5 pt-6 pb-2">
+      {Array.from({ length: totalSteps }, (_, i) => (
+        <div
+          key={i}
+          className={`h-2 w-2 rounded-full transition-colors ${
+            i <= stepIndex ? 'bg-amber-500' : 'border border-slate-700'
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ─── Main Component ─────────────────────────────────────────────────
 export default function UserOnboarding() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [stepIndex, setStepIndex] = useState(0);
-  const [networkInterests, setNetworkInterests] = useState([]);
-  const [communityPassInterest, setCommunityPassInterest] = useState(null);
-  const [newsletterInterest, setNewsletterInterest] = useState(false);
   const [displayName, setDisplayName] = useState('');
+  const [networkInterests, setNetworkInterests] = useState([]);
+  const [workspaceSelection, setWorkspaceSelection] = useState(new Set());
 
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -44,8 +170,6 @@ export default function UserOnboarding() {
       const data = {
         onboarding_complete: payload.onboarding_complete,
         network_interests: payload.network_interests ?? [],
-        community_pass_interest: payload.community_pass_interest ?? null,
-        newsletter_interest: payload.newsletter_interest ?? false,
       };
       if (payload.full_name != null && payload.full_name.trim() !== '') {
         data.full_name = payload.full_name.trim();
@@ -59,7 +183,6 @@ export default function UserOnboarding() {
       });
     },
     onSuccess: () => {
-      // Optimistically update cached user so MyLane gate sees onboarding_complete immediately
       queryClient.setQueryData(['currentUser'], (old) => {
         if (!old) return old;
         return { ...old, onboarding_complete: true };
@@ -68,66 +191,45 @@ export default function UserOnboarding() {
     },
   });
 
-  const markCompleteAndGo = (payload) => {
-    updateUserMutation.mutate(payload, {
-      onSuccess: () => {
-        try {
-          window.localStorage.setItem('locallane_newsletter_prompted', 'true');
-        } catch {}
-        if (payload.newsletter_interest && currentUser?.email) {
-          (async () => {
-            try {
-              const email = currentUser.email.trim().toLowerCase();
-              const allSubscribers = await base44.entities.NewsletterSubscriber.list();
-              const alreadyExists = (Array.isArray(allSubscribers) ? allSubscribers : []).some(
-                (sub) => (sub.email || '').toLowerCase() === email
-              );
-              if (!alreadyExists) {
-                const first_name = (payload.display_name || payload.full_name || '').trim() || undefined;
-                await base44.entities.NewsletterSubscriber.create({
-                  email,
-                  first_name,
-                  subscribed_at: new Date().toISOString(),
-                  source: 'onboarding',
-                  user_id: currentUser.id,
-                  is_active: true,
-                });
-              }
-            } catch {}
-          })();
-        }
-      },
-      onSettled: () => {
-        window.scrollTo(0, 0);
-        navigate(createPageUrl('MyLane'));
-      },
-    });
-  };
-
-  const handleNext = (nextIndex) => {
+  const handleNext = () => {
     window.scrollTo(0, 0);
-    setStepIndex(nextIndex);
-  };
-
-  const handleSkip = () => {
-    markCompleteAndGo({
-      onboarding_complete: true,
-      network_interests: [],
-      community_pass_interest: null,
-      newsletter_interest: false,
-      full_name: displayName.trim() || undefined,
-      display_name: displayName.trim() || undefined,
-    });
+    setStepIndex((prev) => prev + 1);
   };
 
   const handleFinish = () => {
-    markCompleteAndGo({
-      onboarding_complete: true,
-      network_interests: networkInterests,
-      community_pass_interest: communityPassInterest,
-      newsletter_interest: newsletterInterest,
-      full_name: displayName.trim() || undefined,
-      display_name: displayName.trim() || undefined,
+    // Family only → BusinessDashboard (NOTE: route will be renamed to Workspaces, separate task)
+    // Community, both, or neither → MyLane (community first is default)
+    const familyOnly = workspaceSelection.has('family') && !workspaceSelection.has('community');
+    const targetPage = familyOnly ? 'BusinessDashboard' : 'MyLane';
+
+    updateUserMutation.mutate(
+      {
+        onboarding_complete: true,
+        network_interests: networkInterests,
+        full_name: displayName.trim() || undefined,
+        display_name: displayName.trim() || undefined,
+      },
+      {
+        onSettled: () => {
+          window.scrollTo(0, 0);
+          navigate(createPageUrl(targetPage));
+        },
+      }
+    );
+  };
+
+  const toggleNetwork = (value) => {
+    setNetworkInterests((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
+  };
+
+  const toggleWorkspace = (value) => {
+    setWorkspaceSelection((prev) => {
+      const next = new Set(prev);
+      if (next.has(value)) next.delete(value);
+      else next.add(value);
+      return next;
     });
   };
 
@@ -142,237 +244,257 @@ export default function UserOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      {/* Progress dots */}
-      <div className="pt-6 pb-2 px-4">
-        <div className="max-w-lg mx-auto flex items-center justify-center gap-2">
-          {activeSteps.map((step, idx) => (
-            <div
-              key={step.id}
-              className={`h-2 w-2 rounded-full transition-colors ${
-                idx <= stepIndex ? 'bg-amber-500' : 'bg-slate-600'
-              }`}
-            />
-          ))}
-        </div>
-      </div>
+    <div className="min-h-screen bg-slate-950 relative overflow-hidden">
+      {/* Mycelium background — welcome step only */}
+      {currentStepId === 'welcome' && <MyceliumBackground />}
 
-      <div className="max-w-lg mx-auto px-4 py-8">
-        {/* Step 1: Welcome */}
+      <div className="relative z-10">
+        <ProgressDots stepIndex={stepIndex} totalSteps={activeSteps.length} />
+
+        {/* ── Step 1: Welcome ── */}
         {currentStepId === 'welcome' && (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-amber-500">Local Lane</h1>
-              <h2 className="text-xl font-bold text-slate-100 mt-4">Welcome to Local Lane</h2>
-            </div>
-            <div className="space-y-4">
-              <div className="p-4 bg-slate-800 border border-slate-700 rounded-lg flex gap-3">
-                <MapPin className="h-6 w-6 text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="font-semibold text-slate-100">Discover Local</h3>
-                  <p className="text-sm text-slate-400 mt-0.5">
-                    Find businesses, events, and activities in your community — all in one place.
-                  </p>
-                </div>
+          <div
+            className="max-w-md mx-auto px-4 flex flex-col justify-center"
+            style={{ minHeight: 'calc(100vh - 48px)' }}
+          >
+            <div className="space-y-8 -mt-8">
+              <div className="text-center">
+                <h1
+                  className="text-2xl font-bold text-slate-100"
+                  style={{ fontFamily: 'Georgia, serif' }}
+                >
+                  Welcome. You just became part of something.
+                </h1>
+                <p className="text-slate-400 mt-3 text-base">
+                  This is Local Lane — a community built by the people who use it.
+                </p>
               </div>
-              <div className="p-4 bg-slate-800 border border-slate-700 rounded-lg flex gap-3">
-                <Users className="h-6 w-6 text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="font-semibold text-slate-100">Connect & Participate</h3>
-                  <p className="text-sm text-slate-400 mt-0.5">
-                    RSVP to events, recommend businesses you love, and join community networks.
-                  </p>
-                </div>
+
+              <div className="text-left">
+                <label className="block text-sm text-slate-300 mb-2">
+                  What should we call you?
+                </label>
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Your first name"
+                  className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 text-base transition-colors"
+                  autoComplete="given-name"
+                  autoFocus
+                />
               </div>
-              <div className="p-4 bg-slate-800 border border-slate-700 rounded-lg flex gap-3">
-                <Heart className="h-6 w-6 text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="font-semibold text-slate-100">Support Local</h3>
-                  <p className="text-sm text-slate-400 mt-0.5">
-                    Every interaction strengthens the local economy. Your participation matters.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-8">
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                What should we call you?
-              </label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Your first name"
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-base"
-                autoComplete="given-name"
-              />
-            </div>
-            <div className="space-y-3 pt-4">
+
               <Button
-                onClick={() => handleNext(1)}
-                className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium py-3 rounded-lg transition-colors"
+                onClick={handleNext}
+                className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium py-3 rounded-xl transition-colors"
               >
-                Get Started
+                Continue
                 <ChevronRight className="h-4 w-4 ml-1 inline" />
               </Button>
-              <button
-                type="button"
-                onClick={handleSkip}
-                disabled={updateUserMutation.isPending}
-                className="w-full text-center text-sm text-slate-400 hover:text-slate-300 transition-colors disabled:opacity-50"
-              >
-                Skip for now
-              </button>
             </div>
           </div>
         )}
 
-        {/* Step 2: Network interests */}
-        {currentStepId === 'networks' && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-slate-100">What interests you?</h2>
-              <p className="text-slate-400 text-sm mt-1">
-                Follow the networks that match your family. You&apos;ll see events and updates tailored to your interests.
-              </p>
-              <p className="text-slate-500 text-sm mt-1">You can change these anytime from your dashboard.</p>
+        {/* ── Step 2: How We Work ── */}
+        {currentStepId === 'how_it_works' && (
+          <div className="max-w-md mx-auto px-4 py-8 space-y-8">
+            <h2
+              className="text-2xl font-bold text-slate-100"
+              style={{ fontFamily: 'Georgia, serif' }}
+            >
+              How Local Lane works
+            </h2>
+
+            <div className="space-y-6">
+              {VALUES.map((v, i) => (
+                <div key={i} className="flex gap-3">
+                  <div className="mt-1.5 shrink-0">
+                    <div className="w-2 h-2 rounded-full bg-amber-500" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-amber-500 text-sm">{v.title}</p>
+                    <p className="text-slate-500 text-sm mt-0.5">{v.description}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-            {networks.length === 0 ? (
-              <p className="text-slate-500 text-sm py-4">No networks available right now. You can add interests later from MyLane.</p>
-            ) : (
-              <div className="space-y-3">
-                {networks.map((net) => {
-                  const value = net.value ?? net.slug ?? net.id;
-                  const label = net.label ?? net.name ?? value;
-                  const description = net.description;
-                  const tagline = net.tagline || NETWORK_TAGLINES[value];
-                  const isSelected = networkInterests.includes(value);
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => {
-                        setNetworkInterests((prev) =>
-                          prev.includes(value) ? prev.filter((s) => s !== value) : [...prev, value]
-                        );
-                      }}
-                      className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
-                        isSelected
-                          ? 'border-amber-500 bg-amber-500/10'
-                          : 'border-slate-700 bg-slate-800 hover:border-amber-500/50'
-                      }`}
-                    >
-                      <h3 className="font-semibold text-slate-100">{label}</h3>
-                      {tagline && (
-                        <p className="text-slate-400 text-xs mt-0.5">{tagline}</p>
-                      )}
-                      {description && (
-                        <p className="text-sm text-slate-400 mt-1">{description}</p>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            <div className="space-y-3 pt-4">
+
+            <div className="space-y-3 pt-2">
               <Button
-                onClick={() => handleNext(2)}
-                className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium py-3 rounded-lg transition-colors"
+                onClick={handleNext}
+                className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium py-3 rounded-xl transition-colors"
               >
                 Continue
                 <ChevronRight className="h-4 w-4 ml-1 inline" />
               </Button>
               <button
                 type="button"
-                onClick={handleSkip}
-                disabled={updateUserMutation.isPending}
-                className="w-full text-center text-sm text-slate-400 hover:text-slate-300 transition-colors disabled:opacity-50"
+                onClick={handleNext}
+                className="w-full text-center text-sm text-slate-500 hover:text-slate-400 transition-colors"
               >
-                Skip for now
+                Skip
               </button>
             </div>
           </div>
         )}
 
-        {/* Step 3: Community Pass */}
-        {currentStepId === 'community_pass' && (
-          <div className="space-y-6">
+        {/* ── Step 3: Interests ── */}
+        {currentStepId === 'interests' && (
+          <div className="max-w-md mx-auto px-4 py-8 space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-slate-100">Community Pass</h2>
-              <p className="text-slate-400 text-sm mt-1">
-                We&apos;re building a community membership that gives your family access to local activities, events, and experiences — all for one simple monthly membership.
+              <h2
+                className="text-2xl font-bold text-slate-100"
+                style={{ fontFamily: 'Georgia, serif' }}
+              >
+                What do you care about?
+              </h2>
+              <p className="text-slate-400 text-sm mt-2">
+                Follow what resonates. You can always change this later.
               </p>
             </div>
-            <div className="space-y-2 text-sm text-slate-300">
-              <p>Monthly Joy Coins to spend at participating businesses.</p>
-              <p>Access to member-only events and network activities.</p>
-              <p>Support local businesses and youth scholarships with every membership.</p>
-            </div>
-            <div className="space-y-3">
+
+            {networks.length === 0 ? (
+              <p className="text-slate-500 text-sm py-4">
+                No networks available right now. You can add interests later.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {networks.map((net) => {
+                  const value = net.value ?? net.slug ?? net.id;
+                  const label = net.label ?? net.name ?? value;
+                  const tagline = net.tagline || NETWORK_TAGLINES[value];
+                  const isSelected = networkInterests.includes(value);
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => toggleNetwork(value)}
+                      className={`w-full text-left p-4 rounded-xl border transition-colors ${
+                        isSelected
+                          ? 'border-amber-500 bg-amber-500/5'
+                          : 'border-slate-800 bg-slate-900 hover:border-slate-700'
+                      }`}
+                    >
+                      <p className="font-semibold text-slate-100 text-sm">{label}</p>
+                      {tagline && (
+                        <p className="text-slate-500 text-xs mt-1">{tagline}</p>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="space-y-3 pt-2">
+              <Button
+                onClick={handleNext}
+                className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium py-3 rounded-xl transition-colors"
+              >
+                Continue
+                <ChevronRight className="h-4 w-4 ml-1 inline" />
+              </Button>
               <button
                 type="button"
-                onClick={() => setCommunityPassInterest('yes')}
-                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
-                  communityPassInterest === 'yes'
-                    ? 'border-amber-500 bg-amber-500/10'
-                    : 'border-slate-700 bg-slate-800 hover:border-slate-600'
-                }`}
+                onClick={handleNext}
+                className="w-full text-center text-sm text-slate-500 hover:text-slate-400 transition-colors"
               >
-                <span className="font-semibold text-slate-100">Yes, I&apos;m interested!</span>
+                Skip
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 4: Workspaces ── */}
+        {currentStepId === 'workspaces' && (
+          <div className="max-w-md mx-auto px-4 py-8 space-y-6">
+            <div>
+              <h2
+                className="text-2xl font-bold text-slate-100"
+                style={{ fontFamily: 'Georgia, serif' }}
+              >
+                Two ways to grow
+              </h2>
+              <p className="text-slate-400 text-sm mt-2">
+                Local Lane gives you tools for your family and your community.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* For Your Family */}
               <button
                 type="button"
-                onClick={() => setCommunityPassInterest('maybe_later')}
-                className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
-                  communityPassInterest === 'maybe_later'
-                    ? 'border-amber-500 bg-amber-500/10'
-                    : 'border-slate-700 bg-slate-800 hover:border-slate-600'
+                onClick={() => toggleWorkspace('family')}
+                className={`text-left p-6 rounded-2xl border transition-colors ${
+                  workspaceSelection.has('family')
+                    ? 'border-amber-500 bg-amber-500/5'
+                    : 'border-slate-800/50 bg-slate-900/50 hover:border-amber-500/20'
                 }`}
               >
-                <span className="font-semibold text-slate-100">Maybe later</span>
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center mb-4">
+                  <User className="w-5 h-5 text-amber-500" />
+                </div>
+                <h3
+                  className="font-bold text-slate-100 mb-1"
+                  style={{ fontFamily: 'Georgia, serif' }}
+                >
+                  For Your Family
+                </h3>
+                <p className="text-slate-500 text-xs mb-3">
+                  Teams, playbooks, schedules, and family tools.
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Teams', 'Playbook Pro', 'Schedule'].map((tag) => (
+                    <span key={tag} className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 text-xs">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </button>
+
+              {/* For Your Community */}
+              <button
+                type="button"
+                onClick={() => toggleWorkspace('community')}
+                className={`text-left p-6 rounded-2xl border transition-colors ${
+                  workspaceSelection.has('community')
+                    ? 'border-amber-500 bg-amber-500/5'
+                    : 'border-slate-800/50 bg-slate-900/50 hover:border-amber-500/20'
+                }`}
+              >
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center mb-4">
+                  <Users className="w-5 h-5 text-amber-500" />
+                </div>
+                <h3
+                  className="font-bold text-slate-100 mb-1"
+                  style={{ fontFamily: 'Georgia, serif' }}
+                >
+                  For Your Community
+                </h3>
+                <p className="text-slate-500 text-xs mb-3">
+                  Local businesses, events, and neighborhood networks.
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Directory', 'Events', 'Networks'].map((tag) => (
+                    <span key={tag} className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 text-xs">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </button>
             </div>
 
-            {/* Stay Connected — The Good News newsletter */}
-            <div className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg space-y-3">
-              <h3 className="font-semibold text-slate-100 flex items-center gap-2">
-                <Mail className="h-5 w-5 text-amber-500 shrink-0" />
-                Stay Connected
-              </h3>
-              <p className="text-sm text-slate-400">
-                Get community wins, new features, and local stories delivered to your inbox.
-              </p>
-              <button
-                type="button"
-                onClick={() => setNewsletterInterest((prev) => !prev)}
-                className={`w-full text-left p-4 rounded-lg border-2 transition-colors flex items-center gap-3 ${
-                  newsletterInterest
-                    ? 'border-amber-500 bg-amber-500/10'
-                    : 'border-slate-700 bg-slate-800 hover:border-amber-500/50'
-                }`}
-              >
-                <span className={`h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 ${
-                  newsletterInterest ? 'border-amber-500 bg-amber-500' : 'border-slate-500 bg-transparent'
-                }`}>
-                  {newsletterInterest && (
-                    <span className="text-white text-[10px] font-bold">✓</span>
-                  )}
-                </span>
-                <span className="font-semibold text-slate-100">Subscribe to The Good News</span>
-              </button>
-            </div>
-
-            <div className="pt-4">
+            <div className="pt-2">
               <Button
                 onClick={handleFinish}
                 disabled={updateUserMutation.isPending}
-                className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium py-3 rounded-lg transition-colors"
+                className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium py-3 rounded-xl transition-colors"
               >
                 {updateUserMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin mx-auto" />
                 ) : (
                   <>
-                    Finish
+                    Let&apos;s go
                     <ChevronRight className="h-4 w-4 ml-1 inline" />
                   </>
                 )}
