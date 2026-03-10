@@ -175,6 +175,21 @@ export default function TeamOnboarding() {
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
               </select>
+              {formData.sport !== 'flag_football' && (
+                <div className="mt-3 bg-slate-800/50 rounded-lg p-3 space-y-2">
+                  <p className="text-slate-400 text-sm">
+                    {SPORTS.find((s) => s.value === formData.sport)?.label || 'This sport'} teams are coming soon. Want to help make it happen?
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:bg-transparent text-sm min-h-[44px]"
+                    onClick={() => navigate(createPageUrl('BusinessDashboard') + '?landing=1')}
+                  >
+                    Request on Ideas Board
+                  </Button>
+                </div>
+              )}
             </div>
             <div>
               <Label className="text-slate-400">Format</Label>
@@ -204,7 +219,11 @@ export default function TeamOnboarding() {
               />
             </div>
             <div className="flex justify-end pt-4">
-              <Button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px]">
+              <Button
+                type="submit"
+                disabled={formData.sport !== 'flag_football'}
+                className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed"
+              >
                 Next
               </Button>
             </div>
