@@ -12,6 +12,7 @@ const PROFILE_ALLOWLIST = [
   'business_hours', 'subcategory', 'subcategories', 'archetype',
   'shop_url', 'services_offered', 'service_area',
   'photos',
+  'banner_url', // TODO: Add banner_url field to Business entity in Base44 dashboard (type: text/url)
 ];
 
 const ADMIN_EXTRA_ALLOWLIST = [

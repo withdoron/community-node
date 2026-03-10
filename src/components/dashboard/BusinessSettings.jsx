@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Settings, Store, Star, Zap, Crown, ExternalLink, Mail, Phone, Globe, MapPin, Pencil, Loader2, Upload, Users, ImageIcon } from 'lucide-react';
+import { Settings, Store, Star, Zap, Crown, ExternalLink, Mail, Phone, Globe, MapPin, Pencil, Loader2, Upload, Users, ImageIcon, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -174,13 +174,10 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
       const result = await base44.integrations.Core.UploadFile({ file });
       const url = result?.file_url ?? result?.url;
       if (!url) throw new Error('No URL returned');
-      // Preserve existing photos beyond the first (banner) slot
-      const existing = business.photos || [];
-      const updated = [url, ...existing.slice(1)];
       await base44.functions.invoke('updateBusiness', {
         action: 'update_profile',
         business_id: business.id,
-        data: { photos: updated },
+        data: { banner_url: url },
       });
       return url;
     },
@@ -191,6 +188,24 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
     },
     onError: () => {
       toast.error('Failed to upload banner image');
+    },
+  });
+
+  const removeBannerMutation = useMutation({
+    mutationFn: async () => {
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update_profile',
+        business_id: business.id,
+        data: { banner_url: '' },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUserId] });
+      toast.success('Banner removed');
+    },
+    onError: () => {
+      toast.error('Failed to remove banner');
     },
   });
 
@@ -646,16 +661,24 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
               <div className="border-b border-slate-700 pb-2">
                 <h4 className="text-xs text-slate-400 uppercase tracking-wider">Banner Image</h4>
               </div>
-              {business?.photos?.[0] ? (
+              {business?.banner_url ? (
                 <div className="relative rounded-lg overflow-hidden border border-slate-700 bg-slate-900">
                   <img
-                    src={business.photos[0]}
+                    src={business.banner_url}
                     alt="Banner"
-                    className="w-full max-h-40 object-contain"
+                    className="w-full max-h-40 object-cover"
                   />
+                  <button
+                    type="button"
+                    onClick={() => removeBannerMutation.mutate()}
+                    disabled={removeBannerMutation.isPending}
+                    className="absolute top-2 right-2 h-7 w-7 rounded-full bg-slate-800/90 border border-slate-600 flex items-center justify-center text-slate-400 hover:text-red-400 hover:border-red-400 transition-colors"
+                  >
+                    {removeBannerMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
+                  </button>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-32 rounded-lg bg-slate-800 border border-dashed border-slate-600">
+                <div className="flex items-center justify-center h-24 rounded-lg bg-slate-800 border border-dashed border-slate-600">
                   <div className="text-center">
                     <ImageIcon className="h-8 w-8 text-slate-500 mx-auto mb-1" />
                     <p className="text-xs text-slate-500">No banner image</p>
@@ -683,9 +706,9 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                   ) : (
                     <Upload className="h-4 w-4 mr-2" />
                   )}
-                  {business?.photos?.[0] ? 'Change Banner' : 'Upload Banner Image'}
+                  {business?.banner_url ? 'Change Banner' : 'Upload Banner Image'}
                 </Button>
-                <p className="text-xs text-slate-500 mt-1">Recommended: 1200x400px, PNG or JPG. Shown on your public profile page.</p>
+                <p className="text-xs text-slate-500 mt-1">Recommended: 1200 x 400px, JPG or PNG. This appears at the top of your business profile.</p>
               </div>
             </div>
 

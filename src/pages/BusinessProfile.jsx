@@ -158,7 +158,7 @@ export default function BusinessProfile() {
 
       {/* Hero Banner */}
       {(() => {
-        const heroImage = business.photos?.[0] || business.logo_url;
+        const heroImage = business.banner_url || business.photos?.[0] || business.logo_url;
         if (heroImage) {
           return (
             <div className="relative h-52 sm:h-64 lg:h-72 w-full overflow-hidden bg-slate-900">
