@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown, Trash2, Link2, X, Globe, Upload, Send, Copy, Check } from "lucide-react";
+import { Loader2, Star, Calendar, User, Shield, Store, Coins, Zap, Crown, Trash2, Link2, X, Globe, Upload, Send, Copy, Check, ImageIcon } from "lucide-react";
 import { format } from 'date-fns';
 import { toast } from "sonner";
 import { useConfig } from '@/hooks/useConfig';
@@ -58,6 +58,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const [uploadedLogoUrl, setUploadedLogoUrl] = useState(null);
   const staffSearchRef = useRef(null);
   const logoInputRef = useRef(null);
+  const photoInputRef = useRef(null);
 
   // Universal field update handler — every input uses this
   const updateField = (field, value) => {
@@ -279,6 +280,30 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     if (!file) return;
     logoUploadMutation.mutate(file);
     if (logoInputRef.current) logoInputRef.current.value = '';
+  };
+
+  const photoUploadMutation = useMutation({
+    mutationFn: async (file) => {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      const url = result?.file_url ?? result?.url;
+      if (!url) throw new Error('No URL returned');
+      return url;
+    },
+    onSuccess: (url) => {
+      const current = Array.isArray(formState.photos) ? formState.photos : [];
+      updateField('photos', [...current, url]);
+      toast.success('Photo uploaded');
+    },
+    onError: () => {
+      toast.error('Failed to upload photo');
+    },
+  });
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    photoUploadMutation.mutate(file);
+    if (photoInputRef.current) photoInputRef.current.value = '';
   };
 
   // Hard delete: remove record permanently (Business.delete). Fallback to soft delete if delete not available.
@@ -1120,8 +1145,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   </div>
                 </div>
                 <div className="flex items-center gap-3 pt-2">
-                  {(uploadedLogoUrl || formState.logo_url) ? (
-                    <img src={uploadedLogoUrl || formState.logo_url} alt={business.name} className="h-20 w-20 rounded-lg object-cover border border-slate-700" />
+                  {(uploadedLogoUrl || formState.logo_url || business?.logo_url) ? (
+                    <img src={uploadedLogoUrl || formState.logo_url || business?.logo_url} alt={business.name} className="h-20 w-20 rounded-lg object-cover border border-slate-700" />
                   ) : (
                     <div className="h-20 w-20 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
                       <Store className="h-8 w-8 text-slate-500" />
@@ -1149,6 +1174,88 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     <p className="text-xs text-slate-500 mt-1">Recommended: 200x200px, PNG or JPG</p>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Photos / Banner */}
+            <div className="space-y-3">
+              <h3 className="font-medium text-slate-100 flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-amber-500" />
+                Photos
+              </h3>
+              <p className="text-xs text-slate-400">
+                The first photo is used as the banner on the public profile page.
+              </p>
+
+              {/* Photo thumbnails */}
+              {formState.photos?.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {formState.photos.map((photoUrl, idx) => (
+                    <div key={photoUrl + idx} className="relative shrink-0 group">
+                      <img
+                        src={photoUrl}
+                        alt={`Photo ${idx + 1}`}
+                        className="h-20 w-20 rounded-lg object-cover border border-slate-700"
+                      />
+                      {idx === 0 && (
+                        <span className="absolute top-1 left-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-500 text-black">
+                          Banner
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = formState.photos.filter((_, i) => i !== idx);
+                          updateField('photos', updated);
+                        }}
+                        className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-slate-400 hover:text-red-400 hover:border-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                      {idx !== 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = [...formState.photos];
+                            const [moved] = updated.splice(idx, 1);
+                            updated.unshift(moved);
+                            updateField('photos', updated);
+                          }}
+                          className="absolute bottom-1 left-1 right-1 text-[9px] font-medium px-1 py-0.5 rounded bg-slate-800/90 border border-slate-600 text-slate-300 hover:text-amber-400 hover:border-amber-500 opacity-0 group-hover:opacity-100 transition-opacity text-center"
+                        >
+                          Set as Banner
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Upload button */}
+              <div>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  className="hidden"
+                  onChange={handlePhotoUpload}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
+                  onClick={() => photoInputRef.current?.click()}
+                  disabled={photoUploadMutation.isPending}
+                >
+                  {photoUploadMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-2" />
+                  )}
+                  Add Photo
+                </Button>
+                <p className="text-xs text-slate-500 mt-1">PNG or JPG. First photo is the profile banner.</p>
               </div>
             </div>
 
