@@ -43,7 +43,7 @@ function getCategoryLabel(business, getLabel, getMainCategory, legacyCategoryMap
   return business.category || '';
 }
 
-function resolveCategoryAccent(business, legacyCategoryMapping) {
+export function resolveCategoryAccent(business, legacyCategoryMapping) {
   // 1. Direct main_category match
   const mainId = business.main_category || business.primary_category;
   if (mainId && CATEGORY_ACCENT_COLORS[mainId]) return CATEGORY_ACCENT_COLORS[mainId];

@@ -23,6 +23,7 @@ import JoyCoinHours from '@/components/business/JoyCoinHours';
 import EventCard from '@/components/events/EventCard';
 import { useCategories } from '@/hooks/useCategories';
 import { useConfig } from '@/hooks/useConfig';
+import { resolveCategoryAccent } from '@/components/business/BusinessCard';
 
 function getCategoryDisplayLabel(business, getLabel, legacyCategoryMapping) {
   const fromMain = getLabel(business.main_category, business.subcategory);
@@ -155,18 +156,31 @@ export default function BusinessProfile() {
         </div>
       </div>
 
-      {/* Hero Image */}
+      {/* Hero Banner */}
       {(() => {
         const heroImage = business.photos?.[0] || business.logo_url;
-        return heroImage ? (
-          <div className="relative max-h-48 sm:max-h-64 w-full overflow-hidden bg-slate-900">
-            <img
-              src={heroImage}
-              alt={business.name}
-              className="w-full h-full object-contain"
-            />
+        if (heroImage) {
+          return (
+            <div className="relative h-52 sm:h-64 lg:h-72 w-full overflow-hidden bg-slate-900">
+              <img
+                src={heroImage}
+                alt={business.name}
+                className="w-full h-full object-cover object-top"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            </div>
+          );
+        }
+        const accentBorder = resolveCategoryAccent(business, legacyCategoryMapping);
+        const accentBg = accentBorder.replace('border-l-', 'bg-');
+        return (
+          <div className="relative h-32 sm:h-40 w-full bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 flex items-center justify-center">
+            <span className="text-2xl font-bold text-slate-300/20 select-none truncate px-8 max-w-full">
+              {business.name}
+            </span>
+            <div className={`absolute bottom-0 left-0 right-0 h-1 ${accentBg}`} />
           </div>
-        ) : null;
+        );
       })()}
 
       <div className="max-w-6xl mx-auto px-4 relative z-10 mt-4">
