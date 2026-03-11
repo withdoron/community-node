@@ -196,7 +196,7 @@ export default function FinanceOnboarding() {
           context: 'personal',
           category: essential.category,
           is_active: true,
-          next_date: null,
+          next_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString().split('T')[0],
         });
       }
 
