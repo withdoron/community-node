@@ -114,6 +114,16 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
     [activeRecurring]
   );
 
+  const projectedIncome = useMemo(
+    () => activeRecurring
+      .filter((r) => r.type === 'income')
+      .reduce((s, r) => s + toMonthly(r.amount || 0, r.frequency || 'monthly'), 0),
+    [activeRecurring]
+  );
+
+  const usingProjected = monthIncome === 0 && projectedIncome > 0;
+  const effectiveIncome = Math.max(monthIncome, projectedIncome);
+
   // ─── Derived: Active Debts ──────────────────────
   const activeDebts = useMemo(
     () => debts.filter((d) => d.status !== 'paid_off'),
@@ -142,13 +152,13 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
 
   const getEnoughColor = () => {
     if (!hasEnoughNumber) return 'text-amber-500';
-    if (monthIncome >= enoughNumber) return 'text-emerald-400';
-    if (monthIncome >= enoughNumber * 0.9) return 'text-amber-500';
+    if (effectiveIncome >= enoughNumber) return 'text-emerald-400';
+    if (effectiveIncome >= enoughNumber * 0.9) return 'text-amber-500';
     return 'text-red-400';
   };
 
   // ─── Left to Spend ──────────────────────────────
-  const leftToSpend = monthIncome - enoughNumber;
+  const leftToSpend = effectiveIncome - enoughNumber;
 
   const getLeftToSpendColor = () => {
     if (leftToSpend < 0) return 'text-red-400';
@@ -287,18 +297,20 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
         )}
 
         <p className="text-xs text-slate-500 mt-2">
-          This month: {fmt(monthIncome)} income
+          {usingProjected
+            ? `Expected: ${fmt(projectedIncome)}/month from recurring income`
+            : `This month: ${fmt(monthIncome)} income`}
         </p>
         {hasEnoughNumber && (
           <div className="mt-3 space-y-1">
             <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
               <div
                 className="h-full bg-amber-500 rounded-full transition-all"
-                style={{ width: `${Math.min(100, (monthIncome / enoughNumber) * 100)}%` }}
+                style={{ width: `${Math.min(100, (effectiveIncome / enoughNumber) * 100)}%` }}
               />
             </div>
             <p className="text-xs text-slate-500 text-right">
-              {((monthIncome / enoughNumber) * 100).toFixed(0)}% covered
+              {((effectiveIncome / enoughNumber) * 100).toFixed(0)}% covered
             </p>
           </div>
         )}
@@ -316,8 +328,11 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
             {getLeftToSpendText()}
           </p>
           <p className="text-xs text-slate-500 mt-1">
-            {fmt(monthIncome)} income − {fmt(enoughNumber)} essentials
+            {fmt(effectiveIncome)} income − {fmt(enoughNumber)} essentials
           </p>
+          {usingProjected && (
+            <p className="text-xs text-slate-500 mt-0.5">Based on your recurring income</p>
+          )}
         </div>
       )}
 

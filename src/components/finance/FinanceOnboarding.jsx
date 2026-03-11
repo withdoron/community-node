@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -103,6 +103,11 @@ function StepIndicator({ current, total }) {
 export default function FinanceOnboarding() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+
+  // Scroll to top on step change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [step]);
 
   // Step 1
   const [workspaceName, setWorkspaceName] = useState('');
