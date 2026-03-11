@@ -53,6 +53,8 @@ export default function TransactionForm({
     .filter(([, ctx]) => ctx.is_active)
     .map(([id, ctx]) => ({ id, label: ctx.label }));
 
+  const singleContext = activeContexts.length <= 1;
+
   // Resolve categories: new format is { context: { income: [], expense: [] } }
   // Old format was { context: [] } — treat flat array as expense list, use defaults for income
   const DEFAULT_INCOME_CATS = ['Salary/Wages', 'Client Payment', 'Reimbursement', 'Gift', 'Other Income'];
@@ -208,22 +210,24 @@ export default function TransactionForm({
             />
           </div>
 
-          {/* Context */}
-          <div>
-            <Label className="text-slate-400">Context</Label>
-            <select
-              value={context}
-              onChange={(e) => {
-                setContext(e.target.value);
-                setCategory('');
-              }}
-              className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
-            >
-              {activeContexts.map((ctx) => (
-                <option key={ctx.id} value={ctx.id}>{ctx.label}</option>
-              ))}
-            </select>
-          </div>
+          {/* Context — hidden when single context */}
+          {!singleContext && (
+            <div>
+              <Label className="text-slate-400">Context</Label>
+              <select
+                value={context}
+                onChange={(e) => {
+                  setContext(e.target.value);
+                  setCategory('');
+                }}
+                className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              >
+                {activeContexts.map((ctx) => (
+                  <option key={ctx.id} value={ctx.id}>{ctx.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Category */}
           <div>

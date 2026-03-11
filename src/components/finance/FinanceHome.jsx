@@ -326,7 +326,7 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
             <h2 className="text-lg font-bold text-slate-100">Upcoming Bills</h2>
           </div>
           {upcomingBills.length > 0 && (
-            <button type="button" onClick={() => onNavigateTab?.('recurring')}
+            <button type="button" onClick={() => onNavigateTab?.('bills')}
               className="text-xs text-amber-500 hover:text-amber-400">
               View all
             </button>

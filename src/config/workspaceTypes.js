@@ -17,7 +17,6 @@ import {
   ArrowDownUp,
   Repeat,
   Landmark,
-  Upload,
 } from 'lucide-react';
 import DashboardHome from '@/components/dashboard/DashboardHome';
 import AccessWindowManager from '@/components/dashboard/AccessWindowManager';
@@ -31,10 +30,9 @@ import TeamRoster from '@/components/team/TeamRoster';
 import TeamMessages from '@/components/team/TeamMessages';
 import TeamSettings from '@/components/team/TeamSettings';
 import FinanceHome from '@/components/finance/FinanceHome';
-import FinanceTransactions from '@/components/finance/FinanceTransactions';
-import FinanceRecurring from '@/components/finance/FinanceRecurring';
+import FinanceActivity from '@/components/finance/FinanceActivity';
+import FinanceBills from '@/components/finance/FinanceBills';
 import FinanceDebts from '@/components/finance/FinanceDebts';
-import FinanceImport from '@/components/finance/FinanceImport';
 import FinanceSettings from '@/components/finance/FinanceSettings';
 
 // ——— Archetype display titles (subtitle under business name) ———
@@ -187,10 +185,9 @@ export const WORKSPACE_TYPES = {
     },
     tabs: [
       { id: 'home', label: 'Home', icon: LayoutDashboard, component: FinanceHome, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
-      { id: 'transactions', label: 'Transactions', icon: ArrowDownUp, component: FinanceTransactions, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
-      { id: 'recurring', label: 'Recurring', icon: Repeat, component: FinanceRecurring, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
+      { id: 'activity', label: 'Activity', icon: ArrowDownUp, component: FinanceActivity, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
+      { id: 'bills', label: 'Bills & Income', icon: Repeat, component: FinanceBills, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
       { id: 'debts', label: 'Debts', icon: Landmark, component: FinanceDebts, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
-      { id: 'import', label: 'Import', icon: Upload, component: FinanceImport, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
       { id: 'settings', label: 'Settings', icon: Settings, component: FinanceSettings, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
     ],
   },
