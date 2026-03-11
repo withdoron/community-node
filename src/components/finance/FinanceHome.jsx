@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
-import { DollarSign, TrendingUp, CalendarClock, Landmark } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { DollarSign, TrendingUp, CalendarClock, Landmark, X, Info } from 'lucide-react';
 import TransactionForm from './TransactionForm';
 
 const fmt = (n) =>
@@ -26,8 +26,12 @@ function toMonthly(amount, frequency) {
 }
 
 export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
+  const queryClient = useQueryClient();
+
   const [formOpen, setFormOpen] = useState(false);
   const [formDefaultType, setFormDefaultType] = useState(null);
+  const [explanationDismissed, setExplanationDismissed] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
   const now = new Date();
   const monthName = now.toLocaleString('en-US', { month: 'long' });
@@ -143,6 +147,43 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
     return 'text-red-400';
   };
 
+  // ─── Left to Spend ──────────────────────────────
+  const leftToSpend = monthIncome - enoughNumber;
+
+  const getLeftToSpendColor = () => {
+    if (leftToSpend < 0) return 'text-red-400';
+    if (hasEnoughNumber && leftToSpend < enoughNumber * 0.1) return 'text-amber-500';
+    return 'text-emerald-400';
+  };
+
+  const getLeftToSpendText = () => {
+    if (leftToSpend < 0) {
+      return `You're ${fmt(Math.abs(leftToSpend))} over this month`;
+    }
+    if (hasEnoughNumber && leftToSpend < enoughNumber * 0.1) {
+      return `Tight month — ${fmt(leftToSpend)} left`;
+    }
+    return `You have ${fmt(leftToSpend)} left to spend this month`;
+  };
+
+  // ─── Explanation dismiss ────────────────────────
+  const showExplanation = !profile?.enough_number_explained && !explanationDismissed;
+
+  const dismissExplanation = useMutation({
+    mutationFn: () =>
+      base44.entities.FinancialProfile.update(profile.id, { enough_number_explained: true }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-profiles'] });
+    },
+    // Silently ignore errors (field may not exist in entity yet)
+    onError: () => {},
+  });
+
+  const handleDismissExplanation = () => {
+    setExplanationDismissed(true);
+    dismissExplanation.mutate();
+  };
+
   // ─── Upcoming Bills (next 5 recurring expenses by next_date) ──
   const upcomingBills = useMemo(() => {
     return activeRecurring
@@ -151,6 +192,9 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
       .slice(0, 5);
   }, [activeRecurring]);
 
+  // ─── Context helpers ────────────────────────────
+  const contextCount = Object.keys(profile?.contexts || {}).length;
+
   const openForm = (type) => {
     setFormDefaultType(type);
     setFormOpen(true);
@@ -158,6 +202,24 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
 
   return (
     <div className="space-y-6">
+      {/* First-view Explanation (dismissible) */}
+      {showExplanation && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 relative">
+          <button
+            type="button"
+            onClick={handleDismissExplanation}
+            className="absolute top-3 right-3 text-slate-400 hover:text-amber-500 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <p className="text-sm text-slate-200 pr-6">
+            <span className="font-semibold text-amber-500">Your Enough Number</span> is the monthly
+            amount that covers your essentials. Above it, you're building. Below it, you know exactly
+            where to focus.
+          </p>
+        </div>
+      )}
+
       {/* Card 1: The Enough Number — hero */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
@@ -167,15 +229,43 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
         <p className={`text-4xl font-bold mb-2 ${getEnoughColor()}`}>
           {fmt(enoughNumber)}
         </p>
-        <p className="text-sm text-slate-400">Your monthly essentials target</p>
-        <p className="text-xs text-slate-500 mt-1">
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-slate-400">Your monthly essentials</p>
+          {hasEnoughNumber && (
+            <button
+              type="button"
+              onClick={() => setShowBreakdown((prev) => !prev)}
+              className="text-slate-500 hover:text-amber-500 transition-colors"
+            >
+              <Info className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Breakdown (toggle on info click) */}
+        {showBreakdown && hasEnoughNumber && enoughMode === 'auto' && (
+          <div className="mt-3 bg-slate-800/50 rounded-lg p-3 space-y-1.5">
+            <div className="flex justify-between text-xs">
+              <span className="text-slate-400">Recurring expenses</span>
+              <span className="text-slate-300">{fmt(recurringExpenseMonthly)}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-slate-400">Debt minimums</span>
+              <span className="text-slate-300">{fmt(monthlyDebtMins)}</span>
+            </div>
+          </div>
+        )}
+
+        <p className="text-xs text-slate-500 mt-2">
           This month: {fmt(monthIncome)} income
         </p>
         {hasEnoughNumber && (
           <div className="mt-3 space-y-1">
             <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-              <div className="h-full bg-amber-500 rounded-full transition-all"
-                style={{ width: `${Math.min(100, (monthIncome / enoughNumber) * 100)}%` }} />
+              <div
+                className="h-full bg-amber-500 rounded-full transition-all"
+                style={{ width: `${Math.min(100, (monthIncome / enoughNumber) * 100)}%` }}
+              />
             </div>
             <p className="text-xs text-slate-500 text-right">
               {((monthIncome / enoughNumber) * 100).toFixed(0)}% covered
@@ -187,12 +277,19 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
             Add recurring expenses and debts to calculate your Enough Number
           </p>
         )}
-        {hasEnoughNumber && enoughMode === 'auto' && (
-          <p className="text-xs text-slate-500 mt-2">
-            Auto-calculated: {fmt(recurringExpenseMonthly)} recurring + {fmt(monthlyDebtMins)} debt mins
-          </p>
-        )}
       </div>
+
+      {/* Card 1b: Left to Spend — companion metric */}
+      {hasEnoughNumber && (
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <p className={`text-2xl font-semibold ${getLeftToSpendColor()}`}>
+            {getLeftToSpendText()}
+          </p>
+          <p className="text-xs text-slate-500 mt-1">
+            {fmt(monthIncome)} income − {fmt(enoughNumber)} essentials
+          </p>
+        </div>
+      )}
 
       {/* Card 2: Monthly Cash Flow */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
@@ -295,21 +392,21 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
         )}
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions — Expense primary, Income secondary */}
       <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={() => openForm('expense')}
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px]"
+        >
+          + Add Expense
+        </button>
         <button
           type="button"
           onClick={() => openForm('income')}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm font-medium min-h-[44px]"
         >
           + Add Income
-        </button>
-        <button
-          type="button"
-          onClick={() => openForm('expense')}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm font-medium min-h-[44px]"
-        >
-          + Add Expense
         </button>
       </div>
 

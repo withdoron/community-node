@@ -28,21 +28,17 @@ const TAX_SCHEDULES = [
 
 const DEFAULT_CATEGORIES = {
   personal: {
-    income: ['Salary/Wages', 'Client Payment', 'Reimbursement', 'Gift', 'Government Benefits', 'Other Income'],
-    expense: ['Housing', 'Food', 'Transportation', 'Healthcare', 'Children',
-      'Education', 'Entertainment', 'Clothing', 'Giving/Tithing',
-      'Debt Payments', 'Savings', 'Other'],
-  },
-  rental: {
-    income: ['Rental Income', 'Late Fees', 'Other Income'],
-    expense: ['Advertising', 'Auto/Travel', 'Cleaning', 'Commissions', 'Insurance',
-      'Legal', 'Management Fees', 'Mortgage Interest', 'Repairs', 'Supplies',
-      'Taxes', 'Utilities', 'Depreciation', 'Other'],
-  },
-  business: {
-    income: ['Client Payment', 'Project Revenue', 'Consulting', 'Reimbursement', 'Other Income'],
-    expense: ['Advertising', 'Car/Truck', 'Insurance', 'Legal', 'Office',
-      'Supplies', 'Travel', 'Utilities', 'Software/Tools', 'Contractors', 'Other'],
+    income: [
+      'Paycheck', 'Side income', 'Reimbursement', 'Gift',
+      'Government benefits', 'Other income',
+    ],
+    expense: [
+      'Housing (rent/mortgage)', 'Groceries', 'Dining out',
+      'Gas & transportation', 'Utilities', 'Phone & internet',
+      'Health & medical', 'Insurance', 'Kids & family',
+      'Subscriptions & apps', 'Clothing', 'Fun & entertainment',
+      'Giving & tithing', 'Savings & investments', 'Debt payments', 'Other',
+    ],
   },
 };
 
