@@ -52,6 +52,16 @@ const DEFAULT_CATEGORIES = {
 // Exported so FinanceSettings can reuse for "Reset to defaults"
 export { DEFAULT_CONTEXTS, DEFAULT_CATEGORIES };
 
+// ═══ Income sources for Step 2 ═══
+
+const INCOME_SOURCES = [
+  { id: 'salary', label: 'Paycheck / Salary', description: 'Paycheck / Salary', category: 'Paycheck' },
+  { id: 'side_work', label: 'Second job / Side work', description: 'Second job / Side work', category: 'Side income' },
+  { id: 'benefits', label: 'Government benefits', description: 'Government benefits', category: 'Government benefits' },
+  { id: 'support', label: 'Child support / Alimony', description: 'Child support / Alimony', category: 'Other income' },
+  { id: 'other_income', label: 'Other income', description: '', category: 'Other income', hasCustomName: true },
+];
+
 // ═══ Essentials for Step 2 ═══
 
 const ESSENTIALS = [
@@ -97,6 +107,11 @@ export default function FinanceOnboarding() {
   // Step 1
   const [workspaceName, setWorkspaceName] = useState('');
 
+  // Step 2 — income sources
+  const [incomeSources, setIncomeSources] = useState(
+    INCOME_SOURCES.map((s) => ({ ...s, selected: false, amount: '', customName: '' }))
+  );
+
   // Step 2 — essentials
   const [essentials, setEssentials] = useState(
     ESSENTIALS.map((e) => ({ ...e, selected: false, amount: '', customName: '' }))
@@ -111,6 +126,14 @@ export default function FinanceOnboarding() {
   });
 
   // ─── Derived: running totals ──────────────────────
+  const incomeTotal = useMemo(
+    () =>
+      incomeSources
+        .filter((s) => s.selected && parseFloat(s.amount) > 0)
+        .reduce((sum, s) => sum + parseFloat(s.amount), 0),
+    [incomeSources]
+  );
+
   const essentialTotal = useMemo(
     () =>
       essentials
@@ -128,6 +151,25 @@ export default function FinanceOnboarding() {
   );
 
   const enoughTotal = essentialTotal + debtMinTotal;
+
+  // ─── Income source handlers ─────────────────────────
+  const toggleIncome = (id) => {
+    setIncomeSources((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, selected: !s.selected } : s))
+    );
+  };
+
+  const updateIncomeAmount = (id, amount) => {
+    setIncomeSources((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, amount } : s))
+    );
+  };
+
+  const updateIncomeName = (id, customName) => {
+    setIncomeSources((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, customName } : s))
+    );
+  };
 
   // ─── Essential handlers ───────────────────────────
   const toggleEssential = (id) => {
@@ -195,6 +237,29 @@ export default function FinanceOnboarding() {
           day_of_month: 1,
           context: 'personal',
           category: essential.category,
+          is_active: true,
+          next_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString().split('T')[0],
+        });
+      }
+
+      // 2b. Create RecurringTransactions for selected income sources
+      const selectedIncome = incomeSources.filter(
+        (s) => s.selected && parseFloat(s.amount) > 0
+      );
+      for (const source of selectedIncome) {
+        const desc = source.hasCustomName
+          ? (source.customName.trim() || 'Other income')
+          : source.description;
+        await base44.entities.RecurringTransaction.create({
+          profile_id: profile.id,
+          user_id: currentUser.id,
+          type: 'income',
+          amount: parseFloat(source.amount),
+          description: desc,
+          frequency: 'monthly',
+          day_of_month: 1,
+          context: 'personal',
+          category: source.category,
           is_active: true,
           next_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString().split('T')[0],
         });
@@ -293,19 +358,78 @@ export default function FinanceOnboarding() {
           </div>
         )}
 
-        {/* ═══ Step 2: Monthly Essentials ═══ */}
+        {/* ═══ Step 2: Income & Essentials ═══ */}
         {step === 2 && (
           <div className="space-y-6">
+            {/* ── Income Section ── */}
             <div>
+              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+                What money comes in each month?
+              </h2>
+              <p className="text-sm text-slate-400">
+                Tap your income sources and enter the monthly amount.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {incomeSources.map((source) => (
+                <div key={source.id} className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleIncome(source.id)}
+                    className={`w-full text-left rounded-xl p-4 border transition-all min-h-[72px] ${
+                      source.selected
+                        ? 'bg-slate-900 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                        : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <p
+                      className={`text-sm font-medium ${
+                        source.selected ? 'text-emerald-400' : 'text-slate-300'
+                      }`}
+                    >
+                      {source.label}
+                    </p>
+                  </button>
+
+                  {source.selected && (
+                    <div className="space-y-2">
+                      {source.hasCustomName && (
+                        <Input
+                          value={source.customName}
+                          onChange={(e) => updateIncomeName(source.id, e.target.value)}
+                          className="bg-slate-800 border-slate-700 text-white text-sm placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                          placeholder="What is it?"
+                        />
+                      )}
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={source.amount}
+                          onChange={(e) => updateIncomeAmount(source.id, e.target.value)}
+                          className="pl-7 bg-slate-800 border-slate-700 text-white text-sm placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* ── Expenses Section ── */}
+            <div className="pt-2">
               <h2 className="text-lg font-semibold text-slate-100 mb-1">
                 What are your monthly essentials?
               </h2>
               <p className="text-sm text-slate-400">
-                Tap the ones you pay for. We'll use these to build your Enough Number.
+                These will build your Enough Number.
               </p>
             </div>
 
-            {/* Essentials Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {essentials.map((essential) => (
                 <div key={essential.id} className="space-y-2">
@@ -330,7 +454,6 @@ export default function FinanceOnboarding() {
                     )}
                   </button>
 
-                  {/* Amount input (visible when selected) */}
                   {essential.selected && (
                     <div className="space-y-2">
                       {essential.hasCustomName && (
@@ -359,13 +482,29 @@ export default function FinanceOnboarding() {
               ))}
             </div>
 
-            {/* Running total */}
-            <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-4 text-center">
-              <p className="text-sm text-slate-400">Your Enough Number so far</p>
-              <p className="text-2xl font-bold text-amber-500 mt-1">
-                {fmt(essentialTotal)}
-                <span className="text-sm font-normal text-slate-400">/month</span>
-              </p>
+            {/* ── Running Totals ── */}
+            <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">Monthly income</span>
+                <span className="text-emerald-400 font-medium">{fmt(incomeTotal)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">Your Enough Number</span>
+                <span className="text-amber-500 font-medium">{fmt(essentialTotal)}/month</span>
+              </div>
+              {incomeTotal > 0 && essentialTotal > 0 && (
+                <div className="border-t border-slate-800 pt-2 mt-1">
+                  {incomeTotal >= essentialTotal ? (
+                    <p className="text-sm text-emerald-400 text-center">
+                      You'd have {fmt(incomeTotal - essentialTotal)} left to spend
+                    </p>
+                  ) : (
+                    <p className="text-sm text-amber-500 text-center">
+                      Gap: {fmt(essentialTotal - incomeTotal)}/month
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Navigation */}
