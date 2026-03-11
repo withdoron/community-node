@@ -13,7 +13,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  Settings, Save, Plus, X, Loader2, AlertTriangle, Trash2, RotateCcw, ChevronDown, ChevronRight,
+  Settings, Save, Plus, X, Loader2, AlertTriangle, Trash2, RotateCcw,
+  ChevronDown, ChevronRight, Home, Briefcase, PenLine, PieChart,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -24,6 +25,7 @@ const TAX_SCHEDULES = [
   { id: 'none', label: 'None' },
   { id: 'schedule_c', label: 'Schedule C (Business)' },
   { id: 'schedule_e', label: 'Schedule E (Rental)' },
+  { id: 'other', label: 'Other' },
 ];
 
 const DEFAULT_CATEGORIES = {
@@ -42,6 +44,23 @@ const DEFAULT_CATEGORIES = {
   },
 };
 
+const RENTAL_CATEGORIES = {
+  income: ['Rental income', 'Late fees', 'Other income'],
+  expense: [
+    'Advertising', 'Auto & travel', 'Cleaning & maintenance', 'Commissions',
+    'Insurance', 'Legal & professional', 'Management fees', 'Mortgage interest',
+    'Repairs', 'Supplies', 'Taxes', 'Utilities', 'Depreciation', 'Other',
+  ],
+};
+
+const BUSINESS_CATEGORIES = {
+  income: ['Client payment', 'Project revenue', 'Consulting', 'Reimbursement', 'Other income'],
+  expense: [
+    'Advertising & marketing', 'Vehicle', 'Insurance', 'Legal & professional',
+    'Office', 'Supplies', 'Travel', 'Utilities', 'Software & tools', 'Contractors', 'Other',
+  ],
+};
+
 /** Convert any frequency to a monthly equivalent. */
 function toMonthly(amount, frequency) {
   switch (frequency) {
@@ -52,6 +71,10 @@ function toMonthly(amount, frequency) {
     case 'annual': return amount / 12;
     default: return amount;
   }
+}
+
+function getTaxLabel(id) {
+  return TAX_SCHEDULES.find((ts) => ts.id === id)?.label || 'None';
 }
 
 // ═══════════════════════════════════════════════════
@@ -74,12 +97,33 @@ export default function FinanceSettings({ profile, currentUser }) {
   });
 
   // ─── Section 2: Contexts ──────────────────────────
-  const [editingContext, setEditingContext] = useState(null); // { id, label, tax_schedule } or null
-  const [newContextOpen, setNewContextOpen] = useState(false);
-  const [newContextName, setNewContextName] = useState('');
-  const [newContextTax, setNewContextTax] = useState('none');
+  const [editingContext, setEditingContext] = useState(null);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [templateStep, setTemplateStep] = useState('choose');
+  const [businessNameInput, setBusinessNameInput] = useState('');
+  const [customNameInput, setCustomNameInput] = useState('');
+  const [customTaxInput, setCustomTaxInput] = useState('none');
 
   const contexts = profile?.contexts || {};
+  const categories = profile?.categories || {};
+
+  const activeContextCount = useMemo(
+    () => Object.values(contexts).filter((ctx) => ctx.is_active).length,
+    [contexts]
+  );
+
+  const hasBusinessContext = useMemo(
+    () => Object.values(contexts).some((ctx) => ctx.tax_schedule === 'schedule_c' && ctx.is_active),
+    [contexts]
+  );
+
+  const openTemplatePicker = () => {
+    setTemplateStep('choose');
+    setBusinessNameInput('');
+    setCustomNameInput('');
+    setCustomTaxInput('none');
+    setTemplatePickerOpen(true);
+  };
 
   const saveContextMutation = useMutation({
     mutationFn: async ({ contextId, updates }) => {
@@ -95,34 +139,64 @@ export default function FinanceSettings({ profile, currentUser }) {
   });
 
   const addContextMutation = useMutation({
-    mutationFn: async () => {
-      const id = newContextName.trim().toLowerCase().replace(/\s+/g, '_');
+    mutationFn: async ({ name, taxSchedule, categorySet }) => {
+      const id = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
       const updatedContexts = {
         ...contexts,
-        [id]: { label: newContextName.trim(), tax_schedule: newContextTax, is_active: true },
+        [id]: { label: name.trim(), tax_schedule: taxSchedule, is_active: true, linked_workspace_id: null },
       };
       const updatedCategories = {
-        ...(profile?.categories || {}),
-        [id]: { income: ['Other Income'], expense: ['Other'] },
+        ...categories,
+        [id]: categorySet,
       };
       return base44.entities.FinancialProfile.update(profile.id, {
         contexts: updatedContexts,
         categories: updatedCategories,
       });
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['finance-profiles'] });
-      setNewContextOpen(false);
-      setNewContextName('');
-      setNewContextTax('none');
-      toast.success('Context added');
+      setTemplatePickerOpen(false);
+      if (variables.taxSchedule === 'schedule_c') {
+        toast.success('Business context added. Profit First allocation view is now available below.');
+      } else {
+        toast.success('Context added');
+      }
     },
     onError: (err) => toast.error(err?.message || 'Failed to add context'),
   });
 
+  const handleAddRental = () => {
+    addContextMutation.mutate({
+      name: 'Rental Property',
+      taxSchedule: 'schedule_e',
+      categorySet: RENTAL_CATEGORIES,
+    });
+  };
+
+  const handleAddBusiness = () => {
+    addContextMutation.mutate({
+      name: businessNameInput.trim() || 'My Business',
+      taxSchedule: 'schedule_c',
+      categorySet: BUSINESS_CATEGORIES,
+    });
+  };
+
+  const handleAddCustom = () => {
+    addContextMutation.mutate({
+      name: customNameInput.trim(),
+      taxSchedule: customTaxInput,
+      categorySet: { income: ['Other income'], expense: ['Other'] },
+    });
+  };
+
   const toggleContextActive = useMutation({
     mutationFn: async (contextId) => {
       const ctx = contexts[contextId];
+      // Prevent archiving last active context
+      if (ctx.is_active && activeContextCount <= 1) {
+        throw new Error('Cannot archive the last active context');
+      }
       const updatedContexts = { ...contexts, [contextId]: { ...ctx, is_active: !ctx.is_active } };
       return base44.entities.FinancialProfile.update(profile.id, { contexts: updatedContexts });
     },
@@ -135,16 +209,13 @@ export default function FinanceSettings({ profile, currentUser }) {
 
   // ─── Section 3: Categories ────────────────────────
   const [expandedContexts, setExpandedContexts] = useState({});
-  const [addingCategory, setAddingCategory] = useState(null); // { contextId, type }
+  const [addingCategory, setAddingCategory] = useState(null);
   const [newCategoryName, setNewCategoryName] = useState('');
 
   const toggleExpand = (ctxId) => {
     setExpandedContexts((prev) => ({ ...prev, [ctxId]: !prev[ctxId] }));
   };
 
-  const categories = profile?.categories || {};
-
-  // Check if context has transactions (for delete warning)
   const { data: allTransactions = [] } = useQuery({
     queryKey: ['finance-transactions', profile?.id],
     queryFn: async () => {
@@ -162,9 +233,7 @@ export default function FinanceSettings({ profile, currentUser }) {
   const addCategoryMutation = useMutation({
     mutationFn: async ({ contextId, type, name }) => {
       const contextCats = { ...(categories[contextId] || { income: [], expense: [] }) };
-      // Handle old flat format
       if (Array.isArray(contextCats)) {
-        // Can't add to old format, skip
         throw new Error('Old category format detected. Please reset to defaults first.');
       }
       const list = [...(contextCats[type] || [])];
@@ -203,7 +272,15 @@ export default function FinanceSettings({ profile, currentUser }) {
 
   const resetCategoriesMutation = useMutation({
     mutationFn: async (contextId) => {
-      const defaultCats = DEFAULT_CATEGORIES[contextId] || { income: ['Other Income'], expense: ['Other'] };
+      const ctx = contexts[contextId];
+      let defaultCats;
+      if (ctx?.tax_schedule === 'schedule_e') {
+        defaultCats = RENTAL_CATEGORIES;
+      } else if (ctx?.tax_schedule === 'schedule_c') {
+        defaultCats = BUSINESS_CATEGORIES;
+      } else {
+        defaultCats = DEFAULT_CATEGORIES[contextId] || { income: ['Other income'], expense: ['Other'] };
+      }
       const updatedCategories = { ...categories, [contextId]: defaultCats };
       return base44.entities.FinancialProfile.update(profile.id, { categories: updatedCategories });
     },
@@ -215,12 +292,50 @@ export default function FinanceSettings({ profile, currentUser }) {
     onError: (err) => toast.error(err?.message || 'Failed to reset'),
   });
 
-  // ─── Section 4: Enough Number ─────────────────────
+  // ─── Section 4: Profit First ──────────────────────
+  const [pfEnabled, setPfEnabled] = useState(!!profile?.profit_first_enabled);
+  const [pfTargets, setPfTargets] = useState({
+    profit: profile?.profit_first_targets?.profit ?? 5,
+    owners_pay: profile?.profit_first_targets?.owners_pay ?? 50,
+    tax_reserve: profile?.profit_first_targets?.tax_reserve ?? 15,
+    operating_expenses: profile?.profit_first_targets?.operating_expenses ?? 30,
+  });
+  const [pfChanged, setPfChanged] = useState(false);
+
+  const pfTotal = pfTargets.profit + pfTargets.owners_pay + pfTargets.tax_reserve + pfTargets.operating_expenses;
+
+  const updatePfTarget = (key, value) => {
+    const num = parseFloat(value) || 0;
+    setPfTargets((prev) => ({ ...prev, [key]: num }));
+    setPfChanged(true);
+  };
+
+  const togglePfEnabled = () => {
+    setPfEnabled((prev) => !prev);
+    setPfChanged(true);
+  };
+
+  const savePfMutation = useMutation({
+    mutationFn: () => base44.entities.FinancialProfile.update(profile.id, {
+      profit_first_enabled: pfEnabled,
+      profit_first_targets: pfTargets,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-profiles'] });
+      setPfChanged(false);
+      toast.success('Profit First settings saved');
+    },
+    onError: () => {
+      // Silently handle — field may not exist yet
+      setPfChanged(false);
+    },
+  });
+
+  // ─── Section 5: Enough Number ─────────────────────
   const [enoughMode, setEnoughMode] = useState(profile?.enough_number_mode || 'auto');
   const [enoughManual, setEnoughManual] = useState(profile?.enough_number?.toString() || '');
   const [enoughChanged, setEnoughChanged] = useState(false);
 
-  // Fetch recurring + debts for auto calculation display
   const { data: recurringItems = [] } = useQuery({
     queryKey: ['finance-recurring', profile?.id],
     queryFn: async () => {
@@ -267,29 +382,25 @@ export default function FinanceSettings({ profile, currentUser }) {
     onError: (err) => toast.error(err?.message || 'Failed to save'),
   });
 
-  // ─── Section 5: Danger Zone ───────────────────────
+  // ─── Section 6: Danger Zone ───────────────────────
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   const deleteWorkspaceMutation = useMutation({
     mutationFn: async () => {
-      // Delete all associated data
       const txns = await base44.entities.Transaction.filter({ profile_id: profile.id }, 'id', 5000);
       const txnList = Array.isArray(txns) ? txns : txns ? [txns] : [];
       for (const t of txnList) {
         await base44.entities.Transaction.delete(t.id);
       }
-
       const recurring = await base44.entities.RecurringTransaction.filter({ profile_id: profile.id }, 'id', 500);
       const recList = Array.isArray(recurring) ? recurring : recurring ? [recurring] : [];
       for (const r of recList) {
         await base44.entities.RecurringTransaction.delete(r.id);
       }
-
       const debtList = await base44.entities.Debt.filter({ profile_id: profile.id }, 'id', 200);
       const dList = Array.isArray(debtList) ? debtList : debtList ? [debtList] : [];
       for (const d of dList) {
-        // Delete debt payments for this debt
         try {
           const payments = await base44.entities.DebtPayment.filter({ debt_id: d.id }, 'id', 500);
           const pList = Array.isArray(payments) ? payments : payments ? [payments] : [];
@@ -299,8 +410,6 @@ export default function FinanceSettings({ profile, currentUser }) {
         } catch { /* ignore if no payments */ }
         await base44.entities.Debt.delete(d.id);
       }
-
-      // Delete the profile itself
       await base44.entities.FinancialProfile.delete(profile.id);
     },
     onSuccess: () => {
@@ -314,12 +423,20 @@ export default function FinanceSettings({ profile, currentUser }) {
     onError: (err) => toast.error(err?.message || 'Failed to delete workspace'),
   });
 
-  // ─── Render ───────────────────────────────────────
+  // ─── Helpers ────────────────────────────────────────
   const createdDate = profile?.created_date || profile?.created_at;
   const formattedDate = createdDate
     ? new Date(createdDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     : 'Unknown';
 
+  const getCategoryCount = (ctxId) => {
+    const ctxCats = categories[ctxId];
+    if (!ctxCats) return 0;
+    if (Array.isArray(ctxCats)) return ctxCats.length;
+    return (ctxCats.income?.length || 0) + (ctxCats.expense?.length || 0);
+  };
+
+  // ─── Render ───────────────────────────────────────
   return (
     <div className="space-y-6">
       {/* Section 1: Workspace Profile */}
@@ -357,7 +474,7 @@ export default function FinanceSettings({ profile, currentUser }) {
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-slate-100">Contexts</h2>
-          <button type="button" onClick={() => setNewContextOpen(true)}
+          <button type="button" onClick={openTemplatePicker}
             className="text-xs text-amber-500 hover:text-amber-400 flex items-center gap-1">
             <Plus className="h-3 w-3" /> Add Context
           </button>
@@ -365,9 +482,11 @@ export default function FinanceSettings({ profile, currentUser }) {
 
         <div className="space-y-3">
           {Object.entries(contexts).map(([id, ctx]) => (
-            <div key={id} className={`border border-slate-800 rounded-lg p-3 ${!ctx.is_active ? 'opacity-50' : ''}`}>
+            <div key={id} className={`border rounded-lg p-4 transition-colors ${
+              ctx.is_active ? 'border-slate-800' : 'border-slate-800/50 opacity-50'
+            }`}>
               {editingContext?.id === id ? (
-                // Inline edit mode
+                /* Inline edit mode */
                 <div className="space-y-3">
                   <div>
                     <Label className="text-slate-400 text-xs">Name</Label>
@@ -393,24 +512,43 @@ export default function FinanceSettings({ profile, currentUser }) {
                       {saveContextMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Save'}
                     </Button>
                     <Button type="button" variant="outline" onClick={() => setEditingContext(null)}
-                      className="border-slate-600 text-slate-300 text-xs min-h-[32px]">Cancel</Button>
+                      className="border-slate-600 text-slate-300 hover:bg-transparent text-xs min-h-[32px]">Cancel</Button>
                   </div>
                 </div>
               ) : (
-                // Display mode
+                /* Display mode */
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-slate-100">{ctx.label}</p>
-                    <p className="text-xs text-slate-500">
-                      {TAX_SCHEDULES.find((ts) => ts.id === ctx.tax_schedule)?.label || 'None'}
-                      {!ctx.is_active && <span className="ml-2 text-amber-500">Archived</span>}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-slate-100">{ctx.label}</p>
+                      {!ctx.is_active && (
+                        <span className="text-[10px] bg-slate-800 text-amber-500 px-1.5 py-0.5 rounded">Archived</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {ctx.tax_schedule && ctx.tax_schedule !== 'none' && (
+                        <span className="text-xs text-slate-500">{getTaxLabel(ctx.tax_schedule)}</span>
+                      )}
+                      <span className="text-xs text-slate-600">
+                        {getCategoryCount(id)} categories
+                      </span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => setEditingContext({ id, label: ctx.label, tax_schedule: ctx.tax_schedule || 'none' })}
+                    <button type="button"
+                      onClick={() => setEditingContext({ id, label: ctx.label, tax_schedule: ctx.tax_schedule || 'none' })}
                       className="text-xs text-amber-500 hover:text-amber-400">Edit</button>
-                    <button type="button" onClick={() => toggleContextActive.mutate(id)}
-                      className={`text-xs ${ctx.is_active ? 'text-slate-400 hover:text-amber-500' : 'text-amber-500 hover:text-amber-400'}`}>
+                    <button type="button"
+                      onClick={() => toggleContextActive.mutate(id)}
+                      disabled={ctx.is_active && activeContextCount <= 1}
+                      className={`text-xs transition-colors ${
+                        ctx.is_active && activeContextCount <= 1
+                          ? 'text-slate-600 cursor-not-allowed'
+                          : ctx.is_active
+                            ? 'text-slate-400 hover:text-amber-500'
+                            : 'text-amber-500 hover:text-amber-400'
+                      }`}
+                      title={ctx.is_active && activeContextCount <= 1 ? 'Cannot archive the last active context' : ''}>
                       {ctx.is_active ? 'Archive' : 'Unarchive'}
                     </button>
                   </div>
@@ -419,34 +557,6 @@ export default function FinanceSettings({ profile, currentUser }) {
             </div>
           ))}
         </div>
-
-        {/* Add Context inline form */}
-        {newContextOpen && (
-          <div className="border border-amber-500/30 rounded-lg p-3 mt-3 space-y-3">
-            <div>
-              <Label className="text-slate-400 text-xs">Name</Label>
-              <Input value={newContextName} onChange={(e) => setNewContextName(e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
-                placeholder="e.g. Side Hustle" autoFocus />
-            </div>
-            <div>
-              <Label className="text-slate-400 text-xs">Tax schedule</Label>
-              <select value={newContextTax} onChange={(e) => setNewContextTax(e.target.value)}
-                className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500">
-                {TAX_SCHEDULES.map((ts) => <option key={ts.id} value={ts.id}>{ts.label}</option>)}
-              </select>
-            </div>
-            <div className="flex gap-2">
-              <Button type="button" onClick={() => addContextMutation.mutate()}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs min-h-[32px]"
-                disabled={!newContextName.trim() || addContextMutation.isPending}>
-                {addContextMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Add'}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => setNewContextOpen(false)}
-                className="border-slate-600 text-slate-300 text-xs min-h-[32px]">Cancel</Button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Section 3: Categories */}
@@ -457,14 +567,12 @@ export default function FinanceSettings({ profile, currentUser }) {
           {Object.entries(contexts).map(([ctxId, ctx]) => {
             const isExpanded = expandedContexts[ctxId];
             const ctxCats = categories[ctxId];
-            // Handle old flat format
             const isOldFormat = Array.isArray(ctxCats);
             const incomeCats = isOldFormat ? [] : (ctxCats?.income || []);
             const expenseCats = isOldFormat ? (ctxCats || []) : (ctxCats?.expense || []);
 
             return (
               <div key={ctxId} className="border border-slate-800 rounded-lg overflow-hidden">
-                {/* Accordion header */}
                 <button type="button" onClick={() => toggleExpand(ctxId)}
                   className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-800/50 transition-colors">
                   <span className="text-sm text-slate-100 font-medium">{ctx.label}</span>
@@ -523,7 +631,7 @@ export default function FinanceSettings({ profile, currentUser }) {
                               className="bg-amber-500 hover:bg-amber-400 text-black text-xs h-8"
                               disabled={!newCategoryName.trim() || addCategoryMutation.isPending}>Add</Button>
                             <Button type="button" variant="outline" onClick={() => setAddingCategory(null)}
-                              className="border-slate-600 text-slate-300 text-xs h-8">Cancel</Button>
+                              className="border-slate-600 text-slate-300 hover:bg-transparent text-xs h-8">Cancel</Button>
                           </div>
                         )}
                       </div>
@@ -576,7 +684,7 @@ export default function FinanceSettings({ profile, currentUser }) {
                             className="bg-amber-500 hover:bg-amber-400 text-black text-xs h-8"
                             disabled={!newCategoryName.trim() || addCategoryMutation.isPending}>Add</Button>
                           <Button type="button" variant="outline" onClick={() => setAddingCategory(null)}
-                            className="border-slate-600 text-slate-300 text-xs h-8">Cancel</Button>
+                            className="border-slate-600 text-slate-300 hover:bg-transparent text-xs h-8">Cancel</Button>
                         </div>
                       )}
                     </div>
@@ -592,7 +700,7 @@ export default function FinanceSettings({ profile, currentUser }) {
                             {resetCategoriesMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Confirm'}
                           </Button>
                           <Button type="button" variant="outline" onClick={() => setResetContextConfirm(null)}
-                            className="border-slate-600 text-slate-300 text-xs h-7">Cancel</Button>
+                            className="border-slate-600 text-slate-300 hover:bg-transparent text-xs h-7">Cancel</Button>
                         </div>
                       ) : (
                         <button type="button" onClick={() => setResetContextConfirm(ctxId)}
@@ -609,11 +717,98 @@ export default function FinanceSettings({ profile, currentUser }) {
         </div>
       </div>
 
-      {/* Section 4: Enough Number */}
+      {/* Section 4: Profit First (only when Business context exists) */}
+      {hasBusinessContext && (
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <PieChart className="h-5 w-5 text-amber-500" />
+            <h2 className="text-lg font-bold text-slate-100">Profit First</h2>
+          </div>
+
+          {/* Toggle */}
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-sm text-slate-200">Show allocation view on Home tab</p>
+              <p className="text-xs text-slate-500">See how your business revenue is distributed</p>
+            </div>
+            <button
+              type="button"
+              onClick={togglePfEnabled}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                pfEnabled ? 'bg-amber-500' : 'bg-slate-700'
+              }`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-slate-100 transition-transform ${
+                pfEnabled ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
+
+          {/* Target Percentages (only when enabled) */}
+          {pfEnabled && (
+            <div className="space-y-4 mt-4 pt-4 border-t border-slate-800">
+              <p className="text-sm text-slate-300 font-medium">Target Allocation Percentages</p>
+
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { key: 'profit', label: 'Profit' },
+                  { key: 'owners_pay', label: "Owner's Pay" },
+                  { key: 'tax_reserve', label: 'Tax Reserve' },
+                  { key: 'operating_expenses', label: 'Operating Expenses' },
+                ].map(({ key, label }) => (
+                  <div key={key}>
+                    <Label className="text-slate-400 text-xs">{label}</Label>
+                    <div className="relative mt-1">
+                      <Input
+                        type="number"
+                        step="1"
+                        min="0"
+                        max="100"
+                        value={pfTargets[key]}
+                        onChange={(e) => updatePfTarget(key, e.target.value)}
+                        className="pr-8 bg-slate-800 border-slate-700 text-white text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Total */}
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-400">Total</span>
+                <span className={`font-semibold ${pfTotal === 100 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {pfTotal}%
+                </span>
+              </div>
+              {pfTotal !== 100 && (
+                <p className="text-xs text-red-400 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" /> Targets should add up to 100%
+                </p>
+              )}
+
+              <p className="text-xs text-slate-500 mt-2">
+                Based on Mike Michalowicz's Profit First method. These show how your business revenue
+                is allocated vs. your targets. The mirror shows your reality — it doesn't enforce rules.
+              </p>
+            </div>
+          )}
+
+          {pfChanged && (
+            <Button type="button" onClick={() => savePfMutation.mutate()}
+              className="mt-4 bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[40px]"
+              disabled={savePfMutation.isPending}>
+              {savePfMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
+              Save
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Section 5: Enough Number */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
         <h2 className="text-lg font-bold text-slate-100 mb-4">Enough Number</h2>
 
-        {/* Mode toggle */}
         <div className="flex gap-2 mb-4">
           <button type="button" onClick={() => { setEnoughMode('auto'); setEnoughChanged(true); }}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors min-h-[40px] ${
@@ -675,7 +870,7 @@ export default function FinanceSettings({ profile, currentUser }) {
         )}
       </div>
 
-      {/* Section 5: Danger Zone */}
+      {/* Section 6: Danger Zone */}
       <div className="bg-slate-900 border border-red-500/30 rounded-xl p-6">
         <h2 className="text-lg font-bold text-red-400 mb-2">Danger Zone</h2>
         <p className="text-sm text-slate-400 mb-4">
@@ -686,6 +881,117 @@ export default function FinanceSettings({ profile, currentUser }) {
           <Trash2 className="h-4 w-4 mr-2" /> Delete Workspace
         </Button>
       </div>
+
+      {/* ═══ Dialogs ═══ */}
+
+      {/* Template Picker Dialog */}
+      <Dialog open={templatePickerOpen} onOpenChange={setTemplatePickerOpen}>
+        <DialogContent className="bg-slate-900 border-slate-800 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-slate-100">
+              {templateStep === 'choose' && 'Add a Context'}
+              {templateStep === 'business_name' && 'Name Your Business Context'}
+              {templateStep === 'custom_name' && 'Create Custom Context'}
+            </DialogTitle>
+          </DialogHeader>
+
+          {templateStep === 'choose' && (
+            <div className="space-y-3">
+              {/* Rental Property */}
+              <button type="button" onClick={handleAddRental}
+                disabled={addContextMutation.isPending}
+                className="w-full bg-slate-800 border border-slate-700 hover:border-amber-500/50 rounded-xl p-4 text-left transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                    <Home className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-100">Rental Property</p>
+                    <p className="text-xs text-slate-400">Schedule E categories pre-filled</p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Business / LLC */}
+              <button type="button" onClick={() => setTemplateStep('business_name')}
+                className="w-full bg-slate-800 border border-slate-700 hover:border-amber-500/50 rounded-xl p-4 text-left transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                    <Briefcase className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-100">Business / LLC</p>
+                    <p className="text-xs text-slate-400">Schedule C categories + Profit First view</p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Custom */}
+              <button type="button" onClick={() => setTemplateStep('custom_name')}
+                className="w-full bg-slate-800 border border-slate-700 hover:border-amber-500/50 rounded-xl p-4 text-left transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                    <PenLine className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-100">Custom</p>
+                    <p className="text-xs text-slate-400">Start blank, add your own categories</p>
+                  </div>
+                </div>
+              </button>
+            </div>
+          )}
+
+          {templateStep === 'business_name' && (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-slate-400">Business name</Label>
+                <Input value={businessNameInput}
+                  onChange={(e) => setBusinessNameInput(e.target.value)}
+                  className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  placeholder="My Business" autoFocus />
+              </div>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => setTemplateStep('choose')}
+                  className="border-slate-600 text-slate-300 hover:bg-transparent min-h-[40px]">Back</Button>
+                <Button type="button" onClick={handleAddBusiness}
+                  className="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[40px]"
+                  disabled={!businessNameInput.trim() || addContextMutation.isPending}>
+                  {addContextMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create'}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {templateStep === 'custom_name' && (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-slate-400">Context name</Label>
+                <Input value={customNameInput}
+                  onChange={(e) => setCustomNameInput(e.target.value)}
+                  className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  placeholder="e.g. Side Hustle" autoFocus />
+              </div>
+              <div>
+                <Label className="text-slate-400">Tax schedule (optional)</Label>
+                <select value={customTaxInput} onChange={(e) => setCustomTaxInput(e.target.value)}
+                  className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500">
+                  {TAX_SCHEDULES.map((ts) => <option key={ts.id} value={ts.id}>{ts.label}</option>)}
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => setTemplateStep('choose')}
+                  className="border-slate-600 text-slate-300 hover:bg-transparent min-h-[40px]">Back</Button>
+                <Button type="button" onClick={handleAddCustom}
+                  className="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[40px]"
+                  disabled={!customNameInput.trim() || addContextMutation.isPending}>
+                  {addContextMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
@@ -714,7 +1020,7 @@ export default function FinanceSettings({ profile, currentUser }) {
             <div className="flex gap-3">
               <div className="flex-1" />
               <Button type="button" variant="outline" onClick={() => setDeleteConfirmOpen(false)}
-                className="border-slate-600 text-slate-300 min-h-[44px]">Cancel</Button>
+                className="border-slate-600 text-slate-300 hover:bg-transparent min-h-[44px]">Cancel</Button>
               <Button type="button"
                 onClick={() => deleteWorkspaceMutation.mutate()}
                 disabled={deleteConfirmText !== 'delete' || deleteWorkspaceMutation.isPending}

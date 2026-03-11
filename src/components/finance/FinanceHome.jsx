@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DollarSign, TrendingUp, CalendarClock, Landmark, X, Info } from 'lucide-react';
+import { DollarSign, TrendingUp, CalendarClock, Landmark, X, Info, PieChart } from 'lucide-react';
 import TransactionForm from './TransactionForm';
 
 const fmt = (n) =>
@@ -191,6 +191,36 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
       .sort((a, b) => (a.next_date || '').localeCompare(b.next_date || ''))
       .slice(0, 5);
   }, [activeRecurring]);
+
+  // ─── Profit First helpers ───────────────────────
+  const businessContext = useMemo(() => {
+    const entries = Object.entries(profile?.contexts || {});
+    return entries.find(([, ctx]) => ctx.tax_schedule === 'schedule_c' && ctx.is_active);
+  }, [profile?.contexts]);
+
+  const pfEnabled = !!profile?.profit_first_enabled && !!businessContext;
+  const pfTargets = profile?.profit_first_targets || { profit: 5, owners_pay: 50, tax_reserve: 15, operating_expenses: 30 };
+
+  const pfData = useMemo(() => {
+    if (!pfEnabled || !businessContext) return null;
+    const [ctxId, ctx] = businessContext;
+    const bizTxns = monthTransactions.filter((t) => t.context === ctxId);
+    const bizIncome = bizTxns.filter((t) => t.type === 'income').reduce((s, t) => s + (t.amount || 0), 0);
+    const bizExpenses = bizTxns.filter((t) => t.type === 'expense').reduce((s, t) => s + (t.amount || 0), 0);
+    const opExPct = bizIncome > 0 ? (bizExpenses / bizIncome) * 100 : 0;
+    const profitPct = bizIncome > 0 ? 100 - opExPct : 0;
+    return {
+      label: ctx.label,
+      revenue: bizIncome,
+      hasTxns: bizTxns.length > 0,
+      rows: [
+        { key: 'profit', label: 'Profit', actual: profitPct, target: pfTargets.profit },
+        { key: 'owners_pay', label: "Owner's Pay", actual: 0, target: pfTargets.owners_pay },
+        { key: 'tax_reserve', label: 'Tax Reserve', actual: 0, target: pfTargets.tax_reserve },
+        { key: 'operating_expenses', label: 'Operating Expenses', actual: opExPct, target: pfTargets.operating_expenses },
+      ],
+    };
+  }, [pfEnabled, businessContext, monthTransactions, pfTargets]);
 
   // ─── Context helpers ────────────────────────────
   const contextCount = Object.keys(profile?.contexts || {}).length;
@@ -391,6 +421,68 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
           </p>
         )}
       </div>
+
+      {/* Card 5: Profit First Allocation (only when enabled + business context) */}
+      {pfData && (
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <PieChart className="h-5 w-5 text-amber-500" />
+              <h2 className="text-lg font-bold text-slate-100">Profit First — {pfData.label}</h2>
+            </div>
+            <button type="button" onClick={() => onNavigateTab?.('settings')}
+              className="text-xs text-amber-500 hover:text-amber-400">
+              Targets
+            </button>
+          </div>
+
+          {!pfData.hasTxns ? (
+            <p className="text-sm text-slate-500">
+              No business transactions this month. Add income and expenses to see your allocation.
+            </p>
+          ) : (
+            <>
+              <p className="text-xs text-slate-400 mb-4">
+                {monthName} revenue: <span className="text-emerald-400 font-medium">{fmt(pfData.revenue)}</span>
+              </p>
+              <div className="space-y-3">
+                {pfData.rows.map((row) => {
+                  const barColor =
+                    row.actual >= row.target
+                      ? 'bg-emerald-500'
+                      : row.actual >= row.target - 5
+                        ? 'bg-amber-500'
+                        : 'bg-red-500';
+                  const textColor =
+                    row.actual >= row.target
+                      ? 'text-emerald-400'
+                      : row.actual >= row.target - 5
+                        ? 'text-amber-500'
+                        : 'text-red-400';
+                  return (
+                    <div key={row.key}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-slate-300">{row.label}</span>
+                        <span className="text-xs text-slate-400">
+                          <span className={textColor}>{row.actual.toFixed(0)}%</span>
+                          {' / '}
+                          <span className="text-slate-500">{row.target}%</span>
+                        </span>
+                      </div>
+                      <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${barColor} rounded-full transition-all`}
+                          style={{ width: `${Math.min(100, row.actual)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Quick Actions — Expense primary, Income secondary */}
       <div className="flex gap-3">
