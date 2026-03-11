@@ -4,9 +4,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import VoiceInput from './VoiceInput';
 import FieldServiceTimeline from './FieldServiceTimeline';
+import FieldServicePayments from './FieldServicePayments';
+import FieldServicePermits from './FieldServicePermits';
+import FieldServicePhotoGallery from './FieldServicePhotoGallery';
+import FieldServiceClientPortal from './FieldServiceClientPortal';
 import {
   FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
+  Eye, Camera, Shield,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -50,7 +55,7 @@ const EMPTY_PROJECT = {
 
 export default function FieldServiceProjects({ profile }) {
   const queryClient = useQueryClient();
-  const [view, setView] = useState('list'); // list | detail | form | timeline
+  const [view, setView] = useState('list'); // list | detail | form | timeline | client_portal
   const [timelineProjectId, setTimelineProjectId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [filter, setFilter] = useState('all');
@@ -141,6 +146,17 @@ export default function FieldServiceProjects({ profile }) {
     () => projects.find((p) => p.id === selectedId),
     [projects, selectedId]
   );
+
+  // ─── Query: Estimate for selected project ─────
+  const { data: selectedEstimate } = useQuery({
+    queryKey: ['fs-project-estimate', selectedProject?.estimate_id],
+    queryFn: async () => {
+      if (!selectedProject?.estimate_id) return null;
+      const list = await base44.entities.FSEstimate.filter({ id: selectedProject.estimate_id });
+      return Array.isArray(list) && list[0] ? list[0] : null;
+    },
+    enabled: !!selectedProject?.estimate_id,
+  });
 
   // ─── Mutations ────────────────────────────────
   const createProject = useMutation({
@@ -257,6 +273,17 @@ export default function FieldServiceProjects({ profile }) {
       <div className="flex items-center justify-center py-16">
         <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
       </div>
+    );
+  }
+
+  // ═══ CLIENT PORTAL VIEW ══════════════════════════
+  if (view === 'client_portal' && selectedProject) {
+    return (
+      <FieldServiceClientPortal
+        project={selectedProject}
+        profile={profile}
+        onBack={() => setView('detail')}
+      />
     );
   }
 
@@ -605,6 +632,23 @@ export default function FieldServiceProjects({ profile }) {
           </div>
         )}
 
+        {/* Payments */}
+        <FieldServicePayments
+          projectId={proj.id}
+          profileId={profile?.id}
+          estimateTotal={selectedEstimate?.total || 0}
+          budgetTotal={proj.total_budget || 0}
+        />
+
+        {/* Permits */}
+        <FieldServicePermits projectId={proj.id} profileId={profile?.id} />
+
+        {/* Photo Gallery */}
+        <FieldServicePhotoGallery
+          projectId={proj.id}
+          phases={profile?.phase_labels || ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final']}
+        />
+
         {/* Recent Logs */}
         {projectLogs.length > 0 && (
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
@@ -653,16 +697,25 @@ export default function FieldServiceProjects({ profile }) {
           </div>
         )}
 
-        {/* Timeline Link */}
-        {projectLogs.length > 0 && (
+        {/* Client Portal + Timeline Links */}
+        <div className="flex gap-3">
           <button
             type="button"
-            onClick={() => { setTimelineProjectId(proj.id); setView('timeline'); }}
-            className="w-full flex items-center justify-center gap-2 border border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:bg-transparent rounded-xl py-3 transition-colors text-sm font-medium min-h-[44px]"
+            onClick={() => setView('client_portal')}
+            className="flex-1 flex items-center justify-center gap-2 border border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:bg-transparent rounded-xl py-3 transition-colors text-sm font-medium min-h-[44px]"
           >
-            <GitBranch className="h-4 w-4" /> View Project Timeline
+            <Eye className="h-4 w-4" /> View as Client
           </button>
-        )}
+          {projectLogs.length > 0 && (
+            <button
+              type="button"
+              onClick={() => { setTimelineProjectId(proj.id); setView('timeline'); }}
+              className="flex-1 flex items-center justify-center gap-2 border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent rounded-xl py-3 transition-colors text-sm font-medium min-h-[44px]"
+            >
+              <GitBranch className="h-4 w-4" /> Timeline
+            </button>
+          )}
+        </div>
 
         {/* Action Bar */}
         <div className="flex gap-3">

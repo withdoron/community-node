@@ -66,6 +66,8 @@ export default function FieldServiceSettings({ profile, currentUser }) {
   const [tagline, setTagline] = useState(profile?.tagline || '');
   const [hourlyRate, setHourlyRate] = useState(profile?.hourly_rate?.toString() || '');
   const [brandColor, setBrandColor] = useState(profile?.brand_color || '#f59e0b');
+  const [logoUrl, setLogoUrl] = useState(profile?.logo_url || '');
+  const [logoUploading, setLogoUploading] = useState(false);
 
   // ─── Workers state ───────────────────────────────
   const [workers, setWorkers] = useState(profile?.workers_json || []);
@@ -98,6 +100,7 @@ export default function FieldServiceSettings({ profile, currentUser }) {
       setTagline(profile.tagline || '');
       setHourlyRate(profile.hourly_rate?.toString() || '');
       setBrandColor(profile.brand_color || '#f59e0b');
+      setLogoUrl(profile.logo_url || '');
       setWorkers(profile.workers_json || []);
       setDefaultTerms(profile.default_terms || '');
       setPhases(profile.phase_labels || ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final']);
@@ -119,6 +122,7 @@ export default function FieldServiceSettings({ profile, currentUser }) {
         tagline: tagline.trim(),
         hourly_rate: parseFloat(hourlyRate) || 0,
         brand_color: brandColor.trim() || null,
+        logo_url: logoUrl.trim() || null,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
@@ -328,6 +332,59 @@ export default function FieldServiceSettings({ profile, currentUser }) {
               className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
               placeholder="A short description of your business"
             />
+          </div>
+
+          <div>
+            <Label className="text-slate-400">Business Logo</Label>
+            <div className="flex items-center gap-4 mt-1">
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo" className="h-16 w-16 rounded-lg object-cover border border-slate-700" />
+              ) : (
+                <div className="h-16 w-16 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
+                  <Camera className="h-5 w-5 text-slate-500" />
+                </div>
+              )}
+              <div className="flex-1 space-y-2">
+                <div className="flex gap-2">
+                  <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 transition-colors text-sm cursor-pointer min-h-[44px]">
+                    {logoUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                    {logoUploading ? 'Uploading...' : 'Upload Logo'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={logoUploading}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setLogoUploading(true);
+                        try {
+                          const result = await base44.storage.uploadFile(file);
+                          if (result?.file_url) {
+                            setLogoUrl(result.file_url);
+                            toast.success('Logo uploaded');
+                          }
+                        } catch (err) {
+                          toast.error('Upload failed: ' + (err?.message || 'Unknown error'));
+                        } finally {
+                          setLogoUploading(false);
+                        }
+                      }}
+                    />
+                  </label>
+                  {logoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setLogoUrl('')}
+                      className="px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-red-400 hover:border-red-400 transition-colors text-sm min-h-[44px]"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500">Square image recommended (PNG or JPG)</p>
+              </div>
+            </div>
           </div>
 
           <div>

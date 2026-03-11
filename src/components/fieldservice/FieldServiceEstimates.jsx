@@ -128,12 +128,17 @@ function EstimatePreview({ estimate, profile, onBack, onEdit }) {
 
         {/* Contractor header */}
         <div className="flex justify-between items-start mb-8 border-b border-slate-200 pb-6">
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: brandColor }}>
-              {profile?.business_name || 'Business Name'}
-            </h1>
-            {profile?.license_number && <p className="text-sm text-slate-500">Lic# {profile.license_number}</p>}
-            {profile?.service_area && <p className="text-sm text-slate-500">{profile.service_area}</p>}
+          <div className="flex items-center gap-4">
+            {profile?.logo_url ? (
+              <img src={profile.logo_url} alt="" className="h-14 w-14 rounded-lg object-cover" />
+            ) : null}
+            <div>
+              <h1 className="text-2xl font-bold" style={{ color: brandColor }}>
+                {profile?.business_name || 'Business Name'}
+              </h1>
+              {profile?.license_number && <p className="text-sm text-slate-500">Lic# {profile.license_number}</p>}
+              {profile?.service_area && <p className="text-sm text-slate-500">{profile.service_area}</p>}
+            </div>
           </div>
           <div className="text-right text-sm text-slate-600">
             {profile?.phone && <p>{profile.phone}</p>}

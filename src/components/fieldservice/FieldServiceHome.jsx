@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { HardHat, FolderOpen, ClipboardList, Calendar, FileText } from 'lucide-react';
+import { HardHat, FolderOpen, ClipboardList, Calendar, FileText, DollarSign } from 'lucide-react';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -77,6 +77,17 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     enabled: !!profile?.id,
   });
 
+  // ─── Query: Payments received ──────────────────
+  const { data: payments = [] } = useQuery({
+    queryKey: ['fs-payments-all', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      const list = await base44.entities.FSPayment.filter({ profile_id: profile.id });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!profile?.id,
+  });
+
   // ─── Derived Stats ──────────────────────────────
   const activeProjects = useMemo(
     () => projects.filter((p) => p.status === 'active'),
@@ -86,6 +97,13 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
   const outstandingEstimates = useMemo(
     () => estimates.filter((e) => e.status === 'sent' || e.status === 'viewed'),
     [estimates]
+  );
+
+  const paymentsReceived = useMemo(
+    () => payments
+      .filter((p) => p.status === 'received' || p.status === 'cleared')
+      .reduce((s, p) => s + (p.amount || 0), 0),
+    [payments]
   );
 
   const monthTotal = useMemo(() => {
@@ -135,10 +153,10 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
 
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Calendar className="h-4 w-4 text-amber-500" />
-            <span className="text-xs text-slate-400">Recent Logs</span>
+            <DollarSign className="h-4 w-4 text-amber-500" />
+            <span className="text-xs text-slate-400">Payments Received</span>
           </div>
-          <p className="text-2xl font-bold text-slate-100">{recentLogs.length}</p>
+          <p className="text-2xl font-bold text-emerald-400">{fmt(paymentsReceived)}</p>
         </div>
       </div>
 

@@ -152,12 +152,19 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
       <article className="report-content">
         {/* Header */}
         <header className="mb-8 print:mb-6">
-          <h1 className="text-2xl font-bold text-slate-100 print:text-black">
-            {profile?.business_name || 'Field Service'}
-          </h1>
-          <p className="text-amber-500 text-lg font-medium mt-1 print:text-amber-600">
-            Daily Progress Report
-          </p>
+          <div className="flex items-center gap-4">
+            {profile?.logo_url ? (
+              <img src={profile.logo_url} alt="" className="h-14 w-14 rounded-lg object-cover print:border print:border-gray-300" />
+            ) : null}
+            <div>
+              <h1 className="text-2xl font-bold text-slate-100 print:text-black">
+                {profile?.business_name || 'Field Service'}
+              </h1>
+              <p className="text-amber-500 text-lg font-medium mt-1 print:text-amber-600">
+                Daily Progress Report
+              </p>
+            </div>
+          </div>
           {(profile?.license_number || profile?.phone || profile?.email) && (
             <p className="text-slate-500 text-sm mt-2 print:text-gray-500">
               {[
