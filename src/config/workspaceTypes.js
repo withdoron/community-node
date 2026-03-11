@@ -17,6 +17,10 @@ import {
   ArrowDownUp,
   Repeat,
   Landmark,
+  HardHat,
+  ClipboardList,
+  FolderOpen,
+  FileText,
 } from 'lucide-react';
 import DashboardHome from '@/components/dashboard/DashboardHome';
 import AccessWindowManager from '@/components/dashboard/AccessWindowManager';
@@ -34,6 +38,11 @@ import FinanceActivity from '@/components/finance/FinanceActivity';
 import FinanceBills from '@/components/finance/FinanceBills';
 import FinanceDebts from '@/components/finance/FinanceDebts';
 import FinanceSettings from '@/components/finance/FinanceSettings';
+import FieldServiceHome from '@/components/fieldservice/FieldServiceHome';
+import FieldServiceLog from '@/components/fieldservice/FieldServiceLog';
+import FieldServiceProjects from '@/components/fieldservice/FieldServiceProjects';
+import FieldServiceEstimates from '@/components/fieldservice/FieldServiceEstimates';
+import FieldServiceSettings from '@/components/fieldservice/FieldServiceSettings';
 
 // ——— Archetype display titles (subtitle under business name) ———
 export const ARCHETYPE_TITLES = {
@@ -189,6 +198,28 @@ export const WORKSPACE_TYPES = {
       { id: 'bills', label: 'Bills & Income', icon: Repeat, component: FinanceBills, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
       { id: 'debts', label: 'Debts', icon: Landmark, component: FinanceDebts, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
       { id: 'settings', label: 'Settings', icon: Settings, component: FinanceSettings, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
+    ],
+  },
+  fieldservice: {
+    id: 'fieldservice',
+    label: 'Field Service',
+    icon: 'HardHat',
+    description: 'Project management for contractors',
+    archetypeSupport: false,
+    networkAffinity: false,
+    available: true,
+    createWizard: 'FieldServiceOnboarding',
+    roles: {
+      owner: 'Owner',
+      worker: 'Worker',
+      client: 'Client',
+    },
+    tabs: [
+      { id: 'home', label: 'Home', icon: LayoutDashboard, component: FieldServiceHome, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
+      { id: 'log', label: 'Log', icon: ClipboardList, component: FieldServiceLog, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
+      { id: 'projects', label: 'Projects', icon: FolderOpen, component: FieldServiceProjects, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
+      { id: 'estimates', label: 'Estimates', icon: FileText, component: FieldServiceEstimates, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
+      { id: 'settings', label: 'Settings', icon: Settings, component: FieldServiceSettings, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
     ],
   },
 };
