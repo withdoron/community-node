@@ -19,6 +19,7 @@ import UserOnboarding from './pages/UserOnboarding';
 import TeamOnboarding from './pages/TeamOnboarding';
 import FinanceOnboarding from './pages/FinanceOnboarding';
 import FieldServiceOnboarding from './pages/FieldServiceOnboarding';
+import PropertyManagementOnboarding from './pages/PropertyManagementOnboarding';
 import JoinTeam from './pages/JoinTeam';
 import __Layout from './Layout.jsx';
 
@@ -45,6 +46,7 @@ export const PAGES = {
     "TeamOnboarding": TeamOnboarding,
     "FinanceOnboarding": FinanceOnboarding,
     "FieldServiceOnboarding": FieldServiceOnboarding,
+    "PropertyManagementOnboarding": PropertyManagementOnboarding,
     "JoinTeam": JoinTeam,
 }
 

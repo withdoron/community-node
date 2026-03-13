@@ -21,6 +21,12 @@ import {
   ClipboardList,
   FolderOpen,
   FileText,
+  Building,
+  Building2,
+  Home,
+  Wrench,
+  UserCheck,
+  Megaphone,
 } from 'lucide-react';
 import DashboardHome from '@/components/dashboard/DashboardHome';
 import AccessWindowManager from '@/components/dashboard/AccessWindowManager';
@@ -43,6 +49,14 @@ import FieldServiceLog from '@/components/fieldservice/FieldServiceLog';
 import FieldServiceProjects from '@/components/fieldservice/FieldServiceProjects';
 import FieldServiceEstimates from '@/components/fieldservice/FieldServiceEstimates';
 import FieldServiceSettings from '@/components/fieldservice/FieldServiceSettings';
+import PropertyManagementHome from '@/components/propertymgmt/PropertyManagementHome';
+import PropertyManagementProperties from '@/components/propertymgmt/PropertyManagementProperties';
+import PropertyManagementOwners from '@/components/propertymgmt/PropertyManagementOwners';
+import PropertyManagementFinances from '@/components/propertymgmt/PropertyManagementFinances';
+import PropertyManagementMaintenance from '@/components/propertymgmt/PropertyManagementMaintenance';
+import PropertyManagementPeople from '@/components/propertymgmt/PropertyManagementPeople';
+import PropertyManagementListings from '@/components/propertymgmt/PropertyManagementListings';
+import PropertyManagementSettings from '@/components/propertymgmt/PropertyManagementSettings';
 
 // ——— Archetype display titles (subtitle under business name) ———
 export const ARCHETYPE_TITLES = {
@@ -220,6 +234,32 @@ export const WORKSPACE_TYPES = {
       { id: 'projects', label: 'Projects', icon: FolderOpen, component: FieldServiceProjects, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
       { id: 'estimates', label: 'Estimates', icon: FileText, component: FieldServiceEstimates, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
       { id: 'settings', label: 'Settings', icon: Settings, component: FieldServiceSettings, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
+    ],
+  },
+  property_management: {
+    id: 'property_management',
+    label: 'Property Management',
+    icon: 'Building2',
+    description: 'Manage rental properties, tenants, and maintenance',
+    archetypeSupport: false,
+    networkAffinity: false,
+    available: true,
+    createWizard: 'PropertyManagementOnboarding',
+    roles: {
+      admin: 'Admin',
+      owner: 'Property Manager',
+      staff: 'Owner',
+      member: 'Tenant',
+    },
+    tabs: [
+      { id: 'home', label: 'Home', icon: Home, component: PropertyManagementHome, getProps: (scope) => scope },
+      { id: 'properties', label: 'Properties', icon: Building, component: PropertyManagementProperties, getProps: (scope) => scope },
+      { id: 'owners', label: 'Owners', icon: Users, component: PropertyManagementOwners, getProps: (scope) => scope },
+      { id: 'finances', label: 'Finances', icon: DollarSign, component: PropertyManagementFinances, getProps: (scope) => scope },
+      { id: 'maintenance', label: 'Maintenance', icon: Wrench, component: PropertyManagementMaintenance, getProps: (scope) => scope },
+      { id: 'people', label: 'People', icon: UserCheck, component: PropertyManagementPeople, getProps: (scope) => scope },
+      { id: 'listings', label: 'Listings', icon: Megaphone, component: PropertyManagementListings, getProps: (scope) => scope },
+      { id: 'settings', label: 'Settings', icon: Settings, component: PropertyManagementSettings, getProps: (scope) => scope },
     ],
   },
 };

@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Store, Wallet, Ticket, Plus, Loader2, Users, DollarSign, HardHat } from "lucide-react";
+import { ArrowLeft, Store, Wallet, Ticket, Plus, Loader2, Users, DollarSign, HardHat, Building2 } from "lucide-react";
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { useRole } from '@/hooks/useRole';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
@@ -41,6 +41,7 @@ export default function BusinessDashboard() {
   const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [selectedFinanceId, setSelectedFinanceId] = useState(null);
   const [selectedFieldServiceId, setSelectedFieldServiceId] = useState(null);
+  const [selectedPropertyMgmtId, setSelectedPropertyMgmtId] = useState(null);
   const [typePickerOpen, setTypePickerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [checkInEvent, setCheckInEvent] = useState(null);
@@ -157,6 +158,7 @@ export default function BusinessDashboard() {
       setSelectedTeamId(null);
       setSelectedFinanceId(null);
       setSelectedFieldServiceId(null);
+      setSelectedPropertyMgmtId(null);
       setActiveTab('home');
       setSearchParams({}, { replace: true });
       return;
@@ -167,6 +169,7 @@ export default function BusinessDashboard() {
       setSelectedBusinessId(null);
       setSelectedFinanceId(null);
       setSelectedFieldServiceId(null);
+      setSelectedPropertyMgmtId(null);
       setSearchParams({}, { replace: true });
     }
     const financeId = searchParams.get('finance');
@@ -175,6 +178,7 @@ export default function BusinessDashboard() {
       setSelectedBusinessId(null);
       setSelectedTeamId(null);
       setSelectedFieldServiceId(null);
+      setSelectedPropertyMgmtId(null);
       setSearchParams({}, { replace: true });
     }
     const fsId = searchParams.get('fieldservice');
@@ -183,6 +187,16 @@ export default function BusinessDashboard() {
       setSelectedBusinessId(null);
       setSelectedTeamId(null);
       setSelectedFinanceId(null);
+      setSelectedPropertyMgmtId(null);
+      setSearchParams({}, { replace: true });
+    }
+    const pmId = searchParams.get('property_management');
+    if (pmId) {
+      setSelectedPropertyMgmtId(pmId);
+      setSelectedBusinessId(null);
+      setSelectedTeamId(null);
+      setSelectedFinanceId(null);
+      setSelectedFieldServiceId(null);
       setSearchParams({}, { replace: true });
     }
   }, [searchParams, setSearchParams]);
@@ -282,6 +296,17 @@ export default function BusinessDashboard() {
     enabled: !!currentUser?.id,
   });
 
+  // Fetch property management profiles for current user
+  const { data: propertyMgmtProfiles = [], isLoading: pmLoading } = useQuery({
+    queryKey: ['pm-profiles', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      const list = await base44.entities.PMPropertyProfile.filter({ user_id: currentUser.id });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!currentUser?.id,
+  });
+
   // Fetch event counts for each business
   const { data: eventCounts = {} } = useQuery({
     queryKey: ['business-event-counts', associatedBusinesses.map(b => b.id)],
@@ -366,7 +391,7 @@ export default function BusinessDashboard() {
     },
   });
 
-  const isLoading = userLoading || businessesLoading || membershipsLoading || teamsLoading || financeLoading || fsLoading;
+  const isLoading = userLoading || businessesLoading || membershipsLoading || teamsLoading || financeLoading || fsLoading || pmLoading;
 
   const getUserRole = (business) => {
     if (business?.owner_user_id === currentUser?.id) return 'owner';
@@ -374,7 +399,7 @@ export default function BusinessDashboard() {
     return 'none';
   };
 
-  const TYPE_ICON_MAP = { Users, Store, DollarSign, HardHat };
+  const TYPE_ICON_MAP = { Users, Store, DollarSign, HardHat, Building2 };
 
   const renderTypePickerModal = () => (
     <Dialog open={typePickerOpen} onOpenChange={setTypePickerOpen}>
@@ -391,6 +416,7 @@ export default function BusinessDashboard() {
               else if (type.id === 'team') navigate(createPageUrl('TeamOnboarding'));
               else if (type.id === 'finance') navigate(createPageUrl('FinanceOnboarding'));
               else if (type.id === 'fieldservice') navigate(createPageUrl('FieldServiceOnboarding'));
+              else if (type.id === 'property_management') navigate(createPageUrl('PropertyManagementOnboarding'));
             };
             return (
               <button
@@ -422,7 +448,7 @@ export default function BusinessDashboard() {
     );
   }
 
-  const hasAnyWorkspace = (associatedBusinesses?.length > 0) || (allTeams?.length > 0) || (financeProfiles?.length > 0) || (fieldServiceProfiles?.length > 0);
+  const hasAnyWorkspace = (associatedBusinesses?.length > 0) || (allTeams?.length > 0) || (financeProfiles?.length > 0) || (fieldServiceProfiles?.length > 0) || (propertyMgmtProfiles?.length > 0);
   const availableTypes = Object.values(WORKSPACE_TYPES).filter((t) => t.available);
 
   // STEP 1: No workspaces — community pulse + explainer + workspace CTA
@@ -470,7 +496,7 @@ export default function BusinessDashboard() {
   }
 
   // STEP 2: Has workspaces but none selected — landing with business + team + finance cards
-  if (!selectedBusinessId && !selectedTeamId && !selectedFinanceId && !selectedFieldServiceId) {
+  if (!selectedBusinessId && !selectedTeamId && !selectedFinanceId && !selectedFieldServiceId && !selectedPropertyMgmtId) {
     return (
       <div className="min-h-screen bg-slate-950">
         {/* Personal Header - "Wallet Strip" */}
@@ -541,7 +567,7 @@ export default function BusinessDashboard() {
                 business={business}
                 userRole={getUserRole(business)}
                 eventCount={eventCounts[business.id] || 0}
-                onClick={() => { setSelectedBusinessId(business.id); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); setActiveTab('home'); }}
+                onClick={() => { setSelectedBusinessId(business.id); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); setSelectedPropertyMgmtId(null); setActiveTab('home'); }}
                 workspaceTypeLabel="Business"
               />
             ))}
@@ -553,8 +579,8 @@ export default function BusinessDashboard() {
                   key={team.id}
                   role="button"
                   tabIndex={0}
-                  onClick={() => { setSelectedTeamId(team.id); setSelectedBusinessId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); setActiveTab('home'); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedTeamId(team.id); setSelectedBusinessId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); setActiveTab('home'); } }}
+                  onClick={() => { setSelectedTeamId(team.id); setSelectedBusinessId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); setSelectedPropertyMgmtId(null); setActiveTab('home'); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedTeamId(team.id); setSelectedBusinessId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); setSelectedPropertyMgmtId(null); setActiveTab('home'); } }}
                   className="bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-6 cursor-pointer transition-colors min-h-[44px]"
                 >
                   <div className="flex items-start gap-4">
@@ -586,8 +612,8 @@ export default function BusinessDashboard() {
                   key={profile.id}
                   role="button"
                   tabIndex={0}
-                  onClick={() => { setSelectedFinanceId(profile.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFieldServiceId(null); setActiveTab('home'); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedFinanceId(profile.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFieldServiceId(null); setActiveTab('home'); } }}
+                  onClick={() => { setSelectedFinanceId(profile.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFieldServiceId(null); setSelectedPropertyMgmtId(null); setActiveTab('home'); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedFinanceId(profile.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFieldServiceId(null); setSelectedPropertyMgmtId(null); setActiveTab('home'); } }}
                   className="bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-6 cursor-pointer transition-colors min-h-[44px]"
                 >
                   <div className="flex items-start gap-4">
@@ -613,8 +639,8 @@ export default function BusinessDashboard() {
                 key={fsProfile.id}
                 role="button"
                 tabIndex={0}
-                onClick={() => { setSelectedFieldServiceId(fsProfile.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setActiveTab('home'); }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedFieldServiceId(fsProfile.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setActiveTab('home'); } }}
+                onClick={() => { setSelectedFieldServiceId(fsProfile.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedPropertyMgmtId(null); setActiveTab('home'); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedFieldServiceId(fsProfile.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedPropertyMgmtId(null); setActiveTab('home'); } }}
                 className="bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-6 cursor-pointer transition-colors min-h-[44px]"
               >
                 <div className="flex items-start gap-4">
@@ -629,6 +655,32 @@ export default function BusinessDashboard() {
                     </div>
                     <p className="text-sm text-slate-400">
                       {fsProfile.service_area || 'Project management for contractors'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {propertyMgmtProfiles.map((pmProfile) => (
+              <div
+                key={pmProfile.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => { setSelectedPropertyMgmtId(pmProfile.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); setActiveTab('home'); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setSelectedPropertyMgmtId(pmProfile.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); setActiveTab('home'); } }}
+                className="bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-6 cursor-pointer transition-colors min-h-[44px]"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                    <Building2 className="h-6 w-6 text-amber-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+                      <h3 className="font-bold text-lg text-slate-100 truncate">{pmProfile.workspace_name || pmProfile.business_name || 'Property Management'}</h3>
+                      <Badge className="bg-amber-500 text-black text-xs">OWNER</Badge>
+                      <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">Property Mgmt</span>
+                    </div>
+                    <p className="text-sm text-slate-400">
+                      {pmProfile.property_type === 'short_term' ? 'Short-term rentals' : pmProfile.property_type === 'both' ? 'Long & short-term rentals' : 'Long-term rentals'}
                     </p>
                   </div>
                 </div>
@@ -677,7 +729,7 @@ export default function BusinessDashboard() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setSelectedTeamId(null); setSelectedBusinessId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); setViewingAsPlayerId(null); }}
+                onClick={() => { setSelectedTeamId(null); setSelectedBusinessId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); setSelectedPropertyMgmtId(null); setViewingAsPlayerId(null); }}
                 className="text-slate-400 hover:text-slate-100 min-h-[44px]"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -766,7 +818,7 @@ export default function BusinessDashboard() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setSelectedFinanceId(null); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFieldServiceId(null); }}
+                onClick={() => { setSelectedFinanceId(null); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFieldServiceId(null); setSelectedPropertyMgmtId(null); }}
                 className="text-slate-400 hover:text-slate-100 min-h-[44px]"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -827,7 +879,7 @@ export default function BusinessDashboard() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setSelectedFieldServiceId(null); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); }}
+                onClick={() => { setSelectedFieldServiceId(null); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedPropertyMgmtId(null); }}
                 className="text-slate-400 hover:text-slate-100 min-h-[44px]"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -875,10 +927,72 @@ export default function BusinessDashboard() {
     );
   }
 
+  // STEP 3e: Property Management workspace selected
+  const selectedPMProfile = propertyMgmtProfiles.find((p) => p.id === selectedPropertyMgmtId);
+  if (selectedPropertyMgmtId && selectedPMProfile) {
+    const pmTabs = WORKSPACE_TYPES.property_management.tabs;
+    const pmScope = { profile: selectedPMProfile, currentUser, onNavigateTab: setActiveTab };
+    return (
+      <div className="min-h-screen bg-slate-950">
+        <div className="bg-slate-900 border-b border-slate-800">
+          <div className="max-w-6xl mx-auto px-6 py-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setSelectedPropertyMgmtId(null); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); }}
+                className="text-slate-400 hover:text-slate-100 min-h-[44px]"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Workspaces
+              </Button>
+              <div className="h-4 w-px bg-slate-700" />
+              <div className="flex items-center gap-3">
+                <Building2 className="h-5 w-5 text-amber-500" />
+                <div>
+                  <h1 className="text-lg font-bold text-slate-100">{selectedPMProfile.workspace_name || selectedPMProfile.business_name || 'Property Management'}</h1>
+                  <p className="text-xs text-slate-400">Property Management</p>
+                </div>
+                <Badge className="ml-2 bg-amber-500 text-black">OWNER</Badge>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1">
+            {pmTabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors min-h-[44px] ${isActive ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          {(() => {
+            const activeTabConfig = pmTabs.find((t) => t.id === activeTab);
+            if (!activeTabConfig) return null;
+            const TabComponent = activeTabConfig.component;
+            const props = activeTabConfig.getProps ? activeTabConfig.getProps(pmScope) : {};
+            return <TabComponent {...props} />;
+          })()}
+        </div>
+      </div>
+    );
+  }
+
   const selectedBusiness = associatedBusinesses.find(b => b.id === selectedBusinessId);
   if (selectedTeamId && !selectedTeam) return null;
   if (selectedFinanceId && !selectedProfile) return null;
   if (selectedFieldServiceId && !selectedFSProfile) return null;
+  if (selectedPropertyMgmtId && !selectedPMProfile) return null;
   if (!selectedBusiness) return null;
 
   // STEP 3b: Business selected — show business workspace
@@ -907,7 +1021,7 @@ export default function BusinessDashboard() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => { setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); }}
+              onClick={() => { setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); setSelectedPropertyMgmtId(null); }}
               className="text-slate-400 hover:text-slate-100"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
