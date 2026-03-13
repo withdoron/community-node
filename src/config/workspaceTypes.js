@@ -27,6 +27,7 @@ import {
   Wrench,
   UserCheck,
   Megaphone,
+  Calculator,
 } from 'lucide-react';
 import DashboardHome from '@/components/dashboard/DashboardHome';
 import AccessWindowManager from '@/components/dashboard/AccessWindowManager';
@@ -56,6 +57,7 @@ import PropertyManagementFinances from '@/components/propertymgmt/PropertyManage
 import PropertyManagementMaintenance from '@/components/propertymgmt/PropertyManagementMaintenance';
 import PropertyManagementPeople from '@/components/propertymgmt/PropertyManagementPeople';
 import PropertyManagementListings from '@/components/propertymgmt/PropertyManagementListings';
+import PropertyManagementSettlements from '@/components/propertymgmt/PropertyManagementSettlements';
 import PropertyManagementSettings from '@/components/propertymgmt/PropertyManagementSettings';
 
 // ——— Archetype display titles (subtitle under business name) ———
@@ -259,6 +261,7 @@ export const WORKSPACE_TYPES = {
       { id: 'owners', label: 'Owners', icon: Users, component: PropertyManagementOwners, getProps: (scope) => scope },
       { id: 'finances', label: 'Finances', icon: DollarSign, component: PropertyManagementFinances, getProps: (scope) => scope },
       { id: 'maintenance', label: 'Maintenance', icon: Wrench, component: PropertyManagementMaintenance, getProps: (scope) => scope },
+      { id: 'settlements', label: 'Settlements', icon: Calculator, component: PropertyManagementSettlements, getProps: (scope) => scope },
       { id: 'people', label: 'People', icon: UserCheck, component: PropertyManagementPeople, getProps: (scope) => scope },
       { id: 'listings', label: 'Listings', icon: Megaphone, component: PropertyManagementListings, getProps: (scope) => scope },
       { id: 'settings', label: 'Settings', icon: Settings, component: PropertyManagementSettings, getProps: (scope) => scope },
