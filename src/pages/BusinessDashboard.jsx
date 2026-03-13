@@ -47,6 +47,7 @@ export default function BusinessDashboard() {
   const [checkInEvent, setCheckInEvent] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
   const [viewingAsPlayerId, setViewingAsPlayerId] = useState(null);
+  const [comingSoonType, setComingSoonType] = useState(null);
 
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -401,43 +402,74 @@ export default function BusinessDashboard() {
 
   const TYPE_ICON_MAP = { Users, Store, DollarSign, HardHat, Building2 };
 
+  const TESTING_MODE_LABELS = { fieldservice: 'contractors', property_management: 'property managers' };
+
   const renderTypePickerModal = () => (
-    <Dialog open={typePickerOpen} onOpenChange={setTypePickerOpen}>
-      <DialogContent className="bg-slate-900 border-slate-800 max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-slate-100">Add workspace</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-3 py-2">
-          {availableTypes.map((type) => {
-            const Icon = TYPE_ICON_MAP[type.icon] || Store;
-            const handleChoose = () => {
-              setTypePickerOpen(false);
-              if (type.id === 'business') navigate(createPageUrl('BusinessOnboarding'));
-              else if (type.id === 'team') navigate(createPageUrl('TeamOnboarding'));
-              else if (type.id === 'finance') navigate(createPageUrl('FinanceOnboarding'));
-              else if (type.id === 'fieldservice') navigate(createPageUrl('FieldServiceOnboarding'));
-              else if (type.id === 'property_management') navigate(createPageUrl('PropertyManagementOnboarding'));
-            };
-            return (
-              <button
-                key={type.id}
-                type="button"
-                onClick={handleChoose}
-                className="flex items-start gap-4 p-4 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-left transition-colors min-h-[44px]"
-              >
-                <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-                  <Icon className="h-5 w-5 text-amber-500" />
-                </div>
-                <div>
-                  <div className="font-semibold text-slate-100">{type.label}</div>
-                  <div className="text-sm text-slate-400">{type.description}</div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={typePickerOpen} onOpenChange={setTypePickerOpen}>
+        <DialogContent className="bg-slate-900 border-slate-800 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-slate-100">Add workspace</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 py-2">
+            {availableTypes.map((type) => {
+              const Icon = TYPE_ICON_MAP[type.icon] || Store;
+              const isTestingLocked = type.testingMode && !isAppAdmin;
+              const handleChoose = () => {
+                if (isTestingLocked) {
+                  setComingSoonType(type);
+                  return;
+                }
+                setTypePickerOpen(false);
+                if (type.id === 'business') navigate(createPageUrl('BusinessOnboarding'));
+                else if (type.id === 'team') navigate(createPageUrl('TeamOnboarding'));
+                else if (type.id === 'finance') navigate(createPageUrl('FinanceOnboarding'));
+                else if (type.id === 'fieldservice') navigate(createPageUrl('FieldServiceOnboarding'));
+                else if (type.id === 'property_management') navigate(createPageUrl('PropertyManagementOnboarding'));
+              };
+              return (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={handleChoose}
+                  className={`relative flex items-start gap-4 p-4 rounded-xl bg-slate-800 border text-left transition-colors min-h-[44px] ${isTestingLocked ? 'border-amber-500/30 hover:border-amber-500/60' : 'border-slate-700 hover:border-amber-500/50'}`}
+                >
+                  {isTestingLocked && (
+                    <span className="absolute top-2 right-3 text-[10px] font-semibold text-amber-500 uppercase tracking-wider">Coming Soon</span>
+                  )}
+                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                    <Icon className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-slate-100">{type.label}</div>
+                    <div className="text-sm text-slate-400">{type.description}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!comingSoonType} onOpenChange={(open) => !open && setComingSoonType(null)}>
+        <DialogContent className="bg-slate-900 border-slate-800 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-slate-100">Coming Soon</DialogTitle>
+          </DialogHeader>
+          <p className="text-slate-300 text-sm leading-relaxed">
+            We're building this with real local {TESTING_MODE_LABELS[comingSoonType?.id] || 'professionals'}. Interested in early access? Reach out at{' '}
+            <a href="mailto:hello@locallane.app" className="text-amber-500 hover:text-amber-400 underline">hello@locallane.app</a>
+          </p>
+          <div className="flex justify-end mt-2">
+            <Button
+              onClick={() => setComingSoonType(null)}
+              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
+            >
+              Got it
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 
   if (isLoading) {

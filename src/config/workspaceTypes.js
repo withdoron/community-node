@@ -222,6 +222,7 @@ export const WORKSPACE_TYPES = {
     archetypeSupport: false,
     networkAffinity: false,
     available: true,
+    testingMode: true,
     createWizard: 'FieldServiceOnboarding',
     roles: {
       owner: 'Owner',
@@ -244,6 +245,7 @@ export const WORKSPACE_TYPES = {
     archetypeSupport: false,
     networkAffinity: false,
     available: true,
+    testingMode: true,
     createWizard: 'PropertyManagementOnboarding',
     roles: {
       admin: 'Admin',
