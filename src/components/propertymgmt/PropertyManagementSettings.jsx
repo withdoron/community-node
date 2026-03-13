@@ -161,8 +161,12 @@ export default function PropertyManagementSettings({ profile, currentUser }) {
       const owners = await base44.entities.PMOwner.filter({ profile_id: profile.id });
       const stakes = await base44.entities.PMOwnershipStake.filter({ profile_id: profile.id });
       const splits = await base44.entities.PMDistributionSplit.filter({ profile_id: profile.id });
+      const listingsData = await base44.entities.PMListing.filter({ profile_id: profile.id });
+      const guestsData = await base44.entities.PMGuest.filter({ profile_id: profile.id });
 
       const toDelete = [
+        ...(Array.isArray(guestsData) ? guestsData : []).map((r) => base44.entities.PMGuest.delete(r.id)),
+        ...(Array.isArray(listingsData) ? listingsData : []).map((r) => base44.entities.PMListing.delete(r.id)),
         ...(Array.isArray(splits) ? splits : []).map((r) => base44.entities.PMDistributionSplit.delete(r.id)),
         ...(Array.isArray(stakes) ? stakes : []).map((r) => base44.entities.PMOwnershipStake.delete(r.id)),
         ...(Array.isArray(owners) ? owners : []).map((r) => base44.entities.PMOwner.delete(r.id)),

@@ -124,19 +124,21 @@
 //          Nuclear option — only used when a user deletes their workspace.
 //
 // INPUT:  { profile_id: string, user_id: string }
-// OUTPUT: { success: boolean, deleted: { groups, properties, owners, expenses, labor, maintenance, settlements, stakes, splits, profile } }
+// OUTPUT: { success: boolean, deleted: { groups, properties, owners, expenses, labor, maintenance, settlements, stakes, splits, listings, guests, profile } }
 //
 // CASCADE ORDER:
-//   1. PMDistributionSplit  — all for profile_id
-//   2. PMOwnershipStake     — all for profile_id
-//   3. PMSettlement          — all for profile_id
-//   4. PMMaintenanceRequest — all for profile_id
-//   5. PMLaborEntry          — all for profile_id
-//   6. PMExpense             — all for profile_id
-//   7. PMOwner              — all for profile_id
-//   8. PMProperty            — all for profile_id
-//   9. PMPropertyGroup       — all for profile_id
-//  10. PMPropertyProfile     — the profile itself
+//   1. PMGuest               — all for profile_id
+//   2. PMListing             — all for profile_id
+//   3. PMDistributionSplit   — all for profile_id
+//   4. PMOwnershipStake      — all for profile_id
+//   5. PMSettlement           — all for profile_id
+//   6. PMMaintenanceRequest  — all for profile_id
+//   7. PMLaborEntry           — all for profile_id
+//   8. PMExpense              — all for profile_id
+//   9. PMOwner               — all for profile_id
+//  10. PMProperty             — all for profile_id
+//  11. PMPropertyGroup        — all for profile_id
+//  12. PMPropertyProfile      — the profile itself
 //
 // SECURITY: Verify user_id matches the profile owner. This is irreversible.
 //

@@ -82,6 +82,28 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
     enabled: !!profile?.id,
   });
 
+  // ─── Query: Listings ──────────────────────────
+  const { data: listings = [] } = useQuery({
+    queryKey: ['pm-listings', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      const list = await base44.entities.PMListing.filter({ profile_id: profile.id });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!profile?.id,
+  });
+
+  // ─── Query: Guests ────────────────────────────
+  const { data: guests = [] } = useQuery({
+    queryKey: ['pm-guests', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      const list = await base44.entities.PMGuest.filter({ profile_id: profile.id });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!profile?.id,
+  });
+
   // ─── Derived Stats ──────────────────────────────
   const totalMonthlyRent = useMemo(
     () => properties.reduce((sum, p) => sum + (p.monthly_rent || 0), 0),
@@ -118,15 +140,28 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
     });
   }, [groups, properties]);
 
-  // Recent activity (last 10 across expenses, labor, maintenance)
+  // Active listings count
+  const activeListings = useMemo(
+    () => listings.filter((l) => l.status === 'active').length,
+    [listings]
+  );
+
+  // Active guests count (confirmed + checked_in)
+  const activeGuests = useMemo(
+    () => guests.filter((g) => g.status === 'confirmed' || g.status === 'checked_in').length,
+    [guests]
+  );
+
+  // Recent activity (last 10 across expenses, labor, maintenance, guests)
   const recentActivity = useMemo(() => {
     const items = [];
     expenses.forEach((e) => items.push({ type: 'expense', date: e.date || e.created_date, data: e }));
     labor.forEach((l) => items.push({ type: 'labor', date: l.date || l.created_date, data: l }));
     maintenance.forEach((m) => items.push({ type: 'maintenance', date: m.reported_date || m.created_date, data: m }));
+    guests.forEach((g) => items.push({ type: 'guest', date: g.check_in || g.created_date, data: g }));
     items.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     return items.slice(0, 10);
-  }, [expenses, labor, maintenance]);
+  }, [expenses, labor, maintenance, guests]);
 
   // Reserve health per group
   const reserveHealth = useMemo(() => {
@@ -210,7 +245,7 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
         </button>
         <button
           type="button"
-          onClick={() => onNavigateTab?.('finances')}
+          onClick={() => onNavigateTab?.('settlements')}
           className="flex items-center gap-2 px-4 py-3 rounded-xl border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent transition-colors text-sm font-medium min-h-[44px]"
         >
           <DollarSign className="h-4 w-4" /> New Settlement
@@ -358,7 +393,9 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
                       ? 'bg-amber-500/20 text-amber-500'
                       : item.type === 'labor'
                         ? 'bg-blue-500/20 text-blue-400'
-                        : 'bg-slate-700 text-slate-400'
+                        : item.type === 'guest'
+                          ? 'bg-green-500/20 text-green-400'
+                          : 'bg-slate-700 text-slate-400'
                   }`}>
                     {item.type}
                   </span>
@@ -367,12 +404,16 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
                   {item.type === 'expense' && `${item.data.category || 'Expense'}: ${item.data.description || ''}`}
                   {item.type === 'labor' && `${item.data.worker_name || 'Labor'}: ${item.data.description || `${item.data.hours || 0}h`}`}
                   {item.type === 'maintenance' && `${item.data.title || 'Maintenance request'}`}
+                  {item.type === 'guest' && `${item.data.guest_name || 'Guest'}: ${item.data.booking_source || 'direct'}`}
                 </p>
                 {item.type === 'expense' && (
                   <span className="text-xs text-amber-500 font-medium">{fmt(item.data.amount)}</span>
                 )}
                 {item.type === 'labor' && (
                   <span className="text-xs text-amber-500 font-medium">{fmt(item.data.total)}</span>
+                )}
+                {item.type === 'guest' && item.data.total_amount > 0 && (
+                  <span className="text-xs text-amber-500 font-medium">{fmt(item.data.total_amount)}</span>
                 )}
               </div>
             ))}
