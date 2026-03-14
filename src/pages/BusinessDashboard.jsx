@@ -605,7 +605,8 @@ export default function BusinessDashboard() {
             ))}
             {allTeams.map((team) => {
               const membership = myTeamMemberships.find((m) => m.team_id === team.id);
-              const roleLabel = team.owner_id === currentUser?.id ? 'HEAD COACH' : (membership?.role === 'assistant_coach' ? 'COACH' : membership?.role === 'player' ? 'PLAYER' : membership?.role === 'parent' ? 'PARENT' : 'MEMBER');
+              const isDesignatedHC = team.head_coach_member_id ? membership?.id === team.head_coach_member_id : team.owner_id === currentUser?.id;
+              const roleLabel = isDesignatedHC ? 'HEAD COACH' : (membership?.role === 'coach' ? 'COACH' : membership?.role === 'assistant_coach' ? 'COACH' : membership?.role === 'player' ? 'PLAYER' : membership?.role === 'parent' ? 'PARENT' : 'MEMBER');
               return (
                 <div
                   key={team.id}
@@ -780,7 +781,8 @@ export default function BusinessDashboard() {
                   const memberRecord = (teamMembers || []).find((m) => m.user_id === currentUser?.id);
                   const role = memberRecord?.role;
                   const isOwner = selectedTeam.owner_id === currentUser?.id;
-                  const badgeText = isOwner || role === 'coach' ? 'HEAD COACH' : role === 'assistant_coach' ? 'COACH' : role === 'player' ? 'PLAYER' : role === 'parent' ? 'PARENT' : 'MEMBER';
+                  const isDesignatedHC = selectedTeam.head_coach_member_id ? memberRecord?.id === selectedTeam.head_coach_member_id : isOwner;
+                  const badgeText = isDesignatedHC ? 'HEAD COACH' : role === 'coach' ? 'COACH' : role === 'assistant_coach' ? 'COACH' : role === 'player' ? 'PLAYER' : role === 'parent' ? 'PARENT' : 'MEMBER';
                   return <Badge className="ml-2 bg-amber-500 text-black">{badgeText}</Badge>;
                 })()}
               </div>

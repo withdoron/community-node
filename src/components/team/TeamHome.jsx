@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Users, BookOpen, Calendar, UserPlus, Share2, MessageSquare, Clock, MapPin, Zap, Trophy, Flame, Heart } from 'lucide-react';
+import { Users, BookOpen, Calendar, UserPlus, Share2, MessageSquare, Clock, MapPin, Zap, Trophy, Flame, Heart, Shield } from 'lucide-react';
 import usePlayerStats from '@/hooks/usePlayerStats';
 import QuizMode from './QuizMode';
 
@@ -156,6 +156,17 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
   const playerPosition = viewingAsMember?.position || members.find((m) => m.user_id === currentUserId)?.position || null;
   const [quizModeOpen, setQuizModeOpen] = useState(false);
 
+  // Head coach: prefer designated head_coach_member_id, fall back to owner's roster record
+  const headCoachName = useMemo(() => {
+    if (team?.head_coach_member_id) {
+      const designated = members.find((m) => m.id === team.head_coach_member_id);
+      if (designated) return designated.jersey_name || 'Coach';
+    }
+    // Fallback: find the owner's roster member
+    const ownerMember = members.find((m) => m.user_id === team?.owner_id && (m.role === 'coach' || m.role === 'assistant_coach'));
+    return ownerMember?.jersey_name || null;
+  }, [team?.head_coach_member_id, team?.owner_id, members]);
+
   const nextEventWhen = nextEvent ? formatEventWhen(nextEvent.start_date, nextEvent.start_time) : null;
   const nextEventTime = nextEvent && (nextEvent.start_date || nextEvent.start_time)
     ? new Date(nextEvent.start_date + (nextEvent.start_time ? `T${nextEvent.start_time}` : '')).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -234,7 +245,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
           <div className="flex items-center gap-4 mb-4">
             <div className="flex items-center gap-1">
               {[0, 1, 2].map((i) => (
-                <Heart key={i} className="h-4 w-4 text-red-500 fill-red-500" />
+                <Heart key={i} className="h-4 w-4 text-amber-500 fill-amber-500" />
               ))}
             </div>
             <div className="flex items-center gap-1.5">
@@ -327,7 +338,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
         <div className="flex items-center gap-4 mb-4">
           <div className="flex items-center gap-1">
             {[0, 1, 2].map((i) => (
-              <Heart key={i} className="h-4 w-4 text-red-500 fill-red-500" />
+              <Heart key={i} className="h-4 w-4 text-amber-500 fill-amber-500" />
             ))}
           </div>
           <div className="flex items-center gap-1.5">
@@ -358,6 +369,12 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
       {/* Team header */}
       <div>
         <h2 className="text-xl font-bold text-slate-100">{team?.name}</h2>
+        {headCoachName && (
+          <p className="text-sm text-slate-400 flex items-center gap-1.5 mt-1">
+            <Shield className="h-3.5 w-3.5 text-amber-500" />
+            Head Coach: {headCoachName}
+          </p>
+        )}
         {season && season !== '—' && <p className="text-sm text-slate-400">{season}</p>}
       </div>
 

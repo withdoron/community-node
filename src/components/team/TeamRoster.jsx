@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserPlus, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { UserPlus, Pencil, Trash2, Loader2, Shield } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -83,6 +83,16 @@ export default function TeamRoster({ team, members = [], isCoach }) {
     onError: (err) => toast.error(err?.message || 'Failed to save'),
   });
 
+  const setHeadCoach = useMutation({
+    mutationFn: (member) => base44.entities.Team.update(team.id, { head_coach_member_id: member.id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['team', team?.id] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-teams'] });
+      toast.success('Head coach updated');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to update head coach'),
+  });
+
   const deleteMember = useMutation({
     mutationFn: (member) => base44.entities.TeamMember.delete(member.id),
     onSuccess: () => {
@@ -144,7 +154,7 @@ export default function TeamRoster({ team, members = [], isCoach }) {
             onClick={openAdd}
           >
             <UserPlus className="h-4 w-4 mr-2" />
-            Add Player
+            Add to Roster
           </Button>
         </div>
       )}
@@ -191,7 +201,14 @@ export default function TeamRoster({ team, members = [], isCoach }) {
                       {m.position ? <span className="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded">{m.position}</span> : '—'}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={roleBadgeClass(m.role)}>{roleLabel(m.role)}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={roleBadgeClass(m.role)}>{roleLabel(m.role)}</span>
+                        {(m.role === 'coach' || m.role === 'assistant_coach') && team?.head_coach_member_id === m.id && (
+                          <span className="flex items-center gap-0.5 text-xs text-amber-500">
+                            <Shield className="h-3 w-3" /> HC
+                          </span>
+                        )}
+                      </div>
                     </td>
                     {isCoach && (
                       <td className="px-4 py-3">
@@ -289,6 +306,32 @@ export default function TeamRoster({ team, members = [], isCoach }) {
                     <option key={p.id} value={p.id}>{p.jersey_name} {p.jersey_number ? `#${p.jersey_number}` : ''}</option>
                   ))}
                 </select>
+              </div>
+            )}
+            {/* Set as Head Coach — only when editing a coach-role member */}
+            {editingMember && (form.role === 'coach' || form.role === 'assistant_coach') && (
+              <div className="border-t border-slate-800 pt-3">
+                {team?.head_coach_member_id === editingMember.id ? (
+                  <p className="flex items-center gap-1.5 text-xs text-amber-500">
+                    <Shield className="h-3.5 w-3.5" />
+                    This member is the designated Head Coach
+                  </p>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+                    onClick={() => setHeadCoach.mutate(editingMember)}
+                    disabled={setHeadCoach.isPending}
+                  >
+                    {setHeadCoach.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                      <>
+                        <Shield className="h-4 w-4 mr-2" />
+                        Set as Head Coach
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             )}
             <DialogFooter className="gap-2 sm:gap-0">
