@@ -9,6 +9,7 @@ import PlayCreateModal from './PlayCreateModal';
 import StudyMode from './StudyMode';
 import SidelineMode from './SidelineMode';
 import QuizMode from './QuizMode';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
 export default function TeamPlaybook({ team, members = [], isCoach, currentUserId, playerPosition: playerPositionProp }) {
   const queryClient = useQueryClient();
@@ -22,6 +23,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
   const [studyModeInitialPlayId, setStudyModeInitialPlayId] = useState(null);
   const [quizModeOpen, setQuizModeOpen] = useState(false);
   const [quizPlayFilter, setQuizPlayFilter] = useState(null); // array of play IDs or null
+  const [archiveConfirmPlay, setArchiveConfirmPlay] = useState(null);
 
   const { data: plays = [] } = useQuery({
     queryKey: ['plays', team?.id],
@@ -136,9 +138,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
   };
 
   const handleArchive = (play) => {
-    if (window.confirm('Archive this play? It will be removed from the playbook.')) {
-      archiveMutation.mutate(play);
-    }
+    setArchiveConfirmPlay(play);
   };
 
   const handleDelete = (play) => {
@@ -219,10 +219,10 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
             <button
               type="button"
               onClick={() => setSidelineModeOpen(true)}
-              className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
             >
               <Monitor className="h-4 w-4" />
-              Sideline
+              <span className="hidden sm:inline">Sideline</span>
             </button>
           )}
         </div>
@@ -282,6 +282,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           assignments={selectedAssignments}
           isCoach={isCoach}
           playerPosition={playerPosition}
+          teamFormat={team?.format}
           onClose={() => setSelectedPlay(null)}
           onEdit={handleEdit}
           onArchive={handleArchive}
@@ -309,6 +310,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
         defaultSide={side}
         editPlay={editPlay}
         editAssignments={editPlay ? selectedAssignments : []}
+        teamFormat={team?.format}
         onSuccess={() => queryClient.invalidateQueries({ queryKey: ['plays', team?.id] })}
       />
 
@@ -318,6 +320,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           plays={playsForSide}
           playerPosition={playerPosition}
           isCoach={isCoach}
+          teamFormat={team?.format}
           onClose={() => { setStudyModeOpen(false); setStudyModeInitialPlayId(null); }}
           initialIndex={
             studyModeInitialPlayId
@@ -331,6 +334,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
       {sidelineModeOpen && (
         <SidelineMode
           plays={playsForSide}
+          teamFormat={team?.format}
           onClose={() => setSidelineModeOpen(false)}
         />
       )}
@@ -348,6 +352,20 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           initialPlayFilter={quizPlayFilter}
         />
       )}
+
+      {/* Archive confirmation dialog */}
+      <ConfirmDialog
+        open={!!archiveConfirmPlay}
+        onOpenChange={(open) => { if (!open) setArchiveConfirmPlay(null); }}
+        title="Archive this play?"
+        description="It will be removed from the playbook. You can restore it later."
+        confirmLabel="Archive"
+        destructive
+        onConfirm={() => {
+          archiveMutation.mutate(archiveConfirmPlay);
+          setArchiveConfirmPlay(null);
+        }}
+      />
     </div>
   );
 }

@@ -221,7 +221,7 @@ function Hearts({ lives, maxLives = MAX_LIVES, lostLife }) {
           key={i}
           className={`h-5 w-5 transition-all duration-300 ${
             i < lives
-              ? 'text-red-500 fill-red-500'
+              ? 'text-amber-500 fill-amber-500'
               : 'text-slate-700 fill-slate-700'
           } ${lostLife && i === lives ? 'animate-heartLose' : ''}`}
         />
@@ -490,15 +490,20 @@ export default function QuizMode({
     game.startGame();
   }, [game]);
 
-  // Inject animation styles
+  // Inject animation styles (with cleanup on unmount)
   useEffect(() => {
     const id = 'playbook-pro-anims';
-    if (!document.getElementById(id)) {
-      const style = document.createElement('style');
-      style.id = id;
-      style.textContent = ANIM_STYLES;
-      document.head.appendChild(style);
+    let styleEl = document.getElementById(id);
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = id;
+      styleEl.textContent = ANIM_STYLES;
+      document.head.appendChild(styleEl);
     }
+    return () => {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    };
   }, []);
 
   // ——— START SCREEN ———
@@ -566,7 +571,7 @@ export default function QuizMode({
             <p className="text-sm text-slate-300 font-medium">How it works</p>
             <ul className="text-sm text-slate-400 space-y-1">
               <li className="flex items-center gap-2">
-                <Heart className="h-3.5 w-3.5 text-red-500 fill-red-500 flex-shrink-0" />
+                <Heart className="h-3.5 w-3.5 text-amber-500 fill-amber-500 flex-shrink-0" />
                 3 lives — wrong answers cost a life
               </li>
               <li className="flex items-center gap-2">

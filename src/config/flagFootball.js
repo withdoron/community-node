@@ -652,6 +652,33 @@ function buildChainedRoutePath(segments, startX, startY, fieldSide) {
   return allPoints;
 }
 
+// ——— Tag Options (single source of truth for both creation modes) ———
+const TAG_OPTIONS = [
+  { value: 'red_zone', label: 'Red Zone' },
+  { value: 'goal_line', label: 'Goal Line' },
+  { value: '3rd_down', label: '3rd Down' },
+  { value: 'trick_play', label: 'Trick Play' },
+  { value: 'screen', label: 'Screen' },
+  { value: 'blitz', label: 'Blitz' },
+];
+
+// ——— Formation options for photo mode ———
+const FORMATION_OPTIONS = ['Spread', 'Trips', 'Twins', 'Bunch/Stack', 'Custom'];
+
+// ——— Route options for photo mode (broader than visual builder) ———
+const PHOTO_MODE_ROUTES = [
+  'Fly', 'Slant', 'Out', 'In', 'Curl', 'Post', 'Corner', 'Flat', 'Fade',
+  'Block', 'Snap', 'Handoff',
+  'Man Coverage', 'Zone Coverage', 'Spy', 'Blitz',
+  'Custom',
+];
+
+// ——— Supported team formats ———
+const FORMAT_OPTIONS = [
+  { value: '5v5', label: '5v5' },
+  { value: '7v7', label: '7v7' },
+];
+
 // ——— Custom Position Colors ———
 const CUSTOM_POSITION_COLORS = [
   '#94a3b8', '#d4a046', '#22c55e', '#3b82f6',
@@ -683,4 +710,9 @@ export {
   isChainableRoute,
   generateSegmentPoints,
   buildChainedRoutePath,
+  // Shared constants (single source of truth)
+  TAG_OPTIONS,
+  FORMATION_OPTIONS,
+  PHOTO_MODE_ROUTES,
+  FORMAT_OPTIONS,
 };

@@ -193,7 +193,7 @@ export const WORKSPACE_TYPES = {
       { id: 'schedule', label: 'Schedule', icon: Calendar, component: TeamSchedule, getProps: () => ({}) },
       { id: 'roster', label: 'Roster', icon: Users, component: TeamRoster, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach }) },
       { id: 'messages', label: 'Messages', icon: MessageSquare, component: TeamMessages, getProps: () => ({}) },
-      { id: 'settings', label: 'Settings', icon: Settings, component: TeamSettings, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach, onArchived: scope.onArchived }) },
+      { id: 'settings', label: 'Settings', icon: Settings, component: TeamSettings, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach, onArchived: scope.onArchived, teamScope: scope }) },
     ],
   },
   finance: {

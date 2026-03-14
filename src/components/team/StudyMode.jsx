@@ -2,8 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import PlayRenderer from '@/components/field/PlayRenderer';
-
-const POSITION_ORDER = ['C', 'QB', 'RB', 'X', 'Z'];
+import { getPositionsForFormat, DEFAULT_FORMAT } from '@/config/flagFootball';
 
 /** Format movement_type or route into readable label: "curl-drag" → "Curl → Drag" */
 function formatRoute(raw) {
@@ -28,6 +27,7 @@ export default function StudyMode({
   isCoach,
   onClose,
   initialIndex = 0,
+  teamFormat,
 }) {
   const [currentIndex, setCurrentIndex] = useState(Math.min(initialIndex, Math.max(0, plays.length - 1)));
   const [viewMode, setViewMode] = useState(playerPosition ? 'my' : 'full'); // players default My Assignment, coaches Full Play
@@ -69,10 +69,13 @@ export default function StudyMode({
   }, [play?.id]);
 
   const playAssignments = currentAssignments;
+  const positionOrder = getPositionsForFormat(teamFormat || DEFAULT_FORMAT).map((p) => p.id);
   const sortedAssignments = [...playAssignments].sort(
-    (a, b) =>
-      POSITION_ORDER.indexOf((a.position || '').toUpperCase()) -
-      POSITION_ORDER.indexOf((b.position || '').toUpperCase())
+    (a, b) => {
+      const ai = positionOrder.indexOf((a.position || '').toUpperCase());
+      const bi = positionOrder.indexOf((b.position || '').toUpperCase());
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    }
   );
   // In My Assignment view: coaches use viewAsPosition (or null); players use playerPosition
   const displayPosition = viewMode === 'my' && isCoach ? viewAsPosition : playerPosition;
@@ -182,7 +185,7 @@ export default function StudyMode({
         <div className="mx-4 mt-3 flex-shrink-0">
           <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">View as</p>
           <div className="flex justify-center gap-2">
-            {POSITION_ORDER.map((pos) => (
+            {positionOrder.map((pos) => (
               <button
                 key={pos}
                 type="button"

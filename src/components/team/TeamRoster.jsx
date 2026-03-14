@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserPlus, Loader2 } from 'lucide-react';
+import { UserPlus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,20 +13,14 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { getPositionsForFormat, DEFAULT_FORMAT } from '@/config/flagFootball';
 
 const ROLES = [
   { value: 'coach', label: 'Coach' },
   { value: 'assistant_coach', label: 'Assistant Coach' },
   { value: 'player', label: 'Player' },
   { value: 'parent', label: 'Parent' },
-];
-
-const POSITIONS = [
-  { value: 'C', label: 'C' },
-  { value: 'QB', label: 'QB' },
-  { value: 'RB', label: 'RB' },
-  { value: 'X', label: 'X' },
-  { value: 'Z', label: 'Z' },
 ];
 
 const ROLE_ORDER = ['coach', 'assistant_coach', 'player', 'parent'];
@@ -43,50 +37,93 @@ function roleLabel(role) {
   return r?.label ?? role;
 }
 
+const emptyForm = () => ({
+  jersey_name: '',
+  role: 'player',
+  position: '',
+  jersey_number: '',
+  linked_player_id: '',
+});
+
 export default function TeamRoster({ team, members = [], isCoach }) {
   const queryClient = useQueryClient();
-  const [addOpen, setAddOpen] = useState(false);
-  const [form, setForm] = useState({
-    jersey_name: '',
-    role: 'player',
-    position: '',
-    jersey_number: '',
-    linked_player_id: '',
-  });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState(null); // null = add, object = edit
+  const [deleteConfirmMember, setDeleteConfirmMember] = useState(null);
+  const [form, setForm] = useState(emptyForm());
+
+  const positions = getPositionsForFormat(team?.format || DEFAULT_FORMAT);
 
   const sortedMembers = [...members].sort(
     (a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role)
   );
 
-  const addMember = useMutation({
+  const saveMember = useMutation({
     mutationFn: async (data) => {
       const payload = {
-        team_id: team.id,
         role: data.role,
         jersey_name: data.jersey_name.trim(),
-        status: 'active',
       };
       if (data.jersey_number?.trim()) payload.jersey_number = data.jersey_number.trim();
+      else payload.jersey_number = '';
       if (data.role === 'player' && data.position) payload.position = data.position;
+      else payload.position = '';
       if (data.role === 'parent' && data.linked_player_id) payload.linked_player_id = data.linked_player_id;
-      return base44.entities.TeamMember.create(payload);
+
+      if (editingMember) {
+        return base44.entities.TeamMember.update(editingMember.id, payload);
+      }
+      return base44.entities.TeamMember.create({ ...payload, team_id: team.id, status: 'active' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team-members', team?.id] });
-      setAddOpen(false);
-      setForm({ jersey_name: '', role: 'player', position: '', jersey_number: '', linked_player_id: '' });
-      toast.success('Added to roster');
+      closeModal();
+      toast.success(editingMember ? 'Member updated' : 'Added to roster');
     },
-    onError: (err) => toast.error(err?.message || 'Failed to add'),
+    onError: (err) => toast.error(err?.message || 'Failed to save'),
   });
 
-  const handleAdd = (e) => {
+  const deleteMember = useMutation({
+    mutationFn: (member) => base44.entities.TeamMember.delete(member.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['team-members', team?.id] });
+      setDeleteConfirmMember(null);
+      toast.success('Removed from roster');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to remove'),
+  });
+
+  const openAdd = () => {
+    setEditingMember(null);
+    setForm(emptyForm());
+    setModalOpen(true);
+  };
+
+  const openEdit = (member) => {
+    setEditingMember(member);
+    setForm({
+      jersey_name: member.jersey_name || '',
+      role: member.role || 'player',
+      position: member.position || '',
+      jersey_number: member.jersey_number || '',
+      linked_player_id: member.linked_player_id || '',
+    });
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setEditingMember(null);
+    setForm(emptyForm());
+    setModalOpen(false);
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.jersey_name?.trim()) {
       toast.error('Enter a name');
       return;
     }
-    addMember.mutate(form);
+    saveMember.mutate(form);
   };
 
   const players = members.filter((m) => m.role === 'player');
@@ -104,7 +141,7 @@ export default function TeamRoster({ team, members = [], isCoach }) {
           <Button
             type="button"
             className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
-            onClick={() => setAddOpen(true)}
+            onClick={openAdd}
           >
             <UserPlus className="h-4 w-4 mr-2" />
             Add Player
@@ -120,12 +157,13 @@ export default function TeamRoster({ team, members = [], isCoach }) {
               <th className="px-4 py-3">#</th>
               <th className="px-4 py-3">Position</th>
               <th className="px-4 py-3">Role</th>
+              {isCoach && <th className="px-4 py-3 w-20" />}
             </tr>
           </thead>
           <tbody>
             {sortedMembers.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={isCoach ? 5 : 4} className="px-4 py-8 text-center text-slate-500">
                   No one on the roster yet. {isCoach && 'Add players or coaches above.'}
                 </td>
               </tr>
@@ -155,6 +193,28 @@ export default function TeamRoster({ team, members = [], isCoach }) {
                     <td className="px-4 py-3">
                       <span className={roleBadgeClass(m.role)}>{roleLabel(m.role)}</span>
                     </td>
+                    {isCoach && (
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(m)}
+                            className="p-1.5 text-slate-400 hover:text-amber-500 transition-colors"
+                            aria-label={`Edit ${m.jersey_name}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteConfirmMember(m)}
+                            className="p-1.5 text-slate-400 hover:text-red-400 transition-colors"
+                            aria-label={`Remove ${m.jersey_name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 );
               })
@@ -163,12 +223,13 @@ export default function TeamRoster({ team, members = [], isCoach }) {
         </table>
       </div>
 
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+      {/* Add / Edit modal */}
+      <Dialog open={modalOpen} onOpenChange={(open) => { if (!open) closeModal(); else setModalOpen(open); }}>
         <DialogContent className="bg-slate-900 border-slate-800 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-slate-100">Add to roster</DialogTitle>
+            <DialogTitle className="text-slate-100">{editingMember ? 'Edit member' : 'Add to roster'}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleAdd} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label className="text-slate-400">Name *</Label>
               <Input
@@ -200,8 +261,8 @@ export default function TeamRoster({ team, members = [], isCoach }) {
                   className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 mt-1 min-h-[44px]"
                 >
                   <option value="">—</option>
-                  {POSITIONS.map((p) => (
-                    <option key={p.value} value={p.value}>{p.label}</option>
+                  {positions.map((p) => (
+                    <option key={p.id} value={p.id}>{p.id}</option>
                   ))}
                 </select>
               </div>
@@ -231,16 +292,28 @@ export default function TeamRoster({ team, members = [], isCoach }) {
               </div>
             )}
             <DialogFooter className="gap-2 sm:gap-0">
-              <Button type="button" variant="outline" className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500" onClick={() => setAddOpen(false)}>
+              <Button type="button" variant="outline" className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent" onClick={closeModal}>
                 Cancel
               </Button>
-              <Button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px]" disabled={addMember.isPending}>
-                {addMember.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add'}
+              <Button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px]" disabled={saveMember.isPending}>
+                {saveMember.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : editingMember ? 'Save' : 'Add'}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation */}
+      <ConfirmDialog
+        open={!!deleteConfirmMember}
+        onOpenChange={(open) => { if (!open) setDeleteConfirmMember(null); }}
+        title="Remove from roster?"
+        description={`Remove ${deleteConfirmMember?.jersey_name || 'this member'} from the team? This cannot be undone.`}
+        confirmLabel="Remove"
+        destructive
+        loading={deleteMember.isPending}
+        onConfirm={() => deleteMember.mutate(deleteConfirmMember)}
+      />
     </div>
   );
 }

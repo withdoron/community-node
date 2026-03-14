@@ -18,7 +18,9 @@ import {
   getFormationDefaults,
   buildChainedRoutePath,
   ROUTE_SEGMENT_DEFAULTS,
+  TAG_OPTIONS,
 } from '@/config/flagFootball';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
 const viewBox = FLAG_FOOTBALL.field.viewBox;
 const offenseFormations = FLAG_FOOTBALL.formations.offense;
@@ -131,6 +133,7 @@ export default function PlayBuilder({
   const [newPosShort, setNewPosShort] = useState('');
   const [newPosColor, setNewPosColor] = useState(CUSTOM_POSITION_COLORS[0]);
   const [routePanelOpen, setRoutePanelOpen] = useState(true);
+  const [formationChangeConfirm, setFormationChangeConfirm] = useState(null); // pending formation ID
 
   // ——— Derived ———
   const allPositionConfigs = useMemo(() => {
@@ -141,21 +144,8 @@ export default function PlayBuilder({
   }, [configPositions, customPositions]);
 
   // ——— Handlers ———
-  const handleFormationChange = useCallback(
+  const applyFormationChange = useCallback(
     (fId) => {
-      if (Object.keys(positions).length > 0 && fId !== formation) {
-        const hasRoutes = Object.values(routes).some(
-          (r) => r.movementType || (r.routePath && r.routePath.length > 0)
-        );
-        if (hasRoutes) {
-          if (
-            !window.confirm(
-              `Reset positions to ${offenseFormations[fId]?.label || fId} defaults? Route assignments will be cleared.`
-            )
-          )
-            return;
-        }
-      }
       setFormation(fId);
       setPositions(
         buildPositionsFromFormation(fId, formatId, configPositions)
@@ -163,8 +153,25 @@ export default function PlayBuilder({
       setRoutes({});
       setSelectedPosition(null);
       setIsDrawingRoute(false);
+      setFormationChangeConfirm(null);
     },
-    [positions, routes, formation, formatId, configPositions]
+    [formatId, configPositions]
+  );
+
+  const handleFormationChange = useCallback(
+    (fId) => {
+      if (Object.keys(positions).length > 0 && fId !== formation) {
+        const hasRoutes = Object.values(routes).some(
+          (r) => r.movementType || (r.routePath && r.routePath.length > 0)
+        );
+        if (hasRoutes) {
+          setFormationChangeConfirm(fId);
+          return;
+        }
+      }
+      applyFormationChange(fId);
+    },
+    [positions, routes, formation, applyFormationChange]
   );
 
   const handleDragEnd = useCallback((posId, newCoords) => {
@@ -472,14 +479,6 @@ export default function PlayBuilder({
   const selectedConfig = selectedPosition
     ? allPositionConfigs[selectedPosition] || selectedPos?.posConfig
     : null;
-
-  const TAG_OPTIONS = [
-    { value: 'red_zone', label: 'Red Zone' },
-    { value: 'goal_line', label: 'Goal Line' },
-    { value: '3rd_down', label: '3rd Down' },
-    { value: 'trick_play', label: 'Trick Play' },
-    { value: 'screen', label: 'Screen' },
-  ];
 
   return (
     <div className="space-y-4 pb-4">
@@ -791,6 +790,17 @@ export default function PlayBuilder({
           )}
         </Button>
       </div>
+
+      {/* Formation change confirmation */}
+      <ConfirmDialog
+        open={!!formationChangeConfirm}
+        onOpenChange={(open) => { if (!open) setFormationChangeConfirm(null); }}
+        title="Change formation?"
+        description={`Reset positions to ${offenseFormations[formationChangeConfirm]?.label || formationChangeConfirm} defaults? Route assignments will be cleared.`}
+        confirmLabel="Reset"
+        destructive
+        onConfirm={() => applyFormationChange(formationChangeConfirm)}
+      />
     </div>
   );
 }

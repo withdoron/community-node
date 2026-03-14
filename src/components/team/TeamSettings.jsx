@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Settings, Copy, RefreshCw, Archive, Loader2, UserMinus } from 'lucide-react';
+import { Settings, Copy, RefreshCw, Archive, Loader2, UserMinus, AlertTriangle } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,6 +17,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { FORMAT_OPTIONS } from '@/config/flagFootball';
 
 const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 function generateInviteCode() {
@@ -36,6 +38,16 @@ const SPORTS = [
 export default function TeamSettings({ team, members = [], isCoach, onArchived, teamId, teamScope }) {
   const queryClient = useQueryClient();
   const currentUserId = teamScope?.currentUserId;
+
+  const { data: plays = [] } = useQuery({
+    queryKey: ['plays', team?.id],
+    queryFn: async () => {
+      if (!team?.id) return [];
+      const list = await base44.entities.Play.filter({ team_id: team.id, status: 'active' });
+      return Array.isArray(list) ? list : [];
+    },
+    enabled: !!team?.id,
+  });
   const isOwner = team?.owner_id === currentUserId;
   const isAssistantCoach = (members || []).some((m) => m.user_id === currentUserId && m.role === 'assistant_coach');
   const canEditTeamInfo = isOwner || isAssistantCoach;
@@ -44,6 +56,7 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
   const [regenerateConfirmOpen, setRegenerateConfirmOpen] = useState(false);
   const [transferConfirmOpen, setTransferConfirmOpen] = useState(false);
   const [transferToUserId, setTransferToUserId] = useState(null);
+  const [formatChangeConfirm, setFormatChangeConfirm] = useState(null);
   const [profile, setProfile] = useState({
     name: team?.name ?? '',
     sport: team?.sport ?? 'flag_football',
@@ -179,12 +192,28 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
             </div>
             <div>
               <Label className="text-slate-300 text-sm font-medium">Format</Label>
-              <Input
+              <select
                 value={profile.format}
-                onChange={(e) => setProfile((p) => ({ ...p, format: e.target.value }))}
-                className="w-full bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 mt-1 min-h-[44px]"
-                placeholder="e.g. 5v5"
-              />
+                onChange={(e) => {
+                  const newFormat = e.target.value;
+                  if (plays.length > 0 && newFormat !== profile.format) {
+                    setFormatChangeConfirm(newFormat);
+                  } else {
+                    setProfile((p) => ({ ...p, format: newFormat }));
+                  }
+                }}
+                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 mt-1 min-h-[44px]"
+              >
+                {FORMAT_OPTIONS.map((f) => (
+                  <option key={f.value} value={f.value}>{f.label}</option>
+                ))}
+              </select>
+              {plays.length > 0 && (
+                <p className="flex items-center gap-1.5 mt-1.5 text-xs text-slate-500">
+                  <AlertTriangle className="h-3 w-3 text-amber-500/70" />
+                  Changing format affects position lists across existing plays.
+                </p>
+              )}
             </div>
             <div>
               <Label className="text-slate-300 text-sm font-medium">League (optional)</Label>
@@ -219,7 +248,7 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
           <div className="space-y-2 text-slate-300 text-sm max-w-md">
             <p><span className="text-slate-400">Name:</span> {team.name}</p>
             <p><span className="text-slate-400">Sport:</span> {SPORTS.find((s) => s.value === team.sport)?.label || team.sport}</p>
-            <p><span className="text-slate-400">Format:</span> {team.format || '—'}</p>
+            <p><span className="text-slate-400">Format:</span> {FORMAT_OPTIONS.find((f) => f.value === team.format)?.label || team.format || '—'}</p>
             {team.league && <p><span className="text-slate-400">League:</span> {team.league}</p>}
             {team.season && <p><span className="text-slate-400">Season:</span> {team.season}</p>}
             {team.description && <p><span className="text-slate-400">Description:</span> {team.description}</p>}
@@ -395,6 +424,20 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Format change warning */}
+      <ConfirmDialog
+        open={!!formatChangeConfirm}
+        onOpenChange={(open) => { if (!open) setFormatChangeConfirm(null); }}
+        title="Change team format?"
+        description={`Switching to ${formatChangeConfirm} will change the position list for all plays. Existing plays with positions not in the new format may need to be updated.`}
+        confirmLabel="Change Format"
+        destructive
+        onConfirm={() => {
+          setProfile((p) => ({ ...p, format: formatChangeConfirm }));
+          setFormatChangeConfirm(null);
+        }}
+      />
 
       <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>
         <AlertDialogContent className="bg-slate-900 border-slate-800">

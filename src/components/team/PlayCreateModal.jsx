@@ -14,37 +14,17 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import PlayBuilder from './PlayBuilder';
+import {
+  getPositionsForFormat,
+  DEFAULT_FORMAT,
+  TAG_OPTIONS,
+  FORMATION_OPTIONS,
+  PHOTO_MODE_ROUTES,
+} from '@/config/flagFootball';
 
 const SIDES = [{ value: 'offense', label: 'Offense' }, { value: 'defense', label: 'Defense' }];
-
-const FORMATIONS = [
-  'Spread',
-  'Trips',
-  'Twins',
-  'Bunch/Stack',
-  'Custom',
-];
-
-const ROUTES = [
-  'Fly', 'Slant', 'Out', 'In', 'Curl', 'Post', 'Corner', 'Flat', 'Fade',
-  'Block', 'Snap', 'Handoff',
-  'Man Coverage', 'Zone Coverage', 'Spy', 'Blitz',
-  'Custom',
-];
-
-const TAG_OPTIONS = [
-  { value: 'red_zone', label: 'Red Zone' },
-  { value: 'goal_line', label: 'Goal Line' },
-  { value: '3rd_down', label: '3rd Down' },
-  { value: 'trick_play', label: 'Trick Play' },
-  { value: 'screen', label: 'Screen' },
-  { value: 'blitz', label: 'Blitz' },
-];
-
-const POSITIONS = ['C', 'QB', 'RB', 'X', 'Z'];
-
-const initialAssignments = () => Object.fromEntries(POSITIONS.map((p) => [p, { route: '', assignment_text: '' }]));
 
 export default function PlayCreateModal({
   open,
@@ -54,11 +34,17 @@ export default function PlayCreateModal({
   defaultSide = 'offense',
   editPlay = null,
   editAssignments = [],
+  teamFormat,
   onSuccess,
 }) {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [mode, setMode] = useState('visual'); // 'visual' | 'photo'
+  const [photoModeConfirm, setPhotoModeConfirm] = useState(false);
+
+  const positions = getPositionsForFormat(teamFormat || DEFAULT_FORMAT).map((p) => p.id);
+
+  const initialAssignments = () => Object.fromEntries(positions.map((p) => [p, { route: '', assignment_text: '' }]));
 
   const { data: editAssignmentsFetched = [], isLoading: editAssignmentsLoading } = useQuery({
     queryKey: ['play-assignments-edit', editPlay?.id],
@@ -71,8 +57,6 @@ export default function PlayCreateModal({
   });
 
   const assignmentsFromEdit = editPlay ? editAssignmentsFetched : editAssignments;
-  // Don't render PlayBuilder until edit assignments have loaded — prevents
-  // useState initializer from falling through to default Spread formation
   const editDataReady = !editPlay || (!editAssignmentsLoading && editAssignmentsFetched.length > 0);
 
   const [form, setForm] = useState({
@@ -95,7 +79,7 @@ export default function PlayCreateModal({
     if (editPlay && Array.isArray(editAssignmentsFetched)) {
       const map = initialAssignments();
       editAssignmentsFetched.forEach((a) => {
-        if (POSITIONS.includes(a.position)) {
+        if (positions.includes(a.position)) {
           map[a.position] = { route: a.route || '', assignment_text: a.assignment_text || '' };
         }
       });
@@ -108,7 +92,7 @@ export default function PlayCreateModal({
   useEffect(() => {
     if (!open) return;
     if (editPlay) {
-      const isCustomFormation = !FORMATIONS.slice(0, -1).includes(editPlay.formation);
+      const isCustomFormation = !FORMATION_OPTIONS.slice(0, -1).includes(editPlay.formation);
       setForm({
         side: editPlay.side ?? 'offense',
         name: editPlay.name ?? '',
@@ -144,8 +128,16 @@ export default function PlayCreateModal({
     if (!open) return;
     if (editPlay?.use_renderer) setMode('visual');
     else if (editPlay) setMode('photo');
-    else setMode('visual'); // default for new plays
+    else setMode('visual');
   }, [open, editPlay?.id]);
+
+  const handleModeSwitch = (newMode) => {
+    if (newMode === 'photo' && editPlay?.use_renderer) {
+      setPhotoModeConfirm(true);
+      return;
+    }
+    setMode(newMode);
+  };
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -207,22 +199,59 @@ export default function PlayCreateModal({
     onSuccess: async (play) => {
       const playId = play.id;
       const assignmentsToUse = play._assignments ?? assignments;
+
+      // Smart update: match by position, only delete removed, only create added
       if (editPlay?.id) {
         const existing = await base44.entities.PlayAssignment.filter({ play_id: playId }).then((r) => r ?? []);
-        const list = Array.isArray(existing) ? existing : [];
-        for (const a of list) await base44.entities.PlayAssignment.delete(a.id);
+        const existingList = Array.isArray(existing) ? existing : [];
+        const existingByPos = Object.fromEntries(existingList.map((a) => [a.position, a]));
+
+        for (const pos of positions) {
+          const a = assignmentsToUse[pos];
+          const hasContent = a && (a.route?.trim() || a.assignment_text?.trim());
+          const existingA = existingByPos[pos];
+
+          if (hasContent && existingA) {
+            // Update existing
+            await base44.entities.PlayAssignment.update(existingA.id, {
+              route: a.route?.trim() || null,
+              assignment_text: a.assignment_text?.trim() || null,
+            });
+          } else if (hasContent && !existingA) {
+            // Create new
+            await base44.entities.PlayAssignment.create({
+              play_id: playId,
+              position: pos,
+              route: a.route?.trim() || null,
+              assignment_text: a.assignment_text?.trim() || null,
+            });
+          } else if (!hasContent && existingA) {
+            // Remove empty
+            await base44.entities.PlayAssignment.delete(existingA.id);
+          }
+        }
+        // Clean up assignments for positions no longer in format
+        for (const a of existingList) {
+          if (!positions.includes(a.position)) {
+            await base44.entities.PlayAssignment.delete(a.id);
+          }
+        }
+      } else {
+        // New play — just create
+        for (const pos of positions) {
+          const a = assignmentsToUse[pos];
+          if (!a || (!a.route?.trim() && !a.assignment_text?.trim())) continue;
+          await base44.entities.PlayAssignment.create({
+            play_id: playId,
+            position: pos,
+            route: a.route?.trim() || null,
+            assignment_text: a.assignment_text?.trim() || null,
+          });
+        }
       }
-      for (const pos of POSITIONS) {
-        const a = assignmentsToUse[pos];
-        if (!a || (!a.route?.trim() && !a.assignment_text?.trim())) continue;
-        await base44.entities.PlayAssignment.create({
-          play_id: playId,
-          position: pos,
-          route: a.route?.trim() || null,
-          assignment_text: a.assignment_text?.trim() || null,
-        });
-      }
+
       queryClient.invalidateQueries({ queryKey: ['plays', teamId] });
+      queryClient.invalidateQueries({ queryKey: ['renderer-play-assignments'] });
       toast.success(editPlay ? 'Play updated' : 'Play created');
       onOpenChange(false);
       onSuccess?.();
@@ -250,7 +279,7 @@ export default function PlayCreateModal({
         <div className="flex gap-2 p-1 bg-slate-800 rounded-xl">
           <button
             type="button"
-            onClick={() => setMode('visual')}
+            onClick={() => handleModeSwitch('visual')}
             className={`flex-1 py-2.5 text-center font-medium rounded-lg transition-colors min-h-[44px] text-sm ${
               mode === 'visual' ? 'bg-amber-500 text-black' : 'text-slate-400 bg-transparent hover:bg-slate-700'
             }`}
@@ -259,7 +288,7 @@ export default function PlayCreateModal({
           </button>
           <button
             type="button"
-            onClick={() => setMode('photo')}
+            onClick={() => handleModeSwitch('photo')}
             className={`flex-1 py-2.5 text-center font-medium rounded-lg transition-colors min-h-[44px] text-sm ${
               mode === 'photo' ? 'bg-amber-500 text-black' : 'text-slate-400 bg-transparent hover:bg-slate-700'
             }`}
@@ -334,7 +363,7 @@ export default function PlayCreateModal({
               onChange={(e) => setForm((f) => ({ ...f, formation: e.target.value }))}
               className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1 min-h-[44px]"
             >
-              {FORMATIONS.map((f) => (
+              {FORMATION_OPTIONS.map((f) => (
                 <option key={f} value={f}>{f}</option>
               ))}
             </select>
@@ -431,7 +460,7 @@ export default function PlayCreateModal({
           <div>
             <h4 className="text-sm font-semibold text-white mb-3">Position assignments</h4>
             <div className="space-y-3">
-              {POSITIONS.map((pos) => (
+              {positions.map((pos) => (
                 <div key={pos} className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
                   <span className="text-amber-500 font-bold text-sm">{pos}</span>
                   <div className="mt-2 grid gap-2">
@@ -441,7 +470,7 @@ export default function PlayCreateModal({
                       className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-white text-sm min-h-[40px]"
                     >
                       <option value="">— Route —</option>
-                      {ROUTES.map((r) => (
+                      {PHOTO_MODE_ROUTES.map((r) => (
                         <option key={r} value={r}>{r}</option>
                       ))}
                     </select>
@@ -468,6 +497,20 @@ export default function PlayCreateModal({
         </form>
         )}
       </DialogContent>
+
+      {/* Photo mode edit protection */}
+      <ConfirmDialog
+        open={photoModeConfirm}
+        onOpenChange={(open) => { if (!open) setPhotoModeConfirm(false); }}
+        title="Switch to photo mode?"
+        description="This play was built with the Visual Builder. Switching to photo mode will replace the rendered diagram with an uploaded image. Visual routes and positions will be lost."
+        confirmLabel="Switch to Photo"
+        destructive
+        onConfirm={() => {
+          setMode('photo');
+          setPhotoModeConfirm(false);
+        }}
+      />
     </Dialog>
   );
 }

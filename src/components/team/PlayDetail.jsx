@@ -3,8 +3,7 @@ import { ArrowLeft, Pencil, Archive, X, BookOpen, Target, Trash2, Loader2 } from
 import { Button } from '@/components/ui/button';
 import { parseTags } from './PlayCard';
 import PlayRenderer from '@/components/field/PlayRenderer';
-
-const POSITION_ORDER = ['C', 'QB', 'RB', 'X', 'Z'];
+import { getPositionsForFormat, DEFAULT_FORMAT } from '@/config/flagFootball';
 
 export default function PlayDetail({
   play,
@@ -18,12 +17,18 @@ export default function PlayDetail({
   isDeleting = false,
   onStudyThisPlay,
   onQuizThisPlay,
+  teamFormat,
 }) {
   const [mirrored, setMirrored] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const tags = parseTags(play?.tags);
+  const positionOrder = getPositionsForFormat(teamFormat || DEFAULT_FORMAT).map((p) => p.id);
   const sortedAssignments = [...assignments].sort(
-    (a, b) => POSITION_ORDER.indexOf(a.position) - POSITION_ORDER.indexOf(b.position)
+    (a, b) => {
+      const ai = positionOrder.indexOf(a.position);
+      const bi = positionOrder.indexOf(b.position);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    }
   );
 
   return (
