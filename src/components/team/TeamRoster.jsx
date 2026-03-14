@@ -18,21 +18,22 @@ import { getPositionsForFormat, DEFAULT_FORMAT } from '@/config/flagFootball';
 
 const ROLES = [
   { value: 'coach', label: 'Coach' },
-  { value: 'assistant_coach', label: 'Assistant Coach' },
   { value: 'player', label: 'Player' },
   { value: 'parent', label: 'Parent' },
 ];
 
-const ROLE_ORDER = ['coach', 'assistant_coach', 'player', 'parent'];
+const ROLE_ORDER = ['coach', 'player', 'parent'];
 
 function roleBadgeClass(role) {
-  if (role === 'coach') return 'bg-amber-500 text-black text-xs font-semibold px-2 py-0.5 rounded';
-  if (role === 'assistant_coach') return 'border border-amber-500 text-amber-500 text-xs px-2 py-0.5 rounded';
+  // Backward compat: treat existing 'assistant_coach' records as 'coach'
+  if (role === 'coach' || role === 'assistant_coach') return 'bg-amber-500 text-black text-xs font-semibold px-2 py-0.5 rounded';
   if (role === 'player') return 'bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded';
   return 'border border-slate-600 text-slate-400 text-xs px-2 py-0.5 rounded';
 }
 
 function roleLabel(role) {
+  // Backward compat: treat existing 'assistant_coach' records as 'Coach'
+  if (role === 'assistant_coach') return 'Coach';
   const r = ROLES.find((x) => x.value === role);
   return r?.label ?? role;
 }
@@ -86,10 +87,6 @@ export default function TeamRoster({ team, members = [], isCoach }) {
   const setHeadCoach = useMutation({
     mutationFn: async (member) => {
       await base44.entities.Team.update(team.id, { head_coach_member_id: member.id });
-      // Promote assistant_coach → coach when designated as head coach
-      if (member.role === 'assistant_coach') {
-        await base44.entities.TeamMember.update(member.id, { role: 'coach' });
-      }
     },
     onSuccess: () => {
       // Close modal first so user sees the refreshed roster
@@ -212,7 +209,7 @@ export default function TeamRoster({ team, members = [], isCoach }) {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         <span className={roleBadgeClass(m.role)}>{roleLabel(m.role)}</span>
-                        {(m.role === 'coach' || m.role === 'assistant_coach') && team?.head_coach_member_id === m.id && (
+                        {m.role === 'coach' && team?.head_coach_member_id === m.id && (
                           <span className="flex items-center gap-0.5 text-xs text-amber-500">
                             <Shield className="h-3 w-3" /> HC
                           </span>
@@ -273,7 +270,7 @@ export default function TeamRoster({ team, members = [], isCoach }) {
                 onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
                 className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 mt-1 min-h-[44px]"
               >
-                {ROLES.filter((r) => r.value !== 'coach').map((r) => (
+                {ROLES.map((r) => (
                   <option key={r.value} value={r.value}>{r.label}</option>
                 ))}
               </select>
@@ -318,7 +315,7 @@ export default function TeamRoster({ team, members = [], isCoach }) {
               </div>
             )}
             {/* Set as Head Coach — only when editing a coach-role member */}
-            {editingMember && (form.role === 'coach' || form.role === 'assistant_coach') && (
+            {editingMember && form.role === 'coach' && (
               <div className="border-t border-slate-800 pt-3">
                 {team?.head_coach_member_id === editingMember.id ? (
                   <p className="flex items-center gap-1.5 text-xs text-amber-500">

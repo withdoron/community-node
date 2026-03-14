@@ -152,7 +152,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
   const sportLabel = team?.sport === 'flag_football' ? 'Flag Football' : (team?.sport || 'Team');
   const season = team?.season || '—';
   const isViewingAsChild = !!viewingAsMember && viewingAsMember.role === 'player';
-  const isCoach = effectiveRole === 'coach' || effectiveRole === 'assistant_coach';
+  const isCoach = effectiveRole === 'coach';
   const playerPosition = viewingAsMember?.position || members.find((m) => m.user_id === currentUserId)?.position || null;
   const [quizModeOpen, setQuizModeOpen] = useState(false);
 
@@ -163,7 +163,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
       if (designated) return designated.jersey_name || 'Coach';
     }
     // Fallback: find the owner's roster member
-    const ownerMember = members.find((m) => m.user_id === team?.owner_id && (m.role === 'coach' || m.role === 'assistant_coach'));
+    const ownerMember = members.find((m) => m.user_id === team?.owner_id && m.role === 'coach');
     return ownerMember?.jersey_name || null;
   }, [team?.head_coach_member_id, team?.owner_id, members]);
 

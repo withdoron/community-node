@@ -49,8 +49,8 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
     enabled: !!team?.id,
   });
   const isOwner = team?.owner_id === currentUserId;
-  const isAssistantCoach = (members || []).some((m) => m.user_id === currentUserId && m.role === 'assistant_coach');
-  const canEditTeamInfo = isOwner || isAssistantCoach;
+  const isCoachedMember = (members || []).some((m) => m.user_id === currentUserId && m.role === 'coach');
+  const canEditTeamInfo = isOwner || isCoachedMember;
 
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [regenerateConfirmOpen, setRegenerateConfirmOpen] = useState(false);
@@ -110,7 +110,7 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
       if (!newOwnerMember || !currentMember) throw new Error('Member not found');
       await base44.entities.Team.update(team.id, { owner_id: newOwnerUserId });
       await base44.entities.TeamMember.update(newOwnerMember.id, { role: 'coach' });
-      await base44.entities.TeamMember.update(currentMember.id, { role: 'assistant_coach' });
+      await base44.entities.TeamMember.update(currentMember.id, { role: 'coach' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-teams'] });
@@ -137,7 +137,7 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
   });
 
   const otherCoaches = (members || []).filter(
-    (m) => (m.role === 'coach' || m.role === 'assistant_coach') && m.user_id !== team?.owner_id
+    (m) => m.role === 'coach' && m.user_id !== team?.owner_id
   );
   const inviteCode = team?.invite_code ?? '';
   const fullJoinUrl = typeof window !== 'undefined' && inviteCode ? `${window.location.origin}/join/${inviteCode}` : '';
@@ -318,7 +318,7 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
       {isOwner && (
         <section className="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-1">Transfer Head Coach</h2>
-          <p className="text-slate-400 text-sm mb-4">Transfer ownership of this team to another coach. You will become an assistant coach.</p>
+          <p className="text-slate-400 text-sm mb-4">Transfer ownership of this team to another coach. You will remain a coach.</p>
           {otherCoaches.length === 0 ? (
             <p className="text-slate-500 text-sm">Add another coach to the roster before transferring ownership.</p>
           ) : (
@@ -332,7 +332,7 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
                 >
                   <option value="">Select a coach</option>
                   {otherCoaches.map((m) => (
-                    <option key={m.id} value={m.user_id}>{m.jersey_name || 'Coach'} — {m.role === 'assistant_coach' ? 'Assistant Coach' : 'Coach'}</option>
+                    <option key={m.id} value={m.user_id}>{m.jersey_name || 'Coach'} — Coach</option>
                   ))}
                 </select>
               </div>
@@ -413,7 +413,7 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
           <AlertDialogHeader>
             <AlertDialogTitle className="text-slate-100">Transfer head coach?</AlertDialogTitle>
             <AlertDialogDescription className="text-slate-400">
-              Are you sure you want to transfer head coach to {transferTargetName}? You will become an assistant coach. This cannot be undone.
+              Are you sure you want to transfer head coach to {transferTargetName}? You will remain a coach but no longer be the owner. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

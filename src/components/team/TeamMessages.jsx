@@ -16,7 +16,7 @@ function getSenderLabel(userId, team, members = []) {
   if (userId === ownerId) return 'Coach';
   const member = members.find((m) => m.user_id === userId);
   if (member) {
-    if (member.role === 'assistant_coach') return member.jersey_name || 'Coach';
+    if (member.role === 'coach') return member.jersey_name || 'Coach';
     if (member.role === 'parent') return member.jersey_name || 'Parent';
     if (member.role === 'player') return member.jersey_name || 'Player';
     return member.jersey_name || 'Member';
@@ -25,7 +25,7 @@ function getSenderLabel(userId, team, members = []) {
 }
 
 function getRoleBadgeClass(role, ownerId, userId) {
-  if (userId === ownerId || role === 'coach' || role === 'assistant_coach') return 'bg-amber-500/20 text-amber-500';
+  if (userId === ownerId || role === 'coach') return 'bg-amber-500/20 text-amber-500';
   if (role === 'parent') return 'bg-slate-700 text-slate-400';
   return 'bg-slate-700 text-slate-300';
 }
@@ -38,7 +38,7 @@ export default function TeamMessages({ teamId, teamScope }) {
   const team = teamScope?.team;
   const members = teamScope?.members || [];
   const currentUserId = teamScope?.currentUserId;
-  const isCoach = teamScope?.effectiveRole === 'coach' || teamScope?.effectiveRole === 'assistant_coach';
+  const isCoach = teamScope?.effectiveRole === 'coach';
   const messageType = activeChannel === 'announcement' ? 'announcement' : 'discussion';
   const canPostAnnouncement = isCoach && activeChannel === 'announcement';
   const canPostDiscussion = true;
@@ -200,7 +200,7 @@ function MessageCard({ msg, team, members, isCoach, onPin }) {
             <span className="font-medium text-white">{senderLabel}</span>
             {role && (
               <span className={`text-xs px-2 py-0.5 rounded-full ${badgeClass}`}>
-                {role === 'assistant_coach' ? 'Coach' : role === 'coach' ? 'Coach' : role}
+                {role === 'coach' ? 'Coach' : role}
               </span>
             )}
             {msg.pinned && <Pin className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />}

@@ -1,6 +1,7 @@
 // Team play management via service role — bypasses Creator Only RLS
-// Allows any coach/assistant_coach to create, update, delete Play and PlayAssignment
+// Allows any coach to create, update, delete Play and PlayAssignment
 // entities on their team, regardless of who originally created the record.
+// Keeps 'assistant_coach' as backward-compatible fallback for existing records.
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
@@ -49,7 +50,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'team_id is required' }, { status: 400 });
     }
 
-    // Step 1: Verify caller is coach/assistant_coach on this team
+    // Step 1: Verify caller is coach on this team (includes legacy assistant_coach fallback)
     const allowed = await isTeamCoach(base44, user.id, team_id as string);
     if (!allowed) {
       return Response.json({ error: 'Forbidden — must be a coach on this team' }, { status: 403 });

@@ -96,7 +96,7 @@ export default function TeamSchedule({ teamId, teamScope }) {
     recurring_rule: '',
   });
 
-  const isCoach = teamScope?.effectiveRole === 'coach' || teamScope?.effectiveRole === 'assistant_coach';
+  const isCoach = teamScope?.effectiveRole === 'coach';
 
   const { data: rawEvents = [], isLoading } = useQuery({
     queryKey: ['team-events', teamId],

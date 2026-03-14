@@ -202,7 +202,7 @@ export default function BusinessDashboard() {
     }
   }, [searchParams, setSearchParams]);
 
-  // Fetch teams where user has ANY membership (owner, assistant_coach, player, parent)
+  // Fetch teams where user has ANY membership (owner, coach, player, parent)
   const { data: myTeamMemberships = [], isLoading: membershipsLoading } = useQuery({
     queryKey: ['my-team-memberships', currentUser?.id],
     queryFn: async () => {
@@ -257,7 +257,9 @@ export default function BusinessDashboard() {
     : null;
   const effectivePosition = viewingAsMember?.position ?? null;
   const currentTeamMember = (teamMembers || []).find((m) => m.user_id === currentUser?.id);
-  const effectiveRole = viewingAsMember ? viewingAsMember.role : currentTeamMember?.role;
+  // Normalize: treat legacy 'assistant_coach' records as 'coach'
+  const rawRole = viewingAsMember ? viewingAsMember.role : currentTeamMember?.role;
+  const effectiveRole = rawRole === 'assistant_coach' ? 'coach' : rawRole;
 
   // Member counts per team (for landing cards)
   const { data: teamMemberCounts = {} } = useQuery({
@@ -606,7 +608,7 @@ export default function BusinessDashboard() {
             {allTeams.map((team) => {
               const membership = myTeamMemberships.find((m) => m.team_id === team.id);
               const isDesignatedHC = team.head_coach_member_id ? membership?.id === team.head_coach_member_id : team.owner_id === currentUser?.id;
-              const roleLabel = isDesignatedHC ? 'HEAD COACH' : (membership?.role === 'coach' ? 'COACH' : membership?.role === 'assistant_coach' ? 'COACH' : membership?.role === 'player' ? 'PLAYER' : membership?.role === 'parent' ? 'PARENT' : 'MEMBER');
+              const roleLabel = isDesignatedHC ? 'HEAD COACH' : (membership?.role === 'coach' || membership?.role === 'assistant_coach' ? 'COACH' : membership?.role === 'player' ? 'PLAYER' : membership?.role === 'parent' ? 'PARENT' : 'MEMBER');
               return (
                 <div
                   key={team.id}
@@ -735,7 +737,7 @@ export default function BusinessDashboard() {
       team: selectedTeam,
       members: teamMembers,
       currentUserId: currentUser?.id,
-      isCoach: effectiveRole === 'coach' || effectiveRole === 'assistant_coach',
+      isCoach: effectiveRole === 'coach',
       onNavigateTab: setActiveTab,
       onCopyInviteLink: () => {
         const link = selectedTeam.invite_code ? `locallane.app/join/${selectedTeam.invite_code}` : '';
@@ -782,7 +784,7 @@ export default function BusinessDashboard() {
                   const role = memberRecord?.role;
                   const isOwner = selectedTeam.owner_id === currentUser?.id;
                   const isDesignatedHC = selectedTeam.head_coach_member_id ? memberRecord?.id === selectedTeam.head_coach_member_id : isOwner;
-                  const badgeText = isDesignatedHC ? 'HEAD COACH' : role === 'coach' ? 'COACH' : role === 'assistant_coach' ? 'COACH' : role === 'player' ? 'PLAYER' : role === 'parent' ? 'PARENT' : 'MEMBER';
+                  const badgeText = isDesignatedHC ? 'HEAD COACH' : (role === 'coach' || role === 'assistant_coach') ? 'COACH' : role === 'player' ? 'PLAYER' : role === 'parent' ? 'PARENT' : 'MEMBER';
                   return <Badge className="ml-2 bg-amber-500 text-black">{badgeText}</Badge>;
                 })()}
               </div>
