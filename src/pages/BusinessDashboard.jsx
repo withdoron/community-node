@@ -607,8 +607,7 @@ export default function BusinessDashboard() {
             ))}
             {allTeams.map((team) => {
               const membership = myTeamMemberships.find((m) => m.team_id === team.id);
-              const isDesignatedHC = team.head_coach_member_id ? membership?.id === team.head_coach_member_id : team.owner_id === currentUser?.id;
-              const roleLabel = isDesignatedHC ? 'HEAD COACH' : (membership?.role === 'coach' || membership?.role === 'assistant_coach' ? 'COACH' : membership?.role === 'player' ? 'PLAYER' : membership?.role === 'parent' ? 'PARENT' : 'MEMBER');
+              const roleLabel = (membership?.role === 'coach' || membership?.role === 'assistant_coach') ? 'COACH' : (membership?.role === 'player' || membership?.role === 'parent') ? 'PLAYER' : 'MEMBER';
               return (
                 <div
                   key={team.id}
