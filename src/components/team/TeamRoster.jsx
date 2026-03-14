@@ -92,9 +92,11 @@ export default function TeamRoster({ team, members = [], isCoach }) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['team', team?.id] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-teams'] });
-      queryClient.invalidateQueries({ queryKey: ['team-members', team?.id] });
+      // Close modal first so user sees the refreshed roster
+      closeModal();
+      // Refetch team data (header badge, HC designation) and members (role badge)
+      queryClient.refetchQueries({ queryKey: ['dashboard-teams'] });
+      queryClient.refetchQueries({ queryKey: ['team-members', team?.id] });
       toast.success('Head coach updated');
     },
     onError: (err) => toast.error(err?.message || 'Failed to update head coach'),
