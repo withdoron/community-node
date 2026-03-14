@@ -735,7 +735,7 @@ export default function BusinessDashboard() {
       team: selectedTeam,
       members: teamMembers,
       currentUserId: currentUser?.id,
-      isCoach: selectedTeam.owner_id === currentUser?.id,
+      isCoach: effectiveRole === 'coach' || effectiveRole === 'assistant_coach',
       onNavigateTab: setActiveTab,
       onCopyInviteLink: () => {
         const link = selectedTeam.invite_code ? `locallane.app/join/${selectedTeam.invite_code}` : '';
