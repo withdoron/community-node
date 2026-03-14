@@ -170,6 +170,8 @@ export default function PlayCreateModal({
     });
   };
 
+  const invoke = (args) => base44.functions.invoke('manageTeamPlay', { ...args, team_id: teamId });
+
   const createPlay = useMutation({
     mutationFn: async (variables) => {
       const formToUse = variables?.form ?? form;
@@ -190,10 +192,10 @@ export default function PlayCreateModal({
       payload.game_day = !!formToUse.game_day;
       if (formToUse.coach_notes?.trim()) payload.coach_notes = formToUse.coach_notes.trim();
       if (editPlay?.id) {
-        await base44.entities.Play.update(editPlay.id, payload);
+        await invoke({ action: 'update', entity_type: 'play', entity_id: editPlay.id, data: payload });
         return { id: editPlay.id, ...payload, _assignments: assignmentsToUse };
       }
-      const created = await base44.entities.Play.create(payload);
+      const created = await invoke({ action: 'create', entity_type: 'play', data: payload });
       return { ...created, _assignments: assignmentsToUse };
     },
     onSuccess: async (play) => {
@@ -213,27 +215,27 @@ export default function PlayCreateModal({
 
           if (hasContent && existingA) {
             // Update existing
-            await base44.entities.PlayAssignment.update(existingA.id, {
+            await invoke({ action: 'update', entity_type: 'play_assignment', entity_id: existingA.id, data: {
               route: a.route?.trim() || null,
               assignment_text: a.assignment_text?.trim() || null,
-            });
+            }});
           } else if (hasContent && !existingA) {
             // Create new
-            await base44.entities.PlayAssignment.create({
+            await invoke({ action: 'create', entity_type: 'play_assignment', data: {
               play_id: playId,
               position: pos,
               route: a.route?.trim() || null,
               assignment_text: a.assignment_text?.trim() || null,
-            });
+            }});
           } else if (!hasContent && existingA) {
             // Remove empty
-            await base44.entities.PlayAssignment.delete(existingA.id);
+            await invoke({ action: 'delete', entity_type: 'play_assignment', entity_id: existingA.id });
           }
         }
         // Clean up assignments for positions no longer in format
         for (const a of existingList) {
           if (!positions.includes(a.position)) {
-            await base44.entities.PlayAssignment.delete(a.id);
+            await invoke({ action: 'delete', entity_type: 'play_assignment', entity_id: a.id });
           }
         }
       } else {
@@ -241,12 +243,12 @@ export default function PlayCreateModal({
         for (const pos of positions) {
           const a = assignmentsToUse[pos];
           if (!a || (!a.route?.trim() && !a.assignment_text?.trim())) continue;
-          await base44.entities.PlayAssignment.create({
+          await invoke({ action: 'create', entity_type: 'play_assignment', data: {
             play_id: playId,
             position: pos,
             route: a.route?.trim() || null,
             assignment_text: a.assignment_text?.trim() || null,
-          });
+          }});
         }
       }
 

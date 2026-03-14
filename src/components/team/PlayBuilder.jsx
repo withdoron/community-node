@@ -384,9 +384,11 @@ export default function PlayBuilder({
 
       let playId;
 
+      const invoke = (args) => base44.functions.invoke('manageTeamPlay', { ...args, team_id: team.id });
+
       if (initialPlay?.id) {
         // Update existing play
-        await base44.entities.Play.update(initialPlay.id, playPayload);
+        await invoke({ action: 'update', entity_type: 'play', entity_id: initialPlay.id, data: playPayload });
         playId = initialPlay.id;
 
         // Smart assignment update: update existing, create new, delete removed
@@ -421,43 +423,42 @@ export default function PlayBuilder({
 
           if (existingByPosition[posId]) {
             // Update existing
-            await base44.entities.PlayAssignment.update(
-              existingByPosition[posId].id,
-              assignmentData
-            );
+            await invoke({ action: 'update', entity_type: 'play_assignment', entity_id: existingByPosition[posId].id, data: assignmentData });
           } else {
             // Create new
-            await base44.entities.PlayAssignment.create(assignmentData);
+            await invoke({ action: 'create', entity_type: 'play_assignment', data: assignmentData });
           }
         }
 
         // Delete assignments for removed positions
         for (const posId of Object.keys(existingByPosition)) {
           if (!currentPositionIds.has(posId)) {
-            await base44.entities.PlayAssignment.delete(
-              existingByPosition[posId].id
-            );
+            await invoke({ action: 'delete', entity_type: 'play_assignment', entity_id: existingByPosition[posId].id });
           }
         }
       } else {
         // Create new play
         playPayload.created_by = currentUserId;
-        const created = await base44.entities.Play.create(playPayload);
+        const created = await invoke({ action: 'create', entity_type: 'play', data: playPayload });
         playId = created.id;
 
         // Create all assignments
         for (const posId of Object.keys(positions)) {
           const pos = positions[posId];
           const route = routes[posId] || {};
-          await base44.entities.PlayAssignment.create({
-            play_id: playId,
-            position: posId,
-            start_x: Math.round(pos.x * 10) / 10,
-            start_y: Math.round(pos.y * 10) / 10,
-            movement_type: route.movementType || '',
-            route_path: route.routePath || null,
-            assignment_text: route.assignmentText || '',
-            route_segments: route.segments ? { segments: route.segments } : null,
+          await invoke({
+            action: 'create',
+            entity_type: 'play_assignment',
+            data: {
+              play_id: playId,
+              position: posId,
+              start_x: Math.round(pos.x * 10) / 10,
+              start_y: Math.round(pos.y * 10) / 10,
+              movement_type: route.movementType || '',
+              route_path: route.routePath || null,
+              assignment_text: route.assignmentText || '',
+              route_segments: route.segments ? { segments: route.segments } : null,
+            },
           });
         }
       }

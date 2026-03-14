@@ -75,8 +75,10 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
     return map;
   }, [allRendererAssignments]);
 
+  const invoke = (args) => base44.functions.invoke('manageTeamPlay', { ...args, team_id: team?.id });
+
   const archiveMutation = useMutation({
-    mutationFn: (play) => base44.entities.Play.update(play.id, { status: 'archived' }),
+    mutationFn: (play) => invoke({ action: 'update', entity_type: 'play', entity_id: play.id, data: { status: 'archived' } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['plays', team?.id] });
       setSelectedPlay(null);
@@ -91,10 +93,10 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
       const assignments = await base44.entities.PlayAssignment.filter({ play_id: play.id });
       const assignmentList = Array.isArray(assignments) ? assignments : [];
       for (const a of assignmentList) {
-        await base44.entities.PlayAssignment.delete(a.id);
+        await invoke({ action: 'delete', entity_type: 'play_assignment', entity_id: a.id });
       }
       // 2. Delete the play itself
-      await base44.entities.Play.delete(play.id);
+      await invoke({ action: 'delete', entity_type: 'play', entity_id: play.id });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['plays', team?.id] });
