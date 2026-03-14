@@ -84,10 +84,17 @@ export default function TeamRoster({ team, members = [], isCoach }) {
   });
 
   const setHeadCoach = useMutation({
-    mutationFn: (member) => base44.entities.Team.update(team.id, { head_coach_member_id: member.id }),
+    mutationFn: async (member) => {
+      await base44.entities.Team.update(team.id, { head_coach_member_id: member.id });
+      // Promote assistant_coach → coach when designated as head coach
+      if (member.role === 'assistant_coach') {
+        await base44.entities.TeamMember.update(member.id, { role: 'coach' });
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team', team?.id] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-teams'] });
+      queryClient.invalidateQueries({ queryKey: ['team-members', team?.id] });
       toast.success('Head coach updated');
     },
     onError: (err) => toast.error(err?.message || 'Failed to update head coach'),
