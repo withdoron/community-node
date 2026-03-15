@@ -566,18 +566,8 @@ export default function BusinessDashboard() {
           </div>
         </div>
 
-        {/* Community Pulse */}
-        <div className="max-w-7xl mx-auto px-6 pt-8">
-          <CommunityPulse />
-        </div>
-
-        {/* Ideas Board */}
-        <div className="max-w-7xl mx-auto px-6 pt-6">
-          <IdeasBoard currentUser={currentUser} />
-        </div>
-
         {/* Business Grid - "The Pro Section" */}
-        <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto px-6 pt-8 pb-4">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-slate-100">My Workspaces</h2>
@@ -722,6 +712,17 @@ export default function BusinessDashboard() {
             ))}
           </div>
         </div>
+
+        {/* Ideas Board */}
+        <div className="max-w-7xl mx-auto px-6 pt-6">
+          <IdeasBoard currentUser={currentUser} />
+        </div>
+
+        {/* Community Pulse */}
+        <div className="max-w-7xl mx-auto px-6 pt-6 pb-8">
+          <CommunityPulse />
+        </div>
+
         {renderTypePickerModal()}
       </div>
     );
