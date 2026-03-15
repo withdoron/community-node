@@ -69,7 +69,7 @@ export default function ClientSelector({
       return;
     }
     createMutation.mutate({
-      profile_id: profileId,
+      workspace_id: profileId,
       user_id: currentUser?.id,
       name: form.name.trim(),
       email: form.email.trim() || undefined,

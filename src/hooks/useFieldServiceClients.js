@@ -9,7 +9,7 @@ export function useFieldServiceClients({ profileId, currentUser }) {
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey,
-    queryFn: () => base44.entities.FSClient.filter({ profile_id: profileId }),
+    queryFn: () => base44.entities.FSClient.filter({ workspace_id: profileId }),
     enabled: !!profileId,
   });
 
@@ -24,7 +24,7 @@ export function useFieldServiceClients({ profileId, currentUser }) {
     mutationFn: (data) =>
       base44.entities.FSClient.create({
         ...data,
-        profile_id: profileId,
+        workspace_id: profileId,
         user_id: currentUser?.id,
         status: 'active',
       }),

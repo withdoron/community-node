@@ -124,7 +124,7 @@ export default function FieldServiceProjects({ profile, currentUser }) {
     queryKey: ['fs-clients', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSClient.filter({ profile_id: profile.id });
+      const list = await base44.entities.FSClient.filter({ workspace_id: profile.id });
       return Array.isArray(list) ? list : list ? [list] : [];
     },
     enabled: !!profile?.id,
