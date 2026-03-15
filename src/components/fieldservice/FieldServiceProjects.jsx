@@ -11,7 +11,7 @@ import FieldServicePhotoGallery from './FieldServicePhotoGallery';
 import FieldServiceClientPortal from './FieldServiceClientPortal';
 import FieldServiceClientDetail from './FieldServiceClientDetail';
 import {
-  FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
+  FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save, X,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
   Eye, Camera, Shield, Copy, User, Users, LayoutList,
 } from 'lucide-react';
@@ -75,6 +75,7 @@ export default function FieldServiceProjects({ profile, currentUser }) {
   const [formData, setFormData] = useState(EMPTY_PROJECT);
   const [editingId, setEditingId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [lightboxPhoto, setLightboxPhoto] = useState(null);
 
   // ─── Query: All projects ────────────────────────
   const { data: projects = [], isLoading } = useQuery({
@@ -207,6 +208,54 @@ export default function FieldServiceProjects({ profile, currentUser }) {
     },
     enabled: !!selectedProject?.estimate_id,
   });
+
+  // ─── Query: Per-project materials & labor (matches Timeline pattern) ───
+  const { data: projectMaterials = [] } = useQuery({
+    queryKey: ['fs-project-materials', selectedId],
+    queryFn: async () => {
+      if (!selectedId) return [];
+      const list = await base44.entities.FSMaterialEntry.filter({ project_id: selectedId });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!selectedId,
+  });
+
+  const { data: projectLabor = [] } = useQuery({
+    queryKey: ['fs-project-labor', selectedId],
+    queryFn: async () => {
+      if (!selectedId) return [];
+      const list = await base44.entities.FSLaborEntry.filter({ project_id: selectedId });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!selectedId,
+  });
+
+  const { data: projectPhotos = [] } = useQuery({
+    queryKey: ['fs-project-photos', selectedId],
+    queryFn: async () => {
+      if (!selectedId) return [];
+      const list = await base44.entities.FSDailyPhoto.filter({ project_id: selectedId });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!selectedId,
+  });
+
+  const projectSpent = useMemo(() => {
+    const matTotal = projectMaterials.reduce((s, m) => s + (m.total_cost || 0), 0);
+    const labTotal = projectLabor.reduce((s, l) => s + (l.total_cost || 0), 0);
+    return matTotal + labTotal;
+  }, [projectMaterials, projectLabor]);
+
+  const photosByLogId = useMemo(() => {
+    const map = {};
+    projectPhotos.forEach((p) => {
+      if (p.daily_log_id) {
+        if (!map[p.daily_log_id]) map[p.daily_log_id] = [];
+        map[p.daily_log_id].push(p);
+      }
+    });
+    return map;
+  }, [projectPhotos]);
 
   // ─── Mutations ────────────────────────────────
   const createProject = useMutation({
@@ -591,7 +640,7 @@ export default function FieldServiceProjects({ profile, currentUser }) {
   // ═══ DETAIL VIEW ══════════════════════════════
   if (view === 'detail' && selectedProject) {
     const proj = selectedProject;
-    const spent = spendByProject[proj.id] || 0;
+    const spent = projectSpent || spendByProject[proj.id] || 0;
     const budget = proj.total_budget || 0;
     const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
     const logCount = logCountByProject[proj.id] || 0;
@@ -790,6 +839,25 @@ export default function FieldServiceProjects({ profile, currentUser }) {
                     {log.weather && (
                       <p className="text-xs text-slate-500 mt-1">{log.weather}</p>
                     )}
+                    {/* Inline photo thumbnails */}
+                    {photosByLogId[log.id]?.length > 0 && (
+                      <div className="flex gap-2 mt-2 flex-wrap">
+                        {photosByLogId[log.id].map((photo) => {
+                          const url = typeof photo.photo === 'object' && photo.photo?.url ? photo.photo.url : (photo.photo || '');
+                          if (!url) return null;
+                          return (
+                            <button
+                              key={photo.id}
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); setLightboxPhoto(url); }}
+                              className="h-14 w-14 rounded-lg overflow-hidden border border-slate-700 hover:border-amber-500 transition-colors flex-shrink-0"
+                            >
+                              <img src={url} alt={photo.caption || ''} className="h-full w-full object-cover" />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -879,6 +947,16 @@ export default function FieldServiceProjects({ profile, currentUser }) {
                 Cancel
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Photo Lightbox */}
+        {lightboxPhoto && (
+          <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setLightboxPhoto(null)}>
+            <button type="button" onClick={() => setLightboxPhoto(null)} className="absolute top-4 right-4 text-white/80 hover:text-white min-h-[44px] min-w-[44px] flex items-center justify-center">
+              <X className="h-6 w-6" />
+            </button>
+            <img src={lightboxPhoto} alt="" className="max-h-[85vh] max-w-full object-contain rounded-lg" />
           </div>
         )}
       </div>

@@ -244,8 +244,19 @@ export default function FieldServiceLog({ profile, currentUser }) {
       })));
     } catch { setLabor([]); }
 
-    // Clear photos (can't re-edit uploaded photos as File objects)
-    setPhotos([]);
+    // Load existing photos as previews (not File objects — they're already uploaded)
+    try {
+      const existingPhotos = await base44.entities.FSDailyPhoto.filter({ daily_log_id: log.id });
+      const photoList = Array.isArray(existingPhotos) ? existingPhotos : existingPhotos ? [existingPhotos] : [];
+      setPhotos(photoList.map((p) => ({
+        id: p.id,
+        file: null, // already uploaded — no File object
+        preview: typeof p.photo === 'object' && p.photo?.url ? p.photo.url : (p.photo || ''),
+        caption: p.caption || '',
+        phase: p.phase || '',
+        _existing: true, // marker: skip re-upload on save
+      })));
+    } catch { setPhotos([]); }
   };
 
   const cancelEditing = () => {
@@ -301,8 +312,9 @@ export default function FieldServiceLog({ profile, currentUser }) {
           notes: notes || null,
         });
 
-        // Upload new photos
+        // Upload only NEW photos (skip existing ones loaded during edit)
         for (const photo of photos) {
+          if (photo._existing) continue; // already saved — skip
           try {
             const photoData = await uploadFile(photo.file);
             await base44.entities.FSDailyPhoto.create({

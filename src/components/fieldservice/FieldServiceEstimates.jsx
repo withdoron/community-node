@@ -6,7 +6,7 @@ import VoiceInput from './VoiceInput';
 import ClientSelector from './ClientSelector';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
-  Search, Copy, FolderOpen, Send, Eye, Printer, X, DollarSign,
+  Search, Copy, FolderOpen, Send, Eye, Printer, X, DollarSign, Link2,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -372,10 +372,19 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
       payload.estimate_number = generateEstimateNumber(estimates);
       return base44.entities.FSEstimate.create(payload);
     },
-    onSuccess: (_, vars) => {
+    onSuccess: (saved, vars) => {
       queryClient.invalidateQueries(['fs-estimates', profile?.id]);
-      const verb = vars.status === 'sent' ? 'saved & marked sent' : (editingId ? 'updated' : 'created');
-      toast.success(`Estimate ${verb}`);
+      if (vars.status === 'sent' && vars._copyLink) {
+        const estId = saved?.id || editingId;
+        const url = `${window.location.origin}/client-portal?estimate=${estId}`;
+        navigator.clipboard.writeText(url).then(
+          () => toast.success('Estimate saved. Link copied to clipboard!'),
+          () => toast.success('Estimate saved (could not copy link)'),
+        );
+      } else {
+        const verb = vars.status === 'sent' ? 'saved & marked sent' : (editingId ? 'updated' : 'created');
+        toast.success(`Estimate ${verb}`);
+      }
       onDone();
     },
     onError: (err) => toast.error(`Save failed: ${err.message}`),
@@ -680,10 +689,10 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         </button>
         <button type="button"
           disabled={!formData.title.trim() || saveMutation.isLoading}
-          onClick={() => saveMutation.mutate({ status: 'sent' })}
+          onClick={() => saveMutation.mutate({ status: 'sent', _copyLink: true })}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px] disabled:opacity-50 disabled:pointer-events-none">
-          {saveMutation.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          Save & Send
+          {saveMutation.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
+          Save & Copy Link
         </button>
       </div>
     </div>
