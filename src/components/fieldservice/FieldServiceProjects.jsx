@@ -13,7 +13,7 @@ import FieldServiceClientDetail from './FieldServiceClientDetail';
 import {
   FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save, X,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
-  Eye, Camera, Shield, Copy, User, Users, LayoutList, Phone, HardHat, Briefcase, EyeOff,
+  Eye, Camera, Shield, Copy, User, Users, LayoutList, Phone, HardHat, Briefcase,
 } from 'lucide-react';
 
 /** Budget bar color: amber shades only — no red. */
@@ -74,7 +74,7 @@ const EMPTY_PROJECT = {
   total_budget: '', notes: '',
 };
 
-export default function FieldServiceProjects({ profile, currentUser }) {
+export default function FieldServiceProjects({ profile, currentUser, onNavigateTab }) {
   const queryClient = useQueryClient();
   const [view, setView] = useState('list'); // list | detail | form | timeline | client_portal | client_detail
   const [timelineProjectId, setTimelineProjectId] = useState(null);
@@ -420,7 +420,7 @@ export default function FieldServiceProjects({ profile, currentUser }) {
         currentUser={currentUser}
         onBack={() => { setView(selectedId ? 'detail' : 'list'); setClientDetailId(null); }}
         onViewProject={(projectId) => { setSelectedId(projectId); setClientDetailId(null); setView('detail'); }}
-        onViewEstimate={() => {}}
+        onViewEstimate={() => { if (onNavigateTab) onNavigateTab('estimates'); else toast.info('Navigate to Estimates tab to view details'); }}
       />
     );
   }
@@ -753,10 +753,10 @@ export default function FieldServiceProjects({ profile, currentUser }) {
           )}
 
           {/* Client Visibility Toggle — inline in header */}
-          <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-800">
-            <div className="flex items-center gap-2 text-sm text-slate-400">
-              {proj.client_show_breakdown ? <Eye className="h-4 w-4 text-amber-500" /> : <EyeOff className="h-4 w-4" />}
-              <span>Cost breakdown visible to client</span>
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-800 px-1">
+            <div>
+              <p className="text-sm text-white">Cost breakdown visible to client</p>
+              <p className="text-xs text-slate-400 mt-0.5">When off, clients see total budget only</p>
             </div>
             <button
               type="button"
@@ -764,12 +764,12 @@ export default function FieldServiceProjects({ profile, currentUser }) {
                 const current = proj.client_show_breakdown === true;
                 updateProject.mutate({ id: proj.id, data: { client_show_breakdown: !current } });
               }}
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors min-h-[44px] min-w-[44px] items-center ${
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
                 proj.client_show_breakdown ? 'bg-amber-500' : 'bg-slate-700'
               }`}
             >
-              <span className={`inline-block h-5 w-5 rounded-full bg-slate-100 transition-transform ${
-                proj.client_show_breakdown ? 'translate-x-5' : 'translate-x-0'
+              <span className={`inline-block h-4 w-4 rounded-full bg-slate-100 transition-transform ${
+                proj.client_show_breakdown ? 'translate-x-6' : 'translate-x-1'
               }`} />
             </button>
           </div>
