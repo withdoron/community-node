@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { HardHat, FolderOpen, ClipboardList, Calendar, FileText, DollarSign } from 'lucide-react';
+import { HardHat, FolderOpen, ClipboardList, Calendar, FileText, DollarSign, Users } from 'lucide-react';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -88,7 +88,23 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     enabled: !!profile?.id,
   });
 
+  // ─── Query: Clients ────────────────────────────
+  const { data: fsClients = [] } = useQuery({
+    queryKey: ['fs-clients', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      const list = await base44.entities.FSClient.filter({ profile_id: profile.id });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!profile?.id,
+  });
+
   // ─── Derived Stats ──────────────────────────────
+  const activeClients = useMemo(
+    () => fsClients.filter((c) => c.status === 'active'),
+    [fsClients]
+  );
+
   const activeProjects = useMemo(
     () => projects.filter((p) => p.status === 'active'),
     [projects]
@@ -122,7 +138,15 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
   return (
     <div className="space-y-6">
       {/* Stats Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Users className="h-4 w-4 text-amber-500" />
+            <span className="text-xs text-slate-400">Clients</span>
+          </div>
+          <p className="text-2xl font-bold text-slate-100">{activeClients.length}</p>
+        </div>
+
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <FolderOpen className="h-4 w-4 text-amber-500" />
@@ -138,7 +162,7 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
         >
           <div className="flex items-center gap-2 mb-2">
             <FileText className="h-4 w-4 text-amber-500" />
-            <span className="text-xs text-slate-400">Outstanding Estimates</span>
+            <span className="text-xs text-slate-400">Estimates</span>
           </div>
           <p className="text-2xl font-bold text-slate-100">{outstandingEstimates.length}</p>
         </button>
@@ -154,7 +178,7 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="h-4 w-4 text-amber-500" />
-            <span className="text-xs text-slate-400">Payments Received</span>
+            <span className="text-xs text-slate-400">Received</span>
           </div>
           <p className="text-2xl font-bold text-emerald-400">{fmt(paymentsReceived)}</p>
         </div>

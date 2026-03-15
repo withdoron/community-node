@@ -3,15 +3,17 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import VoiceInput from './VoiceInput';
+import ClientSelector from './ClientSelector';
 import FieldServiceTimeline from './FieldServiceTimeline';
 import FieldServicePayments from './FieldServicePayments';
 import FieldServicePermits from './FieldServicePermits';
 import FieldServicePhotoGallery from './FieldServicePhotoGallery';
 import FieldServiceClientPortal from './FieldServiceClientPortal';
+import FieldServiceClientDetail from './FieldServiceClientDetail';
 import {
   FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
-  Eye, Camera, Shield, Copy,
+  Eye, Camera, Shield, Copy, User,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -55,7 +57,7 @@ const fmtDate = (d) => {
 };
 
 const EMPTY_PROJECT = {
-  name: '', client_name: '', client_phone: '', client_email: '',
+  name: '', client_id: '', client_name: '', client_phone: '', client_email: '',
   address: '', description: '', status: 'active',
   start_date: '', estimated_end_date: '',
   total_budget: '', notes: '',
@@ -63,9 +65,10 @@ const EMPTY_PROJECT = {
 
 export default function FieldServiceProjects({ profile, currentUser }) {
   const queryClient = useQueryClient();
-  const [view, setView] = useState('list'); // list | detail | form | timeline | client_portal
+  const [view, setView] = useState('list'); // list | detail | form | timeline | client_portal | client_detail
   const [timelineProjectId, setTimelineProjectId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
+  const [clientDetailId, setClientDetailId] = useState(null);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState(EMPTY_PROJECT);
@@ -115,6 +118,23 @@ export default function FieldServiceProjects({ profile, currentUser }) {
     },
     enabled: !!profile?.id,
   });
+
+  // ─── Query: Clients ──────────────────────────
+  const { data: clients = [] } = useQuery({
+    queryKey: ['fs-clients', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      const list = await base44.entities.FSClient.filter({ profile_id: profile.id });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!profile?.id,
+  });
+
+  const clientMap = useMemo(() => {
+    const map = {};
+    clients.forEach((c) => { map[c.id] = c; });
+    return map;
+  }, [clients]);
 
   // ─── Derived data ─────────────────────────────
   const logCountByProject = useMemo(() => {
@@ -173,6 +193,7 @@ export default function FieldServiceProjects({ profile, currentUser }) {
         ...data,
         profile_id: profile.id,
         user_id: currentUser?.id,
+        client_id: data.client_id || null,
         total_budget: parseFloat(data.total_budget) || 0,
       });
     },
@@ -235,6 +256,7 @@ export default function FieldServiceProjects({ profile, currentUser }) {
   const openEditForm = (project) => {
     setFormData({
       name: project.name || '',
+      client_id: project.client_id || '',
       client_name: project.client_name || '',
       client_phone: project.client_phone || '',
       client_email: project.client_email || '',
@@ -282,6 +304,20 @@ export default function FieldServiceProjects({ profile, currentUser }) {
       <div className="flex items-center justify-center py-16">
         <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
       </div>
+    );
+  }
+
+  // ═══ CLIENT DETAIL VIEW ═════════════════════════
+  if (view === 'client_detail' && clientDetailId) {
+    return (
+      <FieldServiceClientDetail
+        clientId={clientDetailId}
+        profile={profile}
+        currentUser={currentUser}
+        onBack={() => { setView(selectedId ? 'detail' : 'list'); setClientDetailId(null); }}
+        onViewProject={(projectId) => { setSelectedId(projectId); setClientDetailId(null); setView('detail'); }}
+        onViewEstimate={() => {}}
+      />
     );
   }
 
@@ -344,6 +380,31 @@ export default function FieldServiceProjects({ profile, currentUser }) {
           {/* Client Info */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
             <p className="text-sm font-medium text-slate-400">Client info</p>
+            <ClientSelector
+              clients={clients}
+              selectedClientId={formData.client_id}
+              onSelect={(clientId) => {
+                const client = clients.find((c) => c.id === clientId);
+                setFormData((prev) => ({
+                  ...prev,
+                  client_id: clientId,
+                  client_name: client?.name || prev.client_name,
+                  client_email: client?.email || prev.client_email,
+                  client_phone: client?.phone || prev.client_phone,
+                }));
+              }}
+              onClientCreated={(client) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  client_id: client.id,
+                  client_name: client.name || '',
+                  client_email: client.email || '',
+                  client_phone: client.phone || '',
+                }));
+              }}
+              profileId={profile?.id}
+              currentUser={currentUser}
+            />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className={LABEL_CLASS}>Name</label>
@@ -534,7 +595,17 @@ export default function FieldServiceProjects({ profile, currentUser }) {
             <div className="min-w-0 flex-1">
               <h2 className="text-xl font-bold text-slate-100">{proj.name}</h2>
               {proj.client_name && (
-                <p className="text-sm text-slate-400 mt-1">{proj.client_name}</p>
+                proj.client_id ? (
+                  <button
+                    type="button"
+                    onClick={() => { setClientDetailId(proj.client_id); setView('client_detail'); }}
+                    className="flex items-center gap-1.5 text-sm text-amber-500 hover:text-amber-400 mt-1 transition-colors"
+                  >
+                    <User className="h-3.5 w-3.5" /> {proj.client_name}
+                  </button>
+                ) : (
+                  <p className="text-sm text-slate-400 mt-1">{proj.client_name}</p>
+                )
               )}
             </div>
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusObj.color} flex-shrink-0 ml-3`}>

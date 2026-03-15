@@ -172,6 +172,9 @@ export default function FieldServiceSettings({ profile, currentUser }) {
         name: newWorkerName.trim(),
         hourly_rate: parseFloat(newWorkerRate) || parseFloat(hourlyRate) || 0,
         phone: newWorkerPhone.trim(),
+        email: '',
+        user_id: null,
+        role: 'worker',
       },
     ]);
     setNewWorkerName('');
@@ -449,10 +452,16 @@ export default function FieldServiceSettings({ profile, currentUser }) {
               {workers.map((worker, idx) => (
                 <div key={idx} className="flex items-center gap-3 bg-slate-800/50 rounded-lg p-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-100 truncate">{worker.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-slate-100 truncate">{worker.name}</p>
+                      <span className="px-1.5 py-0.5 rounded text-xs bg-slate-700 text-slate-300 capitalize">
+                        {worker.role || 'worker'}
+                      </span>
+                    </div>
                     <p className="text-xs text-slate-400">
                       {fmt(worker.hourly_rate)}/hr
                       {worker.phone ? ` · ${worker.phone}` : ''}
+                      {worker.email ? ` · ${worker.email}` : ''}
                     </p>
                   </div>
                   <button

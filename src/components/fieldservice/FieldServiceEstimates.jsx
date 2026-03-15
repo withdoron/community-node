@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import VoiceInput from './VoiceInput';
+import ClientSelector from './ClientSelector';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   Search, Copy, FolderOpen, Send, Eye, Printer, X, DollarSign,
@@ -53,7 +54,7 @@ function formatPhone(value) {
 }
 
 const EMPTY_ESTIMATE = {
-  title: '', client_name: '', client_email: '', client_phone: '', client_address: '',
+  title: '', client_id: '', client_name: '', client_email: '', client_phone: '', client_address: '',
   project_id: '', date: '', valid_until: '',
   line_items: [{ ...EMPTY_LINE_ITEM }],
   labor_estimate: [{ ...EMPTY_LABOR_ITEM }],
@@ -314,7 +315,7 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
 // ═══════════════════════════════════════════════════
 // Form (Builder / Editor)
 // ═══════════════════════════════════════════════════
-function EstimateForm({ profile, currentUser, estimates, projects, editingId, initialData, onDone }) {
+function EstimateForm({ profile, currentUser, estimates, projects, clients, editingId, initialData, onDone }) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState(initialData);
 
@@ -337,6 +338,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, editingId, in
         profile_id: profile.id,
         user_id: currentUser?.id,
         title: formData.title,
+        client_id: formData.client_id || null,
         client_name: formData.client_name,
         client_email: formData.client_email,
         client_phone: formData.client_phone,
@@ -444,6 +446,33 @@ function EstimateForm({ profile, currentUser, estimates, projects, editingId, in
       {/* Client Info */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
         <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Client Information</h3>
+        <ClientSelector
+          clients={clients}
+          selectedClientId={formData.client_id}
+          onSelect={(clientId) => {
+            const client = clients.find((c) => c.id === clientId);
+            setFormData((prev) => ({
+              ...prev,
+              client_id: clientId,
+              client_name: client?.name || prev.client_name,
+              client_email: client?.email || prev.client_email,
+              client_phone: client?.phone || prev.client_phone,
+              client_address: client?.address || prev.client_address,
+            }));
+          }}
+          onClientCreated={(client) => {
+            setFormData((prev) => ({
+              ...prev,
+              client_id: client.id,
+              client_name: client.name || '',
+              client_email: client.email || '',
+              client_phone: client.phone || '',
+              client_address: client.address || '',
+            }));
+          }}
+          profileId={profile?.id}
+          currentUser={currentUser}
+        />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={LABEL_CLASS}>Name</label>
@@ -690,6 +719,17 @@ export default function FieldServiceEstimates({ profile, currentUser }) {
     enabled: !!profile?.id,
   });
 
+  // ─── Query: Clients ──────────────────────────────
+  const { data: clients = [] } = useQuery({
+    queryKey: ['fs-clients', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      const list = await base44.entities.FSClient.filter({ profile_id: profile.id });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!profile?.id,
+  });
+
   // ─── Filtered list ──────────────────────────────
   const filtered = useMemo(() => {
     let list = estimates;
@@ -722,6 +762,7 @@ export default function FieldServiceEstimates({ profile, currentUser }) {
         profile_id: profile.id,
         user_id: currentUser?.id,
         name: estimate.title || 'Untitled Project',
+        client_id: estimate.client_id || null,
         client_name: estimate.client_name,
         client_phone: estimate.client_phone,
         client_email: estimate.client_email,
@@ -769,7 +810,8 @@ export default function FieldServiceEstimates({ profile, currentUser }) {
     if (laborEst.length === 0) laborEst = [{ ...EMPTY_LABOR_ITEM }];
 
     setFormInitial({
-      title: est.title || '', client_name: est.client_name || '',
+      title: est.title || '', client_id: est.client_id || '',
+      client_name: est.client_name || '',
       client_email: est.client_email || '', client_phone: est.client_phone || '',
       client_address: est.client_address || '', project_id: est.project_id || '',
       date: est.date || new Date().toISOString().split('T')[0],
@@ -791,6 +833,7 @@ export default function FieldServiceEstimates({ profile, currentUser }) {
     validUntil.setDate(validUntil.getDate() + 30);
     setFormInitial({
       title: `${est.title || 'Estimate'} (Copy)`,
+      client_id: est.client_id || '',
       client_name: est.client_name || '', client_email: est.client_email || '',
       client_phone: est.client_phone || '', client_address: est.client_address || '',
       project_id: '', date: new Date().toISOString().split('T')[0],
@@ -836,6 +879,7 @@ export default function FieldServiceEstimates({ profile, currentUser }) {
         currentUser={currentUser}
         estimates={estimates}
         projects={projects}
+        clients={clients}
         editingId={editingId}
         initialData={formInitial}
         onDone={backToList}
