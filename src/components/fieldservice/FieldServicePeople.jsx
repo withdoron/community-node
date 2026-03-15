@@ -465,7 +465,7 @@ export default function FieldServicePeople({ profile, currentUser }) {
   });
 
   const activeProjects = useMemo(
-    () => projects.filter((p) => p.status === 'active' || p.status === 'quoting'),
+    () => projects.filter((p) => p.status === 'active' || p.status === 'paused'),
     [projects]
   );
 

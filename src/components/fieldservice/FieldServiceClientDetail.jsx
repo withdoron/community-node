@@ -42,7 +42,7 @@ function formatPhone(value) {
 
 const STATUS_COLORS = {
   active: 'bg-emerald-500/20 text-emerald-400',
-  quoting: 'bg-blue-500/20 text-blue-400',
+  quoting: 'bg-emerald-500/20 text-emerald-400', // legacy — treated as active
   paused: 'bg-amber-500/20 text-amber-400',
   completed: 'bg-slate-500/20 text-slate-400',
   cancelled: 'bg-slate-500/20 text-slate-400',

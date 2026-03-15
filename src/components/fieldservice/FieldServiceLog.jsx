@@ -48,7 +48,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
       if (!profile?.id) return [];
       const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
       return (Array.isArray(list) ? list : list ? [list] : []).filter(
-        (p) => p.status === 'active' || p.status === 'quoting'
+        (p) => p.status === 'active' || p.status === 'paused'
       );
     },
     enabled: !!profile?.id,

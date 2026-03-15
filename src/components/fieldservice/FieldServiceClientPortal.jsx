@@ -77,15 +77,48 @@ export default function FieldServiceClientPortal({ project, profile, onBack }) {
     enabled: !!project?.estimate_id,
   });
 
+  // ─── Query: Materials & Labor (actual spend) ────
+  const { data: materials = [] } = useQuery({
+    queryKey: ['fs-portal-materials', project?.id],
+    queryFn: async () => {
+      if (!project?.id) return [];
+      const list = await base44.entities.FSMaterialEntry.filter({ project_id: project.id });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!project?.id,
+  });
+
+  const { data: labor = [] } = useQuery({
+    queryKey: ['fs-portal-labor', project?.id],
+    queryFn: async () => {
+      if (!project?.id) return [];
+      const list = await base44.entities.FSLaborEntry.filter({ project_id: project.id });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!project?.id,
+  });
+
   // ─── Derived ────────────────────────────────────
   const totalPaid = useMemo(
     () => payments.filter((p) => p.status === 'received' || p.status === 'cleared')
       .reduce((s, p) => s + (p.amount || 0), 0),
     [payments]
   );
+  const totalMaterials = useMemo(
+    () => materials.reduce((s, m) => s + (m.total_cost || (m.quantity || 0) * (m.unit_cost || 0) || 0), 0),
+    [materials]
+  );
+  const totalLabor = useMemo(
+    () => labor.reduce((s, l) => s + (l.total_cost || (l.hours || 0) * (l.hourly_rate || 0) || 0), 0),
+    [labor]
+  );
+  const totalSpent = totalMaterials + totalLabor;
   const referenceTotal = estimate?.total || project?.total_budget || 0;
+  const budget = project?.total_budget || 0;
+  const remaining = budget > 0 ? budget - totalSpent : referenceTotal - totalSpent;
+  const spentPct = budget > 0 ? Math.min(100, (totalSpent / budget) * 100) : (referenceTotal > 0 ? Math.min(100, (totalSpent / referenceTotal) * 100) : 0);
   const balance = referenceTotal - totalPaid;
-  const paidPct = referenceTotal > 0 ? Math.min(100, (totalPaid / referenceTotal) * 100) : 0;
+  const showBreakdown = project?.client_show_breakdown === true;
 
   const dayCount = logs.length;
   const firstLog = logs.length > 0 ? logs[logs.length - 1] : null;
@@ -166,20 +199,37 @@ export default function FieldServiceClientPortal({ project, profile, onBack }) {
         {/* Cards Grid */}
         <div className="px-6 sm:px-8 pb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Budget Progress */}
-          {referenceTotal > 0 && (
+          {(budget > 0 || referenceTotal > 0) && (
             <div className="border border-slate-200 rounded-xl p-5">
               <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3">Budget Progress</h3>
               <div className="space-y-3">
+                {showBreakdown && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500">Materials</span>
+                      <span className="font-medium">{fmt(totalMaterials)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500">Labor</span>
+                      <span className="font-medium">{fmt(totalLabor)}</span>
+                    </div>
+                    <div className="border-t border-slate-100 pt-2" />
+                  </>
+                )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Estimate Total</span>
-                  <span className="font-bold">{fmt(referenceTotal)}</span>
+                  <span className="text-slate-500">Budget</span>
+                  <span className="font-bold">{fmt(budget || referenceTotal)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Spent</span>
+                  <span className="font-bold" style={{ color: brandColor }}>{fmt(totalSpent)}</span>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-3">
-                  <div className="h-3 rounded-full transition-all" style={{ width: `${paidPct}%`, backgroundColor: brandColor }} />
+                  <div className="h-3 rounded-full transition-all" style={{ width: `${spentPct}%`, backgroundColor: brandColor }} />
                 </div>
                 <div className="flex justify-between text-xs text-slate-500">
-                  <span>{Math.round(paidPct)}% complete</span>
-                  <span>{fmt(balance)} remaining</span>
+                  <span>{Math.round(spentPct)}% used</span>
+                  <span>{fmt(remaining)} remaining</span>
                 </div>
               </div>
             </div>

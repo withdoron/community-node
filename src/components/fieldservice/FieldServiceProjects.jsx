@@ -28,7 +28,6 @@ const LABEL_CLASS = 'block text-slate-300 text-sm font-medium mb-1';
 
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active', color: 'bg-emerald-500/20 text-emerald-400' },
-  { value: 'quoting', label: 'Quoting', color: 'bg-blue-500/20 text-blue-400' },
   { value: 'paused', label: 'Paused', color: 'bg-amber-500/20 text-amber-400' },
   { value: 'completed', label: 'Completed', color: 'bg-slate-500/20 text-slate-400' },
   { value: 'cancelled', label: 'Cancelled', color: 'bg-slate-500/20 text-slate-500' },
@@ -45,7 +44,6 @@ function formatPhone(value) {
 const FILTER_OPTIONS = [
   { value: 'all', label: 'All' },
   { value: 'active', label: 'Active' },
-  { value: 'quoting', label: 'Quoting' },
   { value: 'paused', label: 'Paused' },
   { value: 'completed', label: 'Completed' },
 ];
@@ -767,6 +765,30 @@ export default function FieldServiceProjects({ profile, currentUser }) {
                 {s.label}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Client View Settings */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-300">Show cost breakdown to client</p>
+              <p className="text-xs text-slate-500 mt-0.5">When off, clients see budget total only. When on, they see Materials and Labor subtotals.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const current = proj.client_show_breakdown === true;
+                updateProject.mutate({ id: proj.id, data: { client_show_breakdown: !current } });
+              }}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors min-h-[44px] min-w-[44px] items-center ${
+                proj.client_show_breakdown ? 'bg-amber-500' : 'bg-slate-700'
+              }`}
+            >
+              <span className={`inline-block h-5 w-5 rounded-full bg-slate-100 transition-transform ${
+                proj.client_show_breakdown ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </button>
           </div>
         </div>
 
