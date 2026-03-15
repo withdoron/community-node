@@ -140,8 +140,9 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
       {/* Printable estimate */}
       <div className="bg-white text-slate-900 rounded-xl p-6 sm:p-8 print:p-0 print:shadow-none print:rounded-none">
         <style>{`@media print {
-          body { background: white !important; }
-          .print\\:hidden { display: none !important; }
+          nav, .app-header, .print\\:hidden, [class*="toolbar"], [class*="workspace-header"], [class*="workspace-tabs"] { display: none !important; }
+          @page { margin: 0.5in; size: letter; }
+          body { background: white !important; margin: 0; padding: 0; }
           .print\\:p-0 { padding: 0 !important; }
           .print\\:shadow-none { box-shadow: none !important; }
           .print\\:rounded-none { border-radius: 0 !important; }

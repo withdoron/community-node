@@ -385,9 +385,10 @@ export default function FieldServiceSettings({ profile, currentUser }) {
                         if (!file) return;
                         setLogoUploading(true);
                         try {
-                          const result = await base44.storage.uploadFile(file);
-                          if (result?.file_url) {
-                            setLogoUrl(result.file_url);
+                          const result = await base44.integrations.Core.UploadFile({ file });
+                          const url = result?.file_url ?? result?.url;
+                          if (url) {
+                            setLogoUrl(url);
                             toast.success('Logo uploaded');
                           }
                         } catch (err) {
