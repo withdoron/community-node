@@ -34,6 +34,16 @@ function StepIndicator({ current, total }) {
 
 const DEFAULT_PHASE_LABELS = ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final'];
 
+// ═══ Phone formatter ═══
+
+function formatPhone(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 const WORKSPACE_FEATURES = [
   'Project tracking',
   'Daily logging with photos and voice',
@@ -84,10 +94,10 @@ export default function FieldServiceOnboarding() {
         hourly_rate: parseFloat(hourlyRate) || 0,
         service_area: serviceArea.trim() || '',
         tagline: tagline.trim() || '',
-        workers_json: JSON.stringify([]),
-        user_roles: JSON.stringify([]),
+        workers_json: {},
+        user_roles: {},
         default_terms: '',
-        phase_labels: JSON.stringify(DEFAULT_PHASE_LABELS),
+        phase_labels: {},
         linked_business_workspace_id: null,
         linked_finance_workspace_id: null,
         brand_color: null,
@@ -184,8 +194,9 @@ export default function FieldServiceOnboarding() {
                   <div>
                     <Label className="text-slate-400">Business phone</Label>
                     <Input
+                      type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e) => setPhone(formatPhone(e.target.value))}
                       className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
                       placeholder="(541) 555-0100"
                     />

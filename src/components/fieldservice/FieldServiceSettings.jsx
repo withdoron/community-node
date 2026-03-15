@@ -20,6 +20,14 @@ import {
   Settings, Save, Plus, X, Loader2, AlertTriangle, Trash2,
   ChevronDown, ChevronRight, HardHat, Users, FileText, Camera,
 } from 'lucide-react';
+
+function formatPhone(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
 import { toast } from 'sonner';
 
 const fmt = (n) =>
@@ -274,8 +282,9 @@ export default function FieldServiceSettings({ profile, currentUser }) {
             <div>
               <Label className="text-slate-400">Phone</Label>
               <Input
+                type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(formatPhone(e.target.value))}
                 className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
               />
             </div>
