@@ -43,6 +43,7 @@ const EMPTY_INSPECTION = {
 
 function parseJSON(val) {
   if (Array.isArray(val)) return val;
+  if (val && typeof val === 'object' && Array.isArray(val.items)) return val.items;
   if (typeof val === 'string') {
     try { const p = JSON.parse(val); return Array.isArray(p) ? p : []; } catch { return []; }
   }
@@ -63,7 +64,7 @@ function PermitCard({ permit, profileId, projectId }) {
     mutationFn: async () => {
       const updated = [...inspections, { ...inspectionData, id: Date.now() }];
       return base44.entities.FSPermit.update(permit.id, {
-        inspections: JSON.stringify(updated),
+        inspections: { items: updated },
       });
     },
     onSuccess: () => {
@@ -234,7 +235,7 @@ export default function FieldServicePermits({ projectId, profileId }) {
         issued_date: formData.issued_date || null,
         expiry_date: formData.expiry_date || null,
         notes: formData.notes,
-        inspections: '[]',
+        inspections: { items: [] },
       });
     },
     onSuccess: () => {

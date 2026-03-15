@@ -86,6 +86,7 @@ function calcTotals(lineItems, laborEstimate, taxRate) {
 
 function parseJSON(val) {
   if (Array.isArray(val)) return val;
+  if (val && typeof val === 'object' && Array.isArray(val.items)) return val.items;
   if (typeof val === 'string') {
     try { const p = JSON.parse(val); return Array.isArray(p) ? p : []; } catch { return []; }
   }
@@ -328,8 +329,8 @@ function EstimateForm({ profile, currentUser, estimates, projects, editingId, in
         project_id: formData.project_id || null,
         date: formData.date,
         valid_until: formData.valid_until || null,
-        line_items: lineItems,
-        labor_estimate: laborEst,
+        line_items: { items: lineItems },
+        labor_estimate: { items: laborEst },
         subtotal: totals.subtotal,
         tax_rate: parseFloat(formData.tax_rate) || 0,
         tax_amount: totals.taxAmount,

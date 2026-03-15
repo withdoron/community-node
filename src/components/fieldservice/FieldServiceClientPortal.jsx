@@ -16,6 +16,7 @@ const fmtDate = (d) => {
 
 function parseJSON(val) {
   if (Array.isArray(val)) return val;
+  if (val && typeof val === 'object' && Array.isArray(val.items)) return val.items;
   if (typeof val === 'string') {
     try { const p = JSON.parse(val); return Array.isArray(p) ? p : []; } catch { return []; }
   }
