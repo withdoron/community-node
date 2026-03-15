@@ -26,6 +26,14 @@ const STATUS_OPTIONS = [
   { value: 'cancelled', label: 'Cancelled', color: 'bg-red-500/20 text-red-400' },
 ];
 
+function formatPhone(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 const FILTER_OPTIONS = [
   { value: 'all', label: 'All' },
   { value: 'active', label: 'Active' },
@@ -354,7 +362,7 @@ export default function FieldServiceProjects({ profile }) {
                 <input
                   type="tel"
                   value={formData.client_phone}
-                  onChange={(e) => setField('client_phone', e.target.value)}
+                  onChange={(e) => setField('client_phone', formatPhone(e.target.value))}
                   className={INPUT_CLASS}
                   placeholder="555-1234"
                 />
@@ -447,6 +455,8 @@ export default function FieldServiceProjects({ profile }) {
                 min="0"
                 value={formData.total_budget}
                 onChange={(e) => setField('total_budget', e.target.value)}
+                onFocus={(e) => { if (parseFloat(e.target.value) === 0) setField('total_budget', ''); }}
+                onBlur={(e) => { if (e.target.value === '') setField('total_budget', 0); }}
                 className={`${INPUT_CLASS} pl-7`}
                 placeholder="0.00"
               />
@@ -555,8 +565,8 @@ export default function FieldServiceProjects({ profile }) {
 
           {(proj.client_phone || proj.client_email) && (
             <div className="flex flex-wrap gap-3 mt-3 text-sm text-slate-400">
-              {proj.client_phone && <span>Phone: {proj.client_phone}</span>}
-              {proj.client_email && <span>Email: {proj.client_email}</span>}
+              {proj.client_phone && <a href={`tel:${proj.client_phone.replace(/\D/g, '')}`} className="hover:text-amber-500 transition-colors">Phone: {proj.client_phone}</a>}
+              {proj.client_email && <a href={`mailto:${proj.client_email}`} className="hover:text-amber-500 transition-colors">Email: {proj.client_email}</a>}
             </div>
           )}
         </div>

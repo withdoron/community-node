@@ -44,6 +44,14 @@ const fmtDate = (d) => {
 const EMPTY_LINE_ITEM = { description: '', qty: 1, unit: 'ea', unit_cost: 0 };
 const EMPTY_LABOR_ITEM = { description: '', hours: 0, rate: 0 };
 
+function formatPhone(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 const EMPTY_ESTIMATE = {
   title: '', client_name: '', client_email: '', client_phone: '', client_address: '',
   project_id: '', date: '', valid_until: '',
@@ -166,8 +174,8 @@ function EstimatePreview({ estimate, profile, onBack, onEdit }) {
             <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Prepared For</p>
             <p className="font-semibold">{estimate.client_name}</p>
             {estimate.client_address && <p className="text-sm text-slate-600">{estimate.client_address}</p>}
-            {estimate.client_email && <p className="text-sm text-slate-600">{estimate.client_email}</p>}
-            {estimate.client_phone && <p className="text-sm text-slate-600">{estimate.client_phone}</p>}
+            {estimate.client_email && <p className="text-sm text-slate-600"><a href={`mailto:${estimate.client_email}`} className="underline hover:text-slate-900">{estimate.client_email}</a></p>}
+            {estimate.client_phone && <p className="text-sm text-slate-600"><a href={`tel:${estimate.client_phone.replace(/\D/g, '')}`} className="underline hover:text-slate-900">{estimate.client_phone}</a></p>}
           </div>
         )}
 
@@ -320,8 +328,8 @@ function EstimateForm({ profile, currentUser, estimates, projects, editingId, in
         project_id: formData.project_id || null,
         date: formData.date,
         valid_until: formData.valid_until || null,
-        line_items: JSON.stringify(lineItems),
-        labor_estimate: JSON.stringify(laborEst),
+        line_items: lineItems,
+        labor_estimate: laborEst,
         subtotal: totals.subtotal,
         tax_rate: parseFloat(formData.tax_rate) || 0,
         tax_amount: totals.taxAmount,
@@ -434,7 +442,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, editingId, in
           <div>
             <label className={LABEL_CLASS}>Phone</label>
             <input type="tel" className={INPUT_CLASS} value={formData.client_phone}
-              onChange={(e) => set('client_phone', e.target.value)} placeholder="(541) 555-0000" />
+              onChange={(e) => set('client_phone', formatPhone(e.target.value))} placeholder="(541) 555-0000" />
           </div>
           <div>
             <label className={LABEL_CLASS}>Address</label>
@@ -467,7 +475,10 @@ function EstimateForm({ profile, currentUser, estimates, projects, editingId, in
               <div>
                 <label className="text-xs text-slate-500">Qty</label>
                 <input type="number" className={INPUT_CLASS} value={item.qty}
-                  onChange={(e) => updateLineItem(idx, 'qty', e.target.value)} min="0" step="any" />
+                  onChange={(e) => updateLineItem(idx, 'qty', e.target.value)}
+                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateLineItem(idx, 'qty', ''); }}
+                  onBlur={(e) => { if (e.target.value === '') updateLineItem(idx, 'qty', 0); }}
+                  min="0" step="any" />
               </div>
               <div>
                 <label className="text-xs text-slate-500">Unit</label>
@@ -484,7 +495,10 @@ function EstimateForm({ profile, currentUser, estimates, projects, editingId, in
               <div>
                 <label className="text-xs text-slate-500">Unit Cost</label>
                 <input type="number" className={INPUT_CLASS} value={item.unit_cost}
-                  onChange={(e) => updateLineItem(idx, 'unit_cost', e.target.value)} min="0" step="0.01" />
+                  onChange={(e) => updateLineItem(idx, 'unit_cost', e.target.value)}
+                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateLineItem(idx, 'unit_cost', ''); }}
+                  onBlur={(e) => { if (e.target.value === '') updateLineItem(idx, 'unit_cost', 0); }}
+                  min="0" step="0.01" />
               </div>
             </div>
             <div className="text-right text-sm text-slate-300">
@@ -523,12 +537,18 @@ function EstimateForm({ profile, currentUser, estimates, projects, editingId, in
               <div>
                 <label className="text-xs text-slate-500">Hours</label>
                 <input type="number" className={INPUT_CLASS} value={item.hours}
-                  onChange={(e) => updateLaborItem(idx, 'hours', e.target.value)} min="0" step="0.5" />
+                  onChange={(e) => updateLaborItem(idx, 'hours', e.target.value)}
+                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateLaborItem(idx, 'hours', ''); }}
+                  onBlur={(e) => { if (e.target.value === '') updateLaborItem(idx, 'hours', 0); }}
+                  min="0" step="0.5" />
               </div>
               <div>
                 <label className="text-xs text-slate-500">Rate ($/hr)</label>
                 <input type="number" className={INPUT_CLASS} value={item.rate}
-                  onChange={(e) => updateLaborItem(idx, 'rate', e.target.value)} min="0" step="0.01" />
+                  onChange={(e) => updateLaborItem(idx, 'rate', e.target.value)}
+                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateLaborItem(idx, 'rate', ''); }}
+                  onBlur={(e) => { if (e.target.value === '') updateLaborItem(idx, 'rate', 0); }}
+                  min="0" step="0.01" />
               </div>
             </div>
             <div className="text-right text-sm text-slate-300">
@@ -563,6 +583,8 @@ function EstimateForm({ profile, currentUser, estimates, projects, editingId, in
               <input type="number"
                 className="w-20 bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-amber-500"
                 value={formData.tax_rate} onChange={(e) => set('tax_rate', e.target.value)}
+                onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('tax_rate', ''); }}
+                onBlur={(e) => { if (e.target.value === '') set('tax_rate', 0); }}
                 min="0" max="100" step="0.1" />
               <span className="text-slate-400">%</span>
             </div>

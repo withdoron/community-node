@@ -327,6 +327,8 @@ export default function FieldServiceSettings({ profile, currentUser }) {
                   min="0"
                   value={hourlyRate}
                   onChange={(e) => setHourlyRate(e.target.value)}
+                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) setHourlyRate(''); }}
+                  onBlur={(e) => { if (e.target.value === '') setHourlyRate('0'); }}
                   className="pl-7 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
                 />
               </div>
@@ -470,13 +472,16 @@ export default function FieldServiceSettings({ profile, currentUser }) {
                   min="0"
                   value={newWorkerRate}
                   onChange={(e) => setNewWorkerRate(e.target.value)}
+                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) setNewWorkerRate(''); }}
+                  onBlur={(e) => { if (e.target.value === '') setNewWorkerRate('0'); }}
                   className="pl-7 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
                   placeholder="Rate/hr"
                 />
               </div>
               <Input
+                type="tel"
                 value={newWorkerPhone}
-                onChange={(e) => setNewWorkerPhone(e.target.value)}
+                onChange={(e) => setNewWorkerPhone(formatPhone(e.target.value))}
                 className="bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
                 placeholder="Phone (optional)"
               />

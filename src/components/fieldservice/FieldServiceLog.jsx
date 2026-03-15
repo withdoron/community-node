@@ -522,6 +522,8 @@ export default function FieldServiceLog({ profile }) {
                           min="0"
                           value={mat.quantity}
                           onChange={(e) => updateMaterial(idx, 'quantity', e.target.value)}
+                          onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateMaterial(idx, 'quantity', ''); }}
+                          onBlur={(e) => { if (e.target.value === '') updateMaterial(idx, 'quantity', 0); }}
                           className={INPUT_CLASS}
                           placeholder="Qty"
                         />
@@ -542,6 +544,8 @@ export default function FieldServiceLog({ profile }) {
                             min="0"
                             value={mat.unit_cost}
                             onChange={(e) => updateMaterial(idx, 'unit_cost', e.target.value)}
+                            onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateMaterial(idx, 'unit_cost', ''); }}
+                            onBlur={(e) => { if (e.target.value === '') updateMaterial(idx, 'unit_cost', 0); }}
                             className={`${INPUT_CLASS} pl-6`}
                             placeholder="Cost"
                           />
@@ -648,6 +652,8 @@ export default function FieldServiceLog({ profile }) {
                           min="0"
                           value={lab.hours}
                           onChange={(e) => updateLabor(idx, 'hours', e.target.value)}
+                          onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateLabor(idx, 'hours', ''); }}
+                          onBlur={(e) => { if (e.target.value === '') updateLabor(idx, 'hours', 0); }}
                           className={INPUT_CLASS}
                           placeholder="Hours"
                         />
@@ -659,6 +665,8 @@ export default function FieldServiceLog({ profile }) {
                             min="0"
                             value={lab.hourly_rate}
                             onChange={(e) => updateLabor(idx, 'hourly_rate', e.target.value)}
+                            onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateLabor(idx, 'hourly_rate', ''); }}
+                            onBlur={(e) => { if (e.target.value === '') updateLabor(idx, 'hourly_rate', 0); }}
                             className={`${INPUT_CLASS} pl-10`}
                             placeholder="Rate"
                           />

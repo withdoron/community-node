@@ -158,7 +158,10 @@ export default function FieldServicePayments({ projectId, profileId, estimateTot
           <div>
             <label className={LABEL_CLASS}>Amount *</label>
             <input type="number" className={`${INPUT_CLASS} text-lg font-bold`} value={formData.amount}
-              onChange={(e) => set('amount', e.target.value)} min="0" step="0.01" placeholder="0.00" />
+              onChange={(e) => set('amount', e.target.value)}
+              onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('amount', ''); }}
+              onBlur={(e) => { if (e.target.value === '') set('amount', 0); }}
+              min="0" step="0.01" placeholder="0.00" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
