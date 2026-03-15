@@ -275,11 +275,16 @@ export default function FieldServiceProjects({ profile, currentUser }) {
   // ─── Mutations ────────────────────────────────
   const createProject = useMutation({
     mutationFn: async (data) => {
+      // Sync inline client fields from live FSClient
+      const live = data.client_id ? clientMap[data.client_id] : null;
       return base44.entities.FSProject.create({
         ...data,
         profile_id: profile.id,
         user_id: currentUser?.id,
         client_id: data.client_id || null,
+        client_name: live?.name || data.client_name || '',
+        client_email: live?.email || data.client_email || '',
+        client_phone: live?.phone || data.client_phone || '',
         total_budget: parseFloat(data.total_budget) || 0,
       });
     },
@@ -296,10 +301,18 @@ export default function FieldServiceProjects({ profile, currentUser }) {
 
   const updateProject = useMutation({
     mutationFn: async ({ id, data }) => {
-      return base44.entities.FSProject.update(id, {
+      // Sync inline client fields from live FSClient
+      const live = data.client_id ? clientMap[data.client_id] : null;
+      const payload = {
         ...data,
         total_budget: parseFloat(data.total_budget) || 0,
-      });
+      };
+      if (live) {
+        payload.client_name = live.name || data.client_name || '';
+        payload.client_email = live.email || data.client_email || '';
+        payload.client_phone = live.phone || data.client_phone || '';
+      }
+      return base44.entities.FSProject.update(id, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fs-projects'] });
@@ -665,6 +678,12 @@ export default function FieldServiceProjects({ profile, currentUser }) {
       .filter((l) => l.project_id === proj.id)
       .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
+    // Live client data from FSClient (source of truth), fallback to inline copies
+    const liveClient = proj.client_id ? clientMap[proj.client_id] : null;
+    const clientName = liveClient?.name || proj.client_name;
+    const clientPhone = liveClient?.phone || proj.client_phone;
+    const clientEmail = liveClient?.email || proj.client_email;
+
     return (
       <div className="space-y-4">
         <button
@@ -680,17 +699,17 @@ export default function FieldServiceProjects({ profile, currentUser }) {
           <div className="flex items-start justify-between mb-3">
             <div className="min-w-0 flex-1">
               <h2 className="text-xl font-bold text-slate-100">{proj.name}</h2>
-              {proj.client_name && (
+              {clientName && (
                 proj.client_id ? (
                   <button
                     type="button"
                     onClick={() => { setClientDetailId(proj.client_id); setView('client_detail'); }}
                     className="flex items-center gap-1.5 text-sm text-amber-500 hover:text-amber-400 mt-1 transition-colors"
                   >
-                    <User className="h-3.5 w-3.5" /> {proj.client_name}
+                    <User className="h-3.5 w-3.5" /> {clientName}
                   </button>
                 ) : (
-                  <p className="text-sm text-slate-400 mt-1">{proj.client_name}</p>
+                  <p className="text-sm text-slate-400 mt-1">{clientName}</p>
                 )
               )}
             </div>
@@ -721,10 +740,10 @@ export default function FieldServiceProjects({ profile, currentUser }) {
             <p className="text-sm text-slate-300 mt-3">{proj.description}</p>
           )}
 
-          {(proj.client_phone || proj.client_email) && (
+          {(clientPhone || clientEmail) && (
             <div className="flex flex-wrap gap-3 mt-3 text-sm text-slate-400">
-              {proj.client_phone && <a href={`tel:${proj.client_phone.replace(/\D/g, '')}`} className="hover:text-amber-500 transition-colors">Phone: {proj.client_phone}</a>}
-              {proj.client_email && <a href={`mailto:${proj.client_email}`} className="hover:text-amber-500 transition-colors">Email: {proj.client_email}</a>}
+              {clientPhone && <a href={`tel:${clientPhone.replace(/\D/g, '')}`} className="hover:text-amber-500 transition-colors">Phone: {clientPhone}</a>}
+              {clientEmail && <a href={`mailto:${clientEmail}`} className="hover:text-amber-500 transition-colors">Email: {clientEmail}</a>}
             </div>
           )}
         </div>

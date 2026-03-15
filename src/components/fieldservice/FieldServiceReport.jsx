@@ -37,6 +37,7 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
   const [labor, setLabor] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [project, setProject] = useState(null);
+  const [clientName, setClientName] = useState(null);
   const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => {
@@ -63,7 +64,18 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
 
       if (theLog.project_id) {
         const projList = await base44.entities.FSProject.filter({ id: theLog.project_id }).catch(() => []);
-        setProject(Array.isArray(projList) && projList[0] ? projList[0] : null);
+        const proj = Array.isArray(projList) && projList[0] ? projList[0] : null;
+        setProject(proj);
+        // Fetch live client name from FSClient if client_id exists
+        if (proj?.client_id) {
+          try {
+            const cList = await base44.entities.FSClient.filter({ id: proj.client_id });
+            const c = Array.isArray(cList) && cList[0] ? cList[0] : null;
+            setClientName(c?.name || proj.client_name || null);
+          } catch { setClientName(proj.client_name || null); }
+        } else {
+          setClientName(proj?.client_name || null);
+        }
       }
     } catch (err) {
       console.error('Failed to load report:', err);
@@ -178,7 +190,7 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
             <p>Date: {fmtDate(log.date)}</p>
             {log.day_number && <p>Day: {String(log.day_number).startsWith('Day ') ? log.day_number : `Day ${log.day_number}`}</p>}
             <p>Project: {project?.name ?? '—'}</p>
-            {project?.client_name && <p>Client: {project.client_name}</p>}
+            {clientName && <p>Client: {clientName}</p>}
             {project?.address && <p>Address: {project.address}</p>}
           </div>
           {log.weather && (

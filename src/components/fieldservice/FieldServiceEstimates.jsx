@@ -97,7 +97,7 @@ function parseJSON(val) {
 // ═══════════════════════════════════════════════════
 // Preview (client-facing branded estimate)
 // ═══════════════════════════════════════════════════
-function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, projects }) {
+function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, projects, clients }) {
   const lineItems = parseJSON(estimate.line_items);
   const laborEst = parseJSON(estimate.labor_estimate).filter(
     (l) => l.description || (parseFloat(l.hours) || 0) > 0
@@ -105,6 +105,13 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
   const lineTotal = lineItems.reduce((s, i) => s + (parseFloat(i.qty) || 0) * (parseFloat(i.unit_cost) || 0), 0);
   const laborTotal = laborEst.reduce((s, i) => s + (parseFloat(i.hours) || 0) * (parseFloat(i.rate) || 0), 0);
   const brandColor = profile?.brand_color || '#f59e0b';
+
+  // Live client data from FSClient (source of truth), fallback to inline copies
+  const liveClient = estimate.client_id ? (clients || []).find((c) => c.id === estimate.client_id) : null;
+  const clientName = liveClient?.name || estimate.client_name;
+  const clientEmail = liveClient?.email || estimate.client_email;
+  const clientPhone = liveClient?.phone || estimate.client_phone;
+  const clientAddress = liveClient?.address || estimate.client_address;
 
   return (
     <div className="space-y-4 pb-8">
@@ -182,13 +189,13 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
         </div>
 
         {/* Client */}
-        {estimate.client_name && (
+        {clientName && (
           <div className="mb-6 bg-slate-50 rounded-lg p-4">
             <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Prepared For</p>
-            <p className="font-semibold">{estimate.client_name}</p>
-            {estimate.client_address && <p className="text-sm text-slate-600">{estimate.client_address}</p>}
-            {estimate.client_email && <p className="text-sm text-slate-600"><a href={`mailto:${estimate.client_email}`} className="underline hover:text-slate-900">{estimate.client_email}</a></p>}
-            {estimate.client_phone && <p className="text-sm text-slate-600"><a href={`tel:${estimate.client_phone.replace(/\D/g, '')}`} className="underline hover:text-slate-900">{estimate.client_phone}</a></p>}
+            <p className="font-semibold">{clientName}</p>
+            {clientAddress && <p className="text-sm text-slate-600">{clientAddress}</p>}
+            {clientEmail && <p className="text-sm text-slate-600"><a href={`mailto:${clientEmail}`} className="underline hover:text-slate-900">{clientEmail}</a></p>}
+            {clientPhone && <p className="text-sm text-slate-600"><a href={`tel:${clientPhone.replace(/\D/g, '')}`} className="underline hover:text-slate-900">{clientPhone}</a></p>}
           </div>
         )}
 
@@ -342,15 +349,30 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
       );
       const totals = calcTotals(lineItems, laborEst, formData.tax_rate);
 
+      // Sync inline client fields from live FSClient data (source of truth)
+      let cName = formData.client_name;
+      let cEmail = formData.client_email;
+      let cPhone = formData.client_phone;
+      let cAddr = formData.client_address;
+      if (formData.client_id) {
+        const live = clients.find((c) => c.id === formData.client_id);
+        if (live) {
+          cName = live.name || cName;
+          cEmail = live.email || cEmail;
+          cPhone = live.phone || cPhone;
+          cAddr = live.address || cAddr;
+        }
+      }
+
       const payload = {
         profile_id: profile.id,
         user_id: currentUser?.id,
         title: formData.title,
         client_id: formData.client_id || null,
-        client_name: formData.client_name,
-        client_email: formData.client_email,
-        client_phone: formData.client_phone,
-        client_address: formData.client_address,
+        client_name: cName,
+        client_email: cEmail,
+        client_phone: cPhone,
+        client_address: cAddr,
         project_id: formData.project_id || null,
         date: formData.date,
         valid_until: formData.valid_until || null,
@@ -882,6 +904,7 @@ export default function FieldServiceEstimates({ profile, currentUser }) {
         onEdit={(est) => openEditEstimate(est)}
         onConvert={(est) => setConvertConfirm(est)}
         projects={projects}
+        clients={clients}
       />
     );
   }
