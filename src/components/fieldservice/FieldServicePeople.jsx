@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import {
   Users, Plus, Pencil, Trash2, Save, X, Loader2,
   ChevronDown, ChevronRight, HardHat, Briefcase, User,
-  Phone, Mail, Shield, FolderOpen,
+  Phone, Mail, Shield, FolderOpen, Link2, Share2,
 } from 'lucide-react';
 
 function formatPhone(value) {
@@ -76,7 +76,15 @@ function Section({ icon: Icon, title, count, defaultOpen = true, children }) {
 // ═══════════════════════════════════════════════════
 // Person Card
 // ═══════════════════════════════════════════════════
-function PersonCard({ person, projectMap, onEdit, onRemove }) {
+function copyInviteLink(workspaceId) {
+  const url = `${window.location.origin}/join-workspace/${workspaceId}`;
+  navigator.clipboard.writeText(url).then(
+    () => toast.success('Invite link copied! Share with your team.'),
+    () => toast.error('Could not copy link'),
+  );
+}
+
+function PersonCard({ person, projectMap, onEdit, onRemove, onShareInvite }) {
   const badge = ROLE_BADGES[person.role] || ROLE_BADGES.worker;
   const assignedCount = (person.assigned_projects || []).filter(
     (pid) => projectMap[pid]
@@ -117,6 +125,16 @@ function PersonCard({ person, projectMap, onEdit, onRemove }) {
           )}
         </div>
         <div className="flex gap-1 flex-shrink-0">
+          {onShareInvite && (
+            <button
+              type="button"
+              onClick={() => onShareInvite()}
+              className="p-2 text-slate-500 hover:text-amber-500 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              title="Copy invite link"
+            >
+              <Share2 className="h-4 w-4" />
+            </button>
+          )}
           <button
             type="button"
             onClick={() => onEdit(person)}
@@ -440,7 +458,7 @@ function DeleteConfirm({ personName, onConfirm, onCancel }) {
 // ═══════════════════════════════════════════════════
 // Main Component
 // ═══════════════════════════════════════════════════
-export default function FieldServicePeople({ profile, currentUser }) {
+export default function FieldServicePeople({ profile, currentUser, onNavigateTab }) {
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [editingPerson, setEditingPerson] = useState(null);
@@ -574,8 +592,8 @@ export default function FieldServicePeople({ profile, currentUser }) {
           profile={profile}
           currentUser={currentUser}
           onBack={() => setClientDetailId(null)}
-          onViewProject={() => {}}
-          onViewEstimate={() => {}}
+          onViewProject={() => { if (onNavigateTab) onNavigateTab('projects'); else toast.info('Navigate to Projects tab to view details'); }}
+          onViewEstimate={() => { if (onNavigateTab) onNavigateTab('estimates'); else toast.info('Navigate to Estimates tab to view details'); }}
         />
       </React.Suspense>
     );
@@ -586,13 +604,22 @@ export default function FieldServicePeople({ profile, currentUser }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-100">People</h2>
-        <button
-          type="button"
-          onClick={openAdd}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px]"
-        >
-          <Plus className="h-4 w-4" /> Add Person
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => copyInviteLink(profile?.id)}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent transition-colors text-sm min-h-[44px]"
+          >
+            <Link2 className="h-4 w-4" /> Invite Link
+          </button>
+          <button
+            type="button"
+            onClick={openAdd}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px]"
+          >
+            <Plus className="h-4 w-4" /> Add Person
+          </button>
+        </div>
       </div>
 
       {/* Workers Section */}
@@ -610,6 +637,7 @@ export default function FieldServicePeople({ profile, currentUser }) {
                 projectMap={projectMap}
                 onEdit={() => openEdit(w)}
                 onRemove={() => setDeleteTarget(w)}
+                onShareInvite={() => copyInviteLink(profile?.id)}
               />
             ))}
           </div>
@@ -631,6 +659,7 @@ export default function FieldServicePeople({ profile, currentUser }) {
                 projectMap={projectMap}
                 onEdit={() => openEdit(s)}
                 onRemove={() => setDeleteTarget(s)}
+                onShareInvite={() => copyInviteLink(profile?.id)}
               />
             ))}
           </div>

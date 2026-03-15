@@ -237,7 +237,7 @@ export const WORKSPACE_TYPES = {
       { id: 'log', label: 'Log', icon: ClipboardList, component: FieldServiceLog, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
       { id: 'projects', label: 'Projects', icon: FolderOpen, component: FieldServiceProjects, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
       { id: 'estimates', label: 'Estimates', icon: FileText, component: FieldServiceEstimates, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
-      { id: 'people', label: 'People', icon: Users, component: FieldServicePeople, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
+      { id: 'people', label: 'People', icon: Users, component: FieldServicePeople, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
       { id: 'settings', label: 'Settings', icon: Settings, component: FieldServiceSettings, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
     ],
   },

@@ -59,6 +59,7 @@ const EMPTY_ESTIMATE = {
   line_items: [{ ...EMPTY_LINE_ITEM }],
   labor_estimate: [{ ...EMPTY_LABOR_ITEM }],
   tax_rate: 0, terms: '', notes: '',
+  client_show_breakdown: false,
 };
 
 function generateEstimateNumber(existingEstimates) {
@@ -105,6 +106,7 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
   const lineTotal = lineItems.reduce((s, i) => s + (parseFloat(i.qty) || 0) * (parseFloat(i.unit_cost) || 0), 0);
   const laborTotal = laborEst.reduce((s, i) => s + (parseFloat(i.hours) || 0) * (parseFloat(i.rate) || 0), 0);
   const brandColor = profile?.brand_color || '#f59e0b';
+  const showBreakdown = estimate.client_show_breakdown === true;
 
   // Live client data from FSClient (source of truth), fallback to inline copies
   const liveClient = estimate.client_id ? (clients || []).find((c) => c.id === estimate.client_id) : null;
@@ -201,8 +203,8 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
 
         {estimate.title && <h3 className="text-lg font-bold text-slate-900 mb-4">{estimate.title}</h3>}
 
-        {/* Line items table */}
-        {lineItems.length > 0 && (
+        {/* Line items table — only when breakdown visible */}
+        {showBreakdown && lineItems.length > 0 && (
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-2">Materials & Services</h4>
             <div className="overflow-x-auto">
@@ -241,8 +243,8 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
           </div>
         )}
 
-        {/* Labor table */}
-        {laborEst.length > 0 && (
+        {/* Labor table — only when breakdown visible */}
+        {showBreakdown && laborEst.length > 0 && (
           <div className="mb-6 border-t border-slate-200 pt-6">
             <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-2">Labor</h4>
             <div className="overflow-x-auto">
@@ -283,11 +285,15 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
         <div className="border-t-2 border-slate-200 pt-4 mb-6">
           <div className="flex justify-end">
             <div className="w-64 space-y-1 text-sm">
-              <div className="flex justify-between"><span className="text-slate-500">Subtotal</span><span>{fmt(estimate.subtotal)}</span></div>
-              {(estimate.tax_rate || 0) > 0 && (
-                <div className="flex justify-between"><span className="text-slate-500">Tax ({estimate.tax_rate}%)</span><span>{fmt(estimate.tax_amount)}</span></div>
+              {showBreakdown && (
+                <>
+                  <div className="flex justify-between"><span className="text-slate-500">Subtotal</span><span>{fmt(estimate.subtotal)}</span></div>
+                  {(estimate.tax_rate || 0) > 0 && (
+                    <div className="flex justify-between"><span className="text-slate-500">Tax ({estimate.tax_rate}%)</span><span>{fmt(estimate.tax_amount)}</span></div>
+                  )}
+                </>
               )}
-              <div className="flex justify-between text-lg font-bold border-t border-slate-200 pt-2 mt-2" style={{ color: brandColor }}>
+              <div className={`flex justify-between text-lg font-bold ${showBreakdown ? 'border-t border-slate-200 pt-2 mt-2' : ''}`} style={{ color: brandColor }}>
                 <span>Total</span><span>{fmt(estimate.total)}</span>
               </div>
             </div>
@@ -385,6 +391,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         terms: formData.terms,
         notes: formData.notes,
         status: status || 'draft',
+        client_show_breakdown: formData.client_show_breakdown === true,
       };
       if (status === 'sent') payload.sent_at = new Date().toISOString();
 
@@ -700,6 +707,27 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         </div>
       </div>
 
+      {/* Client Visibility Toggle */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-white">Show cost breakdown to client</p>
+            <p className="text-xs text-slate-400 mt-0.5">When off, clients see total only on the estimate</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => set('client_show_breakdown', !formData.client_show_breakdown)}
+            className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+              formData.client_show_breakdown ? 'bg-amber-500' : 'bg-slate-700'
+            }`}
+          >
+            <span className={`inline-block h-4 w-4 rounded-full bg-slate-100 transition-transform ${
+              formData.client_show_breakdown ? 'translate-x-6' : 'translate-x-1'
+            }`} />
+          </button>
+        </div>
+      </div>
+
       {/* Actions */}
       <div className="flex gap-3 sticky bottom-0 bg-slate-950 py-3 -mx-1 px-1">
         <button type="button"
@@ -809,6 +837,7 @@ export default function FieldServiceEstimates({ profile, currentUser }) {
         total_budget: estimate.total || 0,
         status: 'active',
         estimate_id: estimate.id,
+        client_show_breakdown: estimate.client_show_breakdown === true,
         notes: `Created from estimate ${estimate.estimate_number}`,
       });
       await base44.entities.FSEstimate.update(estimate.id, {
@@ -857,6 +886,7 @@ export default function FieldServiceEstimates({ profile, currentUser }) {
       valid_until: est.valid_until || '',
       line_items: lineItems, labor_estimate: laborEst,
       tax_rate: est.tax_rate || 0, terms: est.terms || '', notes: est.notes || '',
+      client_show_breakdown: est.client_show_breakdown === true,
     });
     setEditingId(est.id);
     setView('form');
