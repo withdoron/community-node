@@ -133,7 +133,7 @@ export default function FieldServiceClientPortal({ project, profile, onBack }) {
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-4">
               {profile?.logo_url ? (
-                <img src={profile.logo_url} alt="" className="h-14 w-14 rounded-lg object-cover" />
+                <img src={profile.logo_url} alt={profile?.business_name || ''} className="max-h-16 max-w-[200px] object-contain" />
               ) : null}
               <div>
                 <h1 className="text-2xl font-bold" style={{ color: brandColor }}>

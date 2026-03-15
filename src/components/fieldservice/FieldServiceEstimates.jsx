@@ -138,24 +138,23 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
       </div>
 
       {/* Printable estimate */}
-      <div className="bg-white text-slate-900 rounded-xl p-6 sm:p-8 print:p-0 print:shadow-none print:rounded-none">
+      <div className="estimate-print-area bg-white text-slate-900 rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8 print:p-6 print:shadow-none print:rounded-none print:border-none">
         <style>{`@media print {
-          nav, .app-header, .print\\:hidden, [class*="toolbar"], [class*="workspace-header"], [class*="workspace-tabs"] { display: none !important; }
+          body * { visibility: hidden !important; }
+          .estimate-print-area, .estimate-print-area * { visibility: visible !important; }
+          .estimate-print-area { position: absolute; top: 0; left: 0; width: 100%; }
           @page { margin: 0.5in; size: letter; }
           body { background: white !important; margin: 0; padding: 0; }
-          .print\\:p-0 { padding: 0 !important; }
-          .print\\:shadow-none { box-shadow: none !important; }
-          .print\\:rounded-none { border-radius: 0 !important; }
         }`}</style>
 
         {/* Contractor header */}
-        <div className="flex justify-between items-start mb-8 pb-6" style={{ borderBottom: `3px solid ${brandColor}` }}>
+        <div className="flex justify-between items-start mb-8 pb-6 bg-slate-50 -mx-6 -mt-6 sm:-mx-8 sm:-mt-8 px-6 sm:px-8 pt-6 sm:pt-8 rounded-t-xl print:rounded-none print:bg-white" style={{ borderBottom: `3px solid ${brandColor}` }}>
           <div className="flex items-center gap-4">
             {profile?.logo_url ? (
-              <img src={profile.logo_url} alt="" className="h-14 w-14 rounded-lg object-cover" />
+              <img src={profile.logo_url} alt={profile?.business_name || ''} className="max-h-16 max-w-[200px] object-contain" />
             ) : null}
             <div>
-              <h1 className="text-2xl font-bold" style={{ color: brandColor }}>
+              <h1 className="text-2xl font-bold" style={{ color: profile?.brand_color ? brandColor : '#1e293b' }}>
                 {profile?.business_name || 'Business Name'}
               </h1>
               {profile?.license_number && <p className="text-sm text-slate-500">Lic# {profile.license_number}</p>}
@@ -237,7 +236,7 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
 
         {/* Labor table */}
         {laborEst.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-6 border-t border-slate-200 pt-6">
             <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-2">Labor</h4>
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[400px]">
@@ -274,7 +273,7 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
         )}
 
         {/* Totals */}
-        <div className="border-t-2 border-slate-300 pt-4 mb-6">
+        <div className="border-t-2 border-slate-200 pt-4 mb-6">
           <div className="flex justify-end">
             <div className="w-64 space-y-1 text-sm">
               <div className="flex justify-between"><span className="text-slate-500">Subtotal</span><span>{fmt(estimate.subtotal)}</span></div>
@@ -305,8 +304,16 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
         )}
 
         {/* Footer */}
-        <div className="border-t border-slate-200 pt-4 mt-8 text-center">
-          <p className="text-xs text-slate-400">Powered by LocalLane</p>
+        <div className="border-t border-slate-200 pt-6 mt-8 text-center space-y-2">
+          <p className="text-sm text-slate-500">Thank you for your business</p>
+          {(profile?.phone || profile?.email) && (
+            <p className="text-xs text-slate-400">
+              {profile?.phone && <span>{profile.phone}</span>}
+              {profile?.phone && profile?.email && <span className="mx-2">·</span>}
+              {profile?.email && <span>{profile.email}</span>}
+            </p>
+          )}
+          <p className="text-xs text-slate-300 mt-1">Powered by LocalLane</p>
         </div>
       </div>
     </div>

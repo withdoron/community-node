@@ -364,7 +364,7 @@ export default function FieldServiceSettings({ profile, currentUser }) {
             <Label className="text-slate-400">Business Logo</Label>
             <div className="flex items-center gap-4 mt-1">
               {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="h-16 w-16 rounded-lg object-cover border border-slate-700" />
+                <img src={logoUrl} alt="Logo" className="max-h-16 max-w-[200px] object-contain rounded-lg border border-slate-700" />
               ) : (
                 <div className="h-16 w-16 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
                   <Camera className="h-5 w-5 text-slate-500" />

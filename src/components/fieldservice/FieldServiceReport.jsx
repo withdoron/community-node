@@ -154,7 +154,7 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
         <header className="mb-8 print:mb-6">
           <div className="flex items-center gap-4">
             {profile?.logo_url ? (
-              <img src={profile.logo_url} alt="" className="h-14 w-14 rounded-lg object-cover print:border print:border-gray-300" />
+              <img src={profile.logo_url} alt={profile?.business_name || ''} className="max-h-16 max-w-[200px] object-contain print:border print:border-gray-300" />
             ) : null}
             <div>
               <h1 className="text-2xl font-bold text-slate-100 print:text-black">
