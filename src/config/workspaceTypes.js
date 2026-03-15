@@ -49,6 +49,7 @@ import FieldServiceHome from '@/components/fieldservice/FieldServiceHome';
 import FieldServiceLog from '@/components/fieldservice/FieldServiceLog';
 import FieldServiceProjects from '@/components/fieldservice/FieldServiceProjects';
 import FieldServiceEstimates from '@/components/fieldservice/FieldServiceEstimates';
+import FieldServicePeople from '@/components/fieldservice/FieldServicePeople';
 import FieldServiceSettings from '@/components/fieldservice/FieldServiceSettings';
 import PropertyManagementHome from '@/components/propertymgmt/PropertyManagementHome';
 import PropertyManagementProperties from '@/components/propertymgmt/PropertyManagementProperties';
@@ -235,8 +236,9 @@ export const WORKSPACE_TYPES = {
       { id: 'home', label: 'Home', icon: LayoutDashboard, component: FieldServiceHome, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
       { id: 'log', label: 'Log', icon: ClipboardList, component: FieldServiceLog, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
       { id: 'projects', label: 'Projects', icon: FolderOpen, component: FieldServiceProjects, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
+      { id: 'people', label: 'People', icon: Users, component: FieldServicePeople, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
       { id: 'estimates', label: 'Estimates', icon: FileText, component: FieldServiceEstimates, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
-      { id: 'settings', label: 'Settings', icon: Settings, component: FieldServiceSettings, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
+      { id: 'settings', label: 'Settings', icon: Settings, component: FieldServiceSettings, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
     ],
   },
   property_management: {

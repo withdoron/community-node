@@ -13,8 +13,14 @@ import FieldServiceClientDetail from './FieldServiceClientDetail';
 import {
   FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save, X,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
-  Eye, Camera, Shield, Copy, User, Users, LayoutList,
+  Eye, Camera, Shield, Copy, User, Users, LayoutList, Phone, HardHat, Briefcase,
 } from 'lucide-react';
+
+function parseWorkers(val) {
+  if (Array.isArray(val)) return val;
+  if (val && typeof val === 'object' && Array.isArray(val.items)) return val.items;
+  return [];
+}
 
 const INPUT_CLASS =
   'w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent';
@@ -245,6 +251,15 @@ export default function FieldServiceProjects({ profile, currentUser }) {
     const labTotal = projectLabor.reduce((s, l) => s + (l.total_cost || 0), 0);
     return matTotal + labTotal;
   }, [projectMaterials, projectLabor]);
+
+  // ─── People assigned to selected project ─────────
+  const assignedTeam = useMemo(() => {
+    if (!selectedId) return [];
+    const people = parseWorkers(profile?.workers_json);
+    return people.filter(
+      (p) => Array.isArray(p.assigned_projects) && p.assigned_projects.includes(selectedId)
+    );
+  }, [selectedId, profile?.workers_json]);
 
   const photosByLogId = useMemo(() => {
     const map = {};
@@ -735,6 +750,40 @@ export default function FieldServiceProjects({ profile, currentUser }) {
             ))}
           </div>
         </div>
+
+        {/* Assigned Team */}
+        {assignedTeam.length > 0 && (
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <h3 className="text-sm font-medium text-slate-400 mb-3">Assigned Team</h3>
+            <div className="space-y-2">
+              {assignedTeam.map((person, idx) => (
+                <div key={idx} className="flex items-center gap-3 bg-slate-800/50 rounded-lg p-2.5">
+                  {person.role === 'subcontractor' ? (
+                    <Briefcase className="h-4 w-4 text-sky-400 flex-shrink-0" />
+                  ) : (
+                    <HardHat className="h-4 w-4 text-amber-400 flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-100 truncate">{person.name}</p>
+                    {person.company_name && (
+                      <p className="text-xs text-slate-500">{person.company_name}</p>
+                    )}
+                  </div>
+                  <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                    person.role === 'subcontractor' ? 'bg-sky-500/20 text-sky-400' : 'bg-amber-500/20 text-amber-400'
+                  }`}>
+                    {person.role === 'subcontractor' ? 'Sub' : 'Worker'}
+                  </span>
+                  {person.phone && (
+                    <a href={`tel:${person.phone.replace(/\D/g, '')}`} className="text-slate-500 hover:text-amber-500 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+                      <Phone className="h-4 w-4" />
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Budget & Spend */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

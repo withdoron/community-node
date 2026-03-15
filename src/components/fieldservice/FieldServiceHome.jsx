@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { HardHat, FolderOpen, ClipboardList, Calendar, FileText, DollarSign, Users } from 'lucide-react';
+import { HardHat, FolderOpen, ClipboardList, Calendar, FileText, DollarSign, Users, Briefcase } from 'lucide-react';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -100,6 +100,12 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
   });
 
   // ─── Derived Stats ──────────────────────────────
+  const teamCount = useMemo(() => {
+    const w = profile?.workers_json;
+    const arr = Array.isArray(w) ? w : (w && typeof w === 'object' && Array.isArray(w.items)) ? w.items : [];
+    return arr.length;
+  }, [profile?.workers_json]);
+
   const activeClients = useMemo(
     () => fsClients.filter((c) => c.status === 'active'),
     [fsClients]
@@ -138,7 +144,7 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
   return (
     <div className="space-y-6">
       {/* Stats Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <Users className="h-4 w-4 text-amber-500" />
@@ -182,6 +188,18 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
           </div>
           <p className="text-2xl font-bold text-emerald-400">{fmt(paymentsReceived)}</p>
         </div>
+
+        <button
+          type="button"
+          onClick={() => onNavigateTab?.('people')}
+          className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-left hover:border-amber-500/50 transition-colors"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <Briefcase className="h-4 w-4 text-amber-500" />
+            <span className="text-xs text-slate-400">Team</span>
+          </div>
+          <p className="text-2xl font-bold text-slate-100">{teamCount}</p>
+        </button>
       </div>
 
       {/* Quick Actions */}

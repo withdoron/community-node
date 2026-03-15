@@ -59,7 +59,7 @@ function Section({ icon: Icon, title, defaultOpen = false, children }) {
 
 // ═══ Main Component ═══
 
-export default function FieldServiceSettings({ profile, currentUser }) {
+export default function FieldServiceSettings({ profile, currentUser, onNavigateTab }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -84,9 +84,7 @@ export default function FieldServiceSettings({ profile, currentUser }) {
     if (w && typeof w === 'object' && Array.isArray(w.items)) return w.items;
     return [];
   });
-  const [newWorkerName, setNewWorkerName] = useState('');
-  const [newWorkerRate, setNewWorkerRate] = useState('');
-  const [newWorkerPhone, setNewWorkerPhone] = useState('');
+  // Workers managed in People tab — workers_json still read here for rate defaults
 
   // ─── Default Terms state ─────────────────────────
   const [defaultTerms, setDefaultTerms] = useState(profile?.default_terms || '');
@@ -150,41 +148,6 @@ export default function FieldServiceSettings({ profile, currentUser }) {
     },
     onError: (err) => toast.error(err?.message || 'Failed to save'),
   });
-
-  // ─── Save Workers ────────────────────────────────
-  const saveWorkers = useMutation({
-    mutationFn: () =>
-      base44.entities.FieldServiceProfile.update(profile.id, {
-        workers_json: { items: workers },
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
-      toast.success('Workers saved');
-    },
-    onError: (err) => toast.error(err?.message || 'Failed to save workers'),
-  });
-
-  const addWorker = () => {
-    if (!newWorkerName.trim()) return;
-    setWorkers((prev) => [
-      ...prev,
-      {
-        name: newWorkerName.trim(),
-        hourly_rate: parseFloat(newWorkerRate) || parseFloat(hourlyRate) || 0,
-        phone: newWorkerPhone.trim(),
-        email: '',
-        user_id: null,
-        role: 'worker',
-      },
-    ]);
-    setNewWorkerName('');
-    setNewWorkerRate('');
-    setNewWorkerPhone('');
-  };
-
-  const removeWorker = (index) => {
-    setWorkers((prev) => prev.filter((_, i) => i !== index));
-  };
 
   // ─── Save Default Terms ──────────────────────────
   const saveTerms = useMutation({
@@ -445,87 +408,19 @@ export default function FieldServiceSettings({ profile, currentUser }) {
         </div>
       </Section>
 
-      {/* Section 2: Workers */}
-      <Section icon={Users} title="Workers">
-        <div className="space-y-4">
-          {workers.length > 0 && (
-            <div className="space-y-2">
-              {workers.map((worker, idx) => (
-                <div key={idx} className="flex items-center gap-3 bg-slate-800/50 rounded-lg p-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-slate-100 truncate">{worker.name}</p>
-                      <span className="px-1.5 py-0.5 rounded text-xs bg-slate-700 text-slate-300 capitalize">
-                        {worker.role || 'worker'}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400">
-                      {fmt(worker.hourly_rate)}/hr
-                      {worker.phone ? ` · ${worker.phone}` : ''}
-                      {worker.email ? ` · ${worker.email}` : ''}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeWorker(idx)}
-                    className="text-slate-500 hover:text-red-400 transition-colors p-1"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="border-t border-slate-800 pt-4">
-            <p className="text-sm text-slate-400 mb-3">Add a worker</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Input
-                value={newWorkerName}
-                onChange={(e) => setNewWorkerName(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
-                placeholder="Name"
-              />
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={newWorkerRate}
-                  onChange={(e) => setNewWorkerRate(e.target.value)}
-                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) setNewWorkerRate(''); }}
-                  onBlur={(e) => { if (e.target.value === '') setNewWorkerRate('0'); }}
-                  className="pl-7 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
-                  placeholder="Rate/hr"
-                />
-              </div>
-              <Input
-                type="tel"
-                value={newWorkerPhone}
-                onChange={(e) => setNewWorkerPhone(formatPhone(e.target.value))}
-                className="bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
-                placeholder="Phone (optional)"
-              />
-            </div>
-            <div className="flex justify-between mt-3">
-              <button
-                type="button"
-                onClick={addWorker}
-                disabled={!newWorkerName.trim()}
-                className="flex items-center gap-2 text-sm text-amber-500 hover:text-amber-400 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
-              >
-                <Plus className="h-4 w-4" /> Add Worker
-              </button>
-              <Button
-                onClick={() => saveWorkers.mutate()}
-                disabled={saveWorkers.isPending}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
-              >
-                {saveWorkers.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-2" /> Save Workers</>}
-              </Button>
-            </div>
-          </div>
+      {/* Section 2: Team (link to People tab) */}
+      <Section icon={Users} title="Team">
+        <div className="space-y-3">
+          <p className="text-sm text-slate-400">
+            Workers, subcontractors, and clients are managed in the People tab.
+          </p>
+          <button
+            type="button"
+            onClick={() => onNavigateTab?.('people')}
+            className="flex items-center gap-2 text-sm text-amber-500 hover:text-amber-400 transition-colors min-h-[44px]"
+          >
+            <Users className="h-4 w-4" /> Manage your team in the People tab →
+          </button>
         </div>
       </Section>
 

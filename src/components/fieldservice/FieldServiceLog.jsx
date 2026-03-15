@@ -107,7 +107,15 @@ export default function FieldServiceLog({ profile, currentUser }) {
     }
   }, [projectId, existingLogs]);
 
-  const workers = useMemo(() => parseWorkers(profile?.workers_json), [profile?.workers_json]);
+  const allWorkers = useMemo(() => parseWorkers(profile?.workers_json), [profile?.workers_json]);
+  // Show workers assigned to selected project first, fall back to all workers
+  const workers = useMemo(() => {
+    if (!projectId) return allWorkers;
+    const assigned = allWorkers.filter(
+      (w) => Array.isArray(w.assigned_projects) && w.assigned_projects.includes(projectId)
+    );
+    return assigned.length > 0 ? assigned : allWorkers;
+  }, [allWorkers, projectId]);
   const phases = useMemo(() => parsePhaseLabels(profile?.phase_labels) || ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final'], [profile?.phase_labels]);
 
   // ─── Photo capture ────────────────────────────
