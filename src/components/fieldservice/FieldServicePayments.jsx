@@ -124,7 +124,7 @@ export default function FieldServicePayments({ projectId, profileId, estimateTot
 
       {/* Summary */}
       {referenceTotal > 0 && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="bg-slate-800/50 rounded-lg p-3">
             <p className="text-xs text-slate-500">Total</p>
             <p className="text-sm font-bold text-slate-100">{fmt(referenceTotal)}</p>

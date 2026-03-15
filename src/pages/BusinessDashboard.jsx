@@ -789,7 +789,7 @@ export default function BusinessDashboard() {
               </div>
             </div>
           </div>
-          <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1">
+          <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1 scrollbar-hide">
             {teamTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -798,7 +798,7 @@ export default function BusinessDashboard() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors min-h-[44px] ${isActive ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm whitespace-nowrap transition-colors min-h-[44px] ${isActive ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
                 >
                   <Icon className="h-4 w-4" />
                   {tab.label}
@@ -870,7 +870,7 @@ export default function BusinessDashboard() {
               </div>
             </div>
           </div>
-          <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1">
+          <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1 scrollbar-hide">
             {financeTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -879,7 +879,7 @@ export default function BusinessDashboard() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors min-h-[44px] ${isActive ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm whitespace-nowrap transition-colors min-h-[44px] ${isActive ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
                 >
                   <Icon className="h-4 w-4" />
                   {tab.label}
@@ -931,7 +931,7 @@ export default function BusinessDashboard() {
               </div>
             </div>
           </div>
-          <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1">
+          <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1 scrollbar-hide">
             {fsTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -940,7 +940,7 @@ export default function BusinessDashboard() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors min-h-[44px] ${isActive ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm whitespace-nowrap transition-colors min-h-[44px] ${isActive ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
                 >
                   <Icon className="h-4 w-4" />
                   {tab.label}
@@ -992,7 +992,7 @@ export default function BusinessDashboard() {
               </div>
             </div>
           </div>
-          <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1">
+          <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1 scrollbar-hide">
             {pmTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -1001,7 +1001,7 @@ export default function BusinessDashboard() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors min-h-[44px] ${isActive ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm whitespace-nowrap transition-colors min-h-[44px] ${isActive ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
                 >
                   <Icon className="h-4 w-4" />
                   {tab.label}
@@ -1078,7 +1078,7 @@ export default function BusinessDashboard() {
           </div>
         </div>
         {/* Tab bar — config-driven */}
-        <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1">
+        <div className="flex gap-1 px-6 overflow-x-auto flex-nowrap pb-1 scrollbar-hide">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -1087,7 +1087,7 @@ export default function BusinessDashboard() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors ${isActive ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
+                className={`flex items-center gap-2 px-4 py-2 text-sm whitespace-nowrap transition-colors min-h-[44px] ${isActive ? 'text-amber-500 border-b-2 border-amber-500 font-semibold' : 'text-slate-400 hover:text-slate-300'}`}
               >
                 <Icon className="h-4 w-4" />
                 {tab.label}

@@ -61,7 +61,7 @@ const EMPTY_PROJECT = {
   total_budget: '', notes: '',
 };
 
-export default function FieldServiceProjects({ profile }) {
+export default function FieldServiceProjects({ profile, currentUser }) {
   const queryClient = useQueryClient();
   const [view, setView] = useState('list'); // list | detail | form | timeline | client_portal
   const [timelineProjectId, setTimelineProjectId] = useState(null);
@@ -172,6 +172,7 @@ export default function FieldServiceProjects({ profile }) {
       return base44.entities.FSProject.create({
         ...data,
         profile_id: profile.id,
+        user_id: currentUser?.id,
         total_budget: parseFloat(data.total_budget) || 0,
       });
     },

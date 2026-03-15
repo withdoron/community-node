@@ -359,7 +359,7 @@ export default function FieldServiceLog({ profile }) {
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={LABEL_CLASS}>Date *</label>
               <input
@@ -522,7 +522,7 @@ export default function FieldServiceLog({ profile }) {
                         />
                         <VoiceInput onTranscript={(t) => updateMaterial(idx, 'description', t)} />
                       </div>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <input
                           type="number"
                           step="0.01"
@@ -562,7 +562,7 @@ export default function FieldServiceLog({ profile }) {
                     <button
                       type="button"
                       onClick={() => removeMaterial(idx)}
-                      className="p-2 text-slate-500 hover:text-red-400 transition-colors"
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-500 hover:text-red-400 transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -693,7 +693,7 @@ export default function FieldServiceLog({ profile }) {
                     <button
                       type="button"
                       onClick={() => removeLabor(idx)}
-                      className="p-2 text-slate-500 hover:text-red-400 transition-colors"
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-500 hover:text-red-400 transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

@@ -122,7 +122,7 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
   return (
     <div className="space-y-6">
       {/* Stats Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <FolderOpen className="h-4 w-4 text-amber-500" />

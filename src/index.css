@@ -171,3 +171,7 @@ select:-webkit-autofill:focus {
 [data-vitality="neutral"] {
   --card-glow-opacity: 0.08;
 }
+
+/* Scrollbar-hide utility for horizontal tab bars */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
