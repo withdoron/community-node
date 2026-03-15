@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  Shield, Plus, X, Loader2, Save, ChevronDown, ChevronRight, ExternalLink, ClipboardCheck,
+  Shield, Plus, X, Loader2, Save, ChevronDown, ChevronRight, ExternalLink, ClipboardCheck, Pencil,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -54,6 +54,8 @@ function parseJSON(val) {
 function PermitCard({ permit, profileId, projectId }) {
   const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editData, setEditData] = useState({});
   const [showInspectionForm, setShowInspectionForm] = useState(false);
   const [inspectionData, setInspectionData] = useState({ ...EMPTY_INSPECTION, date: new Date().toISOString().split('T')[0] });
 
@@ -76,43 +78,165 @@ function PermitCard({ permit, profileId, projectId }) {
     onError: (err) => toast.error(`Failed: ${err.message}`),
   });
 
+  const updatePermit = useMutation({
+    mutationFn: async (data) => base44.entities.FSPermit.update(permit.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['fs-permits', projectId]);
+      toast.success('Permit updated');
+      setEditing(false);
+    },
+    onError: (err) => toast.error(`Failed: ${err.message}`),
+  });
+
+  const startEdit = (e) => {
+    e.stopPropagation();
+    setEditData({
+      permit_type: permit.permit_type || 'building',
+      permit_number: permit.permit_number || '',
+      status: permit.status || 'not_applied',
+      applied_date: permit.applied_date || '',
+      issued_date: permit.issued_date || '',
+      expiry_date: permit.expiry_date || '',
+      notes: permit.notes || '',
+    });
+    setEditing(true);
+    setExpanded(true);
+  };
+
+  const setEdit = (field, value) => setEditData((prev) => ({ ...prev, [field]: value }));
   const setInsp = (field, value) => setInspectionData((prev) => ({ ...prev, [field]: value }));
 
   return (
     <div className="bg-slate-800/50 rounded-lg overflow-hidden">
-      <button type="button" onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-3 p-3 text-left hover:bg-slate-800 transition-colors min-h-[44px]">
-        {expanded ? <ChevronDown className="h-4 w-4 text-slate-400 flex-shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400 flex-shrink-0" />}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium text-slate-100 capitalize">{permit.permit_type}</span>
-            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>{sc.label}</span>
+      <div className="flex items-center">
+        <button type="button" onClick={() => setExpanded(!expanded)}
+          className="flex-1 flex items-center gap-3 p-3 text-left hover:bg-slate-800 transition-colors min-h-[44px]">
+          {expanded ? <ChevronDown className="h-4 w-4 text-slate-400 flex-shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400 flex-shrink-0" />}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-medium text-slate-100 capitalize">{permit.permit_type}</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>{sc.label}</span>
+            </div>
+            {permit.permit_number && <p className="text-xs text-slate-500 mt-0.5">#{permit.permit_number}</p>}
           </div>
-          {permit.permit_number && <p className="text-xs text-slate-500 mt-0.5">#{permit.permit_number}</p>}
-        </div>
-        <div className="text-right text-xs text-slate-500 flex-shrink-0">
-          {permit.issued_date ? fmtDate(permit.issued_date) : permit.applied_date ? fmtDate(permit.applied_date) : ''}
-        </div>
-      </button>
+          <div className="text-right text-xs text-slate-500 flex-shrink-0">
+            {permit.issued_date ? fmtDate(permit.issued_date) : permit.applied_date ? fmtDate(permit.applied_date) : ''}
+          </div>
+        </button>
+        <button type="button" onClick={startEdit}
+          className="p-3 text-slate-500 hover:text-amber-500 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+          <Pencil className="h-4 w-4" />
+        </button>
+      </div>
 
       {expanded && (
         <div className="px-3 pb-3 space-y-3">
-          {/* Dates */}
-          <div className="flex flex-wrap gap-3 text-xs text-slate-500">
-            {permit.applied_date && <span>Applied: {fmtDate(permit.applied_date)}</span>}
-            {permit.issued_date && <span>Issued: {fmtDate(permit.issued_date)}</span>}
-            {permit.expiry_date && <span>Expires: {fmtDate(permit.expiry_date)}</span>}
-          </div>
-          {permit.notes && <p className="text-sm text-slate-400">{permit.notes}</p>}
+          {/* Edit form */}
+          {editing ? (
+            <div className="bg-slate-900/50 border border-slate-700 rounded-lg p-3 space-y-2">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-medium text-slate-300">Edit Permit</p>
+                <button type="button" onClick={() => setEditing(false)}
+                  className="p-1 text-slate-500 hover:text-amber-500"><X className="h-3 w-3" /></button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-slate-500">Permit Type</label>
+                  <select className={INPUT_CLASS} value={editData.permit_type}
+                    onChange={(e) => setEdit('permit_type', e.target.value)}>
+                    <option value="building">Building</option>
+                    <option value="electrical">Electrical</option>
+                    <option value="plumbing">Plumbing</option>
+                    <option value="mechanical">Mechanical</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-slate-500">Status</label>
+                  <select className={INPUT_CLASS} value={editData.status}
+                    onChange={(e) => setEdit('status', e.target.value)}>
+                    <option value="not_applied">Not Applied</option>
+                    <option value="applied">Applied</option>
+                    <option value="issued">Issued</option>
+                    <option value="expired">Expired</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-slate-500">Permit Number</label>
+                <input type="text" className={INPUT_CLASS} value={editData.permit_number}
+                  onChange={(e) => setEdit('permit_number', e.target.value)} placeholder="e.g., BLD-2026-001" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {(editData.status === 'applied' || editData.status === 'issued' || editData.status === 'expired') && (
+                  <div>
+                    <label className="text-xs text-slate-500">Applied Date</label>
+                    <input type="date" className={INPUT_CLASS} value={editData.applied_date}
+                      onChange={(e) => setEdit('applied_date', e.target.value)} />
+                  </div>
+                )}
+                {(editData.status === 'issued' || editData.status === 'expired') && (
+                  <div>
+                    <label className="text-xs text-slate-500">Issued Date</label>
+                    <input type="date" className={INPUT_CLASS} value={editData.issued_date}
+                      onChange={(e) => setEdit('issued_date', e.target.value)} />
+                  </div>
+                )}
+                {editData.status === 'expired' && (
+                  <div>
+                    <label className="text-xs text-slate-500">Expiry Date</label>
+                    <input type="date" className={INPUT_CLASS} value={editData.expiry_date}
+                      onChange={(e) => setEdit('expiry_date', e.target.value)} />
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="text-xs text-slate-500">Notes</label>
+                <input type="text" className={INPUT_CLASS} value={editData.notes}
+                  onChange={(e) => setEdit('notes', e.target.value)} placeholder="Optional notes" />
+              </div>
+              <button type="button"
+                disabled={updatePermit.isLoading}
+                onClick={() => updatePermit.mutate({
+                  permit_type: editData.permit_type,
+                  permit_number: editData.permit_number,
+                  status: editData.status,
+                  applied_date: editData.applied_date || null,
+                  issued_date: editData.issued_date || null,
+                  expiry_date: editData.expiry_date || null,
+                  notes: editData.notes,
+                })}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm min-h-[44px] disabled:opacity-50">
+                {updatePermit.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Update Permit</>}
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Dates */}
+              <div className="flex flex-wrap gap-3 text-xs text-slate-500">
+                {permit.applied_date && <span>Applied: {fmtDate(permit.applied_date)}</span>}
+                {permit.issued_date && <span>Issued: {fmtDate(permit.issued_date)}</span>}
+                {permit.expiry_date && <span>Expires: {fmtDate(permit.expiry_date)}</span>}
+              </div>
+              {permit.notes && <p className="text-sm text-slate-400">{permit.notes}</p>}
+            </>
+          )}
 
-          {/* eBuild link */}
-          {permit.permit_number && (
-            <a href="https://pdd.eugene-or.gov/buildingpermits/permitsearch"
+          {/* eBuild links — always visible */}
+          <div className="flex flex-wrap gap-3">
+            <a href="https://pdd.eugene-or.gov/ebuild"
               target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400">
-              View on eBuild <ExternalLink className="h-3 w-3" />
+              Apply on eBuild <ExternalLink className="h-3 w-3" />
             </a>
-          )}
+            {permit.permit_number && (
+              <a href="https://pdd.eugene-or.gov/buildingpermits/permitsearch"
+                target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400">
+                Look Up Permit <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+          </div>
 
           {/* Inspections */}
           <div className="border-t border-slate-700 pt-3">

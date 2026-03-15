@@ -13,8 +13,15 @@ import FieldServiceClientDetail from './FieldServiceClientDetail';
 import {
   FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save, X,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
-  Eye, Camera, Shield, Copy, User, Users, LayoutList, Phone, HardHat, Briefcase,
+  Eye, Camera, Shield, Copy, User, Users, LayoutList, Phone, HardHat, Briefcase, EyeOff,
 } from 'lucide-react';
+
+/** Budget bar color: amber shades only — no red. */
+function budgetBarColor(pct) {
+  if (pct >= 95) return 'bg-amber-700';
+  if (pct >= 75) return 'bg-amber-600';
+  return 'bg-amber-500';
+}
 
 function parseWorkers(val) {
   if (Array.isArray(val)) return val;
@@ -744,6 +751,28 @@ export default function FieldServiceProjects({ profile, currentUser }) {
               {clientEmail && <a href={`mailto:${clientEmail}`} className="hover:text-amber-500 transition-colors">Email: {clientEmail}</a>}
             </div>
           )}
+
+          {/* Client Visibility Toggle — inline in header */}
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-800">
+            <div className="flex items-center gap-2 text-sm text-slate-400">
+              {proj.client_show_breakdown ? <Eye className="h-4 w-4 text-amber-500" /> : <EyeOff className="h-4 w-4" />}
+              <span>Cost breakdown visible to client</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const current = proj.client_show_breakdown === true;
+                updateProject.mutate({ id: proj.id, data: { client_show_breakdown: !current } });
+              }}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors min-h-[44px] min-w-[44px] items-center ${
+                proj.client_show_breakdown ? 'bg-amber-500' : 'bg-slate-700'
+              }`}
+            >
+              <span className={`inline-block h-5 w-5 rounded-full bg-slate-100 transition-transform ${
+                proj.client_show_breakdown ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </button>
+          </div>
         </div>
 
         {/* Status Quick Change */}
@@ -765,30 +794,6 @@ export default function FieldServiceProjects({ profile, currentUser }) {
                 {s.label}
               </button>
             ))}
-          </div>
-        </div>
-
-        {/* Client View Settings */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-300">Show cost breakdown to client</p>
-              <p className="text-xs text-slate-500 mt-0.5">When off, clients see budget total only. When on, they see Materials and Labor subtotals.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                const current = proj.client_show_breakdown === true;
-                updateProject.mutate({ id: proj.id, data: { client_show_breakdown: !current } });
-              }}
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors min-h-[44px] min-w-[44px] items-center ${
-                proj.client_show_breakdown ? 'bg-amber-500' : 'bg-slate-700'
-              }`}
-            >
-              <span className={`inline-block h-5 w-5 rounded-full bg-slate-100 transition-transform ${
-                proj.client_show_breakdown ? 'translate-x-5' : 'translate-x-0'
-              }`} />
-            </button>
           </div>
         </div>
 
@@ -857,7 +862,7 @@ export default function FieldServiceProjects({ profile, currentUser }) {
             </div>
             <div className="w-full bg-slate-800 rounded-full h-2.5">
               <div
-                className={`h-2.5 rounded-full transition-all ${pct > 90 ? 'bg-red-500' : 'bg-amber-500'}`}
+                className={`h-2.5 rounded-full transition-all ${budgetBarColor(pct)}`}
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -1188,7 +1193,7 @@ export default function FieldServiceProjects({ profile, currentUser }) {
                         <div className="mt-2">
                           <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all ${pct > 90 ? 'bg-red-500' : 'bg-amber-500'}`}
+                              className={`h-full rounded-full transition-all ${budgetBarColor(pct)}`}
                               style={{ width: `${pct}%` }}
                             />
                           </div>
@@ -1256,7 +1261,7 @@ export default function FieldServiceProjects({ profile, currentUser }) {
                   <div className="mt-2">
                     <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all ${pct > 90 ? 'bg-red-500' : 'bg-amber-500'}`}
+                        className={`h-full rounded-full transition-all ${budgetBarColor(pct)}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
