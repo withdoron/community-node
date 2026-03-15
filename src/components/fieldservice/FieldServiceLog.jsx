@@ -569,7 +569,9 @@ export default function FieldServiceLog({ profile, currentUser }) {
             >
               <option value="">Select project...</option>
               {projects.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+                <option key={p.id} value={p.id}>
+                  {p.name}{p.client_name ? ` — ${p.client_name}` : ''}
+                </option>
               ))}
             </select>
           </div>

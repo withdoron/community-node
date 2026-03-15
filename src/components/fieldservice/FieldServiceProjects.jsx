@@ -13,7 +13,7 @@ import FieldServiceClientDetail from './FieldServiceClientDetail';
 import {
   FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
-  Eye, Camera, Shield, Copy, User,
+  Eye, Camera, Shield, Copy, User, Users, LayoutList,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -71,6 +71,7 @@ export default function FieldServiceProjects({ profile, currentUser }) {
   const [clientDetailId, setClientDetailId] = useState(null);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [groupByClient, setGroupByClient] = useState(true);
   const [formData, setFormData] = useState(EMPTY_PROJECT);
   const [editingId, setEditingId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -169,6 +170,27 @@ export default function FieldServiceProjects({ profile, currentUser }) {
     }
     return [...list].sort((a, b) => (b.created_date || '').localeCompare(a.created_date || ''));
   }, [projects, filter, searchTerm]);
+
+  const groupedProjects = useMemo(() => {
+    const groups = {};
+    filteredProjects.forEach((p) => {
+      const key = p.client_id || '__unassigned__';
+      if (!groups[key]) {
+        const client = p.client_id ? clientMap[p.client_id] : null;
+        groups[key] = {
+          clientId: p.client_id || null,
+          clientName: client?.name || p.client_name || 'Unassigned',
+          projects: [],
+        };
+      }
+      groups[key].projects.push(p);
+    });
+    return Object.values(groups).sort((a, b) => {
+      if (a.clientId === null) return 1;
+      if (b.clientId === null) return -1;
+      return a.clientName.localeCompare(b.clientName);
+    });
+  }, [filteredProjects, clientMap]);
 
   const selectedProject = useMemo(
     () => projects.find((p) => p.id === selectedId),
@@ -878,7 +900,7 @@ export default function FieldServiceProjects({ profile, currentUser }) {
         </button>
       </div>
 
-      {/* Search + Filter */}
+      {/* Search + Filter + Group Toggle */}
       <div className="flex gap-3">
         <div className="flex-1 relative">
           <Search className="h-4 w-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -899,6 +921,18 @@ export default function FieldServiceProjects({ profile, currentUser }) {
             <option key={f.value} value={f.value}>{f.label}</option>
           ))}
         </select>
+        <button
+          type="button"
+          onClick={() => setGroupByClient((v) => !v)}
+          title={groupByClient ? 'Flat list' : 'Group by client'}
+          className={`flex items-center justify-center w-10 h-10 rounded-lg border transition-colors min-h-[44px] min-w-[44px] ${
+            groupByClient
+              ? 'border-amber-500 text-amber-500 bg-amber-500/10'
+              : 'border-slate-700 text-slate-400 hover:text-amber-500 hover:border-amber-500'
+          }`}
+        >
+          {groupByClient ? <Users className="h-4 w-4" /> : <LayoutList className="h-4 w-4" />}
+        </button>
       </div>
 
       {/* Project Cards */}
@@ -920,7 +954,91 @@ export default function FieldServiceProjects({ profile, currentUser }) {
             </button>
           )}
         </div>
+      ) : groupByClient ? (
+        /* ── Grouped by Client ── */
+        <div className="space-y-5">
+          {groupedProjects.map((group) => (
+            <div key={group.clientId || '__unassigned__'}>
+              {/* Client group header */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (group.clientId) { setClientDetailId(group.clientId); setView('client_detail'); }
+                }}
+                className={`flex items-center gap-2 mb-2 text-sm font-semibold ${
+                  group.clientId
+                    ? 'text-amber-500 hover:text-amber-400 transition-colors'
+                    : 'text-slate-500 cursor-default'
+                }`}
+              >
+                <User className="h-3.5 w-3.5" />
+                {group.clientName}
+                <span className="text-slate-600 font-normal">({group.projects.length})</span>
+              </button>
+
+              <div className="space-y-2 pl-1 border-l-2 border-slate-800 ml-1.5">
+                {group.projects.map((proj) => {
+                  const statusObj = STATUS_OPTIONS.find((s) => s.value === proj.status) || STATUS_OPTIONS[0];
+                  const spent = spendByProject[proj.id] || 0;
+                  const budget = proj.total_budget || 0;
+                  const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
+                  const logs = logCountByProject[proj.id] || 0;
+
+                  return (
+                    <button
+                      key={proj.id}
+                      type="button"
+                      onClick={() => openDetail(proj)}
+                      className="w-full text-left bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <p className="text-sm font-medium text-slate-100 truncate min-w-0 flex-1">{proj.name}</p>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusObj.color} flex-shrink-0 ml-2`}>
+                          {statusObj.label}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                        {proj.address && (
+                          <span className="flex items-center gap-1 truncate max-w-[200px]">
+                            <MapPin className="h-3 w-3 flex-shrink-0" /> {proj.address}
+                          </span>
+                        )}
+                        {logs > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> {logs} log{logs !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                        {spent > 0 && (
+                          <span className="flex items-center gap-1 text-amber-500">
+                            <DollarSign className="h-3 w-3" /> {fmt(spent)}
+                          </span>
+                        )}
+                      </div>
+
+                      {budget > 0 && (
+                        <div className="mt-2">
+                          <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${pct > 90 ? 'bg-red-500' : 'bg-amber-500'}`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <div className="flex justify-between text-xs text-slate-600 mt-1">
+                            <span>{fmt(spent)}</span>
+                            <span>{fmt(budget)}</span>
+                          </div>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
+        /* ── Flat list ── */
         <div className="space-y-3">
           {filteredProjects.map((proj) => {
             const statusObj = STATUS_OPTIONS.find((s) => s.value === proj.status) || STATUS_OPTIONS[0];
