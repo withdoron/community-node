@@ -78,7 +78,12 @@ export default function FieldServiceSettings({ profile, currentUser }) {
   const [logoUploading, setLogoUploading] = useState(false);
 
   // ─── Workers state ───────────────────────────────
-  const [workers, setWorkers] = useState(profile?.workers_json || []);
+  const [workers, setWorkers] = useState(() => {
+    const w = profile?.workers_json;
+    if (Array.isArray(w)) return w;
+    if (w && typeof w === 'object' && Array.isArray(w.items)) return w.items;
+    return [];
+  });
   const [newWorkerName, setNewWorkerName] = useState('');
   const [newWorkerRate, setNewWorkerRate] = useState('');
   const [newWorkerPhone, setNewWorkerPhone] = useState('');
@@ -87,7 +92,12 @@ export default function FieldServiceSettings({ profile, currentUser }) {
   const [defaultTerms, setDefaultTerms] = useState(profile?.default_terms || '');
 
   // ─── Phase Labels state ──────────────────────────
-  const [phases, setPhases] = useState(profile?.phase_labels || ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final']);
+  const [phases, setPhases] = useState(() => {
+    const p = profile?.phase_labels;
+    if (Array.isArray(p)) return p;
+    if (p && typeof p === 'object' && Array.isArray(p.items)) return p.items;
+    return ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final'];
+  });
   const [newPhase, setNewPhase] = useState('');
 
   // ─── Workspace state ─────────────────────────────
@@ -109,9 +119,11 @@ export default function FieldServiceSettings({ profile, currentUser }) {
       setHourlyRate(profile.hourly_rate?.toString() || '');
       setBrandColor(profile.brand_color || '#f59e0b');
       setLogoUrl(profile.logo_url || '');
-      setWorkers(profile.workers_json || []);
+      const w = profile.workers_json;
+      setWorkers(Array.isArray(w) ? w : (w && typeof w === 'object' && Array.isArray(w.items)) ? w.items : []);
       setDefaultTerms(profile.default_terms || '');
-      setPhases(profile.phase_labels || ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final']);
+      const p = profile.phase_labels;
+      setPhases(Array.isArray(p) ? p : (p && typeof p === 'object' && Array.isArray(p.items)) ? p.items : ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final']);
       setWorkspaceName(profile.workspace_name || '');
     }
   }, [profile]);
@@ -143,7 +155,7 @@ export default function FieldServiceSettings({ profile, currentUser }) {
   const saveWorkers = useMutation({
     mutationFn: () =>
       base44.entities.FieldServiceProfile.update(profile.id, {
-        workers_json: workers,
+        workers_json: { items: workers },
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
@@ -188,7 +200,7 @@ export default function FieldServiceSettings({ profile, currentUser }) {
   const savePhases = useMutation({
     mutationFn: () =>
       base44.entities.FieldServiceProfile.update(profile.id, {
-        phase_labels: phases,
+        phase_labels: { items: phases },
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });

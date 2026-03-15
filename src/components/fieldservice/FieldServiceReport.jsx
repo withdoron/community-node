@@ -167,11 +167,11 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
           </div>
           {(profile?.license_number || profile?.phone || profile?.email) && (
             <p className="text-slate-500 text-sm mt-2 print:text-gray-500">
-              {[
-                profile.license_number && `License ${profile.license_number}`,
-                profile.phone,
-                profile.email,
-              ].filter(Boolean).join(' · ')}
+              {profile.license_number && <span>License {profile.license_number}</span>}
+              {profile.license_number && profile.phone && ' · '}
+              {profile.phone && <a href={`tel:${profile.phone.replace(/\D/g, '')}`} className="hover:text-amber-500 transition-colors">{profile.phone}</a>}
+              {(profile.license_number || profile.phone) && profile.email && ' · '}
+              {profile.email && <a href={`mailto:${profile.email}`} className="hover:text-amber-500 transition-colors">{profile.email}</a>}
             </p>
           )}
           <div className="mt-3 space-y-0.5 text-slate-400 text-sm print:text-gray-600">

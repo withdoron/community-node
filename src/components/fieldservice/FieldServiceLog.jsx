@@ -23,11 +23,18 @@ const fmt = (n) =>
 function parseWorkers(workersJson) {
   if (!workersJson) return [];
   if (Array.isArray(workersJson)) return workersJson;
+  if (workersJson && typeof workersJson === 'object' && Array.isArray(workersJson.items)) return workersJson.items;
   if (typeof workersJson === 'string') {
     try { const p = JSON.parse(workersJson); return Array.isArray(p) ? p : []; }
     catch { return []; }
   }
   return [];
+}
+
+function parsePhaseLabels(val) {
+  if (Array.isArray(val)) return val;
+  if (val && typeof val === 'object' && Array.isArray(val.items)) return val.items;
+  return null;
 }
 
 export default function FieldServiceLog({ profile }) {
@@ -100,7 +107,7 @@ export default function FieldServiceLog({ profile }) {
   }, [projectId, existingLogs]);
 
   const workers = useMemo(() => parseWorkers(profile?.workers_json), [profile?.workers_json]);
-  const phases = useMemo(() => profile?.phase_labels || ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final'], [profile?.phase_labels]);
+  const phases = useMemo(() => parsePhaseLabels(profile?.phase_labels) || ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final'], [profile?.phase_labels]);
 
   // ─── Photo capture ────────────────────────────
   const handlePhotoCapture = (e) => {

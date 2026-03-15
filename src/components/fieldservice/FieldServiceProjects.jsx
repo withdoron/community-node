@@ -23,7 +23,7 @@ const STATUS_OPTIONS = [
   { value: 'quoting', label: 'Quoting', color: 'bg-blue-500/20 text-blue-400' },
   { value: 'paused', label: 'Paused', color: 'bg-amber-500/20 text-amber-400' },
   { value: 'completed', label: 'Completed', color: 'bg-slate-500/20 text-slate-400' },
-  { value: 'cancelled', label: 'Cancelled', color: 'bg-red-500/20 text-red-400' },
+  { value: 'cancelled', label: 'Cancelled', color: 'bg-slate-500/20 text-slate-500' },
 ];
 
 function formatPhone(value) {
@@ -656,7 +656,7 @@ export default function FieldServiceProjects({ profile }) {
         {/* Photo Gallery */}
         <FieldServicePhotoGallery
           projectId={proj.id}
-          phases={profile?.phase_labels || ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final']}
+          phases={Array.isArray(profile?.phase_labels) ? profile.phase_labels : (profile?.phase_labels?.items || ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final'])}
         />
 
         {/* Recent Logs */}

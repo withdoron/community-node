@@ -369,10 +369,10 @@ export default function BusinessDashboard() {
     }
   }, [selectedTeamId, allTeams]);
 
-  // Scroll to top when switching tabs
+  // Scroll to top when switching tabs or workspaces
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [activeTab]);
+  }, [activeTab, selectedBusinessId, selectedTeamId, selectedFinanceId, selectedFieldServiceId, selectedPropertyMgmtId]);
 
   // Hard delete: Business.delete(id) removes record permanently. Fallback to soft delete if delete not available.
   const deleteMutation = useMutation({

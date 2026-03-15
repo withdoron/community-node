@@ -143,8 +143,8 @@ export default function FieldServiceClientPortal({ project, profile, onBack }) {
               </div>
             </div>
             <div className="text-right text-sm text-slate-600">
-              {profile?.phone && <p>{profile.phone}</p>}
-              {profile?.email && <p>{profile.email}</p>}
+              {profile?.phone && <p><a href={`tel:${profile.phone.replace(/\D/g, '')}`} className="hover:text-slate-900 underline">{profile.phone}</a></p>}
+              {profile?.email && <p><a href={`mailto:${profile.email}`} className="hover:text-slate-900 underline">{profile.email}</a></p>}
             </div>
           </div>
         </div>
