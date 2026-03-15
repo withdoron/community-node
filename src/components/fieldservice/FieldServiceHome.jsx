@@ -260,7 +260,20 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
           <div className="space-y-3">
             {recentLogs.map((log) => {
               const project = projectMap[log.project_id];
-              const taskPreview = (log.tasks_completed || '').slice(0, 100);
+              const taskPreview = (() => {
+                const t = log.tasks_completed;
+                if (!t) return '';
+                if (Array.isArray(t)) return t.join(', ');
+                if (typeof t === 'string') {
+                  const s = t.trim();
+                  if (s.startsWith('[')) {
+                    try { const p = JSON.parse(s); return Array.isArray(p) ? p.join(', ') : s; }
+                    catch { return s; }
+                  }
+                  return s.slice(0, 100);
+                }
+                return '';
+              })();
               return (
                 <div
                   key={log.id}

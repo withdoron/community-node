@@ -11,7 +11,7 @@ import FieldServiceClientPortal from './FieldServiceClientPortal';
 import {
   FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
-  Eye, Camera, Shield,
+  Eye, Camera, Shield, Copy,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -572,6 +572,28 @@ export default function FieldServiceProjects({ profile, currentUser }) {
           )}
         </div>
 
+        {/* Status Quick Change */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <p className="text-sm text-slate-400 mb-3">Change status</p>
+          <div className="flex flex-wrap gap-2">
+            {STATUS_OPTIONS.map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                disabled={s.value === proj.status || updateStatus.isPending}
+                onClick={() => updateStatus.mutate({ id: proj.id, status: s.value })}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
+                  s.value === proj.status
+                    ? `${s.color} ring-2 ring-white/20`
+                    : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                } disabled:opacity-50`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Budget & Spend */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
@@ -610,28 +632,6 @@ export default function FieldServiceProjects({ profile, currentUser }) {
           </div>
         )}
 
-        {/* Status Quick Change */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <p className="text-sm text-slate-400 mb-3">Change status</p>
-          <div className="flex flex-wrap gap-2">
-            {STATUS_OPTIONS.map((s) => (
-              <button
-                key={s.value}
-                type="button"
-                disabled={s.value === proj.status || updateStatus.isPending}
-                onClick={() => updateStatus.mutate({ id: proj.id, status: s.value })}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
-                  s.value === proj.status
-                    ? `${s.color} ring-2 ring-white/20`
-                    : 'bg-slate-800 text-slate-400 hover:text-slate-200'
-                } disabled:opacity-50`}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Linked Estimate */}
         {proj.estimate_id && (
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
@@ -669,8 +669,16 @@ export default function FieldServiceProjects({ profile, currentUser }) {
               {projectLogs.slice(0, 5).map((log) => {
                 const taskPreview = (() => {
                   const t = log.tasks_completed;
+                  if (!t) return '';
                   if (Array.isArray(t)) return t.join(', ');
-                  if (typeof t === 'string') return t.slice(0, 120);
+                  if (typeof t === 'string') {
+                    const s = t.trim();
+                    if (s.startsWith('[')) {
+                      try { const parsed = JSON.parse(s); return Array.isArray(parsed) ? parsed.join(', ') : s; }
+                      catch { return s; }
+                    }
+                    return s.slice(0, 120);
+                  }
                   return '';
                 })();
                 return (
@@ -717,6 +725,16 @@ export default function FieldServiceProjects({ profile, currentUser }) {
             className="flex-1 flex items-center justify-center gap-2 border border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:bg-transparent rounded-xl py-3 transition-colors text-sm font-medium min-h-[44px]"
           >
             <Eye className="h-4 w-4" /> View as Client
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const url = `${window.location.origin}/client-portal/${profile?.id}/${proj.id}`;
+              navigator.clipboard.writeText(url).then(() => toast.success('Client link copied!'));
+            }}
+            className="flex items-center justify-center gap-2 border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent rounded-xl py-3 px-4 transition-colors text-sm font-medium min-h-[44px]"
+          >
+            <Copy className="h-4 w-4" /> Copy Link
           </button>
           {projectLogs.length > 0 && (
             <button

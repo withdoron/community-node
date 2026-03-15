@@ -17,6 +17,7 @@ import NetworkPage from '@/pages/NetworkPage';
 import Networks from '@/pages/Networks';
 import JoinTeam from '@/pages/JoinTeam';
 import ClaimBusiness from '@/pages/ClaimBusiness';
+import ClientPortal from '@/pages/ClientPortal';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -131,6 +132,11 @@ const AuthenticatedApp = () => {
             <JoinTeam />
           </LayoutWrapper>
         }
+      />
+      {/* Public client portal — shareable project view */}
+      <Route
+        path="/client-portal/:profileId/:projectId"
+        element={<ClientPortal />}
       />
       <Route path="*" element={<PageNotFound />} />
     </Routes>

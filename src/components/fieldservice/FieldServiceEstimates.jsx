@@ -96,7 +96,7 @@ function parseJSON(val) {
 // ═══════════════════════════════════════════════════
 // Preview (client-facing branded estimate)
 // ═══════════════════════════════════════════════════
-function EstimatePreview({ estimate, profile, onBack, onEdit }) {
+function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, projects }) {
   const lineItems = parseJSON(estimate.line_items);
   const laborEst = parseJSON(estimate.labor_estimate).filter(
     (l) => l.description || (parseFloat(l.hours) || 0) > 0
@@ -118,6 +118,17 @@ function EstimatePreview({ estimate, profile, onBack, onEdit }) {
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 transition-colors text-sm min-h-[44px]">
             <Printer className="h-4 w-4" /> Print / PDF
           </button>
+          {(estimate.status === 'draft' || estimate.status === 'sent') && !estimate.project_id && (
+            <button type="button" onClick={() => onConvert(estimate)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px]">
+              <FolderOpen className="h-4 w-4" /> Convert to Project
+            </button>
+          )}
+          {estimate.project_id && (
+            <button type="button" onClick={() => {}} className="text-sm text-slate-400 hover:text-amber-500 transition-colors min-h-[44px]">
+              View Project →
+            </button>
+          )}
           <button type="button" onClick={() => onEdit(estimate)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm min-h-[44px]">
             <Pencil className="h-4 w-4" /> Edit
@@ -136,7 +147,7 @@ function EstimatePreview({ estimate, profile, onBack, onEdit }) {
         }`}</style>
 
         {/* Contractor header */}
-        <div className="flex justify-between items-start mb-8 border-b border-slate-200 pb-6">
+        <div className="flex justify-between items-start mb-8 pb-6" style={{ borderBottom: `3px solid ${brandColor}` }}>
           <div className="flex items-center gap-4">
             {profile?.logo_url ? (
               <img src={profile.logo_url} alt="" className="h-14 w-14 rounded-lg object-cover" />
@@ -158,7 +169,7 @@ function EstimatePreview({ estimate, profile, onBack, onEdit }) {
         {/* Estimate info */}
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">ESTIMATE</h2>
+            <h2 className="text-xl font-bold" style={{ color: brandColor }}>ESTIMATE</h2>
             <p className="text-sm text-slate-500">{estimate.estimate_number}</p>
           </div>
           <div className="text-right text-sm">
@@ -809,6 +820,8 @@ export default function FieldServiceEstimates({ profile, currentUser }) {
         profile={profile}
         onBack={backToList}
         onEdit={(est) => openEditEstimate(est)}
+        onConvert={(est) => setConvertConfirm(est)}
+        projects={projects}
       />
     );
   }
@@ -928,7 +941,7 @@ export default function FieldServiceEstimates({ profile, currentUser }) {
                     className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[36px] transition-colors">
                     <Copy className="h-3.5 w-3.5" /> Duplicate
                   </button>
-                  {est.status === 'accepted' && !est.project_id && (
+                  {(est.status === 'draft' || est.status === 'sent') && !est.project_id && (
                     <button type="button" onClick={() => setConvertConfirm(est)}
                       className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 min-h-[36px] transition-colors">
                       <FolderOpen className="h-3.5 w-3.5" /> Convert to Project

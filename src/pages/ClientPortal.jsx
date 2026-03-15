@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Printer, X, Loader2, Camera, Shield, MessageSquare, Send } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { Loader2, Printer, Camera, Shield, X } from 'lucide-react';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -23,52 +24,86 @@ function parseJSON(val) {
   return [];
 }
 
-export default function FieldServiceClientPortal({ project, profile, onBack }) {
+function parseTasks(t) {
+  if (!t) return '';
+  if (Array.isArray(t)) return t.join(', ').slice(0, 100);
+  if (typeof t === 'string') {
+    const s = t.trim();
+    if (s.startsWith('[')) {
+      try { const p = JSON.parse(s); return Array.isArray(p) ? p.join(', ').slice(0, 100) : s.slice(0, 100); }
+      catch { return s.slice(0, 100); }
+    }
+    return s.slice(0, 100);
+  }
+  return '';
+}
+
+export default function ClientPortal() {
+  const { profileId, projectId } = useParams();
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
-  const brandColor = profile?.brand_color || '#f59e0b';
 
   // ─── Queries ────────────────────────────────────
-  const { data: payments = [] } = useQuery({
-    queryKey: ['fs-payments', project?.id],
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ['fs-public-profile', profileId],
     queryFn: async () => {
-      const list = await base44.entities.FSPayment.filter({ project_id: project.id });
+      if (!profileId) return null;
+      const list = await base44.entities.FieldServiceProfile.filter({ id: profileId });
+      return Array.isArray(list) && list[0] ? list[0] : null;
+    },
+    enabled: !!profileId,
+  });
+
+  const { data: project, isLoading: projectLoading } = useQuery({
+    queryKey: ['fs-public-project', projectId],
+    queryFn: async () => {
+      if (!projectId) return null;
+      const list = await base44.entities.FSProject.filter({ id: projectId });
+      return Array.isArray(list) && list[0] ? list[0] : null;
+    },
+    enabled: !!projectId,
+  });
+
+  const { data: payments = [] } = useQuery({
+    queryKey: ['fs-public-payments', projectId],
+    queryFn: async () => {
+      const list = await base44.entities.FSPayment.filter({ project_id: projectId });
       return (Array.isArray(list) ? list : list ? [list] : [])
         .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     },
-    enabled: !!project?.id,
+    enabled: !!projectId,
   });
 
   const { data: photos = [] } = useQuery({
-    queryKey: ['fs-client-photos', project?.id],
+    queryKey: ['fs-public-photos', projectId],
     queryFn: async () => {
-      const list = await base44.entities.FSDailyPhoto.filter({ project_id: project.id });
+      const list = await base44.entities.FSDailyPhoto.filter({ project_id: projectId });
       return (Array.isArray(list) ? list : list ? [list] : [])
         .sort((a, b) => (b.created_date || '').localeCompare(a.created_date || ''));
     },
-    enabled: !!project?.id,
+    enabled: !!projectId,
   });
 
   const { data: permits = [] } = useQuery({
-    queryKey: ['fs-permits', project?.id],
+    queryKey: ['fs-public-permits', projectId],
     queryFn: async () => {
-      const list = await base44.entities.FSPermit.filter({ project_id: project.id });
+      const list = await base44.entities.FSPermit.filter({ project_id: projectId });
       return Array.isArray(list) ? list : list ? [list] : [];
     },
-    enabled: !!project?.id,
+    enabled: !!projectId,
   });
 
   const { data: logs = [] } = useQuery({
-    queryKey: ['fs-client-logs', project?.id],
+    queryKey: ['fs-public-logs', projectId],
     queryFn: async () => {
-      const list = await base44.entities.FSDailyLog.filter({ project_id: project.id });
+      const list = await base44.entities.FSDailyLog.filter({ project_id: projectId });
       return (Array.isArray(list) ? list : list ? [list] : [])
         .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     },
-    enabled: !!project?.id,
+    enabled: !!projectId,
   });
 
   const { data: estimate } = useQuery({
-    queryKey: ['fs-client-estimate', project?.estimate_id],
+    queryKey: ['fs-public-estimate', project?.estimate_id],
     queryFn: async () => {
       if (!project?.estimate_id) return null;
       const list = await base44.entities.FSEstimate.filter({ id: project.estimate_id });
@@ -78,6 +113,8 @@ export default function FieldServiceClientPortal({ project, profile, onBack }) {
   });
 
   // ─── Derived ────────────────────────────────────
+  const brandColor = profile?.brand_color || '#f59e0b';
+
   const totalPaid = useMemo(
     () => payments.filter((p) => p.status === 'received' || p.status === 'cleared')
       .reduce((s, p) => s + (p.amount || 0), 0),
@@ -105,24 +142,39 @@ export default function FieldServiceClientPortal({ project, profile, onBack }) {
     not_applied: 'Not Applied', applied: 'Applied', issued: 'Issued', expired: 'Expired',
   };
 
-  if (!project) return null;
+  const loading = profileLoading || projectLoading;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-slate-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!project || !profile) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center px-4">
+        <div className="text-center">
+          <h1 className="text-xl font-bold text-slate-900 mb-2">Project Not Found</h1>
+          <p className="text-slate-500">This link may be invalid or expired.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4 pb-8">
-      {/* Toolbar (hidden in print) */}
-      <div className="flex items-center justify-between gap-2 print:hidden">
-        <button type="button" onClick={onBack}
-          className="flex items-center gap-2 text-slate-400 hover:text-amber-500 text-sm min-h-[44px]">
-          <ArrowLeft className="h-4 w-4" /> Back to Project
-        </button>
+    <div className="min-h-screen bg-slate-50">
+      {/* Print button */}
+      <div className="max-w-3xl mx-auto px-4 py-4 flex justify-end print:hidden">
         <button type="button" onClick={() => window.print()}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 transition-colors text-sm min-h-[44px]">
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-300 text-slate-600 hover:text-slate-900 transition-colors text-sm">
           <Printer className="h-4 w-4" /> Print
         </button>
       </div>
 
       {/* Client Portal Content */}
-      <div className="bg-white text-slate-900 rounded-xl overflow-hidden print:rounded-none print:shadow-none">
+      <div className="max-w-3xl mx-auto bg-white rounded-xl overflow-hidden shadow-sm print:rounded-none print:shadow-none print:max-w-none">
         <style>{`@media print {
           body { background: white !important; }
           .print\\:hidden { display: none !important; }
@@ -284,20 +336,7 @@ export default function FieldServiceClientPortal({ project, profile, onBack }) {
               <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3">Recent Updates</h3>
               <div className="space-y-3">
                 {logs.slice(0, 5).map((log) => {
-                  const taskPreview = (() => {
-                    const t = log.tasks_completed;
-                    if (!t) return '';
-                    if (Array.isArray(t)) return t.join(', ').slice(0, 100);
-                    if (typeof t === 'string') {
-                      const s = t.trim();
-                      if (s.startsWith('[')) {
-                        try { const p = JSON.parse(s); return Array.isArray(p) ? p.join(', ').slice(0, 100) : s.slice(0, 100); }
-                        catch { return s.slice(0, 100); }
-                      }
-                      return s.slice(0, 100);
-                    }
-                    return '';
-                  })();
+                  const taskPreview = parseTasks(log.tasks_completed);
                   const logPhotos = photos.filter((p) => p.daily_log_id === log.id);
                   return (
                     <div key={log.id} className="border-b border-slate-100 pb-2 last:border-0 last:pb-0">

@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import VoiceInput from './VoiceInput';
 import {
   Camera, Plus, X, ClipboardList, Package, Users, Cloud,
-  Loader2, Save, Trash2, FolderOpen, Receipt, ChevronDown,
+  Loader2, Save, Trash2, FolderOpen, Receipt, ChevronDown, Pencil,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -72,6 +72,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
   const [labor, setLabor] = useState([]);
 
   const [saving, setSaving] = useState(false);
+  const [editingLogId, setEditingLogId] = useState(null);
 
   // Restore last project from localStorage
   useEffect(() => {
@@ -190,6 +191,73 @@ export default function FieldServiceLog({ profile, currentUser }) {
     setLabor((prev) => prev.filter((_, i) => i !== idx));
   };
 
+  // ─── Load log for editing ─────────────────────
+  const loadLogForEditing = async (log) => {
+    setEditingLogId(log.id);
+    setProjectId(String(log.project_id));
+    setDate(log.date || new Date().toISOString().split('T')[0]);
+    setDayNumber(String(log.day_number || '').replace('Day ', ''));
+    setWeather(log.weather || '');
+    setNotes(log.notes || '');
+
+    // Parse tasks
+    const t = log.tasks_completed;
+    if (Array.isArray(t)) {
+      setTasksText(t.join('\n'));
+    } else if (typeof t === 'string') {
+      const s = t.trim();
+      if (s.startsWith('[')) {
+        try { const parsed = JSON.parse(s); setTasksText(Array.isArray(parsed) ? parsed.join('\n') : s); }
+        catch { setTasksText(s); }
+      } else {
+        setTasksText(s);
+      }
+    } else {
+      setTasksText('');
+    }
+
+    // Load associated materials
+    try {
+      const mats = await base44.entities.FSMaterialEntry.filter({ daily_log_id: log.id });
+      const matList = Array.isArray(mats) ? mats : mats ? [mats] : [];
+      setMaterials(matList.map((m) => ({
+        id: m.id,
+        description: m.description || '',
+        quantity: String(m.quantity || 1),
+        unit: m.unit || 'each',
+        unit_cost: String(m.unit_cost || 0),
+        receipt_photo: null,
+        receipt_preview: typeof m.receipt_photo === 'object' && m.receipt_photo?.url ? m.receipt_photo.url : (m.receipt_photo || null),
+      })));
+    } catch { setMaterials([]); }
+
+    // Load associated labor
+    try {
+      const labs = await base44.entities.FSLaborEntry.filter({ daily_log_id: log.id });
+      const labList = Array.isArray(labs) ? labs : labs ? [labs] : [];
+      setLabor(labList.map((l) => ({
+        id: l.id,
+        worker_name: l.worker_name || '',
+        hours: String(l.hours || ''),
+        hourly_rate: String(l.hourly_rate || ''),
+        description: l.description || '',
+      })));
+    } catch { setLabor([]); }
+
+    // Clear photos (can't re-edit uploaded photos as File objects)
+    setPhotos([]);
+  };
+
+  const cancelEditing = () => {
+    setEditingLogId(null);
+    setTasksText('');
+    setNotes('');
+    setPhotos([]);
+    setMaterials([]);
+    setLabor([]);
+    setWeather('');
+  };
+
   // ─── Upload helper ────────────────────────────
   const uploadFile = async (file) => {
     // Base44 file upload via entity file field
@@ -218,83 +286,167 @@ export default function FieldServiceLog({ profile, currentUser }) {
       // Save last project
       localStorage.setItem(LAST_PROJECT_KEY, projectId);
 
-      // 1. Create DailyLog
       const tasksArray = tasksText
         .split('\n')
         .map((t) => t.trim())
         .filter(Boolean);
 
-      const log = await base44.entities.FSDailyLog.create({
-        profile_id: profile.id,
-        user_id: currentUser?.id,
-        project_id: projectId,
-        date,
-        day_number: dayNumber || null,
-        weather: weather || null,
-        tasks_completed: tasksArray.length > 0 ? JSON.stringify(tasksArray) : null,
-        notes: notes || null,
-      });
+      if (editingLogId) {
+        // ═══ UPDATE MODE ══════════════════════════
+        await base44.entities.FSDailyLog.update(editingLogId, {
+          date,
+          day_number: dayNumber || null,
+          weather: weather || null,
+          tasks_completed: tasksArray.length > 0 ? JSON.stringify(tasksArray) : null,
+          notes: notes || null,
+        });
 
-      // 2. Upload photos → create FSDailyPhoto entries
-      for (const photo of photos) {
-        try {
-          const photoData = await uploadFile(photo.file);
-          await base44.entities.FSDailyPhoto.create({
+        // Upload new photos
+        for (const photo of photos) {
+          try {
+            const photoData = await uploadFile(photo.file);
+            await base44.entities.FSDailyPhoto.create({
+              profile_id: profile.id,
+              user_id: currentUser?.id,
+              project_id: projectId,
+              daily_log_id: editingLogId,
+              photo: photoData,
+              caption: photo.caption || null,
+              phase: photo.phase || null,
+            });
+          } catch (err) {
+            console.error('Photo upload error:', err);
+          }
+        }
+
+        // Update existing materials, create new ones
+        for (const mat of materials) {
+          if (!mat.description.trim()) continue;
+          const qty = parseFloat(mat.quantity) || 1;
+          const unitCost = parseFloat(mat.unit_cost) || 0;
+          const matData = {
+            description: mat.description.trim(),
+            quantity: qty,
+            unit: mat.unit || 'each',
+            unit_cost: unitCost,
+            total_cost: qty * unitCost,
+          };
+          if (mat.id) {
+            await base44.entities.FSMaterialEntry.update(mat.id, matData);
+          } else {
+            await base44.entities.FSMaterialEntry.create({
+              ...matData,
+              profile_id: profile.id,
+              user_id: currentUser?.id,
+              project_id: projectId,
+              daily_log_id: editingLogId,
+            });
+          }
+        }
+
+        // Update existing labor, create new ones
+        for (const lab of labor) {
+          if (!lab.worker_name.trim() || !lab.hours) continue;
+          const hrs = parseFloat(lab.hours) || 0;
+          const rate = parseFloat(lab.hourly_rate) || 0;
+          const labData = {
+            worker_name: lab.worker_name.trim(),
+            hours: hrs,
+            hourly_rate: rate,
+            total_cost: hrs * rate,
+            description: lab.description || null,
+          };
+          if (lab.id) {
+            await base44.entities.FSLaborEntry.update(lab.id, labData);
+          } else {
+            await base44.entities.FSLaborEntry.create({
+              ...labData,
+              profile_id: profile.id,
+              user_id: currentUser?.id,
+              project_id: projectId,
+              daily_log_id: editingLogId,
+            });
+          }
+        }
+
+        toast.success('Daily log updated');
+        setEditingLogId(null);
+      } else {
+        // ═══ CREATE MODE ══════════════════════════
+        const log = await base44.entities.FSDailyLog.create({
+          profile_id: profile.id,
+          user_id: currentUser?.id,
+          project_id: projectId,
+          date,
+          day_number: dayNumber || null,
+          weather: weather || null,
+          tasks_completed: tasksArray.length > 0 ? JSON.stringify(tasksArray) : null,
+          notes: notes || null,
+        });
+
+        // Upload photos
+        for (const photo of photos) {
+          try {
+            const photoData = await uploadFile(photo.file);
+            await base44.entities.FSDailyPhoto.create({
+              profile_id: profile.id,
+              user_id: currentUser?.id,
+              project_id: projectId,
+              daily_log_id: log.id,
+              photo: photoData,
+              caption: photo.caption || null,
+              phase: photo.phase || null,
+            });
+          } catch (err) {
+            console.error('Photo upload error:', err);
+          }
+        }
+
+        // Create material entries
+        for (const mat of materials) {
+          if (!mat.description.trim()) continue;
+          const qty = parseFloat(mat.quantity) || 1;
+          const unitCost = parseFloat(mat.unit_cost) || 0;
+          const createData = {
             profile_id: profile.id,
             user_id: currentUser?.id,
             project_id: projectId,
             daily_log_id: log.id,
-            photo: photoData,
-            caption: photo.caption || null,
-            phase: photo.phase || null,
-          });
-        } catch (err) {
-          console.error('Photo upload error:', err);
-        }
-      }
-
-      // 3. Create material entries
-      for (const mat of materials) {
-        if (!mat.description.trim()) continue;
-        const qty = parseFloat(mat.quantity) || 1;
-        const unitCost = parseFloat(mat.unit_cost) || 0;
-        const createData = {
-          profile_id: profile.id,
-          user_id: currentUser?.id,
-          project_id: projectId,
-          daily_log_id: log.id,
-          description: mat.description.trim(),
-          quantity: qty,
-          unit: mat.unit || 'each',
-          unit_cost: unitCost,
-          total_cost: qty * unitCost,
-        };
-        if (mat.receipt_photo) {
-          try {
-            createData.receipt_photo = await uploadFile(mat.receipt_photo);
-          } catch (err) {
-            console.error('Receipt upload error:', err);
+            description: mat.description.trim(),
+            quantity: qty,
+            unit: mat.unit || 'each',
+            unit_cost: unitCost,
+            total_cost: qty * unitCost,
+          };
+          if (mat.receipt_photo) {
+            try {
+              createData.receipt_photo = await uploadFile(mat.receipt_photo);
+            } catch (err) {
+              console.error('Receipt upload error:', err);
+            }
           }
+          await base44.entities.FSMaterialEntry.create(createData);
         }
-        await base44.entities.FSMaterialEntry.create(createData);
-      }
 
-      // 4. Create labor entries
-      for (const lab of labor) {
-        if (!lab.worker_name.trim() || !lab.hours) continue;
-        const hrs = parseFloat(lab.hours) || 0;
-        const rate = parseFloat(lab.hourly_rate) || 0;
-        await base44.entities.FSLaborEntry.create({
-          profile_id: profile.id,
-          user_id: currentUser?.id,
-          project_id: projectId,
-          daily_log_id: log.id,
-          worker_name: lab.worker_name.trim(),
-          hours: hrs,
-          hourly_rate: rate,
-          total_cost: hrs * rate,
-          description: lab.description || null,
-        });
+        // Create labor entries
+        for (const lab of labor) {
+          if (!lab.worker_name.trim() || !lab.hours) continue;
+          const hrs = parseFloat(lab.hours) || 0;
+          const rate = parseFloat(lab.hourly_rate) || 0;
+          await base44.entities.FSLaborEntry.create({
+            profile_id: profile.id,
+            user_id: currentUser?.id,
+            project_id: projectId,
+            daily_log_id: log.id,
+            worker_name: lab.worker_name.trim(),
+            hours: hrs,
+            hourly_rate: rate,
+            total_cost: hrs * rate,
+            description: lab.description || null,
+          });
+        }
+
+        toast.success('Daily log saved');
       }
 
       // Invalidate queries
@@ -307,8 +459,6 @@ export default function FieldServiceLog({ profile, currentUser }) {
       // Cleanup previews
       photos.forEach((p) => { if (p.preview) URL.revokeObjectURL(p.preview); });
       materials.forEach((m) => { if (m.receipt_preview) URL.revokeObjectURL(m.receipt_preview); });
-
-      toast.success('Daily log saved');
 
       // Reset form
       setTasksText('');
@@ -341,6 +491,67 @@ export default function FieldServiceLog({ profile, currentUser }) {
 
   return (
     <div className="space-y-0 pb-24">
+      {editingLogId && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-4 flex items-center justify-between">
+          <span className="text-sm text-amber-500 font-medium">Editing log — {date}</span>
+          <button type="button" onClick={cancelEditing}
+            className="text-xs text-slate-400 hover:text-slate-200 min-h-[36px]">Cancel</button>
+        </div>
+      )}
+
+      {/* Recent Logs for selected project */}
+      {projectId && existingLogs.length > 0 && !editingLogId && (
+        <div className={SECTION_CLASS}>
+          <div className={SECTION_HEADER_CLASS}>
+            <ClipboardList className="h-5 w-5 text-amber-500" />
+            Recent Logs
+          </div>
+          <div className="space-y-2">
+            {[...existingLogs]
+              .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+              .slice(0, 5)
+              .map((log) => {
+                const tasks = (() => {
+                  const t = log.tasks_completed;
+                  if (!t) return '';
+                  if (Array.isArray(t)) return t.join(', ');
+                  if (typeof t === 'string') {
+                    const s = t.trim();
+                    if (s.startsWith('[')) {
+                      try { const p = JSON.parse(s); return Array.isArray(p) ? p.join(', ') : s; }
+                      catch { return s; }
+                    }
+                    return s;
+                  }
+                  return '';
+                })();
+                return (
+                  <div key={log.id} className="flex items-center gap-3 bg-slate-800/50 rounded-lg p-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xs text-slate-500">
+                          {log.date ? new Date(log.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
+                        </span>
+                        {log.day_number && (
+                          <span className="text-xs text-slate-500">Day {String(log.day_number).replace('Day ', '')}</span>
+                        )}
+                      </div>
+                      {tasks && <p className="text-sm text-slate-300 truncate">{tasks}</p>}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => loadLogForEditing(log)}
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-400 hover:text-amber-500 transition-colors"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
       {/* Project + Date + Day */}
       <div className={SECTION_CLASS}>
         <div className={SECTION_HEADER_CLASS}>
@@ -766,6 +977,18 @@ export default function FieldServiceLog({ profile, currentUser }) {
         </div>
       )}
 
+      {editingLogId && (
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={cancelEditing}
+            className="w-full flex items-center justify-center gap-2 border border-slate-700 text-slate-400 hover:text-slate-200 hover:bg-transparent rounded-xl py-3 transition-colors text-sm min-h-[44px]"
+          >
+            <X className="h-4 w-4" /> Cancel Editing
+          </button>
+        </div>
+      )}
+
       {/* Save Button — sticky at bottom */}
       <div className="fixed bottom-0 left-0 right-0 bg-slate-950/95 backdrop-blur border-t border-slate-800 p-4 z-20">
         <button
@@ -775,9 +998,9 @@ export default function FieldServiceLog({ profile, currentUser }) {
           className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl py-4 transition-colors text-lg min-h-[56px] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? (
-            <><Loader2 className="h-5 w-5 animate-spin" /> Saving...</>
+            <><Loader2 className="h-5 w-5 animate-spin" /> {editingLogId ? 'Updating...' : 'Saving...'}</>
           ) : (
-            <><Save className="h-5 w-5" /> Save Daily Log</>
+            <><Save className="h-5 w-5" /> {editingLogId ? 'Update Daily Log' : 'Save Daily Log'}</>
           )}
         </button>
       </div>
