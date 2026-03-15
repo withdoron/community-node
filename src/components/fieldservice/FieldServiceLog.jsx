@@ -37,7 +37,7 @@ function parsePhaseLabels(val) {
   return null;
 }
 
-export default function FieldServiceLog({ profile }) {
+export default function FieldServiceLog({ profile, currentUser }) {
   const queryClient = useQueryClient();
   const photoInputRef = useRef(null);
 
@@ -226,6 +226,7 @@ export default function FieldServiceLog({ profile }) {
 
       const log = await base44.entities.FSDailyLog.create({
         profile_id: profile.id,
+        user_id: currentUser?.id,
         project_id: projectId,
         date,
         day_number: dayNumber || null,
@@ -240,6 +241,7 @@ export default function FieldServiceLog({ profile }) {
           const photoData = await uploadFile(photo.file);
           await base44.entities.FSDailyPhoto.create({
             profile_id: profile.id,
+            user_id: currentUser?.id,
             project_id: projectId,
             daily_log_id: log.id,
             photo: photoData,
@@ -258,6 +260,7 @@ export default function FieldServiceLog({ profile }) {
         const unitCost = parseFloat(mat.unit_cost) || 0;
         const createData = {
           profile_id: profile.id,
+          user_id: currentUser?.id,
           project_id: projectId,
           daily_log_id: log.id,
           description: mat.description.trim(),
@@ -283,6 +286,7 @@ export default function FieldServiceLog({ profile }) {
         const rate = parseFloat(lab.hourly_rate) || 0;
         await base44.entities.FSLaborEntry.create({
           profile_id: profile.id,
+          user_id: currentUser?.id,
           project_id: projectId,
           daily_log_id: log.id,
           worker_name: lab.worker_name.trim(),

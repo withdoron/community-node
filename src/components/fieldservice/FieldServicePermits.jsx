@@ -208,7 +208,7 @@ function PermitCard({ permit, profileId, projectId }) {
 }
 
 // ─── Main Component ───────────────────────────────
-export default function FieldServicePermits({ projectId, profileId }) {
+export default function FieldServicePermits({ projectId, profileId, currentUser }) {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState(EMPTY_PERMIT);
@@ -228,6 +228,7 @@ export default function FieldServicePermits({ projectId, profileId }) {
       return base44.entities.FSPermit.create({
         project_id: projectId,
         profile_id: profileId,
+        user_id: currentUser?.id,
         permit_type: formData.permit_type,
         permit_number: formData.permit_number,
         status: formData.status,

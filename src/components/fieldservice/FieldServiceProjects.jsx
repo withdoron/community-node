@@ -647,12 +647,13 @@ export default function FieldServiceProjects({ profile, currentUser }) {
         <FieldServicePayments
           projectId={proj.id}
           profileId={profile?.id}
+          currentUser={currentUser}
           estimateTotal={selectedEstimate?.total || 0}
           budgetTotal={proj.total_budget || 0}
         />
 
         {/* Permits */}
-        <FieldServicePermits projectId={proj.id} profileId={profile?.id} />
+        <FieldServicePermits projectId={proj.id} profileId={profile?.id} currentUser={currentUser} />
 
         {/* Photo Gallery */}
         <FieldServicePhotoGallery

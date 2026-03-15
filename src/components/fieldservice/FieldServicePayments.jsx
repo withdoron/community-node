@@ -39,7 +39,7 @@ const EMPTY_PAYMENT = {
   check_number: '', notes: '', status: 'received',
 };
 
-export default function FieldServicePayments({ projectId, profileId, estimateTotal, budgetTotal }) {
+export default function FieldServicePayments({ projectId, profileId, currentUser, estimateTotal, budgetTotal }) {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState(EMPTY_PAYMENT);
@@ -74,6 +74,7 @@ export default function FieldServicePayments({ projectId, profileId, estimateTot
       return base44.entities.FSPayment.create({
         project_id: projectId,
         profile_id: profileId,
+        user_id: currentUser?.id,
         amount: parseFloat(formData.amount) || 0,
         date: formData.date || new Date().toISOString().split('T')[0],
         type: formData.type,
