@@ -19,6 +19,7 @@ import {
 import {
   Settings, Save, Plus, X, Loader2, AlertTriangle, Trash2,
   ChevronDown, ChevronRight, HardHat, Users, FileText, Camera,
+  Link2, RefreshCw, Copy,
 } from 'lucide-react';
 
 function formatPhone(value) {
@@ -32,6 +33,15 @@ import { toast } from 'sonner';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
+
+function generateInviteCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let code = '';
+  const arr = new Uint8Array(8);
+  crypto.getRandomValues(arr);
+  for (let i = 0; i < 8; i++) code += chars[arr[i] % chars.length];
+  return code;
+}
 
 // ═══ Collapsible Section ═══
 
@@ -408,19 +418,86 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
         </div>
       </Section>
 
-      {/* Section 2: Team (link to People tab) */}
+      {/* Section 2: Team & Invite Link */}
       <Section icon={Users} title="Team">
-        <div className="space-y-3">
-          <p className="text-sm text-slate-400">
-            Workers, subcontractors, and clients are managed in the People tab.
-          </p>
-          <button
-            type="button"
-            onClick={() => onNavigateTab?.('people')}
-            className="flex items-center gap-2 text-sm text-amber-500 hover:text-amber-400 transition-colors min-h-[44px]"
-          >
-            <Users className="h-4 w-4" /> Manage your team in the People tab →
-          </button>
+        <div className="space-y-4">
+          {/* Invite Link */}
+          <div>
+            <p className="text-sm text-slate-400 mb-3">
+              Share this link with workers and subcontractors so they can join your workspace.
+            </p>
+            {profile?.invite_code ? (
+              <div className="bg-slate-800/50 rounded-lg p-3 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Link2 className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                  <code className="text-sm text-slate-200 font-mono flex-1 truncate">
+                    {window.location.origin}/join-field-service/{profile.invite_code}
+                  </code>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/join-field-service/${profile.invite_code}`).then(
+                        () => toast.success('Invite link copied!'),
+                        () => toast.error('Could not copy link'),
+                      );
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent transition-colors text-sm min-h-[44px]"
+                  >
+                    <Copy className="h-4 w-4" /> Copy Link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const newCode = generateInviteCode();
+                      try {
+                        await base44.entities.FieldServiceProfile.update(profile.id, { invite_code: newCode });
+                        queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
+                        toast.success('Invite code regenerated. Old links will stop working.');
+                      } catch (err) {
+                        toast.error(err?.message || 'Failed to regenerate');
+                      }
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent transition-colors text-sm min-h-[44px]"
+                  >
+                    <RefreshCw className="h-4 w-4" /> Regenerate
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-slate-800/50 rounded-lg p-3">
+                <p className="text-sm text-slate-500 mb-2">No invite code yet.</p>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const code = generateInviteCode();
+                    try {
+                      await base44.entities.FieldServiceProfile.update(profile.id, { invite_code: code });
+                      queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
+                      toast.success('Invite code generated!');
+                    } catch (err) {
+                      toast.error(err?.message || 'Failed to generate invite code');
+                    }
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px]"
+                >
+                  <Link2 className="h-4 w-4" /> Generate Invite Code
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Link to People tab */}
+          <div className="border-t border-slate-800 pt-3">
+            <button
+              type="button"
+              onClick={() => onNavigateTab?.('people')}
+              className="flex items-center gap-2 text-sm text-amber-500 hover:text-amber-400 transition-colors min-h-[44px]"
+            >
+              <Users className="h-4 w-4" /> Manage your team in the People tab →
+            </button>
+          </div>
         </div>
       </Section>
 

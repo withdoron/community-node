@@ -44,6 +44,17 @@ function formatPhone(value) {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 
+// ═══ Invite code generator ═══
+
+function generateInviteCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let code = '';
+  const arr = new Uint8Array(8);
+  crypto.getRandomValues(arr);
+  for (let i = 0; i < 8; i++) code += chars[arr[i] % chars.length];
+  return code;
+}
+
 const WORKSPACE_FEATURES = [
   'Project tracking',
   'Daily logging with photos and voice',
@@ -102,6 +113,7 @@ export default function FieldServiceOnboarding() {
         linked_finance_workspace_id: null,
         brand_color: null,
         logo_url: null,
+        invite_code: generateInviteCode(),
       });
       return profile;
     },

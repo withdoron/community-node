@@ -288,8 +288,8 @@ export default function BusinessDashboard() {
     enabled: !!currentUser?.id,
   });
 
-  // Fetch field service profiles for current user
-  const { data: fieldServiceProfiles = [], isLoading: fsLoading } = useQuery({
+  // Fetch field service profiles for current user (owned)
+  const { data: ownedFSProfiles = [], isLoading: fsLoading } = useQuery({
     queryKey: ['fs-profiles', currentUser?.id],
     queryFn: async () => {
       if (!currentUser?.id) return [];
@@ -298,6 +298,46 @@ export default function BusinessDashboard() {
     },
     enabled: !!currentUser?.id,
   });
+
+  // Fetch joined FS workspaces (worker/sub) from localStorage
+  const { data: joinedFSProfiles = [] } = useQuery({
+    queryKey: ['fs-joined-profiles', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      try {
+        const raw = localStorage.getItem('joinedFSWorkspaces');
+        if (!raw) return [];
+        const joined = JSON.parse(raw);
+        if (!Array.isArray(joined)) return [];
+        // Try to load each joined workspace
+        const results = await Promise.all(
+          joined.map(async (entry) => {
+            try {
+              const list = await base44.entities.FieldServiceProfile.filter({ id: entry.id });
+              const profile = Array.isArray(list) ? list[0] : list;
+              if (profile) return { ...profile, _workerRole: entry.role || 'worker' };
+              return null;
+            } catch {
+              // RLS may block — return cached entry as fallback
+              return { id: entry.id, workspace_name: entry.name || 'Field Service', _workerRole: entry.role || 'worker', _cached: true };
+            }
+          })
+        );
+        return results.filter(Boolean);
+      } catch { return []; }
+    },
+    enabled: !!currentUser?.id,
+  });
+
+  // Merge owned + joined FS profiles (dedup by id)
+  const fieldServiceProfiles = React.useMemo(() => {
+    const ownedIds = new Set(ownedFSProfiles.map((p) => p.id));
+    const merged = [...ownedFSProfiles];
+    joinedFSProfiles.forEach((jp) => {
+      if (!ownedIds.has(jp.id)) merged.push(jp);
+    });
+    return merged;
+  }, [ownedFSProfiles, joinedFSProfiles]);
 
   // Fetch property management profiles for current user
   const { data: propertyMgmtProfiles = [], isLoading: pmLoading } = useQuery({
@@ -674,7 +714,13 @@ export default function BusinessDashboard() {
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                       <h3 className="font-bold text-lg text-slate-100 truncate">{fsProfile.workspace_name || fsProfile.business_name || 'Field Service'}</h3>
-                      <Badge className="bg-amber-500 text-black text-xs">OWNER</Badge>
+                      {fsProfile._workerRole === 'subcontractor' ? (
+                        <Badge className="bg-sky-500/20 text-sky-400 text-xs">SUB</Badge>
+                      ) : fsProfile._workerRole === 'worker' ? (
+                        <Badge className="bg-amber-500/20 text-amber-400 text-xs">WORKER</Badge>
+                      ) : (
+                        <Badge className="bg-amber-500 text-black text-xs">OWNER</Badge>
+                      )}
                       <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">Field Service</span>
                     </div>
                     <p className="text-sm text-slate-400">
@@ -905,8 +951,21 @@ export default function BusinessDashboard() {
   // STEP 3d: Field Service workspace selected
   const selectedFSProfile = fieldServiceProfiles.find((p) => p.id === selectedFieldServiceId);
   if (selectedFieldServiceId && selectedFSProfile) {
+    // Detect user role on this workspace
+    const fsIsOwner = selectedFSProfile.user_id === currentUser?.id;
+    let fsWorkerRole = null;
+    if (!fsIsOwner && selectedFSProfile._workerRole) {
+      fsWorkerRole = selectedFSProfile._workerRole;
+    } else if (!fsIsOwner) {
+      // Check workers_json for current user
+      const wj = selectedFSProfile.workers_json;
+      const wList = Array.isArray(wj) ? wj : (wj?.items || []);
+      const match = wList.find((w) => w.user_id === currentUser?.id);
+      if (match) fsWorkerRole = match.role || 'worker';
+    }
+
     const fsTabs = WORKSPACE_TYPES.fieldservice.tabs;
-    const fsScope = { profile: selectedFSProfile, currentUser, onNavigateTab: setActiveTab };
+    const fsScope = { profile: selectedFSProfile, currentUser, onNavigateTab: setActiveTab, isOwner: fsIsOwner, workerRole: fsWorkerRole };
     return (
       <div className="min-h-screen bg-slate-950">
         <div className="bg-slate-900 border-b border-slate-800">
@@ -928,7 +987,13 @@ export default function BusinessDashboard() {
                   <h1 className="text-lg font-bold text-slate-100">{selectedFSProfile.workspace_name || selectedFSProfile.business_name || 'Field Service'}</h1>
                   <p className="text-xs text-slate-400">Field Service</p>
                 </div>
-                <Badge className="ml-2 bg-amber-500 text-black">OWNER</Badge>
+                {fsWorkerRole === 'subcontractor' ? (
+                  <Badge className="ml-2 bg-sky-500/20 text-sky-400">SUB</Badge>
+                ) : fsWorkerRole === 'worker' ? (
+                  <Badge className="ml-2 bg-amber-500/20 text-amber-400">WORKER</Badge>
+                ) : (
+                  <Badge className="ml-2 bg-amber-500 text-black">OWNER</Badge>
+                )}
               </div>
             </div>
           </div>

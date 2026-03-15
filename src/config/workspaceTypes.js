@@ -233,12 +233,12 @@ export const WORKSPACE_TYPES = {
       client: 'Client',
     },
     tabs: [
-      { id: 'home', label: 'Home', icon: LayoutDashboard, component: FieldServiceHome, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
-      { id: 'log', label: 'Log', icon: ClipboardList, component: FieldServiceLog, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
-      { id: 'projects', label: 'Projects', icon: FolderOpen, component: FieldServiceProjects, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
-      { id: 'estimates', label: 'Estimates', icon: FileText, component: FieldServiceEstimates, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
-      { id: 'people', label: 'People', icon: Users, component: FieldServicePeople, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
-      { id: 'settings', label: 'Settings', icon: Settings, component: FieldServiceSettings, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
+      { id: 'home', label: 'Home', icon: LayoutDashboard, component: FieldServiceHome, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab, isOwner: scope.isOwner, workerRole: scope.workerRole }) },
+      { id: 'log', label: 'Log', icon: ClipboardList, component: FieldServiceLog, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, isOwner: scope.isOwner, workerRole: scope.workerRole }) },
+      { id: 'projects', label: 'Projects', icon: FolderOpen, component: FieldServiceProjects, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab, isOwner: scope.isOwner, workerRole: scope.workerRole }) },
+      { id: 'estimates', label: 'Estimates', icon: FileText, component: FieldServiceEstimates, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab, isOwner: scope.isOwner, workerRole: scope.workerRole }) },
+      { id: 'people', label: 'People', icon: Users, component: FieldServicePeople, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab, isOwner: scope.isOwner, workerRole: scope.workerRole }) },
+      { id: 'settings', label: 'Settings', icon: Settings, component: FieldServiceSettings, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab, isOwner: scope.isOwner, workerRole: scope.workerRole }) },
     ],
   },
   property_management: {

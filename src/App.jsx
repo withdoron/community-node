@@ -18,6 +18,7 @@ import Networks from '@/pages/Networks';
 import JoinTeam from '@/pages/JoinTeam';
 import ClaimBusiness from '@/pages/ClaimBusiness';
 import ClientPortal from '@/pages/ClientPortal';
+import JoinFieldService from '@/pages/JoinFieldService';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -130,6 +131,15 @@ const AuthenticatedApp = () => {
         element={
           <LayoutWrapper currentPageName="JoinTeam">
             <JoinTeam />
+          </LayoutWrapper>
+        }
+      />
+      {/* Field Service workspace join via invite code */}
+      <Route
+        path="/join-field-service/:inviteCode"
+        element={
+          <LayoutWrapper currentPageName="JoinFieldService">
+            <JoinFieldService />
           </LayoutWrapper>
         }
       />

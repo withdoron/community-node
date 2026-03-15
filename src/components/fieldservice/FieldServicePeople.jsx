@@ -76,8 +76,12 @@ function Section({ icon: Icon, title, count, defaultOpen = true, children }) {
 // ═══════════════════════════════════════════════════
 // Person Card
 // ═══════════════════════════════════════════════════
-function copyInviteLink(workspaceId) {
-  const url = `${window.location.origin}/join-workspace/${workspaceId}`;
+function copyInviteLink(inviteCode) {
+  if (!inviteCode) {
+    toast.error('No invite code found. Save the workspace in Settings to generate one.');
+    return;
+  }
+  const url = `${window.location.origin}/join-field-service/${inviteCode}`;
   navigator.clipboard.writeText(url).then(
     () => toast.success('Invite link copied! Share with your team.'),
     () => toast.error('Could not copy link'),
@@ -99,6 +103,11 @@ function PersonCard({ person, projectMap, onEdit, onRemove, onShareInvite }) {
             <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${badge.className}`}>
               {badge.label}
             </span>
+            {person.user_id ? (
+              <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400">Connected</span>
+            ) : (
+              <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-400">Pending</span>
+            )}
           </div>
           {person.company_name && (
             <p className="text-xs text-slate-400 mt-0.5">{person.company_name}</p>
@@ -607,7 +616,7 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => copyInviteLink(profile?.id)}
+            onClick={() => copyInviteLink(profile?.invite_code)}
             className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent transition-colors text-sm min-h-[44px]"
           >
             <Link2 className="h-4 w-4" /> Invite Link
@@ -637,7 +646,7 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
                 projectMap={projectMap}
                 onEdit={() => openEdit(w)}
                 onRemove={() => setDeleteTarget(w)}
-                onShareInvite={() => copyInviteLink(profile?.id)}
+                onShareInvite={() => copyInviteLink(profile?.invite_code)}
               />
             ))}
           </div>
@@ -659,7 +668,7 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
                 projectMap={projectMap}
                 onEdit={() => openEdit(s)}
                 onRemove={() => setDeleteTarget(s)}
-                onShareInvite={() => copyInviteLink(profile?.id)}
+                onShareInvite={() => copyInviteLink(profile?.invite_code)}
               />
             ))}
           </div>
@@ -731,7 +740,7 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
               </div>
             </div>
             <p className="text-xs text-slate-600 italic">
-              Role-based view gating coming in V2. Currently all workspace data is visible to the owner.
+              Workers and subs join via the invite link and see only their assigned projects. Owner sees everything.
             </p>
           </div>
         )}
