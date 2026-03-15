@@ -193,11 +193,11 @@ function ClientCard({ client, projectCount, onView }) {
 function PersonModal({ person, activeProjects, onSave, onCancel, isSaving }) {
   const [form, setForm] = useState(() => ({
     ...EMPTY_PERSON,
-    ...person,
+    ...(person || {}),
     hourly_rate: person?.hourly_rate?.toString() || '',
     assigned_projects: person?.assigned_projects || [],
   }));
-  const isEdit = !!person?._editIndex != null && person._editIndex >= 0;
+  const isEdit = person != null && typeof person._editIndex === 'number' && person._editIndex >= 0;
   const set = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
 
   const toggleProject = (pid) => {
