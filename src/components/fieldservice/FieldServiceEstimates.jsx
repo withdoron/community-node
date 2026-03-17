@@ -70,9 +70,30 @@ const EMPTY_ESTIMATE = {
   project_id: '', date: '', valid_until: '',
   line_items: [makeItem()],
   overhead_profit_pct: 0, tax_rate: 0, other_amount: 0,
+  payment_terms: '', prepared_by: '',
   terms: '', notes: '',
   client_show_breakdown: false,
 };
+
+const PAYMENT_TERMS_OPTIONS = [
+  { value: '', label: 'None' },
+  { value: 'due_on_receipt', label: 'Due on Receipt', days: 0 },
+  { value: 'net_10', label: 'Net 10', days: 10 },
+  { value: 'net_15', label: 'Net 15', days: 15 },
+  { value: 'net_30', label: 'Net 30', days: 30 },
+  { value: 'net_45', label: 'Net 45', days: 45 },
+  { value: 'net_60', label: 'Net 60', days: 60 },
+  { value: 'custom', label: 'Custom', days: null },
+];
+
+function calcDueDate(estDate, termsValue) {
+  if (!estDate || !termsValue || termsValue === 'custom') return '';
+  const opt = PAYMENT_TERMS_OPTIONS.find((o) => o.value === termsValue);
+  if (!opt || opt.days == null) return '';
+  const d = new Date(estDate + 'T12:00:00');
+  d.setDate(d.getDate() + opt.days);
+  return d.toISOString().split('T')[0];
+}
 
 function formatPhone(value) {
   const digits = value.replace(/\D/g, '').slice(0, 10);
@@ -258,9 +279,12 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
             <div className="text-sm space-y-0.5">
               <p><span className="text-slate-500">No:</span> {estimate.estimate_number}</p>
               <p><span className="text-slate-500">Date:</span> {fmtDate(estimate.date)}</p>
-              {estimate.valid_until && <p><span className="text-slate-500">Valid Until:</span> {fmtDate(estimate.valid_until)}</p>}
+              {estimate.payment_terms && (
+                <p><span className="text-slate-500">Terms:</span> {(PAYMENT_TERMS_OPTIONS.find((o) => o.value === estimate.payment_terms) || {}).label || estimate.payment_terms}</p>
+              )}
+              {estimate.valid_until && <p><span className="text-slate-500">Due Date:</span> {fmtDate(estimate.valid_until)}</p>}
               {linkedProject && <p><span className="text-slate-500">Project:</span> {linkedProject.name}</p>}
-              {profile?.owner_name && <p><span className="text-slate-500">Prepared By:</span> {profile.owner_name}</p>}
+              <p><span className="text-slate-500">Prepared By:</span> {estimate.prepared_by || profile?.owner_name || '—'}</p>
             </div>
           </div>
           {clientName && (
@@ -437,6 +461,8 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         project_id: formData.project_id || null,
         date: formData.date,
         valid_until: formData.valid_until || null,
+        payment_terms: formData.payment_terms || '',
+        prepared_by: formData.prepared_by || '',
         line_items: { items: validItems },
         labor_estimate: { items: [] }, // empty — kept for backward compat
         subtotal: totals.subtotal,
@@ -530,12 +556,35 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           <div>
             <label className={LABEL_CLASS}>Date</label>
             <input type="date" className={INPUT_CLASS} value={formData.date}
-              onChange={(e) => set('date', e.target.value)} />
+              onChange={(e) => {
+                set('date', e.target.value);
+                if (formData.payment_terms && formData.payment_terms !== 'custom') {
+                  set('valid_until', calcDueDate(e.target.value, formData.payment_terms));
+                }
+              }} />
           </div>
           <div>
-            <label className={LABEL_CLASS}>Valid Until</label>
+            <label className={LABEL_CLASS}>Payment Terms</label>
+            <select className={INPUT_CLASS} value={formData.payment_terms}
+              onChange={(e) => {
+                set('payment_terms', e.target.value);
+                if (e.target.value && e.target.value !== 'custom' && formData.date) {
+                  set('valid_until', calcDueDate(formData.date, e.target.value));
+                }
+              }}>
+              {PAYMENT_TERMS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={LABEL_CLASS}>Due Date</label>
             <input type="date" className={INPUT_CLASS} value={formData.valid_until}
               onChange={(e) => set('valid_until', e.target.value)} />
+          </div>
+          <div>
+            <label className={LABEL_CLASS}>Prepared By</label>
+            <input type="text" className={INPUT_CLASS} value={formData.prepared_by}
+              onChange={(e) => set('prepared_by', e.target.value)}
+              placeholder={profile?.owner_name || 'Your name'} />
           </div>
         </div>
         <div>
@@ -953,6 +1002,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       ...EMPTY_ESTIMATE,
       line_items: [makeItem()],
       terms: profile?.default_terms || '',
+      prepared_by: profile?.owner_name || '',
       date: new Date().toISOString().split('T')[0],
       valid_until: validUntil.toISOString().split('T')[0],
     });
@@ -974,6 +1024,8 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       overhead_profit_pct: est.overhead_profit_pct || 0,
       tax_rate: est.tax_rate || 0,
       other_amount: est.other_amount || 0,
+      payment_terms: est.payment_terms || '',
+      prepared_by: est.prepared_by || '',
       terms: est.terms || '', notes: est.notes || '',
       client_show_breakdown: est.client_show_breakdown === true,
     });
@@ -997,6 +1049,8 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       overhead_profit_pct: est.overhead_profit_pct || 0,
       tax_rate: est.tax_rate || 0,
       other_amount: est.other_amount || 0,
+      payment_terms: est.payment_terms || '',
+      prepared_by: est.prepared_by || '',
       terms: est.terms || '', notes: est.notes || '',
       client_show_breakdown: false,
     });

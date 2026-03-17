@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  Shield, Plus, X, Loader2, Save, ChevronDown, ChevronRight, ExternalLink, ClipboardCheck, Pencil,
+  Shield, Plus, X, Loader2, Save, ChevronDown, ChevronRight, ExternalLink, ClipboardCheck, Pencil, Trash2,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -56,6 +56,7 @@ function PermitCard({ permit, profileId, projectId }) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({});
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [showInspectionForm, setShowInspectionForm] = useState(false);
   const [inspectionData, setInspectionData] = useState({ ...EMPTY_INSPECTION, date: new Date().toISOString().split('T')[0] });
 
@@ -86,6 +87,15 @@ function PermitCard({ permit, profileId, projectId }) {
       setEditing(false);
     },
     onError: (err) => toast.error(`Failed: ${err.message}`),
+  });
+
+  const deletePermit = useMutation({
+    mutationFn: (id) => base44.entities.FSPermit.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fs-permits', projectId] });
+      toast.success('Permit deleted');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to delete permit'),
   });
 
   const startEdit = (e) => {
@@ -123,10 +133,25 @@ function PermitCard({ permit, profileId, projectId }) {
             {permit.issued_date ? fmtDate(permit.issued_date) : permit.applied_date ? fmtDate(permit.applied_date) : ''}
           </div>
         </button>
-        <button type="button" onClick={startEdit}
-          className="p-3 text-slate-500 hover:text-amber-500 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
-          <Pencil className="h-4 w-4" />
-        </button>
+        <div className="flex items-center">
+          <button type="button" onClick={startEdit}
+            className="p-3 text-slate-500 hover:text-amber-500 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+            <Pencil className="h-4 w-4" />
+          </button>
+          {deleteConfirm === permit.id ? (
+            <div className="flex items-center gap-1">
+              <button type="button" onClick={() => deletePermit.mutate(permit.id)}
+                className="text-xs text-amber-500 hover:text-amber-400 min-h-[44px] px-2">Yes</button>
+              <button type="button" onClick={() => setDeleteConfirm(null)}
+                className="text-xs text-slate-400 hover:text-slate-300 min-h-[44px] px-2">No</button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => setDeleteConfirm(permit.id)}
+              className="p-2 text-slate-500 hover:text-amber-500 transition-colors rounded-lg min-h-[44px]">
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {expanded && (
