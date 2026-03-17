@@ -14,6 +14,7 @@ import {
   Phone,
   Mail,
   MapPin,
+  Eye,
 } from 'lucide-react';
 
 const fmt = (n) =>
@@ -400,6 +401,10 @@ export default function FieldServiceClientDetail({
                     </div>
                   </div>
                 )}
+                <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-500">
+                  <Eye className="h-3 w-3" />
+                  <span>Client sees: {project.client_show_breakdown ? 'Full breakdown' : 'Total only'}</span>
+                </div>
               </button>
             ))}
           </div>
@@ -449,6 +454,10 @@ export default function FieldServiceClientDetail({
                   <span className="text-sm font-medium text-slate-100">
                     {fmt(estimate.total)}
                   </span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-500">
+                  <Eye className="h-3 w-3" />
+                  <span>Client sees: {estimate.client_show_breakdown ? 'Full breakdown' : 'Total only'}</span>
                 </div>
               </button>
             ))}

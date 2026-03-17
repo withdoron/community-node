@@ -74,7 +74,7 @@ const EMPTY_PROJECT = {
   total_budget: '', notes: '',
 };
 
-export default function FieldServiceProjects({ profile, currentUser, onNavigateTab }) {
+export default function FieldServiceProjects({ profile, currentUser, onNavigateTab, features }) {
   const queryClient = useQueryClient();
   const [view, setView] = useState('list'); // list | detail | form | timeline | client_portal | client_detail
   const [timelineProjectId, setTimelineProjectId] = useState(null);
@@ -754,9 +754,12 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
 
           {/* Client Visibility Toggle — inline in header */}
           <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-800 px-1">
-            <div>
-              <p className="text-sm text-white">Cost breakdown visible to client</p>
-              <p className="text-xs text-slate-400 mt-0.5">When off, clients see total budget only</p>
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4 text-slate-400" />
+              <div>
+                <p className="text-sm text-white">Client sees: {proj.client_show_breakdown ? 'Full breakdown' : 'Total only'}</p>
+                <p className="text-xs text-slate-400 mt-0.5">Toggle to change what clients see in the portal</p>
+              </div>
             </div>
             <button
               type="button"
@@ -881,6 +884,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         )}
 
         {/* Payments */}
+        {features?.payments_enabled !== false && (
         <FieldServicePayments
           projectId={proj.id}
           profileId={profile?.id}
@@ -888,9 +892,12 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           estimateTotal={selectedEstimate?.total || 0}
           budgetTotal={proj.total_budget || 0}
         />
+        )}
 
         {/* Permits */}
-        <FieldServicePermits projectId={proj.id} profileId={profile?.id} currentUser={currentUser} />
+        {features?.permits_enabled !== false && (
+          <FieldServicePermits projectId={proj.id} profileId={profile?.id} currentUser={currentUser} />
+        )}
 
         {/* Photo Gallery */}
         <FieldServicePhotoGallery
@@ -977,10 +984,13 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         <div className="flex gap-3">
           <button
             type="button"
-            onClick={() => setView('client_portal')}
+            onClick={() => {
+              const url = `${window.location.origin}/client-portal/${profile?.id}/${proj.id}`;
+              window.open(url, '_blank');
+            }}
             className="flex-1 flex items-center justify-center gap-2 border border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:bg-transparent rounded-xl py-3 transition-colors text-sm font-medium min-h-[44px]"
           >
-            <Eye className="h-4 w-4" /> View as Client
+            <Eye className="h-4 w-4" /> Preview as Client
           </button>
           <button
             type="button"
@@ -992,7 +1002,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           >
             <Copy className="h-4 w-4" /> Copy Link
           </button>
-          {projectLogs.length > 0 && (
+          {features?.timeline_enabled !== false && projectLogs.length > 0 && (
             <button
               type="button"
               onClick={() => { setTimelineProjectId(proj.id); setView('timeline'); }}

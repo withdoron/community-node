@@ -964,8 +964,15 @@ export default function BusinessDashboard() {
       if (match) fsWorkerRole = match.role || 'worker';
     }
 
+    // Parse features config with safe defaults
+    const fsFeatures = (() => {
+      const DEFAULTS = { permits_enabled: true, subs_enabled: true, management_fees_enabled: false, insurance_work_enabled: false, payments_enabled: true, timeline_enabled: true };
+      const f = selectedFSProfile.features_json || {};
+      return { ...DEFAULTS, ...f };
+    })();
+
     const fsTabs = WORKSPACE_TYPES.fieldservice.tabs;
-    const fsScope = { profile: selectedFSProfile, currentUser, onNavigateTab: setActiveTab, isOwner: fsIsOwner, workerRole: fsWorkerRole };
+    const fsScope = { profile: selectedFSProfile, currentUser, onNavigateTab: setActiveTab, isOwner: fsIsOwner, workerRole: fsWorkerRole, features: fsFeatures };
     return (
       <div className="min-h-screen bg-slate-950">
         <div className="bg-slate-900 border-b border-slate-800">

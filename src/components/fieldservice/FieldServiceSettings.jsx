@@ -19,7 +19,7 @@ import {
 import {
   Settings, Save, Plus, X, Loader2, AlertTriangle, Trash2,
   ChevronDown, ChevronRight, HardHat, Users, FileText, Camera,
-  Link2, RefreshCw, Copy,
+  Link2, RefreshCw, Copy, ToggleLeft, SlidersHorizontal,
 } from 'lucide-react';
 
 function formatPhone(value) {
@@ -41,6 +41,21 @@ function generateInviteCode() {
   crypto.getRandomValues(arr);
   for (let i = 0; i < 8; i++) code += chars[arr[i] % chars.length];
   return code;
+}
+
+// ═══ Feature defaults ═══
+const FEATURE_DEFAULTS = {
+  permits_enabled: true,
+  subs_enabled: true,
+  management_fees_enabled: false,
+  insurance_work_enabled: false,
+  payments_enabled: true,
+  timeline_enabled: true,
+};
+
+function getFeatures(profile) {
+  const f = profile?.features_json || {};
+  return { ...FEATURE_DEFAULTS, ...f };
 }
 
 // ═══ Collapsible Section ═══
@@ -113,6 +128,9 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
+  // ─── Features state ─────────────────────────
+  const [features, setFeatures] = useState(() => getFeatures(profile));
+
   // Sync from profile if it changes
   useEffect(() => {
     if (profile) {
@@ -133,6 +151,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
       const p = profile.phase_labels;
       setPhases(Array.isArray(p) ? p : (p && typeof p === 'object' && Array.isArray(p.items)) ? p.items : ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final']);
       setWorkspaceName(profile.workspace_name || '');
+      setFeatures(getFeatures(profile));
     }
   }, [profile]);
 
@@ -205,6 +224,19 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
     });
   };
 
+  // ─── Save Features ─────────────────────────────
+  const saveFeatures = useMutation({
+    mutationFn: () =>
+      base44.entities.FieldServiceProfile.update(profile.id, {
+        features_json: features,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
+      toast.success('Feature settings saved');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to save features'),
+  });
+
   // ─── Save Workspace Name ─────────────────────────
   const saveWorkspaceName = useMutation({
     mutationFn: () =>
@@ -235,6 +267,50 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
 
   return (
     <div className="space-y-4">
+      {/* Section 0: Workspace Features */}
+      <Section icon={SlidersHorizontal} title="Workspace Features" defaultOpen>
+        <div className="space-y-4">
+          <p className="text-sm text-slate-400">Turn features on or off based on your needs.</p>
+
+          {[
+            { key: 'permits_enabled', label: 'Permits & Inspections', desc: 'Track building permits, inspection logs, and eBuild links' },
+            { key: 'subs_enabled', label: 'Subcontractor Tracking', desc: 'Add subs to estimates, assign to projects, track in People tab' },
+            { key: 'management_fees_enabled', label: 'Management Fees', desc: 'Add a percentage-based management fee to estimates' },
+            { key: 'insurance_work_enabled', label: 'Insurance / O&P', desc: 'Add Overhead & Profit percentage for insurance claim estimates' },
+            { key: 'payments_enabled', label: 'Payment Tracking', desc: 'Track payments received per project' },
+            { key: 'timeline_enabled', label: 'Project Timeline', desc: 'Chronological view of project activity' },
+          ].map(({ key, label, desc }) => (
+            <div key={key} className="flex items-center justify-between gap-4 py-2">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-white">{label}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{desc}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFeatures((prev) => ({ ...prev, [key]: !prev[key] }))}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+                  features[key] ? 'bg-amber-500' : 'bg-slate-700'
+                }`}
+              >
+                <span className={`inline-block h-4 w-4 rounded-full bg-slate-100 transition-transform ${
+                  features[key] ? 'translate-x-6' : 'translate-x-1'
+                }`} />
+              </button>
+            </div>
+          ))}
+
+          <div className="flex justify-end pt-2">
+            <Button
+              onClick={() => saveFeatures.mutate()}
+              disabled={saveFeatures.isPending}
+              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
+            >
+              {saveFeatures.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-2" /> Save Features</>}
+            </Button>
+          </div>
+        </div>
+      </Section>
+
       {/* Section 1: Business Profile */}
       <Section icon={HardHat} title="Business Profile" defaultOpen>
         <div className="space-y-4">

@@ -58,7 +58,7 @@ const EMPTY_ESTIMATE = {
   project_id: '', date: '', valid_until: '',
   line_items: [{ ...EMPTY_LINE_ITEM }],
   labor_estimate: [{ ...EMPTY_LABOR_ITEM }],
-  tax_rate: 0, terms: '', notes: '',
+  tax_rate: 0, management_fee_pct: 0, overhead_profit_pct: 0, terms: '', notes: '',
   client_show_breakdown: false,
 };
 
@@ -74,7 +74,7 @@ function generateEstimateNumber(existingEstimates) {
   return `${prefix}${String(next).padStart(3, '0')}`;
 }
 
-function calcTotals(lineItems, laborEstimate, taxRate) {
+function calcTotals(lineItems, laborEstimate, taxRate, managementFeePct, overheadProfitPct) {
   const lineTotal = (lineItems || []).reduce(
     (s, item) => s + (parseFloat(item.qty) || 0) * (parseFloat(item.unit_cost) || 0), 0
   );
@@ -82,8 +82,11 @@ function calcTotals(lineItems, laborEstimate, taxRate) {
     (s, item) => s + (parseFloat(item.hours) || 0) * (parseFloat(item.rate) || 0), 0
   );
   const subtotal = lineTotal + laborTotal;
-  const taxAmount = subtotal * ((parseFloat(taxRate) || 0) / 100);
-  return { subtotal, taxAmount, total: subtotal + taxAmount, lineTotal, laborTotal };
+  const mgmtFee = subtotal * ((parseFloat(managementFeePct) || 0) / 100);
+  const opAmount = subtotal * ((parseFloat(overheadProfitPct) || 0) / 100);
+  const adjustedSubtotal = subtotal + mgmtFee + opAmount;
+  const taxAmount = adjustedSubtotal * ((parseFloat(taxRate) || 0) / 100);
+  return { subtotal, mgmtFee, opAmount, adjustedSubtotal, taxAmount, total: adjustedSubtotal + taxAmount, lineTotal, laborTotal };
 }
 
 function parseJSON(val) {
@@ -139,6 +142,13 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
               View Project →
             </button>
           )}
+          <button type="button" onClick={() => {
+              const url = `${window.location.origin}/client-portal?estimate=${estimate.id}`;
+              window.open(url, '_blank');
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent transition-colors text-sm min-h-[44px]">
+            <Eye className="h-4 w-4" /> Preview as Client
+          </button>
           <button type="button" onClick={() => onEdit(estimate)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm min-h-[44px]">
             <Pencil className="h-4 w-4" /> Edit
@@ -336,13 +346,13 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
 // ═══════════════════════════════════════════════════
 // Form (Builder / Editor)
 // ═══════════════════════════════════════════════════
-function EstimateForm({ profile, currentUser, estimates, projects, clients, editingId, initialData, onDone }) {
+function EstimateForm({ profile, currentUser, estimates, projects, clients, editingId, initialData, onDone, features }) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState(initialData);
 
   const formTotals = useMemo(
-    () => calcTotals(formData.line_items, formData.labor_estimate, formData.tax_rate),
-    [formData.line_items, formData.labor_estimate, formData.tax_rate]
+    () => calcTotals(formData.line_items, formData.labor_estimate, formData.tax_rate, formData.management_fee_pct, formData.overhead_profit_pct),
+    [formData.line_items, formData.labor_estimate, formData.tax_rate, formData.management_fee_pct, formData.overhead_profit_pct]
   );
 
   const saveMutation = useMutation({
@@ -353,7 +363,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
       const laborEst = (formData.labor_estimate || []).filter(
         (item) => item.description.trim() || (parseFloat(item.hours) || 0) > 0
       );
-      const totals = calcTotals(lineItems, laborEst, formData.tax_rate);
+      const totals = calcTotals(lineItems, laborEst, formData.tax_rate, formData.management_fee_pct, formData.overhead_profit_pct);
 
       // Sync inline client fields from live FSClient data (source of truth)
       let cName = formData.client_name;
@@ -392,6 +402,8 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         notes: formData.notes,
         status: status || 'draft',
         client_show_breakdown: formData.client_show_breakdown === true,
+        management_fee_pct: parseFloat(formData.management_fee_pct) || 0,
+        overhead_profit_pct: parseFloat(formData.overhead_profit_pct) || 0,
       };
       if (status === 'sent') payload.sent_at = new Date().toISOString();
 
@@ -519,6 +531,18 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           profileId={profile?.id}
           currentUser={currentUser}
         />
+        {/* Client view indicator */}
+        <div className="flex items-center gap-2 py-2 px-1">
+          <Eye className="h-3.5 w-3.5 text-slate-400" />
+          <span className="text-xs text-slate-400">
+            Client sees: {formData.client_show_breakdown ? 'Full breakdown' : 'Total only'}
+          </span>
+          <button type="button"
+            onClick={() => set('client_show_breakdown', !formData.client_show_breakdown)}
+            className="text-xs text-amber-500 hover:text-amber-400 ml-1">
+            Change
+          </button>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={LABEL_CLASS}>Name</label>
@@ -668,6 +692,44 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           <div className="flex justify-between text-slate-300 border-t border-slate-800 pt-2">
             <span>Subtotal</span><span className="font-medium">{fmt(formTotals.subtotal)}</span>
           </div>
+          {features?.management_fees_enabled && (
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-slate-300">Management Fee</span>
+              <div className="flex items-center gap-1">
+                <input type="number"
+                  className="w-20 bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  value={formData.management_fee_pct} onChange={(e) => set('management_fee_pct', e.target.value)}
+                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('management_fee_pct', ''); }}
+                  onBlur={(e) => { if (e.target.value === '') set('management_fee_pct', 0); }}
+                  min="0" max="100" step="0.5" />
+                <span className="text-slate-400">%</span>
+              </div>
+            </div>
+          )}
+          {features?.management_fees_enabled && formTotals.mgmtFee > 0 && (
+            <div className="flex justify-between text-slate-300">
+              <span>Mgmt Fee</span><span>{fmt(formTotals.mgmtFee)}</span>
+            </div>
+          )}
+          {features?.insurance_work_enabled && (
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-slate-300">O&P (Overhead & Profit)</span>
+              <div className="flex items-center gap-1">
+                <input type="number"
+                  className="w-20 bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  value={formData.overhead_profit_pct} onChange={(e) => set('overhead_profit_pct', e.target.value)}
+                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('overhead_profit_pct', ''); }}
+                  onBlur={(e) => { if (e.target.value === '') set('overhead_profit_pct', 0); }}
+                  min="0" max="100" step="0.5" />
+                <span className="text-slate-400">%</span>
+              </div>
+            </div>
+          )}
+          {features?.insurance_work_enabled && formTotals.opAmount > 0 && (
+            <div className="flex justify-between text-slate-300">
+              <span>O&P</span><span>{fmt(formTotals.opAmount)}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between gap-4">
             <span className="text-slate-300">Tax Rate</span>
             <div className="flex items-center gap-1">
@@ -752,7 +814,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
 // ═══════════════════════════════════════════════════
 // Main Component
 // ═══════════════════════════════════════════════════
-export default function FieldServiceEstimates({ profile, currentUser }) {
+export default function FieldServiceEstimates({ profile, currentUser, features }) {
   const queryClient = useQueryClient();
   const [view, setView] = useState('list'); // list | form | preview
   const [filter, setFilter] = useState('all');
@@ -887,6 +949,8 @@ export default function FieldServiceEstimates({ profile, currentUser }) {
       line_items: lineItems, labor_estimate: laborEst,
       tax_rate: est.tax_rate || 0, terms: est.terms || '', notes: est.notes || '',
       client_show_breakdown: est.client_show_breakdown === true,
+      management_fee_pct: est.management_fee_pct || 0,
+      overhead_profit_pct: est.overhead_profit_pct || 0,
     });
     setEditingId(est.id);
     setView('form');
@@ -953,6 +1017,7 @@ export default function FieldServiceEstimates({ profile, currentUser }) {
         editingId={editingId}
         initialData={formInitial}
         onDone={backToList}
+        features={features}
       />
     );
   }

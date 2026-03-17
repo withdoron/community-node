@@ -467,7 +467,7 @@ function DeleteConfirm({ personName, onConfirm, onCancel }) {
 // ═══════════════════════════════════════════════════
 // Main Component
 // ═══════════════════════════════════════════════════
-export default function FieldServicePeople({ profile, currentUser, onNavigateTab }) {
+export default function FieldServicePeople({ profile, currentUser, onNavigateTab, features }) {
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [editingPerson, setEditingPerson] = useState(null);
@@ -653,27 +653,31 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
         )}
       </Section>
 
-      {/* Subcontractors Section */}
-      <Section icon={Briefcase} title="Subcontractors" count={subs.length}>
-        {subs.length === 0 ? (
-          <p className="text-sm text-slate-500 py-2">
-            No subcontractors yet.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {subs.map((s, idx) => (
-              <PersonCard
-                key={`sub-${idx}`}
-                person={s}
-                projectMap={projectMap}
-                onEdit={() => openEdit(s)}
-                onRemove={() => setDeleteTarget(s)}
-                onShareInvite={() => copyInviteLink(profile?.invite_code)}
-              />
-            ))}
-          </div>
-        )}
-      </Section>
+      {features?.subs_enabled !== false && (
+        <>
+          {/* Subcontractors Section */}
+          <Section icon={Briefcase} title="Subcontractors" count={subs.length}>
+            {subs.length === 0 ? (
+              <p className="text-sm text-slate-500 py-2">
+                No subcontractors yet.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {subs.map((s, idx) => (
+                  <PersonCard
+                    key={`sub-${idx}`}
+                    person={s}
+                    projectMap={projectMap}
+                    onEdit={() => openEdit(s)}
+                    onRemove={() => setDeleteTarget(s)}
+                    onShareInvite={() => copyInviteLink(profile?.invite_code)}
+                  />
+                ))}
+              </div>
+            )}
+          </Section>
+        </>
+      )}
 
       {/* Clients Section (read-only) */}
       <Section icon={User} title="Clients" count={activeClients.length}>
