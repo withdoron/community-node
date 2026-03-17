@@ -7,6 +7,7 @@ import ClientSelector from './ClientSelector';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   Search, Copy, FolderOpen, Send, Eye, Printer, X, DollarSign, Link2,
+  ChevronUp, ChevronDown,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -42,8 +43,36 @@ const fmtDate = (d) => {
   } catch { return d; }
 };
 
-const EMPTY_LINE_ITEM = { description: '', qty: 1, unit: 'ea', unit_cost: 0 };
-const EMPTY_LABOR_ITEM = { description: '', hours: 0, rate: 0 };
+// ═══ Unified line item model ═══════════════════════
+
+const CATEGORIES = [
+  { value: 'materials',      label: 'Materials',      badge: 'bg-amber-500/20 text-amber-400' },
+  { value: 'labor',          label: 'Labor',          badge: 'bg-sky-500/20 text-sky-400' },
+  { value: 'subcontractor',  label: 'Subcontractor',  badge: 'bg-violet-500/20 text-violet-400' },
+  { value: 'fee',            label: 'Fee',            badge: 'bg-slate-500/20 text-slate-400' },
+  { value: 'other',          label: 'Other',          badge: 'bg-slate-600/20 text-slate-500' },
+];
+const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.value, c]));
+
+let _nextItemId = 1;
+function newItemId() { return `item_${Date.now()}_${_nextItemId++}`; }
+
+const EMPTY_UNIFIED_ITEM = {
+  id: '', category: 'materials', description: '', quantity: 1, unit_price: 0, amount: 0, sub_name: '',
+};
+
+function makeItem(overrides) {
+  return { ...EMPTY_UNIFIED_ITEM, id: newItemId(), ...overrides };
+}
+
+const EMPTY_ESTIMATE = {
+  title: '', client_id: '', client_name: '', client_email: '', client_phone: '', client_address: '',
+  project_id: '', date: '', valid_until: '',
+  line_items: [makeItem()],
+  overhead_profit_pct: 0, tax_rate: 0, other_amount: 0,
+  terms: '', notes: '',
+  client_show_breakdown: false,
+};
 
 function formatPhone(value) {
   const digits = value.replace(/\D/g, '').slice(0, 10);
@@ -52,15 +81,6 @@ function formatPhone(value) {
   if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
-
-const EMPTY_ESTIMATE = {
-  title: '', client_id: '', client_name: '', client_email: '', client_phone: '', client_address: '',
-  project_id: '', date: '', valid_until: '',
-  line_items: [{ ...EMPTY_LINE_ITEM }],
-  labor_estimate: [{ ...EMPTY_LABOR_ITEM }],
-  tax_rate: 0, management_fee_pct: 0, overhead_profit_pct: 0, terms: '', notes: '',
-  client_show_breakdown: false,
-};
 
 function generateEstimateNumber(existingEstimates) {
   const year = new Date().getFullYear();
@@ -74,20 +94,7 @@ function generateEstimateNumber(existingEstimates) {
   return `${prefix}${String(next).padStart(3, '0')}`;
 }
 
-function calcTotals(lineItems, laborEstimate, taxRate, managementFeePct, overheadProfitPct) {
-  const lineTotal = (lineItems || []).reduce(
-    (s, item) => s + (parseFloat(item.qty) || 0) * (parseFloat(item.unit_cost) || 0), 0
-  );
-  const laborTotal = (laborEstimate || []).reduce(
-    (s, item) => s + (parseFloat(item.hours) || 0) * (parseFloat(item.rate) || 0), 0
-  );
-  const subtotal = lineTotal + laborTotal;
-  const mgmtFee = subtotal * ((parseFloat(managementFeePct) || 0) / 100);
-  const opAmount = subtotal * ((parseFloat(overheadProfitPct) || 0) / 100);
-  const adjustedSubtotal = subtotal + mgmtFee + opAmount;
-  const taxAmount = adjustedSubtotal * ((parseFloat(taxRate) || 0) / 100);
-  return { subtotal, mgmtFee, opAmount, adjustedSubtotal, taxAmount, total: adjustedSubtotal + taxAmount, lineTotal, laborTotal };
-}
+// ═══ Read-time migration: old format → unified ═════
 
 function parseJSON(val) {
   if (Array.isArray(val)) return val;
@@ -98,16 +105,74 @@ function parseJSON(val) {
   return [];
 }
 
+/**
+ * Migrate old separate line_items + labor_estimate to unified items.
+ * New format: items have { id, category, description, quantity, unit_price, amount, sub_name }
+ * Old materials format: { description, qty, unit, unit_cost }
+ * Old labor format: { description, hours, rate }
+ */
+function migrateLineItems(rawLineItems, rawLaborEstimate) {
+  const items = parseJSON(rawLineItems);
+  const labor = parseJSON(rawLaborEstimate);
+
+  // Check if already in unified format (first item has 'category' field)
+  if (items.length > 0 && items[0].category) {
+    return items.map((it) => ({
+      ...EMPTY_UNIFIED_ITEM,
+      ...it,
+      id: it.id || newItemId(),
+    }));
+  }
+
+  // Migrate old materials → unified
+  const migratedMaterials = items
+    .filter((it) => it.description || (parseFloat(it.unit_cost || it.unit_price) || 0) > 0)
+    .map((it) => makeItem({
+      category: 'materials',
+      description: it.description || '',
+      quantity: parseFloat(it.qty || it.quantity) || 1,
+      unit_price: parseFloat(it.unit_cost || it.unit_price) || 0,
+      amount: (parseFloat(it.qty || it.quantity) || 1) * (parseFloat(it.unit_cost || it.unit_price) || 0),
+    }));
+
+  // Migrate old labor → unified
+  const migratedLabor = labor
+    .filter((it) => it.description || (parseFloat(it.hours) || 0) > 0)
+    .map((it) => {
+      const hrs = parseFloat(it.hours) || 0;
+      const rate = parseFloat(it.rate) || 0;
+      return makeItem({
+        category: 'labor',
+        description: it.description || '',
+        quantity: hrs,
+        unit_price: rate,
+        amount: hrs * rate,
+      });
+    });
+
+  const merged = [...migratedMaterials, ...migratedLabor];
+  return merged.length > 0 ? merged : [makeItem()];
+}
+
+// ═══ Calc totals from unified items ════════════════
+
+function calcTotals(items, overheadProfitPct, taxRate, otherAmount) {
+  const subtotal = (items || []).reduce((s, it) => {
+    const amt = parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0));
+    return s + amt;
+  }, 0);
+  const opAmount = subtotal * ((parseFloat(overheadProfitPct) || 0) / 100);
+  const beforeTax = subtotal + opAmount + (parseFloat(otherAmount) || 0);
+  const taxAmount = beforeTax * ((parseFloat(taxRate) || 0) / 100);
+  return { subtotal, opAmount, beforeTax, taxAmount, total: beforeTax + taxAmount };
+}
+
 // ═══════════════════════════════════════════════════
 // Preview (client-facing branded estimate)
 // ═══════════════════════════════════════════════════
 function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, projects, clients }) {
-  const lineItems = parseJSON(estimate.line_items);
-  const laborEst = parseJSON(estimate.labor_estimate).filter(
-    (l) => l.description || (parseFloat(l.hours) || 0) > 0
-  );
-  const lineTotal = lineItems.reduce((s, i) => s + (parseFloat(i.qty) || 0) * (parseFloat(i.unit_cost) || 0), 0);
-  const laborTotal = laborEst.reduce((s, i) => s + (parseFloat(i.hours) || 0) * (parseFloat(i.rate) || 0), 0);
+  const items = migrateLineItems(estimate.line_items, estimate.labor_estimate);
+  const totals = calcTotals(items, estimate.overhead_profit_pct, estimate.tax_rate, estimate.other_amount);
   const brandColor = profile?.brand_color || '#f59e0b';
   const showBreakdown = estimate.client_show_breakdown === true;
 
@@ -118,6 +183,9 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
   const clientPhone = liveClient?.phone || estimate.client_phone;
   const clientAddress = liveClient?.address || estimate.client_address;
 
+  // Find linked project name
+  const linkedProject = estimate.project_id ? (projects || []).find((p) => p.id === estimate.project_id) : null;
+
   return (
     <div className="space-y-4 pb-8">
       {/* Toolbar */}
@@ -126,7 +194,7 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
           className="flex items-center gap-2 text-slate-400 hover:text-amber-500 text-sm min-h-[44px]">
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button type="button" onClick={() => window.print()}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 transition-colors text-sm min-h-[44px]">
             <Printer className="h-4 w-4" /> Print / PDF
@@ -135,11 +203,6 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
             <button type="button" onClick={() => onConvert(estimate)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px]">
               <FolderOpen className="h-4 w-4" /> Convert to Project
-            </button>
-          )}
-          {estimate.project_id && (
-            <button type="button" onClick={() => {}} className="text-sm text-slate-400 hover:text-amber-500 transition-colors min-h-[44px]">
-              View Project →
             </button>
           )}
           <button type="button" onClick={() => {
@@ -164,16 +227,18 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
           .estimate-print-area { position: absolute; top: 0; left: 0; width: 100%; }
           @page { margin: 0.5in; size: letter; }
           body { background: white !important; margin: 0; padding: 0; }
+          .print-avoid-break { page-break-inside: avoid; }
+          .print-break-before { page-break-before: auto; }
         }`}</style>
 
         {/* Contractor header */}
         <div className="flex justify-between items-start mb-8 pb-6 bg-slate-50 -mx-6 -mt-6 sm:-mx-8 sm:-mt-8 px-6 sm:px-8 pt-6 sm:pt-8 rounded-t-xl print:rounded-none print:bg-white" style={{ borderBottom: `3px solid ${brandColor}` }}>
           <div className="flex items-center gap-4">
-            {profile?.logo_url ? (
+            {profile?.logo_url && (
               <img src={profile.logo_url} alt={profile?.business_name || ''} className="max-h-16 max-w-[200px] object-contain" />
-            ) : null}
+            )}
             <div>
-              <h1 className="text-2xl font-bold" style={{ color: profile?.brand_color ? brandColor : '#1e293b' }}>
+              <h1 className="text-2xl font-bold" style={{ color: brandColor }}>
                 {profile?.business_name || 'Business Name'}
               </h1>
               {profile?.license_number && <p className="text-sm text-slate-500">Lic# {profile.license_number}</p>}
@@ -181,130 +246,96 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
             </div>
           </div>
           <div className="text-right text-sm text-slate-600">
-            {profile?.phone && <p><a href={`tel:${profile.phone.replace(/\D/g, '')}`} className="hover:text-slate-900 underline">{profile.phone}</a></p>}
-            {profile?.email && <p><a href={`mailto:${profile.email}`} className="hover:text-slate-900 underline">{profile.email}</a></p>}
+            {profile?.phone && <p>{profile.phone}</p>}
+            {profile?.email && <p>{profile.email}</p>}
           </div>
         </div>
 
-        {/* Estimate info */}
-        <div className="flex justify-between items-start mb-6">
+        {/* Estimate info + Client — two-column layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
           <div>
-            <h2 className="text-xl font-bold" style={{ color: brandColor }}>ESTIMATE</h2>
-            <p className="text-sm text-slate-500">{estimate.estimate_number}</p>
+            <h2 className="text-xl font-bold mb-1" style={{ color: brandColor }}>ESTIMATE</h2>
+            <div className="text-sm space-y-0.5">
+              <p><span className="text-slate-500">No:</span> {estimate.estimate_number}</p>
+              <p><span className="text-slate-500">Date:</span> {fmtDate(estimate.date)}</p>
+              {estimate.valid_until && <p><span className="text-slate-500">Valid Until:</span> {fmtDate(estimate.valid_until)}</p>}
+              {linkedProject && <p><span className="text-slate-500">Project:</span> {linkedProject.name}</p>}
+              {profile?.owner_name && <p><span className="text-slate-500">Prepared By:</span> {profile.owner_name}</p>}
+            </div>
           </div>
-          <div className="text-right text-sm">
-            <p><span className="text-slate-500">Date:</span> {fmtDate(estimate.date)}</p>
-            {estimate.valid_until && (
-              <p><span className="text-slate-500">Valid Until:</span> {fmtDate(estimate.valid_until)}</p>
-            )}
-          </div>
+          {clientName && (
+            <div className="bg-slate-50 rounded-lg p-4 print:bg-white print:border print:border-slate-200">
+              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Customer</p>
+              <p className="font-semibold">{clientName}</p>
+              {clientAddress && <p className="text-sm text-slate-600">{clientAddress}</p>}
+              {clientPhone && <p className="text-sm text-slate-600">{clientPhone}</p>}
+              {clientEmail && <p className="text-sm text-slate-600">{clientEmail}</p>}
+            </div>
+          )}
         </div>
-
-        {/* Client */}
-        {clientName && (
-          <div className="mb-6 bg-slate-50 rounded-lg p-4">
-            <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Prepared For</p>
-            <p className="font-semibold">{clientName}</p>
-            {clientAddress && <p className="text-sm text-slate-600">{clientAddress}</p>}
-            {clientEmail && <p className="text-sm text-slate-600"><a href={`mailto:${clientEmail}`} className="underline hover:text-slate-900">{clientEmail}</a></p>}
-            {clientPhone && <p className="text-sm text-slate-600"><a href={`tel:${clientPhone.replace(/\D/g, '')}`} className="underline hover:text-slate-900">{clientPhone}</a></p>}
-          </div>
-        )}
 
         {estimate.title && <h3 className="text-lg font-bold text-slate-900 mb-4">{estimate.title}</h3>}
 
         {/* Line items table — only when breakdown visible */}
-        {showBreakdown && lineItems.length > 0 && (
+        {showBreakdown && items.length > 0 && (
           <div className="mb-6">
-            <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-2">Materials & Services</h4>
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[480px]">
                 <thead>
-                  <tr className="border-b-2 border-slate-200">
-                    <th className="text-left py-2 text-slate-500 font-medium">Description</th>
-                    <th className="text-right py-2 text-slate-500 font-medium w-16">Qty</th>
-                    <th className="text-right py-2 text-slate-500 font-medium w-16">Unit</th>
-                    <th className="text-right py-2 text-slate-500 font-medium w-24">Rate</th>
-                    <th className="text-right py-2 text-slate-500 font-medium w-24">Amount</th>
+                  <tr className="border-b-2" style={{ borderColor: brandColor }}>
+                    <th className="text-center py-2 text-slate-500 font-medium w-14">QTY</th>
+                    <th className="text-left py-2 text-slate-500 font-medium">DESCRIPTION</th>
+                    <th className="text-right py-2 text-slate-500 font-medium w-28">UNIT PRICE</th>
+                    <th className="text-right py-2 text-slate-500 font-medium w-28">AMOUNT</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {lineItems.map((item, i) => {
-                    const amt = (parseFloat(item.qty) || 0) * (parseFloat(item.unit_cost) || 0);
+                  {items.map((item, i) => {
+                    const amt = parseFloat(item.amount) || ((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0));
+                    const cat = CATEGORY_MAP[item.category] || CATEGORY_MAP.other;
                     return (
-                      <tr key={i} className="border-b border-slate-100">
-                        <td className="py-2">{item.description || '\u2014'}</td>
-                        <td className="text-right py-2">{item.qty}</td>
-                        <td className="text-right py-2">{item.unit || 'ea'}</td>
-                        <td className="text-right py-2">{fmt(item.unit_cost)}</td>
+                      <tr key={item.id || i} className={i % 2 === 1 ? 'bg-slate-50 print:bg-slate-50' : ''}>
+                        <td className="text-center py-2">{item.quantity}</td>
+                        <td className="py-2">
+                          <span>{item.description || '\u2014'}</span>
+                          {item.category !== 'materials' && (
+                            <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium ${cat.badge}`}>
+                              {cat.label}
+                            </span>
+                          )}
+                          {item.sub_name && <p className="text-xs text-slate-500 italic mt-0.5">{item.sub_name}</p>}
+                        </td>
+                        <td className="text-right py-2">{parseFloat(item.unit_price) ? fmt(item.unit_price) : ''}</td>
                         <td className="text-right py-2 font-medium">{fmt(amt)}</td>
                       </tr>
                     );
                   })}
                 </tbody>
-                <tfoot>
-                  <tr className="border-t border-slate-200">
-                    <td colSpan="4" className="text-right py-2 text-slate-500 font-medium">Materials Subtotal</td>
-                    <td className="text-right py-2 font-bold">{fmt(lineTotal)}</td>
-                  </tr>
-                </tfoot>
               </table>
             </div>
           </div>
         )}
 
-        {/* Labor table — only when breakdown visible */}
-        {showBreakdown && laborEst.length > 0 && (
-          <div className="mb-6 border-t border-slate-200 pt-6">
-            <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-2">Labor</h4>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[400px]">
-                <thead>
-                  <tr className="border-b-2 border-slate-200">
-                    <th className="text-left py-2 text-slate-500 font-medium">Description</th>
-                    <th className="text-right py-2 text-slate-500 font-medium w-20">Hours</th>
-                    <th className="text-right py-2 text-slate-500 font-medium w-24">Rate</th>
-                    <th className="text-right py-2 text-slate-500 font-medium w-24">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {laborEst.map((item, i) => {
-                    const amt = (parseFloat(item.hours) || 0) * (parseFloat(item.rate) || 0);
-                    return (
-                      <tr key={i} className="border-b border-slate-100">
-                        <td className="py-2">{item.description || '\u2014'}</td>
-                        <td className="text-right py-2">{item.hours}</td>
-                        <td className="text-right py-2">{fmt(item.rate)}</td>
-                        <td className="text-right py-2 font-medium">{fmt(amt)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                <tfoot>
-                  <tr className="border-t border-slate-200">
-                    <td colSpan="3" className="text-right py-2 text-slate-500 font-medium">Labor Subtotal</td>
-                    <td className="text-right py-2 font-bold">{fmt(laborTotal)}</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Totals */}
-        <div className="border-t-2 border-slate-200 pt-4 mb-6">
+        {/* Summary */}
+        <div className="print-avoid-break border-t-2 border-slate-200 pt-4 mb-6">
           <div className="flex justify-end">
-            <div className="w-64 space-y-1 text-sm">
+            <div className="w-72 space-y-1 text-sm">
               {showBreakdown && (
                 <>
-                  <div className="flex justify-between"><span className="text-slate-500">Subtotal</span><span>{fmt(estimate.subtotal)}</span></div>
-                  {(estimate.tax_rate || 0) > 0 && (
-                    <div className="flex justify-between"><span className="text-slate-500">Tax ({estimate.tax_rate}%)</span><span>{fmt(estimate.tax_amount)}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Subtotal</span><span>{fmt(totals.subtotal)}</span></div>
+                  {(parseFloat(estimate.overhead_profit_pct) || 0) > 0 && (
+                    <div className="flex justify-between"><span className="text-slate-500">O&P ({estimate.overhead_profit_pct}%)</span><span>{fmt(totals.opAmount)}</span></div>
+                  )}
+                  {(parseFloat(estimate.other_amount) || 0) > 0 && (
+                    <div className="flex justify-between"><span className="text-slate-500">Other</span><span>{fmt(estimate.other_amount)}</span></div>
+                  )}
+                  {(parseFloat(estimate.tax_rate) || 0) > 0 && (
+                    <div className="flex justify-between"><span className="text-slate-500">Tax ({estimate.tax_rate}%)</span><span>{fmt(totals.taxAmount)}</span></div>
                   )}
                 </>
               )}
               <div className={`flex justify-between text-lg font-bold ${showBreakdown ? 'border-t border-slate-200 pt-2 mt-2' : ''}`} style={{ color: brandColor }}>
-                <span>Total</span><span>{fmt(estimate.total)}</span>
+                <span>Total</span><span>{fmt(totals.total)}</span>
               </div>
             </div>
           </div>
@@ -312,11 +343,28 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
 
         {/* Terms */}
         {estimate.terms && (
-          <div className="mb-6">
-            <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-2">Terms & Conditions</h4>
+          <div className="print-avoid-break mb-6">
+            <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-2">This Proposal Includes the Conditions Noted</h4>
             <p className="text-sm text-slate-600 whitespace-pre-line">{estimate.terms}</p>
           </div>
         )}
+
+        {/* Signature block */}
+        <div className="print-avoid-break mb-6 border border-slate-200 rounded-lg p-5 mt-8">
+          <p className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Sign Below to Accept Quote</p>
+          <div className="flex justify-between items-end mb-6">
+            <span className="text-sm text-slate-500">Total:</span>
+            <span className="text-lg font-bold" style={{ color: brandColor }}>{fmt(totals.total)}</span>
+          </div>
+          <div className="space-y-4">
+            <div className="border-b border-slate-300 pb-1">
+              <p className="text-xs text-slate-400 uppercase">Authorized Representative</p>
+            </div>
+            <div className="border-b border-slate-300 pb-1">
+              <p className="text-xs text-slate-400 uppercase">Date</p>
+            </div>
+          </div>
+        </div>
 
         {/* Notes */}
         {estimate.notes && (
@@ -332,7 +380,7 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
           {(profile?.phone || profile?.email) && (
             <p className="text-xs text-slate-400">
               {profile?.phone && <span>{profile.phone}</span>}
-              {profile?.phone && profile?.email && <span className="mx-2">·</span>}
+              {profile?.phone && profile?.email && <span className="mx-2">&middot;</span>}
               {profile?.email && <span>{profile.email}</span>}
             </p>
           )}
@@ -351,19 +399,16 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
   const [formData, setFormData] = useState(initialData);
 
   const formTotals = useMemo(
-    () => calcTotals(formData.line_items, formData.labor_estimate, formData.tax_rate, formData.management_fee_pct, formData.overhead_profit_pct),
-    [formData.line_items, formData.labor_estimate, formData.tax_rate, formData.management_fee_pct, formData.overhead_profit_pct]
+    () => calcTotals(formData.line_items, formData.overhead_profit_pct, formData.tax_rate, formData.other_amount),
+    [formData.line_items, formData.overhead_profit_pct, formData.tax_rate, formData.other_amount]
   );
 
   const saveMutation = useMutation({
     mutationFn: async ({ status }) => {
-      const lineItems = (formData.line_items || []).filter(
-        (item) => item.description.trim() || (parseFloat(item.unit_cost) || 0) > 0
+      const validItems = (formData.line_items || []).filter(
+        (it) => (it.description || '').trim() || (parseFloat(it.amount) || 0) > 0 || (parseFloat(it.unit_price) || 0) > 0
       );
-      const laborEst = (formData.labor_estimate || []).filter(
-        (item) => item.description.trim() || (parseFloat(item.hours) || 0) > 0
-      );
-      const totals = calcTotals(lineItems, laborEst, formData.tax_rate, formData.management_fee_pct, formData.overhead_profit_pct);
+      const totals = calcTotals(validItems, formData.overhead_profit_pct, formData.tax_rate, formData.other_amount);
 
       // Sync inline client fields from live FSClient data (source of truth)
       let cName = formData.client_name;
@@ -392,18 +437,18 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         project_id: formData.project_id || null,
         date: formData.date,
         valid_until: formData.valid_until || null,
-        line_items: { items: lineItems },
-        labor_estimate: { items: laborEst },
+        line_items: { items: validItems },
+        labor_estimate: { items: [] }, // empty — kept for backward compat
         subtotal: totals.subtotal,
         tax_rate: parseFloat(formData.tax_rate) || 0,
         tax_amount: totals.taxAmount,
         total: totals.total,
+        overhead_profit_pct: parseFloat(formData.overhead_profit_pct) || 0,
+        other_amount: parseFloat(formData.other_amount) || 0,
         terms: formData.terms,
         notes: formData.notes,
         status: status || 'draft',
         client_show_breakdown: formData.client_show_breakdown === true,
-        management_fee_pct: parseFloat(formData.management_fee_pct) || 0,
-        overhead_profit_pct: parseFloat(formData.overhead_profit_pct) || 0,
       };
       if (status === 'sent') payload.sent_at = new Date().toISOString();
 
@@ -433,33 +478,35 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
 
   const set = (field, value) => setFormData((prev) => ({ ...prev, [field]: value }));
 
-  // ─── Line item helpers ──────────────────────────
-  const updateLineItem = (idx, field, value) => {
+  // ─── Unified line item helpers ────────────────
+  const updateItem = (idx, field, value) => {
     setFormData((prev) => {
       const items = [...prev.line_items];
-      items[idx] = { ...items[idx], [field]: value };
+      const updated = { ...items[idx], [field]: value };
+      // Auto-calc amount when qty or unit_price change (unless amount was directly edited)
+      if (field === 'quantity' || field === 'unit_price') {
+        updated.amount = (parseFloat(field === 'quantity' ? value : updated.quantity) || 0) *
+                         (parseFloat(field === 'unit_price' ? value : updated.unit_price) || 0);
+      }
+      items[idx] = updated;
       return { ...prev, line_items: items };
     });
   };
-  const addLineItem = () => setFormData((prev) => ({ ...prev, line_items: [...prev.line_items, { ...EMPTY_LINE_ITEM }] }));
-  const removeLineItem = (idx) => setFormData((prev) => ({
+  const addItem = (category) => setFormData((prev) => ({
+    ...prev, line_items: [...prev.line_items, makeItem({ category: category || 'materials' })],
+  }));
+  const removeItem = (idx) => setFormData((prev) => ({
     ...prev, line_items: prev.line_items.length > 1 ? prev.line_items.filter((_, i) => i !== idx) : prev.line_items,
   }));
-
-  // ─── Labor helpers ──────────────────────────────
-  const updateLaborItem = (idx, field, value) => {
+  const moveItem = (idx, dir) => {
     setFormData((prev) => {
-      const items = [...prev.labor_estimate];
-      items[idx] = { ...items[idx], [field]: value };
-      return { ...prev, labor_estimate: items };
+      const items = [...prev.line_items];
+      const target = idx + dir;
+      if (target < 0 || target >= items.length) return prev;
+      [items[idx], items[target]] = [items[target], items[idx]];
+      return { ...prev, line_items: items };
     });
   };
-  const addLaborItem = () => setFormData((prev) => ({
-    ...prev, labor_estimate: [...prev.labor_estimate, { ...EMPTY_LABOR_ITEM, rate: profile?.hourly_rate || 0 }],
-  }));
-  const removeLaborItem = (idx) => setFormData((prev) => ({
-    ...prev, labor_estimate: prev.labor_estimate.length > 1 ? prev.labor_estimate.filter((_, i) => i !== idx) : prev.labor_estimate,
-  }));
 
   return (
     <div className="space-y-4 pb-8">
@@ -567,169 +614,134 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         </div>
       </div>
 
-      {/* Line Items */}
+      {/* ═══ Unified Line Items ═══ */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Materials & Services</h3>
-        {formData.line_items.map((item, idx) => (
-          <div key={idx} className="bg-slate-800/50 rounded-lg p-3 space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="flex-1">
-                <input type="text" className={INPUT_CLASS} value={item.description}
-                  onChange={(e) => updateLineItem(idx, 'description', e.target.value)}
-                  placeholder="Item description" />
-              </div>
-              <VoiceInput onTranscript={(t) => updateLineItem(idx, 'description', (item.description ? item.description + ' ' : '') + t)} />
-              {formData.line_items.length > 1 && (
-                <button type="button" onClick={() => removeLineItem(idx)}
-                  className="p-2 text-slate-500 hover:text-amber-500 min-h-[44px]">
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="text-xs text-slate-500">Qty</label>
-                <input type="number" className={INPUT_CLASS} value={item.qty}
-                  onChange={(e) => updateLineItem(idx, 'qty', e.target.value)}
-                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateLineItem(idx, 'qty', ''); }}
-                  onBlur={(e) => { if (e.target.value === '') updateLineItem(idx, 'qty', 0); }}
-                  min="0" step="any" />
-              </div>
-              <div>
-                <label className="text-xs text-slate-500">Unit</label>
-                <select className={INPUT_CLASS} value={item.unit || 'ea'}
-                  onChange={(e) => updateLineItem(idx, 'unit', e.target.value)}>
-                  <option value="ea">ea</option>
-                  <option value="hr">hr</option>
-                  <option value="sqft">sqft</option>
-                  <option value="lnft">lnft</option>
-                  <option value="lot">lot</option>
-                  <option value="day">day</option>
+        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Line Items</h3>
+
+        {formData.line_items.map((item, idx) => {
+          const cat = CATEGORY_MAP[item.category] || CATEGORY_MAP.materials;
+          const computedAmt = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
+          return (
+            <div key={item.id || idx} className="bg-slate-800/50 rounded-lg p-3 space-y-2">
+              {/* Row 1: category + description + voice + reorder + remove */}
+              <div className="flex items-center gap-2">
+                <select
+                  value={item.category || 'materials'}
+                  onChange={(e) => updateItem(idx, 'category', e.target.value)}
+                  className="bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[90px]"
+                >
+                  {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
+                <div className="flex-1">
+                  <input type="text" className={INPUT_CLASS} value={item.description}
+                    onChange={(e) => updateItem(idx, 'description', e.target.value)}
+                    placeholder="Description" />
+                </div>
+                <VoiceInput onTranscript={(t) => updateItem(idx, 'description', (item.description ? item.description + ' ' : '') + t)} />
+                <div className="flex flex-col gap-0.5">
+                  <button type="button" onClick={() => moveItem(idx, -1)} disabled={idx === 0}
+                    className="text-slate-500 hover:text-amber-500 disabled:opacity-30 p-0.5"><ChevronUp className="h-3.5 w-3.5" /></button>
+                  <button type="button" onClick={() => moveItem(idx, 1)} disabled={idx === formData.line_items.length - 1}
+                    className="text-slate-500 hover:text-amber-500 disabled:opacity-30 p-0.5"><ChevronDown className="h-3.5 w-3.5" /></button>
+                </div>
+                {formData.line_items.length > 1 && (
+                  <button type="button" onClick={() => removeItem(idx)}
+                    className="p-2 text-slate-500 hover:text-amber-500 min-h-[44px]">
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
-              <div>
-                <label className="text-xs text-slate-500">Unit Cost</label>
-                <input type="number" className={INPUT_CLASS} value={item.unit_cost}
-                  onChange={(e) => updateLineItem(idx, 'unit_cost', e.target.value)}
-                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateLineItem(idx, 'unit_cost', ''); }}
-                  onBlur={(e) => { if (e.target.value === '') updateLineItem(idx, 'unit_cost', 0); }}
-                  min="0" step="0.01" />
-              </div>
-            </div>
-            <div className="text-right text-sm text-slate-300">
-              Line total: <span className="font-medium text-amber-500">
-                {fmt((parseFloat(item.qty) || 0) * (parseFloat(item.unit_cost) || 0))}
-              </span>
-            </div>
-          </div>
-        ))}
-        <button type="button" onClick={addLineItem}
-          className="flex items-center gap-1.5 text-sm text-amber-500 hover:text-amber-400 min-h-[44px]">
-          <Plus className="h-4 w-4" /> Add Line Item
-        </button>
-      </div>
 
-      {/* Labor Estimate */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Labor Estimate</h3>
-        {formData.labor_estimate.map((item, idx) => (
-          <div key={idx} className="bg-slate-800/50 rounded-lg p-3 space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="flex-1">
-                <input type="text" className={INPUT_CLASS} value={item.description}
-                  onChange={(e) => updateLaborItem(idx, 'description', e.target.value)}
-                  placeholder="Labor description" />
-              </div>
-              <VoiceInput onTranscript={(t) => updateLaborItem(idx, 'description', (item.description ? item.description + ' ' : '') + t)} />
-              {formData.labor_estimate.length > 1 && (
-                <button type="button" onClick={() => removeLaborItem(idx)}
-                  className="p-2 text-slate-500 hover:text-amber-500 min-h-[44px]">
-                  <X className="h-4 w-4" />
-                </button>
+              {/* Sub name (only for subcontractor category) */}
+              {item.category === 'subcontractor' && (
+                <div>
+                  <label className="text-xs text-slate-500">Sub Name</label>
+                  <input type="text" className={INPUT_CLASS} value={item.sub_name || ''}
+                    onChange={(e) => updateItem(idx, 'sub_name', e.target.value)}
+                    placeholder="e.g., Gastlin Gutters" />
+                </div>
               )}
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs text-slate-500">Hours</label>
-                <input type="number" className={INPUT_CLASS} value={item.hours}
-                  onChange={(e) => updateLaborItem(idx, 'hours', e.target.value)}
-                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateLaborItem(idx, 'hours', ''); }}
-                  onBlur={(e) => { if (e.target.value === '') updateLaborItem(idx, 'hours', 0); }}
-                  min="0" step="0.5" />
+
+              {/* Row 2: qty, unit price, amount */}
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-xs text-slate-500">Qty</label>
+                  <input type="number" className={INPUT_CLASS} value={item.quantity}
+                    onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
+                    onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateItem(idx, 'quantity', ''); }}
+                    onBlur={(e) => { if (e.target.value === '') updateItem(idx, 'quantity', 0); }}
+                    min="0" step="any" />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-500">Unit Price</label>
+                  <input type="number" className={INPUT_CLASS} value={item.unit_price}
+                    onChange={(e) => updateItem(idx, 'unit_price', e.target.value)}
+                    onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateItem(idx, 'unit_price', ''); }}
+                    onBlur={(e) => { if (e.target.value === '') updateItem(idx, 'unit_price', 0); }}
+                    min="0" step="0.01" />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-500">Amount</label>
+                  <input type="number" className={INPUT_CLASS} value={item.amount}
+                    onChange={(e) => updateItem(idx, 'amount', e.target.value)}
+                    onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateItem(idx, 'amount', ''); }}
+                    onBlur={(e) => { if (e.target.value === '') updateItem(idx, 'amount', computedAmt); }}
+                    min="0" step="0.01" />
+                </div>
               </div>
-              <div>
-                <label className="text-xs text-slate-500">Rate ($/hr)</label>
-                <input type="number" className={INPUT_CLASS} value={item.rate}
-                  onChange={(e) => updateLaborItem(idx, 'rate', e.target.value)}
-                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateLaborItem(idx, 'rate', ''); }}
-                  onBlur={(e) => { if (e.target.value === '') updateLaborItem(idx, 'rate', 0); }}
-                  min="0" step="0.01" />
-              </div>
             </div>
-            <div className="text-right text-sm text-slate-300">
-              Labor total: <span className="font-medium text-amber-500">
-                {fmt((parseFloat(item.hours) || 0) * (parseFloat(item.rate) || 0))}
-              </span>
-            </div>
-          </div>
-        ))}
-        <button type="button" onClick={addLaborItem}
-          className="flex items-center gap-1.5 text-sm text-amber-500 hover:text-amber-400 min-h-[44px]">
-          <Plus className="h-4 w-4" /> Add Labor Line
-        </button>
+          );
+        })}
+
+        {/* Add buttons */}
+        <div className="flex gap-2 flex-wrap">
+          <button type="button" onClick={() => addItem('materials')}
+            className="flex items-center gap-1.5 text-sm text-amber-500 hover:text-amber-400 min-h-[44px]">
+            <Plus className="h-4 w-4" /> Add Line Item
+          </button>
+          <button type="button" onClick={() => addItem('labor')}
+            className="flex items-center gap-1.5 text-sm text-sky-400 hover:text-sky-300 min-h-[44px]">
+            <Plus className="h-4 w-4" /> Labor
+          </button>
+          <button type="button" onClick={() => addItem('subcontractor')}
+            className="flex items-center gap-1.5 text-sm text-violet-400 hover:text-violet-300 min-h-[44px]">
+            <Plus className="h-4 w-4" /> Subcontractor
+          </button>
+          <button type="button" onClick={() => addItem('fee')}
+            className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-300 min-h-[44px]">
+            <Plus className="h-4 w-4" /> Fee
+          </button>
+        </div>
       </div>
 
-      {/* Totals & Tax */}
+      {/* ═══ Summary ═══ */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Totals</h3>
+        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Summary</h3>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between text-slate-300">
-            <span>Materials subtotal</span><span>{fmt(formTotals.lineTotal)}</span>
-          </div>
-          <div className="flex justify-between text-slate-300">
-            <span>Labor subtotal</span><span>{fmt(formTotals.laborTotal)}</span>
-          </div>
-          <div className="flex justify-between text-slate-300 border-t border-slate-800 pt-2">
             <span>Subtotal</span><span className="font-medium">{fmt(formTotals.subtotal)}</span>
           </div>
-          {features?.management_fees_enabled && (
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-slate-300">Management Fee</span>
-              <div className="flex items-center gap-1">
-                <input type="number"
-                  className="w-20 bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  value={formData.management_fee_pct} onChange={(e) => set('management_fee_pct', e.target.value)}
-                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('management_fee_pct', ''); }}
-                  onBlur={(e) => { if (e.target.value === '') set('management_fee_pct', 0); }}
-                  min="0" max="100" step="0.5" />
-                <span className="text-slate-400">%</span>
-              </div>
+
+          {/* O&P — always visible (important for insurance work) */}
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-slate-300">O&P (Overhead & Profit)</span>
+            <div className="flex items-center gap-1">
+              <input type="number"
+                className="w-20 bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-amber-500"
+                value={formData.overhead_profit_pct} onChange={(e) => set('overhead_profit_pct', e.target.value)}
+                onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('overhead_profit_pct', ''); }}
+                onBlur={(e) => { if (e.target.value === '') set('overhead_profit_pct', 0); }}
+                min="0" max="100" step="0.5" />
+              <span className="text-slate-400">%</span>
+            </div>
+          </div>
+          {formTotals.opAmount > 0 && (
+            <div className="flex justify-between text-slate-400 pl-4">
+              <span>O&P Amount</span><span>{fmt(formTotals.opAmount)}</span>
             </div>
           )}
-          {features?.management_fees_enabled && formTotals.mgmtFee > 0 && (
-            <div className="flex justify-between text-slate-300">
-              <span>Mgmt Fee</span><span>{fmt(formTotals.mgmtFee)}</span>
-            </div>
-          )}
-          {features?.insurance_work_enabled && (
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-slate-300">O&P (Overhead & Profit)</span>
-              <div className="flex items-center gap-1">
-                <input type="number"
-                  className="w-20 bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  value={formData.overhead_profit_pct} onChange={(e) => set('overhead_profit_pct', e.target.value)}
-                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('overhead_profit_pct', ''); }}
-                  onBlur={(e) => { if (e.target.value === '') set('overhead_profit_pct', 0); }}
-                  min="0" max="100" step="0.5" />
-                <span className="text-slate-400">%</span>
-              </div>
-            </div>
-          )}
-          {features?.insurance_work_enabled && formTotals.opAmount > 0 && (
-            <div className="flex justify-between text-slate-300">
-              <span>O&P</span><span>{fmt(formTotals.opAmount)}</span>
-            </div>
-          )}
+
+          {/* Tax */}
           <div className="flex items-center justify-between gap-4">
             <span className="text-slate-300">Tax Rate</span>
             <div className="flex items-center gap-1">
@@ -743,10 +755,25 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
             </div>
           </div>
           {formTotals.taxAmount > 0 && (
-            <div className="flex justify-between text-slate-300">
-              <span>Tax</span><span>{fmt(formTotals.taxAmount)}</span>
+            <div className="flex justify-between text-slate-400 pl-4">
+              <span>Tax Amount</span><span>{fmt(formTotals.taxAmount)}</span>
             </div>
           )}
+
+          {/* Other */}
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-slate-300">Other</span>
+            <div className="flex items-center gap-1">
+              <span className="text-slate-400">$</span>
+              <input type="number"
+                className="w-24 bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-amber-500"
+                value={formData.other_amount} onChange={(e) => set('other_amount', e.target.value)}
+                onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('other_amount', ''); }}
+                onBlur={(e) => { if (e.target.value === '') set('other_amount', 0); }}
+                min="0" step="0.01" />
+            </div>
+          </div>
+
           <div className="flex justify-between text-lg font-bold text-amber-500 border-t border-slate-700 pt-2">
             <span>Total</span><span>{fmt(formTotals.total)}</span>
           </div>
@@ -793,17 +820,17 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
       {/* Actions */}
       <div className="flex gap-3 sticky bottom-0 bg-slate-950 py-3 -mx-1 px-1">
         <button type="button"
-          disabled={!formData.title.trim() || saveMutation.isLoading}
+          disabled={!formData.title.trim() || saveMutation.isPending}
           onClick={() => saveMutation.mutate({ status: 'draft' })}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm font-medium min-h-[44px] disabled:opacity-50 disabled:pointer-events-none">
-          {saveMutation.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save Draft
         </button>
         <button type="button"
-          disabled={!formData.title.trim() || saveMutation.isLoading}
+          disabled={!formData.title.trim() || saveMutation.isPending}
           onClick={() => saveMutation.mutate({ status: 'sent', _copyLink: true })}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px] disabled:opacity-50 disabled:pointer-events-none">
-          {saveMutation.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
+          {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
           Save & Copy Link
         </button>
       </div>
@@ -924,20 +951,17 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
     validUntil.setDate(validUntil.getDate() + 30);
     setFormInitial({
       ...EMPTY_ESTIMATE,
+      line_items: [makeItem()],
       terms: profile?.default_terms || '',
       date: new Date().toISOString().split('T')[0],
       valid_until: validUntil.toISOString().split('T')[0],
-      labor_estimate: [{ ...EMPTY_LABOR_ITEM, rate: profile?.hourly_rate || 0 }],
     });
     setEditingId(null);
     setView('form');
-  }, [profile?.default_terms, profile?.hourly_rate]);
+  }, [profile?.default_terms]);
 
   const openEditEstimate = useCallback((est) => {
-    let lineItems = parseJSON(est.line_items);
-    if (lineItems.length === 0) lineItems = [{ ...EMPTY_LINE_ITEM }];
-    let laborEst = parseJSON(est.labor_estimate);
-    if (laborEst.length === 0) laborEst = [{ ...EMPTY_LABOR_ITEM }];
+    const items = migrateLineItems(est.line_items, est.labor_estimate);
 
     setFormInitial({
       title: est.title || '', client_id: est.client_id || '',
@@ -946,21 +970,19 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       client_address: est.client_address || '', project_id: est.project_id || '',
       date: est.date || new Date().toISOString().split('T')[0],
       valid_until: est.valid_until || '',
-      line_items: lineItems, labor_estimate: laborEst,
-      tax_rate: est.tax_rate || 0, terms: est.terms || '', notes: est.notes || '',
-      client_show_breakdown: est.client_show_breakdown === true,
-      management_fee_pct: est.management_fee_pct || 0,
+      line_items: items,
       overhead_profit_pct: est.overhead_profit_pct || 0,
+      tax_rate: est.tax_rate || 0,
+      other_amount: est.other_amount || 0,
+      terms: est.terms || '', notes: est.notes || '',
+      client_show_breakdown: est.client_show_breakdown === true,
     });
     setEditingId(est.id);
     setView('form');
   }, []);
 
   const duplicateEstimate = useCallback((est) => {
-    let lineItems = parseJSON(est.line_items);
-    if (lineItems.length === 0) lineItems = [{ ...EMPTY_LINE_ITEM }];
-    let laborEst = parseJSON(est.labor_estimate);
-    if (laborEst.length === 0) laborEst = [{ ...EMPTY_LABOR_ITEM }];
+    const items = migrateLineItems(est.line_items, est.labor_estimate);
 
     const validUntil = new Date();
     validUntil.setDate(validUntil.getDate() + 30);
@@ -971,8 +993,12 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       client_phone: est.client_phone || '', client_address: est.client_address || '',
       project_id: '', date: new Date().toISOString().split('T')[0],
       valid_until: validUntil.toISOString().split('T')[0],
-      line_items: lineItems, labor_estimate: laborEst,
-      tax_rate: est.tax_rate || 0, terms: est.terms || '', notes: est.notes || '',
+      line_items: items,
+      overhead_profit_pct: est.overhead_profit_pct || 0,
+      tax_rate: est.tax_rate || 0,
+      other_amount: est.other_amount || 0,
+      terms: est.terms || '', notes: est.notes || '',
+      client_show_breakdown: false,
     });
     setEditingId(null);
     setView('form');
@@ -1170,10 +1196,10 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                 Cancel
               </button>
               <button type="button"
-                disabled={convertMutation.isLoading}
+                disabled={convertMutation.isPending}
                 onClick={() => convertMutation.mutate(convertConfirm)}
                 className="flex-1 flex items-center justify-center px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px] disabled:opacity-50">
-                {convertMutation.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Project'}
+                {convertMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Project'}
               </button>
             </div>
           </div>
