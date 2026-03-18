@@ -518,9 +518,12 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
 
   const saveMutation = useMutation({
     mutationFn: async ({ status }) => {
-      const validItems = (formData.line_items || []).filter(
-        (it) => (it.description || '').trim() || (parseFloat(it.amount) || 0) > 0 || (parseFloat(it.unit_price) || 0) > 0
-      );
+      const validItems = (formData.line_items || [])
+        .filter((it) => (it.description || '').trim() || (parseFloat(it.unit_price) || 0) > 0)
+        .map((it) => ({
+          ...it,
+          amount: (parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0),
+        }));
       const totals = calcTotals(validItems, formData.overhead_profit_pct, formData.tax_rate, formData.other_amount);
 
       // Sync inline client fields from live FSClient data (source of truth)
@@ -718,26 +721,6 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           profileId={profile?.id}
           currentUser={currentUser}
         />
-        {/* Insurance estimate toggle — only when feature is enabled */}
-        {features?.insurance_work_enabled === true && (
-          <div className="flex items-center justify-between gap-4 py-2 px-1">
-            <div>
-              <p className="text-sm text-white">Insurance Estimate (Xactimate format)</p>
-              <p className="text-xs text-slate-400 mt-0.5">Groups line items by trade category for adjusters</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => set('is_insurance_estimate', !formData.is_insurance_estimate)}
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
-                formData.is_insurance_estimate ? 'bg-amber-500' : 'bg-slate-700'
-              }`}
-            >
-              <span className={`inline-block h-4 w-4 rounded-full bg-slate-100 transition-transform ${
-                formData.is_insurance_estimate ? 'translate-x-6' : 'translate-x-1'
-              }`} />
-            </button>
-          </div>
-        )}
         {/* Client view indicator */}
         <div className="flex items-center gap-2 py-2 px-1">
           <Eye className="h-3.5 w-3.5 text-slate-400" />
@@ -773,6 +756,29 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           </div>
         </div>
       </div>
+
+      {/* ═══ Insurance Estimate Toggle — before line items so user sees trade dropdown ═══ */}
+      {features?.insurance_work_enabled === true && (
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm text-white">Insurance Estimate (Xactimate format)</p>
+              <p className="text-xs text-slate-400 mt-0.5">Groups line items by trade category for adjusters</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => set('is_insurance_estimate', !formData.is_insurance_estimate)}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+                formData.is_insurance_estimate ? 'bg-amber-500' : 'bg-slate-700'
+              }`}
+            >
+              <span className={`inline-block h-4 w-4 rounded-full bg-slate-100 transition-transform ${
+                formData.is_insurance_estimate ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ═══ Unified Line Items ═══ */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
@@ -852,11 +858,9 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
                 </div>
                 <div>
                   <label className="text-xs text-slate-500">Amount</label>
-                  <input type="number" className={INPUT_CLASS} value={item.amount}
-                    onChange={(e) => updateItem(idx, 'amount', e.target.value)}
-                    onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateItem(idx, 'amount', ''); }}
-                    onBlur={(e) => { if (e.target.value === '') updateItem(idx, 'amount', computedAmt); }}
-                    min="0" step="0.01" />
+                  <div className={`${INPUT_CLASS} flex items-center justify-end bg-slate-800/60 cursor-default`}>
+                    {fmt(computedAmt)}
+                  </div>
                 </div>
               </div>
             </div>

@@ -223,7 +223,10 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
             <FileText className="h-4 w-4 text-amber-500" />
             <span className="text-xs text-slate-400">Estimates</span>
           </div>
-          <p className="text-2xl font-bold text-slate-100">{outstandingEstimates.length}</p>
+          <p className="text-2xl font-bold text-slate-100">{estimates.length}</p>
+          {outstandingEstimates.length > 0 && (
+            <p className="text-xs text-amber-400 mt-0.5">{outstandingEstimates.length} outstanding</p>
+          )}
         </button>
 
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
