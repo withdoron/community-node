@@ -225,7 +225,7 @@ export const WORKSPACE_TYPES = {
     archetypeSupport: false,
     networkAffinity: false,
     available: true,
-    testingMode: true,
+    testingMode: false, // Unlocked for real users (Bari, Dan) — 2026-03-17
     createWizard: 'FieldServiceOnboarding',
     roles: {
       owner: 'Owner',
