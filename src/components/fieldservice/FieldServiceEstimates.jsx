@@ -54,11 +54,27 @@ const CATEGORIES = [
 ];
 const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.value, c]));
 
+// ═══ Trade categories for Xactimate format ═══════
+
+const DEFAULT_TRADE_CATEGORIES = [
+  'General Conditions', 'Demolition', 'Framing', 'Roofing', 'Siding & Exterior',
+  'Windows & Doors', 'Electrical', 'Plumbing', 'HVAC', 'Insulation',
+  'Drywall', 'Painting', 'Flooring', 'Concrete & Foundation',
+  'Cabinetry & Countertops', 'Appliances', 'Cleanup & Hauling', 'Other',
+];
+
+function getTradeCategories(profile) {
+  const tc = profile?.trade_categories_json;
+  if (Array.isArray(tc) && tc.length > 0) return tc;
+  if (tc && typeof tc === 'object' && Array.isArray(tc.items) && tc.items.length > 0) return tc.items;
+  return DEFAULT_TRADE_CATEGORIES.map((name, i) => ({ id: `cat_${i}`, name, order: i }));
+}
+
 let _nextItemId = 1;
 function newItemId() { return `item_${Date.now()}_${_nextItemId++}`; }
 
 const EMPTY_UNIFIED_ITEM = {
-  id: '', category: 'materials', description: '', quantity: 1, unit_price: 0, amount: 0, sub_name: '',
+  id: '', category: 'materials', trade_category_id: '', description: '', quantity: 1, unit_price: 0, amount: 0, sub_name: '',
 };
 
 function makeItem(overrides) {
@@ -73,6 +89,7 @@ const EMPTY_ESTIMATE = {
   payment_terms: '', prepared_by: '',
   terms: '', notes: '',
   client_show_breakdown: false,
+  is_insurance_estimate: false,
 };
 
 const PAYMENT_TERMS_OPTIONS = [
@@ -196,6 +213,24 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
   const totals = calcTotals(items, estimate.overhead_profit_pct, estimate.tax_rate, estimate.other_amount);
   const brandColor = profile?.brand_color || '#f59e0b';
   const showBreakdown = estimate.client_show_breakdown === true;
+  const isInsurance = estimate.is_insurance_estimate === true;
+  const tradeCategories = getTradeCategories(profile);
+  const tradeCatMap = Object.fromEntries(tradeCategories.map((tc) => [tc.id, tc]));
+
+  // Group items by trade category (for insurance format)
+  const groupedByTrade = useMemo(() => {
+    if (!isInsurance) return null;
+    const groups = new Map();
+    for (const item of items) {
+      const tcId = item.trade_category_id || '';
+      const tc = tradeCatMap[tcId] || { id: tcId, name: 'Other', order: 999 };
+      if (!groups.has(tc.name)) groups.set(tc.name, { tc, items: [] });
+      groups.get(tc.name).items.push(item);
+    }
+    // Sort by trade category order
+    return Array.from(groups.entries())
+      .sort((a, b) => (a[1].tc.order ?? 999) - (b[1].tc.order ?? 999));
+  }, [isInsurance, items, tradeCatMap]);
 
   // Live client data from FSClient (source of truth), fallback to inline copies
   const liveClient = estimate.client_id ? (clients || []).find((c) => c.id === estimate.client_id) : null;
@@ -252,7 +287,7 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
         <style>{`@media print {
           body * { visibility: hidden !important; }
           .estimate-print-area, .estimate-print-area * { visibility: visible !important; }
-          .estimate-print-area { position: absolute; top: 0; left: 0; width: 100%; }
+          .estimate-print-area { position: absolute; top: 0; left: 0; width: 100%; font-size: ${isInsurance ? '9pt' : '10pt'}; }
           @page { margin: 0.5in; size: letter; }
           body { background: white !important; margin: 0; padding: 0; }
           .print-avoid-break { page-break-inside: avoid; }
@@ -282,7 +317,7 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
         {/* Estimate info + Client — two-column layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
           <div>
-            <h2 className="text-xl font-bold mb-1" style={{ color: brandColor }}>ESTIMATE</h2>
+            <h2 className="text-xl font-bold mb-1" style={{ color: brandColor }}>{isInsurance ? 'INSURANCE ESTIMATE' : 'ESTIMATE'}</h2>
             <div className="text-sm space-y-0.5">
               <p><span className="text-slate-500">No:</span> {estimate.estimate_number}</p>
               <p><span className="text-slate-500">Date:</span> {fmtDate(estimate.date)}</p>
@@ -310,40 +345,87 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
         {/* Line items table — only when breakdown visible */}
         {showBreakdown && items.length > 0 && (
           <div className="mb-6">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[480px]">
-                <thead>
-                  <tr className="border-b-2" style={{ borderColor: brandColor }}>
-                    <th className="text-center py-2 text-slate-500 font-medium w-14">QTY</th>
-                    <th className="text-left py-2 text-slate-500 font-medium">DESCRIPTION</th>
-                    <th className="text-right py-2 text-slate-500 font-medium w-28">UNIT PRICE</th>
-                    <th className="text-right py-2 text-slate-500 font-medium w-28">AMOUNT</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item, i) => {
-                    const amt = parseFloat(item.amount) || ((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0));
-                    const cat = CATEGORY_MAP[item.category] || CATEGORY_MAP.other;
-                    return (
-                      <tr key={item.id || i} className={i % 2 === 1 ? 'bg-slate-50 print:bg-slate-50' : ''}>
-                        <td className="text-center py-2">{item.quantity}</td>
-                        <td className="py-2">
-                          <span>{item.description || '\u2014'}</span>
-                          {item.category !== 'materials' && (
-                            <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium ${cat.badge}`}>
-                              {cat.label}
-                            </span>
-                          )}
-                          {item.sub_name && <p className="text-xs text-slate-500 italic mt-0.5">{item.sub_name}</p>}
-                        </td>
-                        <td className="text-right py-2">{parseFloat(item.unit_price) ? fmt(item.unit_price) : ''}</td>
-                        <td className="text-right py-2 font-medium">{fmt(amt)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            {isInsurance && groupedByTrade ? (
+              /* ─── Xactimate grouped format ─── */
+              <div className="space-y-4">
+                {groupedByTrade.map(([tradeName, group]) => {
+                  const catSubtotal = group.items.reduce((s, it) => s + (parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0))), 0);
+                  return (
+                    <div key={tradeName} className="print-avoid-break">
+                      <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-1 pb-1 border-b" style={{ borderColor: brandColor }}>
+                        {tradeName}
+                      </h4>
+                      <table className="w-full text-sm">
+                        <tbody>
+                          {group.items.map((item, i) => {
+                            const amt = parseFloat(item.amount) || ((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0));
+                            const cat = CATEGORY_MAP[item.category] || CATEGORY_MAP.other;
+                            return (
+                              <tr key={item.id || i} className={i % 2 === 1 ? 'bg-slate-50 print:bg-slate-50' : ''}>
+                                <td className="text-center py-1.5 w-14">{item.quantity}</td>
+                                <td className="py-1.5">
+                                  <span>{item.description || '\u2014'}</span>
+                                  {item.category !== 'materials' && (
+                                    <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium ${cat.badge}`}>
+                                      {cat.label}
+                                    </span>
+                                  )}
+                                  {item.sub_name && <p className="text-xs text-slate-500 italic mt-0.5">{item.sub_name}</p>}
+                                </td>
+                                <td className="text-right py-1.5 w-28">{parseFloat(item.unit_price) ? fmt(item.unit_price) : ''}</td>
+                                <td className="text-right py-1.5 w-28 font-medium">{fmt(amt)}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr className="border-t border-slate-200">
+                            <td colSpan={3} className="text-right py-1.5 text-xs text-slate-500 font-medium pr-2">Subtotal:</td>
+                            <td className="text-right py-1.5 w-28 text-xs font-semibold">{fmt(catSubtotal)}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* ─── Standard flat table ─── */
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[480px]">
+                  <thead>
+                    <tr className="border-b-2" style={{ borderColor: brandColor }}>
+                      <th className="text-center py-2 text-slate-500 font-medium w-14">QTY</th>
+                      <th className="text-left py-2 text-slate-500 font-medium">DESCRIPTION</th>
+                      <th className="text-right py-2 text-slate-500 font-medium w-28">UNIT PRICE</th>
+                      <th className="text-right py-2 text-slate-500 font-medium w-28">AMOUNT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item, i) => {
+                      const amt = parseFloat(item.amount) || ((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0));
+                      const cat = CATEGORY_MAP[item.category] || CATEGORY_MAP.other;
+                      return (
+                        <tr key={item.id || i} className={i % 2 === 1 ? 'bg-slate-50 print:bg-slate-50' : ''}>
+                          <td className="text-center py-2">{item.quantity}</td>
+                          <td className="py-2">
+                            <span>{item.description || '\u2014'}</span>
+                            {item.category !== 'materials' && (
+                              <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium ${cat.badge}`}>
+                                {cat.label}
+                              </span>
+                            )}
+                            {item.sub_name && <p className="text-xs text-slate-500 italic mt-0.5">{item.sub_name}</p>}
+                          </td>
+                          <td className="text-right py-2">{parseFloat(item.unit_price) ? fmt(item.unit_price) : ''}</td>
+                          <td className="text-right py-2 font-medium">{fmt(amt)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
@@ -482,6 +564,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         notes: formData.notes,
         status: status || 'draft',
         client_show_breakdown: formData.client_show_breakdown === true,
+        is_insurance_estimate: formData.is_insurance_estimate === true,
       };
       if (status === 'sent') payload.sent_at = new Date().toISOString();
 
@@ -510,6 +593,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
   });
 
   const set = (field, value) => setFormData((prev) => ({ ...prev, [field]: value }));
+  const tradeCategories = getTradeCategories(profile);
 
   // ─── Unified line item helpers ────────────────
   const updateItem = (idx, field, value) => {
@@ -634,6 +718,26 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           profileId={profile?.id}
           currentUser={currentUser}
         />
+        {/* Insurance estimate toggle */}
+        {features?.insurance_work_enabled !== false && (
+          <div className="flex items-center justify-between gap-4 py-2 px-1">
+            <div>
+              <p className="text-sm text-white">Insurance Estimate (Xactimate format)</p>
+              <p className="text-xs text-slate-400 mt-0.5">Groups line items by trade category for adjusters</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => set('is_insurance_estimate', !formData.is_insurance_estimate)}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+                formData.is_insurance_estimate ? 'bg-amber-500' : 'bg-slate-700'
+              }`}
+            >
+              <span className={`inline-block h-4 w-4 rounded-full bg-slate-100 transition-transform ${
+                formData.is_insurance_estimate ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
+        )}
         {/* Client view indicator */}
         <div className="flex items-center gap-2 py-2 px-1">
           <Eye className="h-3.5 w-3.5 text-slate-400" />
@@ -688,6 +792,16 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
                 >
                   {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                 </select>
+                {formData.is_insurance_estimate && (
+                  <select
+                    value={item.trade_category_id || ''}
+                    onChange={(e) => updateItem(idx, 'trade_category_id', e.target.value)}
+                    className="bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[80px] max-w-[120px]"
+                  >
+                    <option value="">Trade</option>
+                    {tradeCategories.map((tc) => <option key={tc.id} value={tc.id}>{tc.name}</option>)}
+                  </select>
+                )}
                 <div className="flex-1">
                   <input type="text" className={INPUT_CLASS} value={item.description}
                     onChange={(e) => updateItem(idx, 'description', e.target.value)}
@@ -1051,6 +1165,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       prepared_by: est.prepared_by || '',
       terms: est.terms || '', notes: est.notes || '',
       client_show_breakdown: est.client_show_breakdown === true,
+      is_insurance_estimate: est.is_insurance_estimate === true,
     });
     setEditingId(est.id);
     setView('form');
@@ -1076,6 +1191,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       prepared_by: est.prepared_by || '',
       terms: est.terms || '', notes: est.notes || '',
       client_show_breakdown: false,
+      is_insurance_estimate: est.is_insurance_estimate === true,
     });
     setEditingId(null);
     setView('form');

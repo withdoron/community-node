@@ -58,6 +58,27 @@ function getFeatures(profile) {
   return { ...FEATURE_DEFAULTS, ...f };
 }
 
+const DEFAULT_TRADE_CATEGORIES = [
+  'General Conditions', 'Demolition', 'Framing', 'Roofing', 'Siding & Exterior',
+  'Windows & Doors', 'Electrical', 'Plumbing', 'HVAC', 'Insulation',
+  'Drywall', 'Painting', 'Flooring', 'Concrete & Foundation',
+  'Cabinetry & Countertops', 'Appliances', 'Cleanup & Hauling', 'Other',
+];
+
+function parseTradeCategories(val) {
+  if (Array.isArray(val)) return val;
+  if (val && typeof val === 'object' && Array.isArray(val.items)) return val.items;
+  return [];
+}
+
+function seedTradeCategories() {
+  return DEFAULT_TRADE_CATEGORIES.map((name, i) => ({
+    id: `cat_${Date.now()}_${i}`,
+    name,
+    order: i,
+  }));
+}
+
 // ═══ Collapsible Section ═══
 
 function Section({ icon: Icon, title, defaultOpen = false, children }) {
@@ -131,6 +152,13 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
   // ─── Features state ─────────────────────────
   const [features, setFeatures] = useState(() => getFeatures(profile));
 
+  // ─── Trade Categories state ────────────────────
+  const [tradeCategories, setTradeCategories] = useState(() => {
+    const existing = parseTradeCategories(profile?.trade_categories_json);
+    return existing.length > 0 ? existing : seedTradeCategories();
+  });
+  const [newTradeCat, setNewTradeCat] = useState('');
+
   // Sync from profile if it changes
   useEffect(() => {
     if (profile) {
@@ -152,6 +180,8 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
       setPhases(Array.isArray(p) ? p : (p && typeof p === 'object' && Array.isArray(p.items)) ? p.items : ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final']);
       setWorkspaceName(profile.workspace_name || '');
       setFeatures(getFeatures(profile));
+      const tc = parseTradeCategories(profile.trade_categories_json);
+      setTradeCategories(tc.length > 0 ? tc : seedTradeCategories());
     }
   }, [profile]);
 
@@ -237,6 +267,19 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
     onError: (err) => toast.error(err?.message || 'Failed to save features'),
   });
 
+  // ─── Save Trade Categories ────────────────────
+  const saveTradeCategories = useMutation({
+    mutationFn: () =>
+      base44.entities.FieldServiceProfile.update(profile.id, {
+        trade_categories_json: { items: tradeCategories },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
+      toast.success('Trade categories saved');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to save trade categories'),
+  });
+
   // ─── Save Workspace Name ─────────────────────────
   const saveWorkspaceName = useMutation({
     mutationFn: () =>
@@ -310,6 +353,118 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
           </div>
         </div>
       </Section>
+
+      {/* Section: Trade Categories — only when insurance feature is on */}
+      {features.insurance_work_enabled && (
+        <Section icon={FileText} title="Trade Categories">
+          <div className="space-y-4">
+            <p className="text-sm text-slate-400">
+              Categories used to organize line items on insurance estimates. Drag to reorder.
+            </p>
+
+            {tradeCategories.length > 0 && (
+              <div className="space-y-2">
+                {tradeCategories.map((cat, idx) => (
+                  <div key={cat.id || idx} className="flex items-center gap-2 bg-slate-800/50 rounded-lg p-3">
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (idx === 0) return;
+                          setTradeCategories((prev) => {
+                            const next = [...prev];
+                            [next[idx], next[idx - 1]] = [next[idx - 1], next[idx]];
+                            return next.map((c, i) => ({ ...c, order: i }));
+                          });
+                        }}
+                        disabled={idx === 0}
+                        className="text-slate-500 hover:text-amber-500 disabled:opacity-30 text-xs leading-none"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (idx === tradeCategories.length - 1) return;
+                          setTradeCategories((prev) => {
+                            const next = [...prev];
+                            [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+                            return next.map((c, i) => ({ ...c, order: i }));
+                          });
+                        }}
+                        disabled={idx === tradeCategories.length - 1}
+                        className="text-slate-500 hover:text-amber-500 disabled:opacity-30 text-xs leading-none"
+                      >
+                        ▼
+                      </button>
+                    </div>
+                    <Input
+                      value={cat.name}
+                      onChange={(e) => {
+                        setTradeCategories((prev) =>
+                          prev.map((c, i) => i === idx ? { ...c, name: e.target.value } : c)
+                        );
+                      }}
+                      className="flex-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setTradeCategories((prev) => prev.filter((_, i) => i !== idx).map((c, i) => ({ ...c, order: i })))}
+                      className="text-slate-500 hover:text-red-400 transition-colors p-1"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center gap-3">
+              <Input
+                value={newTradeCat}
+                onChange={(e) => setNewTradeCat(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && newTradeCat.trim()) {
+                    e.preventDefault();
+                    setTradeCategories((prev) => [
+                      ...prev,
+                      { id: `cat_${Date.now()}`, name: newTradeCat.trim(), order: prev.length },
+                    ]);
+                    setNewTradeCat('');
+                  }
+                }}
+                className="flex-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                placeholder="New category name"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (!newTradeCat.trim()) return;
+                  setTradeCategories((prev) => [
+                    ...prev,
+                    { id: `cat_${Date.now()}`, name: newTradeCat.trim(), order: prev.length },
+                  ]);
+                  setNewTradeCat('');
+                }}
+                disabled={!newTradeCat.trim()}
+                className="flex items-center gap-1 text-sm text-amber-500 hover:text-amber-400 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+              >
+                <Plus className="h-4 w-4" /> Add
+              </button>
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                onClick={() => saveTradeCategories.mutate()}
+                disabled={saveTradeCategories.isPending}
+                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
+              >
+                {saveTradeCategories.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-2" /> Save Categories</>}
+              </Button>
+            </div>
+          </div>
+        </Section>
+      )}
 
       {/* Section 1: Business Profile */}
       <Section icon={HardHat} title="Business Profile" defaultOpen>
