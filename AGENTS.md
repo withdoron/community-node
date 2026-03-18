@@ -92,6 +92,32 @@ src/
 
 ---
 
+## The Garden (DEC-082)
+
+LocalLane is a garden, not a platform. Four areas:
+
+* **Place to Play** — community spaces (Creation Station, Quests, Ideas). Open door.
+* **Place to Grow** — workspaces (Field Service, PM, Team, Finance). Invite door. Private by default.
+* **Place to Gather** — events/gatherings. Anyone creates. Shared calendar.
+* **Place to Be Seen** — Directory. Not a space. The skin. Reflects what wants to be visible.
+
+Every space has: Pulse (vitality), Door (access type), Surface (exterior), Guide (walkthrough).
+
+Pulse is relational, not absolute. Five signals:
+1. Self-trend (compared to own baseline)
+2. Peer context (compared to similar spaces)
+3. Seasonal norm (natural rhythms, not fixed thresholds)
+4. Freshness (recency of activity)
+5. Diversity (range of participation > volume of repetition)
+
+The architecture supports infinite space types. Any new space plugs into the same pulse engine.
+
+When building any feature, ask: which area of the garden does this live in? Does it make the garden more alive? What pulse signals does it generate?
+
+Full doc: THE-GARDEN.md (private repo). Companion: ORGANISM-CONCEPT.md (private repo).
+
+---
+
 ## Architecture
 
 - **Node Lab Model (DEC-047):** Nodes are independent apps during lab phase. No sync with Community Node.
