@@ -23,13 +23,12 @@ export default function AdminLocationsTable({
             <TableHead className="text-slate-400">Location</TableHead>
             <TableHead className="text-slate-400">City</TableHead>
             <TableHead className="text-center text-slate-400">Views (7d)</TableHead>
-            <TableHead className="text-center text-slate-400">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {locations.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center py-8 text-slate-400">
+              <TableCell colSpan={4} className="text-center py-8 text-slate-400">
                 No locations found
               </TableCell>
             </TableRow>
@@ -61,9 +60,6 @@ export default function AdminLocationsTable({
                       <Eye className="h-3 w-3 text-slate-500" />
                       <span className="text-slate-300">{views}</span>
                     </div>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {/* Actions column kept for future use (e.g. Edit link) */}
                   </TableCell>
                 </TableRow>
               );

@@ -1,6 +1,6 @@
 /**
  * Admin sidebar navigation per ADMIN-ARCHITECTURE.md.
- * Sections: MANAGEMENT, PLATFORM, EVENTS, ONBOARDING.
+ * Sections: MANAGEMENT, PLATFORM, WORKSPACES, EVENTS, ONBOARDING.
  * Styling: bg-slate-900, border-r border-slate-700; active: bg-slate-800 border-l-2 border-amber-500.
  */
 
@@ -25,6 +25,10 @@ import {
   Coins,
   MessageSquarePlus,
   Mail,
+  Layers,
+  Wrench,
+  Home,
+  Calculator,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -50,6 +54,16 @@ const sections = [
       { to: `${ADMIN_BASE}/joy-coins`, label: 'Joy Coins', icon: Coins },
       { to: `${ADMIN_BASE}/tiers`, label: 'Tiers', icon: CreditCard, placeholder: true },
       { to: `${ADMIN_BASE}/settings`, label: 'Settings', icon: Settings },
+    ],
+  },
+  {
+    label: 'WORKSPACES',
+    items: [
+      { to: `${ADMIN_BASE}/workspaces`, label: 'All Workspaces', icon: Layers },
+      { to: `${ADMIN_BASE}/workspaces/field-service`, label: 'Field Service', icon: Wrench },
+      { to: `${ADMIN_BASE}/workspaces/property-management`, label: 'Property Mgmt', icon: Home },
+      { to: `${ADMIN_BASE}/workspaces/team`, label: 'Team', icon: Users },
+      { to: `${ADMIN_BASE}/workspaces/finance`, label: 'Finance', icon: Calculator },
     ],
   },
   {
@@ -104,7 +118,7 @@ export default function AdminSidebar({ onItemClick }) {
                   <li key={item.to}>
                     <NavLink
                       to={item.to}
-                      end={item.to === `${ADMIN_BASE}/businesses` ? false : undefined}
+                      end={item.to === `${ADMIN_BASE}/businesses` || item.to === `${ADMIN_BASE}/workspaces` ? false : undefined}
                       onClick={() => onItemClick?.()}
                       className={({ isActive }) =>
                         cn(

@@ -61,8 +61,8 @@ export default function EventCard({ event, onClick }) {
   const eventDate = new Date(event.date);
   const priceBadge = getPriceBadge(event);
   const isCancelled = event.status === 'cancelled';
-  const acceptsJoyCoins = event.joy_coin_enabled || event.punch_pass_accepted;
-  const joyCoinCost = event.joy_coin_cost ?? event.punch_cost ?? (acceptsJoyCoins ? Math.max(1, Math.round((event.price || 0) / 10)) : 0);
+  const acceptsJoyCoins = event.joy_coin_enabled;
+  const joyCoinCost = event.joy_coin_cost ?? (acceptsJoyCoins ? Math.max(1, Math.round((event.price || 0) / 10)) : 0);
   const isJoyCoinEvent = acceptsJoyCoins && joyCoinCost > 0;
   const accentColor = resolveEventAccent(event);
 

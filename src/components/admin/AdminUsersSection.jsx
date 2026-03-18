@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { getFriendlyErrorMessage } from '@/lib/errorMessages';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { adminUpdateUser } from '@/functions/adminUpdateUser';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,10 +62,7 @@ export default function AdminUsersSection({ businesses = [] }) {
 
   const updateUserMutation = useMutation({
     mutationFn: async (updates) => {
-      const existingData = selectedUser.data || {};
-      await base44.entities.User.update(selectedUser.id, {
-        data: { ...existingData, ...updates }
-      });
+      await adminUpdateUser(selectedUser.id, updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });

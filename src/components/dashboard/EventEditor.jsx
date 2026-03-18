@@ -141,7 +141,7 @@ export default function EventEditor({
    * NONE have formData or formData.accessibility_features in deps (would cause loop).
    */
 
-  // Prefill from backend field names: date, punch_pass_accepted/joy_coin_enabled, network, thumbnail_url
+  // Prefill from backend field names: date, joy_coin_enabled, network, thumbnail_url
   useEffect(() => {
     if (existingEvent) {
       const toUrl = (v) => (typeof v === "string" && v ? v : v && (v.url || v.src) ? (v.url || v.src) : null);
@@ -229,7 +229,7 @@ export default function EventEditor({
           : [{ name: "", price: "", quantity_limit: "" }],
         // Joy Coins
         joy_coin_enabled: existingEvent.joy_coin_enabled ?? false,
-        joy_coin_cost: (existingEvent.joy_coin_cost ?? existingEvent.punch_cost) != null ? String(existingEvent.joy_coin_cost ?? existingEvent.punch_cost) : "",
+        joy_coin_cost: existingEvent.joy_coin_cost != null ? String(existingEvent.joy_coin_cost) : "",
         joy_coin_spots: existingEvent.joy_coin_spots != null ? String(existingEvent.joy_coin_spots) : "",
         joy_coin_unlimited: existingEvent.joy_coin_unlimited ?? false,
         max_party_size: existingEvent.max_party_size != null ? String(existingEvent.max_party_size) : "",
@@ -356,7 +356,7 @@ export default function EventEditor({
       durationMinutes = formData.duration_minutes;
     }
 
-    // Step 3: map to backend field names (date, punch_pass_accepted/joy_coin_enabled, network, thumbnail_url)
+    // Step 3: map to backend field names (date, joy_coin_enabled, network, thumbnail_url)
     const eventData = {
       ...(existingEvent?.id && { event_id: existingEvent.id }),
       business_id: business.id,
@@ -410,11 +410,8 @@ export default function EventEditor({
               }))
           : null,
 
-      // Dual-write: populates both legacy and new field names for compatibility
       joy_coin_enabled: formData.joy_coin_enabled ?? false,
-      punch_pass_accepted: formData.joy_coin_enabled ?? false,
       joy_coin_cost: formData.joy_coin_enabled && formData.joy_coin_cost !== "" ? parseInt(formData.joy_coin_cost, 10) : null,
-      punch_cost: formData.joy_coin_enabled && formData.joy_coin_cost !== "" ? parseInt(formData.joy_coin_cost, 10) : null,
       joy_coin_spots: formData.joy_coin_enabled && !formData.joy_coin_unlimited && formData.joy_coin_spots !== "" ? parseInt(formData.joy_coin_spots, 10) : null,
       joy_coin_unlimited: formData.joy_coin_enabled ? formData.joy_coin_unlimited : false,
       max_party_size: formData.joy_coin_enabled && formData.max_party_size !== "" ? parseInt(formData.max_party_size, 10) : null,

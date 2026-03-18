@@ -248,7 +248,6 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     },
     onError: (error) => {
       toast.error('Failed to update business');
-      console.error('Save failed:', error);
     },
   });
 
@@ -351,10 +350,8 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       setDeleteDialogOpen(false);
       onClose();
     },
-    onError: (error) => {
-      console.error('[Admin Delete] onError:', error?.message, error);
+    onError: () => {
       toast.error('Failed to delete business');
-      console.error(error);
     },
   });
 
@@ -399,7 +396,6 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       } else {
         toast.error(getFriendlyErrorMessage(error, 'Failed to link owner. Please try again.'));
       }
-      console.error(error);
     },
   });
 
@@ -427,8 +423,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       toast.success('Claim link generated and copied to clipboard');
       setClaimInviteOpen(false);
     },
-    onError: (error) => {
-      console.error('Generate claim invite error:', error);
+    onError: () => {
       toast.error('Failed to generate claim invite');
     },
   });
@@ -519,8 +514,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       await refetchStaffUsers();
       toast.success('Staff added');
     },
-    onError: (error) => {
-      console.error('[Admin] Add staff error:', error);
+    onError: () => {
       toast.error('Failed to add staff');
     },
   });
@@ -564,8 +558,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       setStaffSearchError('');
       toast.success('Staff removed');
     },
-    onError: (error) => {
-      console.error('[Admin] Remove staff error:', error);
+    onError: () => {
       toast.error('Failed to remove staff');
     },
   });

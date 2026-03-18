@@ -40,9 +40,8 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
   const priceBadge = getPriceBadge(event);
   const isFree = event.pricing_type === 'free';
   const isCancelled = event.status === 'cancelled';
-  // Field mapping: Base44 fields punch_pass_accepted/punch_cost → joy_coin_enabled/joy_coin_cost
-  const acceptsJoyCoins = event.joy_coin_enabled || event.punch_pass_accepted;
-  const joyCoinCost = event.joy_coin_cost ?? event.punch_cost ?? (acceptsJoyCoins ? Math.max(1, Math.round((event.price || 0) / 10)) : 0);
+  const acceptsJoyCoins = event.joy_coin_enabled;
+  const joyCoinCost = event.joy_coin_cost ?? (acceptsJoyCoins ? Math.max(1, Math.round((event.price || 0) / 10)) : 0);
   const isJoyCoinEvent = acceptsJoyCoins && joyCoinCost > 0;
 
   const { isAppAdmin } = useRole();

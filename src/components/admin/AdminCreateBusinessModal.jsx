@@ -92,26 +92,26 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      // Client-side create — same pattern as BusinessOnboarding
       const optionalFields = ['description', 'email', 'phone', 'address', 'city', 'state', 'zip_code'];
       const payload = { ...data };
       optionalFields.forEach((key) => {
         if (payload[key] === '' || payload[key] == null) delete payload[key];
       });
 
-      const business = await base44.entities.Business.create({
+      const businessData = {
         ...payload,
         slug: (payload.name || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
         is_active: true,
         subscription_tier: 'basic',
         sub_category_id: payload.sub_category_id || null,
-        // CategoryPage filters on subcategories array — supports multi-category
         subcategories: Array.isArray(payload.subcategories) ? payload.subcategories : [],
         owner_email: payload.email || UNCLAIMED_EMAIL,
-        // No owner_user_id — this is an admin-seeded unclaimed listing
-      });
+      };
 
-      return business;
+      return base44.functions.invoke('updateBusiness', {
+        action: 'create',
+        data: businessData,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
@@ -120,7 +120,6 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
       onOpenChange(false);
     },
     onError: (error) => {
-      console.error('Create business error:', error);
       toast.error(error?.message || 'Failed to create business');
     },
   });

@@ -20,6 +20,11 @@ import AdminUsersSection from '@/components/admin/AdminUsersSection';
 import AdminNewsletterSection from '@/components/admin/AdminNewsletterSection';
 import ConfigSection from '@/components/admin/config/ConfigSection';
 import { JoyCoinsAdminPanel } from '@/components/admin/JoyCoinsAdminPanel';
+import AllWorkspacesPanel from '@/components/admin/workspaces/AllWorkspacesPanel';
+import FieldServiceDefaultsPanel from '@/components/admin/workspaces/FieldServiceDefaultsPanel';
+import PropertyManagementDefaultsPanel from '@/components/admin/workspaces/PropertyManagementDefaultsPanel';
+import TeamDefaultsPanel from '@/components/admin/workspaces/TeamDefaultsPanel';
+import FinanceDefaultsPanel from '@/components/admin/workspaces/FinanceDefaultsPanel';
 
 function PlaceholderSection({ title, description }) {
   return (
@@ -37,7 +42,6 @@ export default function Admin() {
     search: '',
     ownerSearch: '',
     tier: 'all',
-    boosted: 'all',
     acceptsSilver: 'all',
     localFranchise: 'all',
     status: 'all',
@@ -307,6 +311,12 @@ export default function Admin() {
             <Route path="joy-coins" element={<JoyCoinsAdminPanel />} />
             <Route path="tiers" element={<PlaceholderSection title="Tiers" description="Business and user tier definitions — coming soon." />} />
             <Route path="community-pass" element={<PlaceholderSection title="Community Pass" description="Community Pass system settings — coming soon." />} />
+
+            <Route path="workspaces" element={<AllWorkspacesPanel isAdmin={currentUser?.role === 'admin'} />} />
+            <Route path="workspaces/field-service" element={<FieldServiceDefaultsPanel isAdmin={currentUser?.role === 'admin'} />} />
+            <Route path="workspaces/property-management" element={<PropertyManagementDefaultsPanel isAdmin={currentUser?.role === 'admin'} />} />
+            <Route path="workspaces/team" element={<TeamDefaultsPanel isAdmin={currentUser?.role === 'admin'} />} />
+            <Route path="workspaces/finance" element={<FinanceDefaultsPanel isAdmin={currentUser?.role === 'admin'} />} />
 
             <Route path="events/types" element={<ConfigSection domain="events" configType="event_types" title="Event Types" />} />
             <Route path="events/age-groups" element={<ConfigSection domain="events" configType="age_groups" title="Age Groups" />} />

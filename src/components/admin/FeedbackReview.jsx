@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { MessageSquarePlus, Trash2, ExternalLink, Image, Clock, User, MapPin, Lightbulb, Bug } from 'lucide-react';
+import { toast } from 'sonner';
+import { adminDeleteFeedback } from '@/functions/adminDeleteFeedback';
 
 const FeedbackLog = base44.entities.FeedbackLog;
 
@@ -13,8 +15,7 @@ export default function FeedbackReview() {
     try {
       const list = await FeedbackLog.list('-created_at');
       setFeedback(Array.isArray(list) ? list : []);
-    } catch (err) {
-      console.error('Failed to load feedback:', err);
+    } catch {
       setFeedback([]);
     } finally {
       setLoading(false);
@@ -28,10 +29,10 @@ export default function FeedbackReview() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this feedback entry?')) return;
     try {
-      await FeedbackLog.delete(id);
+      await adminDeleteFeedback(id);
       setFeedback(prev => prev.filter(f => f.id !== id));
-    } catch (err) {
-      console.error('Failed to delete feedback:', err);
+    } catch {
+      toast.error('Failed to delete feedback');
     }
   };
 
