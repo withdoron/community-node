@@ -48,7 +48,7 @@ const EMPTY_PERSON = {
 // ═══════════════════════════════════════════════════
 // Collapsible Section
 // ═══════════════════════════════════════════════════
-function Section({ icon: Icon, title, count, defaultOpen = true, children }) {
+function Section({ icon: Icon, title, count, defaultOpen = false, children }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">

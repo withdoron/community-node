@@ -7,7 +7,7 @@ import ClientSelector from './ClientSelector';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   Search, Copy, FolderOpen, Send, Eye, Printer, X, DollarSign, Link2,
-  ChevronUp, ChevronDown,
+  ChevronUp, ChevronDown, Lock,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -19,7 +19,7 @@ const STATUS_CONFIG = {
   sent:     { label: 'Sent',     color: 'bg-amber-500/20 text-amber-400' },
   viewed:   { label: 'Viewed',   color: 'bg-blue-500/20 text-blue-400' },
   accepted: { label: 'Accepted', color: 'bg-emerald-500/20 text-emerald-400' },
-  declined: { label: 'Declined', color: 'bg-slate-500/20 text-slate-500' },
+  declined: { label: 'Declined', color: 'bg-rose-700/20 text-rose-400' },
   expired:  { label: 'Expired',  color: 'bg-slate-800/50 text-slate-600' },
 };
 
@@ -223,8 +223,13 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
           {(estimate.status === 'draft' || estimate.status === 'sent') && !estimate.project_id && (
             <button type="button" onClick={() => onConvert(estimate)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px]">
-              <FolderOpen className="h-4 w-4" /> Convert to Project
+              <FolderOpen className="h-4 w-4" /> Accept & Create Project
             </button>
+          )}
+          {estimate.status === 'accepted' && (
+            <span className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm font-medium min-h-[44px]">
+              <Lock className="h-4 w-4" /> Approved
+            </span>
           )}
           <button type="button" onClick={() => {
               const url = `${window.location.origin}/client-portal?estimate=${estimate.id}`;
@@ -233,10 +238,12 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent transition-colors text-sm min-h-[44px]">
             <Eye className="h-4 w-4" /> Preview as Client
           </button>
-          <button type="button" onClick={() => onEdit(estimate)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm min-h-[44px]">
-            <Pencil className="h-4 w-4" /> Edit
-          </button>
+          {estimate.status !== 'accepted' && (
+            <button type="button" onClick={() => onEdit(estimate)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm min-h-[44px]">
+              <Pencil className="h-4 w-4" /> Edit
+            </button>
+          )}
         </div>
       </div>
 
@@ -994,6 +1001,22 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
     onError: (err) => toast.error(`Conversion failed: ${err.message}`),
   });
 
+  const markAsSent = async (est) => {
+    try {
+      await base44.entities.FSEstimate.update(est.id, { status: 'sent', sent_at: new Date().toISOString() });
+      queryClient.invalidateQueries(['fs-estimates', profile?.id]);
+      toast.success('Estimate marked as sent');
+    } catch (err) { toast.error(err?.message || 'Failed to update status'); }
+  };
+
+  const reopenEstimate = async (est) => {
+    try {
+      await base44.entities.FSEstimate.update(est.id, { status: 'sent' });
+      queryClient.invalidateQueries(['fs-estimates', profile?.id]);
+      toast.success('Estimate reopened for editing');
+    } catch (err) { toast.error(err?.message || 'Failed to reopen'); }
+  };
+
   // ─── Navigation helpers ─────────────────────────
   const openNewEstimate = useCallback(() => {
     const validUntil = new Date();
@@ -1174,7 +1197,8 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                     <p className="text-sm font-medium text-slate-100 truncate">{est.title || 'Untitled Estimate'}</p>
                     <p className="text-xs text-slate-500">{est.estimate_number}</p>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${sc.color} ${est.status === 'declined' ? 'line-through' : ''}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 flex items-center gap-1 ${sc.color} ${est.status === 'declined' ? 'line-through' : ''}`}>
+                    {est.status === 'accepted' && <Lock className="h-3 w-3" />}
                     {sc.label}
                   </span>
                 </div>
@@ -1192,18 +1216,37 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                     className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[36px] transition-colors">
                     <Eye className="h-3.5 w-3.5" /> Preview
                   </button>
-                  <button type="button" onClick={() => openEditEstimate(est)}
-                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[36px] transition-colors">
-                    <Pencil className="h-3.5 w-3.5" /> Edit
-                  </button>
+                  {est.status !== 'accepted' && (
+                    <button type="button" onClick={() => openEditEstimate(est)}
+                      className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[36px] transition-colors">
+                      <Pencil className="h-3.5 w-3.5" /> Edit
+                    </button>
+                  )}
                   <button type="button" onClick={() => duplicateEstimate(est)}
                     className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[36px] transition-colors">
                     <Copy className="h-3.5 w-3.5" /> Duplicate
                   </button>
+                  {est.status === 'draft' && (
+                    <button type="button" onClick={() => markAsSent(est)}
+                      className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 min-h-[36px] transition-colors">
+                      <Send className="h-3.5 w-3.5" /> Mark Sent
+                    </button>
+                  )}
                   {(est.status === 'draft' || est.status === 'sent') && !est.project_id && (
                     <button type="button" onClick={() => setConvertConfirm(est)}
                       className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 min-h-[36px] transition-colors">
-                      <FolderOpen className="h-3.5 w-3.5" /> Convert to Project
+                      <FolderOpen className="h-3.5 w-3.5" /> Accept & Create Project
+                    </button>
+                  )}
+                  {est.status === 'accepted' && (
+                    <span className="flex items-center gap-1 text-xs text-emerald-400">
+                      <Lock className="h-3.5 w-3.5" /> Approved
+                    </span>
+                  )}
+                  {est.status === 'accepted' && (
+                    <button type="button" onClick={() => reopenEstimate(est)}
+                      className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-400 min-h-[36px] transition-colors">
+                      Reopen
                     </button>
                   )}
                   {est.project_id && (
@@ -1239,10 +1282,10 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
           onClick={() => setConvertConfirm(null)}>
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-sm w-full"
             onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-slate-100 mb-2">Convert to Project</h3>
+            <h3 className="text-lg font-bold text-slate-100 mb-2">Accept Estimate & Create Project</h3>
             <p className="text-sm text-slate-400 mb-4">
-              Create a new project from <span className="text-amber-500">{convertConfirm.title}</span> with
-              a budget of {fmt(convertConfirm.total)}?
+              Accept <span className="text-amber-500">{convertConfirm.title}</span> and create a project with
+              a budget of {fmt(convertConfirm.total)}? The estimate will be locked.
             </p>
             <div className="flex gap-3">
               <button type="button" onClick={() => setConvertConfirm(null)}
@@ -1253,7 +1296,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                 disabled={convertMutation.isPending}
                 onClick={() => convertMutation.mutate(convertConfirm)}
                 className="flex-1 flex items-center justify-center px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px] disabled:opacity-50">
-                {convertMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Project'}
+                {convertMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Accept & Create Project'}
               </button>
             </div>
           </div>

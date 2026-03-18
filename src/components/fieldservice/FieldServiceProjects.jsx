@@ -29,6 +29,18 @@ function parseWorkers(val) {
   return [];
 }
 
+function generateCONumber(existingCOs) {
+  const year = new Date().getFullYear();
+  const prefix = `CO-${year}-`;
+  const seqs = (existingCOs || [])
+    .map((co) => co.change_order_number || '')
+    .filter((n) => n.startsWith(prefix))
+    .map((n) => parseInt(n.replace(prefix, ''), 10))
+    .filter((n) => !isNaN(n));
+  const next = seqs.length > 0 ? Math.max(...seqs) + 1 : 1;
+  return `${prefix}${String(next).padStart(3, '0')}`;
+}
+
 const INPUT_CLASS =
   'w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent';
 const LABEL_CLASS = 'block text-slate-300 text-sm font-medium mb-1';
@@ -87,6 +99,11 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
   const [editingId, setEditingId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
+  const [showCOForm, setShowCOForm] = useState(false);
+  const [coTitle, setCOTitle] = useState('');
+  const [coDescription, setCODescription] = useState('');
+  const [coItems, setCOItems] = useState([{ id: `co_${Date.now()}`, category: 'materials', description: '', quantity: 1, unit_price: 0, amount: 0 }]);
+  const [expandedCO, setExpandedCO] = useState(null);
 
   // ─── Query: All projects ────────────────────────
   const { data: projects = [], isLoading } = useQuery({
@@ -251,6 +268,18 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     enabled: !!selectedId,
   });
 
+  // ─── Query: Change Orders ──────────────────────
+  const { data: changeOrders = [] } = useQuery({
+    queryKey: ['fs-change-orders', selectedProject?.id],
+    queryFn: async () => {
+      if (!selectedProject?.id) return [];
+      const list = await base44.entities.FSChangeOrder.filter({ project_id: selectedProject.id });
+      return (Array.isArray(list) ? list : list ? [list] : [])
+        .sort((a, b) => (b.created_date || '').localeCompare(a.created_date || ''));
+    },
+    enabled: !!selectedProject?.id,
+  });
+
   const projectSpent = useMemo(() => {
     const matTotal = projectMaterials.reduce((s, m) => s + (m.total_cost || 0), 0);
     const labTotal = projectLabor.reduce((s, l) => s + (l.total_cost || 0), 0);
@@ -348,6 +377,59 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       toast.success('Status updated');
     },
     onError: (err) => toast.error(err?.message || 'Failed to update status'),
+  });
+
+  const createCOMutation = useMutation({
+    mutationFn: async () => {
+      const validItems = coItems.filter((it) => it.description?.trim() || (parseFloat(it.amount) || 0) !== 0);
+      const subtotal = validItems.reduce((s, it) => s + (parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0))), 0);
+      return base44.entities.FSChangeOrder.create({
+        project_id: selectedProject.id,
+        estimate_id: selectedProject.estimate_id || null,
+        user_id: currentUser?.id,
+        workspace_id: profile?.id,
+        change_order_number: generateCONumber(changeOrders),
+        title: coTitle.trim(),
+        description: coDescription.trim(),
+        line_items: { items: validItems },
+        subtotal,
+        total: subtotal,
+        status: 'draft',
+        created_date: new Date().toISOString(),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['fs-change-orders', selectedProject?.id]);
+      toast.success('Change order created');
+      setShowCOForm(false);
+      setCOTitle('');
+      setCODescription('');
+      setCOItems([{ id: `co_${Date.now()}`, category: 'materials', description: '', quantity: 1, unit_price: 0, amount: 0 }]);
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to create change order'),
+  });
+
+  const acceptCOMutation = useMutation({
+    mutationFn: async (co) => {
+      await base44.entities.FSChangeOrder.update(co.id, {
+        status: 'accepted',
+        accepted_date: new Date().toISOString(),
+      });
+      // Update project budget: original + all accepted COs
+      const allCOs = changeOrders.map((c) => c.id === co.id ? { ...c, status: 'accepted' } : c);
+      const coTotal = allCOs.filter((c) => c.status === 'accepted').reduce((s, c) => s + (parseFloat(c.total) || 0), 0);
+      const originalBudget = parseFloat(selectedProject.original_budget || selectedProject.total_budget) || 0;
+      await base44.entities.FSProject.update(selectedProject.id, {
+        total_budget: originalBudget + coTotal,
+        original_budget: originalBudget, // preserve original
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['fs-change-orders', selectedProject?.id]);
+      queryClient.invalidateQueries(['fs-projects', profile?.id]);
+      toast.success('Change order accepted, budget updated');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to accept change order'),
   });
 
   // ─── Helpers ──────────────────────────────────
@@ -839,6 +921,20 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
             <p className="text-xs text-slate-400 mb-1">Budget</p>
             <p className="text-lg font-bold text-slate-100">{budget > 0 ? fmt(budget) : '—'}</p>
+            {/* Budget breakdown with change orders */}
+            {(() => {
+              const acceptedCOs = changeOrders.filter((co) => co.status === 'accepted');
+              if (acceptedCOs.length === 0) return null;
+              const originalBudget = parseFloat(proj.original_budget || proj.total_budget) || 0;
+              const coTotal = acceptedCOs.reduce((s, co) => s + (parseFloat(co.total) || 0), 0);
+              return (
+                <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                  <span>Original: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(originalBudget)}</span>
+                  <span>|</span>
+                  <span className="text-amber-400">COs: {coTotal >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(coTotal)}</span>
+                </div>
+              );
+            })()}
           </div>
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
             <p className="text-xs text-slate-400 mb-1">Spent</p>
@@ -904,6 +1000,151 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           projectId={proj.id}
           phases={Array.isArray(profile?.phase_labels) ? profile.phase_labels : (profile?.phase_labels?.items || ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final'])}
         />
+
+        {/* ═══ Change Orders ═══ */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between p-4">
+            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+              Change Orders {changeOrders.length > 0 && <span className="text-slate-500 ml-1">({changeOrders.length})</span>}
+            </h3>
+            <button type="button" onClick={() => setShowCOForm((prev) => !prev)}
+              className="flex items-center gap-1.5 text-sm text-amber-500 hover:text-amber-400 min-h-[44px]">
+              <Plus className="h-4 w-4" /> New Change Order
+            </button>
+          </div>
+
+          {/* CO Form */}
+          {showCOForm && (
+            <div className="px-4 pb-4 space-y-3 border-t border-slate-800 pt-3">
+              <input type="text" value={coTitle} onChange={(e) => setCOTitle(e.target.value)}
+                className="w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                placeholder="What changed? e.g., Additional bathroom scope" />
+              <textarea value={coDescription} onChange={(e) => setCODescription(e.target.value)}
+                className="w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 min-h-[60px]"
+                placeholder="Why did it change?" rows={2} />
+
+              {/* CO Line Items */}
+              {coItems.map((item, idx) => (
+                <div key={item.id} className="bg-slate-800/50 rounded-lg p-3 space-y-2">
+                  <input type="text" value={item.description}
+                    onChange={(e) => {
+                      const next = [...coItems]; next[idx] = { ...next[idx], description: e.target.value }; setCOItems(next);
+                    }}
+                    className="w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    placeholder="Description" />
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-xs text-slate-500">Qty</label>
+                      <input type="number" value={item.quantity}
+                        onChange={(e) => {
+                          const next = [...coItems]; const q = e.target.value; next[idx] = { ...next[idx], quantity: q, amount: (parseFloat(q) || 0) * (parseFloat(next[idx].unit_price) || 0) }; setCOItems(next);
+                        }}
+                        onFocus={(e) => { if (parseFloat(e.target.value) === 0) { const next = [...coItems]; next[idx] = { ...next[idx], quantity: '' }; setCOItems(next); } }}
+                        onBlur={(e) => { if (e.target.value === '') { const next = [...coItems]; next[idx] = { ...next[idx], quantity: 0 }; setCOItems(next); } }}
+                        className="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        min="0" step="any" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-500">Unit Price</label>
+                      <input type="number" value={item.unit_price}
+                        onChange={(e) => {
+                          const next = [...coItems]; const p = e.target.value; next[idx] = { ...next[idx], unit_price: p, amount: (parseFloat(next[idx].quantity) || 0) * (parseFloat(p) || 0) }; setCOItems(next);
+                        }}
+                        onFocus={(e) => { if (parseFloat(e.target.value) === 0) { const next = [...coItems]; next[idx] = { ...next[idx], unit_price: '' }; setCOItems(next); } }}
+                        onBlur={(e) => { if (e.target.value === '') { const next = [...coItems]; next[idx] = { ...next[idx], unit_price: 0 }; setCOItems(next); } }}
+                        className="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        step="0.01" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-500">Amount</label>
+                      <input type="number" value={item.amount}
+                        onChange={(e) => {
+                          const next = [...coItems]; next[idx] = { ...next[idx], amount: e.target.value }; setCOItems(next);
+                        }}
+                        onFocus={(e) => { if (parseFloat(e.target.value) === 0) { const next = [...coItems]; next[idx] = { ...next[idx], amount: '' }; setCOItems(next); } }}
+                        onBlur={(e) => { if (e.target.value === '') { const next = [...coItems]; next[idx] = { ...next[idx], amount: (parseFloat(next[idx].quantity) || 0) * (parseFloat(next[idx].unit_price) || 0) }; setCOItems(next); } }}
+                        className="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        step="0.01" />
+                    </div>
+                  </div>
+                  {coItems.length > 1 && (
+                    <button type="button" onClick={() => setCOItems((prev) => prev.filter((_, i) => i !== idx))}
+                      className="text-xs text-slate-500 hover:text-amber-500">Remove</button>
+                  )}
+                </div>
+              ))}
+
+              <button type="button" onClick={() => setCOItems((prev) => [...prev, { id: `co_${Date.now()}_${prev.length}`, category: 'materials', description: '', quantity: 1, unit_price: 0, amount: 0 }])}
+                className="flex items-center gap-1 text-sm text-amber-500 hover:text-amber-400 min-h-[44px]">
+                <Plus className="h-4 w-4" /> Add Line Item
+              </button>
+
+              <div className="flex justify-between items-center pt-2 border-t border-slate-800">
+                <span className="text-sm text-slate-400">Total: <span className="text-amber-500 font-bold">${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(coItems.reduce((s, it) => s + (parseFloat(it.amount) || 0), 0))}</span></span>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setShowCOForm(false)}
+                    className="px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-slate-100 text-sm min-h-[44px]">Cancel</button>
+                  <button type="button" disabled={!coTitle.trim() || createCOMutation.isPending}
+                    onClick={() => createCOMutation.mutate()}
+                    className="px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm min-h-[44px] disabled:opacity-50">
+                    {createCOMutation.isPending ? 'Saving...' : 'Save Draft'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Existing Change Orders */}
+          {changeOrders.length > 0 && (
+            <div className="divide-y divide-slate-800">
+              {changeOrders.map((co) => {
+                const coSc = co.status === 'accepted' ? 'bg-emerald-500/20 text-emerald-400' : co.status === 'sent' ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-500/20 text-slate-400';
+                const coLineItems = (() => { const li = co.line_items; if (Array.isArray(li)) return li; if (li?.items) return li.items; return []; })();
+                const isExpanded = expandedCO === co.id;
+                return (
+                  <div key={co.id} className="px-4 py-3">
+                    <button type="button" onClick={() => setExpandedCO(isExpanded ? null : co.id)}
+                      className="w-full flex items-center justify-between text-left min-h-[44px]">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-slate-100">{co.title || 'Change Order'}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${coSc}`}>{co.status || 'draft'}</span>
+                        </div>
+                        <p className="text-xs text-slate-500">{co.change_order_number}</p>
+                      </div>
+                      <span className={`text-sm font-bold ${(parseFloat(co.total) || 0) >= 0 ? 'text-amber-500' : 'text-slate-400'}`}>
+                        {(parseFloat(co.total) || 0) >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(co.total || 0)}
+                      </span>
+                    </button>
+                    {isExpanded && (
+                      <div className="mt-2 pl-2 space-y-2">
+                        {co.description && <p className="text-xs text-slate-400">{co.description}</p>}
+                        {coLineItems.length > 0 && (
+                          <div className="space-y-1">
+                            {coLineItems.map((it, i) => (
+                              <div key={i} className="flex justify-between text-xs text-slate-400">
+                                <span>{it.description || '\u2014'}</span>
+                                <span>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(it.amount) || 0)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {co.status === 'draft' && (
+                          <div className="flex gap-2 pt-1">
+                            <button type="button" onClick={() => acceptCOMutation.mutate(co)}
+                              className="text-xs text-emerald-400 hover:text-emerald-300 min-h-[36px]">
+                              Accept & Update Budget
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Recent Logs */}
         {projectLogs.length > 0 && (
