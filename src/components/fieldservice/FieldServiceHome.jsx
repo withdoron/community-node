@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { HardHat, FolderOpen, ClipboardList, Calendar, FileText, DollarSign, Users, Briefcase } from 'lucide-react';
+import WorkspaceGuide from '@/components/workspaces/WorkspaceGuide';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -141,8 +142,60 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     return map;
   }, [projects]);
 
+  // ─── Workspace Guide (Activation Protocol Moment 3) ──────────
+  const guideDismissed = profile?.guide_dismissed === true;
+  const queryClient = useQueryClient();
+
+  const dismissGuide = useMutation({
+    mutationFn: async () => {
+      await base44.entities.FieldServiceProfile.update(profile.id, { guide_dismissed: true });
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(['fs-profile', profile?.id], (old) =>
+        old ? { ...old, guide_dismissed: true } : old
+      );
+      queryClient.invalidateQueries(['fs-profile']);
+    },
+  });
+
+  const handleDismissGuide = useCallback(() => {
+    dismissGuide.mutate();
+  }, [dismissGuide]);
+
+  // Smart completion: detect which guide steps are done
+  const completedSteps = useMemo(() => {
+    const done = [];
+    // 'settings' — complete if workspace has a custom name
+    if (profile?.business_name && profile.business_name.trim().length > 0) {
+      done.push('settings');
+    }
+    // 'client' — complete if at least 1 client exists
+    if (fsClients.length > 0) {
+      done.push('client');
+    }
+    // 'estimate' — complete if at least 1 estimate exists
+    if (estimates.length > 0) {
+      done.push('estimate');
+    }
+    // 'log' — complete if at least 1 log exists
+    if (recentLogs.length > 0) {
+      done.push('log');
+    }
+    return done;
+  }, [profile?.business_name, fsClients.length, estimates.length, recentLogs.length]);
+
   return (
     <div className="space-y-6">
+      {/* Workspace Guide — inline walkthrough for new users */}
+      {!guideDismissed && (
+        <WorkspaceGuide
+          workspaceType="field_service"
+          onDismiss={handleDismissGuide}
+          onStepClick={(tab) => onNavigateTab?.(tab)}
+          completedSteps={completedSteps}
+        />
+      )}
+
       {/* Stats Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">

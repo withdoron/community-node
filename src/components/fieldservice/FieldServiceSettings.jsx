@@ -19,7 +19,7 @@ import {
 import {
   Settings, Save, Plus, X, Loader2, AlertTriangle, Trash2,
   ChevronDown, ChevronRight, HardHat, Users, FileText, Camera,
-  Link2, RefreshCw, Copy, ToggleLeft, SlidersHorizontal,
+  Link2, RefreshCw, Copy, ToggleLeft, SlidersHorizontal, BookOpen,
 } from 'lucide-react';
 
 function formatPhone(value) {
@@ -854,6 +854,44 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
             >
               {saveWorkspaceName.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-2" /> Save</>}
             </Button>
+          </div>
+
+          {/* Getting Started Guide Toggle */}
+          <div className="border-t border-slate-800 pt-4 mt-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <BookOpen className="h-4 w-4 text-amber-500" />
+                <div>
+                  <p className="text-sm font-medium text-slate-200">Getting started guide</p>
+                  <p className="text-xs text-slate-500">Show the walkthrough on your Home tab</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const newVal = !profile?.guide_dismissed;
+                  try {
+                    await base44.entities.FieldServiceProfile.update(profile.id, { guide_dismissed: !newVal });
+                    queryClient.setQueryData(['fs-profile', profile?.id], (old) =>
+                      old ? { ...old, guide_dismissed: !newVal } : old
+                    );
+                    queryClient.invalidateQueries(['fs-profile']);
+                    toast.success(newVal ? 'Guide hidden' : 'Guide restored — check your Home tab');
+                  } catch {
+                    toast.error('Could not update guide setting');
+                  }
+                }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  !profile?.guide_dismissed ? 'bg-amber-500' : 'bg-slate-700'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-slate-100 transition-transform ${
+                    !profile?.guide_dismissed ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
 
           {/* Danger Zone */}
