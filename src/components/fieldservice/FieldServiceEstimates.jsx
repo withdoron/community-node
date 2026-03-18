@@ -718,8 +718,8 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           profileId={profile?.id}
           currentUser={currentUser}
         />
-        {/* Insurance estimate toggle */}
-        {features?.insurance_work_enabled !== false && (
+        {/* Insurance estimate toggle — only when feature is enabled */}
+        {features?.insurance_work_enabled === true && (
           <div className="flex items-center justify-between gap-4 py-2 px-1">
             <div>
               <p className="text-sm text-white">Insurance Estimate (Xactimate format)</p>

@@ -226,7 +226,7 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
           </div>
           <div className="w-full bg-slate-800 rounded-full h-2.5">
             <div
-              className={`h-2.5 rounded-full transition-all ${grandTotal > project.total_budget * 0.9 ? 'bg-red-500' : 'bg-amber-500'}`}
+              className={`h-2.5 rounded-full transition-all ${grandTotal > project.total_budget * 0.95 ? 'bg-amber-700' : grandTotal > project.total_budget * 0.75 ? 'bg-amber-600' : 'bg-amber-500'}`}
               style={{ width: `${Math.min((grandTotal / project.total_budget) * 100, 100)}%` }}
             />
           </div>
