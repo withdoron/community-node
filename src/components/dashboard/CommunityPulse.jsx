@@ -16,15 +16,23 @@ const PULSE_STYLES = `
  */
 export default function CommunityPulse() {
   // Member count — total users on the platform
+  // Non-admin users may get 403 on User.filter({}). Fall back to AdminSettings
+  // stat if direct query fails. If both fail, show null (renders as "—").
   const { data: memberCount = null } = useQuery({
     queryKey: ['community-pulse-members'],
     queryFn: async () => {
+      // Try direct query first (works for admins)
       try {
         const users = await base44.entities.User.filter({});
-        return Array.isArray(users) ? users.length : 0;
-      } catch {
-        return null;
-      }
+        if (Array.isArray(users) && users.length > 0) return users.length;
+      } catch { /* 403 for non-admin — expected */ }
+      // Fallback: read from platform stats stored in AdminSettings
+      try {
+        const stats = await base44.entities.AdminSettings.filter({ key: 'platform_stats:member_count' });
+        const record = Array.isArray(stats) && stats[0];
+        if (record?.value) return parseInt(record.value, 10) || null;
+      } catch { /* no stats record yet */ }
+      return null;
     },
     staleTime: 5 * 60 * 1000,
   });

@@ -466,7 +466,13 @@ function DocumentDetail({ doc, onBack, onUpdate, onDelete, isUpdating }) {
             <Printer className="h-3.5 w-3.5" /> Print
           </button>
           <button type="button"
-            onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success('Link copied (portal sharing coming soon)'); }}
+            onClick={() => {
+              const url = `${window.location.origin}/client-portal?doc=${doc.id}`;
+              navigator.clipboard.writeText(url).then(
+                () => toast.success('Client portal link copied!'),
+                () => toast.error('Failed to copy link')
+              );
+            }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-300 text-xs min-h-[44px] transition-colors">
             <Copy className="h-3.5 w-3.5" /> Copy Link
           </button>

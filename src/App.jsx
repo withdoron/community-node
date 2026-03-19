@@ -143,9 +143,13 @@ const AuthenticatedApp = () => {
           </LayoutWrapper>
         }
       />
-      {/* Public client portal — shareable project view */}
+      {/* Public client portal — shareable project/estimate/document view */}
       <Route
         path="/client-portal/:profileId/:projectId"
+        element={<ClientPortal />}
+      />
+      <Route
+        path="/client-portal"
         element={<ClientPortal />}
       />
       <Route path="*" element={<PageNotFound />} />
