@@ -51,6 +51,7 @@ import FieldServiceProjects from '@/components/fieldservice/FieldServiceProjects
 import FieldServiceEstimates from '@/components/fieldservice/FieldServiceEstimates';
 import FieldServicePeople from '@/components/fieldservice/FieldServicePeople';
 import FieldServiceSettings from '@/components/fieldservice/FieldServiceSettings';
+import FieldServiceDocuments from '@/components/fieldservice/FieldServiceDocuments';
 import PropertyManagementHome from '@/components/propertymgmt/PropertyManagementHome';
 import PropertyManagementProperties from '@/components/propertymgmt/PropertyManagementProperties';
 import PropertyManagementOwners from '@/components/propertymgmt/PropertyManagementOwners';
@@ -238,6 +239,7 @@ export const WORKSPACE_TYPES = {
       { id: 'projects', label: 'Projects', icon: FolderOpen, component: FieldServiceProjects, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab, isOwner: scope.isOwner, workerRole: scope.workerRole, features: scope.features }) },
       { id: 'estimates', label: 'Estimates', icon: FileText, component: FieldServiceEstimates, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab, isOwner: scope.isOwner, workerRole: scope.workerRole, features: scope.features }) },
       { id: 'people', label: 'People', icon: Users, component: FieldServicePeople, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab, isOwner: scope.isOwner, workerRole: scope.workerRole, features: scope.features }) },
+      { id: 'documents', label: 'Documents', icon: FileText, component: FieldServiceDocuments, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab, isOwner: scope.isOwner, workerRole: scope.workerRole, features: scope.features }) },
       { id: 'settings', label: 'Settings', icon: Settings, component: FieldServiceSettings, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab, isOwner: scope.isOwner, workerRole: scope.workerRole, features: scope.features }) },
     ],
   },
