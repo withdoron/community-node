@@ -11,17 +11,18 @@
  *
  * Future phases:
  * - Phase 5: Client portal document sharing
- * - Phase 6: E-signature flow
+ * - Phase 6: E-signature flow ✓
  */
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { SignatureDisplay } from '@/components/shared/SigningFlow';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   Search, Eye, Printer, X, Lock, Copy, Filter,
-  Send, Archive, ChevronDown,
+  Send, Archive, ChevronDown, Shield,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -476,6 +477,19 @@ function DocumentDetail({ doc, onBack, onUpdate, onDelete, isUpdating }) {
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-300 text-xs min-h-[44px] transition-colors">
             <Copy className="h-3.5 w-3.5" /> Copy Link
           </button>
+          {doc.status === 'sent' && !doc.signature_data && (
+            <button type="button"
+              onClick={() => {
+                const url = `${window.location.origin}/client-portal?doc=${doc.id}&sign=true`;
+                navigator.clipboard.writeText(url).then(
+                  () => toast.success('Signing link copied! Send this to the client.'),
+                  () => toast.error('Failed to copy link')
+                );
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs min-h-[44px] transition-colors">
+              <Shield className="h-3.5 w-3.5" /> Request Signature
+            </button>
+          )}
           {isDraft && (
             <button type="button" onClick={() => onDelete(doc.id)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-red-800/50 text-red-400 hover:border-red-700 text-xs min-h-[44px] transition-colors ml-auto">
@@ -509,6 +523,11 @@ function DocumentDetail({ doc, onBack, onUpdate, onDelete, isUpdating }) {
           <pre className="whitespace-pre-wrap text-sm text-slate-900 font-sans leading-relaxed print:text-black">
             {doc.content}
           </pre>
+        )}
+
+        {/* Signature display (when signed) */}
+        {doc.signature_data && (
+          <SignatureDisplay signatureData={doc.signature_data} darkMode={false} />
         )}
       </div>
     </div>

@@ -4,10 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import VoiceInput from './VoiceInput';
 import ClientSelector from './ClientSelector';
+import { SignatureDisplay } from '@/components/shared/SigningFlow';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   Search, Copy, FolderOpen, Send, Eye, Printer, X, DollarSign, Link2,
-  ChevronUp, ChevronDown, Lock,
+  ChevronUp, ChevronDown, Lock, Shield,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -273,6 +274,18 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent transition-colors text-sm min-h-[44px]">
             <Eye className="h-4 w-4" /> Preview as Client
           </button>
+          {estimate.status === 'sent' && !estimate.signature_data && (
+            <button type="button" onClick={() => {
+                const url = `${window.location.origin}/client-portal?estimate=${estimate.id}&sign=true`;
+                navigator.clipboard.writeText(url).then(
+                  () => toast.success('Signing link copied! Send this to the client.'),
+                  () => toast.error('Failed to copy link')
+                );
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-colors text-sm min-h-[44px]">
+              <Shield className="h-4 w-4" /> Request Signature
+            </button>
+          )}
           {estimate.status !== 'accepted' && (
             <button type="button" onClick={() => onEdit(estimate)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm min-h-[44px]">
@@ -463,21 +476,27 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
         )}
 
         {/* Signature block */}
-        <div className="print-avoid-break mb-6 border border-slate-200 rounded-lg p-5 mt-8">
-          <p className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Sign Below to Accept Quote</p>
-          <div className="flex justify-between items-end mb-6">
-            <span className="text-sm text-slate-500">Total:</span>
-            <span className="text-lg font-bold" style={{ color: brandColor }}>{fmt(totals.total)}</span>
+        {estimate.signature_data ? (
+          <div className="print-avoid-break mb-6 mt-8">
+            <SignatureDisplay signatureData={estimate.signature_data} darkMode={false} />
           </div>
-          <div className="space-y-4">
-            <div className="border-b border-slate-300 pb-1">
-              <p className="text-xs text-slate-400 uppercase">Authorized Representative</p>
+        ) : (
+          <div className="print-avoid-break mb-6 border border-slate-200 rounded-lg p-5 mt-8">
+            <p className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Sign Below to Accept Quote</p>
+            <div className="flex justify-between items-end mb-6">
+              <span className="text-sm text-slate-500">Total:</span>
+              <span className="text-lg font-bold" style={{ color: brandColor }}>{fmt(totals.total)}</span>
             </div>
-            <div className="border-b border-slate-300 pb-1">
-              <p className="text-xs text-slate-400 uppercase">Date</p>
+            <div className="space-y-4">
+              <div className="border-b border-slate-300 pb-1">
+                <p className="text-xs text-slate-400 uppercase">Authorized Representative</p>
+              </div>
+              <div className="border-b border-slate-300 pb-1">
+                <p className="text-xs text-slate-400 uppercase">Date</p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Notes */}
         {estimate.notes && (

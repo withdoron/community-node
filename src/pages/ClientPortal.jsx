@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Loader2, Printer, Camera, Shield, X, FileText, FolderOpen, ClipboardList } from 'lucide-react';
+import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -80,7 +81,8 @@ function PortalHeader({ profile, brandColor }) {
 // Estimate View
 // ═══════════════════════════════════════════════════
 
-function EstimatePortalView({ estimateId }) {
+function EstimatePortalView({ estimateId, signMode = false }) {
+  const queryClient = useQueryClient();
   const { data: estimate, isLoading: estLoading } = useQuery({
     queryKey: ['fs-public-estimate-view', estimateId],
     queryFn: async () => {
@@ -209,7 +211,24 @@ function EstimatePortalView({ estimateId }) {
               <p className="text-sm text-slate-600 whitespace-pre-line">{estimate.notes}</p>
             </div>
           )}
+
+          {/* Signature display (already signed) */}
+          {estimate.signature_data && (
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <SignatureDisplay signatureData={estimate.signature_data} darkMode={false} />
+            </div>
+          )}
         </div>
+
+        {/* Signing flow (when sign=true and not yet signed) */}
+        {signMode && estimate.status === 'sent' && !estimate.signature_data && (
+          <div className="px-6 sm:px-8 pb-6">
+            <EstimateSigningSection
+              estimate={estimate}
+              queryClient={queryClient}
+            />
+          </div>
+        )}
 
         <PortalFooter />
       </div>
@@ -217,11 +236,48 @@ function EstimatePortalView({ estimateId }) {
   );
 }
 
+function EstimateSigningSection({ estimate, queryClient }) {
+  const signMutation = useMutation({
+    mutationFn: async (signatureData) => {
+      await base44.entities.FSEstimate.update(estimate.id, {
+        status: 'accepted',
+        signature_data: JSON.stringify(signatureData),
+        signed_at: signatureData.signed_at,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['fs-public-estimate-view']);
+    },
+  });
+
+  // Build content string for hashing (the estimate text the signer sees)
+  const docContent = [
+    estimate.title,
+    `Estimate #${estimate.estimate_number || ''}`,
+    `Total: ${estimate.total}`,
+    estimate.terms || '',
+    estimate.notes || '',
+  ].join('\n');
+
+  return (
+    <SigningFlow
+      documentContent={docContent}
+      documentTitle={estimate.title || 'Estimate'}
+      signerName={estimate.client_name || ''}
+      signerEmail={estimate.client_email || ''}
+      onSign={(data) => signMutation.mutate(data)}
+      isSaving={signMutation.isPending}
+      darkMode={false}
+    />
+  );
+}
+
 // ═══════════════════════════════════════════════════
 // Document View
 // ═══════════════════════════════════════════════════
 
-function DocumentPortalView({ docId }) {
+function DocumentPortalView({ docId, signMode = false }) {
+  const queryClient = useQueryClient();
   const { data: doc, isLoading: docLoading } = useQuery({
     queryKey: ['fs-public-doc-view', docId],
     queryFn: async () => {
@@ -274,19 +330,60 @@ function DocumentPortalView({ docId }) {
             </pre>
           </div>
 
-          {/* E-sign placeholder */}
-          {doc.status === 'sent' && !doc.signed_at && (
-            <div className="mt-6 pt-4 border-t border-slate-200 text-center">
-              <p className="text-sm text-slate-500 italic">
-                Digital signature coming soon. Please contact your contractor to sign this document.
-              </p>
+          {/* Signature display (already signed) */}
+          {doc.signature_data && (
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <SignatureDisplay signatureData={doc.signature_data} darkMode={false} />
             </div>
           )}
         </div>
 
+        {/* Signing flow (when sign=true and not yet signed) */}
+        {signMode && doc.status === 'sent' && !doc.signature_data && (
+          <div className="px-6 sm:px-8 pb-6">
+            <DocumentSigningSection doc={doc} queryClient={queryClient} />
+          </div>
+        )}
+
+        {/* Prompt when sent but not in sign mode */}
+        {!signMode && doc.status === 'sent' && !doc.signature_data && (
+          <div className="px-6 sm:px-8 pb-6 text-center">
+            <p className="text-sm text-slate-500 italic">
+              Your contractor will send you a signing link when this document is ready for your signature.
+            </p>
+          </div>
+        )}
+
         <PortalFooter />
       </div>
     </PortalShell>
+  );
+}
+
+function DocumentSigningSection({ doc, queryClient }) {
+  const signMutation = useMutation({
+    mutationFn: async (signatureData) => {
+      await base44.entities.FSDocument.update(doc.id, {
+        status: 'signed',
+        signature_data: JSON.stringify(signatureData),
+        signed_at: signatureData.signed_at,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['fs-public-doc-view']);
+    },
+  });
+
+  return (
+    <SigningFlow
+      documentContent={doc.content || ''}
+      documentTitle={doc.title || 'Document'}
+      signerName={doc.client_name || ''}
+      signerEmail={''}
+      onSign={(data) => signMutation.mutate(data)}
+      isSaving={signMutation.isPending}
+      darkMode={false}
+    />
   );
 }
 
@@ -682,13 +779,14 @@ export default function ClientPortal() {
   const estimateId = searchParams.get('estimate');
   const docId = searchParams.get('doc');
   const qsProjectId = searchParams.get('project');
+  const signMode = searchParams.get('sign') === 'true';
 
   // Priority: estimate > doc > project (query params) > project (path params)
   if (estimateId) {
-    return <EstimatePortalView estimateId={estimateId} />;
+    return <EstimatePortalView estimateId={estimateId} signMode={signMode} />;
   }
   if (docId) {
-    return <DocumentPortalView docId={docId} />;
+    return <DocumentPortalView docId={docId} signMode={signMode} />;
   }
   if (profileId && projectId) {
     return <ProjectPortalView profileId={profileId} projectId={projectId} />;
