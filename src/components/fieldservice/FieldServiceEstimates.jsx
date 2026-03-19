@@ -334,7 +334,7 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
               <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Customer</p>
               <p className="font-semibold">{clientName}</p>
               {clientAddress && <p className="text-sm text-slate-600">{clientAddress}</p>}
-              {clientPhone && <p className="text-sm text-slate-600">{clientPhone}</p>}
+              {clientPhone && <p className="text-sm text-slate-600">{formatPhone(clientPhone)}</p>}
               {clientEmail && <p className="text-sm text-slate-600">{clientEmail}</p>}
             </div>
           )}
@@ -615,6 +615,19 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
   const addItem = (category) => setFormData((prev) => ({
     ...prev, line_items: [...prev.line_items, makeItem({ category: category || 'materials' })],
   }));
+  const insertItemAfter = (idx) => {
+    const newItem = makeItem({ category: 'materials' });
+    setFormData((prev) => {
+      const items = [...prev.line_items];
+      items.splice(idx + 1, 0, newItem);
+      return { ...prev, line_items: items };
+    });
+    // Auto-focus the new item's description after render
+    requestAnimationFrame(() => {
+      const inputs = document.querySelectorAll('[data-line-item-desc]');
+      inputs[idx + 1]?.focus();
+    });
+  };
   const removeItem = (idx) => setFormData((prev) => ({
     ...prev, line_items: prev.line_items.length > 1 ? prev.line_items.filter((_, i) => i !== idx) : prev.line_items,
   }));
@@ -788,82 +801,98 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           const cat = CATEGORY_MAP[item.category] || CATEGORY_MAP.materials;
           const computedAmt = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
           return (
-            <div key={item.id || idx} className="bg-slate-800/50 rounded-lg p-3 space-y-2">
-              {/* Row 1: category + description + voice + reorder + remove */}
-              <div className="flex items-center gap-2">
-                <select
-                  value={item.category || 'materials'}
-                  onChange={(e) => updateItem(idx, 'category', e.target.value)}
-                  className="bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[90px]"
-                >
-                  {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                </select>
-                {formData.is_insurance_estimate && (
+            <React.Fragment key={item.id || idx}>
+              <div className="bg-slate-800/50 rounded-lg p-3 space-y-2">
+                {/* Row 1: category + description + voice + reorder + remove */}
+                <div className="flex items-center gap-2">
                   <select
-                    value={item.trade_category_id || ''}
-                    onChange={(e) => updateItem(idx, 'trade_category_id', e.target.value)}
-                    className="bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[80px] max-w-[120px]"
+                    value={item.category || 'materials'}
+                    onChange={(e) => updateItem(idx, 'category', e.target.value)}
+                    className="bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[90px]"
                   >
-                    <option value="">Trade</option>
-                    {tradeCategories.map((tc) => <option key={tc.id} value={tc.id}>{tc.name}</option>)}
+                    {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
-                )}
-                <div className="flex-1">
-                  <input type="text" className={INPUT_CLASS} value={item.description}
-                    onChange={(e) => updateItem(idx, 'description', e.target.value)}
-                    placeholder="Description" />
+                  {formData.is_insurance_estimate && (
+                    <select
+                      value={item.trade_category_id || ''}
+                      onChange={(e) => updateItem(idx, 'trade_category_id', e.target.value)}
+                      className="bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[80px] max-w-[120px]"
+                    >
+                      <option value="">Trade</option>
+                      {tradeCategories.map((tc) => <option key={tc.id} value={tc.id}>{tc.name}</option>)}
+                    </select>
+                  )}
+                  <div className="flex-1">
+                    <input type="text" data-line-item-desc className={INPUT_CLASS} value={item.description}
+                      onChange={(e) => updateItem(idx, 'description', e.target.value)}
+                      placeholder="Description" />
+                  </div>
+                  <VoiceInput onTranscript={(t) => updateItem(idx, 'description', (item.description ? item.description + ' ' : '') + t)} />
+                  <div className="flex flex-col gap-0.5">
+                    <button type="button" onClick={() => moveItem(idx, -1)} disabled={idx === 0}
+                      className="text-slate-500 hover:text-amber-500 disabled:opacity-30 p-0.5"><ChevronUp className="h-3.5 w-3.5" /></button>
+                    <button type="button" onClick={() => moveItem(idx, 1)} disabled={idx === formData.line_items.length - 1}
+                      className="text-slate-500 hover:text-amber-500 disabled:opacity-30 p-0.5"><ChevronDown className="h-3.5 w-3.5" /></button>
+                  </div>
+                  {formData.line_items.length > 1 && (
+                    <button type="button" onClick={() => removeItem(idx)}
+                      className="p-2 text-slate-500 hover:text-amber-500 min-h-[44px]">
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
-                <VoiceInput onTranscript={(t) => updateItem(idx, 'description', (item.description ? item.description + ' ' : '') + t)} />
-                <div className="flex flex-col gap-0.5">
-                  <button type="button" onClick={() => moveItem(idx, -1)} disabled={idx === 0}
-                    className="text-slate-500 hover:text-amber-500 disabled:opacity-30 p-0.5"><ChevronUp className="h-3.5 w-3.5" /></button>
-                  <button type="button" onClick={() => moveItem(idx, 1)} disabled={idx === formData.line_items.length - 1}
-                    className="text-slate-500 hover:text-amber-500 disabled:opacity-30 p-0.5"><ChevronDown className="h-3.5 w-3.5" /></button>
-                </div>
-                {formData.line_items.length > 1 && (
-                  <button type="button" onClick={() => removeItem(idx)}
-                    className="p-2 text-slate-500 hover:text-amber-500 min-h-[44px]">
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
 
-              {/* Sub name (only for subcontractor category) */}
-              {item.category === 'subcontractor' && (
-                <div>
-                  <label className="text-xs text-slate-500">Sub Name</label>
-                  <input type="text" className={INPUT_CLASS} value={item.sub_name || ''}
-                    onChange={(e) => updateItem(idx, 'sub_name', e.target.value)}
-                    placeholder="e.g., Gastlin Gutters" />
-                </div>
-              )}
+                {/* Sub name (only for subcontractor category) */}
+                {item.category === 'subcontractor' && (
+                  <div>
+                    <label className="text-xs text-slate-500">Sub Name</label>
+                    <input type="text" className={INPUT_CLASS} value={item.sub_name || ''}
+                      onChange={(e) => updateItem(idx, 'sub_name', e.target.value)}
+                      placeholder="e.g., Gastlin Gutters" />
+                  </div>
+                )}
 
-              {/* Row 2: qty, unit price, amount */}
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className="text-xs text-slate-500">Qty</label>
-                  <input type="number" className={INPUT_CLASS} value={item.quantity}
-                    onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
-                    onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateItem(idx, 'quantity', ''); }}
-                    onBlur={(e) => { if (e.target.value === '') updateItem(idx, 'quantity', 0); }}
-                    min="0" step="any" />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500">Unit Price</label>
-                  <input type="number" className={INPUT_CLASS} value={item.unit_price}
-                    onChange={(e) => updateItem(idx, 'unit_price', e.target.value)}
-                    onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateItem(idx, 'unit_price', ''); }}
-                    onBlur={(e) => { if (e.target.value === '') updateItem(idx, 'unit_price', 0); }}
-                    min="0" step="0.01" />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500">Amount</label>
-                  <div className={`${INPUT_CLASS} flex items-center justify-end bg-slate-800/60 cursor-default`}>
-                    {fmt(computedAmt)}
+                {/* Row 2: qty, unit price, amount */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-xs text-slate-500">Qty</label>
+                    <input type="number" className={INPUT_CLASS} value={item.quantity}
+                      onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
+                      onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateItem(idx, 'quantity', ''); }}
+                      onBlur={(e) => { if (e.target.value === '') updateItem(idx, 'quantity', 0); }}
+                      min="0" step="any" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">Unit Price</label>
+                    <input type="number" className={INPUT_CLASS} value={item.unit_price}
+                      onChange={(e) => updateItem(idx, 'unit_price', e.target.value)}
+                      onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateItem(idx, 'unit_price', ''); }}
+                      onBlur={(e) => { if (e.target.value === '') updateItem(idx, 'unit_price', 0); }}
+                      min="0" step="0.01" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">Amount</label>
+                    <div className={`${INPUT_CLASS} flex items-center justify-end bg-slate-800/60 cursor-default`}>
+                      {fmt(computedAmt)}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+
+              {/* Insert-between button */}
+              <button
+                type="button"
+                onClick={() => insertItemAfter(idx)}
+                className="group flex items-center justify-center w-full py-1 -my-1"
+                title="Insert line item here"
+              >
+                <span className="flex-1 h-px bg-slate-800 group-hover:bg-amber-500/40 transition-colors" />
+                <span className="flex items-center justify-center h-6 w-6 rounded-full border border-slate-700 text-slate-600 group-hover:border-amber-500 group-hover:text-amber-500 transition-colors">
+                  <Plus className="h-3 w-3" />
+                </span>
+                <span className="flex-1 h-px bg-slate-800 group-hover:bg-amber-500/40 transition-colors" />
+              </button>
+            </React.Fragment>
           );
         })}
 

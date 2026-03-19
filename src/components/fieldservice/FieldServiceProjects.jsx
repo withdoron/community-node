@@ -1080,7 +1080,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
               </button>
 
               <div className="flex justify-between items-center pt-2 border-t border-slate-800">
-                <span className="text-sm text-slate-400">Total: <span className="text-amber-500 font-bold">${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(coItems.reduce((s, it) => s + (parseFloat(it.amount) || 0), 0))}</span></span>
+                <span className="text-sm text-slate-400">Total: <span className="text-amber-500 font-bold">{fmt(coItems.reduce((s, it) => s + (parseFloat(it.amount) || 0), 0))}</span></span>
                 <div className="flex gap-2">
                   <button type="button" onClick={() => setShowCOForm(false)}
                     className="px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-slate-100 text-sm min-h-[44px]">Cancel</button>

@@ -8,7 +8,11 @@ import {
   Phone, Mail, Shield, FolderOpen, Link2, Share2,
 } from 'lucide-react';
 
+const fmt = (n) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
+
 function formatPhone(value) {
+  if (!value) return '';
   const digits = value.replace(/\D/g, '').slice(0, 10);
   if (digits.length === 0) return '';
   if (digits.length <= 3) return `(${digits}`;
@@ -115,7 +119,7 @@ function PersonCard({ person, projectMap, onEdit, onRemove, onShareInvite }) {
           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5">
             {person.phone && (
               <a href={`tel:${person.phone.replace(/\D/g, '')}`} className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 transition-colors">
-                <Phone className="h-3 w-3" /> {person.phone}
+                <Phone className="h-3 w-3" /> {formatPhone(person.phone)}
               </a>
             )}
             {person.email && (
@@ -124,7 +128,7 @@ function PersonCard({ person, projectMap, onEdit, onRemove, onShareInvite }) {
               </a>
             )}
             {person.role === 'worker' && person.hourly_rate > 0 && (
-              <span className="text-xs text-slate-500">${person.hourly_rate}/hr</span>
+              <span className="text-xs text-slate-500">{fmt(person.hourly_rate)}/hr</span>
             )}
           </div>
           {assignedCount > 0 && (
@@ -189,7 +193,7 @@ function ClientCard({ client, projectCount, onView }) {
                 onClick={(e) => e.stopPropagation()}
                 className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 transition-colors"
               >
-                <Phone className="h-3 w-3" /> {client.phone}
+                <Phone className="h-3 w-3" /> {formatPhone(client.phone)}
               </a>
             )}
             {client.email && (

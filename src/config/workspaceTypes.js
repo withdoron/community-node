@@ -201,7 +201,7 @@ export const WORKSPACE_TYPES = {
     id: 'finance',
     label: 'Finance',
     icon: 'DollarSign',
-    description: 'Track income, expenses, debts, and your Enough Number',
+    description: 'Track income, expenses, debts, and your Monthly Target',
     archetypeSupport: false,
     networkAffinity: false,
     available: true,
