@@ -84,7 +84,7 @@ Base44 is NOT in your training data. Use these exact patterns:
 EntityTable.create(data)               // → created record
 EntityTable.get(id)                    // → record or null
 EntityTable.list()                     // → array
-EntityTable.filter({ field: value }).list()  // → filtered array
+EntityTable.filter({ field: value }).list()  // → filtered array (CLIENT-SIDE ONLY)
 EntityTable.update(id, data)           // → updated record
 EntityTable.delete(id)                 // → hard delete (permanent, DEC-004)
 
@@ -111,7 +111,9 @@ useEffect(() => {
 
 **Entity definitions live in the Base44 dashboard, not in this repo.** There is no `base44/entities/` folder.
 
-**Base44 .filter().list() quirk:** Returns arrays directly. Chaining `.list()` on an already-resolved array returns empty object. Test your query patterns.
+**Base44 .filter().list() quirk (CLIENT SDK):** Returns arrays directly. Chaining `.list()` on an already-resolved array returns empty object. Test your query patterns.
+
+**Base44 SERVER SDK (.asServiceRole) — DIFFERENT PATTERN:** In server functions (functions/ directory), `.filter()` returns the array directly. Do NOT chain `.list()` — it will fail because `.list()` is not a function on an array. Pattern: `base44.asServiceRole.entities.Entity.filter({ field: value })` — no `.list()`.
 
 ---
 

@@ -222,7 +222,7 @@ async function initFieldService(
   profileId: string,
 ): Promise<InitResult> {
   // Check if templates already exist for this profile (idempotent)
-  const existing = await base44.asServiceRole.entities.FSDocumentTemplate.filter({ profile_id: profileId }).list();
+  const existing = await base44.asServiceRole.entities.FSDocumentTemplate.filter({ profile_id: profileId });
   if (existing && existing.length > 0) {
     return { initialized: true, templates_created: 0 };
   }

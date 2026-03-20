@@ -67,14 +67,14 @@ Deno.serve(async (req) => {
     // For email queries (contains @), exact match is the expected behavior.
     // For name queries, try exact match — partial search needs a future search index.
     try {
-      const byEmail = await base44.asServiceRole.entities.User.filter({ email: lowerQuery }).list();
+      const byEmail = await base44.asServiceRole.entities.User.filter({ email: lowerQuery });
       if (byEmail && byEmail.length > 0) matchedUsers.push(...byEmail);
     } catch { /* filter may fail on some fields — continue */ }
 
     // Only attempt name search if we have no email results and query doesn't look like an email
     if (matchedUsers.length === 0 && !lowerQuery.includes('@')) {
       try {
-        const byName = await base44.asServiceRole.entities.User.filter({ full_name: query.trim() }).list();
+        const byName = await base44.asServiceRole.entities.User.filter({ full_name: query.trim() });
         if (byName && byName.length > 0) {
           const existingIds = new Set(matchedUsers.map(u => u.id));
           byName.forEach(u => { if (!existingIds.has(u.id)) matchedUsers.push(u); });

@@ -36,7 +36,7 @@ async function findUniqueSlug(
   excludeBusinessId: string
 ): Promise<string> {
   // Use targeted .filter({ slug }) instead of Business.list() to avoid CPU timeout on large tables
-  const matches = await base44.asServiceRole.entities.Business.filter({ slug: baseSlug }).list();
+  const matches = await base44.asServiceRole.entities.Business.filter({ slug: baseSlug });
   const bySlug = (matches || []).filter((b: { id?: string }) => b.id !== excludeBusinessId);
   if (bySlug.length === 0) return baseSlug;
 
@@ -44,7 +44,7 @@ async function findUniqueSlug(
   let suffix = 2;
   let candidate = `${baseSlug}-${suffix}`;
   while (true) {
-    const existing = await base44.asServiceRole.entities.Business.filter({ slug: candidate }).list();
+    const existing = await base44.asServiceRole.entities.Business.filter({ slug: candidate });
     if (!existing || existing.length === 0) return candidate;
     suffix += 1;
     candidate = `${baseSlug}-${suffix}`;

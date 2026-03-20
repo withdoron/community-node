@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
       }
 
       try {
-        const filtered = await base44.asServiceRole.entities.User.filter({ email: searchEmail }).list();
+        const filtered = await base44.asServiceRole.entities.User.filter({ email: searchEmail });
         if (filtered && filtered.length > 0) {
           const u = filtered[0] as { id: string; email?: string; full_name?: string | null };
           return Response.json({ user: { id: u.id, email: u.email, full_name: u.full_name ?? null } });
