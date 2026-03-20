@@ -79,6 +79,15 @@ export const WORKSPACE_GUIDES = {
         icon: 'FileText',
       },
       {
+        id: 'documents',
+        title: 'Create a document',
+        description:
+          'Use Oregon templates to generate lien notices, contracts, and sub agreements. Send for e-signature through the client portal.',
+        actionLabel: 'Go to Documents',
+        targetTab: 'documents',
+        icon: 'FileText',
+      },
+      {
         id: 'log',
         title: 'Log your first day',
         description:

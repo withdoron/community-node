@@ -89,6 +89,17 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     enabled: !!profile?.id,
   });
 
+  // ─── Query: Documents (for guide completion) ───
+  const { data: fsDocuments = [] } = useQuery({
+    queryKey: ['fs-documents', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      const list = await base44.entities.FSDocument.filter({ profile_id: profile.id });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!profile?.id,
+  });
+
   // ─── Query: Clients ────────────────────────────
   const { data: fsClients = [] } = useQuery({
     queryKey: ['fs-clients', profile?.id],
@@ -178,12 +189,16 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     if (estimates.length > 0) {
       done.push('estimate');
     }
+    // 'documents' — complete if at least 1 document exists
+    if (fsDocuments.length > 0) {
+      done.push('documents');
+    }
     // 'log' — complete if at least 1 log exists
     if (recentLogs.length > 0) {
       done.push('log');
     }
     return done;
-  }, [profile?.business_name, fsClients.length, estimates.length, recentLogs.length]);
+  }, [profile?.business_name, fsClients.length, estimates.length, fsDocuments.length, recentLogs.length]);
 
   return (
     <div className="space-y-6">

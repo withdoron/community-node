@@ -230,12 +230,12 @@ function DocumentDetail({ doc, onBack, onUpdate, onDelete, isUpdating }) {
   return (
     <div className="space-y-4 pb-8">
       <button type="button" onClick={onBack}
-        className="flex items-center gap-2 text-slate-400 hover:text-amber-500 text-sm min-h-[44px]">
+        className="flex items-center gap-2 text-slate-400 hover:text-amber-500 text-sm min-h-[44px] print:hidden">
         <ArrowLeft className="h-4 w-4" /> Back to Documents
       </button>
 
-      {/* Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+      {/* Header — hidden in print */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 print:hidden">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <h2 className="text-lg font-bold text-slate-100">{doc.title}</h2>
@@ -310,8 +310,17 @@ function DocumentDetail({ doc, onBack, onUpdate, onDelete, isUpdating }) {
         </div>
       </div>
 
+      {/* Print styles — hide everything except document content */}
+      <style>{`@media print {
+        nav, .app-header, .print\\:hidden, [class*="sidebar"] { display: none !important; }
+        @page { margin: 0.75in; size: letter; }
+        body { background: white !important; margin: 0; padding: 0; }
+        .doc-print-area { position: absolute; top: 0; left: 0; width: 100%; }
+        .doc-print-area * { color: #111827 !important; }
+      }`}</style>
+
       {/* Content — print-friendly */}
-      <div className="bg-white rounded-xl p-6 md:p-10 shadow-lg print:shadow-none print:p-0 print:rounded-none">
+      <div className="doc-print-area bg-white rounded-xl p-6 md:p-10 shadow-lg print:shadow-none print:p-0 print:rounded-none">
         {editing ? (
           <div className="space-y-3">
             <textarea
