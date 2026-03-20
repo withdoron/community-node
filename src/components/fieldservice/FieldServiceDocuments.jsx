@@ -806,18 +806,23 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     if (templates.length > 0) { setSeeded(true); return; }
 
     const seed = async () => {
-      try {
-        for (const tpl of SYSTEM_TEMPLATES) {
+      let created = 0;
+      for (const tpl of SYSTEM_TEMPLATES) {
+        try {
           await base44.entities.FSDocumentTemplate.create({
             ...tpl,
             profile_id: profile.id,
           });
+          created++;
+        } catch (err) {
+          console.error(`Failed to seed template "${tpl.title}":`, err?.message || err);
         }
+      }
+      if (created > 0) {
         queryClient.invalidateQueries(['fs-doc-templates', profile.id]);
-        toast.success('Oregon document templates added');
-      } catch (err) {
-        console.error('Failed to seed templates:', err);
-        toast.error('Failed to create default templates');
+        toast.success(`${created} Oregon document template${created > 1 ? 's' : ''} added`);
+      } else if (SYSTEM_TEMPLATES.length > 0) {
+        toast.error('Could not create document templates — check entity permissions');
       }
       setSeeded(true);
     };
