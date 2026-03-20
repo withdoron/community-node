@@ -36,6 +36,17 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
   const { hasStaffBusinesses } = useUserStaffBusinesses(currentUser);
   const { isAppAdmin } = useRole();
   const showBusinessDashboard = isAppAdmin || hasOwnedBusinesses || hasStaffBusinesses;
+
+  // Admin alert badge: unseen frequency submissions
+  const { data: frequencyUnseenCount = 0 } = useQuery({
+    queryKey: ['frequency-unseen-count'],
+    queryFn: async () => {
+      const all = await base44.entities.FSFrequencySubmission.filter({ admin_seen: false }).list();
+      return Array.isArray(all) ? all.length : 0;
+    },
+    enabled: isAppAdmin,
+    refetchInterval: 30000,
+  });
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackType, setFeedbackType] = useState('feedback');
   const [whatHappened, setWhatHappened] = useState('');
@@ -133,12 +144,15 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
             {/* Community dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className={`flex items-center gap-1 px-3 py-2 transition-colors ${
+                <button className={`flex items-center gap-1 px-3 py-2 transition-colors relative ${
                   ['/shaping', '/frequency'].includes(location.pathname)
                     ? 'text-amber-500'
                     : 'text-slate-300 hover:text-amber-500'
                 }`}>
                   Community
+                  {isAppAdmin && frequencyUnseenCount > 0 && (
+                    <span className="absolute -top-0.5 -right-1 h-2 w-2 rounded-full bg-amber-500" />
+                  )}
                   <ChevronDown className="h-3.5 w-3.5" />
                 </button>
               </DropdownMenuTrigger>
@@ -154,7 +168,12 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="!bg-transparent hover:!bg-slate-800 focus:!bg-slate-800 cursor-pointer p-0">
                   <Link to="/frequency" className="flex items-start gap-3 px-3 py-3">
-                    <Music className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+                    <span className="relative shrink-0 mt-0.5">
+                      <Music className="h-5 w-5 text-amber-500" />
+                      {isAppAdmin && frequencyUnseenCount > 0 && (
+                        <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-amber-500" />
+                      )}
+                    </span>
                     <div>
                       <p className="text-sm font-medium text-slate-100">Frequency Station</p>
                       <p className="text-xs text-slate-500 mt-0.5">The community's radio station</p>
@@ -314,7 +333,12 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                     </SheetClose>
                     <SheetClose asChild>
                       <Link to="/frequency" className={`flex items-center gap-3 ${location.pathname === '/frequency' ? 'py-3 px-4 rounded-lg bg-amber-500/10 text-amber-500' : 'py-3 px-4 rounded-lg text-slate-300 hover:text-amber-500 hover:bg-slate-800'}`}>
-                        <Music className="h-5 w-5 flex-shrink-0" />
+                        <span className="relative flex-shrink-0">
+                          <Music className="h-5 w-5" />
+                          {isAppAdmin && frequencyUnseenCount > 0 && (
+                            <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-amber-500" />
+                          )}
+                        </span>
                         Frequency Station
                       </Link>
                     </SheetClose>
