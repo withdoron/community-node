@@ -617,19 +617,22 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     if (templates.length > 0) { setSeeded(true); return; }
 
     const seed = async () => {
+      const params = {
+        action: 'initialize',
+        workspace_type: 'field_service',
+        profile_id: profile.id,
+      };
+      console.log('Calling initializeWorkspace with:', params);
       try {
-        const result = await base44.functions.invoke('initializeWorkspace', {
-          action: 'initialize',
-          workspace_type: 'field_service',
-          profile_id: profile.id,
-        });
+        const result = await base44.functions.invoke('initializeWorkspace', params);
+        console.log('initializeWorkspace result:', JSON.stringify(result));
         if (result?.templates_created > 0) {
           queryClient.invalidateQueries(['fs-doc-templates', profile.id]);
           toast.success(`${result.templates_created} Oregon document template${result.templates_created > 1 ? 's' : ''} added`);
         }
       } catch (err) {
-        console.error('Failed to initialize workspace templates:', err?.message || err);
-        toast.error('Could not initialize templates');
+        console.error('initializeWorkspace failed:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+        toast.error(err?.message || err?.toString() || 'Unknown error initializing templates');
       }
       setSeeded(true);
     };
