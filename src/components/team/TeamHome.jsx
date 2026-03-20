@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useMemo, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Users, BookOpen, Calendar, UserPlus, Share2, MessageSquare, Clock, MapPin, Zap, Trophy, Flame, Heart, Shield } from 'lucide-react';
 import usePlayerStats from '@/hooks/usePlayerStats';
 import QuizMode from './QuizMode';
+import WorkspaceGuide from '@/components/workspaces/WorkspaceGuide';
 
 const PLAYER_COUNT_ROLES = ['player'];
 const MEDALS = ['🥇', '🥈', '🥉'];
@@ -167,6 +168,50 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     return ownerMember?.jersey_name || null;
   }, [team?.head_coach_member_id, team?.owner_id, members]);
 
+  // ─── Workspace Guide (Activation Protocol Moment 3) ──────────
+  const guideDismissed = team?.guide_dismissed === true;
+  const queryClient = useQueryClient();
+
+  const dismissGuide = useMutation({
+    mutationFn: async () => {
+      await base44.entities.Team.update(team.id, { guide_dismissed: true });
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(['dashboard-teams'], (old) =>
+        Array.isArray(old)
+          ? old.map((t) => (t.id === team?.id ? { ...t, guide_dismissed: true } : t))
+          : old
+      );
+      queryClient.invalidateQueries(['dashboard-teams']);
+    },
+  });
+
+  const handleDismissGuide = useCallback(() => {
+    dismissGuide.mutate();
+  }, [dismissGuide]);
+
+  // Smart completion: detect which guide steps are done
+  const completedSteps = useMemo(() => {
+    const done = [];
+    // 'settings' — complete if team has a custom name
+    if (team?.name && team.name.trim().length > 0) {
+      done.push('settings');
+    }
+    // 'roster' — complete if at least 1 player on roster
+    if (members.filter((m) => PLAYER_COUNT_ROLES.includes(m.role)).length > 0) {
+      done.push('roster');
+    }
+    // 'playbook' — complete if at least 1 play exists
+    if (playCount > 0) {
+      done.push('playbook');
+    }
+    // 'schedule' — complete if at least 1 event exists
+    if (teamEvents.length > 0) {
+      done.push('schedule');
+    }
+    return done;
+  }, [team?.name, members, playCount, teamEvents.length]);
+
   const nextEventWhen = nextEvent ? formatEventWhen(nextEvent.start_date, nextEvent.start_time) : null;
   const nextEventTime = nextEvent && (nextEvent.start_date || nextEvent.start_time)
     ? new Date(nextEvent.start_date + (nextEvent.start_time ? `T${nextEvent.start_time}` : '')).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -327,6 +372,16 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
 
   return (
     <div className="space-y-6">
+      {/* Workspace Guide — inline walkthrough for coaches */}
+      {isCoach && !guideDismissed && (
+        <WorkspaceGuide
+          workspaceType="team"
+          onDismiss={handleDismissGuide}
+          onStepClick={(tab) => onNavigateTab?.(tab)}
+          completedSteps={completedSteps}
+        />
+      )}
+
       {/* Playbook Pro card — top of page */}
       <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-5">
         <h3

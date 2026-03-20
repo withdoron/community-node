@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DollarSign, TrendingUp, CalendarClock, Landmark, X, Info, PieChart } from 'lucide-react';
 import TransactionForm from './TransactionForm';
+import WorkspaceGuide from '@/components/workspaces/WorkspaceGuide';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -240,8 +241,61 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
     setFormOpen(true);
   };
 
+  // ─── Workspace Guide (Activation Protocol Moment 3) ──────────
+  const guideDismissed = profile?.guide_dismissed === true;
+
+  const dismissGuide = useMutation({
+    mutationFn: async () => {
+      await base44.entities.FinancialProfile.update(profile.id, { guide_dismissed: true });
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(['finance-profiles'], (old) =>
+        Array.isArray(old)
+          ? old.map((p) => (p.id === profile?.id ? { ...p, guide_dismissed: true } : p))
+          : old
+      );
+      queryClient.invalidateQueries(['finance-profiles']);
+    },
+  });
+
+  const handleDismissGuide = useCallback(() => {
+    dismissGuide.mutate();
+  }, [dismissGuide]);
+
+  // Smart completion: detect which guide steps are done
+  const guideCompletedSteps = useMemo(() => {
+    const done = [];
+    // 'settings' — complete if at least 1 context configured
+    if (contextCount > 0) {
+      done.push('settings');
+    }
+    // 'transaction' — complete if at least 1 transaction exists
+    if (allTransactions.length > 0) {
+      done.push('transaction');
+    }
+    // 'bills' — complete if at least 1 recurring item exists
+    if (recurringItems.length > 0) {
+      done.push('bills');
+    }
+    // 'debts' — complete if at least 1 debt exists
+    if (debts.length > 0) {
+      done.push('debts');
+    }
+    return done;
+  }, [contextCount, allTransactions.length, recurringItems.length, debts.length]);
+
   return (
     <div className="space-y-6">
+      {/* Workspace Guide — inline walkthrough for new users */}
+      {!guideDismissed && (
+        <WorkspaceGuide
+          workspaceType="finance"
+          onDismiss={handleDismissGuide}
+          onStepClick={(tab) => onNavigateTab?.(tab)}
+          completedSteps={guideCompletedSteps}
+        />
+      )}
+
       {/* First-view Explanation (dismissible) */}
       {showExplanation && (
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 relative">

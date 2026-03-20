@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Building, Building2, Wrench, DollarSign, Clock,
   TrendingUp, AlertTriangle, Plus, ClipboardList, Megaphone,
 } from 'lucide-react';
+import WorkspaceGuide from '@/components/workspaces/WorkspaceGuide';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -181,8 +182,62 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
     });
   }, [groupSummaries, settlements]);
 
+  // ─── Workspace Guide (Activation Protocol Moment 3) ──────────
+  const guideDismissed = profile?.guide_dismissed === true;
+  const queryClient = useQueryClient();
+
+  const dismissGuide = useMutation({
+    mutationFn: async () => {
+      await base44.entities.PMPropertyProfile.update(profile.id, { guide_dismissed: true });
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(['pm-profiles', profile?.user_id], (old) =>
+        Array.isArray(old)
+          ? old.map((p) => (p.id === profile?.id ? { ...p, guide_dismissed: true } : p))
+          : old
+      );
+      queryClient.invalidateQueries(['pm-profiles']);
+    },
+  });
+
+  const handleDismissGuide = useCallback(() => {
+    dismissGuide.mutate();
+  }, [dismissGuide]);
+
+  // Smart completion: detect which guide steps are done
+  const guideCompletedSteps = useMemo(() => {
+    const done = [];
+    // 'settings' — complete if workspace has a custom name
+    if (profile?.workspace_name || profile?.business_name) {
+      done.push('settings');
+    }
+    // 'properties' — complete if at least 1 property group exists
+    if (groups.length > 0) {
+      done.push('properties');
+    }
+    // 'expense' — complete if at least 1 expense exists
+    if (expenses.length > 0) {
+      done.push('expense');
+    }
+    // 'maintenance' — complete if at least 1 maintenance request exists
+    if (maintenance.length > 0) {
+      done.push('maintenance');
+    }
+    return done;
+  }, [profile?.workspace_name, profile?.business_name, groups.length, expenses.length, maintenance.length]);
+
   return (
     <div className="space-y-6">
+      {/* Workspace Guide — inline walkthrough for new users */}
+      {!guideDismissed && (
+        <WorkspaceGuide
+          workspaceType="property_management"
+          onDismiss={handleDismissGuide}
+          onStepClick={(tab) => onNavigateTab?.(tab)}
+          completedSteps={guideCompletedSteps}
+        />
+      )}
+
       {/* ─── Portfolio Stats Bar ──────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">

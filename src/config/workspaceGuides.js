@@ -9,9 +9,45 @@
  *
  * The guide lives inline on the Home tab — not a modal, not a popup.
  * It walks alongside the user like a companion, not a tutorial.
+ *
+ * NOTE: Each workspace entity needs a `guide_dismissed` boolean field
+ * added manually in the Base44 dashboard for persistent dismissal.
  */
 
 export const WORKSPACE_GUIDES = {
+  business: {
+    welcome: "Welcome to your business dashboard. This is your home on LocalLane.",
+    steps: [
+      {
+        id: 'settings',
+        title: 'Set up your listing',
+        description:
+          'Add your business name, photos, description, and contact info so families can find you.',
+        actionLabel: 'Go to Settings',
+        targetTab: 'settings',
+        icon: 'Settings',
+      },
+      {
+        id: 'events',
+        title: 'Create your first event',
+        description:
+          'Events bring families through the door. Add a class, open house, or community gathering.',
+        actionLabel: 'Go to Events',
+        targetTab: 'events',
+        icon: 'Calendar',
+      },
+      {
+        id: 'joy-coins',
+        title: 'Set your Joy Coin hours',
+        description:
+          'Joy Coins let Community Pass members visit your business. Set when they can redeem.',
+        actionLabel: 'Go to Joy Coins',
+        targetTab: 'joy-coins',
+        icon: 'Coins',
+      },
+    ],
+  },
+
   field_service: {
     welcome: "Welcome to your workspace. This is where your business runs.",
     steps: [
@@ -54,27 +90,129 @@ export const WORKSPACE_GUIDES = {
     ],
   },
 
-  // Future: each follows the same shape — welcome + steps[]
-  // The WorkspaceGuide component renders any of them identically.
-
   team: {
     welcome: "Welcome to your team space. This is where your players grow.",
     steps: [
-      // TODO: Define steps when Team guide is built
+      {
+        id: 'settings',
+        title: 'Name your team',
+        description:
+          'Set your team name, sport, season, and format. This is the identity your players see.',
+        actionLabel: 'Go to Settings',
+        targetTab: 'settings',
+        icon: 'Settings',
+      },
+      {
+        id: 'roster',
+        title: 'Add your players',
+        description:
+          'Build your roster — add players with their jersey names and positions. Share an invite code so they can join.',
+        actionLabel: 'Go to Roster',
+        targetTab: 'roster',
+        icon: 'Users',
+      },
+      {
+        id: 'playbook',
+        title: 'Create your first play',
+        description:
+          'Draw up a play for your team. Players study them here and quiz themselves in Playbook Pro.',
+        actionLabel: 'Go to Playbook',
+        targetTab: 'playbook',
+        icon: 'BookOpen',
+      },
+      {
+        id: 'schedule',
+        title: 'Set your schedule',
+        description:
+          'Add practices, games, and team events. Everyone on the roster sees the same calendar.',
+        actionLabel: 'Go to Schedule',
+        targetTab: 'schedule',
+        icon: 'Calendar',
+      },
     ],
   },
 
   finance: {
     welcome: "Welcome to your finance space. This is where you see clearly.",
     steps: [
-      // TODO: Define steps when Finance guide is built
+      {
+        id: 'settings',
+        title: 'Set up your contexts',
+        description:
+          'Contexts separate your money into streams — personal, business, household. Each gets its own view.',
+        actionLabel: 'Go to Settings',
+        targetTab: 'settings',
+        icon: 'Settings',
+      },
+      {
+        id: 'transaction',
+        title: 'Log your first transaction',
+        description:
+          'Record an income or expense. This is the raw data that powers your Enough Number and cash flow.',
+        actionLabel: 'Go to Activity',
+        targetTab: 'activity',
+        icon: 'ArrowDownUp',
+      },
+      {
+        id: 'bills',
+        title: 'Add your recurring bills',
+        description:
+          'Rent, utilities, subscriptions — the things that repeat. These calculate your monthly essentials automatically.',
+        actionLabel: 'Go to Bills',
+        targetTab: 'bills',
+        icon: 'Repeat',
+      },
+      {
+        id: 'debts',
+        title: 'Track your debts',
+        description:
+          'Add any debts with balances and minimum payments. Your Enough Number includes these automatically.',
+        actionLabel: 'Go to Debts',
+        targetTab: 'debts',
+        icon: 'Landmark',
+      },
     ],
   },
 
   property_management: {
     welcome: "Welcome to your property space. This is where you manage what you own.",
     steps: [
-      // TODO: Define steps when PM guide is built
+      {
+        id: 'settings',
+        title: 'Configure your workspace',
+        description:
+          'Set your workspace name and link a finance workspace if you want costs to flow through automatically.',
+        actionLabel: 'Go to Settings',
+        targetTab: 'settings',
+        icon: 'Settings',
+      },
+      {
+        id: 'properties',
+        title: 'Add your first property group',
+        description:
+          'A property group is a building or address. Add units inside it — apartments, rooms, or spaces.',
+        actionLabel: 'Go to Properties',
+        targetTab: 'properties',
+        icon: 'Building',
+      },
+      {
+        id: 'expense',
+        title: 'Record your first expense',
+        description:
+          'Track repairs, utilities, and maintenance costs against specific properties or groups.',
+        actionLabel: 'Go to Finances',
+        targetTab: 'finances',
+        icon: 'DollarSign',
+      },
+      {
+        id: 'maintenance',
+        title: 'Set up maintenance tracking',
+        description:
+          'Log maintenance requests, assign them to properties, and track their status from open to resolved.',
+        actionLabel: 'Go to Maintenance',
+        targetTab: 'maintenance',
+        icon: 'Wrench',
+      },
     ],
   },
 };

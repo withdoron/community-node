@@ -81,6 +81,7 @@ const BUSINESS_TABS = [
     icon: LayoutDashboard,
     component: DashboardHome,
     getProps: (scope) => ({
+      business: scope.business,
       revenue: scope.revenue,
       businessEvents: scope.businessEvents,
       eventRsvpCounts: scope.eventRsvpCounts,

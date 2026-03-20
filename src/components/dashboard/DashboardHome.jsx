@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Users, Coins, Wallet, Calendar } from 'lucide-react';
+import WorkspaceGuide from '@/components/workspaces/WorkspaceGuide';
 
 /**
  * Home tab for the business workspace dashboard.
@@ -8,11 +11,13 @@ import { Users, Coins, Wallet, Calendar } from 'lucide-react';
  * Used by BusinessDashboard via workspace tab config.
  */
 export default function DashboardHome({
+  business,
   revenue,
   businessEvents = [],
   eventRsvpCounts = {},
   onNavigateTab,
 }) {
+  const queryClient = useQueryClient();
   const now = new Date();
   const thisMonthEvents = businessEvents.filter((e) => {
     const d = new Date(e.date || e.start_date);
@@ -23,8 +28,61 @@ export default function DashboardHome({
     .sort((a, b) => new Date(a.date || a.start_date) - new Date(b.date || b.start_date))
     .slice(0, 3);
 
+  // ─── Workspace Guide (Activation Protocol Moment 3) ──────────
+  const guideDismissed = business?.guide_dismissed === true;
+
+  const dismissGuide = useMutation({
+    mutationFn: async () => {
+      if (!business?.id) return;
+      await base44.entities.Business.update(business.id, { guide_dismissed: true });
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(['ownedBusinesses'], (old) =>
+        Array.isArray(old)
+          ? old.map((b) => (b.id === business?.id ? { ...b, guide_dismissed: true } : b))
+          : old
+      );
+      queryClient.invalidateQueries(['ownedBusinesses']);
+      queryClient.invalidateQueries(['staffBusinesses']);
+    },
+  });
+
+  const handleDismissGuide = useCallback(() => {
+    dismissGuide.mutate();
+  }, [dismissGuide]);
+
+  // Smart completion: detect which guide steps are done
+  const guideCompletedSteps = useMemo(() => {
+    const done = [];
+    // 'settings' — complete if business has a name and description
+    if (business?.name && business?.description) {
+      done.push('settings');
+    }
+    // 'events' — complete if at least 1 event exists
+    if (businessEvents.length > 0) {
+      done.push('events');
+    }
+    // 'joy-coins' — complete if redemptions have happened (business is set up)
+    if (revenue?.totalRedemptions > 0) {
+      done.push('joy-coins');
+    }
+    return done;
+  }, [business?.name, business?.description, businessEvents.length, revenue?.totalRedemptions]);
+
   return (
     <>
+      {/* Workspace Guide — inline walkthrough for new businesses */}
+      {!guideDismissed && (
+        <div className="mb-6">
+          <WorkspaceGuide
+            workspaceType="business"
+            onDismiss={handleDismissGuide}
+            onStepClick={(tab) => onNavigateTab?.(tab)}
+            completedSteps={guideCompletedSteps}
+          />
+        </div>
+      )}
+
       <p className="text-lg text-slate-300 mb-6">
         {revenue.totalRedemptions > 0 ? (
           <>

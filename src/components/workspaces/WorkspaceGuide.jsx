@@ -25,6 +25,15 @@ import {
   ChevronDown,
   ChevronUp,
   Sparkles,
+  Calendar,
+  Coins,
+  BookOpen,
+  ArrowDownUp,
+  Repeat,
+  Landmark,
+  Building,
+  DollarSign,
+  Wrench,
 } from 'lucide-react';
 
 const ICON_MAP = {
@@ -32,6 +41,15 @@ const ICON_MAP = {
   Users,
   FileText,
   ClipboardList,
+  Calendar,
+  Coins,
+  BookOpen,
+  ArrowDownUp,
+  Repeat,
+  Landmark,
+  Building,
+  DollarSign,
+  Wrench,
 };
 
 export default function WorkspaceGuide({
