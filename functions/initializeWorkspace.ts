@@ -104,7 +104,7 @@ Signature: ________________________  Date: ________________________
     description: 'Required notice before filing a construction lien (ORS 87.057)',
     is_system: true,
     sort_order: 3,
-    merge_fields: JSON.stringify(['date', 'client_name', 'client_address', 'project_address', 'company_name', 'amount_owed', 'due_date']),
+    merge_fields: ['date', 'client_name', 'client_address', 'project_address', 'company_name', 'amount_owed', 'due_date'],
     content: `PRE-CLAIM NOTICE
 
 Date: {{date}}
