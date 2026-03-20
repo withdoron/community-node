@@ -111,7 +111,7 @@ function SubmitTab({ user, onSubmitSuccess }) {
       return base44.entities.FSFrequencySubmission.create(payload);
     },
     onSuccess: () => {
-      toast.success('Seed planted! We'll nurture it into music.');
+      toast.success("Seed planted! We'll nurture it into music.");
       setRawText('');
       setTheme('');
       setCustomTheme('');
