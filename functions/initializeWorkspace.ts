@@ -149,7 +149,7 @@ Signature: ________________________  Date: ________________________`,
     description: 'Standard agreement between general contractor and subcontractor',
     is_system: true,
     sort_order: 4,
-    merge_fields: JSON.stringify(['date', 'company_name', 'sub_name', 'project_name', 'project_address', 'scope_of_work', 'sub_amount', 'payment_terms', 'start_date', 'end_date']),
+    merge_fields: ['date', 'company_name', 'sub_name', 'project_name', 'project_address', 'scope_of_work', 'sub_amount', 'payment_terms', 'start_date', 'end_date'],
     content: `SUBCONTRACTOR AGREEMENT
 
 Date: {{date}}
