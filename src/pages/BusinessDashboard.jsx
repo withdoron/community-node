@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -32,6 +32,74 @@ import TeamContextSwitcher from '@/components/team/TeamContextSwitcher';
 import { toast } from "sonner";
 import CommunityPulse from '@/components/dashboard/CommunityPulse';
 import IdeasBoard from '@/components/dashboard/IdeasBoard';
+
+// ─── Revolving "Add a ___" Button ────────────────────────────────
+
+const REVOLVING_WORDS = ['workspace', 'playspace', 'garden', 'room', 'plot', 'space', 'fruit'];
+
+function RevolvingAddButton({ onClick }) {
+  const [index, setIndex] = useState(() => Math.floor(Math.random() * REVOLVING_WORDS.length));
+  const [visible, setVisible] = useState(true);
+  const hoveredRef = useRef(false);
+  const intervalRef = useRef(null);
+
+  const startCycle = useCallback(() => {
+    if (intervalRef.current) return;
+    intervalRef.current = setInterval(() => {
+      if (hoveredRef.current) return;
+      setVisible(false);
+      setTimeout(() => {
+        setIndex((i) => (i + 1) % REVOLVING_WORDS.length);
+        setVisible(true);
+      }, 300);
+    }, 3000);
+  }, []);
+
+  useEffect(() => {
+    startCycle();
+    return () => clearInterval(intervalRef.current);
+  }, [startCycle]);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => { hoveredRef.current = true; }}
+      onMouseLeave={() => { hoveredRef.current = false; }}
+      className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-lg transition-colors min-h-[44px] min-w-[200px] cursor-pointer"
+    >
+      <Plus className="h-4 w-4 shrink-0" />
+      <span className="text-slate-800">Add a</span>{' '}
+      <span
+        className="text-black font-bold transition-opacity duration-300"
+        style={{ opacity: visible ? 1 : 0 }}
+      >
+        {REVOLVING_WORDS[index]}
+      </span>
+    </button>
+  );
+}
+
+// ─── Workspace Picker Groups ─────────────────────────────────────
+
+const WORKSPACE_GROUPS = [
+  {
+    header: 'For your community',
+    types: ['business'],
+  },
+  {
+    header: 'For your work',
+    types: ['fieldservice', 'property_management'],
+  },
+  {
+    header: 'For your team',
+    types: ['team'],
+  },
+  {
+    header: 'For yourself',
+    types: ['finance'],
+  },
+];
 
 export default function BusinessDashboard() {
   const navigate = useNavigate();
@@ -451,42 +519,55 @@ export default function BusinessDashboard() {
       <Dialog open={typePickerOpen} onOpenChange={setTypePickerOpen}>
         <DialogContent className="bg-slate-900 border-slate-800 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-slate-100">Add workspace</DialogTitle>
+            <DialogTitle className="text-slate-100">What do you want to grow?</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-3 py-2">
-            {availableTypes.map((type) => {
-              const Icon = TYPE_ICON_MAP[type.icon] || Store;
-              const isTestingLocked = type.testingMode && !isAppAdmin;
-              const handleChoose = () => {
-                if (isTestingLocked) {
-                  setComingSoonType(type);
-                  return;
-                }
-                setTypePickerOpen(false);
-                if (type.id === 'business') navigate(createPageUrl('BusinessOnboarding'));
-                else if (type.id === 'team') navigate(createPageUrl('TeamOnboarding'));
-                else if (type.id === 'finance') navigate(createPageUrl('FinanceOnboarding'));
-                else if (type.id === 'fieldservice') navigate(createPageUrl('FieldServiceOnboarding'));
-                else if (type.id === 'property_management') navigate(createPageUrl('PropertyManagementOnboarding'));
-              };
+          <div className="space-y-5 py-2">
+            {WORKSPACE_GROUPS.map((group) => {
+              const groupTypes = group.types
+                .map((id) => availableTypes.find((t) => t.id === id))
+                .filter(Boolean);
+              if (groupTypes.length === 0) return null;
               return (
-                <button
-                  key={type.id}
-                  type="button"
-                  onClick={handleChoose}
-                  className={`relative flex items-start gap-4 p-4 rounded-xl bg-slate-800 border text-left transition-colors min-h-[44px] ${isTestingLocked ? 'border-amber-500/30 hover:border-amber-500/60' : 'border-slate-700 hover:border-amber-500/50'}`}
-                >
-                  {isTestingLocked && (
-                    <span className="absolute top-2 right-3 text-[10px] font-semibold text-amber-500 uppercase tracking-wider">Coming Soon</span>
-                  )}
-                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-                    <Icon className="h-5 w-5 text-amber-500" />
+                <div key={group.header}>
+                  <p className="text-xs uppercase tracking-widest text-slate-500 mb-2 px-1">{group.header}</p>
+                  <div className="grid gap-2">
+                    {groupTypes.map((type) => {
+                      const Icon = TYPE_ICON_MAP[type.icon] || Store;
+                      const isTestingLocked = type.testingMode && !isAppAdmin;
+                      const handleChoose = () => {
+                        if (isTestingLocked) {
+                          setComingSoonType(type);
+                          return;
+                        }
+                        setTypePickerOpen(false);
+                        if (type.id === 'business') navigate(createPageUrl('BusinessOnboarding'));
+                        else if (type.id === 'team') navigate(createPageUrl('TeamOnboarding'));
+                        else if (type.id === 'finance') navigate(createPageUrl('FinanceOnboarding'));
+                        else if (type.id === 'fieldservice') navigate(createPageUrl('FieldServiceOnboarding'));
+                        else if (type.id === 'property_management') navigate(createPageUrl('PropertyManagementOnboarding'));
+                      };
+                      return (
+                        <button
+                          key={type.id}
+                          type="button"
+                          onClick={handleChoose}
+                          className={`relative flex items-start gap-4 p-4 rounded-xl bg-slate-800 border text-left transition-colors min-h-[44px] ${isTestingLocked ? 'border-amber-500/30 hover:border-amber-500/60' : 'border-slate-700 hover:border-amber-500/50'}`}
+                        >
+                          {isTestingLocked && (
+                            <span className="absolute top-2 right-3 text-[10px] font-semibold text-amber-500 uppercase tracking-wider">Coming Soon</span>
+                          )}
+                          <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                            <Icon className="h-5 w-5 text-amber-500" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-slate-100">{type.label}</div>
+                            <div className="text-sm text-slate-400">{type.description}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
-                  <div>
-                    <div className="font-semibold text-slate-100">{type.label}</div>
-                    <div className="text-sm text-slate-400">{type.description}</div>
-                  </div>
-                </button>
+                </div>
               );
             })}
           </div>
@@ -615,13 +696,7 @@ export default function BusinessDashboard() {
                 Manage the things you lead
               </p>
             </div>
-            <Button
-              onClick={() => setTypePickerOpen(true)}
-              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Workspace
-            </Button>
+            <RevolvingAddButton onClick={() => setTypePickerOpen(true)} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
