@@ -559,7 +559,16 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     queryKey: ['fs-doc-templates', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSDocumentTemplate.filter({ profile_id: profile.id });
+      console.log('[TemplateQuery] Filtering with profile_id:', profile.id, '(type:', typeof profile.id, ')');
+      const filtered = await base44.entities.FSDocumentTemplate.filter({ profile_id: profile.id });
+      console.log('[TemplateQuery] filter() returned:', JSON.stringify(filtered)?.substring(0, 500));
+      // Also try .list() to see ALL templates regardless of filter
+      const all = await base44.entities.FSDocumentTemplate.list();
+      console.log('[TemplateQuery] .list() (ALL templates):', all?.length, 'records');
+      if (all?.length > 0) {
+        console.log('[TemplateQuery] All template profile_ids:', all.map(t => `${t.id}: profile_id=${t.profile_id} (type: ${typeof t.profile_id}) title=${t.title}`));
+      }
+      const list = filtered;
       return Array.isArray(list) ? list : list ? [list] : [];
     },
     enabled: !!profile?.id,
