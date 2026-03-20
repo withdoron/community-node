@@ -65,197 +65,8 @@ const FILTER_CHIPS = [
   { value: 'archived', label: 'Archived' },
 ];
 
-// ═══════════════════════════════════════════════════
-// System Template Definitions
-// ═══════════════════════════════════════════════════
-
-const SYSTEM_TEMPLATES = [
-  {
-    title: 'Information Notice to Owner',
-    template_type: 'lien_notice',
-    description: 'Required notice to property owner before work begins (ORS 87.093)',
-    is_system: true,
-    merge_fields: JSON.stringify(['date', 'client_name', 'project_address', 'company_name', 'license_number', 'company_phone', 'company_email', 'project_name', 'start_date', 'estimate_total']),
-    content: `INFORMATION NOTICE TO OWNER
-
-Date: {{date}}
-
-Owner: {{client_name}}
-Property Address: {{project_address}}
-
-Dear {{client_name}},
-
-Oregon law requires contractors to provide this notice before beginning work on your property.
-
-Under Oregon Revised Statutes (ORS 87.093), any contractor, subcontractor, or material supplier who provides labor, materials, or services for the improvement of your property may have a right to file a lien against your property if they are not paid.
-
-CONTRACTOR INFORMATION
-Contractor: {{company_name}}
-License #: {{license_number}}
-Phone: {{company_phone}}
-Email: {{company_email}}
-
-PROJECT DETAILS
-Project: {{project_name}}
-Property Address: {{project_address}}
-Estimated Start Date: {{start_date}}
-Estimated Total: {{estimate_total}}
-
-This notice is provided for informational purposes as required by Oregon law. It does not mean there is a problem with payment on your project.
-
-For more information about your rights, contact the Construction Contractors Board at (503) 378-4621 or www.oregon.gov/ccb.
-
-
-Contractor Signature: ________________________  Date: ________________________
-
-Owner Acknowledgment: ________________________  Date: ________________________`,
-  },
-  {
-    title: 'Notice of Right to Lien',
-    template_type: 'lien_notice',
-    description: 'Preserves contractor\'s right to file a lien (ORS 87.021)',
-    is_system: true,
-    merge_fields: JSON.stringify(['date', 'client_name', 'client_address', 'project_address', 'company_name', 'license_number', 'amount_owed']),
-    content: `NOTICE OF RIGHT TO LIEN
-
-Date: {{date}}
-
-TO: {{client_name}}
-    {{client_address}}
-
-RE: Property at {{project_address}}
-
-Dear {{client_name}},
-
-This notice is provided pursuant to Oregon Revised Statutes (ORS 87.021).
-
-The undersigned has furnished or will furnish labor, materials, equipment, or services for the improvement of your property located at:
-
-{{project_address}}
-
-CLAIMANT INFORMATION
-Name: {{company_name}}
-License #: {{license_number}}
-
-AMOUNT
-The estimated or actual amount of the claim is: {{amount_owed}}
-
-NOTICE
-Under Oregon law, those who furnish labor, materials, equipment, or services for the construction, alteration, or repair of any improvement to real property may have lien rights on that property if they are not paid for their contributions.
-
-This notice is required to be given within eight (8) business days of first furnishing labor or materials.
-
-
-Signature: ________________________  Date: ________________________
-
-{{company_name}}`,
-  },
-  {
-    title: 'Pre-Claim Notice',
-    template_type: 'lien_notice',
-    description: 'Required notice before filing a construction lien (ORS 87.057)',
-    is_system: true,
-    merge_fields: JSON.stringify(['date', 'client_name', 'client_address', 'project_address', 'company_name', 'amount_owed', 'due_date']),
-    content: `PRE-CLAIM NOTICE
-
-Date: {{date}}
-
-TO: {{client_name}}
-    {{client_address}}
-
-RE: Property at {{project_address}}
-
-Dear {{client_name}},
-
-This notice is provided pursuant to Oregon Revised Statutes (ORS 87.057) as a prerequisite to filing a construction lien.
-
-CLAIMANT
-{{company_name}}
-
-PROPERTY
-{{project_address}}
-
-AMOUNT CLAIMED
-{{amount_owed}}
-
-DUE DATE
-Payment was due on or before: {{due_date}}
-
-NOTICE
-Oregon law requires that this notice be sent at least ten (10) days before filing a construction lien. This notice is sent in accordance with that requirement.
-
-The claimant has provided labor, materials, equipment, or services for the improvement of the above-described property and has not received payment for the amount claimed.
-
-Payment of the amount claimed may prevent the filing of a construction lien against the property.
-
-If you have questions regarding this notice, please contact:
-{{company_name}}
-
-
-Signature: ________________________  Date: ________________________`,
-  },
-  {
-    title: 'Subcontractor Agreement',
-    template_type: 'sub_agreement',
-    description: 'Standard agreement between general contractor and subcontractor',
-    is_system: true,
-    merge_fields: JSON.stringify(['date', 'company_name', 'sub_name', 'project_name', 'project_address', 'scope_of_work', 'sub_amount', 'payment_terms', 'start_date', 'end_date']),
-    content: `SUBCONTRACTOR AGREEMENT
-
-Date: {{date}}
-
-This agreement is entered into between:
-
-GENERAL CONTRACTOR: {{company_name}} ("Contractor")
-SUBCONTRACTOR: {{sub_name}} ("Subcontractor")
-
-PROJECT INFORMATION
-Project: {{project_name}}
-Location: {{project_address}}
-
-1. SCOPE OF WORK
-Subcontractor agrees to perform the following work:
-
-{{scope_of_work}}
-
-2. COMPENSATION
-Total compensation for the work described above: {{sub_amount}}
-
-Payment Terms: {{payment_terms}}
-
-3. SCHEDULE
-Start Date: {{start_date}}
-Completion Date: {{end_date}}
-
-4. INSURANCE
-Subcontractor shall maintain, at Subcontractor's expense:
-- General liability insurance with minimum coverage of $1,000,000 per occurrence
-- Workers' compensation insurance as required by Oregon law
-- Automobile liability insurance if vehicles are used on the project
-
-Proof of insurance must be provided before work begins.
-
-5. COMPLIANCE
-Subcontractor shall comply with all applicable federal, state, and local laws, ordinances, rules, and regulations, including Oregon construction contractor licensing requirements.
-
-6. INDEPENDENT CONTRACTOR
-Subcontractor is an independent contractor, not an employee of Contractor. Subcontractor is responsible for all taxes, insurance, and other obligations arising from Subcontractor's work.
-
-7. WARRANTY
-Subcontractor warrants all work performed under this agreement for a period of one (1) year from the date of completion.
-
-
-CONTRACTOR
-{{company_name}}
-
-Signature: ________________________  Date: ________________________
-
-SUBCONTRACTOR
-{{sub_name}}
-
-Signature: ________________________  Date: ________________________`,
-  },
-];
+// System templates are now defined in functions/seedDocumentTemplates.ts (server-side, service role).
+// Client no longer creates templates directly — the server function is the source of truth.
 
 // ═══════════════════════════════════════════════════
 // Merge Field Replacement Engine
@@ -799,30 +610,24 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     enabled: !!profile?.id,
   });
 
-  // ─── Seed system templates on first load ─────────
+  // ─── Seed system templates via server function (service role bypasses entity permissions) ─────────
   const [seeded, setSeeded] = useState(false);
   useEffect(() => {
     if (!profile?.id || templatesLoading || seeded) return;
     if (templates.length > 0) { setSeeded(true); return; }
 
     const seed = async () => {
-      let created = 0;
-      for (const tpl of SYSTEM_TEMPLATES) {
-        try {
-          await base44.entities.FSDocumentTemplate.create({
-            ...tpl,
-            profile_id: profile.id,
-          });
-          created++;
-        } catch (err) {
-          console.error(`Failed to seed template "${tpl.title}":`, err?.message || err);
+      try {
+        const result = await base44.functions.invoke('seedDocumentTemplates', {
+          profile_id: profile.id,
+        });
+        if (result?.seeded && result.count > 0) {
+          queryClient.invalidateQueries(['fs-doc-templates', profile.id]);
+          toast.success(`${result.count} Oregon document template${result.count > 1 ? 's' : ''} added`);
         }
-      }
-      if (created > 0) {
-        queryClient.invalidateQueries(['fs-doc-templates', profile.id]);
-        toast.success(`${created} Oregon document template${created > 1 ? 's' : ''} added`);
-      } else if (SYSTEM_TEMPLATES.length > 0) {
-        toast.error('Could not create document templates — check entity permissions');
+      } catch (err) {
+        console.error('Failed to seed document templates:', err?.message || err);
+        toast.error('Could not create document templates — check server function');
       }
       setSeeded(true);
     };
