@@ -559,16 +559,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     queryKey: ['fs-doc-templates', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      console.log('[TemplateQuery] Filtering with profile_id:', profile.id, '(type:', typeof profile.id, ')');
-      const filtered = await base44.entities.FSDocumentTemplate.filter({ profile_id: profile.id });
-      console.log('[TemplateQuery] filter() returned:', JSON.stringify(filtered)?.substring(0, 500));
-      // Also try .list() to see ALL templates regardless of filter
-      const all = await base44.entities.FSDocumentTemplate.list();
-      console.log('[TemplateQuery] .list() (ALL templates):', all?.length, 'records');
-      if (all?.length > 0) {
-        console.log('[TemplateQuery] All template profile_ids:', all.map(t => `${t.id}: profile_id=${t.profile_id} (type: ${typeof t.profile_id}) title=${t.title}`));
-      }
-      const list = filtered;
+      const list = await base44.entities.FSDocumentTemplate.filter({ profile_id: profile.id });
       return Array.isArray(list) ? list : list ? [list] : [];
     },
     enabled: !!profile?.id,
@@ -630,12 +621,9 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
         action: 'initialize',
         workspace_type: 'field_service',
         profile_id: profile.id,
-        force: true, // TEMPORARY — force reseed to recover from ghost records. Remove after confirming templates appear.
       };
-      console.log('Calling initializeWorkspace with:', params);
       try {
         const result = await base44.functions.invoke('initializeWorkspace', params);
-        console.log('initializeWorkspace result:', JSON.stringify(result));
         if (result?.templates_created > 0) {
           queryClient.invalidateQueries(['fs-doc-templates', profile.id]);
           toast.success(`${result.templates_created} Oregon document template${result.templates_created > 1 ? 's' : ''} added`);

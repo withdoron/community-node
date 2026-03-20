@@ -334,8 +334,8 @@ Deno.serve(async (req) => {
 
     const { action, workspace_type, profile_id, force } = body;
 
-    if (action !== 'initialize') {
-      return Response.json({ error: 'Invalid action. Expected "initialize"' }, { status: 400 });
+    if (action !== 'initialize' && action !== 'cleanup_duplicates') {
+      return Response.json({ error: 'Invalid action. Expected "initialize" or "cleanup_duplicates"' }, { status: 400 });
     }
 
     if (!workspace_type || typeof workspace_type !== 'string') {
@@ -346,6 +346,43 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'profile_id is required' }, { status: 400 });
     }
 
+    // ─── Cleanup duplicates action ─────────────────────────────────
+    if (action === 'cleanup_duplicates') {
+      if (workspace_type !== 'field_service') {
+        return Response.json({ error: 'cleanup_duplicates only supports field_service currently' }, { status: 400 });
+      }
+
+      const all = await base44.asServiceRole.entities.FSDocumentTemplate.filter({ profile_id: profile_id as string });
+      const systemTemplates = (all || []).filter((t: Record<string, unknown>) => t.is_system === true);
+
+      // Group by title
+      const byTitle: Record<string, Array<Record<string, unknown>>> = {};
+      for (const t of systemTemplates) {
+        const title = t.title as string;
+        if (!byTitle[title]) byTitle[title] = [];
+        byTitle[title].push(t);
+      }
+
+      let duplicatesRemoved = 0;
+      for (const [title, records] of Object.entries(byTitle)) {
+        if (records.length <= 1) continue;
+        // Keep the first, delete the rest
+        const toDelete = records.slice(1);
+        for (const dup of toDelete) {
+          try {
+            await base44.asServiceRole.entities.FSDocumentTemplate.delete(dup.id as string);
+            duplicatesRemoved++;
+            console.log(`[cleanup] Deleted duplicate "${title}" id=${dup.id}`);
+          } catch (err: unknown) {
+            console.error(`[cleanup] Failed to delete duplicate "${title}" id=${dup.id}:`, err);
+          }
+        }
+      }
+
+      return Response.json({ cleaned: true, duplicates_removed: duplicatesRemoved });
+    }
+
+    // ─── Initialize action ──────────────────────────────────────────
     const initializer = INITIALIZERS[workspace_type];
     if (!initializer) {
       return Response.json({
