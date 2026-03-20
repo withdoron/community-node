@@ -1,15 +1,27 @@
-// Seed Oregon system document templates for Field Service workspaces — DEC-085
-// Runs as service role to bypass entity-level permissions on FSDocumentTemplate.
-// Called once on component mount; no-ops if templates already exist for the profile.
+// Universal workspace initialization — seeds default data for any workspace type.
+// Runs as service role to bypass entity-level permissions on all entity creates.
+// Idempotent: checks for existing records before creating. Safe to call multiple times.
+//
+// Supported workspace types:
+//   field_service  — seeds 4 Oregon lien law document templates (DEC-085)
+//   business       — placeholder (no default data yet)
+//   team           — placeholder (no default data yet)
+//   finance        — placeholder (no default data yet)
+//   property_management — placeholder (no default data yet)
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-const SYSTEM_TEMPLATES = [
+// ═══════════════════════════════════════════════════════════════════════
+// Field Service: Oregon System Document Templates
+// ═══════════════════════════════════════════════════════════════════════
+
+const FS_SYSTEM_TEMPLATES = [
   {
     title: 'Information Notice to Owner',
     template_type: 'lien_notice',
     description: 'Required notice to property owner before work begins (ORS 87.093)',
     is_system: true,
+    sort_order: 1,
     merge_fields: JSON.stringify(['date', 'client_name', 'project_address', 'company_name', 'license_number', 'company_phone', 'company_email', 'project_name', 'start_date', 'estimate_total']),
     content: `INFORMATION NOTICE TO OWNER
 
@@ -50,6 +62,7 @@ Owner Acknowledgment: ________________________  Date: ________________________`,
     template_type: 'lien_notice',
     description: "Preserves contractor's right to file a lien (ORS 87.021)",
     is_system: true,
+    sort_order: 2,
     merge_fields: JSON.stringify(['date', 'client_name', 'client_address', 'project_address', 'company_name', 'license_number', 'amount_owed']),
     content: `NOTICE OF RIGHT TO LIEN
 
@@ -90,6 +103,7 @@ Signature: ________________________  Date: ________________________
     template_type: 'lien_notice',
     description: 'Required notice before filing a construction lien (ORS 87.057)',
     is_system: true,
+    sort_order: 3,
     merge_fields: JSON.stringify(['date', 'client_name', 'client_address', 'project_address', 'company_name', 'amount_owed', 'due_date']),
     content: `PRE-CLAIM NOTICE
 
@@ -134,6 +148,7 @@ Signature: ________________________  Date: ________________________`,
     template_type: 'sub_agreement',
     description: 'Standard agreement between general contractor and subcontractor',
     is_system: true,
+    sort_order: 4,
     merge_fields: JSON.stringify(['date', 'company_name', 'sub_name', 'project_name', 'project_address', 'scope_of_work', 'sub_amount', 'payment_terms', 'start_date', 'end_date']),
     content: `SUBCONTRACTOR AGREEMENT
 
@@ -192,6 +207,98 @@ Signature: ________________________  Date: ________________________`,
   },
 ];
 
+// ═══════════════════════════════════════════════════════════════════════
+// Workspace Initializers — one function per workspace type
+// ═══════════════════════════════════════════════════════════════════════
+
+interface InitResult {
+  initialized: boolean;
+  templates_created: number;
+  errors?: string[];
+}
+
+async function initFieldService(
+  base44: Awaited<ReturnType<typeof createClientFromRequest>>,
+  profileId: string,
+): Promise<InitResult> {
+  // Check if templates already exist for this profile (idempotent)
+  const existing = await base44.asServiceRole.entities.FSDocumentTemplate.filter({ profile_id: profileId }).list();
+  if (existing && existing.length > 0) {
+    return { initialized: true, templates_created: 0 };
+  }
+
+  // Seed all 4 system templates independently (one failure does not block others)
+  let created = 0;
+  const errors: string[] = [];
+
+  for (const tpl of FS_SYSTEM_TEMPLATES) {
+    try {
+      await base44.asServiceRole.entities.FSDocumentTemplate.create({
+        ...tpl,
+        profile_id: profileId,
+      });
+      created++;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`[initFieldService] Failed to seed "${tpl.title}":`, message);
+      errors.push(`${tpl.title}: ${message}`);
+    }
+  }
+
+  return {
+    initialized: true,
+    templates_created: created,
+    ...(errors.length > 0 ? { errors } : {}),
+  };
+}
+
+async function initBusiness(
+  _base44: Awaited<ReturnType<typeof createClientFromRequest>>,
+  _profileId: string,
+): Promise<InitResult> {
+  // Add default seeding for business workspaces here as the workspace grows
+  return { initialized: true, templates_created: 0 };
+}
+
+async function initTeam(
+  _base44: Awaited<ReturnType<typeof createClientFromRequest>>,
+  _profileId: string,
+): Promise<InitResult> {
+  // Add default seeding for team workspaces here as the workspace grows
+  return { initialized: true, templates_created: 0 };
+}
+
+async function initFinance(
+  _base44: Awaited<ReturnType<typeof createClientFromRequest>>,
+  _profileId: string,
+): Promise<InitResult> {
+  // Add default seeding for finance workspaces here as the workspace grows
+  return { initialized: true, templates_created: 0 };
+}
+
+async function initPropertyManagement(
+  _base44: Awaited<ReturnType<typeof createClientFromRequest>>,
+  _profileId: string,
+): Promise<InitResult> {
+  // Add default seeding for property management workspaces here as the workspace grows
+  return { initialized: true, templates_created: 0 };
+}
+
+const INITIALIZERS: Record<string, (
+  base44: Awaited<ReturnType<typeof createClientFromRequest>>,
+  profileId: string,
+) => Promise<InitResult>> = {
+  field_service: initFieldService,
+  business: initBusiness,
+  team: initTeam,
+  finance: initFinance,
+  property_management: initPropertyManagement,
+};
+
+// ═══════════════════════════════════════════════════════════════════════
+// HTTP Handler
+// ═══════════════════════════════════════════════════════════════════════
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204 });
@@ -213,52 +320,44 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid JSON in request body' }, { status: 400 });
     }
 
-    const { profile_id } = body;
+    const { action, workspace_type, profile_id } = body;
+
+    if (action !== 'initialize') {
+      return Response.json({ error: 'Invalid action. Expected "initialize"' }, { status: 400 });
+    }
+
+    if (!workspace_type || typeof workspace_type !== 'string') {
+      return Response.json({ error: 'workspace_type is required' }, { status: 400 });
+    }
+
     if (!profile_id || typeof profile_id !== 'string') {
       return Response.json({ error: 'profile_id is required' }, { status: 400 });
     }
 
-    // Verify the profile exists and belongs to this user (or user is admin)
-    const profile = await base44.asServiceRole.entities.FieldServiceProfile.get(profile_id);
-    if (!profile) {
-      return Response.json({ error: 'Profile not found' }, { status: 404 });
-    }
-    if (profile.user_id !== user.id && user.role !== 'admin') {
-      return Response.json({ error: 'Not authorized for this profile' }, { status: 403 });
+    const initializer = INITIALIZERS[workspace_type];
+    if (!initializer) {
+      return Response.json({
+        error: `Unknown workspace_type: "${workspace_type}". Valid types: ${Object.keys(INITIALIZERS).join(', ')}`,
+      }, { status: 400 });
     }
 
-    // Check if templates already exist for this profile
-    const existing = await base44.asServiceRole.entities.FSDocumentTemplate.filter({ profile_id }).list();
-    if (existing && existing.length > 0) {
-      return Response.json({ seeded: false, reason: 'templates_already_exist', count: existing.length });
-    }
-
-    // Seed all 4 system templates using service role (bypasses entity permissions)
-    let created = 0;
-    const errors: string[] = [];
-
-    for (const tpl of SYSTEM_TEMPLATES) {
-      try {
-        await base44.asServiceRole.entities.FSDocumentTemplate.create({
-          ...tpl,
-          profile_id,
-        });
-        created++;
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error(`Failed to seed template "${tpl.title}":`, message);
-        errors.push(`${tpl.title}: ${message}`);
+    // Authorization: verify the user owns this workspace or is admin
+    // For field_service, check FieldServiceProfile. For others, check ownership generically.
+    if (user.role !== 'admin') {
+      if (workspace_type === 'field_service') {
+        const profile = await base44.asServiceRole.entities.FieldServiceProfile.get(profile_id as string);
+        if (!profile || profile.user_id !== user.id) {
+          return Response.json({ error: 'Not authorized for this workspace' }, { status: 403 });
+        }
       }
+      // Other workspace types: add ownership checks as they mature
     }
 
-    return Response.json({
-      seeded: created > 0,
-      count: created,
-      total: SYSTEM_TEMPLATES.length,
-      ...(errors.length > 0 ? { errors } : {}),
-    });
+    const result = await initializer(base44, profile_id as string);
+
+    return Response.json(result);
   } catch (error) {
-    console.error('seedDocumentTemplates error:', error);
+    console.error('initializeWorkspace error:', error);
     return Response.json({ error: (error as Error).message }, { status: 500 });
   }
 });

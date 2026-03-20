@@ -65,7 +65,7 @@ const FILTER_CHIPS = [
   { value: 'archived', label: 'Archived' },
 ];
 
-// System templates are now defined in functions/seedDocumentTemplates.ts (server-side, service role).
+// System templates are seeded by functions/initializeWorkspace.ts (server-side, service role).
 // Client no longer creates templates directly — the server function is the source of truth.
 
 // ═══════════════════════════════════════════════════
@@ -610,29 +610,31 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     enabled: !!profile?.id,
   });
 
-  // ─── Seed system templates via server function (service role bypasses entity permissions) ─────────
+  // ─── Initialize workspace via universal server function (service role bypasses entity permissions) ─────────
   const [seeded, setSeeded] = useState(false);
   useEffect(() => {
-    if (!profile?.id || templatesLoading || seeded) return;
+    if (!profile?.id || !currentUser?.id || templatesLoading || seeded) return;
     if (templates.length > 0) { setSeeded(true); return; }
 
     const seed = async () => {
       try {
-        const result = await base44.functions.invoke('seedDocumentTemplates', {
+        const result = await base44.functions.invoke('initializeWorkspace', {
+          action: 'initialize',
+          workspace_type: 'field_service',
           profile_id: profile.id,
         });
-        if (result?.seeded && result.count > 0) {
+        if (result?.templates_created > 0) {
           queryClient.invalidateQueries(['fs-doc-templates', profile.id]);
-          toast.success(`${result.count} Oregon document template${result.count > 1 ? 's' : ''} added`);
+          toast.success(`${result.templates_created} Oregon document template${result.templates_created > 1 ? 's' : ''} added`);
         }
       } catch (err) {
-        console.error('Failed to seed document templates:', err?.message || err);
-        toast.error('Could not create document templates — check server function');
+        console.error('Failed to initialize workspace templates:', err?.message || err);
+        toast.error('Could not initialize templates');
       }
       setSeeded(true);
     };
     seed();
-  }, [profile?.id, templates.length, templatesLoading, seeded, queryClient]);
+  }, [profile?.id, currentUser?.id, templates.length, templatesLoading, seeded, queryClient]);
 
   // ─── Mutations ───────────────────────────────────
 
