@@ -35,16 +35,21 @@ async function findUniqueSlug(
   baseSlug: string,
   excludeBusinessId: string
 ): Promise<string> {
-  const all = await base44.asServiceRole.entities.Business.list();
-  const bySlug = (all || []).filter((b: { slug?: string; id?: string }) => b.slug === baseSlug && b.id !== excludeBusinessId);
+  // Use targeted .filter({ slug }) instead of Business.list() to avoid CPU timeout on large tables
+  const matches = await base44.asServiceRole.entities.Business.filter({ slug: baseSlug }).list();
+  const bySlug = (matches || []).filter((b: { id?: string }) => b.id !== excludeBusinessId);
   if (bySlug.length === 0) return baseSlug;
+
+  // Check suffixed candidates one at a time (each is a tiny query vs loading all businesses)
   let suffix = 2;
   let candidate = `${baseSlug}-${suffix}`;
-  while ((all || []).some((b: { slug?: string }) => b.slug === candidate)) {
+  while (true) {
+    const existing = await base44.asServiceRole.entities.Business.filter({ slug: candidate }).list();
+    if (!existing || existing.length === 0) return candidate;
     suffix += 1;
     candidate = `${baseSlug}-${suffix}`;
+    if (suffix > 100) return `${baseSlug}-${Date.now()}`; // safety valve
   }
-  return candidate;
 }
 
 /** Add business_id to a user's associated_businesses (so Dashboard nav and staff list can use it). */

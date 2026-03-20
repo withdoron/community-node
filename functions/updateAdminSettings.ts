@@ -53,6 +53,9 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Email must match current user' }, { status: 403 });
       }
 
+      // NOTE: AdminSettings.list() is acceptable here — AdminSettings is a small key-value table
+      // (dozens of records, not thousands) and we need prefix matching on key (staff_invites:*),
+      // which .filter() can't do. Monitor if AdminSettings grows beyond ~500 records.
       const allSettings = await base44.asServiceRole.entities.AdminSettings.list();
       const inviteSettings = (allSettings || []).filter((s: { key?: string }) =>
         (s.key || '').startsWith('staff_invites:')

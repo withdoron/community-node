@@ -58,13 +58,29 @@ Deno.serve(async (req) => {
     }
 
     // Search for users by email or name
-    const lowerQuery = query.toLowerCase();
-    const allUsers = await base44.asServiceRole.entities.User.list();
-    
-    let matchedUsers = allUsers.filter(user => 
-      user.email?.toLowerCase().includes(lowerQuery) ||
-      user.full_name?.toLowerCase().includes(lowerQuery)
-    );
+    // Use targeted .filter() queries instead of User.list() to avoid CPU timeout on large tables
+    const lowerQuery = query.toLowerCase().trim();
+    let matchedUsers = [];
+
+    // Strategy: try exact email filter, then exact name filter.
+    // Base44 .filter() is exact-match only, so partial name search is a known limitation.
+    // For email queries (contains @), exact match is the expected behavior.
+    // For name queries, try exact match — partial search needs a future search index.
+    try {
+      const byEmail = await base44.asServiceRole.entities.User.filter({ email: lowerQuery }).list();
+      if (byEmail && byEmail.length > 0) matchedUsers.push(...byEmail);
+    } catch { /* filter may fail on some fields — continue */ }
+
+    // Only attempt name search if we have no email results and query doesn't look like an email
+    if (matchedUsers.length === 0 && !lowerQuery.includes('@')) {
+      try {
+        const byName = await base44.asServiceRole.entities.User.filter({ full_name: query.trim() }).list();
+        if (byName && byName.length > 0) {
+          const existingIds = new Set(matchedUsers.map(u => u.id));
+          byName.forEach(u => { if (!existingIds.has(u.id)) matchedUsers.push(u); });
+        }
+      } catch { /* filter may fail on some fields — continue */ }
+    }
 
     // If query looks like a 4-digit PIN, also search by PIN hash
     if (/^\d{4}$/.test(query)) {
