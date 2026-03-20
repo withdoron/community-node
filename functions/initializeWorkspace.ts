@@ -63,7 +63,7 @@ Owner Acknowledgment: ________________________  Date: ________________________`,
     description: "Preserves contractor's right to file a lien (ORS 87.021)",
     is_system: true,
     sort_order: 2,
-    merge_fields: JSON.stringify(['date', 'client_name', 'client_address', 'project_address', 'company_name', 'license_number', 'amount_owed']),
+    merge_fields: ['date', 'client_name', 'client_address', 'project_address', 'company_name', 'license_number', 'amount_owed'],
     content: `NOTICE OF RIGHT TO LIEN
 
 Date: {{date}}
