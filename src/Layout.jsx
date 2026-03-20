@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles, Coins, Settings, MessageSquarePlus, X, Send, Camera, Lightbulb, Bug } from "lucide-react";
+import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles, Coins, Settings, MessageSquarePlus, X, Send, Camera, Lightbulb, Bug, ChevronDown, Music, Sprout } from "lucide-react";
 import Footer from '@/components/layout/Footer';
 import { useRole } from '@/hooks/useRole';
 import { useUserOwnedBusinesses } from '@/hooks/useUserOwnedBusinesses';
@@ -129,6 +129,41 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
             <Link to={createPageUrl('Events')} className={navLinkClass('Events')}>
               Events
             </Link>
+
+            {/* Community dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className={`flex items-center gap-1 px-3 py-2 transition-colors ${
+                  ['/shaping', '/frequency'].includes(location.pathname)
+                    ? 'text-amber-500'
+                    : 'text-slate-300 hover:text-amber-500'
+                }`}>
+                  Community
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-72 bg-slate-900 border border-slate-700 shadow-xl shadow-black/20 [&>*]:bg-transparent">
+                <DropdownMenuItem asChild className="!bg-transparent hover:!bg-slate-800 focus:!bg-slate-800 cursor-pointer p-0">
+                  <Link to="/shaping" className="flex items-start gap-3 px-3 py-3">
+                    <Sprout className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-slate-100">Shaping the Garden</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Shape what we build together</p>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="!bg-transparent hover:!bg-slate-800 focus:!bg-slate-800 cursor-pointer p-0">
+                  <Link to="/frequency" className="flex items-start gap-3 px-3 py-3">
+                    <Music className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-slate-100">Frequency Station</p>
+                      <p className="text-xs text-slate-500 mt-0.5">The community's radio station</p>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {currentUser && (
               <Link to={createPageUrl('BusinessDashboard') + '?landing=1'} className={navLinkClass('BusinessDashboard')}>
                 Dashboard
@@ -264,6 +299,27 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                       </Link>
                     </SheetClose>
                   </div>
+
+                  {/* Community section */}
+                  <div className="border-t border-slate-800 my-4" />
+                  <div className="px-4 mb-1">
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Community</p>
+                  </div>
+                  <div className="flex flex-col gap-1 px-4">
+                    <SheetClose asChild>
+                      <Link to="/shaping" className={`flex items-center gap-3 ${location.pathname === '/shaping' ? 'py-3 px-4 rounded-lg bg-amber-500/10 text-amber-500' : 'py-3 px-4 rounded-lg text-slate-300 hover:text-amber-500 hover:bg-slate-800'}`}>
+                        <Sprout className="h-5 w-5 flex-shrink-0" />
+                        Shaping the Garden
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link to="/frequency" className={`flex items-center gap-3 ${location.pathname === '/frequency' ? 'py-3 px-4 rounded-lg bg-amber-500/10 text-amber-500' : 'py-3 px-4 rounded-lg text-slate-300 hover:text-amber-500 hover:bg-slate-800'}`}>
+                        <Music className="h-5 w-5 flex-shrink-0" />
+                        Frequency Station
+                      </Link>
+                    </SheetClose>
+                  </div>
+
                   <div className="border-t border-slate-800 my-4" />
                   {currentUser && (
                     <div className="flex flex-col gap-1 px-4">

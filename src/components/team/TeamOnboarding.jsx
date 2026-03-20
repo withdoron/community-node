@@ -186,7 +186,7 @@ export default function TeamOnboarding() {
                     className="border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:bg-transparent text-sm min-h-[44px]"
                     onClick={() => navigate(createPageUrl('BusinessDashboard') + '?landing=1')}
                   >
-                    Request on Ideas Board
+                    Share on Shaping the Garden
                   </Button>
                 </div>
               )}

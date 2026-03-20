@@ -759,7 +759,7 @@ export default function BusinessDashboard() {
           </div>
         </div>
 
-        {/* Ideas Board */}
+        {/* Shaping the Garden */}
         <div className="max-w-7xl mx-auto px-6 pt-6">
           <IdeasBoard currentUser={currentUser} />
         </div>

@@ -1,6 +1,6 @@
 /**
- * IdeasBoard — DEC-066
- * Community workspace for submitting, voting on, and tracking ideas.
+ * Shaping the Garden (formerly Ideas Board) — DEC-066
+ * Community space for planting seeds, voting on what grows, and tracking progress.
  *
  * PREREQUISITE: Two entities must exist in the Base44 dashboard:
  *   - Idea:     title, description, author_id, author_name, status,
@@ -23,21 +23,21 @@ import { toast } from 'sonner';
 // ─── Constants ──────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
-  proposed:  { label: 'Proposed',  className: 'bg-slate-700 text-slate-300' },
-  reviewing: { label: 'Reviewing', className: 'bg-amber-500/20 text-amber-500' },
-  building:  { label: 'Building',  className: 'bg-blue-500/20 text-blue-400' },
-  shipped:   { label: 'Shipped',   className: 'bg-green-500/20 text-green-400' },
-  deferred:  { label: 'Deferred',  className: 'bg-slate-700 text-slate-500' },
+  proposed:  { label: 'Planted',    className: 'bg-slate-700 text-slate-300' },
+  reviewing: { label: 'Sprouting',  className: 'bg-amber-500/20 text-amber-500' },
+  building:  { label: 'Growing',    className: 'bg-blue-500/20 text-blue-400' },
+  shipped:   { label: 'Bloomed',    className: 'bg-green-500/20 text-green-400' },
+  deferred:  { label: 'Composted',  className: 'bg-slate-700 text-slate-500' },
 };
 
 const STATUSES = Object.keys(STATUS_CONFIG);
 
 const FILTER_OPTIONS = [
   { value: 'all', label: 'All' },
-  { value: 'proposed', label: 'Proposed' },
-  { value: 'reviewing', label: 'Reviewing' },
-  { value: 'building', label: 'Building' },
-  { value: 'shipped', label: 'Shipped' },
+  { value: 'proposed', label: 'Planted' },
+  { value: 'reviewing', label: 'Sprouting' },
+  { value: 'building', label: 'Growing' },
+  { value: 'shipped', label: 'Bloomed' },
 ];
 
 // ─── Helpers ────────────────────────────────────────────────────
@@ -124,10 +124,10 @@ function IdeaSubmitForm({ currentUser }) {
       setTitle('');
       setDescription('');
       setExpanded(false);
-      toast.success('Idea submitted!');
+      toast.success('Seed planted!');
     },
     onError: () => {
-      toast.error('Failed to submit idea');
+      toast.error('Failed to plant seed');
     },
   });
 
@@ -138,7 +138,7 @@ function IdeaSubmitForm({ currentUser }) {
         onClick={() => setExpanded(true)}
         className="w-full text-left px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-500 hover:border-slate-600 transition-colors"
       >
-        What would make LocalLane better?
+        Plant a seed — what should we grow next?
       </button>
     );
   }
@@ -149,7 +149,7 @@ function IdeaSubmitForm({ currentUser }) {
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value.slice(0, 100))}
-        placeholder="Your idea in a few words"
+        placeholder="What's the seed?"
         className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500 transition-colors"
         autoFocus
         maxLength={100}
@@ -158,7 +158,7 @@ function IdeaSubmitForm({ currentUser }) {
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value.slice(0, 500))}
-          placeholder="Why does this matter?"
+          placeholder="Why should this grow?"
           rows={3}
           className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 text-sm resize-none focus:outline-none focus:border-amber-500 transition-colors"
           maxLength={500}
@@ -212,7 +212,7 @@ function AdminPanel({ idea, onSave, onClose }) {
       });
       onClose();
     } catch {
-      toast.error('Failed to update idea');
+      toast.error('Failed to update seed');
     } finally {
       setSaving(false);
     }
@@ -282,7 +282,7 @@ function AuthorEditPanel({ idea, onSave, onClose }) {
       });
       onClose();
     } catch {
-      toast.error('Failed to update idea');
+      toast.error('Failed to update seed');
     } finally {
       setSaving(false);
     }
@@ -497,7 +497,7 @@ export default function IdeasBoard({ currentUser }) {
     async (ideaId, updates) => {
       await base44.entities.Idea.update(ideaId, updates);
       queryClient.invalidateQueries({ queryKey: ['ideas-board'] });
-      toast.success('Idea updated');
+      toast.success('Seed updated');
     },
     [queryClient]
   );
@@ -506,7 +506,7 @@ export default function IdeasBoard({ currentUser }) {
     async (ideaId, updates) => {
       await base44.entities.Idea.update(ideaId, updates);
       queryClient.invalidateQueries({ queryKey: ['ideas-board'] });
-      toast.success('Idea updated');
+      toast.success('Seed updated');
     },
     [queryClient]
   );
@@ -517,9 +517,9 @@ export default function IdeasBoard({ currentUser }) {
     <div className="space-y-4">
       {/* Section heading */}
       <div>
-        <h2 className="text-xl font-bold text-slate-100">Ideas</h2>
+        <h2 className="text-xl font-bold text-slate-100">Shaping the Garden</h2>
         <p className="text-slate-400 text-sm mt-1">
-          Shape what LocalLane becomes. Submit ideas, vote on what matters.
+          Plant seeds for what LocalLane becomes. Vote on what should grow.
         </p>
       </div>
 
@@ -553,8 +553,8 @@ export default function IdeasBoard({ currentUser }) {
         <div className="text-center py-8">
           <p className="text-slate-500 text-sm">
             {ideas.length === 0
-              ? 'No ideas yet. Be the first to shape what LocalLane becomes.'
-              : 'No ideas match this filter.'}
+              ? 'No seeds planted yet. Be the first to shape what grows.'
+              : 'No seeds match this filter.'}
           </p>
         </div>
       ) : (

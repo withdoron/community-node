@@ -19,6 +19,8 @@ import JoinTeam from '@/pages/JoinTeam';
 import ClaimBusiness from '@/pages/ClaimBusiness';
 import ClientPortal from '@/pages/ClientPortal';
 import JoinFieldService from '@/pages/JoinFieldService';
+import FrequencyStation from '@/pages/FrequencyStation';
+import ShapingTheGarden from '@/pages/ShapingTheGarden';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -151,6 +153,23 @@ const AuthenticatedApp = () => {
       <Route
         path="/client-portal"
         element={<ClientPortal />}
+      />
+      {/* Community spaces */}
+      <Route
+        path="/shaping"
+        element={
+          <LayoutWrapper currentPageName="Shaping">
+            <ShapingTheGarden />
+          </LayoutWrapper>
+        }
+      />
+      <Route
+        path="/frequency"
+        element={
+          <LayoutWrapper currentPageName="Frequency">
+            <FrequencyStation />
+          </LayoutWrapper>
+        }
       />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
