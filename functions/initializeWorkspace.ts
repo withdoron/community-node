@@ -22,7 +22,7 @@ const FS_SYSTEM_TEMPLATES = [
     description: 'Required notice to property owner before work begins (ORS 87.093)',
     is_system: true,
     sort_order: 1,
-    merge_fields: JSON.stringify(['date', 'client_name', 'project_address', 'company_name', 'license_number', 'company_phone', 'company_email', 'project_name', 'start_date', 'estimate_total']),
+    merge_fields: ['date', 'client_name', 'project_address', 'company_name', 'license_number', 'company_phone', 'company_email', 'project_name', 'start_date', 'estimate_total'],
     content: `INFORMATION NOTICE TO OWNER
 
 Date: {{date}}
