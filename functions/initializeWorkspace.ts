@@ -220,10 +220,21 @@ interface InitResult {
 async function initFieldService(
   base44: Awaited<ReturnType<typeof createClientFromRequest>>,
   profileId: string,
+  force = false,
 ): Promise<InitResult> {
-  // Check if templates already exist for this profile (idempotent)
+  // Check if system templates already exist for this profile (idempotent)
   const existing = await base44.asServiceRole.entities.FSDocumentTemplate.filter({ profile_id: profileId });
-  if (existing && existing.length > 0) {
+  const existingCount = existing?.length ?? 0;
+  const systemTemplates = (existing || []).filter((t: Record<string, unknown>) => t.is_system === true);
+  const systemCount = systemTemplates.length;
+
+  console.log(`[initFieldService] profile=${profileId} | existing=${existingCount} | system=${systemCount} | force=${force}`);
+  if (existingCount > 0) {
+    console.log(`[initFieldService] Existing template IDs:`, (existing || []).map((t: Record<string, unknown>) => `${t.id} (${t.title}, is_system=${t.is_system})`));
+  }
+
+  // Skip seeding only if system templates already exist AND force is not set
+  if (!force && systemCount >= FS_SYSTEM_TEMPLATES.length) {
     return { initialized: true, templates_created: 0 };
   }
 
@@ -287,6 +298,7 @@ async function initPropertyManagement(
 const INITIALIZERS: Record<string, (
   base44: Awaited<ReturnType<typeof createClientFromRequest>>,
   profileId: string,
+  force?: boolean,
 ) => Promise<InitResult>> = {
   field_service: initFieldService,
   business: initBusiness,
@@ -320,7 +332,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid JSON in request body' }, { status: 400 });
     }
 
-    const { action, workspace_type, profile_id } = body;
+    const { action, workspace_type, profile_id, force } = body;
 
     if (action !== 'initialize') {
       return Response.json({ error: 'Invalid action. Expected "initialize"' }, { status: 400 });
@@ -353,7 +365,7 @@ Deno.serve(async (req) => {
       // Other workspace types: add ownership checks as they mature
     }
 
-    const result = await initializer(base44, profile_id as string);
+    const result = await initializer(base44, profile_id as string, !!force);
 
     return Response.json(result);
   } catch (error) {

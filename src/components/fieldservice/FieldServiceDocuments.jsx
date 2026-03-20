@@ -621,6 +621,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
         action: 'initialize',
         workspace_type: 'field_service',
         profile_id: profile.id,
+        force: true, // TEMPORARY — force reseed to recover from ghost records. Remove after confirming templates appear.
       };
       console.log('Calling initializeWorkspace with:', params);
       try {
