@@ -23,6 +23,15 @@ function parseJSON(val) {
   return [];
 }
 
+function formatPhone(value) {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 export default function FieldServiceClientPortal({ project, profile, onBack }) {
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
   const brandColor = profile?.brand_color || '#f59e0b';
@@ -176,7 +185,7 @@ export default function FieldServiceClientPortal({ project, profile, onBack }) {
               </div>
             </div>
             <div className="text-right text-sm text-slate-600">
-              {profile?.phone && <p><a href={`tel:${profile.phone.replace(/\D/g, '')}`} className="hover:text-slate-900 underline">{profile.phone}</a></p>}
+              {profile?.phone && <p><a href={`tel:${profile.phone.replace(/\D/g, '')}`} className="hover:text-slate-900 underline">{formatPhone(profile.phone)}</a></p>}
               {profile?.email && <p><a href={`mailto:${profile.email}`} className="hover:text-slate-900 underline">{profile.email}</a></p>}
             </div>
           </div>

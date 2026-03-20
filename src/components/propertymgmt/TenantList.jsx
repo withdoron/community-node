@@ -33,6 +33,15 @@ function fmtDate(d) {
   return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+function formatPhone(value) {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 export default function TenantList({ tenants, onEdit }) {
   if (tenants.length === 0) {
     return (
@@ -74,7 +83,7 @@ export default function TenantList({ tenants, onEdit }) {
                 {/* Contact info */}
                 <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-400">
                   {t.tenant_email && <span>{t.tenant_email}</span>}
-                  {t.tenant_phone && <span>{t.tenant_phone}</span>}
+                  {t.tenant_phone && <span>{formatPhone(t.tenant_phone)}</span>}
                 </div>
 
                 {/* Lease dates */}

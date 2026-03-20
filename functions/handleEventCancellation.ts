@@ -14,15 +14,12 @@ Deno.serve(async (req) => {
     }
 
     const eventId = triggerEvent.entity_id;
-    console.log(`Processing cancellation for event: ${eventId}`);
 
     // 1. Find Joy Coin reservations for this event
     const reservations = await base44.asServiceRole.entities.JoyCoinReservations.filter({ 
       event_id: eventId,
       status: 'held'
     });
-
-    console.log(`Found ${reservations.length} Joy Coin reservations to refund`);
 
     for (const reservation of reservations) {
       try {
@@ -56,7 +53,6 @@ Deno.serve(async (req) => {
             note: `Event cancelled: ${eventData.title}`
           });
           
-          console.log(`Refunded ${reservation.amount} Joy Coins to user ${reservation.user_id}`);
         }
       } catch (error) {
         console.error(`Error refunding Joy Coins for user ${reservation.user_id}:`, error);
@@ -68,8 +64,6 @@ Deno.serve(async (req) => {
       event_id: eventId,
       status: 'confirmed'
     });
-
-    console.log(`Found ${rsvps.length} RSVPs to notify`);
 
     for (const rsvp of rsvps) {
       try {
@@ -102,7 +96,6 @@ Deno.serve(async (req) => {
           status: 'cancelled'
         });
 
-        console.log(`Sent cancellation email to ${rsvp.user_email}`);
       } catch (error) {
         console.error(`Error sending email to ${rsvp.user_email}:`, error);
       }

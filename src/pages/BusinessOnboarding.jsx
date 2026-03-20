@@ -19,6 +19,16 @@ import {
 } from "lucide-react";
 import Step2Details from '@/components/onboarding/Step2Details';
 import { ONBOARDING_CONFIG } from '@/config/onboardingConfig';
+import { toast } from 'sonner';
+
+function formatPhone(value) {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
 
 const ARCHETYPE_ICON_MAP = { Store, Briefcase, Heart, Ticket, Sprout };
 
@@ -112,6 +122,10 @@ export default function BusinessOnboarding() {
     },
     onSuccess: (business) => {
       navigate(createPageUrl('BusinessDashboard'));
+    },
+    onError: (err) => {
+      console.error('BusinessOnboarding create failed:', err);
+      toast.error('Could not create your business: ' + (err?.message || 'Please try again'));
     }
   });
 
@@ -407,7 +421,7 @@ export default function BusinessOnboarding() {
                     </div>
                     <div>
                       <span className="text-slate-500">Phone:</span>
-                      <p className="font-medium text-slate-200">{formData.phone}</p>
+                      <p className="font-medium text-slate-200">{formatPhone(formData.phone)}</p>
                     </div>
                     <div>
                       <span className="text-slate-500">Email:</span>

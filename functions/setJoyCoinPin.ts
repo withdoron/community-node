@@ -31,14 +31,14 @@ Deno.serve(async (req) => {
     const hashedPin = await hashPin(pin);
 
     // Find existing JoyCoins record or create one
-    const existing = await base44.entities.JoyCoins.filter({ user_id: user.id });
+    const existing = await base44.asServiceRole.entities.JoyCoins.filter({ user_id: user.id });
     
     if (existing.length > 0) {
-      await base44.entities.JoyCoins.update(existing[0].id, {
+      await base44.asServiceRole.entities.JoyCoins.update(existing[0].id, {
         pin_hash: hashedPin
       });
     } else {
-      await base44.entities.JoyCoins.create({
+      await base44.asServiceRole.entities.JoyCoins.create({
         user_id: user.id,
         pin_hash: hashedPin,
         balance: 0,

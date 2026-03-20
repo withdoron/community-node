@@ -256,6 +256,7 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
       );
       queryClient.invalidateQueries(['finance-profiles']);
     },
+    onError: (err) => console.error('Guide dismiss failed:', err),
   });
 
   const handleDismissGuide = useCallback(() => {
@@ -307,7 +308,7 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
             <X className="h-4 w-4" />
           </button>
           <p className="text-sm text-slate-200 pr-6">
-            <span className="font-semibold text-amber-500">Your Enough Number</span> is the monthly
+            <span className="font-semibold text-amber-500">Your Monthly Target</span> is the monthly
             amount that covers your essentials. Above it, you're building. Below it, you know exactly
             where to focus.
           </p>
@@ -318,7 +319,7 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <DollarSign className="h-5 w-5 text-amber-500" />
-          <h2 className="text-lg font-bold text-slate-100">The Enough Number</h2>
+          <h2 className="text-lg font-bold text-slate-100">Monthly Target</h2>
         </div>
         <p className={`text-4xl font-bold mb-2 ${getEnoughColor()}`}>
           {fmt(enoughNumber)}
@@ -370,7 +371,7 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
         )}
         {!hasEnoughNumber && (
           <p className="text-xs text-slate-500 mt-2">
-            Add recurring expenses and debts to calculate your Enough Number
+            Add recurring expenses and debts to calculate your Monthly Target
           </p>
         )}
       </div>

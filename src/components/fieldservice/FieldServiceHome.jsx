@@ -156,6 +156,7 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
       );
       queryClient.invalidateQueries(['fs-profile']);
     },
+    onError: (err) => console.error('Guide dismiss failed:', err),
   });
 
   const handleDismissGuide = useCallback(() => {

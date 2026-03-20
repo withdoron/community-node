@@ -299,7 +299,7 @@ export default function FieldServiceClientDetail({
                   className="flex items-center gap-2.5 text-slate-300 hover:text-amber-400 transition-colors min-h-[44px]"
                 >
                   <Phone className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                  <span>{client.phone}</span>
+                  <span>{formatPhone(client.phone)}</span>
                 </a>
               )}
               {client.email && (

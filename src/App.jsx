@@ -21,10 +21,17 @@ import ClientPortal from '@/pages/ClientPortal';
 import JoinFieldService from '@/pages/JoinFieldService';
 import FrequencyStation from '@/pages/FrequencyStation';
 import ShapingTheGarden from '@/pages/ShapingTheGarden';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+
+// Pages that don't require authentication
+const PUBLIC_PAGES = new Set([
+  'Home', 'BusinessProfile', 'CategoryPage', 'Directory', 'Events',
+  'Privacy', 'Search', 'SpokeDetails', 'Support', 'Terms',
+]);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
@@ -76,17 +83,20 @@ const AuthenticatedApp = () => {
           ? <Navigate to={createPageUrl('MyLane')} replace />
           : <LayoutWrapper currentPageName="Home"><Home /></LayoutWrapper>
       } />
-      {Object.entries(Pages).map(([path, Page]) => (
-        <Route
-          key={path}
-          path={path === 'Admin' ? '/Admin/*' : `/${path}`}
-          element={
-            <LayoutWrapper currentPageName={path}>
-              <Page />
-            </LayoutWrapper>
-          }
-        />
-      ))}
+      {Object.entries(Pages).map(([path, Page]) => {
+        const pageElement = (
+          <LayoutWrapper currentPageName={path}>
+            <Page />
+          </LayoutWrapper>
+        );
+        return (
+          <Route
+            key={path}
+            path={path === 'Admin' ? '/Admin/*' : `/${path}`}
+            element={PUBLIC_PAGES.has(path) ? pageElement : <ProtectedRoute>{pageElement}</ProtectedRoute>}
+          />
+        );
+      })}
       {/* Shareable event deep-link — reuses Events page with URL-driven modal */}
       <Route
         path="/Events/:eventId"
@@ -99,9 +109,11 @@ const AuthenticatedApp = () => {
       <Route
         path="/my-lane/transactions"
         element={
-          <LayoutWrapper currentPageName="MyLane">
-            <JoyCoinsHistory />
-          </LayoutWrapper>
+          <ProtectedRoute>
+            <LayoutWrapper currentPageName="MyLane">
+              <JoyCoinsHistory />
+            </LayoutWrapper>
+          </ProtectedRoute>
         }
       />
       <Route
@@ -123,9 +135,11 @@ const AuthenticatedApp = () => {
       <Route
         path="/claim-business"
         element={
-          <LayoutWrapper currentPageName="ClaimBusiness">
-            <ClaimBusiness />
-          </LayoutWrapper>
+          <ProtectedRoute>
+            <LayoutWrapper currentPageName="ClaimBusiness">
+              <ClaimBusiness />
+            </LayoutWrapper>
+          </ProtectedRoute>
         }
       />
       <Route

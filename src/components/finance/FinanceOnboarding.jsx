@@ -291,11 +291,11 @@ export default function FinanceOnboarding() {
       return profile;
     },
     onSuccess: (profile) => {
-      toast.success('Finance workspace created');
+      toast.success('Finance space created');
       navigate(createPageUrl('BusinessDashboard') + '?finance=' + profile.id);
     },
     onError: (err) => {
-      toast.error(err?.message || 'Failed to create workspace');
+      toast.error(err?.message || 'Failed to create space');
     },
   });
 
@@ -318,9 +318,9 @@ export default function FinanceOnboarding() {
             <DollarSign className="h-6 w-6 text-amber-500" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-100">Create a Finance Workspace</h1>
+            <h1 className="text-xl font-bold text-slate-100">Create a Finance Space</h1>
             <p className="text-sm text-slate-400">
-              {step === 1 && 'Name your workspace'}
+              {step === 1 && 'Name your space'}
               {step === 2 && 'Set up your essentials'}
               {step === 3 && 'Track your debts'}
             </p>
@@ -334,13 +334,13 @@ export default function FinanceOnboarding() {
           <div className="space-y-6">
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
               <h2 className="text-lg font-semibold text-slate-100 mb-1">
-                What should we call this workspace?
+                What should we call this space?
               </h2>
               <p className="text-sm text-slate-400 mb-6">
                 This is your private financial mirror. Only you can see it.
               </p>
               <div>
-                <Label className="text-slate-400">Workspace name</Label>
+                <Label className="text-slate-400">Space name</Label>
                 <Input
                   value={workspaceName}
                   onChange={(e) => setWorkspaceName(e.target.value)}
@@ -431,7 +431,7 @@ export default function FinanceOnboarding() {
                 What are your monthly essentials?
               </h2>
               <p className="text-sm text-slate-400">
-                These will build your Enough Number.
+                These will build your Monthly Target.
               </p>
             </div>
 
@@ -494,7 +494,7 @@ export default function FinanceOnboarding() {
                 <span className="text-emerald-400 font-medium">{fmt(incomeTotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Your Enough Number</span>
+                <span className="text-slate-400">Your Monthly Target</span>
                 <span className="text-amber-500 font-medium">{fmt(essentialTotal)}/month</span>
               </div>
               {incomeTotal > 0 && essentialTotal > 0 && (
@@ -539,7 +539,7 @@ export default function FinanceOnboarding() {
                 Got any debts to track?
               </h2>
               <p className="text-sm text-slate-400">
-                These minimums will be added to your Enough Number.
+                These minimums will be added to your Monthly Target.
               </p>
             </div>
 
@@ -558,7 +558,7 @@ export default function FinanceOnboarding() {
                     <p className="text-sm font-medium text-slate-300">
                       Not right now — I'll add these later
                     </p>
-                    <p className="text-xs text-slate-500 mt-1">Skip to create your workspace</p>
+                    <p className="text-xs text-slate-500 mt-1">Skip to create your space</p>
                   </>
                 )}
               </button>
@@ -635,7 +635,7 @@ export default function FinanceOnboarding() {
 
             {/* Running total */}
             <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-4 text-center">
-              <p className="text-sm text-slate-400">Your Enough Number</p>
+              <p className="text-sm text-slate-400">Your Monthly Target</p>
               <p className="text-2xl font-bold text-amber-500 mt-1">
                 {fmt(enoughTotal)}
                 <span className="text-sm font-normal text-slate-400">/month</span>
@@ -664,7 +664,7 @@ export default function FinanceOnboarding() {
                 {createWorkspace.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  'Create Workspace'
+                  'Create Space'
                 )}
               </Button>
             </div>

@@ -322,7 +322,7 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
             </div>
           </div>
           <div className="text-right text-sm text-slate-600">
-            {profile?.phone && <p>{profile.phone}</p>}
+            {profile?.phone && <p>{formatPhone(profile.phone)}</p>}
             {profile?.email && <p>{profile.email}</p>}
           </div>
         </div>
@@ -511,7 +511,7 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
           <p className="text-sm text-slate-500">Thank you for your business</p>
           {(profile?.phone || profile?.email) && (
             <p className="text-xs text-slate-400">
-              {profile?.phone && <span>{profile.phone}</span>}
+              {profile?.phone && <span>{formatPhone(profile.phone)}</span>}
               {profile?.phone && profile?.email && <span className="mx-2">&middot;</span>}
               {profile?.email && <span>{profile.email}</span>}
             </p>

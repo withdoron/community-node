@@ -3,6 +3,9 @@ import { Repeat, ChevronDown, Coins } from "lucide-react";
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
+const fmtCurrency = (n) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
+
 function getPriceBadge(event) {
   const pt = event.pricing_type;
   if (!pt) return null;
@@ -12,12 +15,12 @@ function getPriceBadge(event) {
     const prices = tickets.map((t) => Number(t.price));
     const lowest = prices.length ? Math.min(...prices) : 0;
     if (lowest === 0) return { text: 'From Free' };
-    return { text: `From $${lowest.toFixed(2)}` };
+    return { text: `From ${fmtCurrency(lowest)}` };
   }
   if (pt === 'single_price' || pt === 'single') {
     const p = Number(event.price);
     if (p === 0) return { text: 'FREE' };
-    return { text: `$${p.toFixed(2)}` };
+    return { text: fmtCurrency(p) };
   }
   if (pt === 'pay_what_you_wish' || pt === 'pwyw') return { text: 'PWYW' };
   return null;

@@ -211,11 +211,8 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Business name is required' }, { status: 400 });
       }
 
-      console.log('[create_admin] incoming data keys:', Object.keys(d));
-
       const baseSlug = slugFromName(String(d.name));
       const slug = await findUniqueSlug(base44, baseSlug, '');
-      console.log('[create_admin] generated slug:', slug);
 
       const allowlist = [...PROFILE_ALLOWLIST, ...ADMIN_EXTRA_ALLOWLIST];
       const filtered: Record<string, unknown> = {};
@@ -239,11 +236,8 @@ Deno.serve(async (req) => {
         subscription_tier: (filtered.subscription_tier as string) || 'basic',
       };
 
-      console.log('[create_admin] final payload keys:', Object.keys(createPayload));
-
       try {
         const created = await base44.asServiceRole.entities.Business.create(createPayload);
-        console.log('[create_admin] success, id:', created?.id);
         return Response.json(created);
       } catch (createErr) {
         console.error('[create_admin] Business.create failed:', (createErr as Error).message);
@@ -317,10 +311,6 @@ Deno.serve(async (req) => {
       const raw = data as Record<string, unknown>;
       let payload: Record<string, unknown>;
 
-      console.log('[update_profile] user.role:', user.role, 'isAdmin:', isAdmin);
-      console.log('[update_profile] incoming data keys:', Object.keys(raw));
-      console.log('[update_profile] incoming data:', JSON.stringify(raw));
-
       if (isAdmin) {
         // Admin: pass all fields through (no allowlist filtering)
         payload = { ...raw };
@@ -340,15 +330,11 @@ Deno.serve(async (req) => {
       }
 
       if (Object.keys(payload).length === 0) {
-        console.log('[update_profile] no fields to update after filtering');
         const existing = await base44.asServiceRole.entities.Business.get(business_id);
         return Response.json(existing);
       }
 
-      console.log('[update_profile] final payload keys:', Object.keys(payload));
-      console.log('[update_profile] final payload:', JSON.stringify(payload));
       const updated = await base44.asServiceRole.entities.Business.update(business_id, payload);
-      console.log('[update_profile] update result id:', (updated as Record<string, unknown>)?.id, 'logo_url:', (updated as Record<string, unknown>)?.logo_url);
       return Response.json(updated);
     }
 

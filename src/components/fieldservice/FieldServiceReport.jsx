@@ -30,6 +30,15 @@ function getTasks(log) {
   return [];
 }
 
+function formatPhone(value) {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 export default function FieldServiceReport({ logId, profile, onBack }) {
   const [loading, setLoading] = useState(true);
   const [log, setLog] = useState(null);
@@ -181,7 +190,7 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
             <p className="text-slate-500 text-sm mt-2 print:text-gray-500">
               {profile.license_number && <span>License {profile.license_number}</span>}
               {profile.license_number && profile.phone && ' · '}
-              {profile.phone && <a href={`tel:${profile.phone.replace(/\D/g, '')}`} className="hover:text-amber-500 transition-colors">{profile.phone}</a>}
+              {profile.phone && <a href={`tel:${profile.phone.replace(/\D/g, '')}`} className="hover:text-amber-500 transition-colors">{formatPhone(profile.phone)}</a>}
               {(profile.license_number || profile.phone) && profile.email && ' · '}
               {profile.email && <a href={`mailto:${profile.email}`} className="hover:text-amber-500 transition-colors">{profile.email}</a>}
             </p>

@@ -626,11 +626,10 @@ export default function BusinessDashboard() {
           <IdeasBoard currentUser={currentUser} />
 
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-            <h2 className="text-xl font-bold text-slate-100 mb-3">Your Workspaces</h2>
+            <h2 className="text-xl font-bold text-slate-100 mb-3">Your Spaces</h2>
             <p className="text-slate-400 text-sm max-w-md mx-auto mb-8">
               Manage your business, create events, and connect with local families.
-              Workspaces are also where development of the platform itself comes
-              from — every business shapes what LocalLane becomes.
+              Spaces are where your work lives. Every space shapes what LocalLane becomes.
             </p>
             <Button
               onClick={() => setTypePickerOpen(true)}
@@ -638,7 +637,7 @@ export default function BusinessDashboard() {
               size="lg"
             >
               <Plus className="h-5 w-5 mr-2" />
-              Create Your First Workspace
+              Create Your First Space
             </Button>
             <p className="text-sm text-slate-500 mt-6">
               Or <Link to={createPageUrl('MyLane')} className="text-amber-500 hover:text-amber-400 underline">go to My Lane</Link>
@@ -691,7 +690,7 @@ export default function BusinessDashboard() {
         <div className="max-w-7xl mx-auto px-6 pt-8 pb-4">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-slate-100">My Workspaces</h2>
+              <h2 className="text-2xl font-bold text-slate-100">My Spaces</h2>
               <p className="text-slate-400 text-sm mt-1">
                 Manage the things you lead
               </p>
@@ -889,7 +888,7 @@ export default function BusinessDashboard() {
                 className="text-slate-400 hover:text-slate-100 min-h-[44px]"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Workspaces
+                Back to Spaces
               </Button>
               <div className="h-4 w-px bg-slate-700" />
               <div className="flex items-center gap-3">
@@ -979,7 +978,7 @@ export default function BusinessDashboard() {
                 className="text-slate-400 hover:text-slate-100 min-h-[44px]"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Workspaces
+                Back to Spaces
               </Button>
               <div className="h-4 w-px bg-slate-700" />
               <div className="flex items-center gap-3">
@@ -1060,7 +1059,7 @@ export default function BusinessDashboard() {
                 className="text-slate-400 hover:text-slate-100 min-h-[44px]"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Workspaces
+                Back to Spaces
               </Button>
               <div className="h-4 w-px bg-slate-700" />
               <div className="flex items-center gap-3">
@@ -1127,7 +1126,7 @@ export default function BusinessDashboard() {
                 className="text-slate-400 hover:text-slate-100 min-h-[44px]"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Workspaces
+                Back to Spaces
               </Button>
               <div className="h-4 w-px bg-slate-700" />
               <div className="flex items-center gap-3">
@@ -1208,7 +1207,7 @@ export default function BusinessDashboard() {
               className="text-slate-400 hover:text-slate-100"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Workspaces
+              Back to Spaces
             </Button>
             <div className="h-4 w-px bg-slate-700" />
             <div className="flex items-center gap-3">

@@ -13,6 +13,15 @@ function getRoleLabel(role) {
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
+function formatPhone(value) {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 export default function OwnerCard({
   owner,
   stakes,
@@ -58,7 +67,7 @@ export default function OwnerCard({
           {(owner.email || owner.phone) && (
             <div className="mt-2 space-y-0.5 text-sm text-slate-400">
               {owner.email && <div>{owner.email}</div>}
-              {owner.phone && <div>{owner.phone}</div>}
+              {owner.phone && <div>{formatPhone(owner.phone)}</div>}
             </div>
           )}
         </div>

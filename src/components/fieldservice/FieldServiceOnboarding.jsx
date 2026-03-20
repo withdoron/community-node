@@ -118,11 +118,11 @@ export default function FieldServiceOnboarding() {
       return profile;
     },
     onSuccess: (profile) => {
-      toast.success('Field Service workspace created');
+      toast.success('Field Service space created');
       navigate(createPageUrl('BusinessDashboard') + '?fieldservice=' + profile.id);
     },
     onError: (err) => {
-      toast.error(err?.message || 'Failed to create workspace');
+      toast.error(err?.message || 'Failed to create space');
     },
   });
 
@@ -148,7 +148,7 @@ export default function FieldServiceOnboarding() {
             <HardHat className="h-6 w-6 text-amber-500" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-100">Create a Field Service Workspace</h1>
+            <h1 className="text-xl font-bold text-slate-100">Create a Field Service Space</h1>
             <p className="text-sm text-slate-400">
               {step === 1 && 'Tell us about your business'}
               {step === 2 && 'Set your rates and service area'}
@@ -355,7 +355,7 @@ export default function FieldServiceOnboarding() {
               </div>
 
               <div className="border-t border-slate-800 pt-6">
-                <p className="text-sm text-slate-300 mb-3">Your workspace includes:</p>
+                <p className="text-sm text-slate-300 mb-3">Your space includes:</p>
                 <ul className="space-y-2">
                   {WORKSPACE_FEATURES.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm text-slate-400">
@@ -383,7 +383,7 @@ export default function FieldServiceOnboarding() {
                 {createWorkspace.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  'Create Workspace'
+                  'Create Space'
                 )}
               </Button>
             </div>

@@ -495,18 +495,28 @@ export default function IdeasBoard({ currentUser }) {
 
   const handleAdminUpdate = useCallback(
     async (ideaId, updates) => {
-      await base44.entities.Idea.update(ideaId, updates);
-      queryClient.invalidateQueries({ queryKey: ['ideas-board'] });
-      toast.success('Seed updated');
+      try {
+        await base44.entities.Idea.update(ideaId, updates);
+        queryClient.invalidateQueries({ queryKey: ['ideas-board'] });
+        toast.success('Seed updated');
+      } catch (err) {
+        console.error('IdeasBoard admin update failed:', err);
+        toast.error('Could not update seed: ' + (err?.message || 'Please try again'));
+      }
     },
     [queryClient]
   );
 
   const handleAuthorUpdate = useCallback(
     async (ideaId, updates) => {
-      await base44.entities.Idea.update(ideaId, updates);
-      queryClient.invalidateQueries({ queryKey: ['ideas-board'] });
-      toast.success('Seed updated');
+      try {
+        await base44.entities.Idea.update(ideaId, updates);
+        queryClient.invalidateQueries({ queryKey: ['ideas-board'] });
+        toast.success('Seed updated');
+      } catch (err) {
+        console.error('IdeasBoard author update failed:', err);
+        toast.error('Could not update seed: ' + (err?.message || 'Please try again'));
+      }
     },
     [queryClient]
   );

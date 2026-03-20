@@ -25,6 +25,15 @@ import { useCategories } from '@/hooks/useCategories';
 import { useConfig } from '@/hooks/useConfig';
 import { resolveCategoryAccent } from '@/components/business/BusinessCard';
 
+function formatPhone(value) {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 function getCategoryDisplayLabel(business, getLabel, legacyCategoryMapping) {
   const fromMain = getLabel(business.main_category, business.subcategory);
   if (fromMain) return fromMain;
@@ -461,7 +470,7 @@ export default function BusinessProfile() {
                     className="flex items-center gap-3 p-3 rounded-lg bg-amber-500 text-black hover:bg-amber-400 transition-colors font-medium"
                   >
                     <Phone className="h-5 w-5" />
-                    <span className="font-medium">{business.phone}</span>
+                    <span className="font-medium">{formatPhone(business.phone)}</span>
                   </a>
                 )}
                 
@@ -555,7 +564,7 @@ export default function BusinessProfile() {
                           {formatAddress(loc, { multiline: true, forPublic: true }).map((line, lineIdx) => (
                             <span key={lineIdx} className="block text-sm text-slate-400">{line}</span>
                           ))}
-                          {loc.phone && <span className="block text-sm text-slate-500 mt-1">{loc.phone}</span>}
+                          {loc.phone && <span className="block text-sm text-slate-500 mt-1">{formatPhone(loc.phone)}</span>}
                         </div>
                         <ExternalLink className="h-4 w-4 flex-shrink-0 mt-0.5 text-slate-400" />
                       </a>

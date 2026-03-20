@@ -377,7 +377,7 @@ export default function FinanceSettings({ profile, currentUser }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['finance-profiles'] });
       setEnoughChanged(false);
-      toast.success('Enough Number settings saved');
+      toast.success('Monthly Target settings saved');
     },
     onError: (err) => toast.error(err?.message || 'Failed to save'),
   });
@@ -807,7 +807,7 @@ export default function FinanceSettings({ profile, currentUser }) {
 
       {/* Section 5: Enough Number */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-        <h2 className="text-lg font-bold text-slate-100 mb-4">Enough Number</h2>
+        <h2 className="text-lg font-bold text-slate-100 mb-4">Monthly Target</h2>
 
         <div className="flex gap-2 mb-4">
           <button type="button" onClick={() => { setEnoughMode('auto'); setEnoughChanged(true); }}
@@ -845,7 +845,7 @@ export default function FinanceSettings({ profile, currentUser }) {
           </div>
         ) : (
           <div>
-            <Label className="text-slate-400">Your custom Enough Number</Label>
+            <Label className="text-slate-400">Your custom Monthly Target</Label>
             <div className="relative mt-1">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">$</span>
               <Input type="number" step="0.01" min="0" value={enoughManual}
@@ -857,7 +857,7 @@ export default function FinanceSettings({ profile, currentUser }) {
         )}
 
         <p className="text-xs text-slate-500 mt-3">
-          Auto mode calculates your Enough Number from recurring expenses and debt minimums. Manual mode lets you set your own target.
+          Auto mode calculates your Monthly Target from recurring expenses and debt minimums. Manual mode lets you set your own target.
         </p>
 
         {enoughChanged && (
@@ -1007,7 +1007,7 @@ export default function FinanceSettings({ profile, currentUser }) {
               <li>All transactions</li>
               <li>All recurring items</li>
               <li>All debts and payment history</li>
-              <li>Your Enough Number configuration</li>
+              <li>Your Monthly Target configuration</li>
             </ul>
             <p className="text-sm text-red-400 font-medium">This cannot be undone.</p>
             <div>

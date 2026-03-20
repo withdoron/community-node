@@ -49,7 +49,7 @@ export const WORKSPACE_GUIDES = {
   },
 
   field_service: {
-    welcome: "Welcome to your workspace. This is where your business runs.",
+    welcome: "Welcome to your space. This is where your business runs.",
     steps: [
       {
         id: 'settings',
@@ -148,7 +148,7 @@ export const WORKSPACE_GUIDES = {
         id: 'transaction',
         title: 'Log your first transaction',
         description:
-          'Record an income or expense. This is the raw data that powers your Enough Number and cash flow.',
+          'Record an income or expense. This is the raw data that powers your Monthly Target and cash flow.',
         actionLabel: 'Go to Activity',
         targetTab: 'activity',
         icon: 'ArrowDownUp',
@@ -166,7 +166,7 @@ export const WORKSPACE_GUIDES = {
         id: 'debts',
         title: 'Track your debts',
         description:
-          'Add any debts with balances and minimum payments. Your Enough Number includes these automatically.',
+          'Add any debts with balances and minimum payments. Your Monthly Target includes these automatically.',
         actionLabel: 'Go to Debts',
         targetTab: 'debts',
         icon: 'Landmark',
@@ -179,9 +179,9 @@ export const WORKSPACE_GUIDES = {
     steps: [
       {
         id: 'settings',
-        title: 'Configure your workspace',
+        title: 'Configure your space',
         description:
-          'Set your workspace name and link a finance workspace if you want costs to flow through automatically.',
+          'Set your space name and link a finance space if you want costs to flow through automatically.',
         actionLabel: 'Go to Settings',
         targetTab: 'settings',
         icon: 'Settings',

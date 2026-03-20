@@ -19,6 +19,15 @@ import { useCategories } from '@/hooks/useCategories';
 import { ARCHETYPE_SLUG_TO_CONFIG } from '@/config/onboardingConfig';
 import { archetypeSubcategories } from '@/components/categories/categoryData';
 
+function formatPhone(value) {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 const TIER_CONFIG = {
   basic: {
     label: 'Basic',
@@ -797,7 +806,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
               {business?.phone && (
                 <div className="flex items-center gap-2 text-slate-400">
                   <Phone className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-                  <span>{business.phone}</span>
+                  <span>{formatPhone(business.phone)}</span>
                 </div>
               )}
               {business?.website && (

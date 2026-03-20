@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Users, Coins, Wallet, Calendar } from 'lucide-react';
 import WorkspaceGuide from '@/components/workspaces/WorkspaceGuide';
 
+const fmt = (n) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
+
 /**
  * Home tab for the business workspace dashboard.
  * Renders stat cards, upcoming events list, and quick action buttons.
@@ -45,6 +48,7 @@ export default function DashboardHome({
       queryClient.invalidateQueries(['ownedBusinesses']);
       queryClient.invalidateQueries(['staffBusinesses']);
     },
+    onError: (err) => console.error('Guide dismiss failed:', err),
   });
 
   const handleDismissGuide = useCallback(() => {
@@ -87,7 +91,7 @@ export default function DashboardHome({
         {revenue.totalRedemptions > 0 ? (
           <>
             This month, {revenue.uniqueFamilies} families visited through LocalLane. Your estimated pool share:{' '}
-            <span className="text-amber-500 font-bold">${Number(revenue.estimatedPayout).toFixed(2)}</span>
+            <span className="text-amber-500 font-bold">{fmt(revenue.estimatedPayout)}</span>
           </>
         ) : (
           'Welcome to your LocalLane dashboard! Set your Joy Coin access hours and create events to start receiving families.'
@@ -107,7 +111,7 @@ export default function DashboardHome({
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <Wallet className="h-5 w-5 text-amber-500 mb-2" />
           <div className="text-2xl font-bold text-slate-100">
-            ${Number(revenue.estimatedPayout).toFixed(2)}
+            {fmt(revenue.estimatedPayout)}
           </div>
           <div className="text-sm text-slate-400">Pool Share</div>
         </div>

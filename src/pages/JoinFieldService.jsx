@@ -58,7 +58,7 @@ export default function JoinFieldService() {
   // Auto-redirect if already a member
   useEffect(() => {
     if (workspace && isAlreadyMember) {
-      toast.info('You\'re already on this workspace');
+      toast.info('You\'re already part of this crew');
       navigate(createPageUrl('BusinessDashboard') + '?fieldservice=' + workspace.id, { replace: true });
     }
   }, [workspace, isAlreadyMember, navigate]);
@@ -113,7 +113,7 @@ export default function JoinFieldService() {
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 max-w-md mx-auto">
         <h1 className="text-xl font-bold text-white mb-2">Invalid or expired invite</h1>
         <p className="text-slate-400 text-center mb-6">
-          This invite code is not valid or the workspace may no longer be active.
+          This invite code is not valid or the space may no longer be active.
         </p>
         <Button
           onClick={() => navigate(createPageUrl('MyLane'))}
@@ -141,12 +141,12 @@ export default function JoinFieldService() {
               <p className="text-sm text-slate-400">
                 {workspace.business_name && workspace.workspace_name !== workspace.business_name
                   ? workspace.business_name
-                  : 'Field Service Workspace'}
+                  : 'Field Service'}
               </p>
             </div>
           </div>
           <p className="text-slate-300 text-sm">
-            Sign in to join this workspace and claim your spot on the crew.
+            Sign in to join this space and claim your spot on the crew.
           </p>
           <Button
             onClick={handleSignIn}
@@ -175,7 +175,7 @@ export default function JoinFieldService() {
             onClick={() => navigate(createPageUrl('BusinessDashboard') + '?fieldservice=' + claimedResult.workspace_id, { replace: true })}
             className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
           >
-            Open Workspace
+            Open Space
           </Button>
         </div>
       </div>
@@ -193,18 +193,18 @@ export default function JoinFieldService() {
           <h1 className="text-lg font-bold text-white">
             {workspace.workspace_name || workspace.business_name || 'Field Service'}
           </h1>
-          <p className="text-sm text-slate-400">Join this workspace</p>
+          <p className="text-sm text-slate-400">Join this space</p>
         </div>
       </div>
 
       <p className="text-slate-300 text-sm mb-4">
-        Select your name to claim your spot. If you don't see your name, ask the workspace owner to add you first.
+        Select your name to claim your spot. If you don't see your name, ask the owner to add you first.
       </p>
 
       {unclaimedSpots.length === 0 ? (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center">
           <p className="text-slate-400">
-            No unclaimed spots available. Ask the workspace owner to add you to the roster.
+            No unclaimed spots available. Ask the owner to add you to the roster.
           </p>
           <Button
             onClick={() => navigate(createPageUrl('MyLane'))}

@@ -198,6 +198,7 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
       );
       queryClient.invalidateQueries(['pm-profiles']);
     },
+    onError: (err) => console.error('Guide dismiss failed:', err),
   });
 
   const handleDismissGuide = useCallback(() => {

@@ -11,6 +11,9 @@ import {
   getPricingConfig
 } from '@/functions/calculateRevenueShare';
 
+const fmt = (n) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
+
 export function JoyCoinsAdminPanel() {
   const [grantAmount, setGrantAmount] = useState(getDefaultGrantAmount().toString());
   const [processingGrants, setProcessingGrants] = useState(false);
@@ -148,8 +151,7 @@ export function JoyCoinsAdminPanel() {
                     Subscription: ${config.subscriptionPrice}/mo · Grant: {config.monthlyGrant} coins
                   </p>
                   <p>
-                    Coin value: ${config.coinValue.toFixed(2)} · Business share: $
-                    {config.businessSharePerCoin.toFixed(2)}/coin ({config.businessSharePercent}%)
+                    Coin value: {fmt(config.coinValue)} · Business share: {fmt(config.businessSharePerCoin)}/coin ({config.businessSharePercent}%)
                   </p>
                 </>
               );
@@ -183,7 +185,7 @@ export function JoyCoinsAdminPanel() {
               </h4>
               <div className="text-right">
                 <p className="text-lg font-bold text-emerald-400">
-                  ${revenueReport.totals.totalBusinessShare.toFixed(2)}
+                  {fmt(revenueReport.totals.totalBusinessShare)}
                 </p>
                 <p className="text-xs text-slate-500">Total business payouts</p>
               </div>
@@ -197,13 +199,13 @@ export function JoyCoinsAdminPanel() {
               </div>
               <div>
                 <p className="text-xl font-bold text-emerald-400">
-                  ${revenueReport.totals.totalBusinessShare.toFixed(2)}
+                  {fmt(revenueReport.totals.totalBusinessShare)}
                 </p>
                 <p className="text-xs text-slate-500">Business Share (75%)</p>
               </div>
               <div>
                 <p className="text-xl font-bold text-blue-400">
-                  ${revenueReport.totals.totalPlatformShare.toFixed(2)}
+                  {fmt(revenueReport.totals.totalPlatformShare)}
                 </p>
                 <p className="text-xs text-slate-500">Platform Share (25%)</p>
               </div>
@@ -224,7 +226,7 @@ export function JoyCoinsAdminPanel() {
                         </p>
                       </div>
                       <p className="text-sm font-medium text-emerald-400">
-                        ${biz.businessShare.toFixed(2)}
+                        {fmt(biz.businessShare)}
                       </p>
                     </div>
                   ))}

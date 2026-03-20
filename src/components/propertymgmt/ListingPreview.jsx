@@ -54,6 +54,15 @@ const UTILITY_ICONS = {
   trash: TrashIcon,
 };
 
+function formatPhone(value) {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 export default function ListingPreview({ open, onClose, listing, propertyLabel }) {
   if (!listing) return null;
 
@@ -256,7 +265,7 @@ export default function ListingPreview({ open, onClose, listing, propertyLabel }
                 )}
                 {listing.contact_phone && (
                   <p className="text-sm text-gray-600 flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5" /> {listing.contact_phone}
+                    <Phone className="w-3.5 h-3.5" /> {formatPhone(listing.contact_phone)}
                   </p>
                 )}
                 {listing.contact_email && (

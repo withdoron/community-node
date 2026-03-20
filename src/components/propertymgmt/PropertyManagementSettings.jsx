@@ -143,7 +143,7 @@ export default function PropertyManagementSettings({ profile, currentUser }) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pm-profiles'] });
-      toast.success('Workspace name saved');
+      toast.success('Space name saved');
     },
     onError: (err) => toast.error(err?.message || 'Failed to save'),
   });
@@ -182,10 +182,10 @@ export default function PropertyManagementSettings({ profile, currentUser }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pm-profiles'] });
-      toast.success('Workspace deleted');
+      toast.success('Space deleted');
       navigate(createPageUrl('BusinessDashboard') + '?landing=1');
     },
-    onError: (err) => toast.error(err?.message || 'Failed to delete workspace'),
+    onError: (err) => toast.error(err?.message || 'Failed to delete space'),
   });
 
   // ─── Live Preview ─────────────────────────────
@@ -331,17 +331,17 @@ export default function PropertyManagementSettings({ profile, currentUser }) {
         </div>
       </Section>
 
-      {/* ═══ Linked Workspaces ═══ */}
-      <Section icon={Link2} title="Linked Workspaces">
+      {/* ═══ Linked Spaces ═══ */}
+      <Section icon={Link2} title="Linked Spaces">
         <div className="space-y-4">
           <p className="text-sm text-slate-400">
-            Link this workspace to other workspaces for integrated financial tracking.
+            Link this space to other spaces for integrated financial tracking.
           </p>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-4">
               <div>
-                <p className="text-sm text-slate-300">Finance Workspace</p>
+                <p className="text-sm text-slate-300">Finance Space</p>
                 <p className="text-xs text-slate-500">
                   {linkedFinance
                     ? linkedFinance.workspace_name || 'Linked'
@@ -359,7 +359,7 @@ export default function PropertyManagementSettings({ profile, currentUser }) {
 
             <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-4">
               <div>
-                <p className="text-sm text-slate-300">Business Workspace</p>
+                <p className="text-sm text-slate-300">Business Space</p>
                 <p className="text-xs text-slate-500">
                   {linkedBusiness
                     ? linkedBusiness.name || 'Linked'
@@ -377,7 +377,7 @@ export default function PropertyManagementSettings({ profile, currentUser }) {
           </div>
 
           <p className="text-xs text-slate-500">
-            Workspace linking will be available in a future update.
+            Space linking will be available in a future update.
           </p>
         </div>
       </Section>
@@ -387,7 +387,7 @@ export default function PropertyManagementSettings({ profile, currentUser }) {
         <div className="space-y-4">
           {/* Rename */}
           <div>
-            <Label className="text-slate-400">Workspace name</Label>
+            <Label className="text-slate-400">Space name</Label>
             <div className="flex gap-2 mt-1">
               <Input
                 value={workspaceName}
@@ -408,7 +408,7 @@ export default function PropertyManagementSettings({ profile, currentUser }) {
           {/* Delete */}
           <div className="border-t border-slate-800 pt-4">
             <p className="text-sm text-slate-400 mb-3">
-              Permanently delete this workspace and all its data. This cannot be undone.
+              Permanently delete this space and all its data. This cannot be undone.
             </p>
             <Button
               variant="outline"
@@ -416,7 +416,7 @@ export default function PropertyManagementSettings({ profile, currentUser }) {
               className="border-red-600/50 text-red-400 hover:bg-red-600/10 hover:border-red-600 hover:text-red-400 min-h-[44px]"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete Workspace
+              Delete Space
             </Button>
           </div>
         </div>
@@ -426,10 +426,10 @@ export default function PropertyManagementSettings({ profile, currentUser }) {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-slate-900 border-slate-800">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">Delete Workspace?</AlertDialogTitle>
+            <AlertDialogTitle className="text-slate-100">Delete this space?</AlertDialogTitle>
             <AlertDialogDescription className="text-slate-400">
               This will permanently delete all properties, expenses, labor entries, maintenance requests,
-              settlements, owners, and all other data in this workspace. This action cannot be undone.
+              settlements, owners, and all other data in this space. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-2">

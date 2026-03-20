@@ -12,6 +12,9 @@ import { useRole } from '@/hooks/useRole';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
 
+const fmtCurrency = (n) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
+
 function getPriceBadge(event) {
   const pt = event.pricing_type;
   if (!pt) return null;
@@ -21,15 +24,24 @@ function getPriceBadge(event) {
     const prices = tickets.map((t) => Number(t.price));
     const lowest = prices.length ? Math.min(...prices) : 0;
     if (lowest === 0) return { text: 'From Free', green: false };
-    return { text: `From $${lowest.toFixed(2)}`, green: false };
+    return { text: `From ${fmtCurrency(lowest)}`, green: false };
   }
   if (pt === 'single_price' || pt === 'single') {
     const p = Number(event.price);
     if (p === 0) return { text: 'FREE', green: true };
-    return { text: `$${p.toFixed(2)}`, green: false };
+    return { text: fmtCurrency(p), green: false };
   }
   if (pt === 'pay_what_you_wish' || pt === 'pwyw') return { text: 'PWYW', green: false };
   return null;
+}
+
+function formatPhone(value) {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 
 export default function EventDetailModal({ event, isOpen, onClose }) {
@@ -642,7 +654,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                       <div className="text-slate-400 text-sm">{event.organizer_email}</div>
                     )}
                     {event.organizer_phone && (
-                      <div className="text-slate-400 text-sm">{event.organizer_phone}</div>
+                      <div className="text-slate-400 text-sm">{formatPhone(event.organizer_phone)}</div>
                     )}
                     {event.website && !spokeEvent && (
                       <a

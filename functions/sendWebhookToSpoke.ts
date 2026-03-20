@@ -73,11 +73,11 @@ Deno.serve(async (req) => {
     });
 
     if (!webhookResponse.ok) {
-      console.error(`Webhook failed: ${webhookResponse.status} ${webhookResponse.statusText}`);
+      const responseBody = await webhookResponse.text();
+      console.error(`Webhook failed: ${webhookResponse.status} ${webhookResponse.statusText}`, responseBody);
       return Response.json({
         error: 'Webhook delivery failed',
-        status: webhookResponse.status,
-        message: await webhookResponse.text()
+        status: webhookResponse.status
       }, { status: 500 });
     }
 

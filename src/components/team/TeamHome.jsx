@@ -184,6 +184,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
       );
       queryClient.invalidateQueries(['dashboard-teams']);
     },
+    onError: (err) => console.error('Guide dismiss failed:', err),
   });
 
   const handleDismissGuide = useCallback(() => {

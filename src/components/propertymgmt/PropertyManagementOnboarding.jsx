@@ -156,11 +156,11 @@ export default function PropertyManagementOnboarding() {
       return profile;
     },
     onSuccess: (profile) => {
-      toast.success('Property Management workspace created');
+      toast.success('Property Management space created');
       navigate(createPageUrl('BusinessDashboard') + '?property_management=' + profile.id);
     },
     onError: (err) => {
-      toast.error(err?.message || 'Failed to create workspace');
+      toast.error(err?.message || 'Failed to create space');
     },
   });
 
@@ -186,7 +186,7 @@ export default function PropertyManagementOnboarding() {
             <Building2 className="h-6 w-6 text-amber-500" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-100">Create a Property Management Workspace</h1>
+            <h1 className="text-xl font-bold text-slate-100">Create a Property Management Space</h1>
             <p className="text-sm text-slate-400">
               {step === 1 && 'Tell us about your properties'}
               {step === 2 && 'Add your first property'}
@@ -291,7 +291,7 @@ export default function PropertyManagementOnboarding() {
                     placeholder="e.g., Fletcher Properties LLC"
                   />
                   <p className="text-xs text-slate-500 mt-1">
-                    This becomes your workspace name. Defaults to "My Properties" if left blank.
+                    This becomes your space name. Defaults to "My Properties" if left blank.
                   </p>
                 </div>
               </div>
@@ -440,13 +440,13 @@ export default function PropertyManagementOnboarding() {
                 Ready to Go
               </h2>
               <p className="text-sm text-slate-400 mb-6">
-                Your property management workspace is ready.
+                Your property management space is ready.
               </p>
 
               {/* Summary */}
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Workspace</span>
+                  <span className="text-slate-400">Space</span>
                   <span className="text-slate-100 font-medium">{businessName || 'My Properties'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -476,7 +476,7 @@ export default function PropertyManagementOnboarding() {
               </div>
 
               <div className="border-t border-slate-800 pt-6">
-                <p className="text-sm text-slate-300 mb-3">Your workspace includes:</p>
+                <p className="text-sm text-slate-300 mb-3">Your space includes:</p>
                 <ul className="space-y-2">
                   {WORKSPACE_FEATURES.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm text-slate-400">
@@ -489,7 +489,7 @@ export default function PropertyManagementOnboarding() {
 
               <div className="bg-slate-800/50 rounded-lg p-4 mt-6">
                 <p className="text-xs text-slate-400">
-                  You can invite property owners and workers from the People tab after your workspace is created.
+                  You can invite property owners and workers from the People tab after your space is created.
                 </p>
               </div>
             </div>
@@ -510,7 +510,7 @@ export default function PropertyManagementOnboarding() {
                 {createWorkspace.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  'Create Workspace'
+                  'Create Space'
                 )}
               </Button>
             </div>

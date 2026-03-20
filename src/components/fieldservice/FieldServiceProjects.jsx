@@ -829,7 +829,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
 
           {(clientPhone || clientEmail) && (
             <div className="flex flex-wrap gap-3 mt-3 text-sm text-slate-400">
-              {clientPhone && <a href={`tel:${clientPhone.replace(/\D/g, '')}`} className="hover:text-amber-500 transition-colors">Phone: {clientPhone}</a>}
+              {clientPhone && <a href={`tel:${clientPhone.replace(/\D/g, '')}`} className="hover:text-amber-500 transition-colors">Phone: {formatPhone(clientPhone)}</a>}
               {clientEmail && <a href={`mailto:${clientEmail}`} className="hover:text-amber-500 transition-colors">Email: {clientEmail}</a>}
             </div>
           )}

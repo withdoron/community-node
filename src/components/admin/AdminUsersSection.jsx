@@ -15,6 +15,15 @@ import { Loader2, Search, X, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
+function formatPhone(value) {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 export default function AdminUsersSection({ businesses = [] }) {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
@@ -248,8 +257,7 @@ export default function AdminUsersSection({ businesses = [] }) {
                     <div className="flex justify-between">
                       <span className="text-slate-400">Phone:</span>
                       <span className="text-slate-100">
-                        {selectedUser.phone ||
-                          selectedUser.data?.phone ||
+                        {formatPhone(selectedUser.phone || selectedUser.data?.phone) ||
                           'Not provided'}
                       </span>
                     </div>

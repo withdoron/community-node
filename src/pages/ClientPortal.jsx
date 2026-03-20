@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Loader2, Printer, Camera, Shield, X, FileText, FolderOpen, ClipboardList } from 'lucide-react';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
+import { toast } from 'sonner';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -248,6 +249,10 @@ function EstimateSigningSection({ estimate, queryClient }) {
     onSuccess: () => {
       queryClient.invalidateQueries(['fs-public-estimate-view']);
     },
+    onError: (err) => {
+      console.error('Estimate e-sign failed:', err);
+      toast.error('Could not save signature. Please try again.');
+    },
   });
 
   // Build content string for hashing (the estimate text the signer sees)
@@ -371,6 +376,10 @@ function DocumentSigningSection({ doc, queryClient }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['fs-public-doc-view']);
+    },
+    onError: (err) => {
+      console.error('Document e-sign failed:', err);
+      toast.error('Could not save signature. Please try again.');
     },
   });
 
