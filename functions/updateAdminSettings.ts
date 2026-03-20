@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
       return Response.json(results);
     }
 
-    // search_user_by_email: lookup user by email (temporary debug version — clean up after diagnosis)
+    // search_user_by_email: lookup user by email via filter only (no User.list fallback)
     if (action === 'search_user_by_email') {
       const { email } = body;
       if (!email || typeof email !== 'string') {
@@ -90,44 +90,15 @@ Deno.serve(async (req) => {
       }
 
       try {
-        // Try filter first (exact match). Base44: .filter() returns query builder, chain .list() for data.
-        const filtered = await base44.asServiceRole.entities.User.filter({ email: searchEmail });
+        const filtered = await base44.asServiceRole.entities.User.filter({ email: searchEmail }).list();
         if (filtered && filtered.length > 0) {
           const u = filtered[0] as { id: string; email?: string; full_name?: string | null };
           return Response.json({ user: { id: u.id, email: u.email, full_name: u.full_name ?? null } });
         }
-
-        // If filter returned nothing, try list and find (case-insensitive)
-        const allUsers = await base44.asServiceRole.entities.User.list();
-        const found = (allUsers || []).find(
-          (u: { email?: string }) => (u.email ?? '').toLowerCase() === searchEmail
-        );
-        if (found) {
-          return Response.json({
-            user: {
-              id: (found as { id: string }).id,
-              email: (found as { email?: string }).email ?? searchEmail,
-              full_name: (found as { full_name?: string | null }).full_name ?? null,
-            },
-          });
-        }
-
-        // Debug: return what we found so we can see what's happening
-        return Response.json({
-          user: null,
-          debug: {
-            searchEmail,
-            totalUsers: (allUsers || []).length,
-            sampleEmails: (allUsers || []).slice(0, 5).map((u: { email?: string }) => u.email),
-            sampleKeys: (allUsers || []).length > 0 ? Object.keys((allUsers as object[])[0]) : [],
-          },
-        });
+        return Response.json({ user: null });
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
-        return Response.json({
-          user: null,
-          debug: { error: message, searchEmail },
-        });
+        return Response.json({ error: message }, { status: 500 });
       }
     }
 
