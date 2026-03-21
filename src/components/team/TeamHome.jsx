@@ -240,7 +240,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
             )}
           </>
         ) : (
-          <p className="text-slate-500 text-sm">No upcoming events</p>
+          <p className="text-slate-500 text-sm">No upcoming events. Schedule a practice!</p>
         )}
       </div>
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">

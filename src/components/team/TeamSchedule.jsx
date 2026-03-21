@@ -270,7 +270,7 @@ export default function TeamSchedule({ teamId, teamScope }) {
       ) : events.length === 0 ? (
         <div className="text-center py-12 bg-slate-900 border border-slate-800 rounded-xl">
           <Calendar className="h-12 w-12 mx-auto mb-3 text-slate-600" />
-          <p className="text-slate-400">No events scheduled yet</p>
+          <p className="text-slate-400">No upcoming events. Schedule a practice!</p>
         </div>
       ) : (
         <>

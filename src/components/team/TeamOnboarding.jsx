@@ -240,7 +240,7 @@ export default function TeamOnboarding() {
                 onClick={() => setFormData((d) => ({ ...d, linkToNetwork: !d.linkToNetwork }))}
                 className={`relative w-11 h-6 rounded-full transition-colors ${formData.linkToNetwork ? 'bg-amber-500' : 'bg-slate-700'}`}
               >
-                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${formData.linkToNetwork ? 'left-6' : 'left-1'}`} />
+                <span className={`absolute top-1 w-4 h-4 rounded-full bg-slate-100 transition-transform ${formData.linkToNetwork ? 'left-6' : 'left-1'}`} />
               </button>
             </div>
             {formData.linkToNetwork && (
