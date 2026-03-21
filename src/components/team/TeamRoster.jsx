@@ -226,7 +226,7 @@ export default function TeamRoster({ team, members = [], isCoach }) {
               sortedMembers.map((m) => {
                 const linkedPlayer = getLinkedPlayer(m);
                 const linkedParents = getLinkedParents(m);
-                const isUnclaimedPlayer = m.role === 'player' && !m.user_id;
+                const isUnclaimedPlayer = !m.user_id;
                 return (
                   <tr key={m.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
                     <td className="px-4 py-3">
