@@ -54,6 +54,7 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
 
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [regenerateConfirmOpen, setRegenerateConfirmOpen] = useState(false);
+  const [regenerateCoachConfirmOpen, setRegenerateCoachConfirmOpen] = useState(false);
   const [transferConfirmOpen, setTransferConfirmOpen] = useState(false);
   const [transferToUserId, setTransferToUserId] = useState(null);
   const [formatChangeConfirm, setFormatChangeConfirm] = useState(null);
@@ -96,10 +97,32 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
       queryClient.invalidateQueries({ queryKey: ['dashboard-teams'] });
       queryClient.invalidateQueries({ queryKey: ['team', team?.id] });
       setRegenerateConfirmOpen(false);
-      toast.success('Invite code regenerated. Old links will no longer work.');
+      toast.success('Family invite code regenerated. Old links will no longer work.');
     },
     onError: (err) => toast.error(err?.message || 'Failed'),
   });
+
+  const regenerateCoachCode = useMutation({
+    mutationFn: () => base44.entities.Team.update(team.id, { coach_invite_code: generateInviteCode() }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard-teams'] });
+      queryClient.invalidateQueries({ queryKey: ['team', team?.id] });
+      setRegenerateCoachConfirmOpen(false);
+      toast.success('Coach invite code regenerated. Old links will no longer work.');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed'),
+  });
+
+  // Auto-generate coach_invite_code if missing
+  useEffect(() => {
+    if (team?.id && canEditTeamInfo && !team.coach_invite_code) {
+      const newCode = generateInviteCode();
+      base44.entities.Team.update(team.id, { coach_invite_code: newCode }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['dashboard-teams'] });
+        queryClient.invalidateQueries({ queryKey: ['team', team?.id] });
+      }).catch(() => {});
+    }
+  }, [team?.id, team?.coach_invite_code, canEditTeamInfo]);
 
   const transferOwnership = useMutation({
     mutationFn: async ({ newOwnerUserId }) => {
@@ -139,8 +162,10 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
   const otherCoaches = (members || []).filter(
     (m) => m.role === 'coach' && m.user_id !== team?.owner_id
   );
-  const inviteCode = team?.invite_code ?? '';
-  const fullJoinUrl = typeof window !== 'undefined' && inviteCode ? `${window.location.origin}/join/${inviteCode}` : '';
+  const familyCode = team?.invite_code ?? '';
+  const coachCode = team?.coach_invite_code ?? '';
+  const familyJoinUrl = typeof window !== 'undefined' && familyCode ? `${window.location.origin}/join/${familyCode}` : '';
+  const coachJoinUrl = typeof window !== 'undefined' && coachCode ? `${window.location.origin}/join/${coachCode}` : '';
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
@@ -256,14 +281,17 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
         )}
       </section>
 
-      {/* Section 2: Invite Code — head coach and assistant coaches */}
+      {/* Section 2: Invite Codes — coaches */}
       {canEditTeamInfo && (
-        <section className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Invite code</h2>
-          <div className="bg-slate-800/50 border border-amber-500/30 rounded-xl p-4 space-y-4 max-w-md">
+        <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6">
+          <h2 className="text-lg font-semibold text-white">Invite links</h2>
+
+          {/* Family invite */}
+          <div className="bg-slate-800/50 border border-amber-500/30 rounded-xl p-4 space-y-3 max-w-md">
             <div>
-              <p className="text-slate-400 text-sm font-medium mb-1">Code</p>
-              <p className="text-xl font-mono font-bold text-amber-500">{inviteCode || '—'}</p>
+              <p className="text-amber-500 text-xs font-semibold uppercase tracking-wider mb-1">Family Invite</p>
+              <p className="text-slate-400 text-xs mb-2">Share with parents to link their children</p>
+              <p className="text-xl font-mono font-bold text-amber-500">{familyCode || '—'}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
@@ -271,12 +299,12 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
                 size="sm"
                 className="bg-amber-500 hover:bg-amber-400 text-black min-h-[44px]"
                 onClick={() => {
-                  if (inviteCode) {
-                    navigator.clipboard.writeText(inviteCode);
-                    toast.success('Code copied');
+                  if (familyCode) {
+                    navigator.clipboard.writeText(familyCode);
+                    toast.success('Family code copied');
                   }
                 }}
-                disabled={!inviteCode}
+                disabled={!familyCode}
               >
                 <Copy className="h-4 w-4 mr-2" /> Copy Code
               </Button>
@@ -284,14 +312,14 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
                 type="button"
                 size="sm"
                 variant="outline"
-                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px]"
+                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
                 onClick={() => {
-                  if (fullJoinUrl) {
-                    navigator.clipboard.writeText(fullJoinUrl);
-                    toast.success('Link copied');
+                  if (familyJoinUrl) {
+                    navigator.clipboard.writeText(familyJoinUrl);
+                    toast.success('Family link copied');
                   }
                 }}
-                disabled={!fullJoinUrl}
+                disabled={!familyJoinUrl}
               >
                 <Copy className="h-4 w-4 mr-2" /> Copy Link
               </Button>
@@ -300,16 +328,69 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
                   type="button"
                   size="sm"
                   variant="outline"
-                  className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px]"
+                  className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
                   onClick={() => setRegenerateConfirmOpen(true)}
                   disabled={regenerateCode.isPending}
                 >
                   <RefreshCw className={`h-4 w-4 mr-2 ${regenerateCode.isPending ? 'animate-spin' : ''}`} />
-                  Regenerate Code
+                  Regenerate
                 </Button>
               )}
             </div>
-            <p className="text-slate-500 text-xs">Share the code or link so players and parents can join. {isOwner && 'Regenerating invalidates the current link.'}</p>
+          </div>
+
+          {/* Coach invite */}
+          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 space-y-3 max-w-md">
+            <div>
+              <p className="text-slate-300 text-xs font-semibold uppercase tracking-wider mb-1">Coach Invite</p>
+              <p className="text-slate-400 text-xs mb-2">Share with coaches to join the staff</p>
+              <p className="text-xl font-mono font-bold text-slate-100">{coachCode || '—'}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+                onClick={() => {
+                  if (coachCode) {
+                    navigator.clipboard.writeText(coachCode);
+                    toast.success('Coach code copied');
+                  }
+                }}
+                disabled={!coachCode}
+              >
+                <Copy className="h-4 w-4 mr-2" /> Copy Code
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+                onClick={() => {
+                  if (coachJoinUrl) {
+                    navigator.clipboard.writeText(coachJoinUrl);
+                    toast.success('Coach link copied');
+                  }
+                }}
+                disabled={!coachJoinUrl}
+              >
+                <Copy className="h-4 w-4 mr-2" /> Copy Link
+              </Button>
+              {isOwner && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+                  onClick={() => setRegenerateCoachConfirmOpen(true)}
+                  disabled={regenerateCoachCode.isPending}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${regenerateCoachCode.isPending ? 'animate-spin' : ''}`} />
+                  Regenerate
+                </Button>
+              )}
+            </div>
           </div>
         </section>
       )}
@@ -372,17 +453,17 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
       {!canEditTeamInfo && (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-slate-400">
           <p className="text-sm mb-4">Only coaches can edit team settings.</p>
-          {inviteCode && (
+          {familyCode && (
             <div>
-              <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Invite code</p>
-              <p className="font-mono text-amber-500 mb-2">{inviteCode}</p>
-              <p className="text-slate-500 text-sm break-all mb-2">{fullJoinUrl || '—'}</p>
+              <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Family invite code</p>
+              <p className="font-mono text-amber-500 mb-2">{familyCode}</p>
+              <p className="text-slate-500 text-sm break-all mb-2">{familyJoinUrl || '—'}</p>
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
-                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px]"
-                onClick={() => fullJoinUrl && navigator.clipboard.writeText(fullJoinUrl) && toast.success('Link copied')}
+                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+                onClick={() => familyJoinUrl && navigator.clipboard.writeText(familyJoinUrl) && toast.success('Link copied')}
               >
                 <Copy className="h-4 w-4 mr-2" /> Copy Link
               </Button>
@@ -394,15 +475,32 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
       <AlertDialog open={regenerateConfirmOpen} onOpenChange={setRegenerateConfirmOpen}>
         <AlertDialogContent className="bg-slate-900 border-slate-800">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">Regenerate invite code?</AlertDialogTitle>
+            <AlertDialogTitle className="text-slate-100">Regenerate family invite code?</AlertDialogTitle>
             <AlertDialogDescription className="text-slate-400">
-              The current invite link will stop working. Anyone with the old link will no longer be able to join. Continue?
+              The current family invite link will stop working. Parents with the old link will no longer be able to join. Continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={() => regenerateCode.mutate()} className="bg-amber-500 hover:bg-amber-400 text-black" disabled={regenerateCode.isPending}>
               {regenerateCode.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Regenerate'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={regenerateCoachConfirmOpen} onOpenChange={setRegenerateCoachConfirmOpen}>
+        <AlertDialogContent className="bg-slate-900 border-slate-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-slate-100">Regenerate coach invite code?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              The current coach invite link will stop working. Coaches with the old link will no longer be able to join. Continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => regenerateCoachCode.mutate()} className="bg-amber-500 hover:bg-amber-400 text-black" disabled={regenerateCoachCode.isPending}>
+              {regenerateCoachCode.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Regenerate'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

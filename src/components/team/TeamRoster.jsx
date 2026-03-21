@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserPlus, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { UserPlus, Pencil, Trash2, Loader2, Copy, ArrowUpCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -51,6 +51,7 @@ export default function TeamRoster({ team, members = [], isCoach }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState(null); // null = add, object = edit
   const [deleteConfirmMember, setDeleteConfirmMember] = useState(null);
+  const [promoteConfirmMember, setPromoteConfirmMember] = useState(null);
   const [form, setForm] = useState(emptyForm());
 
   const positions = getPositionsForFormat(team?.format || DEFAULT_FORMAT);
@@ -92,6 +93,23 @@ export default function TeamRoster({ team, members = [], isCoach }) {
       toast.success('Removed from roster');
     },
     onError: (err) => toast.error(err?.message || 'Failed to remove'),
+  });
+
+  const promoteMember = useMutation({
+    mutationFn: async (member) => {
+      const response = await base44.serverFunctions.claimTeamSpot({
+        action: 'promote_to_coach',
+        member_id: member.id,
+      });
+      if (response.error) throw new Error(response.error);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['team-members', team?.id] });
+      setPromoteConfirmMember(null);
+      toast.success('Promoted to coach!');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to promote'),
   });
 
   const openAdd = () => {
@@ -138,7 +156,43 @@ export default function TeamRoster({ team, members = [], isCoach }) {
   return (
     <div className="space-y-4">
       {isCoach && (
-        <div className="flex justify-end">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+              onClick={() => {
+                const code = team?.invite_code;
+                if (code) {
+                  navigator.clipboard.writeText(`${window.location.origin}/join/${code}`);
+                  toast.success('Family link copied');
+                }
+              }}
+              disabled={!team?.invite_code}
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Family Link
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+              onClick={() => {
+                const code = team?.coach_invite_code;
+                if (code) {
+                  navigator.clipboard.writeText(`${window.location.origin}/join/${code}`);
+                  toast.success('Coach link copied');
+                }
+              }}
+              disabled={!team?.coach_invite_code}
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Coach Link
+            </Button>
+          </div>
           <Button
             type="button"
             className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
@@ -199,6 +253,17 @@ export default function TeamRoster({ team, members = [], isCoach }) {
                     {isCoach && (
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
+                          {m.role === 'parent' && (
+                            <button
+                              type="button"
+                              onClick={() => setPromoteConfirmMember(m)}
+                              className="p-1.5 text-slate-400 hover:text-amber-500 transition-colors"
+                              aria-label={`Promote ${m.jersey_name} to coach`}
+                              title="Promote to coach"
+                            >
+                              <ArrowUpCircle className="h-4 w-4" />
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => openEdit(m)}
@@ -316,6 +381,17 @@ export default function TeamRoster({ team, members = [], isCoach }) {
         destructive
         loading={deleteMember.isPending}
         onConfirm={() => deleteMember.mutate(deleteConfirmMember)}
+      />
+
+      {/* Promote to coach confirmation */}
+      <ConfirmDialog
+        open={!!promoteConfirmMember}
+        onOpenChange={(open) => { if (!open) setPromoteConfirmMember(null); }}
+        title="Promote to coach?"
+        description={`Promote ${promoteConfirmMember?.jersey_name || 'this parent'} to coach? They will get full access to the playbook, roster, and settings.`}
+        confirmLabel="Promote"
+        loading={promoteMember.isPending}
+        onConfirm={() => promoteMember.mutate(promoteConfirmMember)}
       />
     </div>
   );

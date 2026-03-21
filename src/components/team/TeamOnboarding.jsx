@@ -52,6 +52,7 @@ export default function TeamOnboarding() {
   const createTeam = useMutation({
     mutationFn: async () => {
       const inviteCode = generateInviteCode();
+      const coachInviteCode = generateInviteCode();
       const payload = {
         name: formData.name.trim(),
         sport: formData.sport || 'flag_football',
@@ -61,6 +62,7 @@ export default function TeamOnboarding() {
         owner_id: currentUser?.id,
         status: 'active',
         invite_code: inviteCode,
+        coach_invite_code: coachInviteCode,
         network_id: formData.linkToNetwork && formData.network_id ? formData.network_id : null,
       };
       const team = await base44.entities.Team.create(payload);
