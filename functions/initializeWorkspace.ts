@@ -228,11 +228,6 @@ async function initFieldService(
   const systemTemplates = (existing || []).filter((t: Record<string, unknown>) => t.is_system === true);
   const systemCount = systemTemplates.length;
 
-  console.log(`[initFieldService] profile=${profileId} | existing=${existingCount} | system=${systemCount} | force=${force}`);
-  if (existingCount > 0) {
-    console.log(`[initFieldService] Existing template IDs:`, (existing || []).map((t: Record<string, unknown>) => `${t.id} (${t.title}, is_system=${t.is_system})`));
-  }
-
   // Skip seeding only if system templates already exist AND force is not set
   if (!force && systemCount >= FS_SYSTEM_TEMPLATES.length) {
     return { initialized: true, templates_created: 0 };

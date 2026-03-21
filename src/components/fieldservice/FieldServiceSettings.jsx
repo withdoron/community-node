@@ -48,14 +48,22 @@ const FEATURE_DEFAULTS = {
   permits_enabled: true,
   subs_enabled: true,
   management_fees_enabled: false,
-  insurance_work_enabled: false,
+  overhead_profit_enabled: false,
+  xactimate_enabled: false,
   payments_enabled: true,
   timeline_enabled: true,
 };
 
 function getFeatures(profile) {
   const f = profile?.features_json || {};
-  return { ...FEATURE_DEFAULTS, ...f };
+  const merged = { ...FEATURE_DEFAULTS, ...f };
+  // Migrate old insurance_work_enabled → split into two toggles
+  if (f.insurance_work_enabled === true && !f.overhead_profit_enabled && !f.xactimate_enabled) {
+    merged.overhead_profit_enabled = true;
+    merged.xactimate_enabled = true;
+  }
+  delete merged.insurance_work_enabled;
+  return merged;
 }
 
 const DEFAULT_TRADE_CATEGORIES = [
@@ -319,7 +327,8 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
             { key: 'permits_enabled', label: 'Permits & Inspections', desc: 'Track building permits, inspection logs, and eBuild links' },
             { key: 'subs_enabled', label: 'Subcontractor Tracking', desc: 'Add subs to estimates, assign to projects, track in People tab' },
             { key: 'management_fees_enabled', label: 'Management Fees', desc: 'Add a percentage-based management fee to estimates' },
-            { key: 'insurance_work_enabled', label: 'Insurance / O&P', desc: 'Add Overhead & Profit percentage for insurance claim estimates' },
+            { key: 'overhead_profit_enabled', label: 'Overhead & Profit (O&P)', desc: 'Add an O&P percentage line to estimates for insurance work' },
+            { key: 'xactimate_enabled', label: 'Xactimate Formatting', desc: 'Group estimate line items by trade category in Xactimate style' },
             { key: 'payments_enabled', label: 'Payment Tracking', desc: 'Track payments received per project' },
             { key: 'timeline_enabled', label: 'Project Timeline', desc: 'Chronological view of project activity' },
           ].map(({ key, label, desc }) => (
@@ -355,7 +364,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
       </Section>
 
       {/* Section: Trade Categories — only when insurance feature is on */}
-      {features.insurance_work_enabled && (
+      {features.xactimate_enabled && (
         <Section icon={FileText} title="Trade Categories">
           <div className="space-y-4">
             <p className="text-sm text-slate-400">

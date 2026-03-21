@@ -790,7 +790,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
       </div>
 
       {/* ═══ Insurance Estimate Toggle — before line items so user sees trade dropdown ═══ */}
-      {features?.insurance_work_enabled === true && (
+      {features?.xactimate_enabled === true && (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div className="flex items-center justify-between gap-4">
             <div>
