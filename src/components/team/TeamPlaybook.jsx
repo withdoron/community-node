@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Plus, BookOpen, Monitor, Zap, Lightbulb, Star } from 'lucide-react';
+import { Plus, BookOpen, Monitor, Zap, Lightbulb, Star, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import PlayCard from './PlayCard';
 import PlayDetail from './PlayDetail';
@@ -10,6 +10,8 @@ import StudyMode from './StudyMode';
 import SidelineMode from './SidelineMode';
 import QuizMode from './QuizMode';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import PrintPlaybookModal from './PrintPlaybookModal';
+import PrintPlaybook from './PrintPlaybook';
 
 // Helper: group plays by formation
 function groupByFormation(plays) {
@@ -35,6 +37,8 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
   const [quizModeOpen, setQuizModeOpen] = useState(false);
   const [quizPlayFilter, setQuizPlayFilter] = useState(null);
   const [archiveConfirmPlay, setArchiveConfirmPlay] = useState(null);
+  const [printModalOpen, setPrintModalOpen] = useState(false);
+  const [printConfig, setPrintConfig] = useState(null);
 
   // Fetch ALL plays for the team (split by status client-side)
   const { data: plays = [] } = useQuery({
@@ -245,6 +249,16 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           >
             <Monitor className="h-4 w-4" />
             <span className="hidden sm:inline">Sideline</span>
+          </button>
+        )}
+        {(isCoach || currentUserMember?.role === 'parent') && playbookPlays.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setPrintModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+          >
+            <Printer className="h-4 w-4" />
+            <span className="hidden sm:inline">Print</span>
           </button>
         )}
       </div>
@@ -470,6 +484,33 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           setArchiveConfirmPlay(null);
         }}
       />
+
+      {/* Print Playbook — config modal */}
+      <PrintPlaybookModal
+        open={printModalOpen}
+        onOpenChange={setPrintModalOpen}
+        plays={playbookPlays}
+        members={members}
+        isCoach={isCoach}
+        currentUserId={currentUserId}
+        onPrint={(config) => {
+          setPrintModalOpen(false);
+          setPrintConfig(config);
+        }}
+      />
+
+      {/* Print Playbook — printable output overlay */}
+      {printConfig && (
+        <PrintPlaybook
+          layout={printConfig.layout}
+          plays={printConfig.plays}
+          groupByFormation={printConfig.groupByFormation}
+          playerId={printConfig.playerId}
+          members={members}
+          assignmentsByPlayId={assignmentsByPlayId}
+          onClose={() => setPrintConfig(null)}
+        />
+      )}
     </div>
   );
 }
