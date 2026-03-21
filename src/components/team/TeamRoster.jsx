@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserPlus, Pencil, Trash2, Loader2, Copy, ArrowUpCircle } from 'lucide-react';
+import { UserPlus, Pencil, Trash2, Loader2, Copy, ArrowUpCircle, Heart } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -46,7 +46,7 @@ const emptyForm = () => ({
   linked_player_id: '',
 });
 
-export default function TeamRoster({ team, members = [], isCoach }) {
+export default function TeamRoster({ team, members = [], isCoach, currentUserId }) {
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState(null); // null = add, object = edit
@@ -110,6 +110,19 @@ export default function TeamRoster({ team, members = [], isCoach }) {
       toast.success('Promoted to coach!');
     },
     onError: (err) => toast.error(err?.message || 'Failed to promote'),
+  });
+
+  const toggleParentLink = useMutation({
+    mutationFn: async ({ member, isLinked }) => {
+      return base44.entities.TeamMember.update(member.id, {
+        parent_user_id: isLinked ? '' : currentUserId,
+      });
+    },
+    onSuccess: (_, { isLinked }) => {
+      queryClient.invalidateQueries({ queryKey: ['team-members', team?.id] });
+      toast.success(isLinked ? 'Unlinked as parent' : 'Linked as your child');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to update'),
   });
 
   const openAdd = () => {
@@ -227,6 +240,7 @@ export default function TeamRoster({ team, members = [], isCoach }) {
                 const linkedPlayer = getLinkedPlayer(m);
                 const linkedParents = getLinkedParents(m);
                 const isUnclaimedPlayer = !m.user_id;
+                const isMyChild = m.role === 'player' && m.parent_user_id === currentUserId;
                 return (
                   <tr key={m.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
                     <td className="px-4 py-3">
@@ -239,6 +253,9 @@ export default function TeamRoster({ team, members = [], isCoach }) {
                       )}
                       {m.role === 'player' && linkedParents.length > 0 && (
                         <span className="inline-block mt-1 text-xs text-slate-400">Parent: {linkedParents.map((p) => p.jersey_name).filter(Boolean).join(', ') || '—'}</span>
+                      )}
+                      {isMyChild && (
+                        <span className="inline-block mt-1 text-xs text-amber-500">Your child</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-slate-400">{m.jersey_number || '—'}</td>
@@ -253,6 +270,17 @@ export default function TeamRoster({ team, members = [], isCoach }) {
                     {isCoach && (
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
+                          {m.role === 'player' && (
+                            <button
+                              type="button"
+                              onClick={() => toggleParentLink.mutate({ member: m, isLinked: isMyChild })}
+                              className={`p-1.5 transition-colors ${isMyChild ? 'text-amber-500' : 'text-slate-400 hover:text-amber-500'}`}
+                              aria-label={isMyChild ? `Unlink ${m.jersey_name} as your child` : `Link ${m.jersey_name} as your child`}
+                              title={isMyChild ? 'Your child — click to unlink' : 'Mark as my child'}
+                            >
+                              <Heart className={`h-4 w-4 ${isMyChild ? 'fill-amber-500' : ''}`} />
+                            </button>
+                          )}
                           {m.role === 'parent' && (
                             <button
                               type="button"

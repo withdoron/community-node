@@ -58,7 +58,38 @@ Deno.serve(async (req) => {
       });
       const existingList = Array.isArray(existing) ? existing : [];
       if (existingList.length > 0) {
-        return Response.json({ error: 'You are already on this team.' }, { status: 409 });
+        // Already a member (e.g. coach) — link children without creating new records
+        const allMembersForLink = await base44.asServiceRole.entities.TeamMember.filter({
+          team_id: team.id,
+          status: 'active',
+        });
+        const memberListForLink = Array.isArray(allMembersForLink) ? allMembersForLink : [];
+        const memberIdSetForLink = new Set(memberListForLink.map((m: { id: string }) => m.id));
+
+        for (const pid of linkedPlayerIds) {
+          if (!memberIdSetForLink.has(pid)) {
+            return Response.json({ error: `Player ${pid} not found on this team` }, { status: 404 });
+          }
+        }
+
+        // Set parent_user_id on each linked player's TeamMember record
+        const linkedNames: string[] = [];
+        for (const playerId of linkedPlayerIds) {
+          const player = memberListForLink.find((m: { id: string }) => m.id === playerId) as Record<string, unknown> | undefined;
+          await base44.asServiceRole.entities.TeamMember.update(playerId, {
+            parent_user_id: user.id,
+          });
+          linkedNames.push((player?.jersey_name as string) || 'Player');
+        }
+
+        return Response.json({
+          success: true,
+          team_id: team.id,
+          role: (existingList[0] as Record<string, unknown>).role,
+          team_name: team.name || 'Team',
+          linked_players: linkedNames,
+          already_member: true,
+        });
       }
 
       // Verify each linked_player_id belongs to this team
@@ -83,7 +114,7 @@ Deno.serve(async (req) => {
           : null;
       const jerseyName = (displayName as string) || (user as Record<string, unknown>).email || 'Parent';
 
-      // Create one parent TeamMember per linked child
+      // Create one parent TeamMember per linked child + set parent_user_id on player
       for (const linkedPlayerId of linkedPlayerIds) {
         await base44.asServiceRole.entities.TeamMember.create({
           team_id: team.id,
@@ -92,6 +123,10 @@ Deno.serve(async (req) => {
           jersey_name: jerseyName,
           status: 'active',
           linked_player_id: linkedPlayerId,
+        });
+        // Also set parent_user_id on the player record for context switching
+        await base44.asServiceRole.entities.TeamMember.update(linkedPlayerId, {
+          parent_user_id: user.id,
         });
       }
 

@@ -194,7 +194,7 @@ export const WORKSPACE_TYPES = {
       { id: 'home', label: 'Home', icon: LayoutDashboard, component: TeamHome, getProps: (scope) => ({ team: scope.team, members: scope.members, onNavigateTab: scope.onNavigateTab, onCopyInviteLink: scope.onCopyInviteLink, currentUserId: scope.currentUserId }) },
       { id: 'playbook', label: 'Playbook', icon: BookOpen, component: TeamPlaybook, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach, currentUserId: scope.currentUserId }) },
       { id: 'schedule', label: 'Schedule', icon: Calendar, component: TeamSchedule, getProps: () => ({}) },
-      { id: 'roster', label: 'Roster', icon: Users, component: TeamRoster, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach }) },
+      { id: 'roster', label: 'Roster', icon: Users, component: TeamRoster, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach, currentUserId: scope.currentUserId }) },
       { id: 'messages', label: 'Messages', icon: MessageSquare, component: TeamMessages, getProps: () => ({}) },
       { id: 'settings', label: 'Settings', icon: Settings, component: TeamSettings, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach, onArchived: scope.onArchived, teamScope: scope }) },
     ],
