@@ -185,7 +185,7 @@ export const WORKSPACE_TYPES = {
     available: true,
     createWizard: 'TeamOnboarding',
     roles: {
-      owner: 'Head Coach',
+      owner: 'Coach',
       co_owner: 'Co-Coach',
       staff: 'Assistant Coach',
       member: 'Player/Parent',

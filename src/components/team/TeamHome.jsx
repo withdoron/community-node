@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Users, BookOpen, Calendar, UserPlus, Share2, MessageSquare, Clock, MapPin, Zap, Trophy, Flame, Heart, Shield } from 'lucide-react';
+import { Users, BookOpen, Calendar, UserPlus, Share2, MessageSquare, Clock, MapPin, Zap, Trophy, Flame, Heart } from 'lucide-react';
 import usePlayerStats from '@/hooks/usePlayerStats';
 import QuizMode from './QuizMode';
 import WorkspaceGuide from '@/components/workspaces/WorkspaceGuide';
@@ -156,17 +156,6 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
   const isCoach = effectiveRole === 'coach';
   const playerPosition = viewingAsMember?.position || members.find((m) => m.user_id === currentUserId)?.position || null;
   const [quizModeOpen, setQuizModeOpen] = useState(false);
-
-  // Head coach: prefer designated head_coach_member_id, fall back to owner's roster record
-  const headCoachName = useMemo(() => {
-    if (team?.head_coach_member_id) {
-      const designated = members.find((m) => m.id === team.head_coach_member_id);
-      if (designated) return designated.jersey_name || 'Coach';
-    }
-    // Fallback: find the owner's roster member
-    const ownerMember = members.find((m) => m.user_id === team?.owner_id && m.role === 'coach');
-    return ownerMember?.jersey_name || null;
-  }, [team?.head_coach_member_id, team?.owner_id, members]);
 
   // ─── Workspace Guide (Activation Protocol Moment 3) ──────────
   const guideDismissed = team?.guide_dismissed === true;
@@ -425,12 +414,6 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
       {/* Team header */}
       <div>
         <h2 className="text-xl font-bold text-slate-100">{team?.name}</h2>
-        {headCoachName && (
-          <p className="text-sm text-slate-400 flex items-center gap-1.5 mt-1">
-            <Shield className="h-3.5 w-3.5 text-amber-500" />
-            Head Coach: {headCoachName}
-          </p>
-        )}
         {season && season !== '—' && <p className="text-sm text-slate-400">{season}</p>}
       </div>
 

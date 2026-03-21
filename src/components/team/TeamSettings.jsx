@@ -314,17 +314,17 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
         </section>
       )}
 
-      {/* Section 3: Transfer Head Coach — head coach only */}
+      {/* Section 3: Transfer Ownership — owner only */}
       {isOwner && (
         <section className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-1">Transfer Head Coach</h2>
+          <h2 className="text-lg font-semibold text-white mb-1">Transfer Ownership</h2>
           <p className="text-slate-400 text-sm mb-4">Transfer ownership of this team to another coach. You will remain a coach.</p>
           {otherCoaches.length === 0 ? (
             <p className="text-slate-500 text-sm">Add another coach to the roster before transferring ownership.</p>
           ) : (
             <>
               <div className="space-y-2 max-w-md mb-4">
-                <Label className="text-slate-300 text-sm font-medium">New head coach</Label>
+                <Label className="text-slate-300 text-sm font-medium">New owner</Label>
                 <select
                   value={transferToUserId || ''}
                   onChange={(e) => setTransferToUserId(e.target.value || null)}

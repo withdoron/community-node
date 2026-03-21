@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Store, Wallet, Ticket, Plus, Loader2, Users, DollarSign, HardHat, Building2 } from "lucide-react";
+import { ArrowLeft, Store, Wallet, Ticket, Plus, Loader2, Users, DollarSign, HardHat, Building2, ChevronRight } from "lucide-react";
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { useRole } from '@/hooks/useRole';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
@@ -31,7 +31,6 @@ import { ARCHETYPE_TITLES, getBusinessTabs, WORKSPACE_TYPES } from '@/config/wor
 import TeamContextSwitcher from '@/components/team/TeamContextSwitcher';
 import { toast } from "sonner";
 import CommunityPulse from '@/components/dashboard/CommunityPulse';
-import IdeasBoard from '@/components/dashboard/IdeasBoard';
 
 // ─── Revolving "Add a ___" Button ────────────────────────────────
 
@@ -623,7 +622,6 @@ export default function BusinessDashboard() {
         </div>
         <div className="max-w-2xl mx-auto px-6 py-8 space-y-6">
           <CommunityPulse />
-          <IdeasBoard currentUser={currentUser} />
 
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
             <h2 className="text-xl font-bold text-slate-100 mb-3">Your Spaces</h2>
@@ -833,9 +831,23 @@ export default function BusinessDashboard() {
           </div>
         </div>
 
-        {/* Shaping the Garden */}
+        {/* Shaping the Garden — link to standalone page */}
         <div className="max-w-7xl mx-auto px-6 pt-6">
-          <IdeasBoard currentUser={currentUser} />
+          <Link
+            to="/shaping"
+            className="block bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-amber-500/50 transition-colors"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-lg">🌱</span>
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-100">Shaping the Garden</h3>
+                  <p className="text-xs text-slate-400">Ideas, seeds, and community growth</p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-slate-400" />
+            </div>
+          </Link>
         </div>
 
         {/* Community Pulse */}
@@ -902,9 +914,7 @@ export default function BusinessDashboard() {
                 {(() => {
                   const memberRecord = (teamMembers || []).find((m) => m.user_id === currentUser?.id);
                   const role = memberRecord?.role;
-                  const isOwner = selectedTeam.owner_id === currentUser?.id;
-                  const isDesignatedHC = selectedTeam.head_coach_member_id ? memberRecord?.id === selectedTeam.head_coach_member_id : isOwner;
-                  const badgeText = isDesignatedHC ? 'HEAD COACH' : (role === 'coach' || role === 'assistant_coach') ? 'COACH' : role === 'player' ? 'PLAYER' : role === 'parent' ? 'PARENT' : 'MEMBER';
+                  const badgeText = (role === 'coach' || role === 'assistant_coach') ? 'COACH' : role === 'player' ? 'PLAYER' : role === 'parent' ? 'PARENT' : 'MEMBER';
                   return <Badge className="ml-2 bg-amber-500 text-black">{badgeText}</Badge>;
                 })()}
               </div>
@@ -1040,7 +1050,7 @@ export default function BusinessDashboard() {
 
     // Parse features config with safe defaults
     const fsFeatures = (() => {
-      const DEFAULTS = { permits_enabled: true, subs_enabled: true, management_fees_enabled: false, insurance_work_enabled: false, payments_enabled: true, timeline_enabled: true };
+      const DEFAULTS = { permits_enabled: true, subs_enabled: true, management_fees_enabled: false, overhead_profit_enabled: false, xactimate_enabled: false, payments_enabled: true, timeline_enabled: true };
       const f = selectedFSProfile.features_json || {};
       return { ...DEFAULTS, ...f };
     })();

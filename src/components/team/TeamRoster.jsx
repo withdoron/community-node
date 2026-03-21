@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UserPlus, Pencil, Trash2, Loader2, Shield } from 'lucide-react';
+import { UserPlus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -82,21 +82,6 @@ export default function TeamRoster({ team, members = [], isCoach }) {
       toast.success(editingMember ? 'Member updated' : 'Added to roster');
     },
     onError: (err) => toast.error(err?.message || 'Failed to save'),
-  });
-
-  const setHeadCoach = useMutation({
-    mutationFn: async (member) => {
-      await base44.entities.Team.update(team.id, { head_coach_member_id: member.id });
-    },
-    onSuccess: () => {
-      // Close modal first so user sees the refreshed roster
-      closeModal();
-      // Refetch team data (header badge, HC designation) and members (role badge)
-      queryClient.refetchQueries({ queryKey: ['dashboard-teams'] });
-      queryClient.refetchQueries({ queryKey: ['team-members', team?.id] });
-      toast.success('Head coach updated');
-    },
-    onError: (err) => toast.error(err?.message || 'Failed to update head coach'),
   });
 
   const deleteMember = useMutation({
@@ -209,11 +194,6 @@ export default function TeamRoster({ team, members = [], isCoach }) {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         <span className={roleBadgeClass(m.role)}>{roleLabel(m.role)}</span>
-                        {m.role === 'coach' && team?.head_coach_member_id === m.id && (
-                          <span className="flex items-center gap-0.5 text-xs text-amber-500">
-                            <Shield className="h-3 w-3" /> HC
-                          </span>
-                        )}
                       </div>
                     </td>
                     {isCoach && (
@@ -312,32 +292,6 @@ export default function TeamRoster({ team, members = [], isCoach }) {
                     <option key={p.id} value={p.id}>{p.jersey_name} {p.jersey_number ? `#${p.jersey_number}` : ''}</option>
                   ))}
                 </select>
-              </div>
-            )}
-            {/* Set as Head Coach — only when editing a coach-role member */}
-            {editingMember && form.role === 'coach' && (
-              <div className="border-t border-slate-800 pt-3">
-                {team?.head_coach_member_id === editingMember.id ? (
-                  <p className="flex items-center gap-1.5 text-xs text-amber-500">
-                    <Shield className="h-3.5 w-3.5" />
-                    This member is the designated Head Coach
-                  </p>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
-                    onClick={() => setHeadCoach.mutate(editingMember)}
-                    disabled={setHeadCoach.isPending}
-                  >
-                    {setHeadCoach.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (
-                      <>
-                        <Shield className="h-4 w-4 mr-2" />
-                        Set as Head Coach
-                      </>
-                    )}
-                  </Button>
-                )}
               </div>
             )}
             <DialogFooter className="gap-2 sm:gap-0">
