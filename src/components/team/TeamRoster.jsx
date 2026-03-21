@@ -114,8 +114,14 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
 
   const toggleParentLink = useMutation({
     mutationFn: async ({ member, isLinked }) => {
+      const current = Array.isArray(member.parent_user_ids)
+        ? [...member.parent_user_ids]
+        : member.parent_user_id ? [member.parent_user_id] : [];
+      const updated = isLinked
+        ? current.filter((id) => id !== currentUserId)
+        : [...current, currentUserId];
       return base44.entities.TeamMember.update(member.id, {
-        parent_user_id: isLinked ? '' : currentUserId,
+        parent_user_ids: updated,
       });
     },
     onSuccess: (_, { isLinked }) => {
@@ -240,7 +246,8 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
                 const linkedPlayer = getLinkedPlayer(m);
                 const linkedParents = getLinkedParents(m);
                 const isUnclaimedPlayer = !m.user_id;
-                const isMyChild = m.role === 'player' && m.parent_user_id === currentUserId;
+                const parentIds = Array.isArray(m.parent_user_ids) ? m.parent_user_ids : m.parent_user_id ? [m.parent_user_id] : [];
+                const isMyChild = m.role === 'player' && parentIds.includes(currentUserId);
                 return (
                   <tr key={m.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
                     <td className="px-4 py-3">

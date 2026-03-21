@@ -72,12 +72,21 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Set parent_user_id on each linked player's TeamMember record
+        // Add user to parent_user_ids array on each linked player's TeamMember record
         const linkedNames: string[] = [];
         for (const playerId of linkedPlayerIds) {
           const player = memberListForLink.find((m: { id: string }) => m.id === playerId) as Record<string, unknown> | undefined;
+          // Read existing array, add if not present
+          const existing_ids = Array.isArray((player as Record<string, unknown>)?.parent_user_ids)
+            ? [...((player as Record<string, unknown>).parent_user_ids as string[])]
+            : (player as Record<string, unknown>)?.parent_user_id
+              ? [(player as Record<string, unknown>).parent_user_id as string]
+              : [];
+          if (!existing_ids.includes(user.id)) {
+            existing_ids.push(user.id);
+          }
           await base44.asServiceRole.entities.TeamMember.update(playerId, {
-            parent_user_id: user.id,
+            parent_user_ids: existing_ids,
           });
           linkedNames.push((player?.jersey_name as string) || 'Player');
         }
@@ -114,7 +123,7 @@ Deno.serve(async (req) => {
           : null;
       const jerseyName = (displayName as string) || (user as Record<string, unknown>).email || 'Parent';
 
-      // Create one parent TeamMember per linked child + set parent_user_id on player
+      // Create one parent TeamMember per linked child + add to parent_user_ids on player
       for (const linkedPlayerId of linkedPlayerIds) {
         await base44.asServiceRole.entities.TeamMember.create({
           team_id: team.id,
@@ -124,9 +133,19 @@ Deno.serve(async (req) => {
           status: 'active',
           linked_player_id: linkedPlayerId,
         });
-        // Also set parent_user_id on the player record for context switching
+        // Add to parent_user_ids array on the player record for context switching
+        const playerRecord = await base44.asServiceRole.entities.TeamMember.get(linkedPlayerId);
+        const pr = playerRecord as Record<string, unknown>;
+        const currentIds = Array.isArray(pr?.parent_user_ids)
+          ? [...(pr.parent_user_ids as string[])]
+          : pr?.parent_user_id
+            ? [pr.parent_user_id as string]
+            : [];
+        if (!currentIds.includes(user.id)) {
+          currentIds.push(user.id);
+        }
         await base44.asServiceRole.entities.TeamMember.update(linkedPlayerId, {
-          parent_user_id: user.id,
+          parent_user_ids: currentIds,
         });
       }
 
