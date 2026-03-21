@@ -36,6 +36,8 @@ export default function PlayBuilder({
   onSave,
   onCancel,
   currentUserId,
+  initialStatus = 'active',
+  createdByName,
 }) {
   const formatId = team?.format || DEFAULT_FORMAT;
   const configPositions = getPositionsForFormat(formatId);
@@ -374,12 +376,12 @@ export default function PlayBuilder({
         formation: formationLabel,
         use_renderer: true,
         is_mirrorable: isMirrorable,
-        game_day: gameDayFlag,
+        game_day: initialStatus === 'experimental' ? false : gameDayFlag,
         tags: tags.join(','),
-        coach_notes: coachNotes.trim() || null,
+        coach_notes: initialStatus === 'experimental' ? null : (coachNotes.trim() || null),
         custom_positions:
           customPositions.length > 0 ? customPositions : null,
-        status: 'active',
+        status: initialPlay ? (initialPlay.status || 'active') : initialStatus,
       };
 
       let playId;
@@ -439,6 +441,9 @@ export default function PlayBuilder({
       } else {
         // Create new play
         playPayload.created_by = currentUserId;
+        if (initialStatus === 'experimental' && createdByName) {
+          playPayload.created_by_name = createdByName;
+        }
         const created = await invoke({ action: 'create', entity_type: 'play', data: playPayload });
         playId = created.id;
 
@@ -710,23 +715,25 @@ export default function PlayBuilder({
             />
           </div>
         </div>
-        <div
-          onClick={() => setGameDayFlag(!gameDayFlag)}
-          className="flex items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-xl cursor-pointer"
-        >
-          <span className="text-slate-300 text-sm">Game Day</span>
+        {initialStatus !== 'experimental' && (
           <div
-            className={`relative w-10 h-5 rounded-full transition-colors ${
-              gameDayFlag ? 'bg-amber-500' : 'bg-slate-700'
-            }`}
+            onClick={() => setGameDayFlag(!gameDayFlag)}
+            className="flex items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-xl cursor-pointer"
           >
-            <span
-              className={`absolute top-0.5 w-4 h-4 rounded-full bg-slate-100 transition-transform ${
-                gameDayFlag ? 'left-5' : 'left-0.5'
+            <span className="text-slate-300 text-sm">Game Day</span>
+            <div
+              className={`relative w-10 h-5 rounded-full transition-colors ${
+                gameDayFlag ? 'bg-amber-500' : 'bg-slate-700'
               }`}
-            />
+            >
+              <span
+                className={`absolute top-0.5 w-4 h-4 rounded-full bg-slate-100 transition-transform ${
+                  gameDayFlag ? 'left-5' : 'left-0.5'
+                }`}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Tags */}
@@ -752,19 +759,21 @@ export default function PlayBuilder({
         </div>
       </div>
 
-      {/* Coach notes */}
-      <div>
-        <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">
-          Coach Notes
-        </p>
-        <textarea
-          value={coachNotes}
-          onChange={(e) => setCoachNotes(e.target.value)}
-          placeholder="Strategy notes — only visible to coaches"
-          rows={2}
-          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none resize-none min-h-[60px]"
-        />
-      </div>
+      {/* Coach notes — hidden for experimental plays */}
+      {initialStatus !== 'experimental' && (
+        <div>
+          <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">
+            Coach Notes
+          </p>
+          <textarea
+            value={coachNotes}
+            onChange={(e) => setCoachNotes(e.target.value)}
+            placeholder="Strategy notes — only visible to coaches"
+            rows={2}
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none resize-none min-h-[60px]"
+          />
+        </div>
+      )}
 
       {/* Save / Cancel */}
       <div className="flex gap-3 pt-2">

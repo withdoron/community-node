@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Pencil, Archive, X, BookOpen, Target, Trash2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Pencil, Archive, BookOpen, Target, Trash2, Loader2, ArrowUpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { parseTags } from './PlayCard';
 import PlayRenderer from '@/components/field/PlayRenderer';
@@ -9,12 +9,15 @@ export default function PlayDetail({
   play,
   assignments = [],
   isCoach,
+  currentUserId,
   playerPosition,
   onClose,
   onEdit,
   onArchive,
   onDelete,
+  onPromote,
   isDeleting = false,
+  isPromoting = false,
   onStudyThisPlay,
   onQuizThisPlay,
   teamFormat,
@@ -30,6 +33,17 @@ export default function PlayDetail({
       return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
     }
   );
+
+  const isExperimental = play?.status === 'experimental';
+  const isOwnExperimental = isExperimental && play?.created_by === currentUserId;
+  // Can edit: coach (anything) or player (own experimental plays)
+  const canEdit = isCoach || isOwnExperimental;
+  // Can archive: coach only (not for players)
+  const canArchive = isCoach && !isExperimental;
+  // Can delete: coach (anything) or player (own experimental plays)
+  const canDelete = isCoach || isOwnExperimental;
+  // Study/Quiz only on official plays
+  const canStudy = !isExperimental;
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950 overflow-y-auto">
@@ -48,14 +62,19 @@ export default function PlayDetail({
             <span className="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded capitalize">
               {play?.side || 'offense'}
             </span>
-            {play?.game_day && (
+            {isExperimental && (
+              <span className="bg-teal-500/20 text-teal-400 text-xs font-medium px-2 py-0.5 rounded-full">
+                Idea
+              </span>
+            )}
+            {play?.game_day && !isExperimental && (
               <span className="bg-amber-500/20 text-amber-500 text-xs font-medium px-2 py-0.5 rounded-full">
                 Game Day
               </span>
             )}
           </div>
           <div className="flex items-center gap-1">
-            {onStudyThisPlay && (
+            {canStudy && onStudyThisPlay && (
               <Button
                 type="button"
                 variant="ghost"
@@ -67,7 +86,7 @@ export default function PlayDetail({
                 <span className="text-sm">Study</span>
               </Button>
             )}
-            {onQuizThisPlay && (
+            {canStudy && onQuizThisPlay && (
               <Button
                 type="button"
                 variant="ghost"
@@ -79,27 +98,27 @@ export default function PlayDetail({
                 <span className="text-sm">Practice</span>
               </Button>
             )}
-            {isCoach && (
-              <>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-400 hover:text-amber-500 p-2"
-                  onClick={() => onEdit?.(play)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-400 hover:text-red-400 p-2"
-                  onClick={() => onArchive?.(play)}
-                >
-                  <Archive className="h-4 w-4" />
-                </Button>
-              </>
+            {canEdit && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-slate-400 hover:text-amber-500 p-2"
+                onClick={() => onEdit?.(play)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            )}
+            {canArchive && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-slate-400 hover:text-red-400 p-2"
+                onClick={() => onArchive?.(play)}
+              >
+                <Archive className="h-4 w-4" />
+              </Button>
             )}
           </div>
         </div>
@@ -108,10 +127,32 @@ export default function PlayDetail({
           <div>
             <h1 className="text-xl font-bold text-white">{play?.name}</h1>
             {play?.nickname && <p className="text-slate-400 text-sm mt-0.5">{play.nickname}</p>}
-            <span className="inline-block mt-2 bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded">
-              {play?.formation || '—'}
-            </span>
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <span className="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded">
+                {play?.formation || '—'}
+              </span>
+              {isExperimental && play?.created_by_name && (
+                <span className="text-slate-500 text-xs">by {play.created_by_name}</span>
+              )}
+            </div>
           </div>
+
+          {/* Promote to Playbook — coach only, experimental plays */}
+          {isCoach && isExperimental && onPromote && (
+            <Button
+              type="button"
+              onClick={() => onPromote(play)}
+              disabled={isPromoting}
+              className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px]"
+            >
+              {isPromoting ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <ArrowUpCircle className="h-4 w-4 mr-2" />
+              )}
+              Add to Playbook
+            </Button>
+          )}
 
           {/* Diagram — visual renderer or photo */}
           {play?.use_renderer ? (
@@ -193,9 +234,7 @@ export default function PlayDetail({
               <div className="space-y-2">
                 {sortedAssignments.map((a) => {
                   const isMyAssignment = playerPosition && a.position === playerPosition;
-                  // Route name: movement_type (visual builder) or route (photo mode)
                   const rawRoute = a.movement_type || a.route || '';
-                  // Format compound routes: "curl-drag" → "Curl → Drag"
                   const routeDisplay = rawRoute
                     ? rawRoute
                         .split('-')
@@ -235,8 +274,8 @@ export default function PlayDetail({
             )}
           </div>
 
-          {/* Delete play — coach only */}
-          {isCoach && onDelete && (
+          {/* Delete play — coach or own experimental */}
+          {canDelete && onDelete && (
             <div className="pt-6 mt-6 border-t border-slate-800">
               {!confirmDelete ? (
                 <Button
@@ -247,12 +286,12 @@ export default function PlayDetail({
                   className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-400 min-h-[44px]"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete play
+                  {isExperimental ? 'Delete idea' : 'Delete play'}
                 </Button>
               ) : (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 space-y-3">
                   <p className="text-red-400 text-sm font-medium">
-                    Delete this play? This cannot be undone.
+                    Delete this {isExperimental ? 'idea' : 'play'}? This cannot be undone.
                   </p>
                   <p className="text-slate-400 text-xs">
                     The play and all {sortedAssignments.length} position assignment{sortedAssignments.length !== 1 ? 's' : ''} will be permanently removed.

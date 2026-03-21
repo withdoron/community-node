@@ -31,10 +31,12 @@ export default function PlayCreateModal({
   onOpenChange,
   teamId,
   createdBy,
+  createdByName,
   defaultSide = 'offense',
   editPlay = null,
   editAssignments = [],
   teamFormat,
+  initialStatus = 'active',
   onSuccess,
 }) {
   const queryClient = useQueryClient();
@@ -182,8 +184,9 @@ export default function PlayCreateModal({
         side: formToUse.side,
         name: formToUse.name.trim(),
         formation,
-        status: 'active',
+        status: editPlay ? editPlay.status : initialStatus,
         created_by: createdBy,
+        ...((!editPlay && initialStatus === 'experimental' && createdByName) ? { created_by_name: createdByName } : {}),
       };
       if (formToUse.nickname?.trim()) payload.nickname = formToUse.nickname.trim();
       if (formToUse.diagram_image) payload.diagram_image = formToUse.diagram_image;
@@ -307,6 +310,8 @@ export default function PlayCreateModal({
               initialPlay={editPlay}
               initialAssignments={assignmentsFromEdit}
               currentUserId={createdBy}
+              initialStatus={editPlay ? (editPlay.status || 'active') : initialStatus}
+              createdByName={createdByName}
               onSave={() => {
                 queryClient.invalidateQueries({ queryKey: ['plays', teamId] });
                 onOpenChange(false);
@@ -437,27 +442,31 @@ export default function PlayCreateModal({
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <Label className="text-slate-400">Game day</Label>
-            <button
-              type="button"
-              role="switch"
-              onClick={() => setForm((f) => ({ ...f, game_day: !f.game_day }))}
-              className={`relative w-11 h-6 rounded-full transition-colors ${form.game_day ? 'bg-amber-500' : 'bg-slate-700'}`}
-            >
-              <span className={`absolute top-1 w-4 h-4 rounded-full bg-slate-100 transition-transform ${form.game_day ? 'left-6' : 'left-1'}`} />
-            </button>
-          </div>
+          {initialStatus !== 'experimental' && (
+            <div className="flex items-center justify-between">
+              <Label className="text-slate-400">Game day</Label>
+              <button
+                type="button"
+                role="switch"
+                onClick={() => setForm((f) => ({ ...f, game_day: !f.game_day }))}
+                className={`relative w-11 h-6 rounded-full transition-colors ${form.game_day ? 'bg-amber-500' : 'bg-slate-700'}`}
+              >
+                <span className={`absolute top-1 w-4 h-4 rounded-full bg-slate-100 transition-transform ${form.game_day ? 'left-6' : 'left-1'}`} />
+              </button>
+            </div>
+          )}
 
-          <div>
-            <Label className="text-slate-400">Coach notes (coaches only)</Label>
-            <Textarea
-              value={form.coach_notes}
-              onChange={(e) => setForm((f) => ({ ...f, coach_notes: e.target.value }))}
-              className="w-full bg-slate-800 border-slate-700 text-white mt-1 min-h-[88px]"
-              placeholder="Strategy notes — only visible to coaches"
-            />
-          </div>
+          {initialStatus !== 'experimental' && (
+            <div>
+              <Label className="text-slate-400">Coach notes (coaches only)</Label>
+              <Textarea
+                value={form.coach_notes}
+                onChange={(e) => setForm((f) => ({ ...f, coach_notes: e.target.value }))}
+                className="w-full bg-slate-800 border-slate-700 text-white mt-1 min-h-[88px]"
+                placeholder="Strategy notes — only visible to coaches"
+              />
+            </div>
+          )}
 
           <div>
             <h4 className="text-sm font-semibold text-white mb-3">Position assignments</h4>

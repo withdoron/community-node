@@ -40,7 +40,12 @@ export default function PlayCard({ play, assignments = [], onClick }) {
             {play?.name}
             {play?.nickname ? <span className="text-slate-400 font-normal"> ({play.nickname})</span> : null}
           </h3>
-          {play?.game_day && (
+          {play?.status === 'experimental' && (
+            <span className="bg-teal-500/20 text-teal-400 text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0">
+              Idea
+            </span>
+          )}
+          {play?.game_day && (play?.status || 'active') !== 'experimental' && (
             <span className="bg-amber-500/20 text-amber-500 text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0">
               Game Day
             </span>
@@ -56,6 +61,9 @@ export default function PlayCard({ play, assignments = [], onClick }) {
             </span>
           ))}
         </div>
+        {play?.created_by_name && play?.status === 'experimental' && (
+          <p className="text-slate-500 text-xs mt-1">by {play.created_by_name}</p>
+        )}
       </div>
     </div>
   );
