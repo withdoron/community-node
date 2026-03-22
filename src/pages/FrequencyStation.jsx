@@ -323,9 +323,8 @@ function ListenTab() {
   const { data: songs = [], isLoading } = useQuery({
     queryKey: ['frequency-songs'],
     queryFn: async () => {
-      const all = await base44.entities.FrequencySong.list();
-      const arr = Array.isArray(all) ? all : [];
-      return arr.filter((s) => s.status === 'published');
+      const all = await base44.entities.FrequencySong.filter({ status: 'published' }).list();
+      return Array.isArray(all) ? all : [];
     },
   });
 
