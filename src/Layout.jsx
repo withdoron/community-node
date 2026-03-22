@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { sanitizeText } from '@/utils/sanitize';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -70,8 +71,8 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
         user_role: isAppAdmin ? 'admin' : 'user',
         page_url: window.location.pathname ?? undefined,
         feedback_type: feedbackType,
-        what_happened: whatHappened.trim(),
-        what_expected: whatExpected?.trim() || undefined,
+        what_happened: sanitizeText(whatHappened.trim()),
+        what_expected: sanitizeText(whatExpected?.trim()) || undefined,
       };
       if (screenshotUrl) payload.screenshot = screenshotUrl;
       await base44.entities.FeedbackLog.create(payload);

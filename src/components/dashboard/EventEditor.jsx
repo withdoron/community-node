@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { format, addMinutes, parseISO, formatDistanceToNow } from "date-fns";
 import { base44 } from "@/api/base44Client";
+import { sanitizeText } from "@/utils/sanitize";
 import { useOrganization } from "@/hooks/useOrganization";
 import { LockedFeature } from "@/components/ui/LockedFeature";
 import { Button } from "@/components/ui/button";
@@ -310,6 +311,9 @@ export default function EventEditor({
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const { validateFile } = await import('@/utils/fileValidation');
+    const check = validateFile(file);
+    if (!check.valid) { toast.error(check.error); return; }
     if ((formData.images || []).length >= 3) {
       toast.error("Maximum 3 images allowed");
       return;
@@ -360,8 +364,8 @@ export default function EventEditor({
     const eventData = {
       ...(existingEvent?.id && { event_id: existingEvent.id }),
       business_id: business.id,
-      title: formData.title.trim(),
-      description: formData.description.trim(),
+      title: sanitizeText(formData.title.trim()),
+      description: sanitizeText(formData.description.trim()),
 
       // Date fields
       date: start.toISOString(), // NOT start_date
@@ -460,7 +464,7 @@ export default function EventEditor({
           : null,
 
       accepts_rsvps: formData.accepts_rsvps,
-      additional_notes: formData.additional_notes?.trim() || null,
+      additional_notes: sanitizeText(formData.additional_notes?.trim()) || null,
 
       network_only: !!(formData.networks?.length > 0 && formData.network_only),
 

@@ -275,9 +275,12 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     },
   });
 
-  const handleDrawerLogoUpload = (e) => {
+  const handleDrawerLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const { validateFile } = await import('@/utils/fileValidation');
+    const check = validateFile(file);
+    if (!check.valid) { toast.error(check.error); return; }
     logoUploadMutation.mutate(file);
     if (logoInputRef.current) logoInputRef.current.value = '';
   };
@@ -299,9 +302,12 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     },
   });
 
-  const handlePhotoUpload = (e) => {
+  const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const { validateFile } = await import('@/utils/fileValidation');
+    const check = validateFile(file);
+    if (!check.valid) { toast.error(check.error); return; }
     photoUploadMutation.mutate(file);
     if (photoInputRef.current) photoInputRef.current.value = '';
   };
@@ -322,18 +328,24 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     },
   });
 
-  const handleBannerUpload = (e) => {
+  const handleBannerUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const { validateFile } = await import('@/utils/fileValidation');
+    const check = validateFile(file);
+    if (!check.valid) { toast.error(check.error); return; }
     bannerUploadMutation.mutate(file);
     if (bannerInputRef.current) bannerInputRef.current.value = '';
   };
 
-  // Hard delete: remove record permanently (Business.delete). Fallback to soft delete if delete not available.
+  // Server-side cascade delete via manageBusinessWorkspace
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const { deleteBusinessCascade } = await import('@/utils/deleteBusinessCascade');
-      await deleteBusinessCascade(business.id);
+      const result = await base44.functions.invoke('manageBusinessWorkspace', {
+        action: 'delete_workspace_cascade',
+        business_id: business.id,
+      });
+      if (result?.error) throw new Error(result.error);
       await base44.entities.AdminAuditLog.create({
         admin_email: adminEmail,
         business_id: business.id,

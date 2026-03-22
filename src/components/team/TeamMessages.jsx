@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { sanitizeText } from '@/utils/sanitize';
 import { toast } from 'sonner';
 import { MessageSquare, Send, Pin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -79,7 +80,7 @@ export default function TeamMessages({ teamId, teamScope }) {
       return base44.entities.TeamMessage.create({
         team_id: teamId,
         user_id: currentUserId,
-        message: text,
+        message: sanitizeText(text),
         message_type: type,
         pinned: !!pinned,
       });

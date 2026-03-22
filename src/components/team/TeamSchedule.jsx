@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { sanitizeText } from '@/utils/sanitize';
 import { toast } from 'sonner';
 import {
   Calendar,
@@ -230,13 +231,13 @@ export default function TeamSchedule({ teamId, teamScope }) {
   const handleSave = () => {
     const payload = {
       event_type: form.event_type,
-      title: form.title,
+      title: sanitizeText(form.title),
       start_date: form.start_date || null,
       start_time: form.start_time || null,
       duration_minutes: form.duration_minutes,
-      location: form.location || null,
-      opponent: ['game', 'scrimmage'].includes(form.event_type) ? (form.opponent || null) : null,
-      notes: form.notes || null,
+      location: sanitizeText(form.location) || null,
+      opponent: ['game', 'scrimmage'].includes(form.event_type) ? (sanitizeText(form.opponent) || null) : null,
+      notes: sanitizeText(form.notes) || null,
       recurring_rule: form.recurring ? `${form.recurring_pattern || 'weekly'}:${(form.recurring_days || []).join(',')}` : null,
       recurring_end_date: form.recurring && form.recurring_end_date ? form.recurring_end_date : null,
     };

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
+import { sanitizeText } from '@/utils/sanitize';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -92,7 +93,7 @@ function RecurringForm({ open, onOpenChange, profile, currentUser, recurring }) 
         user_id: currentUser.id,
         type,
         amount: parseFloat(amount),
-        description: description.trim(),
+        description: sanitizeText(description.trim()),
         frequency,
         day_of_month: parseInt(dayOfMonth, 10) || 1,
         context,

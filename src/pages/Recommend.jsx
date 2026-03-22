@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { sanitizeText } from '@/utils/sanitize';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -141,8 +142,8 @@ export default function Recommend() {
           business_id: businessId,
           user_id: currentUser.id,
           type: 'story',
-          service_used: serviceUsed,
-          content,
+          service_used: sanitizeText(serviceUsed),
+          content: sanitizeText(content),
           photos,
           is_active: true,
         },
@@ -188,12 +189,12 @@ export default function Recommend() {
           business_id: businessId,
           user_id: currentUser.id,
           type: 'vouch',
-          service_used: vouchServiceUsed.trim(),
+          service_used: sanitizeText(vouchServiceUsed.trim()),
           content: JSON.stringify({
-            approximate_date: vouchDate.trim(),
+            approximate_date: sanitizeText(vouchDate.trim()),
             hire_again: vouchHireAgain,
             relationship: vouchRelationship,
-            statement: vouchStatement.trim(),
+            statement: sanitizeText(vouchStatement.trim()),
           }),
           is_active: true,
         },
@@ -219,11 +220,14 @@ export default function Recommend() {
   });
 
   const handlePhotoUpload = async (e) => {
+    const { validateFile } = await import('@/utils/fileValidation');
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
     setUploading(true);
     const uploadedUrls = [];
     for (const file of files) {
+      const check = validateFile(file);
+      if (!check.valid) { toast.error(check.error); continue; }
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       uploadedUrls.push(file_url);
     }

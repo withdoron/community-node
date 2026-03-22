@@ -144,6 +144,9 @@ export default function PlayCreateModal({
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const { validateFile } = await import('@/utils/fileValidation');
+    const check = validateFile(file);
+    if (!check.valid) { toast.error(check.error); return; }
     setUploading(true);
     try {
       const result = await base44.integrations?.Core?.UploadFile?.({ file });

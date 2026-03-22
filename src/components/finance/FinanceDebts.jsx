@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
+import { sanitizeText } from '@/utils/sanitize';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,14 +53,14 @@ function DebtForm({ open, onOpenChange, profile, currentUser, debt }) {
       const payload = {
         profile_id: profile.id,
         user_id: currentUser.id,
-        name: name.trim(),
+        name: sanitizeText(name.trim()),
         original_amount: parseFloat(originalAmount) || 0,
         current_balance: parseFloat(currentBalance) || 0,
         interest_rate: parseFloat(interestRate) || 0,
         minimum_payment: parseFloat(minimumPayment) || 0,
         status: 'active',
         priority: debt?.priority ?? 999,
-        notes: notes.trim() || null,
+        notes: sanitizeText(notes.trim()) || null,
       };
       if (isEdit) {
         return base44.entities.Debt.update(debt.id, payload);

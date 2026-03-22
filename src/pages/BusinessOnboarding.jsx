@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { sanitizeText } from '@/utils/sanitize';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,10 @@ export default function BusinessOnboarding() {
       optionalFields.forEach((key) => {
         if (payload[key] === '' || payload[key] == null) delete payload[key];
       });
+      // Sanitize user-provided text fields
+      if (payload.name) payload.name = sanitizeText(payload.name);
+      if (payload.description) payload.description = sanitizeText(payload.description);
+      if (payload.services_offered) payload.services_offered = sanitizeText(payload.services_offered);
       const business = await base44.entities.Business.create({
         ...payload,
         archetype: payload.archetype || null,

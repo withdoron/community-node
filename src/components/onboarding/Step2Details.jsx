@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -102,11 +103,14 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
 
   const handlePhotoUpload = async (files) => {
     if (files.length === 0) return;
+    const { validateFile } = await import('@/utils/fileValidation');
 
     setUploading(true);
     const uploadedUrls = [];
 
     for (const file of files) {
+      const check = validateFile(file);
+      if (!check.valid) { toast.error(check.error); continue; }
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       uploadedUrls.push(file_url);
     }

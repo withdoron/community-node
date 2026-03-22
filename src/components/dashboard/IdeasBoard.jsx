@@ -107,9 +107,10 @@ function IdeaSubmitForm({ currentUser }) {
 
   const submitMutation = useMutation({
     mutationFn: async () => {
+      const { sanitizeText } = await import('@/utils/sanitize');
       await base44.entities.Idea.create({
-        title: title.trim(),
-        description: description.trim(),
+        title: sanitizeText(title.trim()),
+        description: sanitizeText(description.trim()),
         author_id: currentUser.id,
         author_name: getDisplayName(currentUser),
         status: 'proposed',

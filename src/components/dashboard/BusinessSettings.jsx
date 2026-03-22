@@ -221,6 +221,9 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const { validateFile } = await import('@/utils/fileValidation');
+    const check = validateFile(file);
+    if (!check.valid) { toast.error(check.error); return; }
     logoUploadMutation.mutate(file);
     if (logoInputRef.current) logoInputRef.current.value = '';
   };
@@ -228,6 +231,9 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
   const handleBannerUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const { validateFile } = await import('@/utils/fileValidation');
+    const check = validateFile(file);
+    if (!check.valid) { toast.error(check.error); return; }
     bannerUploadMutation.mutate(file);
     if (bannerInputRef.current) bannerInputRef.current.value = '';
   };

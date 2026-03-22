@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
+import { validateFile } from '@/utils/fileValidation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import VoiceInput from './VoiceInput';
@@ -121,13 +122,13 @@ export default function FieldServiceLog({ profile, currentUser }) {
   // ─── Photo capture ────────────────────────────
   const handlePhotoCapture = (e) => {
     const files = Array.from(e.target.files || []);
-    const newPhotos = files.map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-      caption: '',
-      phase: phases[0] || '',
-    }));
-    setPhotos((prev) => [...prev, ...newPhotos]);
+    const validPhotos = [];
+    for (const file of files) {
+      const check = validateFile(file);
+      if (!check.valid) { toast.error(check.error); continue; }
+      validPhotos.push({ file, preview: URL.createObjectURL(file), caption: '', phase: phases[0] || '' });
+    }
+    if (validPhotos.length) setPhotos((prev) => [...prev, ...validPhotos]);
     e.target.value = '';
   };
 
@@ -164,6 +165,8 @@ export default function FieldServiceLog({ profile, currentUser }) {
   const handleReceiptPhoto = (idx, e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const check = validateFile(file, { acceptedTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'] });
+    if (!check.valid) { toast.error(check.error); return; }
     updateMaterial(idx, 'receipt_photo', file);
     updateMaterial(idx, 'receipt_preview', URL.createObjectURL(file));
     e.target.value = '';

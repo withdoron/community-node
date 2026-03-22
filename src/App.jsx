@@ -1,4 +1,5 @@
 import './App.css'
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as SonnerToaster } from 'sonner'
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -206,13 +207,15 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <NavigationTracker />
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
-        <SonnerToaster position="top-center" richColors />
-        <VisualEditAgent />
+        <ErrorBoundary>
+          <Router>
+            <NavigationTracker />
+            <AuthenticatedApp />
+          </Router>
+          <Toaster />
+          <SonnerToaster position="top-center" richColors />
+          <VisualEditAgent />
+        </ErrorBoundary>
       </QueryClientProvider>
     </AuthProvider>
   )

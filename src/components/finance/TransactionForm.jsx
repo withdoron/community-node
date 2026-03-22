@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { sanitizeText } from '@/utils/sanitize';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -80,10 +81,10 @@ export default function TransactionForm({
         type,
         amount: parseFloat(amount),
         date,
-        description: description.trim(),
+        description: sanitizeText(description.trim()),
         category,
         context,
-        notes: notes.trim() || null,
+        notes: sanitizeText(notes.trim()) || null,
         source_node: 'manual',
         is_recurring_instance: false,
       };

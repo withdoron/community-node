@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { sanitizeText } from '@/utils/sanitize';
 import {
   Dialog,
   DialogContent,
@@ -187,17 +188,17 @@ export default function MaintenanceRequestForm({
     e.preventDefault();
     if (!validate()) return;
     const payload = {
-      title: form.title.trim(),
-      description: form.description.trim() || null,
+      title: sanitizeText(form.title.trim()),
+      description: sanitizeText(form.description.trim()) || null,
       property_id: form.property_id,
       priority: form.priority,
       status: form.status,
       reported_date: form.reported_date,
-      assigned_to: form.assigned_to.trim() || null,
+      assigned_to: sanitizeText(form.assigned_to.trim()) || null,
       estimated_cost: form.estimated_cost !== '' ? Number(form.estimated_cost) : null,
       actual_cost: form.actual_cost !== '' ? Number(form.actual_cost) : null,
       completed_date: form.completed_date || null,
-      notes: form.notes.trim() || null,
+      notes: sanitizeText(form.notes.trim()) || null,
       photos: photos.length > 0 ? JSON.stringify(photos) : null,
       completion_photos: completionPhotos.length > 0 ? JSON.stringify(completionPhotos) : null,
     };

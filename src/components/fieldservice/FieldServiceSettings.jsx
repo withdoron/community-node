@@ -301,9 +301,16 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
     onError: (err) => toast.error(err?.message || 'Failed to save'),
   });
 
-  // ─── Delete workspace ────────────────────────────
+  // ─── Delete workspace (server-side cascade) ────────────────────────────
   const deleteWorkspace = useMutation({
-    mutationFn: () => base44.entities.FieldServiceProfile.delete(profile.id),
+    mutationFn: async () => {
+      const result = await base44.functions.invoke('manageFieldServiceWorkspace', {
+        action: 'delete_workspace_cascade',
+        profile_id: profile.id,
+      });
+      if (result?.error) throw new Error(result.error);
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
       toast.success('Workspace deleted');
@@ -596,6 +603,9 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
+                        const { validateFile } = await import('@/utils/fileValidation');
+                        const check = validateFile(file);
+                        if (!check.valid) { toast.error(check.error); return; }
                         setLogoUploading(true);
                         try {
                           const result = await base44.integrations.Core.UploadFile({ file });

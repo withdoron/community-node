@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { sanitizeText } from '@/utils/sanitize';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,9 +29,9 @@ export default function ConcernForm({ businessId, businessName, onClose, onSucce
         action: 'create_concern',
         data: {
           business_id: businessId,
-          description: description.trim(),
-          desired_resolution: desiredResolution.trim() || undefined,
-          approximate_date: approximateDate.trim() || undefined,
+          description: sanitizeText(description.trim()),
+          desired_resolution: sanitizeText(desiredResolution.trim()) || undefined,
+          approximate_date: sanitizeText(approximateDate.trim()) || undefined,
         },
       });
 

@@ -524,11 +524,15 @@ export default function BusinessDashboard() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [activeTab, selectedBusinessId, selectedTeamId, selectedFinanceId, selectedFieldServiceId, selectedPropertyMgmtId]);
 
-  // Hard delete: Business.delete(id) removes record permanently. Fallback to soft delete if delete not available.
+  // Server-side cascade delete via manageBusinessWorkspace
   const deleteMutation = useMutation({
     mutationFn: async (businessId) => {
-      const { deleteBusinessCascade } = await import('@/utils/deleteBusinessCascade');
-      await deleteBusinessCascade(businessId);
+      const result = await base44.functions.invoke('manageBusinessWorkspace', {
+        action: 'delete_workspace_cascade',
+        business_id: businessId,
+      });
+      if (result?.error) throw new Error(result.error);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUser?.id] });

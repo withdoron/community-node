@@ -82,6 +82,9 @@ export default function ConfigSection({ domain, configType, title }) {
   const handleNetworkImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const { validateFile } = await import('@/utils/fileValidation');
+    const check = validateFile(file);
+    if (!check.valid) { toast.error(check.error); return; }
     setUploadingImage(true);
     try {
       const result = await base44.integrations.Core.UploadFile({ file });
@@ -103,6 +106,9 @@ export default function ConfigSection({ domain, configType, title }) {
   const handleGalleryUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const { validateFile } = await import('@/utils/fileValidation');
+    const check = validateFile(file);
+    if (!check.valid) { toast.error(check.error); return; }
     setUploadingGallery(true);
     try {
       const result = await base44.integrations.Core.UploadFile({ file });

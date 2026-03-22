@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import { sanitizeText } from '@/utils/sanitize';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
@@ -99,12 +100,12 @@ function SubmitTab({ user, onSubmitSuccess }) {
     mutationFn: async () => {
       const payload = {
         user_id: user.id,
-        raw_text: rawText.trim(),
+        raw_text: sanitizeText(rawText.trim()),
         theme: theme || 'custom',
-        custom_theme: theme === 'custom' ? customTheme.trim() : '',
+        custom_theme: theme === 'custom' ? sanitizeText(customTheme.trim()) : '',
         is_anonymous: isAnonymous,
-        dedication: dedication.trim() || '',
-        title_suggestion: titleSuggestion.trim() || '',
+        dedication: sanitizeText(dedication.trim()) || '',
+        title_suggestion: sanitizeText(titleSuggestion.trim()) || '',
         status: 'submitted',
         admin_seen: false,
       };
