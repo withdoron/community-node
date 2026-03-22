@@ -1,3 +1,4 @@
+// Frequency Station — Phase 2 live, first song "Come Alive" published 2026-03-22
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
