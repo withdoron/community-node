@@ -136,14 +136,26 @@ export default function BusinessCard({ business }) {
       {networks.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-3">
           {networks.map(({ slug, label }) => (
-            <Link
+            <span
               key={slug}
-              to={`/networks/${slug}`}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-amber-500/10 text-amber-500 text-xs px-2 py-0.5 rounded-full hover:bg-amber-500/20 transition-colors"
+              role="link"
+              tabIndex={0}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = `/networks/${slug}`;
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  window.location.href = `/networks/${slug}`;
+                }
+              }}
+              className="bg-amber-500/10 text-amber-500 text-xs px-2 py-0.5 rounded-full hover:bg-amber-500/20 transition-colors cursor-pointer"
             >
               {label}
-            </Link>
+            </span>
           ))}
         </div>
       )}

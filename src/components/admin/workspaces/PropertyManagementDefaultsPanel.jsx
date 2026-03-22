@@ -9,7 +9,7 @@ export default function PropertyManagementDefaultsPanel({ isAdmin }) {
     queryKey: ['admin-pm-profiles'],
     queryFn: async () => {
       try {
-        const list = await base44.entities.PropertyManagementProfile.list('-created_date', 500);
+        const list = await base44.entities.PMPropertyProfile.list('-created_date', 500);
         return Array.isArray(list) ? list : [];
       } catch {
         return [];
