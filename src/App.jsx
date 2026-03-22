@@ -22,6 +22,7 @@ import ClientPortal from '@/pages/ClientPortal';
 import JoinFieldService from '@/pages/JoinFieldService';
 import JoinPM from '@/pages/JoinPM';
 import FrequencyStation from '@/pages/FrequencyStation';
+import SongDetail from '@/pages/SongDetail';
 import ShapingTheGarden from '@/pages/ShapingTheGarden';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
@@ -193,6 +194,14 @@ const AuthenticatedApp = () => {
         element={
           <LayoutWrapper currentPageName="Frequency">
             <FrequencyStation />
+          </LayoutWrapper>
+        }
+      />
+      <Route
+        path="/frequency/:slug"
+        element={
+          <LayoutWrapper currentPageName="Frequency">
+            <SongDetail />
           </LayoutWrapper>
         }
       />
