@@ -245,9 +245,27 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Settlement is already finalized' }, { status: 409 });
       }
 
+      // Validate ownership stakes sum to 100% before finalizing
+      const groupId = settlement.group_id as string;
+      if (groupId) {
+        const allStakes = await safeFilter(entities.PMOwnershipStake, { profile_id: profile_id as string });
+        const groupStakes = allStakes.filter((s) => s.group_id === groupId);
+        if (groupStakes.length > 0) {
+          const totalPct = groupStakes.reduce((sum, s) => sum + (Number(s.ownership_pct) || 0), 0);
+          const rounded = Math.round(totalPct * 100) / 100;
+          if (rounded !== 100) {
+            return Response.json({
+              error: `Ownership stakes for this group total ${rounded}%, not 100%. Fix stakes before finalizing.`,
+              total_pct: rounded,
+            }, { status: 400 });
+          }
+        }
+      }
+
       try {
         const updated = await entities.PMSettlement.update(settlementId, {
           status: 'finalized',
+          locked: true,
           finalized_at: new Date().toISOString(),
           gross_rent: calculatedData.gross_rent,
           total_fixed_expenses: calculatedData.total_fixed_expenses,
@@ -290,6 +308,7 @@ Deno.serve(async (req) => {
       try {
         const updated = await entities.PMSettlement.update(settlementId, {
           status: 'draft',
+          locked: false,
           finalized_at: null,
         });
 
@@ -368,6 +387,31 @@ Deno.serve(async (req) => {
         success: true,
         created,
         skipped_duplicates: skippedDuplicates,
+      });
+    }
+
+    // ── validate_ownership_stakes ────────────────────────────────────
+    if (action === 'validate_ownership_stakes') {
+      const groupId = body.group_id as string;
+      if (!groupId) {
+        return Response.json({ error: 'group_id is required' }, { status: 400 });
+      }
+
+      const group = await entities.PMPropertyGroup.get(groupId);
+      if (!group || group.profile_id !== profile_id) {
+        return Response.json({ error: 'Group not found in this workspace' }, { status: 404 });
+      }
+
+      const allStakes = await safeFilter(entities.PMOwnershipStake, { profile_id: profile_id as string });
+      const groupStakes = allStakes.filter((s) => s.group_id === groupId);
+      const totalPct = groupStakes.reduce((sum, s) => sum + (Number(s.ownership_pct) || 0), 0);
+      const rounded = Math.round(totalPct * 100) / 100;
+
+      return Response.json({
+        success: true,
+        total_pct: rounded,
+        valid: rounded === 100,
+        stake_count: groupStakes.length,
       });
     }
 

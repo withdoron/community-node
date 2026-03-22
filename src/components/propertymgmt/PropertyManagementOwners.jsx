@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Users, Plus } from 'lucide-react';
+import { Users, Plus, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -277,6 +277,34 @@ export default function PropertyManagementOwners({ profile, currentUser }) {
           <Plus className="w-4 h-4" /> Add Owner
         </Button>
       </div>
+
+      {/* Ownership stake warnings */}
+      {groups.length > 0 && stakes.length > 0 && (() => {
+        const warnings = groups
+          .map((g) => {
+            const total = Math.round((ownershipTotalByGroup[g.id] || 0) * 100) / 100;
+            if (total === 100 || total === 0) return null;
+            return { name: g.name, total };
+          })
+          .filter(Boolean);
+        if (warnings.length === 0) return null;
+        return (
+          <div className="space-y-2">
+            {warnings.map((w) => (
+              <div
+                key={w.name}
+                className="flex items-center gap-2 px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-lg"
+              >
+                <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <p className="text-sm text-amber-400">
+                  Ownership stakes for <span className="font-semibold">{w.name}</span> total{' '}
+                  <span className="font-semibold">{w.total}%</span> — must equal 100% before settlement finalization.
+                </p>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* Content */}
       {sortedOwners.length === 0 ? (

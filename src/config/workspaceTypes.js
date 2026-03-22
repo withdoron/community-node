@@ -256,9 +256,10 @@ export const WORKSPACE_TYPES = {
     createWizard: 'PropertyManagementOnboarding',
     roles: {
       admin: 'Admin',
-      owner: 'Property Manager',
-      staff: 'Owner',
-      member: 'Tenant',
+      property_manager: 'Property Manager',
+      owner: 'Property Owner',
+      tenant: 'Tenant',
+      worker: 'Worker',
     },
     tabs: [
       { id: 'home', label: 'Home', icon: Home, component: PropertyManagementHome, getProps: (scope) => scope },
