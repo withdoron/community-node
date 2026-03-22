@@ -21,8 +21,19 @@ export default function TenantEditDialog({ open, onClose, tenant, onSave }) {
   const [leaseStart, setLeaseStart] = useState('');
   const [leaseEnd, setLeaseEnd] = useState('');
 
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const newErrors = {};
+    if (email && email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) newErrors.tenant_email = 'Invalid email format';
+    if (leaseStart && leaseEnd && leaseEnd < leaseStart) newErrors.lease_end = 'Lease end must be after lease start';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   useEffect(() => {
     if (open && tenant) {
+      setErrors({});
       setName(tenant.tenant_name || '');
       setEmail(tenant.tenant_email || '');
       setPhone(tenant.tenant_phone || '');
@@ -33,6 +44,7 @@ export default function TenantEditDialog({ open, onClose, tenant, onSave }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validate()) return;
     if (!tenant) return;
     onSave(tenant.property_id, {
       tenant_name: name.trim(),
@@ -72,6 +84,7 @@ export default function TenantEditDialog({ open, onClose, tenant, onSave }) {
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
               />
+              {errors.tenant_email && <p className="text-red-400 text-xs mt-1">{errors.tenant_email}</p>}
             </div>
             <div>
               <Label className="text-slate-400">Phone</Label>
@@ -101,6 +114,7 @@ export default function TenantEditDialog({ open, onClose, tenant, onSave }) {
                 onChange={(e) => setLeaseEnd(e.target.value)}
                 className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
               />
+              {errors.lease_end && <p className="text-red-400 text-xs mt-1">{errors.lease_end}</p>}
             </div>
           </div>
 

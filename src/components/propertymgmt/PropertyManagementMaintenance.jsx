@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
 import MaintenanceFilters from './MaintenanceFilters';
 import MaintenanceRequestCard from './MaintenanceRequestCard';
@@ -70,6 +71,7 @@ export default function PropertyManagementMaintenance({ profile, currentUser, me
         }
       } catch (err) {
         console.error('Maintenance data load error:', err);
+        toast.error('Failed to load maintenance data. Please try again.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -143,9 +145,11 @@ export default function PropertyManagementMaintenance({ profile, currentUser, me
       }
       setFormOpen(false);
       setEditingRequest(null);
+      toast.success('Maintenance request saved.');
       refresh();
     } catch (err) {
       console.error('Maintenance save error:', err);
+      toast.error('Failed to save maintenance request. Please try again.');
     }
   };
 
@@ -154,9 +158,11 @@ export default function PropertyManagementMaintenance({ profile, currentUser, me
       await base44.entities.PMMaintenanceRequest.update(request.id, {
         status: newStatus,
       });
+      toast.success('Status updated.');
       refresh();
     } catch (err) {
       console.error('Status change error:', err);
+      toast.error('Failed to update status. Please try again.');
     }
   };
 
@@ -204,9 +210,11 @@ export default function PropertyManagementMaintenance({ profile, currentUser, me
 
       setCompleteDialogOpen(false);
       setCompletingRequest(null);
+      toast.success('Request marked complete.');
       refresh();
     } catch (err) {
       console.error('Complete request error:', err);
+      toast.error('Failed to complete request. Please try again.');
     }
   };
 
@@ -215,9 +223,11 @@ export default function PropertyManagementMaintenance({ profile, currentUser, me
     try {
       await base44.entities.PMMaintenanceRequest.delete(deleteTarget.id);
       setDeleteTarget(null);
+      toast.success('Maintenance request deleted.');
       refresh();
     } catch (err) {
       console.error('Delete error:', err);
+      toast.error('Failed to delete request. Please try again.');
     }
   };
 

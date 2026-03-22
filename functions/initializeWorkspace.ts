@@ -282,12 +282,68 @@ async function initFinance(
   return { initialized: true, templates_created: 0 };
 }
 
+// PM default data — seeded on workspace creation
+const PM_DEFAULTS = {
+  expense_categories: [
+    'rent', 'security_deposit', 'late_fee', 'property_tax', 'water_sewer',
+    'insurance', 'electric', 'gas', 'repairs', 'supplies', 'mileage',
+    'management_fee', 'cleaning', 'landscaping', 'pest_control', 'hoa', 'other',
+  ],
+  maintenance_categories: [
+    'plumbing', 'electrical', 'appliance', 'hvac', 'structural',
+    'exterior', 'landscaping', 'pest', 'cleaning', 'safety', 'general',
+  ],
+  property_types: [
+    'single_family', 'duplex_unit', 'triplex_unit', 'apartment',
+    'short_term', 'commercial', 'other',
+  ],
+  reserve_defaults: {
+    management_fee_pct: 10,
+    maintenance_reserve_pct: 10,
+    emergency_reserve_pct: 5,
+  },
+};
+
 async function initPropertyManagement(
-  _base44: Awaited<ReturnType<typeof createClientFromRequest>>,
-  _profileId: string,
+  base44: Awaited<ReturnType<typeof createClientFromRequest>>,
+  profileId: string,
+  force = false,
 ): Promise<InitResult> {
-  // Add default seeding for property management workspaces here as the workspace grows
-  return { initialized: true, templates_created: 0 };
+  // Check if already seeded (idempotent)
+  const profile = await base44.asServiceRole.entities.PMPropertyProfile.get(profileId);
+  if (!profile) {
+    return { initialized: false, templates_created: 0, errors: ['Profile not found'] };
+  }
+
+  // Skip if already seeded (has expense categories) and force is not set
+  if (!force && profile.default_expense_categories) {
+    return { initialized: true, templates_created: 0 };
+  }
+
+  let seeded = 0;
+  const errors: string[] = [];
+
+  try {
+    await base44.asServiceRole.entities.PMPropertyProfile.update(profileId, {
+      default_expense_categories: JSON.stringify(PM_DEFAULTS.expense_categories),
+      default_maintenance_categories: JSON.stringify(PM_DEFAULTS.maintenance_categories),
+      default_property_types: JSON.stringify(PM_DEFAULTS.property_types),
+      default_mgmt_fee_pct: profile.default_mgmt_fee_pct ?? PM_DEFAULTS.reserve_defaults.management_fee_pct,
+      default_maint_reserve_pct: profile.default_maint_reserve_pct ?? PM_DEFAULTS.reserve_defaults.maintenance_reserve_pct,
+      default_emerg_reserve_pct: profile.default_emerg_reserve_pct ?? PM_DEFAULTS.reserve_defaults.emergency_reserve_pct,
+    });
+    seeded++;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[initPropertyManagement] Failed to seed defaults:', message);
+    errors.push(`Defaults: ${message}`);
+  }
+
+  return {
+    initialized: true,
+    templates_created: seeded,
+    ...(errors.length > 0 ? { errors } : {}),
+  };
 }
 
 const INITIALIZERS: Record<string, (

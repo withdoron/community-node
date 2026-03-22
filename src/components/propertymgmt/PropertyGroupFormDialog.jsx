@@ -35,8 +35,19 @@ export default function PropertyGroupFormDialog({ open, onClose, group, onSave }
     insurance_notes: '',
   });
 
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const newErrors = {};
+    if (!form.name || form.name.trim().length < 2) newErrors.name = 'Name is required (min 2 characters)';
+    if (!form.address || !form.address.trim()) newErrors.address = 'Address is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   useEffect(() => {
     if (open) {
+      setErrors({});
       if (group) {
         setForm({
           name: group.name ?? '',
@@ -71,6 +82,7 @@ export default function PropertyGroupFormDialog({ open, onClose, group, onSave }
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validate()) return;
     const payload = {
       ...form,
       management_fee_pct: Number(form.management_fee_pct) || 10,
@@ -101,6 +113,7 @@ export default function PropertyGroupFormDialog({ open, onClose, group, onSave }
               onChange={(e) => set('name', e.target.value)}
               required
             />
+            {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
           </div>
           <div>
             <label className={labelClass}>Address *</label>
@@ -111,6 +124,7 @@ export default function PropertyGroupFormDialog({ open, onClose, group, onSave }
               onChange={(e) => set('address', e.target.value)}
               required
             />
+            {errors.address && <p className="text-red-400 text-xs mt-1">{errors.address}</p>}
           </div>
           <div>
             <label className={labelClass}>Structure type *</label>

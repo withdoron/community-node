@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
 import TenantList from './TenantList';
 import TenantEditDialog from './TenantEditDialog';
@@ -81,6 +82,7 @@ export default function PropertyManagementPeople({ profile, currentUser, memberR
         }
       } catch (err) {
         console.error('People data load error:', err);
+        toast.error('Failed to load people data. Please try again.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -159,9 +161,11 @@ export default function PropertyManagementPeople({ profile, currentUser, memberR
       try {
         await base44.entities.PMProperty.update(propertyId, data);
         setTenantEditTarget(null);
+        toast.success('Tenant saved.');
         refresh();
       } catch (err) {
         console.error('Tenant save error:', err);
+        toast.error('Failed to save tenant. Please try again.');
       }
     },
     []
@@ -181,9 +185,11 @@ export default function PropertyManagementPeople({ profile, currentUser, memberR
         }
         setGuestFormOpen(false);
         setEditingGuest(null);
+        toast.success('Guest saved.');
         refresh();
       } catch (err) {
         console.error('Guest save error:', err);
+        toast.error('Failed to save guest. Please try again.');
       }
     },
     [editingGuest, profileId]
@@ -222,9 +228,11 @@ export default function PropertyManagementPeople({ profile, currentUser, memberR
           }
         }
 
+        toast.success('Guest status updated.');
         refresh();
       } catch (err) {
         console.error('Guest status change error:', err);
+        toast.error('Failed to update guest status. Please try again.');
       }
     },
     [properties, profileId]
@@ -235,9 +243,11 @@ export default function PropertyManagementPeople({ profile, currentUser, memberR
     try {
       await base44.entities.PMGuest.delete(deleteTarget.id);
       setDeleteTarget(null);
+      toast.success('Guest deleted.');
       refresh();
     } catch (err) {
       console.error('Guest delete error:', err);
+      toast.error('Failed to delete guest. Please try again.');
     }
   };
 

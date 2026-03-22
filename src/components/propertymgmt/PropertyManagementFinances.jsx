@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
 import FinanceRunningTotals from './FinanceRunningTotals';
 import FinanceTransactionList from './FinanceTransactionList';
@@ -92,6 +93,7 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
         }
       } catch (err) {
         console.error('Finance data load error:', err);
+        toast.error('Failed to load financial data. Please try again.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -144,9 +146,11 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
       }
       setExpenseFormOpen(false);
       setEditingExpense(null);
+      toast.success('Transaction saved.');
       refresh();
     } catch (err) {
       console.error('Expense save error:', err);
+      toast.error('Failed to save transaction. Please try again.');
     }
   };
 
@@ -158,6 +162,7 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
       refresh();
     } catch (err) {
       console.error('Reconcile toggle error:', err);
+      toast.error('Failed to update reconciliation. Please try again.');
     }
   };
 
@@ -171,9 +176,11 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
       }
       setLaborFormOpen(false);
       setEditingLabor(null);
+      toast.success('Labor entry saved.');
       refresh();
     } catch (err) {
       console.error('Labor save error:', err);
+      toast.error('Failed to save labor entry. Please try again.');
     }
   };
 
@@ -187,9 +194,11 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
         await base44.entities.PMLaborEntry.delete(deleteTarget.item.id);
       }
       setDeleteTarget(null);
+      toast.success('Deleted.');
       refresh();
     } catch (err) {
       console.error('Delete error:', err);
+      toast.error('Failed to delete. Please try again.');
     }
   };
 

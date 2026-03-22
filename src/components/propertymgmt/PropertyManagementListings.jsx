@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 
 import ListingFilters from './ListingFilters';
 import ListingCard from './ListingCard';
@@ -64,6 +65,7 @@ export default function PropertyManagementListings({ profile, currentUser, membe
         }
       } catch (err) {
         console.error('Listings data load error:', err);
+        toast.error('Failed to load listings. Please try again.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -135,9 +137,11 @@ export default function PropertyManagementListings({ profile, currentUser, membe
       }
       setFormOpen(false);
       setEditingListing(null);
+      toast.success('Listing saved.');
       refresh();
     } catch (err) {
       console.error('Listing save error:', err);
+      toast.error('Failed to save listing. Please try again.');
     }
   };
 
@@ -156,9 +160,11 @@ export default function PropertyManagementListings({ profile, currentUser, membe
         }
       }
 
+      toast.success('Listing status updated.');
       refresh();
     } catch (err) {
       console.error('Status change error:', err);
+      toast.error('Failed to update listing status. Please try again.');
     }
   };
 
@@ -167,9 +173,11 @@ export default function PropertyManagementListings({ profile, currentUser, membe
     try {
       await base44.entities.PMListing.delete(deleteTarget.id);
       setDeleteTarget(null);
+      toast.success('Listing deleted.');
       refresh();
     } catch (err) {
       console.error('Listing delete error:', err);
+      toast.error('Failed to delete listing. Please try again.');
     }
   };
 

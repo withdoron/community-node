@@ -252,7 +252,7 @@ export const WORKSPACE_TYPES = {
     archetypeSupport: false,
     networkAffinity: false,
     available: true,
-    testingMode: true,
+    testingMode: true, // Ready to unlock — flip to false when PM is field-tested with real data
     createWizard: 'PropertyManagementOnboarding',
     roles: {
       admin: 'Admin',

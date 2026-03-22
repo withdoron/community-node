@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 import PropertyGroupCard from './PropertyGroupCard';
 import PropertyGroupFormDialog from './PropertyGroupFormDialog';
 import PropertyUnitFormDialog from './PropertyUnitFormDialog';
@@ -73,6 +74,7 @@ export default function PropertyManagementProperties({ profile, currentUser, mem
         }
       } catch (err) {
         console.error('Failed to load properties:', err);
+        toast.error('Failed to load properties. Please try again.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -123,9 +125,11 @@ export default function PropertyManagementProperties({ profile, currentUser, mem
       }
       setGroupDialogOpen(false);
       setEditingGroup(null);
+      toast.success('Property group saved.');
       refresh();
     } catch (err) {
       console.error('Save group error:', err);
+      toast.error('Failed to save property group. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -142,9 +146,11 @@ export default function PropertyManagementProperties({ profile, currentUser, mem
       setUnitDialogOpen(false);
       setEditingUnit(null);
       setAddUnitGroupId(null);
+      toast.success('Unit saved.');
       refresh();
     } catch (err) {
       console.error('Save unit error:', err);
+      toast.error('Failed to save unit. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -182,9 +188,11 @@ export default function PropertyManagementProperties({ profile, currentUser, mem
         notes: formData.notes,
       });
       setStandaloneDialogOpen(false);
+      toast.success('Property created.');
       refresh();
     } catch (err) {
       console.error('Standalone create error:', err);
+      toast.error('Failed to create property. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -233,9 +241,11 @@ export default function PropertyManagementProperties({ profile, currentUser, mem
       }
       setDeleteTarget(null);
       setDeleteType(null);
+      toast.success('Deleted.');
       refresh();
     } catch (err) {
       console.error('Delete error:', err);
+      toast.error('Failed to delete. Please try again.');
     } finally {
       setSaving(false);
     }

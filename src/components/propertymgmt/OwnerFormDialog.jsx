@@ -26,8 +26,19 @@ export default function OwnerFormDialog({ open, onClose, owner, onSave }) {
     role: 'owner',
   });
 
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const newErrors = {};
+    if (!form.name || !form.name.trim()) newErrors.name = 'Owner name is required';
+    if (form.email && form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) newErrors.email = 'Invalid email format';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   useEffect(() => {
     if (open) {
+      setErrors({});
       if (owner) {
         setForm({
           name: owner.name ?? '',
@@ -45,6 +56,7 @@ export default function OwnerFormDialog({ open, onClose, owner, onSave }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validate()) return;
     onSave({
       name: form.name.trim(),
       email: form.email.trim() || null,
@@ -63,10 +75,12 @@ export default function OwnerFormDialog({ open, onClose, owner, onSave }) {
           <div>
             <label className={labelClass}>Name *</label>
             <input type="text" className={inputClass} value={form.name} onChange={(e) => set('name', e.target.value)} required />
+            {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
           </div>
           <div>
             <label className={labelClass}>Email</label>
             <input type="email" className={inputClass} value={form.email} onChange={(e) => set('email', e.target.value)} />
+            {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
           </div>
           <div>
             <label className={labelClass}>Phone</label>

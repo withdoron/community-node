@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 import OwnerCard from './OwnerCard';
 import OwnerFormDialog from './OwnerFormDialog';
 import OwnershipStakeFormDialog from './OwnershipStakeFormDialog';
@@ -72,6 +73,7 @@ export default function PropertyManagementOwners({ profile, currentUser, memberR
         }
       } catch (err) {
         console.error('Failed to load owners:', err);
+        toast.error('Failed to load owners. Please try again.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -113,9 +115,11 @@ export default function PropertyManagementOwners({ profile, currentUser, memberR
       }
       setOwnerDialogOpen(false);
       setEditingOwner(null);
+      toast.success('Owner saved.');
       refresh();
     } catch (err) {
       console.error('Save owner error:', err);
+      toast.error('Failed to save owner. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -144,9 +148,11 @@ export default function PropertyManagementOwners({ profile, currentUser, memberR
       setStakeDialogOpen(false);
       setEditingStake(null);
       setStakeOwnerId(null);
+      toast.success('Ownership stake saved.');
       refresh();
     } catch (err) {
       console.error('Save stake error:', err);
+      toast.error('Failed to save ownership stake. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -182,9 +188,11 @@ export default function PropertyManagementOwners({ profile, currentUser, memberR
       setSplitDialogOpen(false);
       setEditingSplit(null);
       setSplitOwnerId(null);
+      toast.success('Distribution split saved.');
       refresh();
     } catch (err) {
       console.error('Save split error:', err);
+      toast.error('Failed to save distribution split. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -232,9 +240,11 @@ export default function PropertyManagementOwners({ profile, currentUser, memberR
       }
       setDeleteTarget(null);
       setDeleteType(null);
+      toast.success('Deleted.');
       refresh();
     } catch (err) {
       console.error('Delete error:', err);
+      toast.error('Failed to delete. Please try again.');
     } finally {
       setSaving(false);
     }

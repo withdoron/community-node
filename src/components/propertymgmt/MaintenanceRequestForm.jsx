@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Upload, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 const inputClass =
   'w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 px-3 py-2 text-sm';
@@ -76,8 +77,21 @@ export default function MaintenanceRequestForm({
     }));
   }, [properties, groupsById]);
 
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const newErrors = {};
+    if (!form.title || !form.title.trim()) newErrors.title = 'Title is required';
+    if (!form.description || form.description.trim().length < 10) newErrors.description = 'Description is required (min 10 characters)';
+    if (!form.property_id) newErrors.property_id = 'Please select a property';
+    if (!form.priority) newErrors.priority = 'Priority is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   useEffect(() => {
     if (open) {
+      setErrors({});
       const today = new Date().toISOString().slice(0, 10);
       if (request) {
         setForm({
@@ -117,6 +131,10 @@ export default function MaintenanceRequestForm({
 
   const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
+  // TODO: Replace base64 with file upload API when available
+  const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5MB
+  const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
   const uploadFile = (file) =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -128,6 +146,19 @@ export default function MaintenanceRequestForm({
   const handlePhotoAdd = async (e, target) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
+    // Validate size and type
+    for (const file of files) {
+      if (file.size > MAX_PHOTO_SIZE) {
+        toast.error(`"${file.name}" is too large. Photos must be under 5MB.`);
+        e.target.value = '';
+        return;
+      }
+      if (!ACCEPTED_TYPES.includes(file.type)) {
+        toast.error(`"${file.name}" is not a supported format. Use JPEG, PNG, or WebP.`);
+        e.target.value = '';
+        return;
+      }
+    }
     setUploading(true);
     try {
       const urls = await Promise.all(files.map(uploadFile));
@@ -154,6 +185,7 @@ export default function MaintenanceRequestForm({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validate()) return;
     const payload = {
       title: form.title.trim(),
       description: form.description.trim() || null,
@@ -198,6 +230,7 @@ export default function MaintenanceRequestForm({
               placeholder="Brief description of the issue"
               required
             />
+            {errors.title && <p className="text-red-400 text-xs mt-1">{errors.title}</p>}
           </div>
 
           {/* Description */}
@@ -211,6 +244,7 @@ export default function MaintenanceRequestForm({
               rows={3}
               required
             />
+            {errors.description && <p className="text-red-400 text-xs mt-1">{errors.description}</p>}
           </div>
 
           {/* Property */}
@@ -229,6 +263,7 @@ export default function MaintenanceRequestForm({
                 </option>
               ))}
             </select>
+            {errors.property_id && <p className="text-red-400 text-xs mt-1">{errors.property_id}</p>}
           </div>
 
           {/* Priority + Date */}
@@ -245,6 +280,7 @@ export default function MaintenanceRequestForm({
                   <option key={p.value} value={p.value}>{p.label}</option>
                 ))}
               </select>
+              {errors.priority && <p className="text-red-400 text-xs mt-1">{errors.priority}</p>}
             </div>
             <div>
               <label className={labelClass}>Reported date *</label>

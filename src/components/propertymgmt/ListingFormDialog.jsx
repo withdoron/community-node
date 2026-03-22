@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
+import { toast } from 'sonner';
 
 function safeParseJSON(val) {
   if (!val) return [];
@@ -81,8 +82,18 @@ export default function ListingFormDialog({
 
   const isEdit = !!listing;
 
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const newErrors = {};
+    if (!form.title || !form.title.trim()) newErrors.title = 'Title is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   useEffect(() => {
     if (!open) return;
+    setErrors({});
     if (listing) {
       setForm({
         title: listing.title || '',
@@ -136,10 +147,26 @@ export default function ListingFormDialog({
     if (!form.sqft && prop.sqft) set('sqft', prop.sqft.toString());
   };
 
-  // Photo upload
+  // Photo upload — TODO: Replace base64 with file upload API when available
+  const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5MB
+  const ACCEPTED_PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
   const handlePhotoUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
+    // Validate size and type
+    for (const file of files) {
+      if (file.size > MAX_PHOTO_SIZE) {
+        toast.error(`"${file.name}" is too large. Photos must be under 5MB.`);
+        if (fileRef.current) fileRef.current.value = '';
+        return;
+      }
+      if (!ACCEPTED_PHOTO_TYPES.includes(file.type)) {
+        toast.error(`"${file.name}" is not supported. Use JPEG, PNG, or WebP.`);
+        if (fileRef.current) fileRef.current.value = '';
+        return;
+      }
+    }
     setUploading(true);
     const newPhotos = [];
     for (const file of files.slice(0, 10 - form.photos.length)) {
@@ -184,6 +211,7 @@ export default function ListingFormDialog({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validate()) return;
     onSave({
       title: form.title.trim(),
       description: form.description.trim(),
@@ -251,6 +279,7 @@ export default function ListingFormDialog({
               className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
               placeholder="e.g. Cozy 2BR near campus"
             />
+            {errors.title && <p className="text-red-400 text-xs mt-1">{errors.title}</p>}
           </div>
 
           {/* Description */}

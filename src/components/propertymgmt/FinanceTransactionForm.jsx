@@ -8,6 +8,11 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Upload, X } from 'lucide-react';
+import { toast } from 'sonner';
+
+// TODO: Replace base64 with file upload API when available
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 
 const inputClass =
   'w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 px-3 py-2 text-sm';
@@ -68,8 +73,21 @@ export default function FinanceTransactionForm({
   const [receiptFile, setReceiptFile] = useState(null);
   const [receiptPreview, setReceiptPreview] = useState(null);
 
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const newErrors = {};
+    if (!form.amount || Number(form.amount) <= 0) newErrors.amount = 'Amount must be a positive number';
+    if (!form.date) newErrors.date = 'Date is required';
+    if (!form.category) newErrors.category = 'Category is required';
+    if (!form.group_id) newErrors.group_id = 'Please select a property group';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   useEffect(() => {
     if (open) {
+      setErrors({});
       if (expense) {
         setForm({
           type: expense.type || 'expense',
@@ -140,6 +158,16 @@ export default function FinanceTransactionForm({
   const handleReceiptChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('Receipt must be under 5MB.');
+      e.target.value = '';
+      return;
+    }
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      toast.error('Use JPEG, PNG, WebP, or PDF format.');
+      e.target.value = '';
+      return;
+    }
     setReceiptFile(file);
     setReceiptPreview(URL.createObjectURL(file));
     e.target.value = '';
@@ -163,6 +191,7 @@ export default function FinanceTransactionForm({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
     let receipt_url = form.receipt_url;
     if (receiptFile) {
       try {
@@ -249,6 +278,7 @@ export default function FinanceTransactionForm({
                 </option>
               ))}
             </select>
+            {errors.category && <p className="text-red-400 text-xs mt-1">{errors.category}</p>}
           </div>
 
           {/* Amount + Date */}
@@ -264,6 +294,7 @@ export default function FinanceTransactionForm({
                 onChange={(e) => set('amount', e.target.value)}
                 required
               />
+              {errors.amount && <p className="text-red-400 text-xs mt-1">{errors.amount}</p>}
             </div>
             <div>
               <label className={labelClass}>Date *</label>
@@ -274,6 +305,7 @@ export default function FinanceTransactionForm({
                 onChange={(e) => set('date', e.target.value)}
                 required
               />
+              {errors.date && <p className="text-red-400 text-xs mt-1">{errors.date}</p>}
             </div>
           </div>
 
@@ -306,6 +338,7 @@ export default function FinanceTransactionForm({
                   </option>
                 ))}
               </select>
+              {errors.group_id && <p className="text-red-400 text-xs mt-1">{errors.group_id}</p>}
             </div>
             <div>
               <label className={labelClass}>Property (optional)</label>

@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 import { calculateSettlement } from './utils/calculateSettlement';
 
 import SettlementCard from './SettlementCard';
@@ -83,6 +84,7 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
         }
       } catch (err) {
         console.error('Settlements data load error:', err);
+        toast.error('Failed to load settlements. Please try again.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -153,9 +155,11 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
         profile_id: profileId,
       });
       setNewDialogOpen(false);
+      toast.success('Settlement created.');
       refresh();
     } catch (err) {
       console.error('Settlement create error:', err);
+      toast.error('Failed to create settlement. Please try again.');
     }
   };
 
@@ -176,8 +180,10 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
           })),
         });
         if (result.error) throw new Error(result.error);
+        toast.success('Recurring expenses carried forward.');
       } catch (err) {
         console.error('Carry forward error:', err);
+        toast.error('Failed to carry forward expenses. Please try again.');
       }
       refresh();
     },
@@ -204,6 +210,7 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
         refresh();
       } catch (err) {
         console.error('Reconcile toggle error:', err);
+        toast.error('Failed to update reconciliation. Please try again.');
       }
     },
     []
@@ -238,9 +245,11 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
           },
         });
         if (result.error) throw new Error(result.error);
+        toast.success('Settlement finalized.');
         refresh();
       } catch (err) {
         console.error('Finalize error:', err);
+        toast.error('Failed to finalize settlement. Please try again.');
       }
     },
     [allData, profileId]
@@ -256,9 +265,11 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
       });
       if (result.error) throw new Error(result.error);
       setUnfinalizeTarget(null);
+      toast.success('Settlement reopened.');
       refresh();
     } catch (err) {
       console.error('Unfinalize error:', err);
+      toast.error('Failed to reopen settlement. Please try again.');
     }
   }, [profileId]);
 
@@ -268,9 +279,11 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
     try {
       await base44.entities.PMSettlement.delete(deleteTarget.id);
       setDeleteTarget(null);
+      toast.success('Settlement deleted.');
       refresh();
     } catch (err) {
       console.error('Settlement delete error:', err);
+      toast.error('Failed to delete settlement. Please try again.');
     }
   };
 

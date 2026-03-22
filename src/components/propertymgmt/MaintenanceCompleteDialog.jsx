@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Upload, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 const inputClass =
   'w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 px-3 py-2 text-sm';
@@ -37,6 +38,10 @@ export default function MaintenanceCompleteDialog({
   const [laborRate, setLaborRate] = useState('');
   const [uploading, setUploading] = useState(false);
 
+  // TODO: Replace base64 with file upload API when available
+  const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5MB
+  const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
   const uploadFile = (file) =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -48,6 +53,18 @@ export default function MaintenanceCompleteDialog({
   const handlePhotoAdd = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
+    for (const file of files) {
+      if (file.size > MAX_PHOTO_SIZE) {
+        toast.error(`"${file.name}" is too large. Photos must be under 5MB.`);
+        e.target.value = '';
+        return;
+      }
+      if (!ACCEPTED_TYPES.includes(file.type)) {
+        toast.error(`"${file.name}" is not a supported format. Use JPEG, PNG, or WebP.`);
+        e.target.value = '';
+        return;
+      }
+    }
     setUploading(true);
     try {
       const urls = await Promise.all(files.map(uploadFile));
