@@ -167,7 +167,7 @@ export default function SongDetail() {
   const { data: song, isLoading, error } = useQuery({
     queryKey: ['frequency-song', slug],
     queryFn: async () => {
-      const songs = await base44.entities.FrequencySong.filter({ slug }).list();
+      const songs = await base44.entities.FrequencySong.list();
       const arr = Array.isArray(songs) ? songs : [];
       const found = arr.find((s) => s.slug === slug && s.status === 'published');
       return found || null;
