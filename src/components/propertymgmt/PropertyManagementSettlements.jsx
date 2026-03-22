@@ -19,7 +19,16 @@ import SettlementDetail from './SettlementDetail';
 import SettlementCreateDialog from './SettlementCreateDialog';
 import SettlementFinalizeDialog from './SettlementFinalizeDialog';
 
-export default function PropertyManagementSettlements({ profile }) {
+export default function PropertyManagementSettlements({ profile, currentUser }) {
+  // Ownership guard
+  if (profile && currentUser && profile.user_id !== currentUser.id) {
+    return (
+      <div className="text-center py-12 text-slate-400">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
+
   const profileId = profile?.id;
 
   // Data
@@ -150,25 +159,25 @@ export default function PropertyManagementSettlements({ profile }) {
     }
   };
 
-  // ── Carry forward recurring expenses ──
+  // ── Carry forward recurring expenses (server-side with dedup) ──
   const handleCarryForwardExpenses = useCallback(
     async (selectedCandidates, groupId, monthStr) => {
-      const date = `${monthStr}-01`;
-      for (const exp of selectedCandidates) {
-        await base44.entities.PMExpense.create({
+      try {
+        const result = await base44.functions.invoke('managePMWorkspace', {
+          action: 'carry_forward_recurring',
           profile_id: profileId,
           group_id: groupId,
-          property_id: exp.property_id || null,
-          category: exp.category,
-          description: exp.description || '',
-          amount: Number(exp.amount) || 0,
-          date,
-          is_recurring: exp.is_recurring ?? true,
-          reconciled: false,
-          reimbursement_status: 'not_applicable',
-          paid_by: 'property',
-          type: 'expense',
+          month: monthStr,
+          expenses: selectedCandidates.map((exp) => ({
+            property_id: exp.property_id || null,
+            category: exp.category,
+            description: exp.description || '',
+            amount: Number(exp.amount) || 0,
+          })),
         });
+        if (result.error) throw new Error(result.error);
+      } catch (err) {
+        console.error('Carry forward error:', err);
       }
       refresh();
     },
@@ -200,11 +209,11 @@ export default function PropertyManagementSettlements({ profile }) {
     []
   );
 
-  // ── Finalize ──
+  // ── Finalize (server-side validated) ──
   const handleFinalize = useCallback(
     async (settlement) => {
       try {
-        // Calculate final values
+        // Calculate values client-side, then validate + lock server-side
         const calculated = calculateSettlement(
           settlement.group_id,
           settlement.month,
@@ -212,42 +221,46 @@ export default function PropertyManagementSettlements({ profile }) {
         );
         if (!calculated) return;
 
-        await base44.entities.PMSettlement.update(settlement.id, {
-          status: 'finalized',
-          finalized_at: new Date().toISOString(),
-          gross_rent: calculated.gross_rent,
-          total_fixed_expenses: calculated.total_fixed_expenses,
-          management_fee: calculated.management_fee,
-          maintenance_reserve: calculated.maintenance_reserve,
-          emergency_reserve: calculated.emergency_reserve,
-          total_labor_costs: calculated.total_labor_costs,
-          total_reimbursements: calculated.total_reimbursements ?? 0,
-          net_distributable: calculated.net_distributable,
-          distributions: JSON.stringify(calculated.distributions),
+        const result = await base44.functions.invoke('managePMWorkspace', {
+          action: 'finalize_settlement',
+          profile_id: profileId,
+          settlement_id: settlement.id,
+          calculated_data: {
+            gross_rent: calculated.gross_rent,
+            total_fixed_expenses: calculated.total_fixed_expenses,
+            management_fee: calculated.management_fee,
+            maintenance_reserve: calculated.maintenance_reserve,
+            emergency_reserve: calculated.emergency_reserve,
+            total_labor_costs: calculated.total_labor_costs,
+            total_reimbursements: calculated.total_reimbursements ?? 0,
+            net_distributable: calculated.net_distributable,
+            distributions: calculated.distributions,
+          },
         });
-        // TODO: Replace with pm_finalize_settlement server function
+        if (result.error) throw new Error(result.error);
         refresh();
       } catch (err) {
         console.error('Finalize error:', err);
       }
     },
-    [allData]
+    [allData, profileId]
   );
 
-  // ── Unfinalize ──
+  // ── Unfinalize (server-side) ──
   const handleUnfinalize = useCallback(async (settlement) => {
     try {
-      await base44.entities.PMSettlement.update(settlement.id, {
-        status: 'draft',
-        finalized_at: null,
+      const result = await base44.functions.invoke('managePMWorkspace', {
+        action: 'unfinalize_settlement',
+        profile_id: profileId,
+        settlement_id: settlement.id,
       });
-      // TODO: Replace with server function to reset reimbursement statuses
+      if (result.error) throw new Error(result.error);
       setUnfinalizeTarget(null);
       refresh();
     } catch (err) {
       console.error('Unfinalize error:', err);
     }
-  }, []);
+  }, [profileId]);
 
   // ── Delete ──
   const handleDeleteConfirm = async () => {

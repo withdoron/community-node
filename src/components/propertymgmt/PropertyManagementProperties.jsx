@@ -30,7 +30,16 @@ function sortUnits(units) {
   });
 }
 
-export default function PropertyManagementProperties({ profile }) {
+export default function PropertyManagementProperties({ profile, currentUser }) {
+  // Ownership guard
+  if (profile && currentUser && profile.user_id !== currentUser.id) {
+    return (
+      <div className="text-center py-12 text-slate-400">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
+
   const profileId = profile?.id;
 
   const [groups, setGroups] = useState([]);
@@ -212,12 +221,13 @@ export default function PropertyManagementProperties({ profile }) {
     setSaving(true);
     try {
       if (deleteType === 'group' && deleteTarget) {
-        // Delete all units in the group first
-        const groupUnits = properties.filter((p) => p.group_id === deleteTarget.id);
-        for (const u of groupUnits) {
-          await base44.entities.PMProperty.delete(u.id);
-        }
-        await base44.entities.PMPropertyGroup.delete(deleteTarget.id);
+        // Server-side cascade delete (group + units + related financial records)
+        const result = await base44.functions.invoke('managePMWorkspace', {
+          action: 'delete_group_cascade',
+          profile_id: profileId,
+          group_id: deleteTarget.id,
+        });
+        if (result.error) throw new Error(result.error);
       } else if (deleteType === 'unit' && deleteTarget) {
         await base44.entities.PMProperty.delete(deleteTarget.id);
       }

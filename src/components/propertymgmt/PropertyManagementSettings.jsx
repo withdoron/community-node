@@ -52,6 +52,15 @@ function Section({ icon: Icon, title, defaultOpen = false, children }) {
 // ═══ Main Component ═══
 
 export default function PropertyManagementSettings({ profile, currentUser }) {
+  // Ownership guard
+  if (profile && currentUser && profile.user_id !== currentUser.id) {
+    return (
+      <div className="text-center py-12 text-slate-400">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
+
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -148,37 +157,15 @@ export default function PropertyManagementSettings({ profile, currentUser }) {
     onError: (err) => toast.error(err?.message || 'Failed to save'),
   });
 
-  // ─── Delete Workspace ─────────────────────────
+  // ─── Delete Workspace (server-side cascade) ────
   const deleteWorkspace = useMutation({
     mutationFn: async () => {
-      // Delete all child entities first
-      const groups = await base44.entities.PMPropertyGroup.filter({ profile_id: profile.id });
-      const props = await base44.entities.PMProperty.filter({ profile_id: profile.id });
-      const expenses = await base44.entities.PMExpense.filter({ profile_id: profile.id });
-      const laborEntries = await base44.entities.PMLaborEntry.filter({ profile_id: profile.id });
-      const maintenanceReqs = await base44.entities.PMMaintenanceRequest.filter({ profile_id: profile.id });
-      const settlements = await base44.entities.PMSettlement.filter({ profile_id: profile.id });
-      const owners = await base44.entities.PMOwner.filter({ profile_id: profile.id });
-      const stakes = await base44.entities.PMOwnershipStake.filter({ profile_id: profile.id });
-      const splits = await base44.entities.PMDistributionSplit.filter({ profile_id: profile.id });
-      const listingsData = await base44.entities.PMListing.filter({ profile_id: profile.id });
-      const guestsData = await base44.entities.PMGuest.filter({ profile_id: profile.id });
-
-      const toDelete = [
-        ...(Array.isArray(guestsData) ? guestsData : []).map((r) => base44.entities.PMGuest.delete(r.id)),
-        ...(Array.isArray(listingsData) ? listingsData : []).map((r) => base44.entities.PMListing.delete(r.id)),
-        ...(Array.isArray(splits) ? splits : []).map((r) => base44.entities.PMDistributionSplit.delete(r.id)),
-        ...(Array.isArray(stakes) ? stakes : []).map((r) => base44.entities.PMOwnershipStake.delete(r.id)),
-        ...(Array.isArray(owners) ? owners : []).map((r) => base44.entities.PMOwner.delete(r.id)),
-        ...(Array.isArray(settlements) ? settlements : []).map((r) => base44.entities.PMSettlement.delete(r.id)),
-        ...(Array.isArray(maintenanceReqs) ? maintenanceReqs : []).map((r) => base44.entities.PMMaintenanceRequest.delete(r.id)),
-        ...(Array.isArray(laborEntries) ? laborEntries : []).map((r) => base44.entities.PMLaborEntry.delete(r.id)),
-        ...(Array.isArray(expenses) ? expenses : []).map((r) => base44.entities.PMExpense.delete(r.id)),
-        ...(Array.isArray(props) ? props : []).map((r) => base44.entities.PMProperty.delete(r.id)),
-        ...(Array.isArray(groups) ? groups : []).map((r) => base44.entities.PMPropertyGroup.delete(r.id)),
-      ];
-      await Promise.all(toDelete);
-      await base44.entities.PMPropertyProfile.delete(profile.id);
+      const result = await base44.functions.invoke('managePMWorkspace', {
+        action: 'delete_workspace_cascade',
+        profile_id: profile.id,
+      });
+      if (result.error) throw new Error(result.error);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pm-profiles'] });

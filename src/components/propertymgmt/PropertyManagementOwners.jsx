@@ -21,7 +21,16 @@ function sortOwnersByName(list) {
   return [...list].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 }
 
-export default function PropertyManagementOwners({ profile }) {
+export default function PropertyManagementOwners({ profile, currentUser }) {
+  // Ownership guard
+  if (profile && currentUser && profile.user_id !== currentUser.id) {
+    return (
+      <div className="text-center py-12 text-slate-400">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
+
   const profileId = profile?.id;
 
   const [owners, setOwners] = useState([]);
@@ -204,14 +213,13 @@ export default function PropertyManagementOwners({ profile }) {
     setSaving(true);
     try {
       if (deleteType === 'owner' && deleteTarget) {
-        // Cascade: delete stakes, then splits, then owner
-        const ownerStakes = stakes.filter((s) => s.owner_id === deleteTarget.id);
-        for (const s of ownerStakes) await base44.entities.PMOwnershipStake.delete(s.id);
-        const ownerSplits = splits.filter(
-          (sp) => sp.from_owner_id === deleteTarget.id || sp.to_owner_id === deleteTarget.id
-        );
-        for (const sp of ownerSplits) await base44.entities.PMDistributionSplit.delete(sp.id);
-        await base44.entities.PMOwner.delete(deleteTarget.id);
+        // Server-side cascade delete (owner + stakes + splits)
+        const result = await base44.functions.invoke('managePMWorkspace', {
+          action: 'delete_owner_cascade',
+          profile_id: profileId,
+          owner_id: deleteTarget.id,
+        });
+        if (result.error) throw new Error(result.error);
       } else if (deleteType === 'stake' && deleteTarget) {
         // Cascade: delete related splits for this owner+group combo
         const relatedSplits = splits.filter(

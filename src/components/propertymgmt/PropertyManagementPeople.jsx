@@ -24,7 +24,16 @@ const SUB_TABS = [
   { key: 'guests', label: 'Guests', icon: Users },
 ];
 
-export default function PropertyManagementPeople({ profile }) {
+export default function PropertyManagementPeople({ profile, currentUser }) {
+  // Ownership guard
+  if (profile && currentUser && profile.user_id !== currentUser.id) {
+    return (
+      <div className="text-center py-12 text-slate-400">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
+
   const profileId = profile?.id;
 
   // Data
