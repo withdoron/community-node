@@ -19,8 +19,10 @@ import {
 import {
   Settings, Save, Loader2, AlertTriangle, Trash2,
   ChevronDown, ChevronRight, Building2, DollarSign, Link2, User,
+  Users, Copy, RefreshCw, UserMinus,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { generateInviteCode } from '@/utils/inviteCode';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -51,9 +53,9 @@ function Section({ icon: Icon, title, defaultOpen = false, children }) {
 
 // ═══ Main Component ═══
 
-export default function PropertyManagementSettings({ profile, currentUser }) {
-  // Ownership guard
-  if (profile && currentUser && profile.user_id !== currentUser.id) {
+export default function PropertyManagementSettings({ profile, currentUser, memberRole, isAdmin, canEdit }) {
+  // Role guard
+  if (!memberRole) {
     return (
       <div className="text-center py-12 text-slate-400">
         <p>You don't have access to this workspace.</p>
@@ -93,6 +95,69 @@ export default function PropertyManagementSettings({ profile, currentUser }) {
       setWorkspaceName(profile.workspace_name || '');
     }
   }, [profile]);
+
+  // ─── Invite code regeneration dialogs ────────
+  const [regenType, setRegenType] = useState(null); // 'tenant' | 'owner' | 'manager'
+
+  // ─── Members query ──────────────────────────────
+  const { data: members = [], refetch: refetchMembers } = useQuery({
+    queryKey: ['pm-members', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      try {
+        const list = await base44.entities.PMWorkspaceMember.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : [];
+      } catch { return []; }
+    },
+    enabled: !!profile?.id,
+  });
+
+  // Auto-generate missing invite codes on mount
+  useEffect(() => {
+    if (!profile?.id || profile.user_id !== currentUser?.id) return;
+    const updates = {};
+    if (!profile.tenant_invite_code) updates.tenant_invite_code = generateInviteCode();
+    if (!profile.owner_invite_code) updates.owner_invite_code = generateInviteCode();
+    if (!profile.manager_invite_code) updates.manager_invite_code = generateInviteCode();
+    if (Object.keys(updates).length > 0) {
+      base44.entities.PMPropertyProfile.update(profile.id, updates).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['pm-profiles'] });
+      }).catch(() => {});
+    }
+  }, [profile?.id, profile?.tenant_invite_code, profile?.owner_invite_code, profile?.manager_invite_code, currentUser?.id]);
+
+  const regenerateCode = useMutation({
+    mutationFn: async (type) => {
+      const field = type === 'tenant' ? 'tenant_invite_code'
+        : type === 'owner' ? 'owner_invite_code'
+        : 'manager_invite_code';
+      await base44.entities.PMPropertyProfile.update(profile.id, {
+        [field]: generateInviteCode(),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pm-profiles'] });
+      setRegenType(null);
+      toast.success('Invite code regenerated. Old links will no longer work.');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to regenerate'),
+  });
+
+  const removeMember = useMutation({
+    mutationFn: async (memberId) => {
+      await base44.entities.PMWorkspaceMember.delete(memberId);
+    },
+    onSuccess: () => {
+      refetchMembers();
+      toast.success('Member removed');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to remove member'),
+  });
+
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied`);
+  };
 
   // ─── Linked workspace names ───────────────────
   const { data: linkedFinance } = useQuery({
@@ -368,6 +433,138 @@ export default function PropertyManagementSettings({ profile, currentUser }) {
           </p>
         </div>
       </Section>
+
+      {/* ═══ Invite Codes ═══ */}
+      <Section icon={Users} title="Invite Links">
+        <div className="space-y-4">
+          <p className="text-sm text-slate-400">
+            Share these links to invite tenants, co-owners, and managers to your workspace.
+          </p>
+
+          {[
+            { type: 'tenant', label: 'TENANT INVITE', desc: 'Share with tenants to access their unit', code: profile?.tenant_invite_code, accent: 'border-amber-500/30' },
+            { type: 'owner', label: 'OWNER INVITE', desc: 'Share with co-owners to view property data', code: profile?.owner_invite_code, accent: 'border-slate-700' },
+            { type: 'manager', label: 'MANAGER INVITE', desc: 'Share with property managers', code: profile?.manager_invite_code, accent: 'border-slate-700' },
+          ].map(({ type, label, desc, code, accent }) => (
+            <div key={type} className={`bg-slate-800/50 border ${accent} rounded-xl p-4`}>
+              <p className={`text-xs font-semibold tracking-wider mb-1 ${type === 'tenant' ? 'text-amber-500' : 'text-slate-300'}`}>
+                {label}
+              </p>
+              <p className="text-xs text-slate-500 mb-3">{desc}</p>
+              {code ? (
+                <>
+                  <p className="text-xl font-mono text-slate-100 mb-3">{code}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => copyToClipboard(code, 'Code')}
+                      className="bg-amber-500 hover:bg-amber-400 text-black font-semibold gap-1.5"
+                    >
+                      <Copy className="w-3.5 h-3.5" /> Copy Code
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(`${window.location.origin}/join-pm/${code}`, 'Link')}
+                      className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100 gap-1.5"
+                    >
+                      <Copy className="w-3.5 h-3.5" /> Copy Link
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setRegenType(type)}
+                      disabled={regenerateCode.isPending}
+                      className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100 gap-1.5"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" /> Regenerate
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-slate-500">Code will be generated automatically.</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ═══ Members ═══ */}
+      <Section icon={Users} title="Members">
+        <div className="space-y-3">
+          {members.length === 0 ? (
+            <p className="text-sm text-slate-400">No members yet. Share an invite link to add people.</p>
+          ) : (
+            members
+              .filter((m) => m.user_id !== currentUser?.id)
+              .map((m) => {
+                const roleBadge = {
+                  admin: 'bg-amber-500 text-black',
+                  property_manager: 'bg-purple-500 text-white',
+                  owner: 'bg-blue-500/20 text-blue-400',
+                  tenant: 'border border-slate-500 text-slate-300',
+                  worker: 'border border-slate-500 text-slate-300',
+                }[m.role] || 'bg-slate-700 text-slate-400';
+                const roleLabel = {
+                  admin: 'Admin',
+                  property_manager: 'Manager',
+                  owner: 'Owner',
+                  tenant: 'Tenant',
+                  worker: 'Worker',
+                }[m.role] || m.role;
+                return (
+                  <div key={m.id} className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
+                        <User className="w-4 h-4 text-slate-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-slate-100">{m.name || 'Unnamed'}</p>
+                        <p className="text-xs text-slate-500">{m.joined_at ? `Joined ${String(m.joined_at).slice(0, 10)}` : ''}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${roleBadge}`}>{roleLabel}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeMember.mutate(m.id)}
+                        disabled={removeMember.isPending}
+                        className="text-slate-500 hover:text-red-400 hover:bg-transparent p-1"
+                      >
+                        <UserMinus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })
+          )}
+        </div>
+      </Section>
+
+      {/* Regenerate confirmation */}
+      <AlertDialog open={!!regenType} onOpenChange={(open) => !open && setRegenType(null)}>
+        <AlertDialogContent className="bg-slate-900 border-slate-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-slate-100">Regenerate invite code?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              The current {regenType} invite link will stop working. Anyone who already joined will keep access.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => regenerateCode.mutate(regenType)}
+              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+              disabled={regenerateCode.isPending}
+            >
+              {regenerateCode.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Regenerate'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* ═══ Danger Zone ═══ */}
       <Section icon={AlertTriangle} title="Danger Zone">

@@ -406,8 +406,8 @@ export default function BusinessDashboard() {
     return merged;
   }, [ownedFSProfiles, joinedFSProfiles]);
 
-  // Fetch property management profiles for current user
-  const { data: propertyMgmtProfiles = [], isLoading: pmLoading } = useQuery({
+  // Fetch PM profiles: owned workspaces
+  const { data: ownedPMProfiles = [], isLoading: pmLoading } = useQuery({
     queryKey: ['pm-profiles', currentUser?.id],
     queryFn: async () => {
       if (!currentUser?.id) return [];
@@ -416,6 +416,49 @@ export default function BusinessDashboard() {
     },
     enabled: !!currentUser?.id,
   });
+
+  // Fetch PM memberships: joined workspaces
+  const { data: pmMemberships = [] } = useQuery({
+    queryKey: ['pm-memberships', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      try {
+        const list = await base44.entities.PMWorkspaceMember.filter({ user_id: currentUser.id, status: 'active' });
+        return Array.isArray(list) ? list : [];
+      } catch { return []; }
+    },
+    enabled: !!currentUser?.id,
+  });
+
+  // Fetch profiles for joined workspaces and merge with owned
+  const { data: joinedPMProfiles = [] } = useQuery({
+    queryKey: ['pm-joined-profiles', pmMemberships.map((m) => m.profile_id).join(',')],
+    queryFn: async () => {
+      const ownedIds = new Set(ownedPMProfiles.map((p) => p.id));
+      const joinedProfileIds = pmMemberships
+        .map((m) => m.profile_id)
+        .filter((id) => id && !ownedIds.has(id));
+      if (joinedProfileIds.length === 0) return [];
+      const profiles = [];
+      for (const id of [...new Set(joinedProfileIds)]) {
+        try {
+          const p = await base44.entities.PMPropertyProfile.get(id);
+          if (p) profiles.push(p);
+        } catch {}
+      }
+      return profiles;
+    },
+    enabled: pmMemberships.length > 0,
+  });
+
+  // Merge: owned profiles (role=admin) + joined profiles (role from membership)
+  const propertyMgmtProfiles = [
+    ...ownedPMProfiles.map((p) => ({ ...p, _memberRole: 'admin' })),
+    ...joinedPMProfiles.map((p) => {
+      const membership = pmMemberships.find((m) => m.profile_id === p.id);
+      return { ...p, _memberRole: membership?.role || 'tenant' };
+    }),
+  ];
 
   // Fetch event counts for each business
   const { data: eventCounts = {} } = useQuery({
@@ -818,7 +861,14 @@ export default function BusinessDashboard() {
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                       <h3 className="font-bold text-lg text-slate-100 truncate">{pmProfile.workspace_name || pmProfile.business_name || 'Property Management'}</h3>
-                      <Badge className="bg-amber-500 text-black text-xs">OWNER</Badge>
+                      <Badge className={`text-xs ${
+                        pmProfile._memberRole === 'admin' ? 'bg-amber-500 text-black'
+                          : pmProfile._memberRole === 'property_manager' ? 'bg-purple-500 text-white'
+                          : pmProfile._memberRole === 'owner' ? 'bg-blue-500/20 text-blue-400'
+                          : 'border border-slate-500 text-slate-300'
+                      }`}>
+                        {pmProfile._memberRole === 'admin' ? 'ADMIN' : pmProfile._memberRole === 'property_manager' ? 'MANAGER' : pmProfile._memberRole === 'owner' ? 'OWNER' : pmProfile._memberRole === 'tenant' ? 'TENANT' : 'WORKER'}
+                      </Badge>
                       <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">Property Mgmt</span>
                     </div>
                     <p className="text-sm text-slate-400">
@@ -1122,8 +1172,32 @@ export default function BusinessDashboard() {
   // STEP 3e: Property Management workspace selected
   const selectedPMProfile = propertyMgmtProfiles.find((p) => p.id === selectedPropertyMgmtId);
   if (selectedPropertyMgmtId && selectedPMProfile) {
-    const pmTabs = WORKSPACE_TYPES.property_management.tabs;
-    const pmScope = { profile: selectedPMProfile, currentUser, onNavigateTab: setActiveTab };
+    const pmMemberRole = selectedPMProfile._memberRole || 'admin';
+    const pmIsAdmin = pmMemberRole === 'admin';
+    const pmCanEdit = pmMemberRole === 'admin' || pmMemberRole === 'property_manager';
+    const pmIsTenant = pmMemberRole === 'tenant';
+    const pmIsOwner = pmMemberRole === 'owner';
+
+    // Filter tabs based on role
+    const allPmTabs = WORKSPACE_TYPES.property_management.tabs;
+    const tenantTabs = ['home', 'maintenance', 'people', 'settings'];
+    const ownerTabs = ['home', 'properties', 'finances', 'settlements', 'settings'];
+    const pmTabs = pmIsTenant
+      ? allPmTabs.filter((t) => tenantTabs.includes(t.id))
+      : pmIsOwner
+        ? allPmTabs.filter((t) => ownerTabs.includes(t.id))
+        : allPmTabs;
+
+    const pmScope = {
+      profile: selectedPMProfile,
+      currentUser,
+      onNavigateTab: setActiveTab,
+      memberRole: pmMemberRole,
+      isAdmin: pmIsAdmin,
+      canEdit: pmCanEdit,
+      isTenant: pmIsTenant,
+      isOwner: pmIsOwner,
+    };
     return (
       <div className="min-h-screen bg-slate-950">
         <div className="bg-slate-900 border-b border-slate-800">
@@ -1145,7 +1219,14 @@ export default function BusinessDashboard() {
                   <h1 className="text-lg font-bold text-slate-100">{selectedPMProfile.workspace_name || selectedPMProfile.business_name || 'Property Management'}</h1>
                   <p className="text-xs text-slate-400">Property Management</p>
                 </div>
-                <Badge className="ml-2 bg-amber-500 text-black">OWNER</Badge>
+                <Badge className={`ml-2 ${
+                  pmIsAdmin ? 'bg-amber-500 text-black'
+                    : pmMemberRole === 'property_manager' ? 'bg-purple-500 text-white'
+                    : pmIsOwner ? 'bg-blue-500/20 text-blue-400'
+                    : 'border border-slate-500 text-slate-300'
+                }`}>
+                  {pmIsAdmin ? 'ADMIN' : pmMemberRole === 'property_manager' ? 'MANAGER' : pmIsOwner ? 'OWNER' : pmIsTenant ? 'TENANT' : 'WORKER'}
+                </Badge>
               </div>
             </div>
           </div>

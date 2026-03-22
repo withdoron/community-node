@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Building2, Loader2, ChevronRight, ChevronLeft, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { generateInviteCode } from '@/utils/inviteCode';
 
 // ═══ Step Indicator ═══
 
@@ -111,10 +112,28 @@ export default function PropertyManagementOnboarding() {
         default_mgmt_fee_pct: 10,
         default_maint_reserve_pct: 10,
         default_emerg_reserve_pct: 5,
+        tenant_invite_code: generateInviteCode(),
+        owner_invite_code: generateInviteCode(),
+        manager_invite_code: generateInviteCode(),
         user_roles: '[]',
         linked_finance_workspace_id: null,
         linked_business_workspace_id: null,
       });
+
+      // Create admin workspace member for the creator
+      try {
+        await base44.entities.PMWorkspaceMember.create({
+          profile_id: profile.id,
+          user_id: currentUser.id,
+          role: 'admin',
+          name: currentUser?.full_name || currentUser?.data?.display_name || '',
+          status: 'active',
+          joined_at: new Date().toISOString(),
+        });
+      } catch (err) {
+        // PMWorkspaceMember entity may not exist yet — non-critical
+        console.error('PMWorkspaceMember create (non-critical):', err);
+      }
 
       // 2. Create PMPropertyGroup
       const group = await base44.entities.PMPropertyGroup.create({

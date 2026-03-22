@@ -19,9 +19,9 @@ import SettlementDetail from './SettlementDetail';
 import SettlementCreateDialog from './SettlementCreateDialog';
 import SettlementFinalizeDialog from './SettlementFinalizeDialog';
 
-export default function PropertyManagementSettlements({ profile, currentUser }) {
-  // Ownership guard
-  if (profile && currentUser && profile.user_id !== currentUser.id) {
+export default function PropertyManagementSettlements({ profile, currentUser, memberRole, canEdit }) {
+  // Role guard
+  if (!memberRole) {
     return (
       <div className="text-center py-12 text-slate-400">
         <p>You don't have access to this workspace.</p>

@@ -19,6 +19,7 @@ import JoinTeam from '@/pages/JoinTeam';
 import ClaimBusiness from '@/pages/ClaimBusiness';
 import ClientPortal from '@/pages/ClientPortal';
 import JoinFieldService from '@/pages/JoinFieldService';
+import JoinPM from '@/pages/JoinPM';
 import FrequencyStation from '@/pages/FrequencyStation';
 import ShapingTheGarden from '@/pages/ShapingTheGarden';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -156,6 +157,15 @@ const AuthenticatedApp = () => {
         element={
           <LayoutWrapper currentPageName="JoinFieldService">
             <JoinFieldService />
+          </LayoutWrapper>
+        }
+      />
+      {/* PM workspace join via invite code */}
+      <Route
+        path="/join-pm/:inviteCode"
+        element={
+          <LayoutWrapper currentPageName="JoinPM">
+            <JoinPM />
           </LayoutWrapper>
         }
       />

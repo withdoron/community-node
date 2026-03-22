@@ -24,9 +24,9 @@ const SUB_TABS = [
   { key: 'guests', label: 'Guests', icon: Users },
 ];
 
-export default function PropertyManagementPeople({ profile, currentUser }) {
-  // Ownership guard
-  if (profile && currentUser && profile.user_id !== currentUser.id) {
+export default function PropertyManagementPeople({ profile, currentUser, memberRole, canEdit }) {
+  // Role guard
+  if (!memberRole) {
     return (
       <div className="text-center py-12 text-slate-400">
         <p>You don't have access to this workspace.</p>
@@ -50,6 +50,9 @@ export default function PropertyManagementPeople({ profile, currentUser }) {
   const [editingGuest, setEditingGuest] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
+  // PMTenant entity records (primary source, falls back to PMProperty fields)
+  const [pmTenants, setPmTenants] = useState([]);
+
   // Load data
   useEffect(() => {
     if (!profileId) return;
@@ -57,15 +60,24 @@ export default function PropertyManagementPeople({ profile, currentUser }) {
     const load = async () => {
       setLoading(true);
       try {
-        const [prop, grp, gst] = await Promise.all([
+        const queries = [
           base44.entities.PMProperty.filter({ profile_id: profileId }),
           base44.entities.PMPropertyGroup.filter({ profile_id: profileId }),
           base44.entities.PMGuest.filter({ profile_id: profileId }),
-        ]);
+        ];
+        // Try loading PMTenant entity (may not exist yet)
+        let tenantRecords = [];
+        try {
+          tenantRecords = await base44.entities.PMTenant.filter({ profile_id: profileId });
+          tenantRecords = Array.isArray(tenantRecords) ? tenantRecords : [];
+        } catch { tenantRecords = []; }
+
+        const [prop, grp, gst] = await Promise.all(queries);
         if (!cancelled) {
           setProperties(prop || []);
           setGroups(grp || []);
           setGuests(gst || []);
+          setPmTenants(tenantRecords);
         }
       } catch (err) {
         console.error('People data load error:', err);
@@ -95,8 +107,24 @@ export default function PropertyManagementPeople({ profile, currentUser }) {
     return labels;
   }, [properties, groupsById]);
 
-  // Build tenant list from property records
+  // Build tenant list: prefer PMTenant entity records, fall back to PMProperty fields
   const tenants = useMemo(() => {
+    if (pmTenants.length > 0) {
+      return pmTenants.map((t) => ({
+        id: t.id,
+        property_id: t.property_id,
+        tenant_name: [t.first_name, t.last_name].filter(Boolean).join(' ') || t.name || '',
+        tenant_email: t.email || '',
+        tenant_phone: t.phone || '',
+        lease_start: t.lease_start || null,
+        lease_end: t.lease_end || null,
+        propertyLabel: propertyLabels[t.property_id] || 'Unassigned',
+        monthly_rent: t.monthly_rent || 0,
+        status: t.status || 'active',
+        _source: 'pmtenant',
+      })).sort((a, b) => (a.tenant_name || '').localeCompare(b.tenant_name || ''));
+    }
+    // Fallback: build from PMProperty fields (backward compat)
     return (properties || [])
       .filter((p) => p.tenant_name)
       .map((p) => ({
@@ -109,9 +137,10 @@ export default function PropertyManagementPeople({ profile, currentUser }) {
         propertyLabel: propertyLabels[p.id] || p.name,
         monthly_rent: p.monthly_rent,
         status: p.status,
+        _source: 'property',
       }))
       .sort((a, b) => (a.tenant_name || '').localeCompare(b.tenant_name || ''));
-  }, [properties, propertyLabels]);
+  }, [properties, propertyLabels, pmTenants]);
 
   // Sorted guests (most recent first)
   const sortedGuests = useMemo(() => {

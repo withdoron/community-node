@@ -28,9 +28,9 @@ const SUB_TABS = [
   { key: 'summary', label: 'Summary', icon: BarChart3 },
 ];
 
-export default function PropertyManagementFinances({ profile, currentUser }) {
-  // Ownership guard
-  if (profile && currentUser && profile.user_id !== currentUser.id) {
+export default function PropertyManagementFinances({ profile, currentUser, memberRole, canEdit }) {
+  // Role guard
+  if (!memberRole) {
     return (
       <div className="text-center py-12 text-slate-400">
         <p>You don't have access to this workspace.</p>

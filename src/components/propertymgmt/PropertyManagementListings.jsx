@@ -18,9 +18,9 @@ import ListingCard from './ListingCard';
 import ListingFormDialog from './ListingFormDialog';
 import ListingPreview from './ListingPreview';
 
-export default function PropertyManagementListings({ profile, currentUser }) {
-  // Ownership guard
-  if (profile && currentUser && profile.user_id !== currentUser.id) {
+export default function PropertyManagementListings({ profile, currentUser, memberRole, canEdit }) {
+  // Role guard
+  if (!memberRole) {
     return (
       <div className="text-center py-12 text-slate-400">
         <p>You don't have access to this workspace.</p>
