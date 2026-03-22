@@ -306,6 +306,15 @@ function LogPaymentForm({ open, onOpenChange, debt, profile, currentUser }) {
 
 // ─── Main Tab ──────────────────────────────────────
 export default function FinanceDebts({ profile, currentUser }) {
+  // Ownership guard
+  if (profile && currentUser && profile.user_id !== currentUser.id) {
+    return (
+      <div className="text-center py-12 text-slate-400">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
+
   const queryClient = useQueryClient();
   const [debtFormOpen, setDebtFormOpen] = useState(false);
   const [editingDebt, setEditingDebt] = useState(null);
@@ -370,7 +379,7 @@ export default function FinanceDebts({ profile, currentUser }) {
   return (
     <div className="space-y-6">
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
           <p className="text-xs text-slate-400 mb-1">Total Debt</p>
           <p className="text-lg font-bold text-red-400">{fmt(summary.totalDebt)}</p>

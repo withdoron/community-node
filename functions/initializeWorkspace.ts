@@ -274,12 +274,81 @@ async function initTeam(
   return { initialized: true, templates_created: 0 };
 }
 
+// Finance default data — seeded on workspace creation
+const FINANCE_DEFAULTS = {
+  personal_expense_categories: [
+    'Housing', 'Groceries', 'Dining out', 'Gas & transportation', 'Utilities',
+    'Phone & internet', 'Health & medical', 'Insurance', 'Kids & family',
+    'Subscriptions & apps', 'Clothing', 'Fun & entertainment', 'Giving & tithing',
+    'Savings & investments', 'Debt payments', 'Other',
+  ],
+  personal_income_categories: [
+    'Paycheck', 'Side income', 'Reimbursement', 'Gift', 'Government benefits', 'Other income',
+  ],
+  rental_expense_categories: [
+    'Advertising', 'Auto & travel', 'Cleaning & maintenance', 'Commissions',
+    'Insurance', 'Legal & professional', 'Management fees', 'Mortgage interest',
+    'Repairs', 'Supplies', 'Taxes', 'Utilities', 'Depreciation', 'Other',
+  ],
+  rental_income_categories: [
+    'Rental income', 'Late fees', 'Other income',
+  ],
+  business_expense_categories: [
+    'Advertising & marketing', 'Vehicle', 'Insurance', 'Legal & professional',
+    'Office', 'Supplies', 'Travel', 'Utilities', 'Software & tools', 'Contractors', 'Other',
+  ],
+  business_income_categories: [
+    'Client payment', 'Project revenue', 'Consulting', 'Reimbursement', 'Other income',
+  ],
+};
+
 async function initFinance(
-  _base44: Awaited<ReturnType<typeof createClientFromRequest>>,
-  _profileId: string,
+  base44: Awaited<ReturnType<typeof createClientFromRequest>>,
+  profileId: string,
+  force = false,
 ): Promise<InitResult> {
-  // Add default seeding for finance workspaces here as the workspace grows
-  return { initialized: true, templates_created: 0 };
+  const profile = await base44.asServiceRole.entities.FinancialProfile.get(profileId);
+  if (!profile) {
+    return { initialized: false, templates_created: 0, errors: ['Profile not found'] };
+  }
+
+  // Skip if already seeded (has contexts configured) and force is not set
+  const contexts = profile.contexts;
+  if (!force && contexts && typeof contexts === 'object' && Object.keys(contexts).length > 0) {
+    return { initialized: true, templates_created: 0 };
+  }
+
+  let seeded = 0;
+  const errors: string[] = [];
+
+  try {
+    // Seed default personal context + categories if not already present
+    const defaultContexts = {
+      personal: { label: 'Personal', tax_schedule: null, is_active: true, linked_workspace_id: null },
+    };
+    const defaultCategories = {
+      personal: {
+        income: FINANCE_DEFAULTS.personal_income_categories,
+        expense: FINANCE_DEFAULTS.personal_expense_categories,
+      },
+    };
+
+    await base44.asServiceRole.entities.FinancialProfile.update(profileId, {
+      contexts: JSON.stringify(defaultContexts),
+      categories: JSON.stringify(defaultCategories),
+    });
+    seeded++;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[initFinance] Failed to seed defaults:', message);
+    errors.push(`Defaults: ${message}`);
+  }
+
+  return {
+    initialized: true,
+    templates_created: seeded,
+    ...(errors.length > 0 ? { errors } : {}),
+  };
 }
 
 // PM default data — seeded on workspace creation

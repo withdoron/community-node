@@ -52,6 +52,15 @@ function getDateRange(preset) {
 }
 
 export default function FinanceActivity({ profile, currentUser }) {
+  // Ownership guard
+  if (profile && currentUser && profile.user_id !== currentUser.id) {
+    return (
+      <div className="text-center py-12 text-slate-400">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
+
   const [typeFilter, setTypeFilter] = useState('all');
   const [contextFilter, setContextFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -237,7 +246,7 @@ export default function FinanceActivity({ profile, currentUser }) {
       </div>
 
       {/* Monthly Summary */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
           <p className="text-xs text-slate-400 mb-1">Income</p>
           <p className="text-lg font-bold text-emerald-400">{fmt(summary.income)}</p>

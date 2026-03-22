@@ -27,6 +27,15 @@ function toMonthly(amount, frequency) {
 }
 
 export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
+  // Ownership guard
+  if (profile && currentUser && profile.user_id !== currentUser.id) {
+    return (
+      <div className="text-center py-12 text-slate-400">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
+
   const queryClient = useQueryClient();
 
   const [formOpen, setFormOpen] = useState(false);
@@ -186,8 +195,9 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['finance-profiles'] });
     },
-    // Silently ignore errors (field may not exist in entity yet)
-    onError: () => {},
+    onError: (err) => {
+      console.error('Guide dismiss failed:', err);
+    },
   });
 
   const handleDismissExplanation = () => {

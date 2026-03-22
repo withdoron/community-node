@@ -257,6 +257,15 @@ function RecurringForm({ open, onOpenChange, profile, currentUser, recurring }) 
 
 // ─── Main Tab ──────────────────────────────────────
 export default function FinanceBills({ profile, currentUser }) {
+  // Ownership guard
+  if (profile && currentUser && profile.user_id !== currentUser.id) {
+    return (
+      <div className="text-center py-12 text-slate-400">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
+
   const queryClient = useQueryClient();
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -319,7 +328,7 @@ export default function FinanceBills({ profile, currentUser }) {
   return (
     <div className="space-y-6">
       {/* Summary */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
           <p className="text-xs text-slate-400 mb-1">Monthly Recurring Expenses</p>
           <p className="text-lg font-bold text-red-400">{fmt(summary.monthlyExpenses)}</p>

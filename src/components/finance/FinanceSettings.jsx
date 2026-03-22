@@ -79,6 +79,15 @@ function getTaxLabel(id) {
 
 // ═══════════════════════════════════════════════════
 export default function FinanceSettings({ profile, currentUser }) {
+  // Ownership guard
+  if (profile && currentUser && profile.user_id !== currentUser.id) {
+    return (
+      <div className="text-center py-12 text-slate-400">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
+
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -388,29 +397,12 @@ export default function FinanceSettings({ profile, currentUser }) {
 
   const deleteWorkspaceMutation = useMutation({
     mutationFn: async () => {
-      const txns = await base44.entities.Transaction.filter({ profile_id: profile.id }, 'id', 5000);
-      const txnList = Array.isArray(txns) ? txns : txns ? [txns] : [];
-      for (const t of txnList) {
-        await base44.entities.Transaction.delete(t.id);
-      }
-      const recurring = await base44.entities.RecurringTransaction.filter({ profile_id: profile.id }, 'id', 500);
-      const recList = Array.isArray(recurring) ? recurring : recurring ? [recurring] : [];
-      for (const r of recList) {
-        await base44.entities.RecurringTransaction.delete(r.id);
-      }
-      const debtList = await base44.entities.Debt.filter({ profile_id: profile.id }, 'id', 200);
-      const dList = Array.isArray(debtList) ? debtList : debtList ? [debtList] : [];
-      for (const d of dList) {
-        try {
-          const payments = await base44.entities.DebtPayment.filter({ debt_id: d.id }, 'id', 500);
-          const pList = Array.isArray(payments) ? payments : payments ? [payments] : [];
-          for (const p of pList) {
-            await base44.entities.DebtPayment.delete(p.id);
-          }
-        } catch { /* ignore if no payments */ }
-        await base44.entities.Debt.delete(d.id);
-      }
-      await base44.entities.FinancialProfile.delete(profile.id);
+      const result = await base44.functions.invoke('manageFinanceWorkspace', {
+        action: 'delete_workspace_cascade',
+        profile_id: profile.id,
+      });
+      if (result.error) throw new Error(result.error);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['finance-profiles'] });
