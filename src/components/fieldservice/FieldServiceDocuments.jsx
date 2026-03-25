@@ -631,9 +631,11 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
   });
 
   // ─── Initialize workspace via universal server function (service role bypasses entity permissions) ─────────
+  // Only the workspace owner triggers initialization — non-owner members skip this entirely (DEC-015).
+  const isOwner = profile?.user_id && currentUser?.id && profile.user_id === currentUser.id;
   const [seeded, setSeeded] = useState(false);
   useEffect(() => {
-    if (!profile?.id || !currentUser?.id || templatesLoading || seeded) return;
+    if (!isOwner || !profile?.id || !currentUser?.id || templatesLoading || seeded) return;
     if (templates.length > 0) { setSeeded(true); return; }
 
     const seed = async () => {
@@ -650,12 +652,11 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
         }
       } catch (err) {
         console.error('initializeWorkspace failed:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
-        toast.error(err?.message || err?.toString() || 'Unknown error initializing templates');
       }
       setSeeded(true);
     };
     seed();
-  }, [profile?.id, currentUser?.id, templates.length, templatesLoading, seeded, queryClient]);
+  }, [isOwner, profile?.id, currentUser?.id, templates.length, templatesLoading, seeded, queryClient]);
 
   // ─── Mutations ───────────────────────────────────
 
