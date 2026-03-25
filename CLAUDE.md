@@ -111,7 +111,20 @@ useEffect(() => {
 
 **Entity definitions live in the Base44 dashboard, not in this repo.** There is no `base44/entities/` folder.
 
-**Base44 .filter().list() quirk (CLIENT SDK):** Returns arrays directly. Chaining `.list()` on an already-resolved array returns empty object. Test your query patterns.
+**Base44 .filter() quirk (CLIENT SDK — 2026-03-25):** `.filter({ field: value })` returns empty arrays for **service-role-created records**, even when the entity has Authenticated Users read permission. This affects any entity where records were created by server functions using `asServiceRole` (e.g., `initializeWorkspace`). The safe pattern is `.list()` + client-side filter:
+
+```javascript
+// WRONG — returns empty for service-role-created records
+const list = await base44.entities.FSDocumentTemplate.filter({ profile_id: profile.id });
+
+// RIGHT — .list() fetches all, then filter client-side
+const all = await base44.entities.FSDocumentTemplate.list();
+const list = (Array.isArray(all) ? all : []).filter((t) => t.profile_id === profile.id);
+```
+
+Confirmed on: FSDocumentTemplate, FrequencySong. Assume any entity with service-role-created records has this issue.
+
+**Base44 .filter().list() quirk (CLIENT SDK):** Additionally, chaining `.list()` on `.filter()` returns empty object because `.filter()` already returns an array. Do NOT chain `.list()` on `.filter()`.
 
 **Base44 SERVER SDK (.asServiceRole) — DIFFERENT PATTERN:** In server functions (functions/ directory), `.filter()` returns the array directly. Do NOT chain `.list()` — it will fail because `.list()` is not a function on an array. Pattern: `base44.asServiceRole.entities.Entity.filter({ field: value })` — no `.list()`.
 
