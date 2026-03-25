@@ -564,12 +564,15 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   // ─── Query: Templates ────────────────────────────
+  // Wrapped in try/catch — non-owner users may lack read permission (DEC-015 pattern)
   const { data: templates = [], isLoading: templatesLoading } = useQuery({
     queryKey: ['fs-doc-templates', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSDocumentTemplate.filter({ profile_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSDocumentTemplate.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -579,9 +582,11 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     queryKey: ['fs-documents', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSDocument.filter({ profile_id: profile.id });
-      return (Array.isArray(list) ? list : list ? [list] : [])
-        .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+      try {
+        const list = await base44.entities.FSDocument.filter({ profile_id: profile.id });
+        return (Array.isArray(list) ? list : list ? [list] : [])
+          .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -591,8 +596,10 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     queryKey: ['fs-clients', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSClient.filter({ workspace_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSClient.filter({ workspace_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -602,8 +609,10 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     queryKey: ['fs-projects', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -613,8 +622,10 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     queryKey: ['fs-estimates', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSEstimate.filter({ profile_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSEstimate.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
