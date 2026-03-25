@@ -22,8 +22,10 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     queryKey: ['fs-projects', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -33,11 +35,13 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     queryKey: ['fs-materials-month', profile?.id, monthStart],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSMaterialEntry.filter({ profile_id: profile.id });
-      return (Array.isArray(list) ? list : list ? [list] : []).filter((m) => {
-        const d = (m.created_date || '').split('T')[0];
-        return d >= monthStart;
-      });
+      try {
+        const list = await base44.entities.FSMaterialEntry.filter({ profile_id: profile.id });
+        return (Array.isArray(list) ? list : list ? [list] : []).filter((m) => {
+          const d = (m.created_date || '').split('T')[0];
+          return d >= monthStart;
+        });
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -47,11 +51,13 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     queryKey: ['fs-labor-month', profile?.id, monthStart],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSLaborEntry.filter({ profile_id: profile.id });
-      return (Array.isArray(list) ? list : list ? [list] : []).filter((l) => {
-        const d = (l.created_date || '').split('T')[0];
-        return d >= monthStart;
-      });
+      try {
+        const list = await base44.entities.FSLaborEntry.filter({ profile_id: profile.id });
+        return (Array.isArray(list) ? list : list ? [list] : []).filter((l) => {
+          const d = (l.created_date || '').split('T')[0];
+          return d >= monthStart;
+        });
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -61,8 +67,10 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     queryKey: ['fs-recent-logs', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSDailyLog.filter({ profile_id: profile.id }, '-date', 5);
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSDailyLog.filter({ profile_id: profile.id }, '-date', 5);
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -72,8 +80,10 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     queryKey: ['fs-estimates', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSEstimate.filter({ profile_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSEstimate.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -83,8 +93,10 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     queryKey: ['fs-payments-all', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSPayment.filter({ profile_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSPayment.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -94,8 +106,10 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     queryKey: ['fs-documents', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSDocument.filter({ profile_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSDocument.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -105,8 +119,10 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     queryKey: ['fs-clients', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSClient.filter({ workspace_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSClient.filter({ workspace_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });

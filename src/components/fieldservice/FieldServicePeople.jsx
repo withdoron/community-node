@@ -489,8 +489,10 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
     queryKey: ['fs-projects', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -511,8 +513,10 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
     queryKey: ['fs-clients', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSClient.filter({ workspace_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSClient.filter({ workspace_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });

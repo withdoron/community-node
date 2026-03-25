@@ -1079,9 +1079,11 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
     queryKey: ['fs-estimates', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSEstimate.filter({ profile_id: profile.id });
-      return (Array.isArray(list) ? list : list ? [list] : [])
-        .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      try {
+        const list = await base44.entities.FSEstimate.filter({ profile_id: profile.id });
+        return (Array.isArray(list) ? list : list ? [list] : [])
+          .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -1091,8 +1093,10 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
     queryKey: ['fs-projects', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -1102,8 +1106,10 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
     queryKey: ['fs-clients', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSClient.filter({ workspace_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSClient.filter({ workspace_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });

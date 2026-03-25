@@ -47,10 +47,12 @@ export default function FieldServiceLog({ profile, currentUser }) {
     queryKey: ['fs-projects', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
-      return (Array.isArray(list) ? list : list ? [list] : []).filter(
-        (p) => p.status === 'active' || p.status === 'paused'
-      );
+      try {
+        const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
+        return (Array.isArray(list) ? list : list ? [list] : []).filter(
+          (p) => p.status === 'active' || p.status === 'paused'
+        );
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -90,8 +92,10 @@ export default function FieldServiceLog({ profile, currentUser }) {
     queryKey: ['fs-logs-for-project', projectId],
     queryFn: async () => {
       if (!projectId) return [];
-      const list = await base44.entities.FSDailyLog.filter({ project_id: projectId });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSDailyLog.filter({ project_id: projectId });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!projectId,
   });

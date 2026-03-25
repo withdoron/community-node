@@ -110,8 +110,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     queryKey: ['fs-projects', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -121,8 +123,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     queryKey: ['fs-daily-logs-all', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSDailyLog.filter({ profile_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSDailyLog.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -132,8 +136,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     queryKey: ['fs-materials-all', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSMaterialEntry.filter({ profile_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSMaterialEntry.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -143,8 +149,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     queryKey: ['fs-labor-all', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSLaborEntry.filter({ profile_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSLaborEntry.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -154,8 +162,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     queryKey: ['fs-clients', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const list = await base44.entities.FSClient.filter({ workspace_id: profile.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSClient.filter({ workspace_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!profile?.id,
   });
@@ -231,8 +241,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     queryKey: ['fs-project-estimate', selectedProject?.estimate_id],
     queryFn: async () => {
       if (!selectedProject?.estimate_id) return null;
-      const list = await base44.entities.FSEstimate.filter({ id: selectedProject.estimate_id });
-      return Array.isArray(list) && list[0] ? list[0] : null;
+      try {
+        const list = await base44.entities.FSEstimate.filter({ id: selectedProject.estimate_id });
+        return Array.isArray(list) && list[0] ? list[0] : null;
+      } catch { return null; }
     },
     enabled: !!selectedProject?.estimate_id,
   });
@@ -242,8 +254,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     queryKey: ['fs-project-materials', selectedId],
     queryFn: async () => {
       if (!selectedId) return [];
-      const list = await base44.entities.FSMaterialEntry.filter({ project_id: selectedId });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSMaterialEntry.filter({ project_id: selectedId });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!selectedId,
   });
@@ -252,8 +266,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     queryKey: ['fs-project-labor', selectedId],
     queryFn: async () => {
       if (!selectedId) return [];
-      const list = await base44.entities.FSLaborEntry.filter({ project_id: selectedId });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSLaborEntry.filter({ project_id: selectedId });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!selectedId,
   });
@@ -262,8 +278,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     queryKey: ['fs-project-photos', selectedId],
     queryFn: async () => {
       if (!selectedId) return [];
-      const list = await base44.entities.FSDailyPhoto.filter({ project_id: selectedId });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      try {
+        const list = await base44.entities.FSDailyPhoto.filter({ project_id: selectedId });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
     },
     enabled: !!selectedId,
   });
@@ -273,9 +291,11 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     queryKey: ['fs-change-orders', selectedProject?.id],
     queryFn: async () => {
       if (!selectedProject?.id) return [];
-      const list = await base44.entities.FSChangeOrder.filter({ project_id: selectedProject.id });
-      return (Array.isArray(list) ? list : list ? [list] : [])
-        .sort((a, b) => (b.created_date || '').localeCompare(a.created_date || ''));
+      try {
+        const list = await base44.entities.FSChangeOrder.filter({ project_id: selectedProject.id });
+        return (Array.isArray(list) ? list : list ? [list] : [])
+          .sort((a, b) => (b.created_date || '').localeCompare(a.created_date || ''));
+      } catch { return []; }
     },
     enabled: !!selectedProject?.id,
   });
