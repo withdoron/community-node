@@ -564,27 +564,30 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   // ─── Query: Templates ────────────────────────────
-  // Wrapped in try/catch — non-owner users may lack read permission (DEC-015 pattern)
+  // .filter() returns empty for service-role-created records — Base44 SDK quirk.
+  // Use .list() + client filter by profile_id instead.
   const { data: templates = [], isLoading: templatesLoading } = useQuery({
     queryKey: ['fs-doc-templates', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
       try {
-        const list = await base44.entities.FSDocumentTemplate.filter({ profile_id: profile.id });
-        return Array.isArray(list) ? list : list ? [list] : [];
+        const all = await base44.entities.FSDocumentTemplate.list();
+        return (Array.isArray(all) ? all : []).filter((t) => t.profile_id === profile.id);
       } catch { return []; }
     },
     enabled: !!profile?.id,
   });
 
   // ─── Query: Documents ────────────────────────────
+  // .filter() may return empty for records created by other users — use .list() + client filter
   const { data: documents = [], isLoading: docsLoading } = useQuery({
     queryKey: ['fs-documents', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
       try {
-        const list = await base44.entities.FSDocument.filter({ profile_id: profile.id });
-        return (Array.isArray(list) ? list : list ? [list] : [])
+        const all = await base44.entities.FSDocument.list();
+        return (Array.isArray(all) ? all : [])
+          .filter((d) => d.profile_id === profile.id)
           .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
       } catch { return []; }
     },
@@ -592,39 +595,42 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
   });
 
   // ─── Query: Clients ──────────────────────────────
+  // .filter() may return empty — use .list() + client filter
   const { data: clients = [] } = useQuery({
     queryKey: ['fs-clients', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
       try {
-        const list = await base44.entities.FSClient.filter({ workspace_id: profile.id });
-        return Array.isArray(list) ? list : list ? [list] : [];
+        const all = await base44.entities.FSClient.list();
+        return (Array.isArray(all) ? all : []).filter((c) => c.workspace_id === profile.id);
       } catch { return []; }
     },
     enabled: !!profile?.id,
   });
 
   // ─── Query: Projects ─────────────────────────────
+  // .filter() may return empty — use .list() + client filter
   const { data: projects = [] } = useQuery({
     queryKey: ['fs-projects', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
       try {
-        const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
-        return Array.isArray(list) ? list : list ? [list] : [];
+        const all = await base44.entities.FSProject.list();
+        return (Array.isArray(all) ? all : []).filter((p) => p.profile_id === profile.id);
       } catch { return []; }
     },
     enabled: !!profile?.id,
   });
 
   // ─── Query: Estimates ────────────────────────────
+  // .filter() may return empty — use .list() + client filter
   const { data: estimates = [] } = useQuery({
     queryKey: ['fs-estimates', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
       try {
-        const list = await base44.entities.FSEstimate.filter({ profile_id: profile.id });
-        return Array.isArray(list) ? list : list ? [list] : [];
+        const all = await base44.entities.FSEstimate.list();
+        return (Array.isArray(all) ? all : []).filter((e) => e.profile_id === profile.id);
       } catch { return []; }
     },
     enabled: !!profile?.id,
