@@ -111,6 +111,14 @@ useEffect(() => {
 
 **Entity definitions live in the Base44 dashboard, not in this repo.** There is no `base44/entities/` folder.
 
+**Base44 Entity Management (DEC-093):** Entity creation, field additions, and permission changes are done via Base44 agent prompts, not manually in the dashboard. When a build requires entity changes:
+1. Write a separate Base44 agent prompt (markdown with tables)
+2. Deliver it alongside the Claude Code prompt as a separate file
+3. Doron runs the Base44 agent prompt first, then the Claude Code prompt
+4. The Claude Code prompt should note "PRE-REQUISITE: Base44 entity changes have been applied" at the top
+
+This applies to: new entities, new fields on existing entities, permission setting changes, and entity deletions.
+
 **Base44 .filter() quirk (CLIENT SDK — 2026-03-25):** `.filter({ field: value })` returns empty arrays for **service-role-created records**, even when the entity has Authenticated Users read permission. This affects any entity where records were created by server functions using `asServiceRole` (e.g., `initializeWorkspace`). The safe pattern is `.list()` + client-side filter:
 
 ```javascript
