@@ -1,0 +1,59 @@
+{
+  "name": "NetworkApplication",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business applying"
+    },
+    "business_name": {
+      "type": "string",
+      "description": "Denormalized for admin display"
+    },
+    "network_slug": {
+      "type": "string",
+      "description": "Which network they're applying to (e.g., 'harvest')"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "declined"
+      ],
+      "default": "pending",
+      "description": "Application status"
+    },
+    "applied_at": {
+      "type": "string",
+      "description": "ISO datetime of application"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "description": "ISO datetime when admin reviewed"
+    },
+    "reviewer_notes": {
+      "type": "string",
+      "description": "Admin notes on the decision"
+    },
+    "applicant_message": {
+      "type": "string",
+      "description": "Optional message from the business owner"
+    }
+  },
+  "required": [
+    "business_id",
+    "business_name",
+    "network_slug",
+    "status",
+    "applied_at"
+  ],
+  "security": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": {
+      "admin": true
+    }
+  }
+}

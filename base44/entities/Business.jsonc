@@ -1,0 +1,328 @@
+{
+  "name": "Business",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "description": "Legacy category field for backwards compatibility"
+    },
+    "main_category": {
+      "type": "string",
+      "description": "Main category ID (e.g., home_services, auto_transportation)"
+    },
+    "subcategories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of subcategory IDs within the main category"
+    },
+    "subcategory": {
+      "type": "string",
+      "description": "Single subcategory string label"
+    },
+    "sub_category_id": {
+      "type": "string",
+      "description": "Foreign key to SubCategory entity (new cascading system)"
+    },
+    "archetype": {
+      "type": "string",
+      "description": "Business archetype (e.g., 'venue', 'service', 'organizer')"
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "starting_price": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "services_offered": {
+      "type": "string",
+      "description": "Text description of services offered"
+    },
+    "service_area": {
+      "type": "string",
+      "description": "Description of service area (e.g., '25 mile radius')"
+    },
+    "business_hours": {
+      "type": "string",
+      "description": "Business hours as a text/string (e.g., 'Mon-Fri 9am-5pm')"
+    },
+    "street_address": {
+      "type": "string",
+      "description": "Street address line 1"
+    },
+    "address_line2": {
+      "type": "string",
+      "description": "Apt, suite, unit (optional)"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "description": "Two-letter state code (e.g., OR, WA, CA)"
+    },
+    "zip_code": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string",
+      "default": "United States"
+    },
+    "address": {
+      "type": "string",
+      "description": "Legacy address field for backwards compatibility"
+    },
+    "lat": {
+      "type": "number"
+    },
+    "lng": {
+      "type": "number"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "instagram": {
+      "type": "string",
+      "description": "Instagram handle (e.g., @mybusiness)"
+    },
+    "facebook": {
+      "type": "string",
+      "description": "Facebook page URL"
+    },
+    "shop_url": {
+      "type": "string",
+      "description": "Online shop or selling URL"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "banner_url": {
+      "type": "string",
+      "description": "URL of the business's banner image (separate from logo and photos)"
+    },
+    "accepts_silver": {
+      "type": "boolean",
+      "default": false
+    },
+    "accepts_joy_coins": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this business accepts Joy Coins as payment"
+    },
+    "community_pass_interest": {
+      "type": "string",
+      "description": "Whether this business has expressed interest in the Community Pass program"
+    },
+    "is_locally_owned_franchise": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the business is a locally owned franchise"
+    },
+    "subscription_tier": {
+      "type": "string",
+      "enum": [
+        "free",
+        "silver",
+        "gold"
+      ],
+      "default": "free",
+      "description": "Business subscription tier"
+    },
+    "boost_credits_this_period": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of boost credits available this billing period"
+    },
+    "boosts_used_this_period": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of boosts used this billing period"
+    },
+    "bumps_remaining": {
+      "type": "number",
+      "default": 0,
+      "description": "Legacy bump credits (deprecated)"
+    },
+    "bumps_reset_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Legacy bump reset date (deprecated)"
+    },
+    "is_bumped": {
+      "type": "boolean",
+      "default": false,
+      "description": "Legacy bump status (deprecated)"
+    },
+    "bump_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Legacy bump expiration (deprecated)"
+    },
+    "add_ons": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "recess",
+          "tca"
+        ]
+      },
+      "description": "Network partnerships (Recess, TCA)"
+    },
+    "network_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of Network IDs this business belongs to"
+    },
+    "instructors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of User IDs who are instructors for this business"
+    },
+    "owner_user_id": {
+      "type": "string",
+      "description": "ID of the User who owns this business"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the owner (for display and legacy support)"
+    },
+    "region_id": {
+      "type": "string"
+    },
+    "average_rating": {
+      "type": "number",
+      "default": 0
+    },
+    "review_count": {
+      "type": "number",
+      "default": 0
+    },
+    "nod_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of nods received"
+    },
+    "story_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of stories received"
+    },
+    "recommendation_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Total number of recommendations (nods + stories)"
+    },
+    "vouch_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of vouches received"
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "stripe_connect_account_id": {
+      "type": "string",
+      "description": "Future: Stripe Connect account ID for this business"
+    },
+    "guide_dismissed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the user has dismissed the workspace walkthrough guide"
+    },
+    "product_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Freeform string array for what the business sells"
+    },
+    "payment_methods": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of accepted payment method strings"
+    },
+    "payment_notes": {
+      "type": "string",
+      "description": "Freeform purchase instructions"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Geocoded latitude from address"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Geocoded longitude from address"
+    },
+    "geocoded_at": {
+      "type": "string",
+      "description": "ISO datetime of last geocode"
+    }
+  },
+  "required": [
+    "name",
+    "owner_email"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
