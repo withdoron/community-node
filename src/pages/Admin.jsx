@@ -25,6 +25,8 @@ import FieldServiceDefaultsPanel from '@/components/admin/workspaces/FieldServic
 import PropertyManagementDefaultsPanel from '@/components/admin/workspaces/PropertyManagementDefaultsPanel';
 import TeamDefaultsPanel from '@/components/admin/workspaces/TeamDefaultsPanel';
 import FinanceDefaultsPanel from '@/components/admin/workspaces/FinanceDefaultsPanel';
+import AdminMarketplacePanel from '@/components/admin/AdminMarketplacePanel';
+import AdminNetworkApplicationsPanel from '@/components/admin/AdminNetworkApplicationsPanel';
 
 function PlaceholderSection({ title, description }) {
   return (
@@ -311,6 +313,10 @@ export default function Admin() {
             <Route path="joy-coins" element={<JoyCoinsAdminPanel />} />
             <Route path="tiers" element={<PlaceholderSection title="Tiers" description="Business and user tier definitions — coming soon." />} />
             <Route path="community-pass" element={<PlaceholderSection title="Community Pass" description="Community Pass system settings — coming soon." />} />
+
+            <Route path="marketplace" element={<AdminMarketplacePanel />} />
+            {/* Construction Gate — remove when network applications passes walkthrough */}
+            {false && <Route path="network-applications" element={<AdminNetworkApplicationsPanel />} />}
 
             <Route path="workspaces" element={<AllWorkspacesPanel isAdmin={currentUser?.role === 'admin'} />} />
             <Route path="workspaces/field-service" element={<FieldServiceDefaultsPanel isAdmin={currentUser?.role === 'admin'} />} />
