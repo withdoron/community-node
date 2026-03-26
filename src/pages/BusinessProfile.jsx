@@ -15,7 +15,7 @@ import VouchCard from '@/components/recommendations/VouchCard';
 import {
   Phone, Mail, Globe, MapPin, Clock, ChevronLeft,
   Share2, CheckCircle, Coins, ExternalLink,
-  Loader2, ThumbsUp, BookOpen, Shield, Instagram, Facebook, ShoppingBag
+  Loader2, ThumbsUp, BookOpen, Shield, Instagram, Facebook, ShoppingBag, Sprout
 } from "lucide-react";
 import { formatAddress, buildMapsQuery } from '@/components/locations/formatAddress';
 import { toast } from 'sonner';
@@ -270,6 +270,46 @@ export default function BusinessProfile() {
               {business.services_offered?.trim() && (
                 <div className="mt-4">
                   <p className="text-slate-300 whitespace-pre-line">{business.services_offered.trim()}</p>
+                </div>
+              )}
+
+              {/* What's Available — product tags */}
+              {Array.isArray(business.product_tags) && business.product_tags.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-3">
+                    <Sprout className="h-4 w-4 text-amber-500" />
+                    What's Available
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {business.product_tags.map((tag, idx) => (
+                      <span key={idx} className="bg-amber-500/20 text-amber-500 rounded-full px-3 py-1 text-sm">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* How to Purchase — payment methods */}
+              {Array.isArray(business.payment_methods) && business.payment_methods.length > 0 && (
+                <div className="mt-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                  <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-3">
+                    <ShoppingBag className="h-4 w-4 text-amber-500" />
+                    How to Purchase
+                  </h3>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {business.payment_methods.map((method, idx) => {
+                      const labels = { cash: 'Cash', venmo: 'Venmo', cashapp: 'CashApp', zelle: 'Zelle', paypal: 'PayPal', other: 'Other' };
+                      return (
+                        <span key={idx} className="bg-slate-800 text-slate-200 rounded-full px-3 py-1 text-sm border border-slate-700">
+                          {labels[method] || method}
+                        </span>
+                      );
+                    })}
+                  </div>
+                  {business.payment_notes?.trim() && (
+                    <p className="text-slate-300 text-sm mt-2">{business.payment_notes.trim()}</p>
+                  )}
                 </div>
               )}
             </Card>

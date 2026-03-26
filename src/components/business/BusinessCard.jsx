@@ -125,6 +125,20 @@ export default function BusinessCard({ business }) {
         </p>
       )}
 
+      {/* Product tags */}
+      {Array.isArray(business.product_tags) && business.product_tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1.5">
+          {business.product_tags.slice(0, 3).map((tag, idx) => (
+            <span key={idx} className="text-xs bg-slate-800 text-slate-300 rounded-full px-2 py-0.5">
+              {tag}
+            </span>
+          ))}
+          {business.product_tags.length > 3 && (
+            <span className="text-xs text-slate-500">+{business.product_tags.length - 3} more</span>
+          )}
+        </div>
+      )}
+
       {/* Location */}
       {locationStr && (
         <p className="text-sm text-slate-500 mt-2">
