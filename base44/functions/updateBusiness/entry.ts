@@ -13,11 +13,13 @@ const PROFILE_ALLOWLIST = [
   'shop_url', 'services_offered', 'service_area',
   'photos',
   'banner_url', // TODO: Add banner_url field to Business entity in Base44 dashboard (type: text/url)
+  'product_tags', 'payment_methods', 'payment_notes', 'latitude', 'longitude', 'geocoded_at',
 ];
 
 const ADMIN_EXTRA_ALLOWLIST = [
   'subscription_tier', 'accepts_silver', 'is_locally_owned_franchise', 'network_ids', 'is_active',
   'claim_token', 'claim_email', 'claim_sent_at',
+  'product_tags', 'payment_methods', 'payment_notes',
 ];
 
 function slugFromName(name: string): string {
@@ -328,6 +330,37 @@ Deno.serve(async (req) => {
         const baseSlug = slugFromName(String(payload.name));
         payload.slug = await findUniqueSlug(base44, baseSlug, business_id);
       }
+
+    // Geocode on address change — best effort, never blocks save
+    // Nominatim (OpenStreetMap) — free, no API key, 1 req/sec rate limit
+    const addressFields = ['address', 'city', 'state', 'zip_code'];
+    const addressChanged = addressFields.some(f => f in payload);
+    if (addressChanged) {
+      try {
+        const biz = await base44.asServiceRole.entities.Business.get(business_id);
+        const addr = (payload.address ?? biz.address ?? '') as string;
+        const city = (payload.city ?? biz.city ?? '') as string;
+        const state = (payload.state ?? biz.state ?? '') as string;
+        const zip = (payload.zip_code ?? biz.zip_code ?? '') as string;
+        const query = [addr, city, state, zip].filter(Boolean).join(', ');
+        if (query.trim()) {
+          const geoRes = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
+            { headers: { 'User-Agent': 'LocalLane/1.0 (doron.bsg@gmail.com)' } }
+          );
+          const geoData = await geoRes.json();
+          if (Array.isArray(geoData) && geoData.length > 0) {
+            payload.latitude = parseFloat(geoData[0].lat);
+            payload.longitude = parseFloat(geoData[0].lon);
+            payload.geocoded_at = new Date().toISOString();
+          }
+          // If geocoding fails, don't overwrite existing coords — just skip
+        }
+      } catch (geoErr) {
+        // Geocoding is best-effort — log and continue
+        console.warn('Geocoding failed:', (geoErr as Error).message);
+      }
+    }
 
       if (Object.keys(payload).length === 0) {
         const existing = await base44.asServiceRole.entities.Business.get(business_id);
