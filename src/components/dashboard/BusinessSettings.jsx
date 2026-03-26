@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Settings, Store, Star, Zap, Crown, ExternalLink, Mail, Phone, Globe, MapPin, Pencil, Loader2, Upload, Users, ImageIcon, X } from 'lucide-react';
+import { Settings, Store, Star, Zap, Crown, ExternalLink, Mail, Phone, Globe, MapPin, Pencil, Loader2, Upload, Users, ImageIcon, X, Check } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -83,6 +83,9 @@ function getInitialFormData(business) {
     service_area: business.service_area || '',
     services_offered: business.services_offered || '',
     shop_url: business.shop_url || '',
+    product_tags: Array.isArray(business.product_tags) ? business.product_tags : [],
+    payment_methods: Array.isArray(business.payment_methods) ? business.payment_methods : [],
+    payment_notes: business.payment_notes || '',
   };
 }
 
@@ -246,7 +249,14 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
     if (!business || !formData) return;
     const changedFields = {};
     const initial = getInitialFormData(business);
+    // Handle array fields separately — String comparison doesn't work for arrays
+    ['product_tags', 'payment_methods'].forEach((key) => {
+      const a = JSON.stringify(initial[key] || []);
+      const b = JSON.stringify(formData[key] || []);
+      if (a !== b) changedFields[key] = formData[key];
+    });
     (Object.keys(formData) || []).forEach((key) => {
+      if (['product_tags', 'payment_methods'].includes(key)) return; // handled above
       const a = initial[key];
       const b = formData[key];
       const va = a == null ? '' : String(a).trim();
@@ -549,6 +559,121 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                     onChange={(e) => handleChange('shop_url', e.target.value)}
                     className={INPUT_CLASS}
                     placeholder="e.g., etsy.com/shop/yourshop"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* What I Offer — product tags (product_seller, micro_business, or food_farm) */}
+            {(resolvedArchetype === 'product_seller' || resolvedArchetype === 'micro_business' || business?.main_category === 'food_farm') && (
+              <div className="space-y-4">
+                <div className="border-b border-slate-700 pb-2">
+                  <h4 className="text-xs text-slate-400 uppercase tracking-wider">What I Offer</h4>
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                    Products / Items
+                  </Label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {(formData.product_tags || []).map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="bg-amber-500/20 text-amber-500 rounded-full px-3 py-1 text-sm flex items-center gap-1.5"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = formData.product_tags.filter((_, i) => i !== idx);
+                            handleChange('product_tags', next);
+                          }}
+                          className="hover:text-red-400 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <Input
+                    placeholder="Type a product and press Enter (e.g., eggs, honey, bread)"
+                    className={INPUT_CLASS}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault();
+                        const val = e.target.value.trim().replace(/,+$/, '');
+                        if (val && !(formData.product_tags || []).includes(val)) {
+                          handleChange('product_tags', [...(formData.product_tags || []), val]);
+                        }
+                        e.target.value = '';
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* How to Purchase — payment methods (product_seller, micro_business, or food_farm) */}
+            {(resolvedArchetype === 'product_seller' || resolvedArchetype === 'micro_business' || business?.main_category === 'food_farm') && (
+              <div className="space-y-4">
+                <div className="border-b border-slate-700 pb-2">
+                  <h4 className="text-xs text-slate-400 uppercase tracking-wider">How to Purchase</h4>
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                    Payment Methods
+                  </Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { value: 'cash', label: 'Cash' },
+                      { value: 'venmo', label: 'Venmo' },
+                      { value: 'cashapp', label: 'CashApp' },
+                      { value: 'zelle', label: 'Zelle' },
+                      { value: 'paypal', label: 'PayPal' },
+                      { value: 'other', label: 'Other' },
+                    ].map((method) => {
+                      const checked = (formData.payment_methods || []).includes(method.value);
+                      return (
+                        <label
+                          key={method.value}
+                          className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors ${
+                            checked
+                              ? 'border-amber-500/50 bg-amber-500/10 text-amber-500'
+                              : 'border-slate-700 bg-slate-800/50 text-slate-300 hover:border-slate-600'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            className="sr-only"
+                            checked={checked}
+                            onChange={() => {
+                              const current = formData.payment_methods || [];
+                              const next = checked
+                                ? current.filter((m) => m !== method.value)
+                                : [...current, method.value];
+                              handleChange('payment_methods', next);
+                            }}
+                          />
+                          <div className={`h-4 w-4 rounded border flex items-center justify-center ${
+                            checked ? 'bg-amber-500 border-amber-500' : 'border-slate-600'
+                          }`}>
+                            {checked && <Check className="h-3 w-3 text-black" />}
+                          </div>
+                          <span className="text-sm">{method.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="business-payment-notes" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                    How should people reach you to buy?
+                  </Label>
+                  <Input
+                    id="business-payment-notes"
+                    value={formData.payment_notes}
+                    onChange={(e) => handleChange('payment_notes', e.target.value)}
+                    className={INPUT_CLASS}
+                    placeholder="e.g., Text me at 541-555-1234, DM on Instagram, just stop by!"
                   />
                 </div>
               </div>

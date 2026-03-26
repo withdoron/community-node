@@ -570,6 +570,113 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
           </div>
         )}
 
+        {/* What I Offer — product tags */}
+        {(isProductOrMicro || (formData.archetype === 'location_venue' && formData.primary_category === 'food_farm')) && (
+          <div className="space-y-4">
+            <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">What I Offer</h3>
+            <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-3">
+              <Label className="text-slate-200">Products / Items</Label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {(formData.product_tags || []).map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="bg-amber-500/20 text-amber-500 rounded-full px-3 py-1 text-sm flex items-center gap-1.5"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = (formData.product_tags || []).filter((_, i) => i !== idx);
+                        setFormData({ ...formData, product_tags: next });
+                      }}
+                      className="hover:text-red-400 transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <Input
+                placeholder="Type a product and press Enter (e.g., eggs, honey, bread)"
+                className="bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    const val = e.target.value.trim().replace(/,+$/, '');
+                    if (val && !(formData.product_tags || []).includes(val)) {
+                      setFormData({ ...formData, product_tags: [...(formData.product_tags || []), val] });
+                    }
+                    e.target.value = '';
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* How to Purchase — payment methods */}
+        {(isProductOrMicro || (formData.archetype === 'location_venue' && formData.primary_category === 'food_farm')) && (
+          <div className="space-y-4">
+            <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">How to Purchase</h3>
+            <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
+              <div className="space-y-2">
+                <Label className="text-slate-200">Payment Methods</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { value: 'cash', label: 'Cash' },
+                    { value: 'venmo', label: 'Venmo' },
+                    { value: 'cashapp', label: 'CashApp' },
+                    { value: 'zelle', label: 'Zelle' },
+                    { value: 'paypal', label: 'PayPal' },
+                    { value: 'other', label: 'Other' },
+                  ].map((method) => {
+                    const checked = (formData.payment_methods || []).includes(method.value);
+                    return (
+                      <label
+                        key={method.value}
+                        className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors ${
+                          checked
+                            ? 'border-amber-500/50 bg-amber-500/10 text-amber-500'
+                            : 'border-slate-700 bg-slate-800/50 text-slate-300 hover:border-slate-600'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="sr-only"
+                          checked={checked}
+                          onChange={() => {
+                            const current = formData.payment_methods || [];
+                            const next = checked
+                              ? current.filter((m) => m !== method.value)
+                              : [...current, method.value];
+                            setFormData({ ...formData, payment_methods: next });
+                          }}
+                        />
+                        <div className={`h-4 w-4 rounded border flex items-center justify-center ${
+                          checked ? 'bg-amber-500 border-amber-500' : 'border-slate-600'
+                        }`}>
+                          {checked && <Check className="h-3 w-3 text-black" />}
+                        </div>
+                        <span className="text-sm">{method.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="payment-notes" className="text-slate-200">How should people reach you to buy?</Label>
+                <Input
+                  id="payment-notes"
+                  value={formData.payment_notes || ''}
+                  onChange={(e) => setFormData({ ...formData, payment_notes: e.target.value })}
+                  placeholder="e.g., Text me at 541-555-1234, DM on Instagram, just stop by!"
+                  className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Location — for non-venue archetypes (optional address) */}
         {!isLocationVenue && (
           <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
