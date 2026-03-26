@@ -13,7 +13,8 @@ import EventDetailModal from '@/components/events/EventDetailModal';
 import WeekCalendarStrip from '@/components/events/WeekCalendarStrip';
 import BusinessCard from '@/components/business/BusinessCard';
 import { Button } from '@/components/ui/button';
-import { Loader2, Store, Calendar, ArrowLeft, X } from 'lucide-react';
+import { Loader2, Store, Calendar, ArrowLeft, X, Search, LayoutGrid, Map as MapIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
 export default function NetworkPage() {
@@ -24,6 +25,7 @@ export default function NetworkPage() {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [followHover, setFollowHover] = useState(false);
   const [optimisticFollowing, setOptimisticFollowing] = useState(null);
+  const [productFilter, setProductFilter] = useState('');
 
   const { data: networksConfig = [], isLoading: networksLoading } = useConfig('platform', 'networks');
   const network = useMemo(() => {
@@ -94,6 +96,16 @@ export default function NetworkPage() {
     },
     enabled: !!slug,
   });
+
+  // Product tag filter — applies to both grid and map views
+  const filteredBusinesses = useMemo(() => {
+    if (!productFilter.trim()) return businesses;
+    const term = productFilter.toLowerCase().trim();
+    return businesses.filter((b) =>
+      Array.isArray(b.product_tags) &&
+      b.product_tags.some((tag) => tag.toLowerCase().includes(term))
+    );
+  }, [businesses, productFilter]);
 
   const now = new Date();
   const upcomingEvents = useMemo(() => {
@@ -212,6 +224,29 @@ export default function NetworkPage() {
           </div>
         )}
 
+        {/* How it works */}
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
+          <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-2">How it works</h3>
+          <p className="text-slate-400 text-sm leading-relaxed">
+            {displayName} connects local producers and businesses with the community. Businesses apply to join
+            and are reviewed by our team. Once accepted, they appear here with their products and contact info
+            so you can shop local and support your neighbors.
+          </p>
+        </div>
+
+        {/* Construction Gate — remove when network application flow passes walkthrough */}
+        {false && currentUser && (
+          <div className="bg-slate-900 border border-slate-800 rounded-lg p-5 text-center">
+            <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-3">
+              <Store className="w-6 h-6 text-slate-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-200">Apply to Join {displayName} — Coming Soon</h3>
+            <p className="text-slate-400 mt-2 max-w-md mx-auto text-sm">
+              Business owners will be able to apply to join this network directly from here.
+            </p>
+          </div>
+        )}
+
         {/* Gallery */}
         {network.gallery?.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -250,24 +285,85 @@ export default function NetworkPage() {
 
         {/* Network Businesses */}
         <section className="space-y-4">
-          <h2 className="font-serif text-xl font-bold text-white flex items-center gap-2">
-            <Store className="h-5 w-5 text-amber-500" />
-            Businesses in {displayName}
-            <span className="text-slate-400 font-normal text-base">({businesses.length})</span>
-          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <h2 className="font-serif text-xl font-bold text-white flex items-center gap-2">
+              <Store className="h-5 w-5 text-amber-500" />
+              Businesses in {displayName}
+              <span className="text-slate-400 font-normal text-base">({filteredBusinesses.length})</span>
+            </h2>
+            <div className="flex items-center gap-2">
+              {/* Construction Gate — remove when map view passes walkthrough */}
+              {false && (
+                <div className="flex bg-slate-800 rounded-lg p-0.5">
+                  <button type="button" className="p-1.5 rounded bg-amber-500 text-slate-900">
+                    <LayoutGrid className="h-4 w-4" />
+                  </button>
+                  <button type="button" className="p-1.5 rounded text-slate-400 hover:text-white">
+                    <MapIcon className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Product tag filter — LIVE */}
+          {businesses.length > 0 && (
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <Input
+                  value={productFilter}
+                  onChange={(e) => setProductFilter(e.target.value)}
+                  placeholder="Filter by product (e.g., eggs)"
+                  className="pl-9 bg-slate-800 border-slate-700 text-white placeholder-slate-500"
+                />
+              </div>
+              {productFilter.trim() && (
+                <div className="flex items-center gap-2">
+                  <span className="bg-amber-500/20 text-amber-500 rounded-full px-3 py-1 text-sm flex items-center gap-1.5">
+                    {productFilter.trim()}
+                    <button type="button" onClick={() => setProductFilter('')} className="hover:text-red-400">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                  <span className="text-sm text-slate-500">
+                    Showing {filteredBusinesses.length} of {businesses.length} businesses
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           {businessesLoading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
             </div>
-          ) : businesses.length === 0 ? (
-            <p className="text-slate-500 py-8">No businesses in {displayName} yet.</p>
+          ) : filteredBusinesses.length === 0 ? (
+            <p className="text-slate-500 py-8">
+              {productFilter.trim()
+                ? `No businesses match "${productFilter}" in ${displayName}.`
+                : `No businesses in ${displayName} yet.`}
+            </p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {businesses.map((business) => (
+              {filteredBusinesses.map((business) => (
                 <div key={business.id}>
                   <BusinessCard business={business} />
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Construction Gate — remove when map view passes walkthrough */}
+          {false && (
+            <div className="rounded-lg bg-slate-900 border border-slate-800 p-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4">
+                <MapIcon className="w-8 h-8 text-slate-500" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-200">Map View — Coming Soon</h3>
+              <p className="text-slate-400 mt-2 max-w-md mx-auto">
+                See where businesses are located on an interactive map.
+              </p>
             </div>
           )}
         </section>
