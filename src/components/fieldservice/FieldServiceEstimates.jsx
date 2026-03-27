@@ -394,7 +394,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
           <div className="mb-6">
             {isInsurance && groupedByTrade ? (
               /* ─── Xactimate grouped format ─── */
-              <div className="space-y-4">
+              <div className="space-y-4 overflow-x-auto">
                 {groupedByTrade.map(([tradeName, group]) => {
                   const catSubtotal = group.items.reduce((s, it) => s + (parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0))), 0);
                   return (
@@ -413,7 +413,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
                                 <td className="py-1.5">
                                   <span>{item.description || '\u2014'}</span>
                                   {item.category !== 'materials' && (
-                                    <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium ${cat.badge}`}>
+                                    <span className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium ${cat.badge}`}>
                                       {cat.label}
                                     </span>
                                   )}
@@ -439,7 +439,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
             ) : (
               /* ─── Standard flat table ─── */
               <div className="overflow-x-auto">
-                <table className="w-full text-sm min-w-[480px]">
+                <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b-2" style={{ borderColor: brandColor }}>
                       <th className="text-center py-2 text-slate-500 font-medium w-14">QTY</th>
@@ -458,7 +458,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
                           <td className="py-2">
                             <span>{item.description || '\u2014'}</span>
                             {item.category !== 'materials' && (
-                              <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium ${cat.badge}`}>
+                              <span className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium ${cat.badge}`}>
                                 {cat.label}
                               </span>
                             )}
@@ -479,7 +479,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
         {/* Summary */}
         <div className="print-avoid-break border-t-2 border-slate-200 pt-4 mb-6">
           <div className="flex justify-end">
-            <div className="w-72 space-y-1 text-sm">
+            <div className="w-full sm:w-72 space-y-1 text-sm">
               {showBreakdown && (
                 <>
                   <div className="flex justify-between"><span className="text-slate-500">Subtotal</span><span>{fmt(totals.subtotal)}</span></div>
@@ -917,11 +917,11 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
             <React.Fragment key={item.id || idx}>
               <div className="bg-slate-800/50 rounded-lg p-3 space-y-2">
                 {/* Row 1: category + description + voice + reorder + remove */}
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
                   <select
                     value={item.category || 'materials'}
                     onChange={(e) => updateItem(idx, 'category', e.target.value)}
-                    className="bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[90px]"
+                    className="bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[90px] min-h-[44px]"
                   >
                     {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
@@ -966,7 +966,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
                 )}
 
                 {/* Row 2: qty, unit price, amount */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   <div>
                     <label className="text-xs text-slate-500">Qty</label>
                     <input type="number" className={INPUT_CLASS} value={item.quantity}
@@ -1488,7 +1488,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
         {FILTER_CHIPS.map((chip) => (
           <button key={chip.value} type="button"
             onClick={() => setFilter(chip.value)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors min-h-[36px] ${
+            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors min-h-[44px] ${
               filter === chip.value
                 ? 'bg-amber-500 text-black'
                 : 'bg-slate-800 text-slate-400 hover:text-slate-200'
@@ -1538,7 +1538,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                     {sc.pulse && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />}
                     {(est.status === 'accepted' || est.status === 'signed') && <Lock className="h-3 w-3" />}
                     {sc.label}
-                    {est.status === 'signed' && est.signed_at && <span className="ml-1 text-[10px] opacity-70">{fmtDate(est.signed_at)}</span>}
+                    {est.status === 'signed' && est.signed_at && <span className="ml-1 text-xs opacity-70">{fmtDate(est.signed_at)}</span>}
                   </span>
                 </div>
 
@@ -1552,33 +1552,33 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                 {/* Actions */}
                 <div className="flex items-center gap-2 pt-2 border-t border-slate-800 flex-wrap">
                   <button type="button" onClick={() => { setPreviewEstimate(est); setView('preview'); }}
-                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[36px] transition-colors">
+                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[44px] transition-colors">
                     <Eye className="h-3.5 w-3.5" /> Preview
                   </button>
                   {est.status !== 'accepted' && est.status !== 'signed' && est.status !== 'awaiting_signature' && (
                     <button type="button" onClick={() => openEditEstimate(est)}
-                      className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[36px] transition-colors">
+                      className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[44px] transition-colors">
                       <Pencil className="h-3.5 w-3.5" /> Edit
                     </button>
                   )}
                   <button type="button" onClick={() => duplicateEstimate(est)}
-                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[36px] transition-colors">
+                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[44px] transition-colors">
                     <Copy className="h-3.5 w-3.5" /> Duplicate
                   </button>
                   {est.status === 'draft' && (
                     <button type="button" onClick={() => markAsSent(est)}
-                      className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 min-h-[36px] transition-colors">
+                      className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 min-h-[44px] transition-colors">
                       <Send className="h-3.5 w-3.5" /> Send to Client
                     </button>
                   )}
                   {est.status === 'sent' && (
                     <>
                       <button type="button" onClick={() => copyPortalLink(est)}
-                        className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[36px] transition-colors">
+                        className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[44px] transition-colors">
                         <Link2 className="h-3.5 w-3.5" /> Copy Link
                       </button>
                       <button type="button" onClick={() => sendForSignature(est)}
-                        className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 min-h-[36px] transition-colors">
+                        className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 min-h-[44px] transition-colors">
                         <Shield className="h-3.5 w-3.5" /> Request Signature
                       </button>
                     </>
@@ -1586,18 +1586,18 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                   {est.status === 'awaiting_signature' && (
                     <>
                       <button type="button" onClick={() => copyPortalLink(est, true)}
-                        className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[36px] transition-colors">
+                        className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[44px] transition-colors">
                         <Link2 className="h-3.5 w-3.5" /> Copy Link
                       </button>
                       <button type="button" onClick={() => recallEstimate(est)}
-                        className="flex items-center gap-1 text-xs text-rose-400 hover:text-rose-300 min-h-[36px] transition-colors">
+                        className="flex items-center gap-1 text-xs text-rose-400 hover:text-rose-300 min-h-[44px] transition-colors">
                         <X className="h-3.5 w-3.5" /> Recall
                       </button>
                     </>
                   )}
                   {(est.status === 'draft' || est.status === 'sent') && !est.project_id && (
                     <button type="button" onClick={() => setConvertConfirm(est)}
-                      className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 min-h-[36px] transition-colors">
+                      className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 min-h-[44px] transition-colors">
                       <FolderOpen className="h-3.5 w-3.5" /> Accept & Create Project
                     </button>
                   )}
@@ -1608,7 +1608,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                   )}
                   {(est.status === 'accepted' || est.status === 'signed') && (
                     <button type="button" onClick={() => reopenEstimate(est)}
-                      className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-400 min-h-[36px] transition-colors">
+                      className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-400 min-h-[44px] transition-colors">
                       Reopen
                     </button>
                   )}
@@ -1622,13 +1622,13 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-slate-500">Delete?</span>
                       <button type="button" onClick={() => deleteMutation.mutate(est.id)}
-                        className="text-xs text-amber-500 hover:text-amber-400 min-h-[36px]">Yes</button>
+                        className="text-xs text-amber-500 hover:text-amber-400 min-h-[44px]">Yes</button>
                       <button type="button" onClick={() => setDeleteConfirm(null)}
-                        className="text-xs text-slate-400 hover:text-slate-300 min-h-[36px]">No</button>
+                        className="text-xs text-slate-400 hover:text-slate-300 min-h-[44px]">No</button>
                     </div>
                   ) : (
                     <button type="button" onClick={() => setDeleteConfirm(est.id)}
-                      className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-400 min-h-[36px] transition-colors">
+                      className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-400 min-h-[44px] transition-colors">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   )}

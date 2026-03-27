@@ -77,7 +77,7 @@ function Section({ icon: Icon, title, count, defaultOpen = false, onAdd, addLabe
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onAdd(); }}
-            className="flex items-center gap-1.5 px-3 py-2 mr-2 rounded-lg text-xs text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors min-h-[36px]"
+            className="flex items-center gap-1.5 px-3 py-2 mr-2 rounded-lg text-xs text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors min-h-[44px]"
           >
             <Plus className="h-3.5 w-3.5" /> {addLabel || 'Add'}
           </button>

@@ -283,7 +283,7 @@ function PermitCard({ permit, profileId, projectId }) {
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Inspections</p>
               <button type="button" onClick={() => setShowInspectionForm(true)}
-                className="flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400 min-h-[36px]">
+                className="flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400 min-h-[44px]">
                 <Plus className="h-3 w-3" /> Log Inspection
               </button>
             </div>

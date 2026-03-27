@@ -522,7 +522,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-4 flex items-center justify-between">
           <span className="text-sm text-amber-500 font-medium">Editing log — {date}</span>
           <button type="button" onClick={cancelEditing}
-            className="text-xs text-slate-400 hover:text-slate-200 min-h-[36px]">Cancel</button>
+            className="text-xs text-slate-400 hover:text-slate-200 min-h-[44px]">Cancel</button>
         </div>
       )}
 
@@ -639,7 +639,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
               key={w}
               type="button"
               onClick={() => setWeather((prev) => (prev === w ? '' : w))}
-              className={`px-3 py-1.5 rounded-full text-sm transition-colors min-h-[36px] ${
+              className={`px-3 py-1.5 rounded-full text-sm transition-colors min-h-[44px] ${
                 weather === w
                   ? 'bg-amber-500 text-black font-medium'
                   : 'bg-slate-800 text-slate-400 hover:text-slate-200'
@@ -815,7 +815,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
                   <div className="flex items-center justify-between">
                     {/* Receipt photo */}
                     <div className="flex items-center gap-2">
-                      <label className="flex items-center gap-1 text-xs text-slate-500 hover:text-amber-500 cursor-pointer min-h-[36px]">
+                      <label className="flex items-center gap-1 text-xs text-slate-500 hover:text-amber-500 cursor-pointer min-h-[44px]">
                         <Receipt className="h-3.5 w-3.5" />
                         {mat.receipt_preview ? 'Change receipt' : 'Add receipt'}
                         {/* No capture attribute — lets mobile users choose camera OR gallery */}

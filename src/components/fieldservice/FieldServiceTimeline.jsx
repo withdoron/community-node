@@ -322,7 +322,7 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
                   <button
                     type="button"
                     onClick={() => setReportLogId(log.id)}
-                    className="text-slate-400 hover:text-amber-500 text-sm transition-colors flex items-center gap-1 min-h-[36px]"
+                    className="text-slate-400 hover:text-amber-500 text-sm transition-colors flex items-center gap-1 min-h-[44px]"
                   >
                     <FileText className="h-3.5 w-3.5" /> View Report
                   </button>

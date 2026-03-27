@@ -125,7 +125,7 @@ export default function FieldServicePhotoGallery({ projectId, phases }) {
       {/* Show more / less */}
       {filteredPhotos.length > 6 && (
         <button type="button" onClick={() => setShowAll(!showAll)}
-          className="w-full text-center text-sm text-amber-500 hover:text-amber-400 min-h-[36px]">
+          className="w-full text-center text-sm text-amber-500 hover:text-amber-400 min-h-[44px]">
           {showAll ? 'Show fewer' : `View all ${filteredPhotos.length} photos`}
         </button>
       )}

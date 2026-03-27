@@ -168,16 +168,16 @@ function DocumentRow({ doc, onView, onEdit, onSendForSignature, onCopyLink, onRe
       <StatusBadge status={doc.status} signedAt={doc.signed_at || doc.signature_data?.signed_at} />
 
       {/* Inline actions — shown on hover / always on mobile */}
-      <div className="flex items-center gap-1 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-0.5 flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
         {isDraft && (
           <>
             <button type="button" onClick={() => onEdit(doc)} title="Edit"
-              className="p-1.5 text-slate-400 hover:text-amber-500 transition-colors rounded">
-              <Pencil className="h-3.5 w-3.5" />
+              className="p-2.5 text-slate-400 hover:text-amber-500 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
+              <Pencil className="h-4 w-4" />
             </button>
             <button type="button" onClick={() => onSendForSignature(doc)} title="Send for Signature"
-              className="p-1.5 text-amber-500 hover:text-amber-400 transition-colors rounded">
-              <Send className="h-3.5 w-3.5" />
+              className="p-2.5 text-amber-500 hover:text-amber-400 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
+              <Send className="h-4 w-4" />
             </button>
             <button type="button"
               onClick={() => {
@@ -189,32 +189,32 @@ function DocumentRow({ doc, onView, onEdit, onSendForSignature, onCopyLink, onRe
                 }
               }}
               title="Delete"
-              className="p-1.5 text-slate-500 hover:text-red-400 transition-colors rounded">
-              <Trash2 className="h-3.5 w-3.5" />
+              className="p-2.5 text-slate-500 hover:text-red-400 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
+              <Trash2 className="h-4 w-4" />
             </button>
           </>
         )}
         {isAwaiting && (
           <>
             <button type="button" onClick={() => onCopyLink(doc)} title="Copy Signing Link"
-              className="p-1.5 text-slate-400 hover:text-amber-500 transition-colors rounded">
-              <Copy className="h-3.5 w-3.5" />
+              className="p-2.5 text-slate-400 hover:text-amber-500 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
+              <Copy className="h-4 w-4" />
             </button>
             <button type="button" onClick={() => onRecall(doc)} title="Recall"
-              className="p-1.5 text-slate-400 hover:text-orange-400 transition-colors rounded">
-              <RotateCcw className="h-3.5 w-3.5" />
+              className="p-2.5 text-slate-400 hover:text-orange-400 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
+              <RotateCcw className="h-4 w-4" />
             </button>
           </>
         )}
         {isSigned && (
           <>
             <button type="button" onClick={() => onView(doc)} title="View"
-              className="p-1.5 text-slate-400 hover:text-amber-500 transition-colors rounded">
-              <Eye className="h-3.5 w-3.5" />
+              className="p-2.5 text-slate-400 hover:text-amber-500 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
+              <Eye className="h-4 w-4" />
             </button>
             <button type="button" onClick={() => onPrint(doc)} title="Print"
-              className="p-1.5 text-slate-400 hover:text-slate-200 transition-colors rounded">
-              <Printer className="h-3.5 w-3.5" />
+              className="p-2.5 text-slate-400 hover:text-slate-200 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
+              <Printer className="h-4 w-4" />
             </button>
           </>
         )}

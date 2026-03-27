@@ -890,7 +890,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                 type="button"
                 disabled={s.value === proj.status || updateStatus.isPending}
                 onClick={() => updateStatus.mutate({ id: proj.id, status: s.value })}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[36px] ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[44px] ${
                   s.value === proj.status
                     ? `${s.color} ring-2 ring-white/20`
                     : 'bg-slate-800 text-slate-400 hover:text-slate-200'
@@ -937,7 +937,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         )}
 
         {/* Budget & Spend */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
             <p className="text-xs text-slate-400 mb-1">Budget</p>
             <p className="text-lg font-bold text-slate-100">{budget > 0 ? fmt(budget) : '—'}</p>
@@ -1234,7 +1234,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-slate-100">{co.title || 'Change Order'}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${coSc}`}>{co.status || 'draft'}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${coSc}`}>{co.status || 'draft'}</span>
                         </div>
                         <p className="text-xs text-slate-500">{co.change_order_number}</p>
                       </div>
@@ -1258,7 +1258,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                         {co.status === 'draft' && (
                           <div className="flex gap-2 pt-1">
                             <button type="button" onClick={() => acceptCOMutation.mutate(co)}
-                              className="text-xs text-emerald-400 hover:text-emerald-300 min-h-[36px]">
+                              className="text-xs text-emerald-400 hover:text-emerald-300 min-h-[44px]">
                               Accept & Update Budget
                             </button>
                           </div>
