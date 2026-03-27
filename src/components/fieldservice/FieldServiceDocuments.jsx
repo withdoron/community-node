@@ -438,7 +438,7 @@ function DocumentDetail({
 // Create Document Flow (multi-step)
 // ═══════════════════════════════════════════════════
 
-function CreateDocumentFlow({ profile, templates, clients, projects, estimates, onSave, onCancel, isSaving, onClientCreated }) {
+function CreateDocumentFlow({ profile, currentUser, templates, clients, projects, estimates, onSave, onCancel, isSaving, onClientCreated }) {
   const [step, setStep] = useState('client'); // client | template | content
   const [clientId, setClientId] = useState('');
   const [projectId, setProjectId] = useState('');
@@ -491,11 +491,14 @@ function CreateDocumentFlow({ profile, templates, clients, projects, estimates, 
     setCreatingClient(true);
     try {
       // workspace_id matches profile.id for FSClient
+      // user_id is required by the FSClient entity — pass workspace owner's user ID
       const created = await base44.entities.FSClient.create({
         workspace_id: profile.id,
+        user_id: currentUser?.id,
         name: newClient.name.trim(),
         email: newClient.email.trim(),
         phone: newClient.phone.trim() || null,
+        status: 'active',
       });
       setClientId(created.id);
       setShowAddClient(false);
@@ -1164,6 +1167,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     return (
       <CreateDocumentFlow
         profile={profile}
+        currentUser={currentUser}
         templates={templates}
         clients={clients}
         projects={projects}
