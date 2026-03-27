@@ -1,0 +1,204 @@
+{
+  "name": "FSEstimate",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to FieldServiceProfile"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "FK to Users entity"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "FK to FSProject (optional)"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "FK to FSClient (optional)"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "client_email": {
+      "type": "string"
+    },
+    "client_phone": {
+      "type": "string"
+    },
+    "client_address": {
+      "type": "string"
+    },
+    "estimate_number": {
+      "type": "string",
+      "description": "e.g. EST-2026-001"
+    },
+    "title": {
+      "type": "string",
+      "description": "Project title for the estimate"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "viewed",
+        "accepted",
+        "declined",
+        "expired"
+      ],
+      "description": "Estimate status"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO date"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO date"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Payment due date"
+    },
+    "line_items": {
+      "type": "object",
+      "description": "Array of {description, quantity, unit, unit_cost, total}"
+    },
+    "labor_estimate": {
+      "type": "object",
+      "description": "{hours, rate, total}"
+    },
+    "subtotal": {
+      "type": "number"
+    },
+    "overhead_profit_pct": {
+      "type": "number",
+      "default": 0,
+      "description": "Overhead & profit percentage applied to subtotal"
+    },
+    "management_fee_pct": {
+      "type": "number",
+      "default": 0,
+      "description": "Management fee percentage applied to subtotal"
+    },
+    "tax_rate_pct": {
+      "type": "number",
+      "default": 0,
+      "description": "Tax rate percentage"
+    },
+    "tax_rate": {
+      "type": "number",
+      "default": 0
+    },
+    "tax_amount": {
+      "type": "number"
+    },
+    "other_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Miscellaneous additional amount"
+    },
+    "total": {
+      "type": "number"
+    },
+    "payment_terms": {
+      "type": "string",
+      "description": "Payment terms (e.g. Net 30, 50% upfront)"
+    },
+    "terms": {
+      "type": "string"
+    },
+    "conditions": {
+      "type": "string",
+      "description": "Specific conditions or contingencies for this estimate"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "prepared_by": {
+      "type": "string",
+      "description": "Name of the person who prepared the estimate"
+    },
+    "is_insurance_estimate": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is an insurance-related estimate"
+    },
+    "client_show_breakdown": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, the estimate preview shows materials and labor as separate line items. When false, only the total is shown."
+    },
+    "sent_at": {
+      "type": "string",
+      "description": "ISO datetime"
+    },
+    "viewed_at": {
+      "type": "string",
+      "description": "ISO datetime"
+    },
+    "responded_at": {
+      "type": "string",
+      "description": "ISO datetime"
+    },
+    "portal_token": {
+      "type": "string",
+      "description": "Unique token for client signing/viewing link"
+    },
+    "portal_link_active": {
+      "type": "boolean",
+      "description": "Whether the link is currently valid"
+    },
+    "sent_for_signature_at": {
+      "type": "string",
+      "description": "ISO datetime when sent for signature"
+    },
+    "recalled_at": {
+      "type": "string",
+      "description": "ISO datetime if recalled"
+    },
+    "signed_at": {
+      "type": "string",
+      "description": "ISO datetime when client signed"
+    },
+    "owner_signature_data": {
+      "type": "string",
+      "description": "JSON string with owner's signature details"
+    },
+    "owner_signed_at": {
+      "type": "string",
+      "description": "ISO datetime when owner signed"
+    }
+  },
+  "required": [
+    "profile_id",
+    "user_id",
+    "client_name",
+    "title",
+    "status",
+    "line_items"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": true,
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

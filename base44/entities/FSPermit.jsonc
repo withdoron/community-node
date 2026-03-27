@@ -1,0 +1,99 @@
+{
+  "name": "FSPermit",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to FieldServiceProfile"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "FK to Users entity"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "FK to FSProject"
+    },
+    "permit_type": {
+      "type": "string",
+      "enum": [
+        "Building",
+        "Electrical",
+        "Plumbing",
+        "Mechanical",
+        "Other"
+      ],
+      "description": "Permit type"
+    },
+    "permit_number": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not_applied",
+        "applied",
+        "issued",
+        "expired"
+      ],
+      "description": "Permit status"
+    },
+    "applied_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "issued_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "inspections": {
+      "type": "object",
+      "description": "Array of {type, date, status, inspector, notes}"
+    },
+    "portal_url": {
+      "type": "string",
+      "description": "Link to city permit portal"
+    },
+    "apply_url": {
+      "type": "string",
+      "description": "URL link to apply for this permit online"
+    }
+  },
+  "required": [
+    "profile_id",
+    "user_id",
+    "project_id",
+    "permit_type",
+    "status"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

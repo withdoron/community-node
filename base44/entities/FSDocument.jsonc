@@ -59,6 +59,10 @@
       "type": "string",
       "description": "Unique token for client portal signing link"
     },
+    "portal_link_active": {
+      "type": "boolean",
+      "description": "Whether the portal signing link is currently active"
+    },
     "portal_expires_at": {
       "type": "string",
       "description": "ISO datetime when portal link expires (optional, for future use)"
@@ -88,6 +92,14 @@
     "signer_email": {
       "type": "string",
       "description": "Email of the person who signed"
+    },
+    "owner_signature_data": {
+      "type": "string",
+      "description": "JSON string with owner's signature details"
+    },
+    "owner_signed_at": {
+      "type": "string",
+      "description": "ISO datetime when owner signed"
     }
   },
   "required": [
