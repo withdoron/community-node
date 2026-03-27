@@ -1,0 +1,61 @@
+{
+  "name": "ServiceFeedback",
+  "type": "object",
+  "properties": {
+    "feedback_text": {
+      "type": "string",
+      "description": "The user's feedback, request, or pain point"
+    },
+    "context": {
+      "type": "string",
+      "description": "Additional context about where the feedback came from (e.g. workspace tab, conversation snippet)"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "FK to Users entity"
+    },
+    "workspace_id": {
+      "type": "string",
+      "description": "FK to FieldServiceProfile"
+    },
+    "created_at": {
+      "type": "string",
+      "description": "ISO datetime when feedback was submitted"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "reviewed",
+        "planned",
+        "shipped",
+        "declined"
+      ],
+      "default": "new",
+      "description": "Review status of the feedback"
+    }
+  },
+  "required": [
+    "feedback_text"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": true,
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "admin": true
+    }
+  },
+  "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
