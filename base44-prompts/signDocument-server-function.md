@@ -10,6 +10,22 @@ The function MUST be named exactly `signDocument` (camelCase, no spaces).
 If the Base44 agent created it as "sign Document" (with a space), rename it.
 The client-side code calls `invokeUnauthenticated('signDocument', ...)` — the name must match exactly.
 
+## HOTFIX: signature_data Must Be Stringified
+
+If the function is already deployed but fails with:
+`Error in field signature_data: Input should be a valid string`
+
+The fix is on the update call — `signature_data` comes in as a JSON object from
+the request body, but the FSDocument entity field is a text field that expects a string.
+Ensure the update line reads:
+```
+signature_data: JSON.stringify(signature_data),
+```
+NOT:
+```
+signature_data: signature_data,
+```
+
 ## Create Server Function
 
 Create a new server function called `signDocument` with the following code:
@@ -18,6 +34,9 @@ Create a new server function called `signDocument` with the following code:
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 export default async function handler(req: Request) {
+  // NOTE: Do NOT call base44.auth.me() or any auth-dependent method.
+  // This function is called by unauthenticated portal visitors.
+  // Only asServiceRole is used for entity operations.
   const base44 = createClientFromRequest(req);
   const { document_id, portal_token, signature_data } = await req.json();
 
@@ -65,11 +84,16 @@ export default async function handler(req: Request) {
     });
   }
 
-  // Update the document with signature data using service role
+  // Update the document with signature data using service role.
+  // CRITICAL: signature_data arrives as a JS object from req.json() but the
+  // FSDocument entity field is a text field — MUST stringify before saving.
+  const signedAt = (typeof signature_data === 'object' ? signature_data.signed_at : null) || new Date().toISOString();
+  const sigDataString = typeof signature_data === 'string' ? signature_data : JSON.stringify(signature_data);
+
   await base44.asServiceRole.entities.FSDocument.update(document_id, {
     status: 'signed',
-    signature_data: JSON.stringify(signature_data),
-    signed_at: signature_data.signed_at || new Date().toISOString(),
+    signature_data: sigDataString,
+    signed_at: signedAt,
     portal_link_active: false,
   });
 
