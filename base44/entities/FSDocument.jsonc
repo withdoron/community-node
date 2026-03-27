@@ -1,0 +1,116 @@
+{
+  "name": "FSDocument",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to FieldServiceProfile"
+    },
+    "template_id": {
+      "type": "string",
+      "description": "FK to FSDocumentTemplate (optional)"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "FK to FSProject (optional)"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "FK to FSClient"
+    },
+    "title": {
+      "type": "string",
+      "description": "Document title"
+    },
+    "content": {
+      "type": "string",
+      "description": "Full document content (long text, with merge fields resolved)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "signed",
+        "archived"
+      ],
+      "default": "draft",
+      "description": "Document status"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO datetime when document was sent"
+    },
+    "signed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO datetime when document was signed"
+    },
+    "signature_data": {
+      "type": "string",
+      "description": "Stored signature data (e.g. base64 image or typed name)"
+    },
+    "document_url": {
+      "type": "string",
+      "description": "URL to the generated/uploaded document file"
+    },
+    "portal_token": {
+      "type": "string",
+      "description": "Unique token for client portal signing link"
+    },
+    "portal_expires_at": {
+      "type": "string",
+      "description": "ISO datetime when portal link expires (optional, for future use)"
+    },
+    "recalled_at": {
+      "type": "string",
+      "description": "ISO datetime if document was recalled"
+    },
+    "recalled": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if owner recalled before signing"
+    },
+    "amendment_of": {
+      "type": "string",
+      "description": "ID of original document if this is an amendment"
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if owner archived after signing"
+    },
+    "signer_name": {
+      "type": "string",
+      "description": "Printed name of the person who signed"
+    },
+    "signer_email": {
+      "type": "string",
+      "description": "Email of the person who signed"
+    }
+  },
+  "required": [
+    "profile_id",
+    "client_id",
+    "title"
+  ],
+  "security": {
+    "read": true,
+    "create": true,
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
