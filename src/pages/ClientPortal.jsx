@@ -278,10 +278,10 @@ function EstimateSigningSection({ estimate, queryClient }) {
 }
 
 // ═══════════════════════════════════════════════════
-// Document View
+// Document View (with portal_token validation + recall handling)
 // ═══════════════════════════════════════════════════
 
-function DocumentPortalView({ docId, signMode = false }) {
+function DocumentPortalView({ docId, signMode = false, portalToken = null }) {
   const queryClient = useQueryClient();
   const { data: doc, isLoading: docLoading } = useQuery({
     queryKey: ['fs-public-doc-view', docId],
@@ -306,7 +306,45 @@ function DocumentPortalView({ docId, signMode = false }) {
   if (!doc) return <PortalNotFound message="This document link may be invalid or expired." />;
 
   const brandColor = profile?.brand_color || '#f59e0b';
-  const STATUS_LABELS = { draft: 'Draft', sent: 'Sent', signed: 'Signed', archived: 'Archived' };
+  const businessName = profile?.business_name || profile?.workspace_name || 'this business';
+
+  // Normalize status — map legacy "sent" to "awaiting_signature"
+  const normalizedStatus = doc.status === 'sent' ? 'awaiting_signature' : doc.status;
+  const STATUS_LABELS = { draft: 'Draft', awaiting_signature: 'Awaiting Signature', signed: 'Signed', archived: 'Archived' };
+
+  // Token validation for signing links
+  const hasToken = !!portalToken;
+  const tokenValid = hasToken && doc.portal_token === portalToken;
+  const linkActive = doc.portal_link_active !== false; // treat undefined/null as active for backward compat
+  const isRecalled = hasToken && !linkActive;
+  const alreadySigned = normalizedStatus === 'signed';
+  const canSign = signMode && tokenValid && linkActive && (normalizedStatus === 'awaiting_signature') && !doc.signature_data;
+
+  // Edge case: client opens recalled link
+  if (isRecalled && hasToken && !alreadySigned) {
+    return (
+      <PortalShell>
+        <div className="max-w-3xl mx-auto bg-white rounded-xl overflow-hidden shadow-sm">
+          <PortalHeader profile={profile} brandColor={brandColor} />
+          <div className="px-6 sm:px-8 py-12 text-center">
+            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-4">
+              <ClipboardList className="h-6 w-6 text-orange-600" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Document Recalled</h2>
+            <p className="text-sm text-slate-500 max-w-md mx-auto">
+              This document has been recalled by {businessName}. Please contact them for the updated version.
+            </p>
+          </div>
+          <PortalFooter />
+        </div>
+      </PortalShell>
+    );
+  }
+
+  // Edge case: invalid token on signing link
+  if (hasToken && !tokenValid && !alreadySigned) {
+    return <PortalNotFound message="This document link may be invalid or expired." />;
+  }
 
   return (
     <PortalShell>
@@ -317,11 +355,11 @@ function DocumentPortalView({ docId, signMode = false }) {
           <div className="flex items-start justify-between gap-3 mb-4">
             <h2 className="text-xl font-bold text-slate-900">{doc.title}</h2>
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-              doc.status === 'signed' ? 'bg-emerald-100 text-emerald-700' :
-              doc.status === 'sent' ? 'bg-amber-100 text-amber-700' :
+              alreadySigned ? 'bg-emerald-100 text-emerald-700' :
+              normalizedStatus === 'awaiting_signature' ? 'bg-amber-100 text-amber-700' :
               'bg-slate-100 text-slate-600'
             }`}>
-              {STATUS_LABELS[doc.status] || doc.status}
+              {STATUS_LABELS[normalizedStatus] || normalizedStatus}
             </span>
           </div>
 
@@ -341,20 +379,27 @@ function DocumentPortalView({ docId, signMode = false }) {
               <SignatureDisplay signatureData={doc.signature_data} darkMode={false} />
             </div>
           )}
+
+          {/* Already signed — show message if they opened the signing link again */}
+          {alreadySigned && hasToken && (
+            <div className="mt-6 pt-4 border-t border-slate-200 text-center">
+              <p className="text-sm text-emerald-700 font-medium">This document has already been signed.</p>
+            </div>
+          )}
         </div>
 
-        {/* Signing flow (when sign=true and not yet signed) */}
-        {signMode && doc.status === 'sent' && !doc.signature_data && (
+        {/* Signing flow (validated token, active link, awaiting signature) */}
+        {canSign && (
           <div className="px-6 sm:px-8 pb-6">
-            <DocumentSigningSection doc={doc} queryClient={queryClient} />
+            <DocumentSigningSection doc={doc} profile={profile} queryClient={queryClient} />
           </div>
         )}
 
-        {/* Prompt when sent but not in sign mode */}
-        {!signMode && doc.status === 'sent' && !doc.signature_data && (
+        {/* Prompt when awaiting but not in sign mode (no token) */}
+        {!signMode && normalizedStatus === 'awaiting_signature' && !doc.signature_data && (
           <div className="px-6 sm:px-8 pb-6 text-center">
             <p className="text-sm text-slate-500 italic">
-              Your contractor will send you a signing link when this document is ready for your signature.
+              {businessName} will send you a signing link when this document is ready for your signature.
             </p>
           </div>
         )}
@@ -365,16 +410,24 @@ function DocumentPortalView({ docId, signMode = false }) {
   );
 }
 
-function DocumentSigningSection({ doc, queryClient }) {
+function DocumentSigningSection({ doc, profile, queryClient }) {
+  const [signedSuccessfully, setSignedSuccessfully] = useState(false);
+  const [signatureResult, setSignatureResult] = useState(null);
+  const businessName = profile?.business_name || profile?.workspace_name || 'this business';
+
   const signMutation = useMutation({
     mutationFn: async (signatureData) => {
       await base44.entities.FSDocument.update(doc.id, {
         status: 'signed',
         signature_data: JSON.stringify(signatureData),
         signed_at: signatureData.signed_at,
+        portal_link_active: false,
       });
+      return signatureData;
     },
-    onSuccess: () => {
+    onSuccess: (signatureData) => {
+      setSignatureResult(signatureData);
+      setSignedSuccessfully(true);
       queryClient.invalidateQueries(['fs-public-doc-view']);
     },
     onError: (err) => {
@@ -382,6 +435,58 @@ function DocumentSigningSection({ doc, queryClient }) {
       toast.error('Could not save signature. Please try again.');
     },
   });
+
+  // Post-signature confirmation screen
+  if (signedSuccessfully && signatureResult) {
+    const signedDate = signatureResult.signed_at
+      ? new Date(signatureResult.signed_at).toLocaleDateString('en-US', {
+          month: 'long', day: 'numeric', year: 'numeric',
+          hour: 'numeric', minute: '2-digit',
+        })
+      : '';
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-8 text-center">
+          <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+            <FileText className="h-6 w-6 text-emerald-600" />
+          </div>
+          <h3 className="text-lg font-bold text-slate-900 mb-1">Document Signed Successfully</h3>
+          <p className="text-sm text-slate-600 mb-4">{doc.title}</p>
+          <div className="text-sm text-slate-500 space-y-0.5">
+            <p>Signed by: {signatureResult.signer_name}</p>
+            {signedDate && <p>Date: {signedDate}</p>}
+          </div>
+          {signatureResult.signature_image && (
+            <img
+              src={signatureResult.signature_image}
+              alt={`Signature of ${signatureResult.signer_name}`}
+              className="max-h-16 max-w-[200px] object-contain mx-auto mt-4"
+            />
+          )}
+        </div>
+
+        {/* Construction Gate — remove when post-signature invitation passes walkthrough */}
+        {false && (
+          <div className="border border-slate-200 rounded-xl p-6 text-center space-y-4">
+            <div className="h-px bg-slate-200" />
+            <p className="text-sm text-slate-600">
+              {businessName} uses Local Lane to manage their work. Stay connected?
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+              <a href="/signup?role=client" className="px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm transition-colors text-center">
+                See my documents & projects
+              </a>
+              <a href="/onboarding" className="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 hover:text-slate-900 text-sm transition-colors text-center">
+                Start my own business on Local Lane
+              </a>
+            </div>
+            <button type="button" className="text-xs text-slate-400 hover:text-slate-600">No thanks</button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <SigningFlow
@@ -789,13 +894,14 @@ export default function ClientPortal() {
   const docId = searchParams.get('doc');
   const qsProjectId = searchParams.get('project');
   const signMode = searchParams.get('sign') === 'true';
+  const portalToken = searchParams.get('token');
 
   // Priority: estimate > doc > project (query params) > project (path params)
   if (estimateId) {
     return <EstimatePortalView estimateId={estimateId} signMode={signMode} />;
   }
   if (docId) {
-    return <DocumentPortalView docId={docId} signMode={signMode} />;
+    return <DocumentPortalView docId={docId} signMode={signMode} portalToken={portalToken} />;
   }
   if (profileId && projectId) {
     return <ProjectPortalView profileId={profileId} projectId={projectId} />;

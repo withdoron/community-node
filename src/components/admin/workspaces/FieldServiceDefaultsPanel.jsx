@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
-import { Loader2, Wrench, ToggleLeft, BarChart3 } from 'lucide-react';
+import { Loader2, Wrench, ToggleLeft, BarChart3, FileText } from 'lucide-react';
 import ConfigSection from '@/components/admin/config/ConfigSection';
 import { useConfig, useConfigMutation } from '@/hooks/useConfig';
 import { Switch } from '@/components/ui/switch';
@@ -150,6 +150,77 @@ function FeatureTogglesSection() {
   );
 }
 
+function DocumentStatsCard({ isAdmin }) {
+  // .list() + client-side aggregation — no .filter() due to Base44 SDK quirk
+  const { data: documents = [], isLoading } = useQuery({
+    queryKey: ['admin-fs-documents-stats'],
+    queryFn: async () => {
+      try {
+        const all = await base44.entities.FSDocument.list();
+        return Array.isArray(all) ? all : [];
+      } catch { return []; }
+    },
+    enabled: isAdmin,
+    retry: false,
+  });
+
+  const stats = useMemo(() => {
+    let drafts = 0;
+    let awaiting = 0;
+    let signed = 0;
+    let archived = 0;
+    for (const d of documents) {
+      const s = d.status === 'sent' ? 'awaiting_signature' : (d.status || 'draft');
+      if (s === 'draft') drafts++;
+      else if (s === 'awaiting_signature') awaiting++;
+      else if (s === 'signed') signed++;
+      else if (s === 'archived') archived++;
+    }
+    return { total: documents.length, drafts, awaiting, signed, archived };
+  }, [documents]);
+
+  if (isLoading) {
+    return (
+      <Card className="p-6 bg-slate-900 border-slate-700">
+        <div className="flex justify-center py-4">
+          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="p-6 bg-slate-900 border-slate-700">
+      <div className="flex items-center gap-2 mb-4">
+        <FileText className="h-5 w-5 text-amber-500" />
+        <h3 className="text-lg font-semibold text-white">Document Activity</h3>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+          <p className="text-xl font-bold text-slate-100">{stats.total}</p>
+          <p className="text-xs text-slate-400">Total</p>
+        </div>
+        <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+          <p className="text-xl font-bold text-slate-400">{stats.drafts}</p>
+          <p className="text-xs text-slate-500">Drafts</p>
+        </div>
+        <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+          <p className="text-xl font-bold text-amber-400">{stats.awaiting}</p>
+          <p className="text-xs text-slate-400">Awaiting Sig</p>
+        </div>
+        <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+          <p className="text-xl font-bold text-emerald-400">{stats.signed}</p>
+          <p className="text-xs text-slate-400">Signed</p>
+        </div>
+        <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+          <p className="text-xl font-bold text-slate-600">{stats.archived}</p>
+          <p className="text-xs text-slate-500">Archived</p>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export default function FieldServiceDefaultsPanel({ isAdmin }) {
   return (
     <div className="space-y-6">
@@ -164,6 +235,8 @@ export default function FieldServiceDefaultsPanel({ isAdmin }) {
       </div>
 
       <StatsOverview isAdmin={isAdmin} />
+
+      <DocumentStatsCard isAdmin={isAdmin} />
 
       <ConfigSection
         domain="workspace_defaults"
