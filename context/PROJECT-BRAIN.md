@@ -1,7 +1,7 @@
 # PROJECT-BRAIN.md
 
 > Read this first. This file orients any AI model — Claude, Gemini, GPT, or other — to work effectively on LocalLane. It is the single source of truth for project identity, philosophy, and working style.
-> Last updated: 2026-03-03
+> Last updated: 2026-03-27
 
 ---
 
@@ -74,9 +74,23 @@ Before building any new node or major feature: find the real person who needs it
 
 ## Build Protocol
 
-All features ship through a 13-phase sequence: Decision Filter → Plan → Scheme → Surface Mapping → UI/UX Design → Pre-Build Audit → Security → Build → Tier Gating → Polish → Post-Build Audit → Documentation → Legal Check → Organism Signal.
+All features ship through a 16-phase sequence (Phases 0-15): Decision Filter → Plan → Scheme → Surface Mapping → UI/UX Design → Pre-Build Audit → Security → Build → Construction Gate → Tier Gating → Polish → Post-Build Audit → Documentation → Legal Check → Organism Signal → Space Agent.
 
 Reference BUILD-PROTOCOL.md for the full protocol. Don't skip phases.
+
+## Superagent Architecture
+
+Base44 Superagents are the organism's nervous system. Each space in the garden gets its own agent — an AI assistant that reads the space's entity data, answers user questions, provides workspace guidance, searches the directory, looks up external information via web search, and collects feedback through the ServiceFeedback entity.
+
+Architecture: One agent per space. Agent config lives in `agents/` directory as JSON. Chat UI is a reusable AgentChat component with `agentName` prop. Voice input via browser SpeechRecognition API. Conversations persist across page navigations. Agents are READ-ONLY on workspace entities (except ServiceFeedback for feedback capture).
+
+Credit model: Agent messages cost ~3+ integration credits each. Internal operations (entity reads, directory lookups) are cheaper than external operations (web search). Heavy agent users may incur a surcharge on top of the $9 workspace fee.
+
+First agent: FieldServiceAgent (shipped 2026-03-27). Reads all FS entities, web search for permit lookups, ServiceFeedback for user feedback. Live on all Field Service tabs with floating chat button and push-to-talk voice.
+
+Planned agents: HarvestAgent, RecessAgent, CreativeAgent, PropertyAgent, MyCeliaAdmin (platform-level agent for the gardener).
+
+The fractal: what's true of one space's agent is true of all spaces' agents. Same UI, same feedback entity, same voice input, different instructions and entity access.
 
 ## The Gold Standard Design System
 
@@ -133,7 +147,7 @@ Key files to read before working:
 |------|-----------------|
 | context/ACTIVE-CONTEXT.md | What's happening RIGHT NOW — current builds, blockers, priorities |
 | context/SESSION-LOG.md | Running timeline of what shipped and when |
-| BUILD-PROTOCOL.md | The 13-phase build sequence |
+| BUILD-PROTOCOL.md | The 16-phase build sequence (Phases 0-15) |
 | STYLE-GUIDE.md | Gold Standard design system — colors, components, patterns |
 | ARCHITECTURE.md | Technical patterns, node architecture, Base44 patterns |
 | DECISIONS.md | All numbered decisions and their rationale |
