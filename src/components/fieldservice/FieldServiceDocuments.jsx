@@ -87,6 +87,11 @@ function buildMergeData(profile, client, project, estimate) {
     client_email: client?.email || '',
     client_phone: client?.phone ? formatPhone(client.phone) : '',
     client_address: client?.address || '',
+    client_city: client?.city || '',
+    client_state: client?.state || '',
+    client_zip_code: client?.zip_code || '',
+    client_company_name: client?.company_name || '',
+    client_full_address: [client?.address, client?.city, [client?.state, client?.zip_code].filter(Boolean).join(' ')].filter(Boolean).join(', '),
     project_name: project?.name || '',
     project_address: project?.address || client?.address || '',
     project_description: project?.description || '',
@@ -447,7 +452,7 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
   const [title, setTitle] = useState('');
   const [clientSearch, setClientSearch] = useState('');
   const [showAddClient, setShowAddClient] = useState(false);
-  const [newClient, setNewClient] = useState({ name: '', email: '', phone: '' });
+  const [newClient, setNewClient] = useState({ name: '', email: '', company_name: '', address: '', city: '', state: '', zip_code: '', phone: '' });
   const [creatingClient, setCreatingClient] = useState(false);
 
   const selectedClient = useMemo(() => clients.find((c) => c.id === clientId), [clients, clientId]);
@@ -498,11 +503,16 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
         name: newClient.name.trim(),
         email: newClient.email.trim(),
         phone: newClient.phone.trim() || null,
+        company_name: newClient.company_name.trim() || null,
+        address: newClient.address.trim() || null,
+        city: newClient.city.trim() || null,
+        state: newClient.state.trim() || null,
+        zip_code: newClient.zip_code.trim() || null,
         status: 'active',
       });
       setClientId(created.id);
       setShowAddClient(false);
-      setNewClient({ name: '', email: '', phone: '' });
+      setNewClient({ name: '', email: '', company_name: '', address: '', city: '', state: '', zip_code: '', phone: '' });
       toast.success('Client added');
       onClientCreated?.();
     } catch (err) {
@@ -598,16 +608,50 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
           ) : (
             <div className="bg-slate-800 rounded-lg p-4 space-y-3 border border-slate-700">
               <h4 className="text-sm font-medium text-slate-200">Quick Add Client</h4>
-              <div>
-                <label className={LABEL_CLASS}>Name *</label>
-                <input type="text" className={INPUT_CLASS} value={newClient.name}
-                  onChange={(e) => setNewClient({ ...newClient, name: e.target.value })} placeholder="Client name" />
+              {/* Name + Email (required) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className={LABEL_CLASS}>Name *</label>
+                  <input type="text" className={INPUT_CLASS} value={newClient.name}
+                    onChange={(e) => setNewClient({ ...newClient, name: e.target.value })} placeholder="Client name" />
+                </div>
+                <div>
+                  <label className={LABEL_CLASS}>Email *</label>
+                  <input type="email" className={INPUT_CLASS} value={newClient.email}
+                    onChange={(e) => setNewClient({ ...newClient, email: e.target.value })} placeholder="client@email.com" />
+                </div>
               </div>
+              {/* Company */}
               <div>
-                <label className={LABEL_CLASS}>Email *</label>
-                <input type="email" className={INPUT_CLASS} value={newClient.email}
-                  onChange={(e) => setNewClient({ ...newClient, email: e.target.value })} placeholder="client@email.com" />
+                <label className={LABEL_CLASS}>Company</label>
+                <input type="text" className={INPUT_CLASS} value={newClient.company_name}
+                  onChange={(e) => setNewClient({ ...newClient, company_name: e.target.value })} placeholder="Company or business name" />
               </div>
+              {/* Address */}
+              <div>
+                <label className={LABEL_CLASS}>Address</label>
+                <input type="text" className={INPUT_CLASS} value={newClient.address}
+                  onChange={(e) => setNewClient({ ...newClient, address: e.target.value })} placeholder="Street address" />
+              </div>
+              {/* City / State / Zip */}
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className={LABEL_CLASS}>City</label>
+                  <input type="text" className={INPUT_CLASS} value={newClient.city}
+                    onChange={(e) => setNewClient({ ...newClient, city: e.target.value })} placeholder="City" />
+                </div>
+                <div>
+                  <label className={LABEL_CLASS}>State</label>
+                  <input type="text" className={INPUT_CLASS} value={newClient.state}
+                    onChange={(e) => setNewClient({ ...newClient, state: e.target.value })} placeholder="State" />
+                </div>
+                <div>
+                  <label className={LABEL_CLASS}>Zip</label>
+                  <input type="text" className={INPUT_CLASS} value={newClient.zip_code}
+                    onChange={(e) => setNewClient({ ...newClient, zip_code: e.target.value })} placeholder="Zip code" />
+                </div>
+              </div>
+              {/* Phone */}
               <div>
                 <label className={LABEL_CLASS}>Phone</label>
                 <input type="tel" className={INPUT_CLASS} value={newClient.phone}

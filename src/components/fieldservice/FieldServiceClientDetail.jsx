@@ -117,7 +117,11 @@ export default function FieldServiceClientDetail({
       name: client?.name || '',
       email: client?.email || '',
       phone: client?.phone || '',
+      company_name: client?.company_name || '',
       address: client?.address || '',
+      city: client?.city || '',
+      state: client?.state || '',
+      zip_code: client?.zip_code || '',
       notes: client?.notes || '',
       status: client?.status || 'active',
     });
@@ -134,7 +138,11 @@ export default function FieldServiceClientDetail({
       name: form.name,
       email: form.email,
       phone: form.phone,
+      company_name: form.company_name,
       address: form.address,
+      city: form.city,
+      state: form.state,
+      zip_code: form.zip_code,
       notes: form.notes,
       status: form.status,
     });
@@ -233,13 +241,56 @@ export default function FieldServiceClientDetail({
                 />
               </div>
               <div>
+                <label className="block text-sm text-slate-400 mb-1">Company</label>
+                <input
+                  type="text"
+                  value={form.company_name}
+                  onChange={(e) => setForm({ ...form, company_name: e.target.value })}
+                  className="w-full min-h-[44px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                  placeholder="Company or business name"
+                />
+              </div>
+              <div>
                 <label className="block text-sm text-slate-400 mb-1">Address</label>
                 <input
                   type="text"
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
                   className="w-full min-h-[44px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                  placeholder="Street address"
                 />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">City</label>
+                  <input
+                    type="text"
+                    value={form.city}
+                    onChange={(e) => setForm({ ...form, city: e.target.value })}
+                    className="w-full min-h-[44px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                    placeholder="City"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">State</label>
+                  <input
+                    type="text"
+                    value={form.state}
+                    onChange={(e) => setForm({ ...form, state: e.target.value })}
+                    className="w-full min-h-[44px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                    placeholder="State"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Zip</label>
+                  <input
+                    type="text"
+                    value={form.zip_code}
+                    onChange={(e) => setForm({ ...form, zip_code: e.target.value })}
+                    className="w-full min-h-[44px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                    placeholder="Zip code"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm text-slate-400 mb-1">Notes</label>
@@ -311,10 +362,16 @@ export default function FieldServiceClientDetail({
                   <span>{client.email}</span>
                 </a>
               )}
-              {client.address && (
+              {(client.address || client.city || client.state || client.zip_code) && (
                 <div className="flex items-center gap-2.5 text-slate-300 min-h-[44px]">
                   <MapPin className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                  <span>{client.address}</span>
+                  <span>{[client.address, client.city, [client.state, client.zip_code].filter(Boolean).join(' ')].filter(Boolean).join(', ')}</span>
+                </div>
+              )}
+              {client.company_name && (
+                <div className="flex items-center gap-2.5 text-slate-300 min-h-[44px]">
+                  <span className="w-4 h-4 text-amber-500 flex-shrink-0 text-center text-xs font-bold">Co</span>
+                  <span>{client.company_name}</span>
                 </div>
               )}
             </div>
