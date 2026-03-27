@@ -106,9 +106,6 @@
     }
   },
   "rls": {
-    "update": {
-      "created_by": "{{user.email}}"
-    },
     "delete": {
       "created_by": "{{user.email}}"
     }
