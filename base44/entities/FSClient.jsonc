@@ -1,0 +1,88 @@
+{
+  "name": "FSClient",
+  "type": "object",
+  "properties": {
+    "workspace_id": {
+      "type": "string",
+      "description": "FK to FieldServiceProfile"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "FK to Users entity"
+    },
+    "name": {
+      "type": "string",
+      "description": "Client's full name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Client email address"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Client phone number"
+    },
+    "address": {
+      "type": "string",
+      "description": "Client property or mailing address"
+    },
+    "city": {
+      "type": "string",
+      "description": "City"
+    },
+    "state": {
+      "type": "string",
+      "default": "OR",
+      "description": "State"
+    },
+    "zip_code": {
+      "type": "string",
+      "description": "Client zip/postal code for full address formatting in documents"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Client's business or company name (separate from personal name)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes about this client"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active",
+      "description": "Client status"
+    }
+  },
+  "required": [
+    "workspace_id",
+    "user_id",
+    "name"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
