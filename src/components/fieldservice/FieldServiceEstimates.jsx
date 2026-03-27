@@ -16,19 +16,23 @@ const INPUT_CLASS =
 const LABEL_CLASS = 'block text-slate-300 text-sm font-medium mb-1';
 
 const STATUS_CONFIG = {
-  draft:    { label: 'Draft',    color: 'bg-slate-500/20 text-slate-400' },
-  sent:     { label: 'Sent',     color: 'bg-amber-500/20 text-amber-400' },
-  viewed:   { label: 'Viewed',   color: 'bg-blue-500/20 text-blue-400' },
-  accepted: { label: 'Accepted', color: 'bg-emerald-500/20 text-emerald-400' },
-  declined: { label: 'Declined', color: 'bg-rose-700/20 text-rose-400' },
-  expired:  { label: 'Expired',  color: 'bg-slate-800/50 text-slate-600' },
+  draft:               { label: 'Draft',               color: 'bg-slate-500/20 text-slate-400' },
+  sent:                { label: 'Sent',                 color: 'bg-amber-500/20 text-amber-400' },
+  awaiting_signature:  { label: 'Awaiting Signature',   color: 'bg-amber-500/20 text-amber-400', pulse: true },
+  viewed:              { label: 'Viewed',               color: 'bg-blue-500/20 text-blue-400' },
+  accepted:            { label: 'Accepted',             color: 'bg-emerald-500/20 text-emerald-400' },
+  signed:              { label: 'Signed',               color: 'bg-emerald-500/20 text-emerald-400' },
+  declined:            { label: 'Declined',             color: 'bg-rose-700/20 text-rose-400' },
+  expired:             { label: 'Expired',              color: 'bg-slate-800/50 text-slate-600' },
 };
 
 const FILTER_CHIPS = [
   { value: 'all', label: 'All' },
   { value: 'draft', label: 'Draft' },
   { value: 'sent', label: 'Sent' },
+  { value: 'awaiting_signature', label: 'Awaiting Signature' },
   { value: 'accepted', label: 'Accepted' },
+  { value: 'signed', label: 'Signed' },
   { value: 'declined', label: 'Declined' },
 ];
 
@@ -209,7 +213,7 @@ function calcTotals(items, overheadProfitPct, taxRate, otherAmount) {
 // ═══════════════════════════════════════════════════
 // Preview (client-facing branded estimate)
 // ═══════════════════════════════════════════════════
-function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, projects, clients }) {
+function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, onSendForSignature, onRecall, projects, clients }) {
   const items = migrateLineItems(estimate.line_items, estimate.labor_estimate);
   const totals = calcTotals(items, estimate.overhead_profit_pct, estimate.tax_rate, estimate.other_amount);
   const brandColor = profile?.brand_color || '#f59e0b';
@@ -262,31 +266,47 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, project
               <FolderOpen className="h-4 w-4" /> Accept & Create Project
             </button>
           )}
-          {estimate.status === 'accepted' && (
+          {(estimate.status === 'accepted' || estimate.status === 'signed') && (
             <span className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm font-medium min-h-[44px]">
-              <Lock className="h-4 w-4" /> Approved
+              <Lock className="h-4 w-4" /> {estimate.status === 'signed' ? 'Signed' : 'Approved'}
             </span>
           )}
           <button type="button" onClick={() => {
-              const url = `${window.location.origin}/client-portal?estimate=${estimate.id}`;
+              const token = estimate.portal_token;
+              const url = token
+                ? `${window.location.origin}/client-portal?workspace=${profile?.id}&estimate=${estimate.id}&token=${token}`
+                : `${window.location.origin}/client-portal?estimate=${estimate.id}`;
               window.open(url, '_blank');
             }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent transition-colors text-sm min-h-[44px]">
             <Eye className="h-4 w-4" /> Preview as Client
           </button>
-          {estimate.status === 'sent' && !estimate.signature_data && (
+          {(estimate.status === 'sent' || estimate.status === 'awaiting_signature') && (
             <button type="button" onClick={() => {
-                const url = `${window.location.origin}/client-portal?estimate=${estimate.id}&sign=true`;
+                const token = estimate.portal_token || '';
+                const url = `${window.location.origin}/client-portal?workspace=${profile?.id}&estimate=${estimate.id}&token=${token}`;
                 navigator.clipboard.writeText(url).then(
-                  () => toast.success('Signing link copied! Send this to the client.'),
+                  () => toast.success('Link copied!'),
                   () => toast.error('Failed to copy link')
                 );
               }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent transition-colors text-sm min-h-[44px]">
+              <Link2 className="h-4 w-4" /> Copy Link
+            </button>
+          )}
+          {estimate.status === 'sent' && !estimate.signature_data && onSendForSignature && (
+            <button type="button" onClick={() => onSendForSignature(estimate)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-colors text-sm min-h-[44px]">
               <Shield className="h-4 w-4" /> Request Signature
             </button>
           )}
-          {estimate.status !== 'accepted' && (
+          {estimate.status === 'awaiting_signature' && onRecall && (
+            <button type="button" onClick={() => onRecall(estimate)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-rose-500/50 text-rose-400 hover:bg-rose-500/10 hover:bg-transparent transition-colors text-sm min-h-[44px]">
+              <X className="h-4 w-4" /> Recall
+            </button>
+          )}
+          {estimate.status !== 'accepted' && estimate.status !== 'signed' && estimate.status !== 'awaiting_signature' && (
             <button type="button" onClick={() => onEdit(estimate)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm min-h-[44px]">
               <Pencil className="h-4 w-4" /> Edit
@@ -588,7 +608,12 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         client_show_breakdown: formData.client_show_breakdown === true,
         is_insurance_estimate: formData.is_insurance_estimate === true,
       };
-      if (status === 'sent') payload.sent_at = new Date().toISOString();
+      if (status === 'sent') {
+        payload.sent_at = new Date().toISOString();
+        payload.portal_token = crypto.randomUUID();
+        payload.portal_link_active = true;
+        payload.sent_for_signature_at = new Date().toISOString();
+      }
 
       if (editingId) {
         return base44.entities.FSEstimate.update(editingId, payload);
@@ -600,9 +625,10 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
       queryClient.invalidateQueries(['fs-estimates', profile?.id]);
       if (vars.status === 'sent' && vars._copyLink) {
         const estId = saved?.id || editingId;
-        const url = `${window.location.origin}/client-portal?estimate=${estId}`;
+        const token = vars.portal_token || saved?.portal_token || '';
+        const url = `${window.location.origin}/client-portal?workspace=${profile.id}&estimate=${estId}&token=${token}`;
         navigator.clipboard.writeText(url).then(
-          () => toast.success('Estimate saved. Link copied to clipboard!'),
+          () => toast.success('Link copied! Share it with your client.'),
           () => toast.success('Estimate saved (could not copy link)'),
         );
       } else {
@@ -1175,10 +1201,68 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
 
   const markAsSent = async (est) => {
     try {
-      await base44.entities.FSEstimate.update(est.id, { status: 'sent', sent_at: new Date().toISOString() });
+      // Generate portal_token for the shareable link (or reuse existing)
+      const portalToken = est.portal_token || crypto.randomUUID();
+      await base44.entities.FSEstimate.update(est.id, {
+        status: 'sent',
+        sent_at: new Date().toISOString(),
+        portal_token: portalToken,
+        portal_link_active: true,
+        sent_for_signature_at: new Date().toISOString(),
+      });
       queryClient.invalidateQueries(['fs-estimates', profile?.id]);
-      toast.success('Estimate marked as sent');
+      // Copy the portal link to clipboard
+      const url = `${window.location.origin}/client-portal?workspace=${profile.id}&estimate=${est.id}&token=${portalToken}`;
+      navigator.clipboard.writeText(url).then(
+        () => toast.success('Link copied! Share it with your client.'),
+        () => toast.success('Estimate marked as sent (could not copy link)'),
+      );
     } catch (err) { toast.error(err?.message || 'Failed to update status'); }
+  };
+
+  const sendForSignature = async (est) => {
+    try {
+      // Generate portal_token if not already present
+      const portalToken = est.portal_token || crypto.randomUUID();
+      await base44.entities.FSEstimate.update(est.id, {
+        status: 'awaiting_signature',
+        portal_token: portalToken,
+        portal_link_active: true,
+        sent_for_signature_at: new Date().toISOString(),
+      });
+      queryClient.invalidateQueries(['fs-estimates', profile?.id]);
+      // Build signing link (includes sign=true)
+      const url = `${window.location.origin}/client-portal?workspace=${profile.id}&estimate=${est.id}&token=${portalToken}&sign=true`;
+      navigator.clipboard.writeText(url).then(
+        () => toast.success('Signing link copied! Share it with your client.'),
+        () => toast.success('Estimate sent for signature (could not copy link)'),
+      );
+    } catch (err) { toast.error(err?.message || 'Failed to send for signature'); }
+  };
+
+  const recallEstimate = async (est) => {
+    try {
+      await base44.entities.FSEstimate.update(est.id, {
+        status: 'sent',
+        portal_link_active: false,
+        recalled_at: new Date().toISOString(),
+      });
+      queryClient.invalidateQueries(['fs-estimates', profile?.id]);
+      toast.success('Estimate recalled. You can edit and resend.');
+    } catch (err) { toast.error(err?.message || 'Failed to recall'); }
+  };
+
+  const copyPortalLink = async (est, withSign = false) => {
+    const token = est.portal_token;
+    if (!token) {
+      // Backward compat: generate token for older estimates that don't have one
+      return withSign ? sendForSignature(est) : markAsSent(est);
+    }
+    const url = `${window.location.origin}/client-portal?workspace=${profile.id}&estimate=${est.id}&token=${token}${withSign ? '&sign=true' : ''}`;
+    navigator.clipboard.writeText(url).then(
+      () => toast.success('Link copied!'),
+      () => toast.error('Failed to copy link'),
+    );
   };
 
   const reopenEstimate = async (est) => {
@@ -1274,6 +1358,8 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
         onBack={backToList}
         onEdit={(est) => openEditEstimate(est)}
         onConvert={(est) => setConvertConfirm(est)}
+        onSendForSignature={(est) => sendForSignature(est)}
+        onRecall={(est) => recallEstimate(est)}
         projects={projects}
         clients={clients}
       />
@@ -1372,8 +1458,10 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                     <p className="text-xs text-slate-500">{est.estimate_number}</p>
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 flex items-center gap-1 ${sc.color} ${est.status === 'declined' ? 'line-through' : ''}`}>
-                    {est.status === 'accepted' && <Lock className="h-3 w-3" />}
+                    {sc.pulse && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />}
+                    {(est.status === 'accepted' || est.status === 'signed') && <Lock className="h-3 w-3" />}
                     {sc.label}
+                    {est.status === 'signed' && est.signed_at && <span className="ml-1 text-[10px] opacity-70">{fmtDate(est.signed_at)}</span>}
                   </span>
                 </div>
 
@@ -1390,7 +1478,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                     className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[36px] transition-colors">
                     <Eye className="h-3.5 w-3.5" /> Preview
                   </button>
-                  {est.status !== 'accepted' && (
+                  {est.status !== 'accepted' && est.status !== 'signed' && est.status !== 'awaiting_signature' && (
                     <button type="button" onClick={() => openEditEstimate(est)}
                       className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[36px] transition-colors">
                       <Pencil className="h-3.5 w-3.5" /> Edit
@@ -1403,8 +1491,32 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                   {est.status === 'draft' && (
                     <button type="button" onClick={() => markAsSent(est)}
                       className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 min-h-[36px] transition-colors">
-                      <Send className="h-3.5 w-3.5" /> Mark Sent
+                      <Send className="h-3.5 w-3.5" /> Send to Client
                     </button>
+                  )}
+                  {est.status === 'sent' && (
+                    <>
+                      <button type="button" onClick={() => copyPortalLink(est)}
+                        className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[36px] transition-colors">
+                        <Link2 className="h-3.5 w-3.5" /> Copy Link
+                      </button>
+                      <button type="button" onClick={() => sendForSignature(est)}
+                        className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 min-h-[36px] transition-colors">
+                        <Shield className="h-3.5 w-3.5" /> Request Signature
+                      </button>
+                    </>
+                  )}
+                  {est.status === 'awaiting_signature' && (
+                    <>
+                      <button type="button" onClick={() => copyPortalLink(est, true)}
+                        className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[36px] transition-colors">
+                        <Link2 className="h-3.5 w-3.5" /> Copy Link
+                      </button>
+                      <button type="button" onClick={() => recallEstimate(est)}
+                        className="flex items-center gap-1 text-xs text-rose-400 hover:text-rose-300 min-h-[36px] transition-colors">
+                        <X className="h-3.5 w-3.5" /> Recall
+                      </button>
+                    </>
                   )}
                   {(est.status === 'draft' || est.status === 'sent') && !est.project_id && (
                     <button type="button" onClick={() => setConvertConfirm(est)}
@@ -1412,12 +1524,12 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                       <FolderOpen className="h-3.5 w-3.5" /> Accept & Create Project
                     </button>
                   )}
-                  {est.status === 'accepted' && (
+                  {(est.status === 'accepted' || est.status === 'signed') && (
                     <span className="flex items-center gap-1 text-xs text-emerald-400">
-                      <Lock className="h-3.5 w-3.5" /> Approved
+                      <Lock className="h-3.5 w-3.5" /> {est.status === 'signed' ? 'Signed' : 'Approved'}
                     </span>
                   )}
-                  {est.status === 'accepted' && (
+                  {(est.status === 'accepted' || est.status === 'signed') && (
                     <button type="button" onClick={() => reopenEstimate(est)}
                       className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-400 min-h-[36px] transition-colors">
                       Reopen

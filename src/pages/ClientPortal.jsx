@@ -139,7 +139,7 @@ function EstimatePortalView({ estimateId, signMode = false }) {
 
   const brandColor = profile?.brand_color || '#f59e0b';
   const lineItems = parseJSON(estimate.line_items);
-  const STATUS_LABELS = { draft: 'Draft', sent: 'Sent', viewed: 'Viewed', accepted: 'Accepted', declined: 'Declined' };
+  const STATUS_LABELS = { draft: 'Draft', sent: 'Sent', awaiting_signature: 'Awaiting Signature', viewed: 'Viewed', accepted: 'Accepted', signed: 'Signed', declined: 'Declined' };
 
   return (
     <PortalShell>
@@ -154,8 +154,8 @@ function EstimatePortalView({ estimateId, signMode = false }) {
               {estimate.estimate_number && <p className="text-sm text-slate-500 mt-0.5">#{estimate.estimate_number}</p>}
             </div>
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-              estimate.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' :
-              estimate.status === 'sent' ? 'bg-amber-100 text-amber-700' :
+              (estimate.status === 'accepted' || estimate.status === 'signed') ? 'bg-emerald-100 text-emerald-700' :
+              (estimate.status === 'sent' || estimate.status === 'awaiting_signature') ? 'bg-amber-100 text-amber-700' :
               'bg-slate-100 text-slate-600'
             }`}>
               {STATUS_LABELS[estimate.status] || estimate.status}
@@ -252,13 +252,23 @@ function EstimatePortalView({ estimateId, signMode = false }) {
           )}
         </div>
 
-        {/* Signing flow (when sign=true and not yet signed) */}
-        {signMode && estimate.status === 'sent' && !estimate.signature_data && (
+        {/* Signing flow (when sign=true and in signable state) */}
+        {signMode && (estimate.status === 'sent' || estimate.status === 'awaiting_signature') && !estimate.signature_data && estimate.portal_link_active !== false && (
           <div className="px-6 sm:px-8 pb-6">
             <EstimateSigningSection
               estimate={estimate}
               queryClient={queryClient}
             />
+          </div>
+        )}
+
+        {/* Recalled message */}
+        {signMode && estimate.portal_link_active === false && !estimate.signature_data && (
+          <div className="px-6 sm:px-8 pb-6">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
+              <p className="text-amber-800 font-medium">This estimate has been recalled by the sender.</p>
+              <p className="text-amber-600 text-sm mt-1">Please contact {profile?.business_name || 'the sender'} for the updated version.</p>
+            </div>
           </div>
         )}
 
@@ -271,10 +281,12 @@ function EstimatePortalView({ estimateId, signMode = false }) {
 function EstimateSigningSection({ estimate, queryClient }) {
   const signMutation = useMutation({
     mutationFn: async (signatureData) => {
-      await base44.entities.FSEstimate.update(estimate.id, {
-        status: 'accepted',
-        signature_data: JSON.stringify(signatureData),
-        signed_at: signatureData.signed_at,
+      // Route through server function — unauthenticated portal clients can't
+      // update FSEstimate directly. Same pattern as signDocument.
+      await invokeUnauthenticated('signEstimate', {
+        estimate_id: estimate.id,
+        portal_token: estimate.portal_token,
+        signature_data: signatureData,
       });
     },
     onSuccess: () => {
