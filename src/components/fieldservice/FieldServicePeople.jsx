@@ -52,26 +52,37 @@ const EMPTY_PERSON = {
 // ═══════════════════════════════════════════════════
 // Collapsible Section
 // ═══════════════════════════════════════════════════
-function Section({ icon: Icon, title, count, defaultOpen = false, children }) {
+function Section({ icon: Icon, title, count, defaultOpen = false, onAdd, addLabel, children }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="w-full flex items-center gap-3 p-4 text-left hover:bg-slate-800/50 transition-colors min-h-[44px]"
-      >
-        <Icon className="h-5 w-5 text-amber-500 flex-shrink-0" />
-        <span className="text-base font-bold text-slate-100 flex-1">{title}</span>
-        {count != null && (
-          <span className="text-xs text-slate-400 mr-2">{count}</span>
+      <div className="flex items-center">
+        <button
+          type="button"
+          onClick={() => setOpen((prev) => !prev)}
+          className="flex-1 flex items-center gap-3 p-4 text-left hover:bg-slate-800/50 transition-colors min-h-[44px]"
+        >
+          <Icon className="h-5 w-5 text-amber-500 flex-shrink-0" />
+          <span className="text-base font-bold text-slate-100 flex-1">{title}</span>
+          {count != null && (
+            <span className="text-xs text-slate-400 mr-2">{count}</span>
+          )}
+          {open ? (
+            <ChevronDown className="h-4 w-4 text-slate-400" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-slate-400" />
+          )}
+        </button>
+        {onAdd && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onAdd(); }}
+            className="flex items-center gap-1.5 px-3 py-2 mr-2 rounded-lg text-xs text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors min-h-[36px]"
+          >
+            <Plus className="h-3.5 w-3.5" /> {addLabel || 'Add'}
+          </button>
         )}
-        {open ? (
-          <ChevronDown className="h-4 w-4 text-slate-400" />
-        ) : (
-          <ChevronRight className="h-4 w-4 text-slate-400" />
-        )}
-      </button>
+      </div>
       {open && <div className="px-4 pb-4 pt-0">{children}</div>}
     </div>
   );
@@ -478,6 +489,8 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [clientDetailId, setClientDetailId] = useState(null);
   const [permissionsOpen, setPermissionsOpen] = useState(false);
+  const [showAddClient, setShowAddClient] = useState(false);
+  const [newClient, setNewClient] = useState({ name: '', email: '', phone: '', company_name: '', address: '', city: '', state: '', zip_code: '' });
 
   // ─── Parse workers from profile ──────────────────
   const people = useMemo(() => parseWorkers(profile?.workers_json), [profile?.workers_json]);
@@ -581,9 +594,37 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
     });
   };
 
-  const openAdd = () => {
-    setEditingPerson(null);
+  const openAdd = (role = 'worker') => {
+    setEditingPerson({ ...EMPTY_PERSON, role });
     setShowModal(true);
+  };
+
+  const handleAddClient = async () => {
+    if (!newClient.name.trim() || !newClient.email.trim()) {
+      toast.error('Name and email are required');
+      return;
+    }
+    try {
+      await base44.entities.FSClient.create({
+        workspace_id: profile.id,
+        user_id: currentUser?.id,
+        name: newClient.name.trim(),
+        email: newClient.email.trim(),
+        phone: newClient.phone.trim() || null,
+        company_name: newClient.company_name.trim() || null,
+        address: newClient.address.trim() || null,
+        city: newClient.city.trim() || null,
+        state: newClient.state.trim() || null,
+        zip_code: newClient.zip_code.trim() || null,
+        status: 'active',
+      });
+      queryClient.invalidateQueries(['fs-clients', profile?.id]);
+      setNewClient({ name: '', email: '', phone: '', company_name: '', address: '', city: '', state: '', zip_code: '' });
+      setShowAddClient(false);
+      toast.success('Client added');
+    } catch (err) {
+      toast.error(`Failed to add client: ${err.message}`);
+    }
   };
 
   const openEdit = (person) => {
@@ -621,26 +662,17 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-100">People</h2>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => copyInviteLink(profile?.invite_code)}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent transition-colors text-sm min-h-[44px]"
-          >
-            <Link2 className="h-4 w-4" /> Invite Link
-          </button>
-          <button
-            type="button"
-            onClick={openAdd}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px]"
-          >
-            <Plus className="h-4 w-4" /> Add Person
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => copyInviteLink(profile?.invite_code)}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent transition-colors text-sm min-h-[44px]"
+        >
+          <Link2 className="h-4 w-4" /> Invite Link
+        </button>
       </div>
 
       {/* Workers Section */}
-      <Section icon={HardHat} title="Workers" count={workers.length}>
+      <Section icon={HardHat} title="Workers" count={workers.length} onAdd={() => openAdd('worker')} addLabel="Add Worker">
         {workers.length === 0 ? (
           <p className="text-sm text-slate-500 py-2">
             No workers yet. Add your crew to get started.
@@ -664,7 +696,7 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
       {features?.subs_enabled !== false && (
         <>
           {/* Subcontractors Section */}
-          <Section icon={Briefcase} title="Subcontractors" count={subs.length}>
+          <Section icon={Briefcase} title="Subcontractors" count={subs.length} onAdd={() => openAdd('subcontractor')} addLabel="Add Sub">
             {subs.length === 0 ? (
               <p className="text-sm text-slate-500 py-2">
                 No subcontractors yet.
@@ -687,11 +719,71 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
         </>
       )}
 
-      {/* Clients Section (read-only) */}
-      <Section icon={User} title="Clients" count={activeClients.length}>
-        {activeClients.length === 0 ? (
+      {/* Clients Section */}
+      <Section icon={User} title="Clients" count={activeClients.length} onAdd={() => setShowAddClient(true)} addLabel="Add Client">
+        {/* Inline Quick Add Client Form */}
+        {showAddClient && (
+          <div className="bg-slate-800 rounded-lg p-4 mb-3 space-y-3 border border-slate-700">
+            <h4 className="text-sm font-medium text-slate-200">Add Client</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">Name *</label>
+                <input type="text" className={INPUT_CLASS} value={newClient.name}
+                  onChange={(e) => setNewClient({ ...newClient, name: e.target.value })} placeholder="Client name" />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">Email *</label>
+                <input type="email" className={INPUT_CLASS} value={newClient.email}
+                  onChange={(e) => setNewClient({ ...newClient, email: e.target.value })} placeholder="client@email.com" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm text-slate-400 mb-1">Company</label>
+              <input type="text" className={INPUT_CLASS} value={newClient.company_name}
+                onChange={(e) => setNewClient({ ...newClient, company_name: e.target.value })} placeholder="Company or business name" />
+            </div>
+            <div>
+              <label className="block text-sm text-slate-400 mb-1">Address</label>
+              <input type="text" className={INPUT_CLASS} value={newClient.address}
+                onChange={(e) => setNewClient({ ...newClient, address: e.target.value })} placeholder="Street address" />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">City</label>
+                <input type="text" className={INPUT_CLASS} value={newClient.city}
+                  onChange={(e) => setNewClient({ ...newClient, city: e.target.value })} placeholder="City" />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">State</label>
+                <input type="text" className={INPUT_CLASS} value={newClient.state}
+                  onChange={(e) => setNewClient({ ...newClient, state: e.target.value })} placeholder="State" />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">Zip</label>
+                <input type="text" className={INPUT_CLASS} value={newClient.zip_code}
+                  onChange={(e) => setNewClient({ ...newClient, zip_code: e.target.value })} placeholder="Zip code" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm text-slate-400 mb-1">Phone</label>
+              <input type="tel" className={INPUT_CLASS} value={newClient.phone}
+                onChange={(e) => setNewClient({ ...newClient, phone: formatPhone(e.target.value) })} placeholder="(555) 555-5555" />
+            </div>
+            <div className="flex gap-2">
+              <button type="button" onClick={handleAddClient} disabled={!newClient.name.trim() || !newClient.email.trim()}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs min-h-[44px] transition-colors disabled:opacity-50">
+                <Plus className="h-3.5 w-3.5" /> Add Client
+              </button>
+              <button type="button" onClick={() => setShowAddClient(false)}
+                className="px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 hover:bg-transparent text-xs min-h-[44px] transition-colors">
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+        {activeClients.length === 0 && !showAddClient ? (
           <p className="text-sm text-slate-500 py-2">
-            No clients yet. Create an estimate to add your first client.
+            No clients yet. Click "Add Client" to add your first client.
           </p>
         ) : (
           <div className="space-y-2">

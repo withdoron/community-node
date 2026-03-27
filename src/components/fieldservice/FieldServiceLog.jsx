@@ -698,11 +698,11 @@ export default function FieldServiceLog({ profile, currentUser }) {
           </div>
         )}
 
+        {/* No capture attribute — lets mobile users choose camera OR gallery */}
         <input
           ref={photoInputRef}
           type="file"
           accept="image/*"
-          capture="environment"
           multiple
           onChange={handlePhotoCapture}
           className="hidden"
@@ -713,7 +713,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
           className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-700 rounded-xl py-4 text-slate-400 hover:text-amber-500 hover:border-amber-500/50 transition-colors min-h-[44px]"
         >
           <Camera className="h-5 w-5" />
-          {photos.length > 0 ? 'Add More Photos' : 'Take Photo'}
+          {photos.length > 0 ? 'Add More Photos' : 'Add Photos'}
         </button>
       </div>
 
@@ -818,10 +818,10 @@ export default function FieldServiceLog({ profile, currentUser }) {
                       <label className="flex items-center gap-1 text-xs text-slate-500 hover:text-amber-500 cursor-pointer min-h-[36px]">
                         <Receipt className="h-3.5 w-3.5" />
                         {mat.receipt_preview ? 'Change receipt' : 'Add receipt'}
+                        {/* No capture attribute — lets mobile users choose camera OR gallery */}
                         <input
                           type="file"
                           accept="image/*"
-                          capture="environment"
                           onChange={(e) => handleReceiptPhoto(idx, e)}
                           className="hidden"
                         />

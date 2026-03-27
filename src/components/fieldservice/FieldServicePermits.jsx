@@ -34,7 +34,7 @@ const INSPECTION_STATUS = {
 
 const EMPTY_PERMIT = {
   permit_type: 'building', permit_number: '', status: 'not_applied',
-  applied_date: '', issued_date: '', expiry_date: '', notes: '',
+  applied_date: '', issued_date: '', expiry_date: '', notes: '', apply_url: '',
 };
 
 const EMPTY_INSPECTION = {
@@ -108,6 +108,7 @@ function PermitCard({ permit, profileId, projectId }) {
       issued_date: permit.issued_date || '',
       expiry_date: permit.expiry_date || '',
       notes: permit.notes || '',
+      apply_url: permit.apply_url || '',
     });
     setEditing(true);
     setExpanded(true);
@@ -220,6 +221,11 @@ function PermitCard({ permit, profileId, projectId }) {
                 <input type="text" className={INPUT_CLASS} value={editData.notes}
                   onChange={(e) => setEdit('notes', e.target.value)} placeholder="Optional notes" />
               </div>
+              <div>
+                <label className="text-xs text-slate-500">Apply Link / URL</label>
+                <input type="url" className={INPUT_CLASS} value={editData.apply_url}
+                  onChange={(e) => setEdit('apply_url', e.target.value)} placeholder="https://permits.example.gov/apply" />
+              </div>
               <button type="button"
                 disabled={updatePermit.isLoading}
                 onClick={() => updatePermit.mutate({
@@ -230,6 +236,7 @@ function PermitCard({ permit, profileId, projectId }) {
                   issued_date: editData.issued_date || null,
                   expiry_date: editData.expiry_date || null,
                   notes: editData.notes,
+                  apply_url: editData.apply_url || null,
                 })}
                 className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm min-h-[44px] disabled:opacity-50">
                 {updatePermit.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Update Permit</>}
@@ -247,13 +254,21 @@ function PermitCard({ permit, profileId, projectId }) {
             </>
           )}
 
-          {/* eBuild links — always visible */}
+          {/* Apply / lookup links */}
           <div className="flex flex-wrap gap-3">
-            <a href="https://pdd.eugene-or.gov/ebuild"
-              target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400">
-              Apply on eBuild <ExternalLink className="h-3 w-3" />
-            </a>
+            {permit.apply_url ? (
+              <a href={permit.apply_url}
+                target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400">
+                Apply for Permit <ExternalLink className="h-3 w-3" />
+              </a>
+            ) : (
+              <a href="https://pdd.eugene-or.gov/ebuild"
+                target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400">
+                Apply on eBuild <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
             {permit.permit_number && (
               <a href="https://pdd.eugene-or.gov/buildingpermits/permitsearch"
                 target="_blank" rel="noopener noreferrer"
@@ -385,6 +400,7 @@ export default function FieldServicePermits({ projectId, profileId, currentUser 
         issued_date: formData.issued_date || null,
         expiry_date: formData.expiry_date || null,
         notes: formData.notes,
+        apply_url: formData.apply_url || null,
         inspections: { items: [] },
       });
     },
@@ -479,6 +495,13 @@ export default function FieldServicePermits({ projectId, profileId, currentUser 
             <label className={LABEL_CLASS}>Notes</label>
             <input type="text" className={INPUT_CLASS} value={formData.notes}
               onChange={(e) => set('notes', e.target.value)} placeholder="Optional notes" />
+          </div>
+
+          <div>
+            <label className={LABEL_CLASS}>Apply Link / URL</label>
+            <input type="url" className={INPUT_CLASS} value={formData.apply_url}
+              onChange={(e) => set('apply_url', e.target.value)} placeholder="https://permits.example.gov/apply" />
+            <p className="text-xs text-slate-500 mt-1">Link to the permit application portal (optional)</p>
           </div>
 
           <button type="button"
