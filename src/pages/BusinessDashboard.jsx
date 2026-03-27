@@ -28,6 +28,7 @@ import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { useRole } from '@/hooks/useRole';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
 import { ARCHETYPE_TITLES, getBusinessTabs, WORKSPACE_TYPES } from '@/config/workspaceTypes';
+import AgentChatButton from '@/components/fieldservice/AgentChatButton';
 import TeamContextSwitcher from '@/components/team/TeamContextSwitcher';
 import { toast } from "sonner";
 import CommunityPulse from '@/components/dashboard/CommunityPulse';
@@ -1169,6 +1170,9 @@ export default function BusinessDashboard() {
             return <TabComponent {...props} />;
           })()}
         </div>
+
+        {/* Construction Gate — remove when agent chat passes walkthrough */}
+        {false && <AgentChatButton agentName="PermitScout" userId={currentUser?.id} />}
       </div>
     );
   }
