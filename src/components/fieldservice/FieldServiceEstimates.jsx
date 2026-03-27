@@ -4,11 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import VoiceInput from './VoiceInput';
 import ClientSelector from './ClientSelector';
-import { SignatureDisplay } from '@/components/shared/SigningFlow';
+import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   Search, Copy, FolderOpen, Send, Eye, Printer, X, DollarSign, Link2,
-  ChevronUp, ChevronDown, Lock, Shield,
+  ChevronUp, ChevronDown, Lock, Shield, Check,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -213,13 +213,16 @@ function calcTotals(items, overheadProfitPct, taxRate, otherAmount) {
 // ═══════════════════════════════════════════════════
 // Preview (client-facing branded estimate)
 // ═══════════════════════════════════════════════════
-function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, onSendForSignature, onRecall, projects, clients }) {
+function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onConvert, onSendForSignature, onRecall, onOwnerSign, projects, clients }) {
+  const [showOwnerSign, setShowOwnerSign] = useState(false);
+  const [ownerSigning, setOwnerSigning] = useState(false);
   const items = migrateLineItems(estimate.line_items, estimate.labor_estimate);
   const totals = calcTotals(items, estimate.overhead_profit_pct, estimate.tax_rate, estimate.other_amount);
   const brandColor = profile?.brand_color || '#f59e0b';
   const showBreakdown = estimate.client_show_breakdown === true;
   const isInsurance = estimate.is_insurance_estimate === true;
   const tradeCategories = getTradeCategories(profile);
+  const hasOwnerSig = !!estimate.owner_signature_data;
   const tradeCatMap = Object.fromEntries(tradeCategories.map((tc) => [tc.id, tc]));
 
   // Group items by trade category (for insurance format)
@@ -305,6 +308,17 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, onSendF
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-rose-500/50 text-rose-400 hover:bg-rose-500/10 hover:bg-transparent transition-colors text-sm min-h-[44px]">
               <X className="h-4 w-4" /> Recall
             </button>
+          )}
+          {!hasOwnerSig && !showOwnerSign && (
+            <button type="button" onClick={() => setShowOwnerSign(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-emerald-700/50 text-emerald-400 hover:border-emerald-600 hover:bg-transparent transition-colors text-sm min-h-[44px]">
+              <Shield className="h-4 w-4" /> Sign as Owner
+            </button>
+          )}
+          {hasOwnerSig && (
+            <span className="flex items-center gap-1.5 px-3 py-2 text-sm text-emerald-400">
+              <Check className="h-4 w-4" /> Owner Signed
+            </span>
           )}
           {estimate.status !== 'accepted' && estimate.status !== 'signed' && estimate.status !== 'awaiting_signature' && (
             <button type="button" onClick={() => onEdit(estimate)}
@@ -495,28 +509,51 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, onSendF
           </div>
         )}
 
-        {/* Signature block */}
-        {estimate.signature_data ? (
-          <div className="print-avoid-break mb-6 mt-8">
-            <SignatureDisplay signatureData={estimate.signature_data} darkMode={false} />
-          </div>
-        ) : (
-          <div className="print-avoid-break mb-6 border border-slate-200 rounded-lg p-5 mt-8">
-            <p className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Sign Below to Accept Quote</p>
-            <div className="flex justify-between items-end mb-6">
-              <span className="text-sm text-slate-500">Total:</span>
-              <span className="text-lg font-bold" style={{ color: brandColor }}>{fmt(totals.total)}</span>
+        {/* Signature blocks */}
+        <div className="print-avoid-break mt-8 space-y-4">
+          {/* Owner Signature */}
+          {estimate.owner_signature_data ? (
+            <div>
+              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-medium">Owner Signature</p>
+              <SignatureDisplay signatureData={estimate.owner_signature_data} darkMode={false} />
             </div>
-            <div className="space-y-4">
-              <div className="border-b border-slate-300 pb-1">
-                <p className="text-xs text-slate-400 uppercase">Authorized Representative</p>
-              </div>
-              <div className="border-b border-slate-300 pb-1">
-                <p className="text-xs text-slate-400 uppercase">Date</p>
+          ) : (
+            <div className="border border-slate-200 rounded-lg p-5">
+              <div className="space-y-4">
+                <div className="border-b border-slate-300 pb-1">
+                  <p className="text-xs text-slate-400 uppercase">Owner / Contractor Signature</p>
+                </div>
+                <div className="border-b border-slate-300 pb-1">
+                  <p className="text-xs text-slate-400 uppercase">Date</p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Client Signature */}
+          {estimate.signature_data ? (
+            <div>
+              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-medium">Client Signature</p>
+              <SignatureDisplay signatureData={estimate.signature_data} darkMode={false} />
+            </div>
+          ) : (
+            <div className="border border-slate-200 rounded-lg p-5">
+              <p className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Client Approval</p>
+              <div className="flex justify-between items-end mb-6">
+                <span className="text-sm text-slate-500">Total:</span>
+                <span className="text-lg font-bold" style={{ color: brandColor }}>{fmt(totals.total)}</span>
+              </div>
+              <div className="space-y-4">
+                <div className="border-b border-slate-300 pb-1">
+                  <p className="text-xs text-slate-400 uppercase">Authorized Representative</p>
+                </div>
+                <div className="border-b border-slate-300 pb-1">
+                  <p className="text-xs text-slate-400 uppercase">Date</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Notes */}
         {estimate.notes && (
@@ -539,6 +576,37 @@ function EstimatePreview({ estimate, profile, onBack, onEdit, onConvert, onSendF
           <p className="text-xs text-slate-300 mt-1">Powered by LocalLane</p>
         </div>
       </div>
+
+      {/* Inline Owner Signing Flow */}
+      {showOwnerSign && !hasOwnerSig && (
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 print:hidden">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-slate-100">Sign as Owner</h3>
+            <button type="button" onClick={() => setShowOwnerSign(false)}
+              className="p-1 text-slate-500 hover:text-slate-300">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <SigningFlow
+            documentContent={[estimate.title, `Estimate #${estimate.estimate_number || ''}`, `Total: ${fmt(totals.total)}`].join('\n')}
+            documentTitle={estimate.title || 'Estimate'}
+            signerName={profile?.owner_name || currentUser?.full_name || ''}
+            signerEmail={profile?.email || currentUser?.email || ''}
+            onSign={async (signatureData) => {
+              setOwnerSigning(true);
+              try {
+                await onOwnerSign(estimate, signatureData);
+                setShowOwnerSign(false);
+              } catch (err) {
+                toast.error('Failed to save signature');
+              }
+              setOwnerSigning(false);
+            }}
+            isSaving={ownerSigning}
+            darkMode={true}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -1355,11 +1423,20 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       <EstimatePreview
         estimate={previewEstimate}
         profile={profile}
+        currentUser={currentUser}
         onBack={backToList}
         onEdit={(est) => openEditEstimate(est)}
         onConvert={(est) => setConvertConfirm(est)}
         onSendForSignature={(est) => sendForSignature(est)}
         onRecall={(est) => recallEstimate(est)}
+        onOwnerSign={async (est, sigData) => {
+          await base44.entities.FSEstimate.update(est.id, {
+            owner_signature_data: JSON.stringify(sigData),
+            owner_signed_at: sigData.signed_at,
+          });
+          queryClient.invalidateQueries(['fs-estimates', profile?.id]);
+          toast.success('Owner signature saved');
+        }}
         projects={projects}
         clients={clients}
       />

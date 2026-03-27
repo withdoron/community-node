@@ -15,7 +15,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { SignatureDisplay } from '@/components/shared/SigningFlow';
+import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   Search, Eye, Printer, X, Copy, Send, Archive, Shield,
@@ -277,20 +277,40 @@ function RecallDialog({ doc, onConfirm, onCancel, isRecalling }) {
 // ═══════════════════════════════════════════════════
 
 function DocumentDetail({
-  doc, client, onBack, onUpdate, onDelete, onSendForSignature,
+  doc, client, profile, currentUser, onBack, onUpdate, onDelete, onSendForSignature,
   onCopyLink, onRecall, onCreateAmendment, isUpdating,
 }) {
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(doc.content || '');
+  const [showOwnerSign, setShowOwnerSign] = useState(false);
+  const [ownerSigning, setOwnerSigning] = useState(false);
   const normalized = normalizeStatus(doc.status);
   const isDraft = normalized === 'draft';
   const isAwaiting = normalized === 'awaiting_signature';
   const isSigned = normalized === 'signed';
   const isArchived = normalized === 'archived';
 
+  const hasOwnerSig = !!doc.owner_signature_data;
+  const hasClientSig = !!doc.signature_data;
+
   const handleSave = () => {
     onUpdate(doc.id, { content: editContent });
     setEditing(false);
+  };
+
+  const handleOwnerSign = async (signatureData) => {
+    setOwnerSigning(true);
+    try {
+      await onUpdate(doc.id, {
+        owner_signature_data: JSON.stringify(signatureData),
+        owner_signed_at: signatureData.signed_at,
+      });
+      setShowOwnerSign(false);
+      toast.success('Owner signature saved');
+    } catch (err) {
+      toast.error('Failed to save signature');
+    }
+    setOwnerSigning(false);
   };
 
   return (
@@ -372,6 +392,17 @@ function DocumentDetail({
               <Archive className="h-3.5 w-3.5" /> Unarchive
             </button>
           )}
+          {!hasOwnerSig && !showOwnerSign && (
+            <button type="button" onClick={() => setShowOwnerSign(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-emerald-700/50 text-emerald-400 hover:border-emerald-600 hover:bg-transparent text-xs min-h-[44px] transition-colors">
+              <Shield className="h-3.5 w-3.5" /> Sign as Owner
+            </button>
+          )}
+          {hasOwnerSig && (
+            <span className="flex items-center gap-1.5 px-3 py-2 text-xs text-emerald-400">
+              <Check className="h-3.5 w-3.5" /> Owner Signed
+            </span>
+          )}
           <button type="button" onClick={() => window.print()}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-300 hover:bg-transparent text-xs min-h-[44px] transition-colors">
             <Printer className="h-3.5 w-3.5" /> Print
@@ -420,9 +451,20 @@ function DocumentDetail({
           </pre>
         )}
 
-        {/* Signature display */}
+        {/* Owner Signature */}
+        {doc.owner_signature_data && (
+          <div className="mt-6">
+            <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-medium">Owner Signature</p>
+            <SignatureDisplay signatureData={doc.owner_signature_data} darkMode={false} />
+          </div>
+        )}
+
+        {/* Client Signature */}
         {doc.signature_data && (
-          <SignatureDisplay signatureData={doc.signature_data} darkMode={false} />
+          <div className="mt-4">
+            <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-medium">Client Signature</p>
+            <SignatureDisplay signatureData={doc.signature_data} darkMode={false} />
+          </div>
         )}
 
         {/* Document hash (signed docs) */}
@@ -435,6 +477,28 @@ function DocumentDetail({
           ) : null;
         })()}
       </div>
+
+      {/* Inline Owner Signing Flow */}
+      {showOwnerSign && !hasOwnerSig && (
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 print:hidden">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-slate-100">Sign as Owner</h3>
+            <button type="button" onClick={() => setShowOwnerSign(false)}
+              className="p-1 text-slate-500 hover:text-slate-300">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <SigningFlow
+            documentContent={doc.content || ''}
+            documentTitle={doc.title || 'Document'}
+            signerName={profile?.owner_name || currentUser?.full_name || ''}
+            signerEmail={profile?.email || currentUser?.email || ''}
+            onSign={handleOwnerSign}
+            isSaving={ownerSigning}
+            darkMode={true}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -1230,6 +1294,8 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
       <DocumentDetail
         doc={selectedDoc}
         client={client}
+        profile={profile}
+        currentUser={currentUser}
         onBack={() => { setView('list'); setSelectedDoc(null); }}
         onUpdate={(id, data) => updateDocMutation.mutate({ id, data })}
         onDelete={(id) => {

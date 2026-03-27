@@ -988,6 +988,112 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           </div>
         )}
 
+        {/* Financial Ledger */}
+        {(() => {
+          // Parse estimate line items by category for comparison
+          const estLineItems = selectedEstimate ? (() => {
+            const raw = selectedEstimate.line_items;
+            const items = Array.isArray(raw) ? raw : (raw?.items || []);
+            if (typeof items[0] === 'string') try { return JSON.parse(items[0]); } catch { return []; }
+            return items;
+          })() : [];
+
+          const estByCategory = {};
+          for (const it of estLineItems) {
+            const cat = it.category || 'materials';
+            const amt = parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0));
+            estByCategory[cat] = (estByCategory[cat] || 0) + amt;
+          }
+
+          // Actual costs by category
+          const matTotal = projectMaterials.reduce((s, m) => s + (parseFloat(m.total_cost) || 0), 0);
+          const labTotal = projectLabor.reduce((s, l) => s + (parseFloat(l.total_cost) || 0), 0);
+
+          const actualByCategory = {
+            materials: matTotal,
+            labor: labTotal,
+            // Subcontractor and other costs aren't tracked separately yet — show estimated only
+          };
+
+          const LEDGER_CATS = [
+            { key: 'materials', label: 'Materials' },
+            { key: 'labor', label: 'Labor' },
+            { key: 'subcontractor', label: 'Subcontractors' },
+            { key: 'fee', label: 'Fees' },
+            { key: 'other', label: 'Other' },
+          ];
+
+          const hasEstimate = selectedEstimate && Object.keys(estByCategory).length > 0;
+          const totalEstimated = Object.values(estByCategory).reduce((s, v) => s + v, 0);
+          const totalActual = matTotal + labTotal;
+          const totalVariance = totalEstimated - totalActual;
+
+          // Only show if there's meaningful data
+          if (!hasEstimate && totalActual === 0) return null;
+
+          const varianceColor = (v) => {
+            if (v > 0) return 'text-emerald-400';
+            if (v < 0) return 'text-red-400';
+            return 'text-slate-400';
+          };
+
+          return (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+              <div className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <LayoutList className="h-4 w-4 text-amber-500" />
+                  <h3 className="text-sm font-bold text-slate-100">Financial Ledger</h3>
+                </div>
+
+                {/* Category breakdown table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-700">
+                        <th className="text-left py-2 text-slate-400 font-medium text-xs">Category</th>
+                        {hasEstimate && <th className="text-right py-2 text-slate-400 font-medium text-xs">Estimated</th>}
+                        <th className="text-right py-2 text-slate-400 font-medium text-xs">Actual</th>
+                        {hasEstimate && <th className="text-right py-2 text-slate-400 font-medium text-xs">Variance</th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {LEDGER_CATS.filter((c) => (estByCategory[c.key] || 0) > 0 || (actualByCategory[c.key] || 0) > 0).map((c) => {
+                        const est = estByCategory[c.key] || 0;
+                        const act = actualByCategory[c.key] || 0;
+                        const v = est - act;
+                        return (
+                          <tr key={c.key} className="border-b border-slate-800/50">
+                            <td className="py-2 text-slate-300">{c.label}</td>
+                            {hasEstimate && <td className="py-2 text-right text-slate-400">{fmt(est)}</td>}
+                            <td className="py-2 text-right text-slate-200">{fmt(act)}</td>
+                            {hasEstimate && (
+                              <td className={`py-2 text-right font-medium ${varianceColor(v)}`}>
+                                {v >= 0 ? '+' : ''}{fmt(v)}
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t border-slate-700">
+                        <td className="py-2 text-slate-100 font-bold">Totals</td>
+                        {hasEstimate && <td className="py-2 text-right text-slate-300 font-bold">{fmt(totalEstimated)}</td>}
+                        <td className="py-2 text-right text-amber-500 font-bold">{fmt(totalActual)}</td>
+                        {hasEstimate && (
+                          <td className={`py-2 text-right font-bold ${varianceColor(totalVariance)}`}>
+                            {totalVariance >= 0 ? '+' : ''}{fmt(totalVariance)}
+                          </td>
+                        )}
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Linked Estimate */}
         {proj.estimate_id && (
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
