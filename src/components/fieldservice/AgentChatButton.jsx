@@ -4,14 +4,14 @@
  * Configurable agent name so any workspace can reuse with a different agent.
  *
  * Props:
- *   agentName  — Base44 agent name (default: 'PermitScout')
+ *   agentName  — Base44 agent name (default: 'FieldServiceAgent')
  *   userId     — current user's ID for conversation persistence
  */
 import React, { useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
 import AgentChat from './AgentChat';
 
-export default function AgentChatButton({ agentName = 'PermitScout', userId }) {
+export default function AgentChatButton({ agentName = 'FieldServiceAgent', userId }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (

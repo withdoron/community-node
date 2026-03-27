@@ -4,7 +4,7 @@
  * Renders as a slide-up panel on mobile, slide-in drawer on desktop.
  *
  * Props:
- *   agentName  — Base44 agent name (e.g. 'PermitScout')
+ *   agentName  — Base44 agent name (e.g. 'FieldServiceAgent')
  *   userId     — current user's ID (for conversation persistence)
  *   isOpen     — whether the panel is visible
  *   onClose    — callback to close the panel
@@ -107,7 +107,7 @@ function useVoiceInput({ onFinal, onInterim }) {
 
 // ─── Main Component ──────────────────────────────
 
-export default function AgentChat({ agentName = 'PermitScout', userId, isOpen, onClose }) {
+export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isOpen, onClose }) {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isSending, setIsSending] = useState(false);
