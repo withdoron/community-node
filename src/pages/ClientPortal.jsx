@@ -1,10 +1,41 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
+import { appParams } from '@/lib/app-params';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Loader2, Printer, Camera, Shield, X, FileText, FolderOpen, ClipboardList } from 'lucide-react';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { toast } from 'sonner';
+
+/**
+ * Invoke a Base44 server function WITHOUT requiring user authentication.
+ * The standard base44.functions.invoke() sends the user's auth token — in the
+ * client portal the visitor is unauthenticated, so the API returns 401 before
+ * the function even runs. This helper hits the same endpoint with only the
+ * X-App-Id header (no Bearer token), which is sufficient for server functions
+ * that use asServiceRole internally.
+ */
+async function invokeUnauthenticated(functionName, data) {
+  const url = `${appParams.serverUrl}/api/apps/${appParams.appId}/functions/${functionName}`;
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-App-Id': String(appParams.appId),
+  };
+  // Include functions version header if set (mirrors SDK behavior)
+  if (appParams.functionsVersion) {
+    headers['Base44-Functions-Version'] = appParams.functionsVersion;
+  }
+  const res = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({}));
+    throw new Error(errorBody.error || errorBody.message || `Server function failed (${res.status})`);
+  }
+  return res.json();
+}
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -419,8 +450,11 @@ function DocumentSigningSection({ doc, profile, queryClient }) {
     mutationFn: async (signatureData) => {
       // Route through server function — unauthenticated portal clients can't
       // update FSDocument directly. The server function validates the portal_token
-      // and updates via asServiceRole.
-      await base44.functions.invoke('signDocument', {
+      // and updates via asServiceRole. Uses invokeUnauthenticated() because the
+      // standard base44.functions.invoke() sends a Bearer token which is absent
+      // in the client portal (incognito/unauthenticated), causing a 401 before
+      // the function even runs.
+      await invokeUnauthenticated('signDocument', {
         document_id: doc.id,
         portal_token: doc.portal_token,
         signature_data: signatureData,

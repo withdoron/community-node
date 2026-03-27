@@ -4,6 +4,12 @@
 > The client portal signing flow calls this function because unauthenticated portal visitors
 > cannot update FSDocument records directly.
 
+## CRITICAL: Function Name
+
+The function MUST be named exactly `signDocument` (camelCase, no spaces).
+If the Base44 agent created it as "sign Document" (with a space), rename it.
+The client-side code calls `invokeUnauthenticated('signDocument', ...)` — the name must match exactly.
+
 ## Create Server Function
 
 Create a new server function called `signDocument` with the following code:
