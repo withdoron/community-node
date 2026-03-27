@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     // asServiceRole is critical here — bypasses Creator Only permissions
     const updated = await base44.asServiceRole.entities.FSDocument.update(document_id, {
       status: 'signed',
-      signature_data: signature_data,
+      signature_data: typeof signature_data === 'string' ? signature_data : JSON.stringify(signature_data),
       signed_at: new Date().toISOString(),
       portal_link_active: false,
     });
