@@ -1172,7 +1172,7 @@ export default function BusinessDashboard() {
         </div>
 
         {/* Construction Gate — remove when agent chat passes walkthrough */}
-        {false && <AgentChatButton agentName="FieldServiceAgent" userId={currentUser?.id} />}
+        <AgentChatButton agentName="FieldServiceAgent" userId={currentUser?.id} />
       </div>
     );
   }
