@@ -417,11 +417,13 @@ function DocumentSigningSection({ doc, profile, queryClient }) {
 
   const signMutation = useMutation({
     mutationFn: async (signatureData) => {
-      await base44.entities.FSDocument.update(doc.id, {
-        status: 'signed',
-        signature_data: JSON.stringify(signatureData),
-        signed_at: signatureData.signed_at,
-        portal_link_active: false,
+      // Route through server function — unauthenticated portal clients can't
+      // update FSDocument directly. The server function validates the portal_token
+      // and updates via asServiceRole.
+      await base44.functions.invoke('signDocument', {
+        document_id: doc.id,
+        portal_token: doc.portal_token,
+        signature_data: signatureData,
       });
       return signatureData;
     },
