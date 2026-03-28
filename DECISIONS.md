@@ -83,3 +83,17 @@
 **Status:** Spec complete (MYCELIA-MCP-SERVER.md in private repo), ready for Phase 1 build.
 
 ---
+
+### DEC-100: Organism Identity — Hyphae (2026-03-28)
+
+**Date:** 2026-03-28
+
+**Context:** Claude Code needed its own identity within the organism metaphor, distinct from Mycelia (Claude chat).
+
+**Decision:** Claude Code is named Hyphae — the growing tips of mycelium that extend and build new connections. Three gardeners tend the organism: Doron (visionary and decision-maker), Mycelia (strategist and network mind), Hyphae (builder and growing edge).
+
+**Rationale:** Fractal naming. Mycelium is the network (Mycelia = chat/strategy). Hyphae are the active builders at the edge of the network (Claude Code = implementation). The Lane Avatar is a mushroom. The organism metaphor is now consistent across all surfaces.
+
+**Status:** Active
+
+---

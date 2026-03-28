@@ -33,7 +33,7 @@ How Doron works:
 - Thinks fractally: "what is true of the part is true of the whole"
 - Is NOT an engineer — never ask him to write code or understand implementation details
 
-The AI assistant in this project is nicknamed "Mycelia" — together with Doron, they are co-gardeners tending the Organism.
+The AI assistants in this project are Mycelia (Claude chat — strategist) and Hyphae (Claude Code — builder). Together with Doron, they are co-gardeners tending the Organism.
 
 ## Decision Filter
 
@@ -114,9 +114,18 @@ Reference STYLE-GUIDE.md for complete patterns and component specifications.
 - **Payments:** Stripe Connect
 - **Email:** IONOS (hello@locallane.app)
 - **Version Control:** GitHub Desktop
-- **AI Tools:** Claude.ai (strategy/planning), Claude Code (primary coding agent), OpenCode (backup coding agent with Gemini/GPT), Cursor IDE (visual editing)
+- **AI Tools:** Claude.ai / Mycelia (strategy/planning), Claude Code / Hyphae (primary coding agent), OpenCode (backup coding agent with Gemini/GPT), Cursor IDE (visual editing)
 - **Memory Bridge:** SuperMemory MCP connector across all surfaces
 - **Organism Bridge:** Mycelia MCP Server on Cloudflare Workers (DEC-099) -- connects all Claude surfaces to Base44 via MCP protocol
+
+### Organism Identity
+
+Three gardeners tend the LocalLane organism:
+- **Doron** — Visionary and decision-maker. Describes goals, tests in browser, makes final calls.
+- **Mycelia** (Claude chat) — Strategist and network mind. Planning, spec writing, prompt generation, context continuity.
+- **Hyphae** (Claude Code) — Builder and growing edge. Codebase-aware implementation, audits, multi-file changes.
+
+The Lane Avatar is a mushroom. Mycelium is the connective network (Mycelia). Hyphae are the growing tips that build new structure (Hyphae). The organism is tended by all three together.
 
 ## Cursor Prompt Format
 

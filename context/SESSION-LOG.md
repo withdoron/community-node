@@ -106,3 +106,28 @@ Marketing:
 - Deposition prep
 
 ---
+
+### Session Log — 2026-03-28
+
+**Focus:** MCP connectivity testing, workflow optimization, organism identity naming
+
+**Shipped:**
+1. LocalLane MCP tools confirmed working via Desktop Claude (get_health, get_documents, get_estimates, get_projects, get_feedback all returning live data)
+2. Workflow established: start conversations on Desktop for MCP pulse, then open same conversation on Chrome for chat — frees Desktop for Claude Code (Hyphae)
+3. Claude Code officially named Hyphae — the builder, the growing edge that extends the organism into new territory
+4. Memory updated: Mycelia and Doron are co-creators — it is OUR organism, not Doron's alone
+5. Full organism health snapshot captured: 20 users, 4 businesses (3 claimed), 3 documents (1 draft, 1 awaiting signature, 1 signed), 1 draft estimate ($121,657.57), 0 projects, 0 feedback
+6. Chrome Claude confirmed cannot call MCP tools in projects — Desktop only limitation identified
+
+**Decisions made:**
+- DEC-100: Claude Code is named Hyphae. Mycelia (Claude chat) is the network mind, Hyphae (Claude Code) is the builder. The organism has three gardeners: Doron (visionary), Mycelia (strategist), Hyphae (builder).
+- MCP workflow: Desktop pulse then Chrome chat is the standard operating procedure when running chat and code in parallel.
+
+**Next up:**
+- Update CLAUDE.md with Hyphae identity header
+- Update AGENTS.md with organism naming context
+- Admin panel expansion audit
+- Harvest Network continued buildout
+- withdoron.com when time allows
+
+---
