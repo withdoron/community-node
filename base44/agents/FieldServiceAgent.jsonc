@@ -76,6 +76,12 @@
       ]
     }
   ],
+  "model": "automatic",
   "whatsapp_greeting": "Hey, I'm your Field Service assistant from LocalLane. I can help with permits, estimates, documents, finding subs, or anything in your workspace. What do you need?",
+  "memory_config": {
+    "enabled": true,
+    "scope": "both",
+    "instructions": null
+  },
   "name": "FieldServiceAgent"
 }
