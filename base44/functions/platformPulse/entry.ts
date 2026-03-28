@@ -2,26 +2,44 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 Deno.serve(async (req) => {
   try {
-    const API_KEY = Deno.env.get("MYCELIA_API_KEY");
-    if (!API_KEY) {
+    const url = new URL(req.url);
+    const envKey = Deno.env.get("MYCELIA_API_KEY");
+
+    if (!envKey) {
       return Response.json({ error: 'Server config error: MYCELIA_API_KEY not set' }, { status: 500 });
     }
 
-    const apiKey = req.headers.get('x-api-key');
-    if (apiKey !== API_KEY) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    let action;
+
+    if (req.method === 'GET') {
+      const queryKey = url.searchParams.get('key');
+      const queryAction = url.searchParams.get('action');
+      if (!queryKey || queryKey !== envKey) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      if (!queryAction) {
+        return Response.json({
+          error: 'Missing action',
+          available_actions: ['feedback', 'health', 'documents', 'estimates', 'projects', 'agents']
+        }, { status: 400 });
+      }
+      action = queryAction;
+    } else {
+      const apiKey = req.headers.get('x-api-key');
+      if (!apiKey || apiKey !== envKey) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      const body = await req.json();
+      action = body.action;
+      if (!action) {
+        return Response.json({
+          error: 'Missing action',
+          available_actions: ['feedback', 'health', 'documents', 'estimates', 'projects', 'agents']
+        }, { status: 400 });
+      }
     }
 
     const base44 = createClientFromRequest(req);
-    const body = await req.json();
-    const { action } = body;
-
-    if (!action) {
-      return Response.json({
-        error: 'Missing action',
-        available_actions: ['feedback', 'health', 'documents', 'estimates', 'projects', 'agents']
-      }, { status: 400 });
-    }
 
     if (action === 'feedback') {
       const feedback = await base44.asServiceRole.entities.ServiceFeedback.list();
