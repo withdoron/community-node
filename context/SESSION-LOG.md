@@ -82,3 +82,27 @@ Marketing:
 - Admin Superagent (Mycelia) exploration
 
 ---
+
+### Session Log -- 2026-03-27 (Evening)
+
+**Focus:** Mycelia MCP Server spec + platformPulse connection
+
+**Shipped:**
+1. platformPulse API key confirmed working (MYC key set in Base44 secrets, published)
+2. platformPulse GET route added -- supports query params (?key=...&action=...) for tools that cannot send custom headers
+3. Organism pulse confirmed: 4 businesses (3 claimed), 20 users, 1 estimate, 3 documents
+4. MYCELIA-MCP-SERVER.md spec written and committed to locallane-private
+5. DEC-099: Mycelia MCP Server -- Cloudflare Worker bridging Claude to Base44
+6. Cloudflare account confirmed active (golocallane.com, free plan, 708 unique visitors)
+7. ACTIVE-CONTEXT.md updated (was stale since 3/3)
+
+**Decisions made:**
+- DEC-099: Mycelia MCP Server (spec complete, ready for Phase 1 build)
+
+**Next up:**
+- MCP server Phase 1: scaffold Cloudflare Worker from authless template, implement get_health tool, deploy, connect to Claude.ai
+- Fractional leadership Monday scan
+- Coaches meeting Monday 6:30 PM
+- Deposition prep
+
+---

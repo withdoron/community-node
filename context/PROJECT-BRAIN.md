@@ -116,6 +116,7 @@ Reference STYLE-GUIDE.md for complete patterns and component specifications.
 - **Version Control:** GitHub Desktop
 - **AI Tools:** Claude.ai (strategy/planning), Claude Code (primary coding agent), OpenCode (backup coding agent with Gemini/GPT), Cursor IDE (visual editing)
 - **Memory Bridge:** SuperMemory MCP connector across all surfaces
+- **Organism Bridge:** Mycelia MCP Server on Cloudflare Workers (DEC-099) -- connects all Claude surfaces to Base44 via MCP protocol
 
 ## Cursor Prompt Format
 
