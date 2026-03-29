@@ -294,7 +294,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
             </div>
             <div>
               <h3 className="text-sm font-semibold text-slate-100">{agentDisplayName}</h3>
-              <p className="text-xs text-slate-500">Your Field Service assistant</p>
+              <p className="text-xs text-slate-500">Your {agentName.replace(/Agent$/, '').replace(/([A-Z])/g, ' $1').trim()} assistant</p>
             </div>
           </div>
           <button

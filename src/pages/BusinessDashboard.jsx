@@ -1022,6 +1022,9 @@ export default function BusinessDashboard() {
             return <TabComponent {...props} {...extraProps} />;
           })()}
         </div>
+
+        {/* PlaymakerAgent — second nerve ending in the organism */}
+        <AgentChatButton agentName="PlaymakerAgent" userId={currentUser?.id} />
       </div>
     );
   }
