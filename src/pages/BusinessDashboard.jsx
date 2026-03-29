@@ -526,7 +526,7 @@ export default function BusinessDashboard() {
   }, [activeTab, selectedBusinessId, selectedTeamId, selectedFinanceId, selectedFieldServiceId, selectedPropertyMgmtId]);
 
   // Signal to Layout when an agent-enabled workspace is active (hides global feedback button)
-  const agentActive = !!(selectedFieldServiceId || selectedTeamId);
+  const agentActive = !!(selectedFieldServiceId || selectedTeamId || selectedFinanceId);
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('agent-active', { detail: agentActive }));
     return () => { window.dispatchEvent(new CustomEvent('agent-active', { detail: false })); };
@@ -1093,6 +1093,9 @@ export default function BusinessDashboard() {
             return <TabComponent {...props} />;
           })()}
         </div>
+
+        {/* FinanceAgent — the organism's circulatory system */}
+        <AgentChatButton agentName="FinanceAgent" userId={currentUser?.id} />
       </div>
     );
   }
