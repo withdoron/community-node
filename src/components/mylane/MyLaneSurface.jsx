@@ -13,6 +13,7 @@ import MyLaneBreadcrumb from './MyLaneBreadcrumb';
 import MyLaneDrillView from './MyLaneDrillView';
 import useMyLaneState from './useMyLaneState';
 import { parseRenderInstruction } from './parseRenderInstruction';
+import { renderEntityView } from './renderEntityView';
 
 // Map card IDs to drill views
 const CARD_DRILL_MAP = {
@@ -42,6 +43,7 @@ export default function MyLaneSurface({
   const [chatExpanded, setChatExpanded] = useState(false);
   const [urgencyBoosts, setUrgencyBoosts] = useState({});
   const [drilledView, setDrilledView] = useState(null);
+  const [renderedData, setRenderedData] = useState(null); // { entity, workspace, data, displayHint }
   const drillCardRef = useRef(null);
   const drillStartRef = useRef(null);
 
@@ -86,13 +88,20 @@ export default function MyLaneSurface({
   // Drill into a workspace view (internal — user stays in Mylane)
   const drillInto = useCallback((drillSpec) => {
     setDrilledView(drillSpec);
-    setChatExpanded(false); // collapse chat to give workspace max space
+    setRenderedData(null);
+    setChatExpanded(false);
     drillStartRef.current = Date.now();
+  }, []);
+
+  // Show raw entity data via universal renderer
+  const showRenderedData = useCallback((dataSpec) => {
+    setRenderedData(dataSpec);
+    setDrilledView(null);
+    setChatExpanded(false);
   }, []);
 
   // Return to card surface
   const drillBack = useCallback(() => {
-    // Track drill time if we came from a card
     if (drillCardRef.current && drillStartRef.current) {
       const seconds = Math.round((Date.now() - drillStartRef.current) / 1000);
       if (seconds > 0) trackDrillTime(drillCardRef.current);
@@ -100,6 +109,7 @@ export default function MyLaneSurface({
     drillCardRef.current = null;
     drillStartRef.current = null;
     setDrilledView(null);
+    setRenderedData(null);
   }, [trackDrillTime]);
 
   // Handle card tap: track + drill internally
@@ -110,16 +120,19 @@ export default function MyLaneSurface({
     drillInto(drillSpec);
   }, [trackCardTap, drillInto]);
 
-  // Handle agent messages — render instructions drill internally
+  // Handle agent messages — render instructions drill internally or show data
   const lastProcessedRef = useRef(null);
   const handleAgentMessage = useCallback((msg) => {
     if (!msg?.content || msg.id === lastProcessedRef.current) return;
     const result = parseRenderInstruction(msg.content);
-    if (result.hasRender) {
-      lastProcessedRef.current = msg.id;
+    if (!result.hasRender) return;
+    lastProcessedRef.current = msg.id;
+    if (result.type === 'data') {
+      showRenderedData({ entity: result.entity, workspace: result.workspace, data: result.data, displayHint: result.displayHint });
+    } else {
       drillInto({ workspace: result.workspace, view: result.view, tab: result.tab });
     }
-  }, [drillInto]);
+  }, [drillInto, showRenderedData]);
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -130,9 +143,13 @@ export default function MyLaneSurface({
   return (
     <div className="pb-20">
       {/* Header + Breadcrumb */}
-      {drilledView ? (
+      {drilledView || renderedData ? (
         <MyLaneBreadcrumb
-          spaceName={WORKSPACE_LABELS[drilledView.workspace] || drilledView.workspace}
+          spaceName={
+            drilledView
+              ? (WORKSPACE_LABELS[drilledView.workspace] || drilledView.workspace)
+              : (renderedData?.entity?.replace(/^(FS|PM)/, '').replace(/([A-Z])/g, ' $1').trim() || 'Results')
+          }
           onBack={drillBack}
         />
       ) : (
@@ -142,8 +159,15 @@ export default function MyLaneSurface({
         </div>
       )}
 
-      {/* Main content: cards OR drilled workspace view */}
-      {drilledView ? (
+      {/* Main content: cards OR drilled workspace view OR rendered entity data */}
+      {renderedData ? (
+        renderEntityView({
+          data: renderedData.data,
+          entity: renderedData.entity,
+          workspace: renderedData.workspace,
+          displayHint: renderedData.displayHint,
+        })
+      ) : drilledView ? (
         <MyLaneDrillView
           drilledView={drilledView}
           currentUser={currentUser}
