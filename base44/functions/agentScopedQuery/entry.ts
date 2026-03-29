@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-// Workspace → profile entity + user_id field
+// Workspace → profile entity + user field
 const WORKSPACE_PROFILE_MAP = {
   'field-service': { entity: 'FieldServiceProfile', userField: 'user_id' },
   'finance':       { entity: 'FinancialProfile',    userField: 'user_id' },
@@ -8,7 +8,7 @@ const WORKSPACE_PROFILE_MAP = {
   'property-pulse':{ entity: 'PMPropertyProfile',   userField: 'user_id' },
 };
 
-// Profile entities — queried directly by user_id
+// Profile entities — queried directly by user field
 const PROFILE_ENTITIES = new Set([
   'FieldServiceProfile',
   'FinancialProfile',
@@ -68,6 +68,12 @@ const ENTITY_CONFIG = {
   ServiceFeedback:    { fkField: 'user_id',       workspace: 'platform', isPlatform: true },
 };
 
+// Safe string comparison — handles ObjectId, number, null, undefined
+function idMatch(a, b) {
+  if (a == null || b == null) return false;
+  return String(a) === String(b);
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -95,21 +101,48 @@ Deno.serve(async (req) => {
     // Platform entities — filter by their user field directly
     if (config.isPlatform) {
       const all = await entities[entity].list();
-      let records = all.filter(r => r[config.fkField] === user_id);
+      let records = all.filter(r => idMatch(r[config.fkField], user_id));
       if (Object.keys(filters).length > 0) {
         records = records.filter(r => Object.entries(filters).every(([k, v]) => r[k] === v));
       }
       return Response.json({ success: true, entity, workspace: 'platform', user_id, count: records.length, records });
     }
 
-    // Profile entities — query directly by user_id
+    // Profile entities — query directly by user field
     if (config.isProfile || PROFILE_ENTITIES.has(entity)) {
       const all = await entities[entity].list();
-      let records = all.filter(r => r[config.fkField] === user_id || r['user_id'] === user_id);
+      const uid = String(user_id);
+      let records = all.filter(r => idMatch(r[config.fkField], uid) || idMatch(r['user_id'], uid));
       if (Object.keys(filters).length > 0) {
         records = records.filter(r => Object.entries(filters).every(([k, v]) => r[k] === v));
       }
-      return Response.json({ success: true, entity, workspace: config.workspace, user_id, count: records.length, records });
+
+      // Debug envelope — temporary, helps trace comparison issues
+      const debug = {
+        path: 'profile',
+        totalListResults: all.length,
+        filterField: config.fkField,
+        userIdPassed: uid,
+        userIdType: typeof uid,
+        matchCount: records.length,
+      };
+      if (all.length > 0 && records.length === 0) {
+        const sample = all[0];
+        debug.sampleRecord = {
+          id: sample.id,
+          [config.fkField]: sample[config.fkField],
+          fkFieldType: typeof sample[config.fkField],
+          user_id: sample['user_id'],
+          userIdFieldType: typeof sample['user_id'],
+          name: sample['name'] || sample['title'] || '(no name)',
+        };
+        debug.strictEqualResult = sample[config.fkField] === uid;
+        debug.stringEqualResult = String(sample[config.fkField]) === uid;
+        // Show all records' fkField values for comparison
+        debug.allFkValues = all.map(r => ({ id: r.id, [config.fkField]: r[config.fkField], type: typeof r[config.fkField] }));
+      }
+
+      return Response.json({ success: true, entity, workspace: config.workspace, user_id, count: records.length, records, debug });
     }
 
     // Non-profile entities — find profile first, then scope
@@ -120,22 +153,43 @@ Deno.serve(async (req) => {
     }
 
     const allProfiles = await entities[profileMapping.entity].list();
-    const userProfiles = allProfiles.filter(p => p[profileMapping.userField] === user_id);
+    const uid = String(user_id);
+    const userProfiles = allProfiles.filter(p => idMatch(p[profileMapping.userField], uid));
 
     if (userProfiles.length === 0) {
+      // Debug: why no profile matched
+      const debug = {
+        path: 'non-profile-no-match',
+        profileEntity: profileMapping.entity,
+        profileUserField: profileMapping.userField,
+        totalProfiles: allProfiles.length,
+        userIdPassed: uid,
+      };
+      if (allProfiles.length > 0) {
+        const sample = allProfiles[0];
+        debug.sampleProfile = {
+          id: sample.id,
+          [profileMapping.userField]: sample[profileMapping.userField],
+          fieldType: typeof sample[profileMapping.userField],
+          name: sample['name'] || sample['title'] || '(no name)',
+        };
+        debug.strictEqualResult = sample[profileMapping.userField] === uid;
+        debug.stringEqualResult = String(sample[profileMapping.userField]) === uid;
+      }
       return Response.json({
         success: true, entity, workspace: profileWorkspace,
         user_id,
         count: 0, records: [],
-        message: 'No workspace found for this user'
+        message: 'No workspace found for this user',
+        debug,
       });
     }
 
-    const profileIds = userProfiles.map(p => p.id);
+    const profileIds = userProfiles.map(p => String(p.id));
     const primaryProfileId = profileIds[0];
 
     const allRecords = await entities[entity].list();
-    let records = allRecords.filter(r => profileIds.includes(r[config.fkField]));
+    let records = allRecords.filter(r => profileIds.some(pid => idMatch(r[config.fkField], pid)));
 
     if (Object.keys(filters).length > 0) {
       records = records.filter(r => Object.entries(filters).every(([k, v]) => r[k] === v));
