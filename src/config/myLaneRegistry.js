@@ -3,6 +3,10 @@
  * Maps card IDs to their components, labels, and workspace types.
  * MyLaneSurface uses this to render the card grid.
  * Add new cards here — the surface picks them up automatically.
+ *
+ * timeAware: card has time-sensitive color shifts
+ * urgencyWindow: days before event when card gets sort boost
+ * urgencyEntity: which entity drives the urgency check
  */
 import { DollarSign, FileText, Users, Building2, FolderKanban } from 'lucide-react';
 
@@ -20,6 +24,9 @@ const MY_LANE_REGISTRY = [
     icon: DollarSign,
     CardComponent: EnoughNumberCard,
     getProfile: (profiles) => profiles.financeProfiles?.[0] || null,
+    timeAware: true,
+    urgencyWindow: 7, // last 7 days of month
+    urgencyEntity: null, // driven by calendar, not entity
   },
   {
     id: 'pending-estimates',
@@ -28,6 +35,9 @@ const MY_LANE_REGISTRY = [
     icon: FileText,
     CardComponent: PendingEstimatesCard,
     getProfile: (profiles) => profiles.fieldServiceProfiles?.[0] || null,
+    timeAware: true,
+    urgencyWindow: 7, // drafts older than 7 days
+    urgencyEntity: 'FSEstimate',
   },
   {
     id: 'active-projects',
@@ -36,6 +46,7 @@ const MY_LANE_REGISTRY = [
     icon: FolderKanban,
     CardComponent: ActiveProjectsCard,
     getProfile: (profiles) => profiles.fieldServiceProfiles?.[0] || null,
+    timeAware: false,
   },
   {
     id: 'player-readiness',
@@ -44,6 +55,9 @@ const MY_LANE_REGISTRY = [
     icon: Users,
     CardComponent: PlayerReadinessCard,
     getProfile: (profiles) => profiles.allTeams?.[0] || null,
+    timeAware: true,
+    urgencyWindow: 3, // days before game
+    urgencyEntity: 'TeamEvent',
   },
   {
     id: 'property-overview',
@@ -52,6 +66,9 @@ const MY_LANE_REGISTRY = [
     icon: Building2,
     CardComponent: PropertyOverviewCard,
     getProfile: (profiles) => profiles.propertyMgmtProfiles?.[0] || null,
+    timeAware: true,
+    urgencyWindow: 30, // days vacant
+    urgencyEntity: 'PMProperty',
   },
 ];
 

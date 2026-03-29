@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { FolderKanban } from 'lucide-react';
 
-export default function ActiveProjectsCard({ profile, onClick }) {
+export default function ActiveProjectsCard({ profile, onClick, onUrgency }) {
   if (!profile) return null;
 
   const { data: projects = [] } = useQuery({

@@ -1,13 +1,14 @@
 /**
  * MyLaneSurface — the organism's living surface.
  * Composes card views from all user workspaces into one grid.
- * Drill-through navigates into the full workspace via existing dashboard state.
- * Phase 2: ConductorAgent (MyLane) wired into docked conversation panel.
+ * Phase 3: organic growth — cards reorder by usage, time-aware urgency, what-changed whisper.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronUp, ChevronDown, MessageCircle } from 'lucide-react';
 import MY_LANE_REGISTRY from '@/config/myLaneRegistry';
 import AgentChat from '@/components/fieldservice/AgentChat';
+import WhatsChangedBar from './WhatsChangedBar';
+import useMyLaneState from './useMyLaneState';
 
 export default function MyLaneSurface({
   currentUser,
@@ -19,6 +20,25 @@ export default function MyLaneSurface({
 }) {
   const profiles = { financeProfiles, fieldServiceProfiles, allTeams, propertyMgmtProfiles };
   const [chatExpanded, setChatExpanded] = useState(false);
+  const [urgencyBoosts, setUrgencyBoosts] = useState({});
+  const drillCardRef = useRef(null);
+
+  const {
+    trackCardTap,
+    trackDrillTime,
+    getCardOrder,
+    getLastVisited,
+    setLastVisited,
+  } = useMyLaneState();
+
+  const lastVisited = getLastVisited();
+
+  // Record this visit on mount (after reading lastVisited for WhatsChanged)
+  useEffect(() => {
+    // Small delay so WhatsChanged reads the previous lastVisited before we update it
+    const t = setTimeout(() => setLastVisited(), 500);
+    return () => clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Dispatch agent-active when MyLane surface mounts (hides global feedback button)
   useEffect(() => {
@@ -26,11 +46,40 @@ export default function MyLaneSurface({
     return () => { window.dispatchEvent(new CustomEvent('agent-active', { detail: false })); };
   }, []);
 
+  // Callback for cards to report urgency
+  const handleUrgency = useCallback((cardId, isUrgent) => {
+    setUrgencyBoosts((prev) => {
+      if (prev[cardId] === isUrgent) return prev;
+      return { ...prev, [cardId]: isUrgent };
+    });
+  }, []);
+
   // Filter registry to cards that have a matching profile
   const activeCards = MY_LANE_REGISTRY.map((card) => ({
     ...card,
     profile: card.getProfile(profiles),
   })).filter((card) => card.profile !== null);
+
+  // Sort cards by interaction + urgency (organic reordering)
+  const sortedCards = getCardOrder(activeCards, urgencyBoosts);
+
+  // Handle card tap: track interaction, then drill
+  const handleCardTap = useCallback((card) => {
+    trackCardTap(card.id);
+    drillCardRef.current = card.id;
+    onDrillInto?.(card);
+  }, [trackCardTap, onDrillInto]);
+
+  // Track drill time when user returns (card deselection resets drillCardRef)
+  useEffect(() => {
+    // When activeCards re-render without a drill, record the time
+    return () => {
+      if (drillCardRef.current) {
+        trackDrillTime(drillCardRef.current);
+        drillCardRef.current = null;
+      }
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -41,21 +90,29 @@ export default function MyLaneSurface({
   return (
     <div className="pb-20">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-4">
         <h2 className="text-xl font-semibold text-white">MyLane</h2>
         <p className="text-sm text-slate-400 mt-1">{today}</p>
       </div>
 
-      {/* Card Grid */}
-      {activeCards.length > 0 ? (
+      {/* What Changed whisper */}
+      <WhatsChangedBar
+        lastVisited={lastVisited}
+        fieldServiceProfiles={fieldServiceProfiles}
+        propertyMgmtProfiles={propertyMgmtProfiles}
+      />
+
+      {/* Card Grid — organically sorted */}
+      {sortedCards.length > 0 ? (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {activeCards.map((card) => {
+          {sortedCards.map((card) => {
             const { CardComponent } = card;
             return (
               <CardComponent
                 key={card.id}
                 profile={card.profile}
-                onClick={() => onDrillInto?.(card)}
+                onClick={() => handleCardTap(card)}
+                onUrgency={handleUrgency}
               />
             );
           })}
