@@ -1,0 +1,56 @@
+import React from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { Building2 } from 'lucide-react';
+
+export default function PropertyOverviewCard({ profile, onClick }) {
+  if (!profile) return null;
+
+  const { data: properties = [] } = useQuery({
+    queryKey: ['mylane-pm-properties', profile.id],
+    queryFn: async () => {
+      if (!profile.id) return [];
+      try {
+        const list = await base44.entities.PMProperty.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
+    },
+    enabled: !!profile.id,
+  });
+
+  const { data: maintenanceRequests = [] } = useQuery({
+    queryKey: ['mylane-pm-maintenance', profile.id],
+    queryFn: async () => {
+      if (!profile.id) return [];
+      try {
+        const list = await base44.entities.PMMaintenanceRequest.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
+    },
+    enabled: !!profile.id,
+  });
+
+  const total = properties.length;
+  const occupied = properties.filter((p) => p.status === 'occupied').length;
+  const occupancyPct = total > 0 ? Math.round((occupied / total) * 100) : 0;
+  const openRequests = maintenanceRequests.filter((r) => r.status === 'open' || r.status === 'in_progress').length;
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(); }}
+      className="bg-slate-900 border border-slate-800 rounded-xl p-4 cursor-pointer hover:border-amber-500/30 transition-colors"
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <Building2 className="h-4 w-4 text-amber-500" />
+        <span className="text-xs font-medium text-amber-500">Properties</span>
+      </div>
+      <div className="text-2xl font-bold text-white">{total} <span className="text-sm font-normal text-slate-400">units</span></div>
+      <div className="text-xs text-slate-400 mt-1">
+        {occupancyPct}% occupied{openRequests > 0 ? ` · ${openRequests} open request${openRequests > 1 ? 's' : ''}` : ''}
+      </div>
+    </div>
+  );
+}

@@ -32,6 +32,7 @@ import AgentChatButton from '@/components/fieldservice/AgentChatButton';
 import TeamContextSwitcher from '@/components/team/TeamContextSwitcher';
 import { toast } from "sonner";
 import CommunityPulse from '@/components/dashboard/CommunityPulse';
+import MyLaneSurface from '@/components/mylane/MyLaneSurface';
 
 // ─── Revolving "Add a ___" Button ────────────────────────────────
 
@@ -114,6 +115,7 @@ export default function BusinessDashboard() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [checkInEvent, setCheckInEvent] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
+  const [myLaneMode, setMyLaneMode] = useState(false);
   const [viewingAsPlayerId, setViewingAsPlayerId] = useState(null);
   const [comingSoonType, setComingSoonType] = useState(null);
 
@@ -718,6 +720,17 @@ export default function BusinessDashboard() {
               </div>
               {isAppAdmin && (
                 <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setMyLaneMode((m) => !m)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      myLaneMode
+                        ? 'bg-amber-500 text-black'
+                        : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50'
+                    }`}
+                  >
+                    {myLaneMode ? 'Classic View' : 'MyLane Beta'}
+                  </button>
                   <Badge variant="outline" className="bg-slate-800 border-slate-700 text-slate-200 px-4 py-2">
                     <Wallet className="h-4 w-4 mr-2 text-amber-500" />
                     Silver: 0 oz
@@ -726,7 +739,7 @@ export default function BusinessDashboard() {
                     <Ticket className="h-4 w-4 mr-2 text-amber-500" />
                     0 Passes
                   </Badge>
-                  <Button 
+                  <Button
                     className="bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700"
                     onClick={() => navigate(createPageUrl('Events'))}
                   >
@@ -739,6 +752,27 @@ export default function BusinessDashboard() {
           </div>
         </div>
 
+        {/* MyLane Beta Surface (admin only) */}
+        {isAppAdmin && myLaneMode ? (
+          <div className="max-w-7xl mx-auto px-6 pt-8 pb-4">
+            <MyLaneSurface
+              currentUser={currentUser}
+              financeProfiles={financeProfiles}
+              fieldServiceProfiles={fieldServiceProfiles}
+              allTeams={allTeams}
+              propertyMgmtProfiles={propertyMgmtProfiles}
+              onDrillInto={(card) => {
+                const p = card.profile;
+                if (card.space === 'finance') { setSelectedFinanceId(p.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFieldServiceId(null); setSelectedPropertyMgmtId(null); }
+                else if (card.space === 'field-service') { setSelectedFieldServiceId(p.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedPropertyMgmtId(null); }
+                else if (card.space === 'team') { setSelectedTeamId(p.id); setSelectedBusinessId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); setSelectedPropertyMgmtId(null); }
+                else if (card.space === 'property-pulse') { setSelectedPropertyMgmtId(p.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); }
+                setActiveTab('home');
+              }}
+            />
+          </div>
+        ) : (
+        <>
         {/* Business Grid - "The Pro Section" */}
         <div className="max-w-7xl mx-auto px-6 pt-8 pb-4">
           <div className="flex items-center justify-between mb-6">
@@ -916,6 +950,8 @@ export default function BusinessDashboard() {
         <div className="max-w-7xl mx-auto px-6 pt-6 pb-8">
           <CommunityPulse />
         </div>
+        </>
+        )}
 
         {renderTypePickerModal()}
       </div>
