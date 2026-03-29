@@ -4,7 +4,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 const WORKSPACE_PROFILE_MAP = {
   'field-service': { entity: 'FieldServiceProfile', userField: 'user_id' },
   'finance':       { entity: 'FinancialProfile',    userField: 'user_id' },
-  'team':          { entity: 'Team',                userField: 'user_id' },
+  'team':          { entity: 'Team',                userField: 'owner_id' },
   'property-pulse':{ entity: 'PMPropertyProfile',   userField: 'user_id' },
 };
 
@@ -46,7 +46,7 @@ const ENTITY_CONFIG = {
   TeamMessage:        { fkField: 'team_id', workspace: 'team' },
   QuizAttempt:        { fkField: 'team_id', workspace: 'team' },
   PlayerStats:        { fkField: 'team_id', workspace: 'team' },
-  Team:               { fkField: 'user_id', workspace: 'team', isProfile: true },
+  Team:               { fkField: 'owner_id', workspace: 'team', isProfile: true },
 
   // Property Management
   PMPropertyGroup:    { fkField: 'profile_id', workspace: 'property-pulse' },

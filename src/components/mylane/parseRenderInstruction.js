@@ -21,7 +21,9 @@ const VIEW_TO_TAB = {
   estimates: 'estimates',
   projects: 'projects',
   documents: 'documents',
-  'daily-log': 'daily-log',
+  'daily-log': 'log',
+  log: 'log',
+  settings: 'settings',
   // Team
   playbook: 'playbook',
   roster: 'roster',
@@ -30,10 +32,14 @@ const VIEW_TO_TAB = {
   // Finance
   activity: 'activity',
   debts: 'debts',
-  recurring: 'recurring',
+  recurring: 'bills',
+  bills: 'bills',
   // Property Pulse
   properties: 'properties',
+  owners: 'owners',
+  finances: 'finances',
   maintenance: 'maintenance',
+  settlements: 'settlements',
   listings: 'listings',
 };
 
