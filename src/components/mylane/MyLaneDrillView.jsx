@@ -1,0 +1,164 @@
+/**
+ * MyLaneDrillView — renders a workspace tab component inside Mylane.
+ * Uses the same WORKSPACE_TYPES config and tab components as BusinessDashboard.
+ * Fetches workspace-specific data (team members, FS worker role, etc.) on demand.
+ */
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { WORKSPACE_TYPES } from '@/config/workspaceTypes';
+import { toast } from 'sonner';
+
+// Map drill workspace names to WORKSPACE_TYPES keys
+const WORKSPACE_KEY_MAP = {
+  'field-service': 'fieldservice',
+  'team': 'team',
+  'finance': 'finance',
+  'property-pulse': 'property_management',
+};
+
+export default function MyLaneDrillView({
+  drilledView, // { workspace, view, tab }
+  currentUser,
+  fieldServiceProfiles = [],
+  financeProfiles = [],
+  allTeams = [],
+  propertyMgmtProfiles = [],
+}) {
+  const [activeTab, setActiveTab] = useState(drilledView.tab || 'home');
+
+  const wsKey = WORKSPACE_KEY_MAP[drilledView.workspace];
+  const wsConfig = wsKey ? WORKSPACE_TYPES[wsKey] : null;
+
+  // Get the profile for this workspace
+  const profile =
+    drilledView.workspace === 'field-service' ? fieldServiceProfiles?.[0] :
+    drilledView.workspace === 'finance' ? financeProfiles?.[0] :
+    drilledView.workspace === 'team' ? allTeams?.[0] :
+    drilledView.workspace === 'property-pulse' ? propertyMgmtProfiles?.[0] :
+    null;
+
+  // Fetch team members when drilling into team workspace
+  const teamId = drilledView.workspace === 'team' ? profile?.id : null;
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['mylane-drill-team-members', teamId],
+    queryFn: async () => {
+      if (!teamId) return [];
+      const list = await base44.entities.TeamMember.filter({ team_id: teamId, status: 'active' });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!teamId,
+  });
+
+  // Determine FS worker role when drilling into field service
+  const fsProfile = drilledView.workspace === 'field-service' ? profile : null;
+  const fsIsOwner = fsProfile ? fsProfile.user_id === currentUser?.id : false;
+  const fsWorkerRole = fsProfile && !fsIsOwner ? (fsProfile._workerRole || null) : null;
+
+  // Determine PM roles
+  const pmProfile = drilledView.workspace === 'property-pulse' ? profile : null;
+  const pmIsOwner = pmProfile ? pmProfile.user_id === currentUser?.id : false;
+
+  if (!wsConfig || !profile) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-slate-400">This workspace is not available.</p>
+      </div>
+    );
+  }
+
+  const tabs = wsConfig.tabs;
+  const activeTabConfig = tabs.find((t) => t.id === activeTab) || tabs[0];
+
+  // Build scope object matching BusinessDashboard patterns
+  let scope = {};
+  switch (drilledView.workspace) {
+    case 'field-service':
+      scope = {
+        profile,
+        currentUser,
+        onNavigateTab: setActiveTab,
+        isOwner: fsIsOwner,
+        workerRole: fsWorkerRole,
+        features: profile.features || {},
+      };
+      break;
+    case 'team': {
+      const currentTeamMember = teamMembers.find((m) => m.user_id === currentUser?.id);
+      const rawRole = currentTeamMember?.role;
+      const effectiveRole = rawRole === 'assistant_coach' ? 'coach' : rawRole;
+      scope = {
+        team: profile,
+        members: teamMembers,
+        currentUserId: currentUser?.id,
+        isCoach: effectiveRole === 'coach',
+        onNavigateTab: setActiveTab,
+        onCopyInviteLink: () => {
+          const link = profile.invite_code ? `locallane.app/join/${profile.invite_code}` : '';
+          if (link) { navigator.clipboard.writeText(link); toast.success('Invite link copied'); }
+        },
+        onArchived: () => {},
+        viewingAsMember: null,
+        effectiveRole,
+        effectivePosition: null,
+      };
+      break;
+    }
+    case 'finance':
+      scope = {
+        profile,
+        currentUser,
+        onNavigateTab: setActiveTab,
+      };
+      break;
+    case 'property-pulse':
+      scope = {
+        profile,
+        currentUser,
+        onNavigateTab: setActiveTab,
+        memberRole: pmIsOwner ? 'admin' : 'viewer',
+        isAdmin: pmIsOwner,
+        canEdit: pmIsOwner,
+        isTenant: false,
+        isOwner: pmIsOwner,
+      };
+      break;
+    default:
+      break;
+  }
+
+  if (!activeTabConfig) return null;
+
+  const TabComponent = activeTabConfig.component;
+  const props = activeTabConfig.getProps ? activeTabConfig.getProps(scope) : {};
+
+  return (
+    <div>
+      {/* Tab bar */}
+      <div className="flex gap-1 overflow-x-auto flex-nowrap pb-1 mb-4 scrollbar-hide border-b border-slate-800">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 text-sm whitespace-nowrap transition-colors min-h-[44px] ${
+                isActive
+                  ? 'text-amber-500 border-b-2 border-amber-500 font-semibold'
+                  : 'text-slate-400 hover:text-slate-300'
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab content */}
+      <TabComponent {...props} />
+    </div>
+  );
+}

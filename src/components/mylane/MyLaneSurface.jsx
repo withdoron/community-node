@@ -1,15 +1,35 @@
 /**
  * MyLaneSurface — the organism's living surface.
  * Composes card views from all user workspaces into one grid.
- * Phase 3: organic growth — cards reorder by usage, time-aware urgency, what-changed whisper.
+ * Drill-through renders workspace views INSIDE Mylane — user never leaves.
+ * Conversation render instructions trigger the same drill mechanism.
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronUp, ChevronDown, MessageCircle } from 'lucide-react';
 import MY_LANE_REGISTRY from '@/config/myLaneRegistry';
 import AgentChat from '@/components/fieldservice/AgentChat';
 import WhatsChangedBar from './WhatsChangedBar';
+import MyLaneBreadcrumb from './MyLaneBreadcrumb';
+import MyLaneDrillView from './MyLaneDrillView';
 import useMyLaneState from './useMyLaneState';
 import { parseRenderInstruction } from './parseRenderInstruction';
+
+// Map card IDs to drill views
+const CARD_DRILL_MAP = {
+  'enough-number': { workspace: 'finance', view: 'home', tab: 'home' },
+  'pending-estimates': { workspace: 'field-service', view: 'estimates', tab: 'estimates' },
+  'active-projects': { workspace: 'field-service', view: 'projects', tab: 'projects' },
+  'player-readiness': { workspace: 'team', view: 'home', tab: 'home' },
+  'property-overview': { workspace: 'property-pulse', view: 'home', tab: 'home' },
+};
+
+// Human-readable workspace names
+const WORKSPACE_LABELS = {
+  'field-service': 'Field Service',
+  'team': 'Team',
+  'finance': 'Finance',
+  'property-pulse': 'Property Pulse',
+};
 
 export default function MyLaneSurface({
   currentUser,
@@ -17,13 +37,13 @@ export default function MyLaneSurface({
   fieldServiceProfiles = [],
   allTeams = [],
   propertyMgmtProfiles = [],
-  onDrillInto,
-  onRenderDrill,
 }) {
   const profiles = { financeProfiles, fieldServiceProfiles, allTeams, propertyMgmtProfiles };
   const [chatExpanded, setChatExpanded] = useState(false);
   const [urgencyBoosts, setUrgencyBoosts] = useState({});
+  const [drilledView, setDrilledView] = useState(null);
   const drillCardRef = useRef(null);
+  const drillStartRef = useRef(null);
 
   const {
     trackCardTap,
@@ -35,20 +55,19 @@ export default function MyLaneSurface({
 
   const lastVisited = getLastVisited();
 
-  // Record this visit on mount (after reading lastVisited for WhatsChanged)
+  // Record this visit on mount
   useEffect(() => {
-    // Small delay so WhatsChanged reads the previous lastVisited before we update it
     const t = setTimeout(() => setLastVisited(), 500);
     return () => clearTimeout(t);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Dispatch agent-active when MyLane surface mounts (hides global feedback button)
+  // Dispatch agent-active when surface mounts
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('agent-active', { detail: true }));
     return () => { window.dispatchEvent(new CustomEvent('agent-active', { detail: false })); };
   }, []);
 
-  // Callback for cards to report urgency
+  // Urgency callback for cards
   const handleUrgency = useCallback((cardId, isUrgent) => {
     setUrgencyBoosts((prev) => {
       if (prev[cardId] === isUrgent) return prev;
@@ -56,43 +75,51 @@ export default function MyLaneSurface({
     });
   }, []);
 
-  // Filter registry to cards that have a matching profile
+  // Filter and sort cards
   const activeCards = MY_LANE_REGISTRY.map((card) => ({
     ...card,
     profile: card.getProfile(profiles),
   })).filter((card) => card.profile !== null);
 
-  // Sort cards by interaction + urgency (organic reordering)
   const sortedCards = getCardOrder(activeCards, urgencyBoosts);
 
-  // Handle card tap: track interaction, then drill
+  // Drill into a workspace view (internal — user stays in Mylane)
+  const drillInto = useCallback((drillSpec) => {
+    setDrilledView(drillSpec);
+    setChatExpanded(false); // collapse chat to give workspace max space
+    drillStartRef.current = Date.now();
+  }, []);
+
+  // Return to card surface
+  const drillBack = useCallback(() => {
+    // Track drill time if we came from a card
+    if (drillCardRef.current && drillStartRef.current) {
+      const seconds = Math.round((Date.now() - drillStartRef.current) / 1000);
+      if (seconds > 0) trackDrillTime(drillCardRef.current);
+    }
+    drillCardRef.current = null;
+    drillStartRef.current = null;
+    setDrilledView(null);
+  }, [trackDrillTime]);
+
+  // Handle card tap: track + drill internally
   const handleCardTap = useCallback((card) => {
     trackCardTap(card.id);
     drillCardRef.current = card.id;
-    onDrillInto?.(card);
-  }, [trackCardTap, onDrillInto]);
+    const drillSpec = CARD_DRILL_MAP[card.id] || { workspace: card.space, view: 'home', tab: 'home' };
+    drillInto(drillSpec);
+  }, [trackCardTap, drillInto]);
 
-  // Handle agent messages — check for render instructions
+  // Handle agent messages — render instructions drill internally
   const lastProcessedRef = useRef(null);
   const handleAgentMessage = useCallback((msg) => {
     if (!msg?.content || msg.id === lastProcessedRef.current) return;
-    const { hasRender, workspace, tab } = parseRenderInstruction(msg.content);
-    if (hasRender && onRenderDrill) {
+    const result = parseRenderInstruction(msg.content);
+    if (result.hasRender) {
       lastProcessedRef.current = msg.id;
-      onRenderDrill(workspace, tab);
+      drillInto({ workspace: result.workspace, view: result.view, tab: result.tab });
     }
-  }, [onRenderDrill]);
-
-  // Track drill time when user returns (card deselection resets drillCardRef)
-  useEffect(() => {
-    // When activeCards re-render without a drill, record the time
-    return () => {
-      if (drillCardRef.current) {
-        trackDrillTime(drillCardRef.current);
-        drillCardRef.current = null;
-      }
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [drillInto]);
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -102,46 +129,66 @@ export default function MyLaneSurface({
 
   return (
     <div className="pb-20">
-      {/* Header */}
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold text-white">MyLane</h2>
-        <p className="text-sm text-slate-400 mt-1">{today}</p>
-      </div>
-
-      {/* What Changed whisper */}
-      <WhatsChangedBar
-        lastVisited={lastVisited}
-        fieldServiceProfiles={fieldServiceProfiles}
-        propertyMgmtProfiles={propertyMgmtProfiles}
-      />
-
-      {/* Card Grid — organically sorted */}
-      {sortedCards.length > 0 ? (
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {sortedCards.map((card) => {
-            const { CardComponent } = card;
-            return (
-              <CardComponent
-                key={card.id}
-                profile={card.profile}
-                onClick={() => handleCardTap(card)}
-                onUrgency={handleUrgency}
-              />
-            );
-          })}
-        </div>
+      {/* Header + Breadcrumb */}
+      {drilledView ? (
+        <MyLaneBreadcrumb
+          spaceName={WORKSPACE_LABELS[drilledView.workspace] || drilledView.workspace}
+          onBack={drillBack}
+        />
       ) : (
-        <div className="text-center py-16">
-          <p className="text-slate-400">Your spaces will appear here as cards.</p>
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-white">MyLane</h2>
+          <p className="text-sm text-slate-400 mt-1">{today}</p>
         </div>
       )}
 
-      {/* Conversation Panel — docked at bottom */}
+      {/* Main content: cards OR drilled workspace view */}
+      {drilledView ? (
+        <MyLaneDrillView
+          drilledView={drilledView}
+          currentUser={currentUser}
+          fieldServiceProfiles={fieldServiceProfiles}
+          financeProfiles={financeProfiles}
+          allTeams={allTeams}
+          propertyMgmtProfiles={propertyMgmtProfiles}
+        />
+      ) : (
+        <>
+          {/* What Changed whisper */}
+          <WhatsChangedBar
+            lastVisited={lastVisited}
+            fieldServiceProfiles={fieldServiceProfiles}
+            propertyMgmtProfiles={propertyMgmtProfiles}
+          />
+
+          {/* Card Grid */}
+          {sortedCards.length > 0 ? (
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {sortedCards.map((card) => {
+                const { CardComponent } = card;
+                return (
+                  <CardComponent
+                    key={card.id}
+                    profile={card.profile}
+                    onClick={() => handleCardTap(card)}
+                    onUrgency={handleUrgency}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <p className="text-slate-400">Your spaces will appear here as cards.</p>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Conversation Panel — always present, docked at bottom */}
       <div className="fixed bottom-0 left-0 right-0 z-40">
         {chatExpanded ? (
           <div className="max-w-7xl mx-auto px-4">
             <div className="relative">
-              {/* Collapse button */}
               <button
                 type="button"
                 onClick={() => setChatExpanded(false)}

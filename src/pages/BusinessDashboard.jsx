@@ -761,24 +761,6 @@ export default function BusinessDashboard() {
               fieldServiceProfiles={fieldServiceProfiles}
               allTeams={allTeams}
               propertyMgmtProfiles={propertyMgmtProfiles}
-              onDrillInto={(card) => {
-                const p = card.profile;
-                if (card.space === 'finance') { setSelectedFinanceId(p.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFieldServiceId(null); setSelectedPropertyMgmtId(null); }
-                else if (card.space === 'field-service') { setSelectedFieldServiceId(p.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedPropertyMgmtId(null); }
-                else if (card.space === 'team') { setSelectedTeamId(p.id); setSelectedBusinessId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); setSelectedPropertyMgmtId(null); }
-                else if (card.space === 'property-pulse') { setSelectedPropertyMgmtId(p.id); setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); }
-                setActiveTab('home');
-              }}
-              onRenderDrill={(workspace, tab) => {
-                const clear = () => { setSelectedBusinessId(null); setSelectedTeamId(null); setSelectedFinanceId(null); setSelectedFieldServiceId(null); setSelectedPropertyMgmtId(null); };
-                if (workspace === 'field-service' && fieldServiceProfiles?.[0]) { clear(); setSelectedFieldServiceId(fieldServiceProfiles[0].id); }
-                else if (workspace === 'team' && allTeams?.[0]) { clear(); setSelectedTeamId(allTeams[0].id); }
-                else if (workspace === 'finance' && financeProfiles?.[0]) { clear(); setSelectedFinanceId(financeProfiles[0].id); }
-                else if (workspace === 'property-pulse' && propertyMgmtProfiles?.[0]) { clear(); setSelectedPropertyMgmtId(propertyMgmtProfiles[0].id); }
-                else return; // user doesn't have this workspace — ignore gracefully
-                setActiveTab(tab || 'home');
-                setMyLaneMode(false);
-              }}
             />
           </div>
         ) : (
