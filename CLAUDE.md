@@ -145,6 +145,14 @@ const list = (Array.isArray(all) ? all : []).filter((t) => t.profile_id === prof
 
 Confirmed on: FSDocumentTemplate, FrequencySong. Assume any entity with service-role-created records has this issue.
 
+### Superagent Patterns
+- base44.auth.me() in backend functions gives authenticated user context — never pass user_id as agent parameter
+- Agents can have entity tools + backend function tools simultaneously — LLM chooses based on instructions
+- Entity Tool reads use RLS only — "Authenticated Users" means agent sees ALL records
+- For workspace-scoped reads, agents must use a backend function (agentScopedQuery) that filters by user's profile
+- Agent responses can include structured JSON — frontend intercepts via subscribeToConversation callback
+- AgentChat MessageBubble renders content via ReactMarkdown
+
 **Base44 .filter().list() quirk (CLIENT SDK):** Additionally, chaining `.list()` on `.filter()` returns empty object because `.filter()` already returns an array. Do NOT chain `.list()` on `.filter()`.
 
 **Base44 SERVER SDK (.asServiceRole) — DIFFERENT PATTERN:** In server functions (functions/ directory), `.filter()` returns the array directly. Do NOT chain `.list()` — it will fail because `.list()` is not a function on an array. Pattern: `base44.asServiceRole.entities.Entity.filter({ field: value })` — no `.list()`.
