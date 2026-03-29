@@ -525,6 +525,13 @@ export default function BusinessDashboard() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [activeTab, selectedBusinessId, selectedTeamId, selectedFinanceId, selectedFieldServiceId, selectedPropertyMgmtId]);
 
+  // Signal to Layout when an agent-enabled workspace is active (hides global feedback button)
+  const agentActive = !!(selectedFieldServiceId || selectedTeamId);
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('agent-active', { detail: agentActive }));
+    return () => { window.dispatchEvent(new CustomEvent('agent-active', { detail: false })); };
+  }, [agentActive]);
+
   // Server-side cascade delete via manageBusinessWorkspace
   const deleteMutation = useMutation({
     mutationFn: async (businessId) => {

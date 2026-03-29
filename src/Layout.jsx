@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { sanitizeText } from '@/utils/sanitize';
@@ -37,6 +37,14 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
   const { hasStaffBusinesses } = useUserStaffBusinesses(currentUser);
   const { isAppAdmin } = useRole();
   const showBusinessDashboard = isAppAdmin || hasOwnedBusinesses || hasStaffBusinesses;
+
+  // Hide feedback button when a workspace superagent is active (agent IS the feedback channel)
+  const [agentActive, setAgentActive] = useState(false);
+  useEffect(() => {
+    const handler = (e) => setAgentActive(!!e.detail);
+    window.addEventListener('agent-active', handler);
+    return () => window.removeEventListener('agent-active', handler);
+  }, []);
 
   // Admin alert badge: unseen frequency submissions
   const { data: frequencyUnseenCount = 0 } = useQuery({
@@ -424,8 +432,8 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
 
       <Footer />
 
-      {/* Feedback Button + Panel — only for logged-in users */}
-      {currentUser && (
+      {/* Feedback Button + Panel — hidden when superagent is active (agent IS the feedback channel) */}
+      {currentUser && !agentActive && (
         <>
           {!feedbackOpen && (
             <button
