@@ -71,22 +71,13 @@ const ENTITY_CONFIG = {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-
-    // Authenticate the user automatically from the request context
-    let user;
-    try {
-      user = await base44.auth.me();
-    } catch (authErr) {
-      return Response.json({ success: false, error: 'Authentication required' }, { status: 401 });
-    }
-    if (!user) {
-      return Response.json({ success: false, error: 'Authentication required' }, { status: 401 });
-    }
-    const user_id = user.id;
-
     const body = await req.json();
-    const { action, workspace, entity, filters = {} } = body;
+    const { action, user_id, workspace, entity, filters = {} } = body;
 
+    // Validate required parameters
+    if (!user_id || typeof user_id !== 'string' || user_id.trim() === '') {
+      return Response.json({ success: false, error: 'user_id is required' }, { status: 400 });
+    }
     if (action !== 'query') {
       return Response.json({ success: false, error: 'Only action "query" is supported' }, { status: 400 });
     }
@@ -108,7 +99,7 @@ Deno.serve(async (req) => {
       if (Object.keys(filters).length > 0) {
         records = records.filter(r => Object.entries(filters).every(([k, v]) => r[k] === v));
       }
-      return Response.json({ success: true, entity, workspace: 'platform', user_id: 'auto-detected', count: records.length, records });
+      return Response.json({ success: true, entity, workspace: 'platform', user_id, count: records.length, records });
     }
 
     // Profile entities — query directly by user_id
@@ -118,7 +109,7 @@ Deno.serve(async (req) => {
       if (Object.keys(filters).length > 0) {
         records = records.filter(r => Object.entries(filters).every(([k, v]) => r[k] === v));
       }
-      return Response.json({ success: true, entity, workspace: config.workspace, user_id: 'auto-detected', count: records.length, records });
+      return Response.json({ success: true, entity, workspace: config.workspace, user_id, count: records.length, records });
     }
 
     // Non-profile entities — find profile first, then scope
@@ -134,7 +125,7 @@ Deno.serve(async (req) => {
     if (userProfiles.length === 0) {
       return Response.json({
         success: true, entity, workspace: profileWorkspace,
-        user_id: 'auto-detected',
+        user_id,
         count: 0, records: [],
         message: 'No workspace found for this user'
       });
@@ -154,7 +145,7 @@ Deno.serve(async (req) => {
       success: true,
       entity,
       workspace: profileWorkspace,
-      user_id: 'auto-detected',
+      user_id,
       profile_id: primaryProfileId,
       count: records.length,
       records,
