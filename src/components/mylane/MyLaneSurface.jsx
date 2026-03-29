@@ -9,6 +9,7 @@ import MY_LANE_REGISTRY from '@/config/myLaneRegistry';
 import AgentChat from '@/components/fieldservice/AgentChat';
 import WhatsChangedBar from './WhatsChangedBar';
 import useMyLaneState from './useMyLaneState';
+import { parseRenderInstruction } from './parseRenderInstruction';
 
 export default function MyLaneSurface({
   currentUser,
@@ -17,6 +18,7 @@ export default function MyLaneSurface({
   allTeams = [],
   propertyMgmtProfiles = [],
   onDrillInto,
+  onRenderDrill,
 }) {
   const profiles = { financeProfiles, fieldServiceProfiles, allTeams, propertyMgmtProfiles };
   const [chatExpanded, setChatExpanded] = useState(false);
@@ -69,6 +71,17 @@ export default function MyLaneSurface({
     drillCardRef.current = card.id;
     onDrillInto?.(card);
   }, [trackCardTap, onDrillInto]);
+
+  // Handle agent messages — check for render instructions
+  const lastProcessedRef = useRef(null);
+  const handleAgentMessage = useCallback((msg) => {
+    if (!msg?.content || msg.id === lastProcessedRef.current) return;
+    const { hasRender, workspace, tab } = parseRenderInstruction(msg.content);
+    if (hasRender && onRenderDrill) {
+      lastProcessedRef.current = msg.id;
+      onRenderDrill(workspace, tab);
+    }
+  }, [onRenderDrill]);
 
   // Track drill time when user returns (card deselection resets drillCardRef)
   useEffect(() => {
@@ -142,6 +155,7 @@ export default function MyLaneSurface({
                 isOpen={true}
                 onClose={() => setChatExpanded(false)}
                 docked={true}
+                onMessage={handleAgentMessage}
               />
             </div>
           </div>

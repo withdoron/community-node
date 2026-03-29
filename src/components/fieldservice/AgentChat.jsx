@@ -107,7 +107,7 @@ function useVoiceInput({ onFinal, onInterim }) {
 
 // ─── Main Component ──────────────────────────────
 
-export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isOpen, onClose, docked = false }) {
+export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isOpen, onClose, docked = false, onMessage }) {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -206,6 +206,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
           const lastMsg = msgs[msgs.length - 1];
           if (lastMsg && lastMsg.role === 'assistant') {
             setIsAgentThinking(false);
+            onMessage?.(lastMsg);
           }
         }
       );
