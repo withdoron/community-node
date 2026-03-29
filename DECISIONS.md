@@ -167,3 +167,73 @@
 **Status:** Active. Shipped at 7b0ab2e.
 
 ---
+
+### DEC-105: Mylane — The Conductor Space (2026-03-29)
+
+**Date:** 2026-03-29
+
+**Context:** Needed a unified surface that composes from all user workspaces. The TV/Pip-Boy concept (talk to one place, the app renders what you need) evolved into a full space -- not a dashboard layer.
+
+**Decision:** Mylane is a space with her own entity (MyLaneProfile), memory (Per User Only), and agent. She is the first space every user sees. She renders interactive cards from all active workspaces. Every data point is drillable. She does not speak unless spoken to. Her name is Mylane (one word, capital M). She was already named before we knew she was the Conductor.
+
+**Rationale:** The organism needs a single living surface. Navigation is the legacy of physical office organization. If every space has intelligence, the human should not be doing the routing. Mylane routes for them -- through touch (tap cards) or conversation (talk to her). Drill-through reuses existing workspace selection state, so the build is minimal (469 lines Phase 1) while the impact is transformative.
+
+**Status:** Active. Phases 1-4 shipped. Admin-only beta.
+
+---
+
+### DEC-106: Component Registry Pattern (2026-03-29)
+
+**Date:** 2026-03-29
+
+**Context:** Adding features to the dashboard required tab config changes, state management, and conditional rendering in BusinessDashboard.jsx. Each workspace type added complexity.
+
+**Decision:** Component Registry pattern -- every renderable component registers with a standard interface (component, card view, space, drillsTo). Mylane composes from the registry. Same component renders in Mylane cards, workspace tabs, and future Explore Mode. New features become card registrations, not tab restructuring.
+
+**Rationale:** Saves code (Mylane Phase 1 was 469 lines vs Property Pulse at 11,850). Makes the architecture simpler as the organism grows, not more complex. The registry IS the architecture.
+
+**Status:** Active. myLaneRegistry.js with 5 cards.
+
+---
+
+### DEC-107: agentScopedQuery — Server-Side Data Scoping (2026-03-29)
+
+**Date:** 2026-03-29
+
+**Context:** Mylane showed Doron a client (Dr Nathan Holman) from Bari's workspace. FSClient had Authenticated Users Read permission. Instructions-based scoping (soft gate) does not hold.
+
+**Decision:** All agents (except AdminAgent) query data through the agentScopedQuery server function instead of raw entity reads. The function takes user_id + workspace type + entity name, finds the user's workspace profile, and returns only records belonging to that workspace. Direct entity tools removed from agents (except ServiceFeedback Create). Path C enforcement -- server-side, unfoolable. Tier gating hook built in for future $9/$18 enforcement.
+
+**Rationale:** The organism's permission membrane. Each nerve ending must feel only its own garden. Without server-side scoping, the nervous system leaks between organs.
+
+**Status:** Active. Server function deployed. All 5 workspace agents updated.
+
+---
+
+### DEC-108: Agent Naming — Identities Not Labels (2026-03-29)
+
+**Date:** 2026-03-29
+
+**Context:** Mylane was initially created as "MyLaneAgent." Doron corrected: agents are identities, not labels.
+
+**Decision:** Agents are identities, not labels. Names are one word (Mylane, Mycelia, Hyphae, Doron). The five workspace agents (FieldServiceAgent, PlaymakerAgent, AdminAgent, FinanceAgent, PropertyPulseAgent) were named before this realization and carry the "Agent" suffix. They may earn proper names later, the way Hyphae did. All future agents are born with real names.
+
+**Rationale:** Names are behavioral specifications. "MyLaneAgent" is a job description. "Mylane" is an identity. The name shapes how the agent behaves and how users relate to it.
+
+**Status:** Active. Mylane is the first agent born with her real name.
+
+---
+
+### DEC-109: Two-Layer Agent Architecture (2026-03-29)
+
+**Date:** 2026-03-29
+
+**Context:** Built five user-facing agents but also identified the need for agents that serve the organism's operations rather than individual users.
+
+**Decision:** Two layers. Layer 1: user-facing space agents (FieldService, Playmaker, Admin, Finance, PropertyPulse, Mylane) that tend alongside users. Layer 2: internal organism agents (Conductor/routing, Research/AI Scout, Marketing, Content/creative engine, Bookkeeper, Community Pulse) that serve Doron, Mycelia, and Hyphae. Backend agents support frontend agents -- the Research Agent feeds knowledge to space agents.
+
+**Rationale:** The organism needs operational intelligence, not just user-facing intelligence. The Research Agent makes space agents smarter. The Marketing Agent tends outreach. The Bookkeeper tracks LocalLane's own money. The organism tends itself at multiple layers.
+
+**Status:** Specced in ORGANISM-AGENT-TEAM.md. Implementation follows user-facing agent stabilization.
+
+---

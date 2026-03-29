@@ -169,3 +169,39 @@ Marketing:
 - Farmers market deadline Wednesday
 
 ---
+
+### Session Log — 2026-03-29 (late session)
+
+**Focus:** Mylane living surface build, agentScopedQuery server function, permission membrane, Claude Mythos research
+
+**Shipped:**
+1. Mylane Phase 1 — living surface with 5 card views (EnoughNumber, PendingEstimates, ActiveProjects, PlayerReadiness, PropertyOverview), component registry, drill-through via workspace selection, admin-only beta toggle (664d987, 469 lines, 9 files)
+2. Mylane Phase 2 — conversation panel wired with docked AgentChat, collapsible input bar, agentName="Mylane", agent-active event dispatch (7d0cdee)
+3. Mylane Phase 3+4 — card reordering via useMyLaneState.js (localStorage, recency-weighted scoring, urgency boosts), time-aware urgency (EnoughNumber amber last 7 days, PendingEstimates amber when drafts stale, PlayerReadiness amber when game within 3 days, PropertyOverview amber when vacancy over 30 days), WhatsChangedBar whisper showing entity changes since last visit (a2f7c4d, 404 lines, 9 files)
+4. AgentChat.jsx gained docked prop — backward-compatible, renders as relative panel when true
+5. Mylane superagent created in Base44 — 29 entities across all workspaces, Per User Only memory, quiet presence (does not speak unless spoken to), welcome message "Mylane is ready"
+6. agentScopedQuery server function deployed in Base44 — scoped entity access across all 5 workspace types using .list() + client-side filtering via asServiceRole
+7. All 5 scoped agents updated to use agentScopedQuery as backend function tool — direct entity reads removed (except ServiceFeedback Create), HOW TO QUERY DATA instructions appended
+8. MYLANE-CONDUCTOR-SPEC.md committed to private repo — living surface spec, component registry pattern, render protocol, four implementation phases, entity model
+9. ORGANISM-AGENT-TEAM.md committed to private repo with WHY preamble — internal agent team (Conductor, Research, Marketing, Content, Bookkeeper, Community Pulse), fractal marketing insight
+10. AGENT-SCOPED-QUERY-SPEC.md committed to private repo — full server function spec with entity-to-FK mapping, tier gating hook, MCP integration plan
+11. Claude Mythos / Capybara tier researched — Anthropic's unreleased model above Opus, "step change" in capabilities, currently in early access testing
+12. Mylane data bleed identified and fixed — Mylane showed Bari's client (Dr Nathan Holman) to Doron due to Authenticated Users Read on FSClient. Fixed via agentScopedQuery server function replacing direct entity reads.
+
+**Decisions made:**
+- DEC-105: Mylane is the Conductor Space — not a dashboard layer, a space with her own identity
+- DEC-106: Component Registry Pattern — one component, many surfaces
+- DEC-107: agentScopedQuery — server-side data scoping, permission membrane
+- DEC-108: Agent Naming — identities not labels, Mylane not MyLaneAgent
+- DEC-109: Two-Layer Agent Architecture — user-facing + internal organism agents
+
+**Next up:**
+- Coaches card: generate in Gemini, add QR, print for Monday
+- Test Mylane with scoped queries — verify data bleed is fixed
+- Test all agent conversations post-scoping update
+- Open Garden Playmaker explore mode build
+- Feed Finance node with painting income
+- Re-fax EIN Monday
+- Farmers market deadline Wednesday
+
+---

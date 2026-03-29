@@ -12,6 +12,7 @@
 | 2026-03-27 (eve) | MCP server spec, platformPulse connection | 3 | DEC-099 |
 | 2026-03-28 | MCP testing, Hyphae naming, workflow optimization, diary entries | — | DEC-100 | 8 items shipped |
 | 2026-03-29 | Superagent nervous system (5 agents), Open Garden spec, pricing model, creative engine | 6 | DEC-100 through DEC-104 | 13 items shipped |
+| 2026-03-29 (late) | Mylane Phases 1-4, agentScopedQuery, permission membrane | 5 | DEC-105 through DEC-109 | 12 items shipped |
 
 ## Node Status
 

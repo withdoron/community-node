@@ -8,49 +8,49 @@
 
 ## Current Phase
 
-Platform live, organic growth, nervous system complete. Five superagents across all workspaces (FieldService, Playmaker, Admin, Finance, PropertyPulse). MCP nervous system connected (Desktop Claude). Open Garden and pricing model specced. Creative engine vision documented.
+Platform live, organic growth. Full nervous system: 6 superagents (5 workspace + Mylane conductor) + permission membrane (agentScopedQuery). Mylane living surface shipped Phases 1-4 (admin beta). Two-layer agent architecture specced (user-facing + internal organism). Three major specs committed to private repo.
 
 ## What Just Shipped
 
-- Five superagents created and wired: FieldServiceAgent (hands), PlaymakerAgent (coordination), AdminAgent (self-awareness), FinanceAgent (circulatory system), PropertyPulseAgent (skeleton)
-- Bug button absorbed into agents -- hides in agent-enabled workspaces, agent IS the feedback channel
-- AgentChat.jsx dynamic subtitle -- works for any agent automatically
-- SUPERAGENT-SPEC.md -- unified birth protocol, growth model, organ identities, tier model
-- OPEN-GARDEN-SPEC.md -- explore mode, pricing ($9 business / $18 agent / $45 Recess), creative engine, demo content, Playmaker-first implementation
-- Suno v5.5 research, Gardeners of Life lyrics, coaches card prompt
+- Mylane Phases 1-4: living surface with 5 card views, component registry, drill-through, docked conversation panel, organic card reordering (useMyLaneState), time-aware urgency color shifts, WhatsChangedBar whisper
+- agentScopedQuery server function: server-side data scoping for all agents. Fixes data bleed (Dr. Nathan Holman incident). All 5 workspace agents updated to use backend function tool instead of direct entity reads.
+- Mylane superagent: 29 entities, Per User Only memory, quiet conductor
+- Three specs to private repo: MYLANE-CONDUCTOR-SPEC.md, ORGANISM-AGENT-TEAM.md, AGENT-SCOPED-QUERY-SPEC.md
+- AgentChat.jsx docked mode + input visibility fix
 
 ## What's In Flight
 
-- Coaches card for Monday 6:30 PM meeting (Gemini generation + QR code)
+- Coaches card for Monday 6:30 PM meeting
 - Open Garden Playmaker implementation (explore mode, demo content, agent as front door)
-- Finance node real data entry
+- Finance node real data entry (painting income)
+- Agent testing post-agentScopedQuery update
 
 ## Active Nodes
 
 | Node | Status | Current Build | What's Next |
 |------|--------|--------------|-------------|
-| Community Node | Pilot-ready, legal review pending | 5 superagents wired, nervous system complete | Open Garden explore mode, admin audit |
+| Community Node | Pilot-ready, 6 agents | Mylane living surface (admin beta) | Open Garden explore mode, agent testing |
 | Contractor Daily | Build 17 complete, stable | N/A -- field testing | Dan Sikes field testing |
-| Field Service | Production-grade, multi-user ready | FieldServiceAgent live, docs/estimates/financial shipped | Bari walkthrough, mobile optimization |
-| PM Workspace | ~95/100 + agent | PropertyPulseAgent wired | Polish, renter search |
-| Finance Workspace | ~78/100 + agent | FinanceAgent wired | Field test with real income data |
-| Frequency Station | Phase 2 shipped | First song "Come Alive" published | Creative engine pipeline, Suno Custom Model |
-| Play Trainer | Team Build 6 + agent | PlaymakerAgent wired | Open Garden explore mode (first implementation) |
+| Field Service | Production-grade | FieldServiceAgent scoped via agentScopedQuery | Bari walkthrough, mobile optimization |
+| PM Workspace | ~95/100 + agent | PropertyPulseAgent scoped | Polish, renter search |
+| Finance Workspace | ~78/100 + agent | FinanceAgent scoped | Field test with real income data |
+| Frequency Station | Phase 2 shipped | First song "Come Alive" published | Creative engine pipeline |
+| Play Trainer | Team Build 6 + agent | PlaymakerAgent scoped | Open Garden explore mode (first implementation) |
 
 ## What's Next
 
 - Coaches card: generate, QR, print for Monday
-- Open Garden Playmaker: demo content seed, explore mode, agent as living front door
+- Test all agents post-scoping update
+- Open Garden Playmaker: demo content seed, explore mode
 - Re-fax EIN SS-4 Monday
 - Farmers market deadline Wednesday
 - Property Pulse renter search (income source)
-- Feed Finance node with real data
-- withdoron.com when time allows
+- Feed Finance node with real painting data
+- Internal agent team: Conductor, Research, Marketing (Layer 2)
 
 ## Current Blockers
 
 - **Legal review** -- Community Node pilot needs professional Terms/Privacy review (~$100-200). Blocking real money flow.
-- **Chrome Claude MCP limitation** -- Chrome Claude cannot call MCP tools in projects. Workaround established: Desktop pulse then Chrome chat.
 - **EIN** -- SS-4 re-fax needed Monday (SSN missing from first submission).
 
 ## This Week's Priorities
@@ -66,8 +66,8 @@ Platform live, organic growth, nervous system complete. Five superagents across 
 
 - 4 businesses (3 claimed)
 - 20 users
-- 5 superagents live (all workspaces + admin)
+- 6 superagents live (5 workspace + Mylane) + agentScopedQuery permission membrane
 - 1 estimate ($121,657.57 draft), 3 documents
 - 0 projects, 0 feedback
 - Platform score: 68/100
-- Server functions: 9/10 (24/24 fractal SOP compliant)
+- Server functions: 10/10 (agentScopedQuery added)

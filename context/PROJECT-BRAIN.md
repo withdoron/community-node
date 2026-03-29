@@ -93,8 +93,19 @@ Architecture: One agent per space. Chat UI is a reusable AgentChat component wit
 | AdminAgent | Admin | Self-awareness | 34 entities (all) | Global Only | 4a719a6 |
 | FinanceAgent | Finance | Circulatory system | 6 finance entities | Global + Per User | 6721aaa |
 | PropertyPulseAgent | Property Mgmt | Skeleton | 13 PM entities | Global + Per User | 3db454b |
+| Mylane | Conductor | Living surface | 29 entities (all workspaces) | Per User Only | 664d987 |
 
-Planned agents: HarvestAgent, RecessAgent, CreativeAgent, FrequencyAgent (as spaces mature).
+Planned agents: HarvestAgent, RecessAgent, CreativeAgent, FrequencyAgent (as spaces mature). Layer 2 internal agents: Conductor, Research/AI Scout, Marketing, Content, Bookkeeper, Community Pulse (specced in ORGANISM-AGENT-TEAM.md).
+
+### Data Scoping (DEC-107)
+
+All agents (except AdminAgent) query data through the `agentScopedQuery` server function instead of raw entity reads. The function takes user_id + workspace type + entity name, finds the user's workspace profile, and returns only records belonging to that workspace. This is the organism's permission membrane — each nerve ending feels only its own garden. Reference AGENT-SCOPED-QUERY-SPEC.md (private repo).
+
+### Mylane — The Conductor Space (DEC-105)
+
+Mylane is the organism's living surface and Conductor. She is a space with her own agent, entity (MyLaneProfile), and memory (Per User Only). She renders interactive cards from all active workspaces via the Component Registry pattern (DEC-106, myLaneRegistry.js). Cards reorder organically based on user interaction (useMyLaneState.js). Time-aware urgency shifts card colors when data needs attention. WhatsChangedBar whispers entity changes since last visit. She does not speak unless spoken to.
+
+Phases 1-4 shipped (admin beta). Phase 1: card grid + drill-through. Phase 2: docked AgentChat conversation panel. Phase 3: organic card reordering + time awareness. Phase 4: WhatsChangedBar whisper. Reference MYLANE-CONDUCTOR-SPEC.md (private repo).
 
 Credit model: Agent messages cost ~3+ integration credits each. Business spaces: $9/month workspace + optional $18/month for full agent partner (first month included). Community spaces: agent included at no cost.
 
