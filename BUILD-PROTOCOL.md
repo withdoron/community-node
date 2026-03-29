@@ -68,9 +68,18 @@ Implementation. Data layer first, then components, then surfaces. Commit to main
 
 Ship behind `{false && <Component />}` until the feature passes a walkthrough with Doron. The gate is one line to remove. This is not optional — every new feature ships gated.
 
-## Phase 9: Tier Gating
+## Phase 9: Tier Gating (DEC-101)
 
-Does this feature behave differently per tier (basic/standard/partner)? If so, implement the locked state for lower tiers.
+Does this feature behave differently per tier? Current pricing model:
+
+- **Community spaces** (Playmaker, Frequency Station): no cost. Agent included.
+- **Business spaces** (Field Service, Finance, Property Pulse, Harvest vendor): $9/month. First month includes full superagent.
+- **Superagent tier** (after month 1): $18/month full agent partner, or $9 help-mode only.
+- **Recess**: $45/month Community Pass membership.
+
+Language rules: Never say "free." Never say "trial." Never say "upgrade" — say "keep your assistant." Never lead with price.
+
+If the feature is tier-gated, implement the locked state for lower tiers using `useOrganization()` hook.
 
 ## Phase 10: Polish
 
@@ -92,26 +101,30 @@ Do the Terms of Service or Privacy Policy need updating? Does this feature handl
 
 Does this feature generate data for the Organism? What pulse signals does it create? What vitality does it reflect?
 
-## Phase 15: Space Agent (DEC-094)
+## Phase 15: Space Agent (DEC-094, DEC-103)
 
-Does this space need its own intelligence? Every space in the garden can have a Superagent — an AI assistant that reads the space's entity data, answers user questions, searches the directory, looks up external information, and collects feedback.
+Does this space need its own intelligence? Every space in the garden has a Superagent — an AI assistant that reads the space's entity data, answers user questions, searches the directory, looks up external information, and collects feedback. Reference SUPERAGENT-SPEC.md (private repo) for full birth protocol.
 
-Ask these questions:
-- Do users need help navigating features? → Agent provides workspace guidance
-- Do users need external information? → Agent uses web search (costs integration credits)
-- Do users need to find people or businesses? → Agent searches the directory
-- Would feedback collection improve the space? → Agent captures ServiceFeedback records
-- Is this space used in the field (mobile, hands busy)? → Agent gets voice input
+### Birth Protocol
 
-If yes to any: document the agent's capabilities, entity access (read-only by default), and create the agent config.
+1. **WHY first** — Write a WHY document (SUPERAGENT-SPEC.md Section 3). What is this agent's purpose in the organism?
+2. **Create Base44 agent** — Description, instructions (with organism identity), tools (entity CRUD), memory (Global + Per User), welcome message.
+3. **Wire into workspace UI** — `<AgentChatButton agentName="[Name]Agent" userId={currentUser?.id} />` in the workspace's JSX.
+4. **Update agent-active event** — Add the workspace's state variable to the `agentActive` check in BusinessDashboard.jsx (or dispatch from the page component for non-dashboard pages like Admin).
+5. **Test** — Button appears, chat opens, subtitle reads correctly, feedback button hides.
 
-Agent naming: `[SpaceName]Agent` (e.g., FieldServiceAgent, HarvestAgent)
-Agent config: `agents/[AgentName].json` in the repo
-Agent UI: AgentChat component with `agentName` prop (reusable across all spaces)
-Feedback entity: ServiceFeedback (shared across all agents)
+### Ongoing Maintenance
 
-The agent is the organism's nervous system at the space level.
+**When any entity, field, or feature changes in a space that has a superagent, update the agent's instructions to reflect the change. The agent must know its own garden.** (DEC-103)
 
-Output: Agent config JSON, entity access list, UI integration point.
+### Reference
+
+- Agent naming: `[SpaceName]Agent` (e.g., FieldServiceAgent, PlaymakerAgent)
+- Agent UI: AgentChat + AgentChatButton with `agentName` prop (reusable)
+- Feedback: ServiceFeedback entity (shared across all agents, Create permission)
+- Dynamic subtitle: AgentChat.jsx derives subtitle from agentName automatically
+- Five agents live as of 2026-03-29: FieldService, Playmaker, Admin, Finance, PropertyPulse
+
+Output: Base44 agent config, entity access list, UI integration, agent-active event update.
 
 ---

@@ -82,13 +82,25 @@ Reference BUILD-PROTOCOL.md for the full protocol. Don't skip phases.
 
 Base44 Superagents are the organism's nervous system. Each space in the garden gets its own agent — an AI assistant that reads the space's entity data, answers user questions, provides workspace guidance, searches the directory, looks up external information via web search, and collects feedback through the ServiceFeedback entity.
 
-Architecture: One agent per space. Agent config lives in `agents/` directory as JSON. Chat UI is a reusable AgentChat component with `agentName` prop. Voice input via browser SpeechRecognition API. Conversations persist across page navigations. Agents are READ-ONLY on workspace entities (except ServiceFeedback for feedback capture).
+Architecture: One agent per space. Chat UI is a reusable AgentChat component with `agentName` prop. Voice input via browser SpeechRecognition API. Conversations persist across page navigations. Agents are READ-ONLY on workspace entities (except ServiceFeedback for feedback capture). Each agent has memory (Global + Per User for space agents, Global Only for Admin).
 
-Credit model: Agent messages cost ~3+ integration credits each. Internal operations (entity reads, directory lookups) are cheaper than external operations (web search). Heavy agent users may incur a surcharge on top of the $9 workspace fee.
+### Live Agents (as of 2026-03-29)
 
-First agent: FieldServiceAgent (shipped 2026-03-27). Reads all FS entities, web search for permit lookups, ServiceFeedback for user feedback. Live on all Field Service tabs with floating chat button and push-to-talk voice.
+| Agent | Space | Organ | Entities | Memory | Commit |
+|-------|-------|-------|----------|--------|--------|
+| FieldServiceAgent | Field Service | Hands | 15+ FS entities | Global + Per User | Original (2026-03-27) |
+| PlaymakerAgent | Team | Coordination | 9 team entities | Global + Per User | 9f250f5 |
+| AdminAgent | Admin | Self-awareness | 34 entities (all) | Global Only | 4a719a6 |
+| FinanceAgent | Finance | Circulatory system | 6 finance entities | Global + Per User | 6721aaa |
+| PropertyPulseAgent | Property Mgmt | Skeleton | 13 PM entities | Global + Per User | 3db454b |
 
-Planned agents: HarvestAgent, RecessAgent, CreativeAgent, PropertyAgent, MyCeliaAdmin (platform-level agent for the gardener).
+Planned agents: HarvestAgent, RecessAgent, CreativeAgent, FrequencyAgent (as spaces mature).
+
+Credit model: Agent messages cost ~3+ integration credits each. Business spaces: $9/month workspace + optional $18/month for full agent partner (first month included). Community spaces: agent included at no cost.
+
+**Protocol rule (DEC-103):** When any entity, field, or feature changes in a space that has a superagent, update the agent's instructions to reflect the change. The agent must know its own garden.
+
+Reference SUPERAGENT-SPEC.md (private repo) for birth protocol, growth model, organ identities, and tier model.
 
 The fractal: what's true of one space's agent is true of all spaces' agents. Same UI, same feedback entity, same voice input, different instructions and entity access.
 

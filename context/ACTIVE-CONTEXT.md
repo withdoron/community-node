@@ -2,65 +2,72 @@
 
 > What's happening RIGHT NOW. This file gets overwritten each session, not appended.
 > Any AI surface reads this to know the current state without searching conversation history.
-> Last updated: 2026-03-28
+> Last updated: 2026-03-29
 
 ---
 
 ## Current Phase
 
-Platform live, organic growth, MCP nervous system connected. The organism can now be sensed directly from Claude Desktop via MCP tools (get_health, get_documents, get_estimates, get_projects, get_feedback). Claude Code is now named Hyphae — the builder.
+Platform live, organic growth, nervous system complete. Five superagents across all workspaces (FieldService, Playmaker, Admin, Finance, PropertyPulse). MCP nervous system connected (Desktop Claude). Open Garden and pricing model specced. Creative engine vision documented.
 
 ## What Just Shipped
 
-- MCP connectivity confirmed: all 5 LocalLane MCP tools returning live data via Desktop Claude
-- Hyphae named: Claude Code has its own identity in the organism metaphor (DEC-100)
-- Parallel workflow established: Desktop pulse → Chrome chat → Desktop for Hyphae (Claude Code)
-- Full organism health snapshot: 20 users, 4 businesses (3 claimed), 3 documents, 1 estimate ($121,657.57), 0 projects, 0 feedback
-- Organism identity layer documented across all repos (CLAUDE.md, PROJECT-BRAIN.md, diary entries)
+- Five superagents created and wired: FieldServiceAgent (hands), PlaymakerAgent (coordination), AdminAgent (self-awareness), FinanceAgent (circulatory system), PropertyPulseAgent (skeleton)
+- Bug button absorbed into agents -- hides in agent-enabled workspaces, agent IS the feedback channel
+- AgentChat.jsx dynamic subtitle -- works for any agent automatically
+- SUPERAGENT-SPEC.md -- unified birth protocol, growth model, organ identities, tier model
+- OPEN-GARDEN-SPEC.md -- explore mode, pricing ($9 business / $18 agent / $45 Recess), creative engine, demo content, Playmaker-first implementation
+- Suno v5.5 research, Gardeners of Life lyrics, coaches card prompt
 
 ## What's In Flight
 
-- Admin panel expansion audit
-- Harvest Network continued buildout
-- MCP server Phase 1 (Cloudflare Worker — spec complete, DEC-099)
+- Coaches card for Monday 6:30 PM meeting (Gemini generation + QR code)
+- Open Garden Playmaker implementation (explore mode, demo content, agent as front door)
+- Finance node real data entry
 
 ## Active Nodes
 
 | Node | Status | Current Build | What's Next |
 |------|--------|--------------|-------------|
-| Community Node | Pilot-ready, legal review pending | Harvest Network shipped (8 phases), Field Service Agent live | Admin panel audit, MCP Phase 1 |
+| Community Node | Pilot-ready, legal review pending | 5 superagents wired, nervous system complete | Open Garden explore mode, admin audit |
 | Contractor Daily | Build 17 complete, stable | N/A -- field testing | Dan Sikes field testing |
-| Field Service | Production-grade, multi-user ready | Documents/Estimates/Financial shipped | Bari walkthrough, mobile optimization |
-| PM Workspace | ~95/100 | Ownership guards, server functions | Polish |
-| Finance Workspace | ~78/100 | Ownership guards, bulk import | Field test with real data |
-| Frequency Station | Phase 2 shipped | First song "Come Alive" published | Content growth |
-| Play Trainer | Team Build 6 shipped | Playbook Pro arcade game | Load remaining plays with boys |
+| Field Service | Production-grade, multi-user ready | FieldServiceAgent live, docs/estimates/financial shipped | Bari walkthrough, mobile optimization |
+| PM Workspace | ~95/100 + agent | PropertyPulseAgent wired | Polish, renter search |
+| Finance Workspace | ~78/100 + agent | FinanceAgent wired | Field test with real income data |
+| Frequency Station | Phase 2 shipped | First song "Come Alive" published | Creative engine pipeline, Suno Custom Model |
+| Play Trainer | Team Build 6 + agent | PlaymakerAgent wired | Open Garden explore mode (first implementation) |
 
 ## What's Next
 
-- AGENTS.md update with organism naming context
-- Continued Field Service field testing with Dan and Bari
-- Admin panel expansion audit
+- Coaches card: generate, QR, print for Monday
+- Open Garden Playmaker: demo content seed, explore mode, agent as living front door
+- Re-fax EIN SS-4 Monday
+- Farmers market deadline Wednesday
+- Property Pulse renter search (income source)
+- Feed Finance node with real data
 - withdoron.com when time allows
 
 ## Current Blockers
 
 - **Legal review** -- Community Node pilot needs professional Terms/Privacy review (~$100-200). Blocking real money flow.
 - **Chrome Claude MCP limitation** -- Chrome Claude cannot call MCP tools in projects. Workaround established: Desktop pulse then Chrome chat.
+- **EIN** -- SS-4 re-fax needed Monday (SSN missing from first submission).
 
 ## This Week's Priorities
 
-1. AGENTS.md identity update
-2. Admin panel expansion audit
-3. Harvest Network buildout
-4. Traffic ticket ~$520 due ~4/7
-5. Deposition prep (early April), trial 5/19
+1. Coaches meeting Monday 6:30 PM (card ready)
+2. Re-fax EIN Monday
+3. Farmers market deadline Wednesday
+4. Open Garden Playmaker build
+5. Traffic ticket ~$520 due ~4/7
+6. Deposition prep (early April), trial 5/19
 
-## Platform Pulse (as of 2026-03-28)
+## Platform Pulse (as of 2026-03-29)
 
 - 4 businesses (3 claimed)
 - 20 users
-- 1 estimate ($121,657.57 draft), 3 documents (1 draft, 1 awaiting signature, 1 signed)
+- 5 superagents live (all workspaces + admin)
+- 1 estimate ($121,657.57 draft), 3 documents
 - 0 projects, 0 feedback
 - Platform score: 68/100
 - Server functions: 9/10 (24/24 fractal SOP compliant)

@@ -132,3 +132,40 @@ Marketing:
 - withdoron.com when time allows
 
 ---
+
+### Session Log — 2026-03-29
+
+**Focus:** Superagent nervous system buildout, Open Garden spec, pricing model, creative engine vision
+
+**Shipped:**
+1. FieldServiceAgent config updated with full organism identity, memory instructions, updated welcome message
+2. PlaymakerAgent created in Base44 (9 entities, full CRUD, global + per-user memory) and wired into Team workspace (9f250f5)
+3. AdminAgent created in Base44 (34 entities, global-only memory) and wired into Admin page (4a719a6)
+4. FinanceAgent created in Base44 (6 entities, global + per-user memory) and wired into Finance workspace (6721aaa)
+5. PropertyPulseAgent created in Base44 (13 entities, global + per-user memory) and wired into Property Management workspace (3db454b)
+6. Bug button conditionally hidden in agent-enabled workspaces -- agent IS the feedback channel (7b0ab2e)
+7. AgentChat.jsx dynamic subtitle -- works for any agent automatically via agentName prop
+8. SUPERAGENT-SPEC.md committed to private repo (987ea51) -- unified spec covering philosophy, birth protocol, growth, connections, pulse, tier model, 8 organ identities
+9. OPEN-GARDEN-SPEC.md committed to private repo (10aed80) -- exploration experience, pricing model, creative engine, demo content architecture, agent roles at every tier
+10. FIELD-SERVICE-AGENT.md identity document written for private repo
+11. Gemini coaches card prompt created (Playmaker edition, LocalLane branding, QR placeholder)
+12. Suno v5.5 researched -- Voices, Custom Models, My Taste features documented
+13. Gardeners of Life song lyrics drafted (two versions: dark rap + organic downtempo)
+
+**Decisions made:**
+- DEC-100: Open Garden Exploration -- two-mode dashboard, agents as front doors
+- DEC-101: Pricing Model -- community free, business $9, agent $18, Recess $45
+- DEC-102: Creative Engine -- content pipeline, music platform, wav downloads, 3-6-9 split
+- DEC-103: Superagent Protocol -- five agents live, update instructions when space changes
+- DEC-104: Bug Reporting Absorbed -- feedback button hides in agent-enabled workspaces
+
+**Next up:**
+- Coaches card: generate in Gemini, add QR code, print four-up for Monday coaches meeting
+- Open Garden Playmaker build: demo content seed, explore mode, agent as front door
+- Build protocol update: Phase 9 tier gating refresh, Phase 15 space agent expansion
+- Property Pulse renter search (income)
+- Feed Finance node with real income data
+- Re-fax EIN SS-4 Monday
+- Farmers market deadline Wednesday
+
+---

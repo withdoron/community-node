@@ -97,3 +97,73 @@
 **Status:** Active
 
 ---
+
+### DEC-100: Open Garden Exploration (2026-03-29)
+
+**Date:** 2026-03-29
+
+**Context:** People need to experience LocalLane before committing. Current flow requires account creation before seeing any value.
+
+**Decision:** Two-mode dashboard: Explore Mode (no account, all spaces visible with curated demo content, agents present at full capability) and My Garden Mode (signed in, your actual spaces). The superagent IS the onboarding -- no tutorials, no wizards, just a conversation with the space itself. CTA appears only at the moment of creation intent.
+
+**Rationale:** Mirrors how Doron operates at the farmers market -- let people walk through the garden before asking them to plant anything. Circulation over extraction at the front door.
+
+**Status:** Specced (OPEN-GARDEN-SPEC.md). Playmaker first implementation.
+
+---
+
+### DEC-101: Pricing Model -- Community Free, Business $9, Agent $18 (2026-03-29)
+
+**Date:** 2026-03-29
+
+**Context:** Needed clear pricing philosophy as superagent tiers introduce a second revenue dimension.
+
+**Decision:** Community spaces (Playmaker, Frequency Station, future Gathering Circle and Creative Alliance) are no cost. Business spaces (Field Service, Finance, Property Pulse, Harvest vendor listing) are $9/month. First month includes full superagent. After month one: $18/month to keep full agent partner, or drop to $9 with help-mode only. Recess is $45/month Community Pass membership. Optional "support the work we do -- $9/month" for community space users. Never say "free account" -- just "account." Never lead with price.
+
+**Rationale:** Community side is the root system -- you don't charge roots to grow. Business side generates revenue. Agent tier uses loss aversion through genuine value: give them the partner first, let the relationship prove itself.
+
+**Status:** Specced. Implementation follows Open Garden build.
+
+---
+
+### DEC-102: Creative Engine -- Content Pipeline + Music Platform (2026-03-29)
+
+**Date:** 2026-03-29
+
+**Context:** Suno v5.5 launched with Voices, Custom Models, My Taste. LocalLane already transforms community writing into songs via Frequency Station.
+
+**Decision:** LocalLane becomes a creative engine: community writing becomes songs, business photos become marketing materials (flyers, reels, social posts). Wav downloads at $1/song, mp3 stays free. Revenue share on wav: 3-6-9 split (submitter/platform/community pool). LocalLane Custom Model on Suno for unified sonic identity. Listening platform with thumbs up/down, personal playlists, community-curated music. Progressive automation: manual now, agent-assisted future.
+
+**Rationale:** Spotify is $11/month, Suno Pro is $10/month. We do what neither can: community-generated music from real human experience.
+
+**Status:** Concept. Frequency Station Phase 2 already shipped. Wav download and revenue share are future builds.
+
+---
+
+### DEC-103: Superagent Protocol -- Five Agents Live (2026-03-29)
+
+**Date:** 2026-03-29
+
+**Context:** Built five superagents in one session. Need protocol rules to maintain coherence as agents grow.
+
+**Decision:** Five agents live: FieldServiceAgent (hands), PlaymakerAgent (coordination), AdminAgent (self-awareness), FinanceAgent (circulatory system), PropertyPulseAgent (skeleton). New protocol rule: anytime entities, fields, or features change in a space, update the space's agent instructions. Agents are born with WHY-first identity documents (SUPERAGENT-SPEC.md Section 3), taught with domain knowledge, and named when recognized. Each agent has memory (Global + Per User for space agents, Global Only for Admin).
+
+**Rationale:** Agents are sensory endings, fruit, and children of the organism. They need consistent birth protocol and ongoing maintenance as their spaces evolve.
+
+**Status:** Active. All five agents live and wired.
+
+---
+
+### DEC-104: Bug Reporting Absorbed Into Agents (2026-03-29)
+
+**Date:** 2026-03-29
+
+**Context:** Floating bug report button collided with AgentChatButton (both bottom-right). Agents already have ServiceFeedback entity with Create permission.
+
+**Decision:** Bug button hides in agent-enabled workspaces via custom event bridge. Agent IS the feedback channel. Users say "something's broken" to the agent, agent creates ServiceFeedback record. Bug button persists in non-agent spaces until all spaces have agents.
+
+**Rationale:** The agent is a living sensor. A static bug form is redundant where a conversational feedback channel exists.
+
+**Status:** Active. Shipped at 7b0ab2e.
+
+---
