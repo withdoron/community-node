@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, Routes, Route, Navigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -27,6 +27,7 @@ import TeamDefaultsPanel from '@/components/admin/workspaces/TeamDefaultsPanel';
 import FinanceDefaultsPanel from '@/components/admin/workspaces/FinanceDefaultsPanel';
 import AdminMarketplacePanel from '@/components/admin/AdminMarketplacePanel';
 import AdminNetworkApplicationsPanel from '@/components/admin/AdminNetworkApplicationsPanel';
+import AgentChatButton from '@/components/fieldservice/AgentChatButton';
 
 function PlaceholderSection({ title, description }) {
   return (
@@ -56,6 +57,12 @@ export default function Admin() {
   });
 
   const queryClient = useQueryClient();
+
+  // AdminAgent is always active on this page — hide global feedback button
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('agent-active', { detail: true }));
+    return () => { window.dispatchEvent(new CustomEvent('agent-active', { detail: false })); };
+  }, []);
 
   const { data: businesses = [], isLoading: businessesLoading } = useQuery({
     queryKey: ['admin-businesses'],
@@ -348,6 +355,9 @@ export default function Admin() {
         open={createModalOpen}
         onOpenChange={setCreateModalOpen}
       />
+
+      {/* AdminAgent — the organism's self-awareness */}
+      <AgentChatButton agentName="AdminAgent" userId={currentUser?.id} />
     </div>
   );
 }
