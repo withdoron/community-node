@@ -46,9 +46,22 @@ export default function PlayCreateModal({
   const [mode, setMode] = useState('visual'); // 'visual' | 'photo'
   const [photoModeConfirm, setPhotoModeConfirm] = useState(false);
 
-  const getPositions = (side) => getPositionsForFormat(teamFormat || DEFAULT_FORMAT, side).map((p) => p.id);
-  const positions = getPositions(form?.side || defaultSide);
+  const [form, setForm] = useState({
+    side: defaultSide,
+    name: '',
+    nickname: '',
+    formation: defaultSide === 'defense' ? 'Man-to-Man' : 'Spread',
+    formation_custom: '',
+    diagram_image: '',
+    is_mirrorable: false,
+    tags: '',
+    tag_list: [],
+    game_day: false,
+    coach_notes: '',
+  });
 
+  const getPositions = (side) => getPositionsForFormat(teamFormat || DEFAULT_FORMAT, side).map((p) => p.id);
+  const positions = getPositions(form.side);
   const initialAssignments = () => Object.fromEntries(positions.map((p) => [p, { route: '', assignment_text: '' }]));
 
   const { data: editAssignmentsFetched = [], isLoading: editAssignmentsLoading } = useQuery({
@@ -64,19 +77,6 @@ export default function PlayCreateModal({
   const assignmentsFromEdit = editPlay ? editAssignmentsFetched : editAssignments;
   const editDataReady = !editPlay || (!editAssignmentsLoading && editAssignmentsFetched.length > 0);
 
-  const [form, setForm] = useState({
-    side: defaultSide,
-    name: '',
-    nickname: '',
-    formation: 'Spread',
-    formation_custom: '',
-    diagram_image: '',
-    is_mirrorable: false,
-    tags: '',
-    tag_list: [],
-    game_day: false,
-    coach_notes: '',
-  });
   const [assignments, setAssignments] = useState(initialAssignments());
 
   useEffect(() => {
