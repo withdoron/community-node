@@ -98,7 +98,7 @@
 
 ---
 
-### DEC-100: Open Garden Exploration (2026-03-29)
+### DEC-100b: Open Garden Exploration (2026-03-29)
 
 **Date:** 2026-03-29
 
