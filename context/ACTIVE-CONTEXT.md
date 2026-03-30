@@ -28,6 +28,9 @@ March was a transformation month: 5 workspaces went from partial to production-g
 - 5 more agents wired in one session: Playmaker, Admin, Finance, PropertyPulse, Mylane
 - Scout report completed: Base44/Wix acquisition ($80M, $100M ARR), OpenClaw viral agent (247K GitHub stars), Claude Computer Use + Dispatch launched March 23-24
 - Drift audit completed: 27-day gap cataloged, all work documented
+- DEC-115 fully built (5 sessions): agentScopedWrite server function, Mylane console upgrades (new conversation, history, file upload, quick-action chips, confirmation cards, Google Maps link parsing, mobile polish)
+- agentScopedWrite confirmed working — Mylane created Test Client (first agent-written record)
+- Dashboard cleanup: removed dead Silver/Passes/Tickets badges
 
 ## What Shipped Earlier in March (3/3-3/26)
 
@@ -57,11 +60,12 @@ March was a transformation month: 5 workspaces went from partial to production-g
 
 ## What's In Flight
 
+- DEC-115 agent write + Mylane console — code complete, awaiting Base44 publish fix to deploy
+- Base44 publish blocker — escalated to engineering team (request ID 95a004a0)
 - Open Garden Playmaker: demo content seed, explore mode (specced, not built)
 - Newsletter Issue 1 ("The Garden is Open") — drafted, not sent
 - Bari settings walkthrough and continued field testing
 - SuperMemory bearer token connection for Mycelia Superagent (deferred)
-- Admin account mobile access (Google sign-in on phone)
 
 ## What's Next
 
@@ -78,21 +82,21 @@ March was a transformation month: 5 workspaces went from partial to production-g
 
 ## Current Blockers
 
+- **Base44 publish failure** — All DEC-115 code built and in git (cd6dd1c) but cannot deploy. Escalated to Base44 engineering. Request ID: 95a004a0-5990-4704-ad23-31ddb795dacd. Not a code issue — reverted everything, still fails.
 - **Legal review** — Community Node pilot needs professional Terms/Privacy review (~$100-200). Blocking real money flow.
 - **EIN** — SS-4 re-fax needed Monday (SSN missing from first submission)
 - **SuperMemory API key** — needed for Mycelia Superagent memory bridge (deferred, not blocking)
-- **DEC-100 collision** — renumbered: DEC-100 = Organism Identity, DEC-100b = Open Garden (see DECISIONS.md)
 
 ## Platform Pulse (as of 2026-03-30 evening)
 
 - 4 businesses (3 claimed)
 - 20 users
 - 9 agents total (8 App + 1 Mycelia Superagent)
-- 31 server functions deployed
+- 32 server functions deployed (agentScopedWrite added)
 - MCP v2: 5 tools, full circuit PASSED
 - 3 documents, 1 estimate ($121,657.57 draft)
 - Platform score: 68/100
-- 34 decisions made this month (DEC-061 through DEC-113)
+- 35 decisions made this month (DEC-061 through DEC-115)
 
 ## Scout Report Highlights (2026-03-30)
 
