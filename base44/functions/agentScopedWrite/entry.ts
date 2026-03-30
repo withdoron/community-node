@@ -98,16 +98,90 @@ Deno.serve(async (req) => {
 
     const entities = base44.asServiceRole.entities;
 
-    // ── GATE 1: Admin check ──
-    // Agent passes Base44 user ID (us-xxx format). Query via .filter({ id }) — the id field
-    // on the built-in User entity is the Base44 platform user ID, not the ObjectId.
-    var userResults = await entities.User.filter({ id: user_id });
-    var user = Array.isArray(userResults) && userResults.length > 0 ? userResults[0] : null;
-    if (!user) {
-      console.log('[agentScopedWrite] user not found for id:', user_id);
-      return Response.json({ success: false, error: 'user_not_found', message: 'User not found for id: ' + user_id }, { status: 404 });
+    // ===== DIAGNOSTIC USER LOOKUP (TEMPORARY) =====
+    var diagnostics = {
+      received_user_id: user_id,
+      received_type: typeof user_id,
+      approaches: {},
+    };
+
+    // Approach 1: Direct get
+    try {
+      var userGet = await entities.User.get(user_id);
+      diagnostics.approaches.direct_get = { success: true, result_id: userGet?.id, result_keys: Object.keys(userGet || {}) };
+    } catch (err) {
+      diagnostics.approaches.direct_get = { success: false, error: err.message };
     }
-    var isAdmin = user.role === 'admin';
+
+    // Approach 2: Filter by id
+    try {
+      var userFilter = await entities.User.filter({ id: user_id });
+      diagnostics.approaches.filter_by_id = {
+        success: true,
+        count: Array.isArray(userFilter) ? userFilter.length : 'not_array',
+        first_id: Array.isArray(userFilter) && userFilter[0] ? userFilter[0].id : null,
+        type: typeof userFilter,
+      };
+    } catch (err) {
+      diagnostics.approaches.filter_by_id = { success: false, error: err.message };
+    }
+
+    // Approach 3: List all users and examine IDs
+    try {
+      var allUsers = await entities.User.list();
+      var sample = (Array.isArray(allUsers) ? allUsers : []).slice(0, 3);
+      diagnostics.approaches.list_all = {
+        success: true,
+        total_count: Array.isArray(allUsers) ? allUsers.length : 0,
+        sample_ids: sample.map(function(u) { return u.id; }),
+        sample_keys: sample.length > 0 ? Object.keys(sample[0]) : [],
+        sample_emails: sample.map(function(u) { return u.email || 'no_email'; }),
+        has_user_id_field: sample.length > 0 ? ('user_id' in sample[0]) : false,
+        has_platform_id_field: sample.length > 0 ? ('platform_id' in sample[0]) : false,
+      };
+
+      var exactMatch = allUsers.find(function(u) { return String(u.id) === String(user_id); });
+      var stripMatch = allUsers.find(function(u) { return String(u.id) === String(user_id).replace('us-', ''); });
+      var reverseStripMatch = allUsers.find(function(u) { return 'us-' + String(u.id) === String(user_id); });
+      var emailMatch = allUsers.find(function(u) { return u.email && String(u.email).includes('doron'); });
+
+      diagnostics.approaches.list_matching = {
+        exact_match: !!exactMatch,
+        strip_us_match: !!stripMatch,
+        add_us_match: !!reverseStripMatch,
+        doron_email_match: emailMatch ? { id: emailMatch.id, email: emailMatch.email, id_type: typeof emailMatch.id } : null,
+      };
+    } catch (err) {
+      diagnostics.approaches.list_all = { success: false, error: err.message };
+    }
+
+    // Approach 4: auth.me() context
+    try {
+      var me = await base44.auth.me();
+      diagnostics.approaches.auth_me = { success: true, result: me };
+    } catch (err) {
+      diagnostics.approaches.auth_me = { success: false, error: err.message };
+    }
+
+    // Approach 5: Request headers
+    try {
+      var authHeader = req.headers.get('authorization');
+      diagnostics.approaches.request_info = {
+        has_auth_header: !!authHeader,
+        auth_header_prefix: authHeader ? authHeader.substring(0, 20) + '...' : null,
+      };
+    } catch (err) {
+      diagnostics.approaches.request_info = { success: false, error: err.message };
+    }
+
+    console.log('[agentScopedWrite] DIAGNOSTICS:', JSON.stringify(diagnostics, null, 2));
+    return Response.json({
+      success: false,
+      error: 'diagnostic_mode',
+      message: 'Running diagnostics on user lookup. Check the diagnostics object for details.',
+      diagnostics,
+    });
+    // ===== END DIAGNOSTIC (remove after testing) =====
 
     // ── GATE 2: Tier check (skip for admin and platform workspace) ──
     let profileId = null;
