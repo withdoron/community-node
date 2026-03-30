@@ -99,8 +99,15 @@ Deno.serve(async (req) => {
     const entities = base44.asServiceRole.entities;
 
     // ── GATE 1: Admin check ──
-    const user = await entities.User.get(user_id);
-    const isAdmin = user?.role === 'admin';
+    // Use .list() + idMatch() instead of .get() — .get() fails with ObjectId format mismatch
+    console.log('[agentScopedWrite] received user_id:', user_id, typeof user_id);
+    const allUsers = await entities.User.list();
+    const user = allUsers.find(function(u) { return idMatch(u.id, user_id); });
+    if (!user) {
+      console.log('[agentScopedWrite] user not found. Total users:', allUsers.length, 'sample IDs:', allUsers.slice(0, 3).map(function(u) { return { id: u.id, type: typeof u.id }; }));
+      return Response.json({ success: false, error: 'user_not_found', message: 'User not found for id: ' + user_id }, { status: 404 });
+    }
+    const isAdmin = user.role === 'admin';
 
     // ── GATE 2: Tier check (skip for admin and platform workspace) ──
     let profileId = null;

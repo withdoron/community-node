@@ -13,7 +13,7 @@
  */
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import { X, Send, Loader2, Mic, MicOff, Bot, Plus, Clock, Paperclip, FileText, ArrowLeft, Pencil, Search } from 'lucide-react';
+import { X, Send, Loader2, Mic, MicOff, Bot, Plus, Clock, Paperclip, FileText, ArrowLeft, Pencil, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { parseRenderInstruction } from '@/components/mylane/parseRenderInstruction';
 import ConfirmationCard from '@/components/mylane/ConfirmationCard';
@@ -72,6 +72,22 @@ function relativeTime(isoString) {
   if (days === 1) return 'Yesterday';
   if (days < 7) return `${days}d ago`;
   return new Date(isoString).toLocaleDateString();
+}
+
+/** Hidden conversations — localStorage fallback since SDK has no delete method */
+function getHiddenConversations(agentName) {
+  try {
+    const raw = localStorage.getItem(`${agentName}_hidden_conversations`);
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch { return new Set(); }
+}
+
+function hideConversation(agentName, conversationId) {
+  try {
+    const hidden = getHiddenConversations(agentName);
+    hidden.add(conversationId);
+    localStorage.setItem(`${agentName}_hidden_conversations`, JSON.stringify([...hidden]));
+  } catch { /* ignore */ }
 }
 
 // ─── Voice Input Hook ────────────────────────────
@@ -156,20 +172,24 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
   const [isUploading, setIsUploading] = useState(false);
   const [historyEntries, setHistoryEntries] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
   const unsubscribeRef = useRef(null);
   const userScrolledUpRef = useRef(false);
+  const hasUserInteractedRef = useRef(false); // don't auto-scroll on mount
 
-  // ─── Smart scroll — don't auto-scroll if user scrolled up ──
+  // ─── Smart scroll — don't auto-scroll on mount or if user scrolled up ──
   const scrollToBottom = useCallback((force = false) => {
     if (!force && userScrolledUpRef.current) return;
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
   useEffect(() => {
+    // Skip auto-scroll on initial load — only scroll after user interaction
+    if (!hasUserInteractedRef.current) return;
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
@@ -313,9 +333,13 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
       });
       const list = Array.isArray(conversations) ? conversations : [];
       // Filter to this user's conversations, sort newest first
+      // SDK may use created_date/updated_date instead of created_at/updated_at
+      const getTime = (c) => new Date(c.updated_at || c.updated_date || c.created_at || c.created_date || 0).getTime();
+      // Filter out hidden conversations
+      const hidden = getHiddenConversations(agentName);
       const userConvs = list
-        .filter((c) => c.metadata?.created_by_user_id === userId && c.agent_name === agentName)
-        .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+        .filter((c) => c.metadata?.created_by_user_id === userId && c.agent_name === agentName && !hidden.has(c.id))
+        .sort((a, b) => getTime(b) - getTime(a))
         .slice(0, 20);
       setHistoryEntries(userConvs);
     } catch (err) {
@@ -372,6 +396,17 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
     }
     setIsLoading(false);
   }, [agentName]);
+
+  // ─── Delete conversation (hide via localStorage) ──
+  const handleDeleteConversation = useCallback((convId) => {
+    hideConversation(agentName, convId);
+    setHistoryEntries((prev) => prev.filter((c) => c.id !== convId));
+    setConfirmDeleteId(null);
+    // If deleting the current conversation, start fresh
+    if (convId === conversationId) {
+      handleNewConversation();
+    }
+  }, [agentName, conversationId, handleNewConversation]);
 
   // ─── File Upload ───────────────────────────────
   const handleFileSelect = useCallback((e) => {
@@ -447,6 +482,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
       }
 
       // Optimistic: add user message immediately and force scroll
+      hasUserInteractedRef.current = true;
       const userMsg = { role: 'user', content: messageText, id: `temp_${Date.now()}` };
       setMessages((prev) => [...prev, userMsg]);
       userScrolledUpRef.current = false;
@@ -613,25 +649,64 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
                   const firstUserMsg = (conv.messages || []).find((m) => m.role === 'user');
                   const preview = firstUserMsg
                     ? (firstUserMsg.content || '').slice(0, 60)
-                    : `Conversation from ${new Date(conv.created_at).toLocaleDateString()}`;
-                  const timestamp = conv.updated_at || conv.created_at;
+                    : `Conversation from ${new Date(conv.created_at || conv.created_date || Date.now()).toLocaleDateString()}`;
+                  const timestamp = conv.updated_at || conv.updated_date || conv.created_at || conv.created_date;
                   const isCurrent = conv.id === conversationId;
+                  const isConfirming = confirmDeleteId === conv.id;
                   return (
-                    <button
+                    <div
                       key={conv.id}
-                      type="button"
-                      onClick={() => !isCurrent && handleResumeConversation(conv)}
-                      className={`w-full text-left px-4 py-3 border-b border-slate-800 transition-colors ${
-                        isCurrent
-                          ? 'bg-amber-500/10 border-l-2 border-l-amber-500'
-                          : 'hover:bg-slate-800/50'
+                      className={`border-b border-slate-800 transition-colors ${
+                        isCurrent ? 'bg-amber-500/10 border-l-2 border-l-amber-500' : 'hover:bg-slate-800/50'
                       }`}
                     >
-                      <p className="text-sm text-slate-300 truncate">{preview}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        {isCurrent ? 'Current' : relativeTime(timestamp)}
-                      </p>
-                    </button>
+                      {isConfirming ? (
+                        /* Inline delete confirmation */
+                        <div className="px-4 py-3 flex items-center justify-between">
+                          <p className="text-sm text-slate-400">Delete this conversation?</p>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteConversation(conv.id)}
+                              className="px-3 py-1.5 text-xs font-medium text-red-400 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-colors min-h-[44px]"
+                            >
+                              Delete
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmDeleteId(null)}
+                              className="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-300 transition-colors min-h-[44px]"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <button
+                            type="button"
+                            onClick={() => !isCurrent && handleResumeConversation(conv)}
+                            className="flex-1 text-left px-4 py-3"
+                          >
+                            <p className="text-sm text-slate-300 truncate">{preview}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              {isCurrent ? 'Current' : relativeTime(timestamp)}
+                            </p>
+                          </button>
+                          {/* Delete button — not shown on current conversation */}
+                          {!isCurrent && (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(conv.id); }}
+                              className="p-3 text-slate-500 hover:text-red-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
+                              title="Delete conversation"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>
