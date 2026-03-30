@@ -180,7 +180,7 @@ function useVoiceInput({ onFinal, onInterim }) {
 
 // ─── Main Component ──────────────────────────────
 
-export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isOpen, onClose, docked = false, onMessage, workspaceProfiles = null }) {
+export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isOpen, onClose, docked = false, fillHeight = false, onMessage, workspaceProfiles = null }) {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -575,7 +575,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
 
   return (
     <div className={docked ? 'w-full' : 'fixed inset-x-0 bottom-0 sm:inset-auto sm:right-4 sm:bottom-20 z-40'}>
-      <div className={`bg-slate-950 border border-slate-800 shadow-2xl flex flex-col overflow-hidden ${docked ? 'rounded-t-xl w-full max-h-[50vh]' : 'rounded-t-2xl sm:rounded-2xl w-full sm:w-96 max-h-[80vh] sm:max-h-[60vh]'}`}>
+      <div className={`bg-slate-950 border border-slate-800 shadow-2xl flex flex-col overflow-hidden ${docked ? (fillHeight ? 'w-full h-full' : 'rounded-t-xl w-full max-h-[50vh]') : 'rounded-t-2xl sm:rounded-2xl w-full sm:w-96 max-h-[80vh] sm:max-h-[60vh]'}`}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 flex-shrink-0">
           <div className="flex items-center gap-2.5">

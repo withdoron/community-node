@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Store, Plus, Loader2, Users, DollarSign, HardHat, Building2, ChevronRight } from "lucide-react";
+import { ArrowLeft, Store, Plus, Loader2, Users, DollarSign, HardHat, Building2, ChevronRight, MessageCircle } from "lucide-react";
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { useRole } from '@/hooks/useRole';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
@@ -33,6 +33,9 @@ import TeamContextSwitcher from '@/components/team/TeamContextSwitcher';
 import { toast } from "sonner";
 import CommunityPulse from '@/components/dashboard/CommunityPulse';
 import MyLaneSurface from '@/components/mylane/MyLaneSurface';
+import MylanePanel from '@/components/mylane/MylanePanel';
+import MylaneMobileSheet from '@/components/mylane/MylaneMobileSheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // ─── Revolving "Add a ___" Button ────────────────────────────────
 
@@ -116,8 +119,14 @@ export default function BusinessDashboard() {
   const [checkInEvent, setCheckInEvent] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
   const [myLaneMode, setMyLaneMode] = useState(false);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [mylaneCollapsed, setMylaneCollapsed] = useState(() => {
+    try { return localStorage.getItem('mylane_panel_collapsed') === 'true'; } catch { return false; }
+  });
   const [viewingAsPlayerId, setViewingAsPlayerId] = useState(null);
   const [comingSoonType, setComingSoonType] = useState(null);
+  const isMobile = useIsMobile();
+  const agentMessageRef = useRef(null);
 
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -737,15 +746,77 @@ export default function BusinessDashboard() {
 
         {/* MyLane Beta Surface (admin only) */}
         {isAppAdmin && myLaneMode ? (
-          <div className="max-w-7xl mx-auto px-6 pt-8 pb-4">
-            <MyLaneSurface
-              currentUser={currentUser}
-              financeProfiles={financeProfiles}
-              fieldServiceProfiles={fieldServiceProfiles}
-              allTeams={allTeams}
-              propertyMgmtProfiles={propertyMgmtProfiles}
-            />
-          </div>
+          isMobile ? (
+            /* Mobile: card grid + FAB + full-screen sheet */
+            <>
+              <div className="max-w-7xl mx-auto px-6 pt-8 pb-4">
+                <MyLaneSurface
+                  currentUser={currentUser}
+                  financeProfiles={financeProfiles}
+                  fieldServiceProfiles={fieldServiceProfiles}
+                  allTeams={allTeams}
+                  propertyMgmtProfiles={propertyMgmtProfiles}
+                  agentMessageRef={agentMessageRef}
+                />
+              </div>
+              {/* FAB to open Mylane */}
+              {!mobileSheetOpen && (
+                <button
+                  type="button"
+                  onClick={() => setMobileSheetOpen(true)}
+                  className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-amber-500 hover:bg-amber-400 text-black shadow-lg shadow-amber-500/20 flex items-center justify-center transition-all hover:scale-105"
+                  style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
+                  title="Open Mylane"
+                >
+                  <MessageCircle className="h-6 w-6" />
+                </button>
+              )}
+              <MylaneMobileSheet
+                isOpen={mobileSheetOpen}
+                onClose={() => setMobileSheetOpen(false)}
+                currentUser={currentUser}
+                onMessage={(msg) => agentMessageRef.current?.(msg)}
+                workspaceProfiles={{
+                  fieldService: fieldServiceProfiles,
+                  finance: financeProfiles,
+                  teams: allTeams,
+                  propertyMgmt: propertyMgmtProfiles,
+                  isAdmin: currentUser?.role === 'admin',
+                }}
+              />
+            </>
+          ) : (
+            /* Desktop: resizable side panel */
+            <div className="h-[calc(100vh-88px)]">
+              <MylanePanel
+                currentUser={currentUser}
+                onMessage={(msg) => agentMessageRef.current?.(msg)}
+                workspaceProfiles={{
+                  fieldService: fieldServiceProfiles,
+                  finance: financeProfiles,
+                  teams: allTeams,
+                  propertyMgmt: propertyMgmtProfiles,
+                  isAdmin: currentUser?.role === 'admin',
+                }}
+                isCollapsed={mylaneCollapsed}
+                onToggle={(collapsed) => {
+                  setMylaneCollapsed(collapsed);
+                  try { localStorage.setItem('mylane_panel_collapsed', String(collapsed)); } catch {}
+                }}
+              >
+                <div className="max-w-5xl mx-auto px-6 pt-8 pb-4">
+                  <MyLaneSurface
+                    currentUser={currentUser}
+                    financeProfiles={financeProfiles}
+                    fieldServiceProfiles={fieldServiceProfiles}
+                    allTeams={allTeams}
+                    propertyMgmtProfiles={propertyMgmtProfiles}
+                    agentMessageRef={agentMessageRef}
+                  />
+                </div>
+              </MylanePanel>
+            </div>
+          )
         ) : (
         <>
         {/* Business Grid - "The Pro Section" */}
