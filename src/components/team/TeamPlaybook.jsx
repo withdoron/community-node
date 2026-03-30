@@ -325,6 +325,25 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
                   {side === 'defense' ? 'Add your first defensive play' : 'Add your first play'}
                 </button>
               )}
+              {/* Temporary seed button — defense plays for coaches meeting */}
+              {isCoach && side === 'defense' && playbookForSide.length < 5 && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const { seedDefensePlays } = await import('@/scripts/seedDefensePlays');
+                      const results = await seedDefensePlays(team?.id, currentUserId);
+                      queryClient.invalidateQueries({ queryKey: ['plays', team?.id] });
+                      toast.success(`${results.filter((r) => !r.error).length} defense plays seeded!`);
+                    } catch (err) {
+                      toast.error('Seed failed: ' + (err?.message || 'Unknown error'));
+                    }
+                  }}
+                  className="mt-3 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-lg font-semibold min-h-[44px] transition-colors"
+                >
+                  Seed Basic Defenses
+                </button>
+              )}
             </div>
           ) : (
             Object.entries(playbookByFormation).map(([formation, formationPlays]) => (
