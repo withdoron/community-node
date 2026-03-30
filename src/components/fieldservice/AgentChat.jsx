@@ -192,19 +192,30 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
   const [attachment, setAttachment] = useState(null); // { file, previewUrl, type }
   const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
   const unsubscribeRef = useRef(null);
   const firstMessageRef = useRef(null); // track first user message for history
+  const userScrolledUpRef = useRef(false);
 
-  // ─── Scroll to bottom on new messages ──────────
-  const scrollToBottom = useCallback(() => {
+  // ─── Smart scroll — don't auto-scroll if user scrolled up ──
+  const scrollToBottom = useCallback((force = false) => {
+    if (!force && userScrolledUpRef.current) return;
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
+
+  // Detect user scroll position
+  const handleMessagesScroll = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    userScrolledUpRef.current = distFromBottom > 80;
+  }, []);
 
   // ─── Focus input when panel opens ──────────────
   useEffect(() => {
@@ -465,9 +476,11 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
         firstMessageRef.current = messageText;
       }
 
-      // Optimistic: add user message immediately
+      // Optimistic: add user message immediately and force scroll
       const userMsg = { role: 'user', content: messageText, id: `temp_${Date.now()}` };
       setMessages((prev) => [...prev, userMsg]);
+      userScrolledUpRef.current = false;
+      setTimeout(() => scrollToBottom(true), 50);
 
       try {
         await base44.agents.addMessage(conversationObj, {
@@ -556,7 +569,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
     });
   }, [workspaceProfiles]);
 
-  const showChips = !inputValue.trim() && !attachment && !showHistory && messages.length > 0 && availableChips.length > 0;
+  const showChips = !inputValue.trim() && !attachment && !showHistory && !isLoading && availableChips.length > 0;
 
   if (!isOpen) return null;
 
@@ -656,7 +669,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
         ) : (
           <>
             {/* Messages */}
-            <div className={`flex-1 overflow-y-auto px-4 py-3 space-y-3 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent ${docked ? 'min-h-0' : 'min-h-[200px]'}`}>
+            <div ref={messagesContainerRef} onScroll={handleMessagesScroll} className={`flex-1 overflow-y-auto px-4 py-3 space-y-3 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent ${docked ? 'min-h-0' : 'min-h-[200px]'}`}>
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
@@ -729,7 +742,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
             {/* Quick-action chips */}
             {showChips && (
               <div className="px-3 pt-2 flex-shrink-0">
-                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
                   {availableChips.map((chip) => (
                     <button
                       key={chip.label}
@@ -770,7 +783,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
             )}
 
             {/* Input bar */}
-            <div className="flex items-center gap-2 px-3 py-3 border-t border-slate-800 flex-shrink-0">
+            <div className="flex items-center gap-2 px-3 py-3 border-t border-slate-800 flex-shrink-0" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
               {/* File upload button */}
               <button
                 type="button"
@@ -793,8 +806,20 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
                 onChange={handleFileSelect}
               />
 
-              {/* Voice button — hidden if not supported */}
-              {voiceSupported && (
+              {/* Text input */}
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={isListening ? 'Listening...' : 'Type a message...'}
+                disabled={isLoading || !conversationObj}
+                className="flex-1 min-h-[44px] px-3.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-amber-500 disabled:opacity-50"
+              />
+
+              {/* Voice button — shows when input empty, hides when typing (saves mobile space) */}
+              {voiceSupported && !inputValue.trim() && !attachment && (
                 <button
                   type="button"
                   onClick={isListening ? stopListening : startListening}
@@ -808,18 +833,6 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
                   {isListening ? <MicOff className="h-4.5 w-4.5" /> : <Mic className="h-4.5 w-4.5" />}
                 </button>
               )}
-
-              {/* Text input */}
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={isListening ? 'Listening...' : 'Type a message...'}
-                disabled={isLoading || !conversationObj}
-                className="flex-1 min-h-[44px] px-3.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-amber-500 disabled:opacity-50"
-              />
 
               {/* Send button */}
               <button
