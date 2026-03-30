@@ -1,6 +1,6 @@
 /**
  * Seed 4 defense plays for Coach Rick's team.
- * Uses the same manageTeamPlay server function as the play creation UI.
+ * Uses direct entity creation (client SDK) — runs as the authenticated user.
  * Creates visual renderer plays with position coordinates from formation defaults.
  */
 import { base44 } from '@/api/base44Client';
@@ -69,54 +69,49 @@ const PLAYS = [
 ];
 
 export async function seedDefensePlays(teamId, createdBy) {
-  const invoke = (args) =>
-    base44.functions.invoke('manageTeamPlay', { ...args, team_id: teamId });
-
-  console.log('Seeding 4 defense plays (visual renderer)...');
+  console.log('Seeding 4 defense plays (direct entity creation)...');
   const results = [];
 
   for (const play of PLAYS) {
     try {
-      const created = await invoke({
-        action: 'create',
-        entity_type: 'play',
-        data: {
-          team_id: teamId,
-          side: play.side,
-          name: play.name,
-          formation: play.formation,
-          coach_notes: play.coach_notes,
-          game_day: play.game_day,
-          tags: play.tags,
-          status: 'active',
-          created_by: createdBy,
-          use_renderer: true,
-        },
+      const created = await base44.entities.Play.create({
+        team_id: teamId,
+        side: play.side,
+        name: play.name,
+        formation: play.formation,
+        coach_notes: play.coach_notes,
+        game_day: play.game_day,
+        tags: play.tags,
+        status: 'active',
+        created_by: createdBy,
+        use_renderer: true,
       });
 
       const playId = created.id;
       console.log(`Created play: ${play.name} (${playId})`);
 
+      let assignmentCount = 0;
       for (const a of play.assignments) {
-        await invoke({
-          action: 'create',
-          entity_type: 'play_assignment',
-          data: {
+        try {
+          await base44.entities.PlayAssignment.create({
             play_id: playId,
             position: a.position,
             start_x: a.start_x,
             start_y: a.start_y,
             movement_type: a.movement_type,
             assignment_text: a.assignment_text,
-          },
-        });
+          });
+          assignmentCount++;
+        } catch (aErr) {
+          console.error(`  Assignment failed (${a.position}):`, aErr?.message || aErr);
+        }
       }
 
-      console.log(`  → 5 assignments created`);
-      results.push({ name: play.name, id: playId, assignments: 5 });
+      console.log(`  → ${assignmentCount}/5 assignments created`);
+      results.push({ name: play.name, id: playId, assignments: assignmentCount });
     } catch (err) {
-      console.error(`Failed: ${play.name}:`, err);
-      results.push({ name: play.name, error: err.message });
+      console.error(`Failed: ${play.name}:`, err?.message || err);
+      results.push({ name: play.name, error: err?.message || 'Unknown error' });
     }
   }
 
