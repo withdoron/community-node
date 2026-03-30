@@ -325,8 +325,8 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
                   {side === 'defense' ? 'Add your first defensive play' : 'Add your first play'}
                 </button>
               )}
-              {/* Temporary seed button — defense plays for coaches meeting */}
-              {isCoach && side === 'defense' && playbookForSide.length < 5 && (
+              {/* Seed button — defense plays for coaches meeting */}
+              {isCoach && side === 'defense' && (
                 <button
                   type="button"
                   onClick={async () => {
