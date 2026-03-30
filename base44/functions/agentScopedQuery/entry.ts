@@ -76,14 +76,15 @@ function idMatch(a, b) {
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const body = await req.json();
-    const { action, user_id, workspace, entity, filters = {} } = body;
+    var base44 = createClientFromRequest(req);
+    var body = await req.json();
+    var action = body.action;
+    var user_id = body.user_id; // optional — fallback for MCP calls
+    var workspace = body.workspace;
+    var entity = body.entity;
+    var filters = body.filters || {};
 
     // Validate required parameters
-    if (!user_id || typeof user_id !== 'string' || user_id.trim() === '') {
-      return Response.json({ success: false, error: 'user_id is required' }, { status: 400 });
-    }
     if (action !== 'query') {
       return Response.json({ success: false, error: 'Only action "query" is supported' }, { status: 400 });
     }
@@ -91,118 +92,88 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'entity is required' }, { status: 400 });
     }
 
-    const config = ENTITY_CONFIG[entity];
+    var config = ENTITY_CONFIG[entity];
     if (!config) {
-      return Response.json({ success: false, error: `Unknown entity: ${entity}` }, { status: 400 });
+      return Response.json({ success: false, error: 'Unknown entity: ' + entity }, { status: 400 });
     }
 
-    const entities = base44.asServiceRole.entities;
+    var entities = base44.asServiceRole.entities;
+
+    // ── Resolve authenticated user ──
+    // Primary: auth.me() for in-app agent calls
+    // Fallback: user_id parameter for MCP calls
+    var resolvedUserId = null;
+    try {
+      var me = await base44.auth.me();
+      if (me && me.id) resolvedUserId = String(me.id);
+    } catch (e) {
+      // auth.me() failed — MCP fallback
+    }
+    if (!resolvedUserId && user_id) {
+      resolvedUserId = String(user_id);
+    }
+    if (!resolvedUserId) {
+      return Response.json({ success: false, error: 'Could not identify the authenticated user.' }, { status: 401 });
+    }
 
     // Platform entities — filter by their user field directly
     if (config.isPlatform) {
-      const all = await entities[entity].list();
-      let records = all.filter(r => idMatch(r[config.fkField], user_id));
+      var all = await entities[entity].list();
+      var records = all.filter(function(r) { return idMatch(r[config.fkField], resolvedUserId); });
       if (Object.keys(filters).length > 0) {
-        records = records.filter(r => Object.entries(filters).every(([k, v]) => r[k] === v));
+        records = records.filter(function(r) { return Object.entries(filters).every(function(e) { return r[e[0]] === e[1]; }); });
       }
-      return Response.json({ success: true, entity, workspace: 'platform', user_id, count: records.length, records });
+      return Response.json({ success: true, entity: entity, workspace: 'platform', user_id: resolvedUserId, count: records.length, records: records });
     }
 
     // Profile entities — query directly by user field
     if (config.isProfile || PROFILE_ENTITIES.has(entity)) {
-      const all = await entities[entity].list();
-      const uid = String(user_id);
-      let records = all.filter(r => idMatch(r[config.fkField], uid) || idMatch(r['user_id'], uid));
+      var profileAll = await entities[entity].list();
+      var profileRecords = profileAll.filter(function(r) { return idMatch(r[config.fkField], resolvedUserId) || idMatch(r['user_id'], resolvedUserId); });
       if (Object.keys(filters).length > 0) {
-        records = records.filter(r => Object.entries(filters).every(([k, v]) => r[k] === v));
+        profileRecords = profileRecords.filter(function(r) { return Object.entries(filters).every(function(e) { return r[e[0]] === e[1]; }); });
       }
 
-      // Debug envelope — temporary, helps trace comparison issues
-      const debug = {
-        path: 'profile',
-        totalListResults: all.length,
-        filterField: config.fkField,
-        userIdPassed: uid,
-        userIdType: typeof uid,
-        matchCount: records.length,
-      };
-      if (all.length > 0 && records.length === 0) {
-        const sample = all[0];
-        debug.sampleRecord = {
-          id: sample.id,
-          [config.fkField]: sample[config.fkField],
-          fkFieldType: typeof sample[config.fkField],
-          user_id: sample['user_id'],
-          userIdFieldType: typeof sample['user_id'],
-          name: sample['name'] || sample['title'] || '(no name)',
-        };
-        debug.strictEqualResult = sample[config.fkField] === uid;
-        debug.stringEqualResult = String(sample[config.fkField]) === uid;
-        // Show all records' fkField values for comparison
-        debug.allFkValues = all.map(r => ({ id: r.id, [config.fkField]: r[config.fkField], type: typeof r[config.fkField] }));
-      }
-
-      return Response.json({ success: true, entity, workspace: config.workspace, user_id, count: records.length, records, debug });
+      return Response.json({ success: true, entity: entity, workspace: config.workspace, user_id: resolvedUserId, count: profileRecords.length, records: profileRecords });
     }
 
     // Non-profile entities — find profile first, then scope
-    const profileWorkspace = workspace || config.workspace;
-    const profileMapping = WORKSPACE_PROFILE_MAP[profileWorkspace];
+    var profileWorkspace = workspace || config.workspace;
+    var profileMapping = WORKSPACE_PROFILE_MAP[profileWorkspace];
     if (!profileMapping) {
-      return Response.json({ success: false, error: `Unknown workspace: ${profileWorkspace}` }, { status: 400 });
+      return Response.json({ success: false, error: 'Unknown workspace: ' + profileWorkspace }, { status: 400 });
     }
 
-    const allProfiles = await entities[profileMapping.entity].list();
-    const uid = String(user_id);
-    const userProfiles = allProfiles.filter(p => idMatch(p[profileMapping.userField], uid));
+    var allProfiles = await entities[profileMapping.entity].list();
+    var userProfiles = allProfiles.filter(function(p) { return idMatch(p[profileMapping.userField], resolvedUserId); });
 
     if (userProfiles.length === 0) {
-      // Debug: why no profile matched
-      const debug = {
-        path: 'non-profile-no-match',
-        profileEntity: profileMapping.entity,
-        profileUserField: profileMapping.userField,
-        totalProfiles: allProfiles.length,
-        userIdPassed: uid,
-      };
-      if (allProfiles.length > 0) {
-        const sample = allProfiles[0];
-        debug.sampleProfile = {
-          id: sample.id,
-          [profileMapping.userField]: sample[profileMapping.userField],
-          fieldType: typeof sample[profileMapping.userField],
-          name: sample['name'] || sample['title'] || '(no name)',
-        };
-        debug.strictEqualResult = sample[profileMapping.userField] === uid;
-        debug.stringEqualResult = String(sample[profileMapping.userField]) === uid;
-      }
       return Response.json({
-        success: true, entity, workspace: profileWorkspace,
-        user_id,
+        success: true, entity: entity, workspace: profileWorkspace,
+        user_id: resolvedUserId,
         count: 0, records: [],
         message: 'No workspace found for this user',
-        debug,
       });
     }
 
-    const profileIds = userProfiles.map(p => String(p.id));
-    const primaryProfileId = profileIds[0];
+    var profileIds = userProfiles.map(function(p) { return String(p.id); });
+    var primaryProfileId = profileIds[0];
 
-    const allRecords = await entities[entity].list();
-    let records = allRecords.filter(r => profileIds.some(pid => idMatch(r[config.fkField], pid)));
+    var allRecords = await entities[entity].list();
+    var scopedRecords = allRecords.filter(function(r) { return profileIds.some(function(pid) { return idMatch(r[config.fkField], pid); }); });
 
     if (Object.keys(filters).length > 0) {
-      records = records.filter(r => Object.entries(filters).every(([k, v]) => r[k] === v));
+      scopedRecords = scopedRecords.filter(function(r) { return Object.entries(filters).every(function(e) { return r[e[0]] === e[1]; }); });
     }
 
     return Response.json({
       success: true,
-      entity,
+      entity: entity,
       workspace: profileWorkspace,
-      user_id,
+      user_id: resolvedUserId,
       profile_id: primaryProfileId,
-      count: records.length,
-      records,
+      count: scopedRecords.length,
+      records: scopedRecords,
     });
 
   } catch (error) {
