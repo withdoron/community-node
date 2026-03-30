@@ -21,7 +21,9 @@ import {
   DEFAULT_FORMAT,
   TAG_OPTIONS,
   FORMATION_OPTIONS,
+  DEFENSE_FORMATION_OPTIONS,
   PHOTO_MODE_ROUTES,
+  PHOTO_MODE_DEFENSE_ROUTES,
 } from '@/config/flagFootball';
 
 const SIDES = [{ value: 'offense', label: 'Offense' }, { value: 'defense', label: 'Defense' }];
@@ -44,7 +46,8 @@ export default function PlayCreateModal({
   const [mode, setMode] = useState('visual'); // 'visual' | 'photo'
   const [photoModeConfirm, setPhotoModeConfirm] = useState(false);
 
-  const positions = getPositionsForFormat(teamFormat || DEFAULT_FORMAT).map((p) => p.id);
+  const getPositions = (side) => getPositionsForFormat(teamFormat || DEFAULT_FORMAT, side).map((p) => p.id);
+  const positions = getPositions(form?.side || defaultSide);
 
   const initialAssignments = () => Object.fromEntries(positions.map((p) => [p, { route: '', assignment_text: '' }]));
 
@@ -94,12 +97,17 @@ export default function PlayCreateModal({
   useEffect(() => {
     if (!open) return;
     if (editPlay) {
-      const isCustomFormation = !FORMATION_OPTIONS.slice(0, -1).includes(editPlay.formation);
+      const editSide = editPlay.side ?? 'offense';
+      const knownFormations = editSide === 'defense'
+        ? DEFENSE_FORMATION_OPTIONS.slice(0, -1)
+        : FORMATION_OPTIONS.slice(0, -1);
+      const isCustomFormation = !knownFormations.includes(editPlay.formation);
+      const defaultFormation = editSide === 'defense' ? 'Man-to-Man' : 'Spread';
       setForm({
-        side: editPlay.side ?? 'offense',
+        side: editSide,
         name: editPlay.name ?? '',
         nickname: editPlay.nickname ?? '',
-        formation: isCustomFormation ? 'Custom' : (editPlay.formation ?? 'Spread'),
+        formation: isCustomFormation ? 'Custom' : (editPlay.formation ?? defaultFormation),
         formation_custom: isCustomFormation ? (editPlay.formation || '') : '',
         diagram_image: editPlay.diagram_image ?? '',
         is_mirrorable: editPlay.is_mirrorable ?? false,
@@ -334,7 +342,14 @@ export default function PlayCreateModal({
               <button
                 key={s.value}
                 type="button"
-                onClick={() => setForm((f) => ({ ...f, side: s.value }))}
+                onClick={() => {
+                  if (form.side === s.value) return;
+                  const defaultFormation = s.value === 'defense' ? 'Man-to-Man' : 'Spread';
+                  setForm((f) => ({ ...f, side: s.value, formation: defaultFormation, formation_custom: '' }));
+                  // Reset assignments for new side's positions
+                  const newPositions = getPositions(s.value);
+                  setAssignments(Object.fromEntries(newPositions.map((p) => [p, { route: '', assignment_text: '' }])));
+                }}
                 className={`py-2 rounded-lg text-sm font-medium transition-colors ${
                   form.side === s.value
                     ? 'bg-amber-500 text-black'
@@ -373,7 +388,7 @@ export default function PlayCreateModal({
               onChange={(e) => setForm((f) => ({ ...f, formation: e.target.value }))}
               className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1 min-h-[44px]"
             >
-              {FORMATION_OPTIONS.map((f) => (
+              {(form.side === 'defense' ? DEFENSE_FORMATION_OPTIONS : FORMATION_OPTIONS).map((f) => (
                 <option key={f} value={f}>{f}</option>
               ))}
             </select>
@@ -483,8 +498,8 @@ export default function PlayCreateModal({
                       onChange={(e) => setAssignments((a) => ({ ...a, [pos]: { ...a[pos], route: e.target.value } }))}
                       className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-white text-sm min-h-[40px]"
                     >
-                      <option value="">— Route —</option>
-                      {PHOTO_MODE_ROUTES.map((r) => (
+                      <option value="">{form.side === 'defense' ? '— Assignment —' : '— Route —'}</option>
+                      {(form.side === 'defense' ? PHOTO_MODE_DEFENSE_ROUTES : PHOTO_MODE_ROUTES).map((r) => (
                         <option key={r} value={r}>{r}</option>
                       ))}
                     </select>

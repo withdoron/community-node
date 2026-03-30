@@ -30,6 +30,13 @@ const formats = {
       { id: 'X', label: 'Left Receiver', shortLabel: 'X', color: '#3b82f6' },
       { id: 'Z', label: 'Right Receiver', shortLabel: 'Z', color: '#ef4444' },
     ],
+    defense_positions: [
+      { id: 'CB1', label: 'Cornerback 1', shortLabel: 'CB1', color: '#ef4444' },
+      { id: 'CB2', label: 'Cornerback 2', shortLabel: 'CB2', color: '#f97316' },
+      { id: 'S',   label: 'Safety',       shortLabel: 'S',   color: '#eab308' },
+      { id: 'LB',  label: 'Linebacker',   shortLabel: 'LB',  color: '#22c55e' },
+      { id: 'R',   label: 'Rusher',       shortLabel: 'R',   color: '#3b82f6' },
+    ],
   },
   '7v7': {
     playerCount: 7,
@@ -41,6 +48,15 @@ const formats = {
       { id: 'Z', label: 'Right Receiver', shortLabel: 'Z', color: '#ef4444' },
       { id: 'Y', label: 'Slot Receiver', shortLabel: 'Y', color: '#a855f7' },
       { id: 'TE', label: 'Tight End', shortLabel: 'TE', color: '#f97316' },
+    ],
+    defense_positions: [
+      { id: 'CB1', label: 'Cornerback 1', shortLabel: 'CB1', color: '#ef4444' },
+      { id: 'CB2', label: 'Cornerback 2', shortLabel: 'CB2', color: '#f97316' },
+      { id: 'S',   label: 'Safety',       shortLabel: 'S',   color: '#eab308' },
+      { id: 'LB',  label: 'Linebacker',   shortLabel: 'LB',  color: '#22c55e' },
+      { id: 'R',   label: 'Rusher',       shortLabel: 'R',   color: '#3b82f6' },
+      { id: 'NB',  label: 'Nickelback',   shortLabel: 'NB',  color: '#a855f7' },
+      { id: 'DE',  label: 'Defensive End', shortLabel: 'DE', color: '#ec4899' },
     ],
   },
 };
@@ -98,6 +114,68 @@ const formations = {
         Z:  { x: 72, y: 55 },
         Y:  { x: 75, y: 52 },
         TE: { x: 78, y: 55 },
+      },
+    },
+  },
+  defense: {
+    man_to_man: {
+      label: 'Man-to-Man',
+      description: 'Each defender covers one offensive player, one rusher',
+      coverage: 'man',
+      defaults: {
+        CB1: { x: 20, y: 45 },
+        CB2: { x: 80, y: 45 },
+        S:   { x: 50, y: 35 },
+        LB:  { x: 40, y: 42 },
+        R:   { x: 55, y: 48 },
+      },
+    },
+    cover_1: {
+      label: 'Cover 1',
+      description: 'Three man-coverage, one deep safety, one rusher',
+      coverage: 'man',
+      defaults: {
+        CB1: { x: 15, y: 45 },
+        CB2: { x: 85, y: 45 },
+        S:   { x: 50, y: 25 },
+        LB:  { x: 50, y: 42 },
+        R:   { x: 55, y: 48 },
+      },
+    },
+    cover_2: {
+      label: 'Cover 2',
+      description: 'Two cornerbacks wide, two safeties deep, one rusher',
+      coverage: 'zone',
+      defaults: {
+        CB1: { x: 15, y: 40 },
+        CB2: { x: 85, y: 40 },
+        S:   { x: 35, y: 25 },
+        LB:  { x: 65, y: 25 },
+        R:   { x: 50, y: 48 },
+      },
+    },
+    cover_3: {
+      label: 'Cover 3',
+      description: 'Five zones — two mid, three deep thirds. No rusher.',
+      coverage: 'zone',
+      defaults: {
+        CB1: { x: 25, y: 38 },
+        CB2: { x: 75, y: 38 },
+        S:   { x: 50, y: 20 },
+        LB:  { x: 20, y: 20 },
+        R:   { x: 80, y: 20 },
+      },
+    },
+    blitz: {
+      label: 'Blitz',
+      description: 'Two rushers, three man-coverage defenders',
+      coverage: 'man',
+      defaults: {
+        CB1: { x: 20, y: 45 },
+        CB2: { x: 80, y: 45 },
+        S:   { x: 50, y: 35 },
+        LB:  { x: 40, y: 48 },
+        R:   { x: 55, y: 48 },
       },
     },
   },
@@ -376,17 +454,48 @@ const POSITION_ROUTES = {
 // Legacy export — full receiver route list (kept for backward compat)
 const OFFENSE_ROUTES = RECEIVER_ROUTES;
 
+// ——— Defense Routes ———
+const DEFENSE_ROUTES = [
+  { id: 'man_coverage', label: 'Man Coverage' },
+  { id: 'zone_coverage', label: 'Zone Coverage' },
+  { id: 'blitz_rush', label: 'Blitz' },
+  { id: 'spy', label: 'Spy' },
+  { id: 'custom', label: 'Custom' },
+];
+
+const DEFENSE_POSITION_ROUTES = {
+  CB1: DEFENSE_ROUTES,
+  CB2: DEFENSE_ROUTES,
+  S:   DEFENSE_ROUTES,
+  LB:  DEFENSE_ROUTES,
+  R:   [
+    { id: 'blitz_rush', label: 'Blitz' },
+    { id: 'spy', label: 'Spy' },
+    { id: 'custom', label: 'Custom' },
+  ],
+  NB: DEFENSE_ROUTES,
+  DE: [
+    { id: 'blitz_rush', label: 'Blitz' },
+    { id: 'spy', label: 'Spy' },
+    { id: 'custom', label: 'Custom' },
+  ],
+};
+
 const DEFAULT_FORMAT = '5v5';
 
 // ——— Helpers ———
-function getPositionsForFormat(formatId) {
-  return formats[formatId]?.positions ?? formats[DEFAULT_FORMAT].positions;
+function getPositionsForFormat(formatId, side = 'offense') {
+  const fmt = formats[formatId] ?? formats[DEFAULT_FORMAT];
+  if (side === 'defense') return fmt.defense_positions ?? [];
+  return fmt.positions ?? [];
 }
 
-function getFormationDefaults(formationId, formatId) {
-  const formation = formations.offense[formationId];
+function getFormationDefaults(formationId, formatId, side = 'offense') {
+  const sideFormations = formations[side];
+  if (!sideFormations) return {};
+  const formation = sideFormations[formationId];
   if (!formation) return {};
-  const positionIds = getPositionsForFormat(formatId).map((p) => p.id);
+  const positionIds = getPositionsForFormat(formatId, side).map((p) => p.id);
   const result = {};
   for (const id of positionIds) {
     if (formation.defaults[id]) result[id] = formation.defaults[id];
@@ -396,9 +505,10 @@ function getFormationDefaults(formationId, formatId) {
 
 /**
  * Get the route menu for a given position ID.
- * Falls back to receiver routes for unknown/custom positions.
+ * Falls back to receiver routes for offense, defense routes for defense positions.
  */
 function getRoutesForPosition(positionId) {
+  if (DEFENSE_POSITION_ROUTES[positionId]) return DEFENSE_POSITION_ROUTES[positionId];
   return POSITION_ROUTES[positionId] || RECEIVER_ROUTES;
 }
 
@@ -664,13 +774,16 @@ const TAG_OPTIONS = [
 
 // ——— Formation options for photo mode ———
 const FORMATION_OPTIONS = ['Spread', 'Trips', 'Twins', 'Bunch/Stack', 'Custom'];
+const DEFENSE_FORMATION_OPTIONS = ['Man-to-Man', 'Cover 1', 'Cover 2', 'Cover 3', 'Blitz', 'Custom'];
 
 // ——— Route options for photo mode (broader than visual builder) ———
 const PHOTO_MODE_ROUTES = [
   'Fly', 'Slant', 'Out', 'In', 'Curl', 'Post', 'Corner', 'Flat', 'Fade',
   'Block', 'Snap', 'Handoff',
-  'Man Coverage', 'Zone Coverage', 'Spy', 'Blitz',
   'Custom',
+];
+const PHOTO_MODE_DEFENSE_ROUTES = [
+  'Man Coverage', 'Zone Coverage', 'Blitz', 'Spy', 'Custom',
 ];
 
 // ——— Supported team formats ———
@@ -698,6 +811,8 @@ export {
   OFFENSE_ROUTES,
   POSITION_ROUTES,
   RECEIVER_ROUTES,
+  DEFENSE_ROUTES,
+  DEFENSE_POSITION_ROUTES,
   DEFAULT_FORMAT,
   CUSTOM_POSITION_COLORS,
   getPositionsForFormat,
@@ -713,6 +828,8 @@ export {
   // Shared constants (single source of truth)
   TAG_OPTIONS,
   FORMATION_OPTIONS,
+  DEFENSE_FORMATION_OPTIONS,
   PHOTO_MODE_ROUTES,
+  PHOTO_MODE_DEFENSE_ROUTES,
   FORMAT_OPTIONS,
 };

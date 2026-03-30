@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Plus, BookOpen, Monitor, Zap, Lightbulb, Star, Printer } from 'lucide-react';
+import { Plus, BookOpen, Monitor, Zap, Lightbulb, Star, Printer, Scale } from 'lucide-react';
 import { toast } from 'sonner';
 import PlayCard from './PlayCard';
 import PlayDetail from './PlayDetail';
@@ -12,6 +12,7 @@ import QuizMode from './QuizMode';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import PrintPlaybookModal from './PrintPlaybookModal';
 import PrintPlaybook from './PrintPlaybook';
+import RulesReference from './RulesReference';
 
 // Helper: group plays by formation
 function groupByFormation(plays) {
@@ -39,6 +40,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
   const [archiveConfirmPlay, setArchiveConfirmPlay] = useState(null);
   const [printModalOpen, setPrintModalOpen] = useState(false);
   const [printConfig, setPrintConfig] = useState(null);
+  const [rulesOpen, setRulesOpen] = useState(false);
 
   // Fetch ALL plays for the team (split by status client-side)
   const { data: plays = [] } = useQuery({
@@ -261,6 +263,14 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
             <span className="hidden sm:inline">Print</span>
           </button>
         )}
+        <button
+          type="button"
+          onClick={() => setRulesOpen(true)}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+        >
+          <Scale className="h-4 w-4" />
+          <span className="hidden sm:inline">Rules</span>
+        </button>
       </div>
 
       {/* ═══ SECTION 1: Game Day ═══ */}
@@ -301,14 +311,18 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
         <div className="space-y-6">
           {playbookForSide.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-slate-500">No {side} plays yet.</p>
+              <p className="text-slate-500">
+                {side === 'defense'
+                  ? 'No defensive plays yet. Tap + to add your first defense.'
+                  : 'No offense plays yet.'}
+              </p>
               {isCoach && (
                 <button
                   type="button"
                   onClick={openPlaybookCreate}
                   className="mt-4 text-amber-500 hover:text-amber-400 font-medium"
                 >
-                  Add your first play
+                  {side === 'defense' ? 'Add your first defensive play' : 'Add your first play'}
                 </button>
               )}
             </div>
@@ -510,6 +524,11 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           assignmentsByPlayId={assignmentsByPlayId}
           onClose={() => setPrintConfig(null)}
         />
+      )}
+
+      {/* Rules Reference overlay */}
+      {rulesOpen && (
+        <RulesReference onClose={() => setRulesOpen(false)} />
       )}
     </div>
   );
