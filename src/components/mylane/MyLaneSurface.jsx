@@ -227,6 +227,13 @@ export default function MyLaneSurface({
                 onClose={() => setChatExpanded(false)}
                 docked={true}
                 onMessage={handleAgentMessage}
+                workspaceProfiles={{
+                  fieldService: fieldServiceProfiles,
+                  finance: financeProfiles,
+                  teams: allTeams,
+                  propertyMgmt: propertyMgmtProfiles,
+                  isAdmin: currentUser?.role === 'admin',
+                }}
               />
             </div>
           </div>
