@@ -69,7 +69,7 @@ export default function StudyMode({
   }, [play?.id]);
 
   const playAssignments = currentAssignments;
-  const positionOrder = getPositionsForFormat(teamFormat || DEFAULT_FORMAT).map((p) => p.id);
+  const positionOrder = getPositionsForFormat(teamFormat || DEFAULT_FORMAT, play?.side || 'offense').map((p) => p.id);
   const sortedAssignments = [...playAssignments].sort(
     (a, b) => {
       const ai = positionOrder.indexOf((a.position || '').toUpperCase());

@@ -41,7 +41,8 @@ export default function PlayRenderer({
 
   // Build position config map (base + custom)
   const formatId = play.format || DEFAULT_FORMAT;
-  const configPositions = getPositionsForFormat(formatId);
+  const playSide = play.side || 'offense';
+  const configPositions = getPositionsForFormat(formatId, playSide);
   const configMap = Object.fromEntries(configPositions.map((p) => [p.id, p]));
 
   // Merge in custom positions from play

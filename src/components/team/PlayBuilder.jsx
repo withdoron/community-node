@@ -23,7 +23,7 @@ import {
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
 const viewBox = FLAG_FOOTBALL.field.viewBox;
-const offenseFormations = FLAG_FOOTBALL.formations.offense;
+const allFormations = FLAG_FOOTBALL.formations;
 
 /**
  * Visual Play Builder — coach places positions on an SVG field,
@@ -38,15 +38,25 @@ export default function PlayBuilder({
   currentUserId,
   initialStatus = 'active',
   createdByName,
+  defaultSide = 'offense',
 }) {
   const formatId = team?.format || DEFAULT_FORMAT;
-  const configPositions = getPositionsForFormat(formatId);
+  const [side, setSide] = useState(initialPlay?.side || defaultSide);
+  const configPositions = getPositionsForFormat(formatId, side);
+  const sideFormations = allFormations[side] || allFormations.offense;
+  const defaultFormation = side === 'defense' ? 'man_to_man' : 'spread';
 
   // ——— State ———
   const [playName, setPlayName] = useState(initialPlay?.name || '');
-  const [formation, setFormation] = useState(
-    initialPlay?.formation?.toLowerCase() || 'spread'
-  );
+  const [formation, setFormation] = useState(() => {
+    if (initialPlay?.formation) {
+      // Try to match formation label to a key in the side's formations
+      const label = initialPlay.formation;
+      const entry = Object.entries(sideFormations).find(([, f]) => f.label === label);
+      return entry ? entry[0] : label.toLowerCase().replace(/[\s-]+/g, '_');
+    }
+    return defaultFormation;
+  });
   const [gameDayFlag, setGameDayFlag] = useState(initialPlay?.game_day || false);
   const [isMirrorable, setIsMirrorable] = useState(
     initialPlay?.is_mirrorable || false
@@ -77,7 +87,7 @@ export default function PlayBuilder({
       if (Object.keys(map).length > 0) return map;
     }
     // New play: load formation defaults
-    return buildPositionsFromFormation('spread', formatId, configPositions);
+    return buildPositionsFromFormation(defaultFormation, formatId, configPositions, side);
   });
 
   // Route state: { [positionId]: { movementType, routePath, assignmentText, segments } }
@@ -150,14 +160,14 @@ export default function PlayBuilder({
     (fId) => {
       setFormation(fId);
       setPositions(
-        buildPositionsFromFormation(fId, formatId, configPositions)
+        buildPositionsFromFormation(fId, formatId, configPositions, side)
       );
       setRoutes({});
       setSelectedPosition(null);
       setIsDrawingRoute(false);
       setFormationChangeConfirm(null);
     },
-    [formatId, configPositions]
+    [formatId, configPositions, side]
   );
 
   const handleFormationChange = useCallback(
@@ -367,12 +377,12 @@ export default function PlayBuilder({
     setSaving(true);
     try {
       const formationLabel =
-        offenseFormations[formation]?.label || formation;
+        sideFormations[formation]?.label || formation;
 
       const playPayload = {
         team_id: team.id,
         name: playName.trim(),
-        side: 'offense',
+        side,
         formation: formationLabel,
         use_renderer: true,
         is_mirrorable: isMirrorable,
@@ -476,8 +486,8 @@ export default function PlayBuilder({
       setSaving(false);
     }
   }, [
-    playName, positions, routes, formation, isMirrorable, gameDayFlag,
-    coachNotes, tags, customPositions, team, initialPlay, currentUserId, onSave,
+    playName, positions, routes, formation, side, isMirrorable, gameDayFlag,
+    coachNotes, tags, customPositions, team, initialPlay, currentUserId, onSave, sideFormations,
   ]);
 
   // ——— Render ———
@@ -488,6 +498,33 @@ export default function PlayBuilder({
 
   return (
     <div className="space-y-4 pb-4">
+      {/* Side toggle */}
+      <div className="flex gap-2 p-1 bg-slate-800 rounded-xl">
+        {['offense', 'defense'].map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => {
+              if (s === side) return;
+              setSide(s);
+              const newPositions = getPositionsForFormat(formatId, s);
+              const newFormations = allFormations[s] || allFormations.offense;
+              const newDefault = s === 'defense' ? 'man_to_man' : 'spread';
+              setFormation(newDefault);
+              setPositions(buildPositionsFromFormation(newDefault, formatId, newPositions, s));
+              setRoutes({});
+              setSelectedPosition(null);
+              setIsDrawingRoute(false);
+            }}
+            className={`flex-1 py-2.5 text-center font-bold rounded-lg transition-colors min-h-[44px] text-sm ${
+              side === s ? 'bg-amber-500 text-black' : 'text-slate-400 bg-transparent hover:bg-slate-700'
+            }`}
+          >
+            {s === 'offense' ? 'Offense' : 'Defense'}
+          </button>
+        ))}
+      </div>
+
       {/* Play name */}
       <div>
         <Input
@@ -504,7 +541,7 @@ export default function PlayBuilder({
           Formation
         </p>
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {Object.entries(offenseFormations).map(([fId, f]) => (
+          {Object.entries(sideFormations).map(([fId, f]) => (
             <button
               key={fId}
               type="button"
@@ -806,7 +843,7 @@ export default function PlayBuilder({
         open={!!formationChangeConfirm}
         onOpenChange={(open) => { if (!open) setFormationChangeConfirm(null); }}
         title="Change formation?"
-        description={`Reset positions to ${offenseFormations[formationChangeConfirm]?.label || formationChangeConfirm} defaults? Route assignments will be cleared.`}
+        description={`Reset positions to ${sideFormations[formationChangeConfirm]?.label || formationChangeConfirm} defaults? Route assignments will be cleared.`}
         confirmLabel="Reset"
         destructive
         onConfirm={() => applyFormationChange(formationChangeConfirm)}
@@ -816,8 +853,8 @@ export default function PlayBuilder({
 }
 
 // ——— Helper ———
-function buildPositionsFromFormation(formationId, formatId, configPositions) {
-  const defaults = getFormationDefaults(formationId, formatId);
+function buildPositionsFromFormation(formationId, formatId, configPositions, side = 'offense') {
+  const defaults = getFormationDefaults(formationId, formatId, side);
   const map = {};
   configPositions.forEach((p) => {
     if (defaults[p.id]) {

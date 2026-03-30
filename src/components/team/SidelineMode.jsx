@@ -15,7 +15,8 @@ export default function SidelineMode({
   const [positionOverlay, setPositionOverlay] = useState(null);
   const [touchStart, setTouchStart] = useState(null);
 
-  const positions = getPositionsForFormat(teamFormat || DEFAULT_FORMAT).map((p) => p.id);
+  const sideFromPlays = plays[0]?.side || 'offense';
+  const positions = getPositionsForFormat(teamFormat || DEFAULT_FORMAT, sideFromPlays).map((p) => p.id);
 
   const filteredPlays = React.useMemo(() => {
     let list = plays;

@@ -323,6 +323,7 @@ export default function PlayCreateModal({
               currentUserId={createdBy}
               initialStatus={editPlay ? (editPlay.status || 'active') : initialStatus}
               createdByName={createdByName}
+              defaultSide={editPlay?.side || form.side || defaultSide}
               onSave={() => {
                 queryClient.invalidateQueries({ queryKey: ['plays', teamId] });
                 onOpenChange(false);

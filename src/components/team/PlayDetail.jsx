@@ -25,7 +25,8 @@ export default function PlayDetail({
   const [mirrored, setMirrored] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const tags = parseTags(play?.tags);
-  const positionOrder = getPositionsForFormat(teamFormat || DEFAULT_FORMAT).map((p) => p.id);
+  const playSide = play?.side || 'offense';
+  const positionOrder = getPositionsForFormat(teamFormat || DEFAULT_FORMAT, playSide).map((p) => p.id);
   const sortedAssignments = [...assignments].sort(
     (a, b) => {
       const ai = positionOrder.indexOf(a.position);
