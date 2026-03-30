@@ -139,20 +139,26 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
 
   const deleteMutation = useMutation({
     mutationFn: async (play) => {
-      const assignments = await base44.entities.PlayAssignment.filter({ play_id: play.id });
-      const assignmentList = Array.isArray(assignments) ? assignments : [];
+      // Fetch assignments — swallow errors (may be rate limited or already gone)
+      let assignmentList = [];
+      try {
+        const assignments = await base44.entities.PlayAssignment.filter({ play_id: play.id });
+        assignmentList = Array.isArray(assignments) ? assignments : [];
+      } catch { /* rate limit or network error — proceed to delete play anyway */ }
+
+      // Delete assignments one by one, ignore failures (404 = already gone)
       for (const a of assignmentList) {
-        try {
-          await base44.entities.PlayAssignment.delete(a.id);
-        } catch {
-          // Fallback to server function if direct delete fails
-          await invoke({ action: 'delete', entity_type: 'play_assignment', entity_id: a.id });
-        }
+        try { await base44.entities.PlayAssignment.delete(a.id); } catch { /* ignore */ }
       }
+
+      // Delete the play itself — try direct first, fallback to server function
       try {
         await base44.entities.Play.delete(play.id);
-      } catch {
-        await invoke({ action: 'delete', entity_type: 'play', entity_id: play.id });
+      } catch (directErr) {
+        // Only fallback if it wasn't a 404 (already deleted)
+        if (directErr?.status !== 404 && !directErr?.message?.includes('404')) {
+          await invoke({ action: 'delete', entity_type: 'play', entity_id: play.id });
+        }
       }
     },
     onSuccess: () => {
