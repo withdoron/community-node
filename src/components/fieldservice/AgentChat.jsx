@@ -13,14 +13,30 @@
  */
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import { X, Send, Loader2, Mic, MicOff, Bot, Plus, Clock, Paperclip, FileText, ArrowLeft } from 'lucide-react';
+import { X, Send, Loader2, Mic, MicOff, Bot, Plus, Clock, Paperclip, FileText, ArrowLeft, Pencil, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { parseRenderInstruction } from '@/components/mylane/parseRenderInstruction';
+import ConfirmationCard from '@/components/mylane/ConfirmationCard';
 
 // ─── Constants ──────────────────────────────────
 const HISTORY_STORAGE_KEY = 'agent_conversation_history';
 const MAX_HISTORY_ENTRIES = 20;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/heic', 'application/pdf'];
+
+// ─── Quick-Action Chip Definitions ──────────────
+const CHIP_DEFS = [
+  { label: '+ Client',              message: 'I want to add a new field service client',    workspace: 'field-service', write: true },
+  { label: '+ Estimate',            message: 'I want to create a new estimate',             workspace: 'field-service', write: true },
+  { label: 'Log Receipt',           message: 'I want to log a receipt',                     workspace: 'field-service', write: true },
+  { label: 'Log Expense',           message: 'I want to log an expense',                    workspace: 'finance',       write: true },
+  { label: 'Log Income',            message: 'I want to log income',                        workspace: 'finance',       write: true },
+  { label: 'Add Player',            message: 'I want to add a player to the team',          workspace: 'team',          write: true },
+  { label: '+ Property',            message: 'I want to add a new property',                workspace: 'property-pulse',write: true },
+  { label: 'Maintenance Request',   message: 'I want to log a maintenance request',         workspace: 'property-pulse',write: true },
+  { label: 'Search Directory',      message: 'Search the business directory',               workspace: null,            write: false },
+  { label: 'Give Feedback',         message: 'I want to give feedback',                     workspace: null,            write: false },
+];
 
 // ─── Helpers ─────────────────────────────────────
 
@@ -164,7 +180,7 @@ function useVoiceInput({ onFinal, onInterim }) {
 
 // ─── Main Component ──────────────────────────────
 
-export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isOpen, onClose, docked = false, onMessage }) {
+export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isOpen, onClose, docked = false, onMessage, workspaceProfiles = null }) {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -500,6 +516,48 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
   // ─── History entries ───────────────────────────
   const historyEntries = useMemo(() => getHistory(agentName), [agentName, showHistory]);
 
+  // ─── Quick-action chips ────────────────────────
+  const availableChips = useMemo(() => {
+    // Determine which workspaces the user has
+    const activeWorkspaces = new Set();
+    let isAdmin = false;
+    if (workspaceProfiles) {
+      if (workspaceProfiles.fieldService?.length > 0) activeWorkspaces.add('field-service');
+      if (workspaceProfiles.finance?.length > 0) activeWorkspaces.add('finance');
+      if (workspaceProfiles.teams?.length > 0) activeWorkspaces.add('team');
+      if (workspaceProfiles.propertyMgmt?.length > 0) activeWorkspaces.add('property-pulse');
+      isAdmin = !!workspaceProfiles.isAdmin;
+    }
+
+    return CHIP_DEFS.filter((chip) => {
+      // Always show read chips
+      if (!chip.write) return true;
+      // Write chips need the workspace to be active
+      if (chip.workspace && !activeWorkspaces.has(chip.workspace)) return false;
+      // Tier gating: for now, show write chips if admin or profiles exist
+      // (subscription_tier is defaulted to "full" pre-revenue)
+      if (chip.write && !isAdmin) {
+        // Check tier on relevant profile if available
+        if (chip.workspace && workspaceProfiles) {
+          const profileMap = {
+            'field-service': workspaceProfiles.fieldService,
+            'finance': workspaceProfiles.finance,
+            'team': workspaceProfiles.teams,
+            'property-pulse': workspaceProfiles.propertyMgmt,
+          };
+          const profiles = profileMap[chip.workspace];
+          if (profiles?.length > 0) {
+            const tier = profiles[0]?.subscription_tier;
+            if (tier && tier !== 'full') return false;
+          }
+        }
+      }
+      return true;
+    });
+  }, [workspaceProfiles]);
+
+  const showChips = !inputValue.trim() && !attachment && !showHistory && messages.length > 0 && availableChips.length > 0;
+
   if (!isOpen) return null;
 
   return (
@@ -612,22 +670,44 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
                   <p className="text-xs text-slate-500 mt-1">Ask me anything about your workspace.</p>
                 </div>
               ) : (
-                messages.map((msg, i) => (
-                  <div
-                    key={msg.id || i}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
+                messages.map((msg, i) => {
+                  // Check for confirmation card in agent messages
+                  const renderInstr = msg.role === 'assistant' ? parseRenderInstruction(msg.content) : null;
+                  const hasConfirm = renderInstr?.hasRender && renderInstr.type === 'confirm';
+                  // Strip the render instruction from visible text
+                  const visibleContent = hasConfirm
+                    ? msg.content.replace(/<!-- RENDER_CONFIRM:\{.*?\} -->/s, '').trim()
+                    : msg.content;
+
+                  return (
                     <div
-                      className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
-                        msg.role === 'user'
-                          ? 'bg-amber-500/20 text-amber-100 rounded-br-md'
-                          : 'bg-slate-800 text-slate-200 rounded-bl-md'
-                      }`}
+                      key={msg.id || i}
+                      className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} gap-2`}
                     >
-                      {renderMessageContent(msg.content)}
+                      {visibleContent && (
+                        <div
+                          className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
+                            msg.role === 'user'
+                              ? 'bg-amber-500/20 text-amber-100 rounded-br-md'
+                              : 'bg-slate-800 text-slate-200 rounded-bl-md'
+                          }`}
+                        >
+                          {renderMessageContent(visibleContent)}
+                        </div>
+                      )}
+                      {hasConfirm && (
+                        <ConfirmationCard
+                          entity={renderInstr.entity}
+                          action={renderInstr.action}
+                          data={renderInstr.data}
+                          onConfirm={() => handleSendMessage('Confirmed. Please create this record.')}
+                          onEdit={() => handleSendMessage('I want to make changes before creating.')}
+                          onCancel={() => handleSendMessage("Cancel — don't create this record.")}
+                        />
+                      )}
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
 
               {/* Agent thinking indicator */}
@@ -645,6 +725,26 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
 
               <div ref={messagesEndRef} />
             </div>
+
+            {/* Quick-action chips */}
+            {showChips && (
+              <div className="px-3 pt-2 flex-shrink-0">
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                  {availableChips.map((chip) => (
+                    <button
+                      key={chip.label}
+                      type="button"
+                      onClick={() => handleSendMessage(chip.message)}
+                      disabled={isSending || !conversationObj}
+                      className="flex items-center gap-1.5 bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors whitespace-nowrap flex-shrink-0 disabled:opacity-50"
+                    >
+                      {chip.write ? <Pencil className="h-3 w-3" /> : <Search className="h-3 w-3" />}
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Attachment preview */}
             {attachment && (
