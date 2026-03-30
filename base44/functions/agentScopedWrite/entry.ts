@@ -99,15 +99,15 @@ Deno.serve(async (req) => {
     const entities = base44.asServiceRole.entities;
 
     // ── GATE 1: Admin check ──
-    // Use .list() + idMatch() instead of .get() — .get() fails with ObjectId format mismatch
-    console.log('[agentScopedWrite] received user_id:', user_id, typeof user_id);
-    const allUsers = await entities.User.list();
-    const user = allUsers.find(function(u) { return idMatch(u.id, user_id); });
+    // Agent passes Base44 user ID (us-xxx format). Query via .filter({ id }) — the id field
+    // on the built-in User entity is the Base44 platform user ID, not the ObjectId.
+    var userResults = await entities.User.filter({ id: user_id });
+    var user = Array.isArray(userResults) && userResults.length > 0 ? userResults[0] : null;
     if (!user) {
-      console.log('[agentScopedWrite] user not found. Total users:', allUsers.length, 'sample IDs:', allUsers.slice(0, 3).map(function(u) { return { id: u.id, type: typeof u.id }; }));
+      console.log('[agentScopedWrite] user not found for id:', user_id);
       return Response.json({ success: false, error: 'user_not_found', message: 'User not found for id: ' + user_id }, { status: 404 });
     }
-    const isAdmin = user.role === 'admin';
+    var isAdmin = user.role === 'admin';
 
     // ── GATE 2: Tier check (skip for admin and platform workspace) ──
     let profileId = null;
