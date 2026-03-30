@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Store, Wallet, Ticket, Plus, Loader2, Users, DollarSign, HardHat, Building2, ChevronRight } from "lucide-react";
+import { ArrowLeft, Store, Plus, Loader2, Users, DollarSign, HardHat, Building2, ChevronRight } from "lucide-react";
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { useRole } from '@/hooks/useRole';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
@@ -719,34 +719,17 @@ export default function BusinessDashboard() {
                 <p className="text-slate-400 text-sm mt-1">Welcome back to your dashboard</p>
               </div>
               {isAppAdmin && (
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setMyLaneMode((m) => !m)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                      myLaneMode
-                        ? 'bg-amber-500 text-black'
-                        : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50'
-                    }`}
-                  >
-                    {myLaneMode ? 'Classic View' : 'MyLane Beta'}
-                  </button>
-                  <Badge variant="outline" className="bg-slate-800 border-slate-700 text-slate-200 px-4 py-2">
-                    <Wallet className="h-4 w-4 mr-2 text-amber-500" />
-                    Silver: 0 oz
-                  </Badge>
-                  <Badge variant="outline" className="bg-slate-800 border-slate-700 text-slate-200 px-4 py-2">
-                    <Ticket className="h-4 w-4 mr-2 text-amber-500" />
-                    0 Passes
-                  </Badge>
-                  <Button
-                    className="bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700"
-                    onClick={() => navigate(createPageUrl('Events'))}
-                  >
-                    <Ticket className="h-4 w-4 mr-2" />
-                    My Tickets
-                  </Button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setMyLaneMode((m) => !m)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    myLaneMode
+                      ? 'bg-amber-500 text-black'
+                      : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50'
+                  }`}
+                >
+                  {myLaneMode ? 'Classic View' : 'MyLane Beta'}
+                </button>
               )}
             </div>
           </div>
