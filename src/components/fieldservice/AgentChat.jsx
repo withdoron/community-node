@@ -19,8 +19,6 @@ import { parseRenderInstruction } from '@/components/mylane/parseRenderInstructi
 import ConfirmationCard from '@/components/mylane/ConfirmationCard';
 
 // ─── Constants ──────────────────────────────────
-const HISTORY_STORAGE_KEY = 'agent_conversation_history';
-const MAX_HISTORY_ENTRIES = 20;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/heic', 'application/pdf'];
 
@@ -74,41 +72,6 @@ function relativeTime(isoString) {
   if (days === 1) return 'Yesterday';
   if (days < 7) return `${days}d ago`;
   return new Date(isoString).toLocaleDateString();
-}
-
-/** Read/write conversation history from localStorage */
-function getHistory(agentName) {
-  try {
-    const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
-    const all = raw ? JSON.parse(raw) : [];
-    return all.filter((h) => h.agentName === agentName).slice(0, MAX_HISTORY_ENTRIES);
-  } catch { return []; }
-}
-
-function saveToHistory(agentName, conversationId, firstMessage) {
-  try {
-    const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
-    const all = raw ? JSON.parse(raw) : [];
-    // Don't duplicate
-    if (all.some((h) => h.id === conversationId)) return;
-    const entry = {
-      id: conversationId,
-      agentName,
-      started_at: new Date().toISOString(),
-      first_message: (firstMessage || '').slice(0, 60) || 'New conversation',
-    };
-    const updated = [entry, ...all].slice(0, MAX_HISTORY_ENTRIES);
-    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(updated));
-  } catch { /* localStorage may be full */ }
-}
-
-function clearHistory(agentName) {
-  try {
-    const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
-    const all = raw ? JSON.parse(raw) : [];
-    const filtered = all.filter((h) => h.agentName !== agentName);
-    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(filtered));
-  } catch { /* ignore */ }
 }
 
 // ─── Voice Input Hook ────────────────────────────
@@ -191,12 +154,13 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
   const [showHistory, setShowHistory] = useState(false);
   const [attachment, setAttachment] = useState(null); // { file, previewUrl, type }
   const [isUploading, setIsUploading] = useState(false);
+  const [historyEntries, setHistoryEntries] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
   const unsubscribeRef = useRef(null);
-  const firstMessageRef = useRef(null); // track first user message for history
   const userScrolledUpRef = useRef(false);
 
   // ─── Smart scroll — don't auto-scroll if user scrolled up ──
@@ -216,13 +180,6 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
     const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
     userScrolledUpRef.current = distFromBottom > 80;
   }, []);
-
-  // ─── Focus input when panel opens ──────────────
-  useEffect(() => {
-    if (isOpen && inputRef.current && !showHistory) {
-      setTimeout(() => inputRef.current?.focus(), 300);
-    }
-  }, [isOpen, showHistory]);
 
   // ─── Initialize or resume conversation ─────────
   useEffect(() => {
@@ -251,9 +208,6 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
           setConversationId(existing.id);
           setConversationObj(existing);
           setMessages(existing.messages || []);
-          // Track first user message for history
-          const firstUserMsg = (existing.messages || []).find((m) => m.role === 'user');
-          firstMessageRef.current = firstUserMsg?.content || null;
         } else {
           // Create new conversation
           const conv = await base44.agents.createConversation({
@@ -267,7 +221,6 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
           setConversationId(conv.id);
           setConversationObj(conv);
           setMessages(conv.messages || []);
-          firstMessageRef.current = null;
         }
       } catch (err) {
         console.error('Failed to initialize agent conversation:', err);
@@ -319,22 +272,17 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
 
   // ─── New Conversation ──────────────────────────
   const handleNewConversation = useCallback(async () => {
-    // Save current conversation to history
-    if (conversationId && firstMessageRef.current) {
-      saveToHistory(agentName, conversationId, firstMessageRef.current);
-    }
     // Unsubscribe from current
     if (unsubscribeRef.current) {
       unsubscribeRef.current();
       unsubscribeRef.current = null;
     }
-    // Reset state
+    // Reset state — old conversation persists in Base44 automatically
     setMessages([]);
     setConversationId(null);
     setConversationObj(null);
     setShowHistory(false);
     setAttachment(null);
-    firstMessageRef.current = null;
 
     // Create a fresh conversation
     try {
@@ -354,18 +302,40 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
       toast.error('Could not start new conversation.');
     }
     setIsLoading(false);
-  }, [conversationId, agentName, userId]);
+  }, [agentName, userId]);
+
+  // ─── Load conversation history from SDK ─────────
+  const loadHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    try {
+      const conversations = await base44.agents.listConversations({
+        agent_name: agentName,
+      });
+      const list = Array.isArray(conversations) ? conversations : [];
+      // Filter to this user's conversations, sort newest first
+      const userConvs = list
+        .filter((c) => c.metadata?.created_by_user_id === userId && c.agent_name === agentName)
+        .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+        .slice(0, 20);
+      setHistoryEntries(userConvs);
+    } catch (err) {
+      console.error('[AgentChat] Failed to load conversation history:', err);
+      setHistoryEntries([]);
+    }
+    setHistoryLoading(false);
+  }, [agentName, userId]);
+
+  // Fetch history when panel opens
+  useEffect(() => {
+    if (showHistory) loadHistory();
+  }, [showHistory, loadHistory]);
 
   // ─── Resume a conversation from history ────────
-  const handleResumeConversation = useCallback(async (historyEntry) => {
+  const handleResumeConversation = useCallback(async (conv) => {
     // Unsubscribe from current
     if (unsubscribeRef.current) {
       unsubscribeRef.current();
       unsubscribeRef.current = null;
-    }
-    // Save current to history first
-    if (conversationId && firstMessageRef.current) {
-      saveToHistory(agentName, conversationId, firstMessageRef.current);
     }
 
     setShowHistory(false);
@@ -374,29 +344,34 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
     setAttachment(null);
 
     try {
-      // List conversations and find the one we want
+      // Load the full conversation with all messages
       const conversations = await base44.agents.listConversations({
         agent_name: agentName,
       });
       const found = Array.isArray(conversations)
-        ? conversations.find((c) => c.id === historyEntry.id)
+        ? conversations.find((c) => c.id === conv.id)
         : null;
 
       if (found) {
         setConversationId(found.id);
         setConversationObj(found);
         setMessages(found.messages || []);
-        const firstUserMsg = (found.messages || []).find((m) => m.role === 'user');
-        firstMessageRef.current = firstUserMsg?.content || historyEntry.first_message;
       } else {
-        toast.error('Conversation no longer available.');
+        // Fallback: set conversation ID and let new messages continue it
+        setConversationId(conv.id);
+        setConversationObj(conv);
+        setMessages(conv.messages || []);
       }
     } catch (err) {
-      console.error('Failed to resume conversation:', err);
+      console.error('[AgentChat] Failed to resume conversation:', err);
       toast.error('Could not load conversation.');
+      // Fallback
+      setConversationId(conv.id);
+      setConversationObj(conv);
+      setMessages(conv.messages || []);
     }
     setIsLoading(false);
-  }, [conversationId, agentName]);
+  }, [agentName]);
 
   // ─── File Upload ───────────────────────────────
   const handleFileSelect = useCallback((e) => {
@@ -471,11 +446,6 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
         return;
       }
 
-      // Track first user message for history
-      if (!firstMessageRef.current) {
-        firstMessageRef.current = messageText;
-      }
-
       // Optimistic: add user message immediately and force scroll
       const userMsg = { role: 'user', content: messageText, id: `temp_${Date.now()}` };
       setMessages((prev) => [...prev, userMsg]);
@@ -525,9 +495,6 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
   const agentDisplayName = useMemo(() => {
     return agentName.replace(/([A-Z])/g, ' $1').trim();
   }, [agentName]);
-
-  // ─── History entries ───────────────────────────
-  const historyEntries = useMemo(() => getHistory(agentName), [agentName, showHistory]);
 
   // ─── Quick-action chips ────────────────────────
   const availableChips = useMemo(() => {
@@ -619,50 +586,54 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
           </div>
         </div>
 
-        {/* History Panel */}
+        {/* History Panel — loaded from Base44 SDK */}
         {showHistory ? (
           <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
             <div className="px-4 py-3 border-b border-slate-800">
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => setShowHistory(false)}
-                  className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-amber-500 transition-colors"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to chat
-                </button>
-                {historyEntries.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      clearHistory(agentName);
-                      setShowHistory(false);
-                    }}
-                    className="text-xs text-slate-500 hover:text-red-400 transition-colors"
-                  >
-                    Clear history
-                  </button>
-                )}
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowHistory(false)}
+                className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-amber-500 transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to chat
+              </button>
             </div>
-            {historyEntries.length === 0 ? (
+            {historyLoading ? (
               <div className="flex-1 flex items-center justify-center py-12">
-                <p className="text-sm text-slate-500">No conversation history yet.</p>
+                <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
+              </div>
+            ) : historyEntries.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center py-12">
+                <p className="text-sm text-slate-500">No past conversations yet.</p>
               </div>
             ) : (
               <div className="flex-1 overflow-y-auto">
-                {historyEntries.map((entry) => (
-                  <button
-                    key={entry.id}
-                    type="button"
-                    onClick={() => handleResumeConversation(entry)}
-                    className="w-full text-left px-4 py-3 border-b border-slate-800 hover:bg-slate-800/50 transition-colors"
-                  >
-                    <p className="text-sm text-slate-300 truncate">{entry.first_message}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{relativeTime(entry.started_at)}</p>
-                  </button>
-                ))}
+                {historyEntries.map((conv) => {
+                  const firstUserMsg = (conv.messages || []).find((m) => m.role === 'user');
+                  const preview = firstUserMsg
+                    ? (firstUserMsg.content || '').slice(0, 60)
+                    : `Conversation from ${new Date(conv.created_at).toLocaleDateString()}`;
+                  const timestamp = conv.updated_at || conv.created_at;
+                  const isCurrent = conv.id === conversationId;
+                  return (
+                    <button
+                      key={conv.id}
+                      type="button"
+                      onClick={() => !isCurrent && handleResumeConversation(conv)}
+                      className={`w-full text-left px-4 py-3 border-b border-slate-800 transition-colors ${
+                        isCurrent
+                          ? 'bg-amber-500/10 border-l-2 border-l-amber-500'
+                          : 'hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <p className="text-sm text-slate-300 truncate">{preview}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {isCurrent ? 'Current' : relativeTime(timestamp)}
+                      </p>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
