@@ -14,6 +14,7 @@ const GAME_ROUTE_COLORS = {
  * Shared renderer for visual plays. Used in PlayCard, PlayDetail, StudyMode, SidelineMode, Playbook Pro.
  *
  * Returns null if play.use_renderer is falsy (backward compat with photo plays).
+ * Uses play.side to determine offense vs defense position configs.
  *
  * Modes:
  *   "view"     — all positions/routes visible, highlighted position in amber

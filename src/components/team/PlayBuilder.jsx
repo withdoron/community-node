@@ -28,6 +28,7 @@ const allFormations = FLAG_FOOTBALL.formations;
 /**
  * Visual Play Builder — coach places positions on an SVG field,
  * assigns routes (preset or freehand), and saves the play.
+ * Supports both offense and defense sides via the side toggle.
  */
 export default function PlayBuilder({
   team,
