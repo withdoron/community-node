@@ -1,0 +1,163 @@
+{
+  "name": "FieldServiceProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "FK to Users entity"
+    },
+    "workspace_name": {
+      "type": "string",
+      "default": "My Field Service",
+      "description": "Workspace display name"
+    },
+    "business_name": {
+      "type": "string",
+      "description": "Business name"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Owner full name"
+    },
+    "license_number": {
+      "type": "string",
+      "description": "Contractor license number"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "service_area": {
+      "type": "string",
+      "description": "Geographic service area"
+    },
+    "tagline": {
+      "type": "string",
+      "description": "Business tagline"
+    },
+    "hourly_rate": {
+      "type": "number",
+      "description": "Default hourly rate"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL of business logo"
+    },
+    "brand_color": {
+      "type": "string",
+      "description": "Hex color for client-facing views"
+    },
+    "workers_json": {
+      "type": "object",
+      "description": "Array of {name, hourly_rate, phone}"
+    },
+    "user_roles": {
+      "type": "object",
+      "description": "Array of role entries"
+    },
+    "default_terms": {
+      "type": "string",
+      "description": "Default estimate terms & conditions"
+    },
+    "phase_labels": {
+      "type": "object",
+      "description": "Custom photo phase labels, e.g. ['Before','Demo','Framing','Rough-in','Finish','Final']"
+    },
+    "invite_code": {
+      "type": "string",
+      "description": "Optional invite code for sharing workspace access"
+    },
+    "features_json": {
+      "type": "object",
+      "default": {},
+      "description": "Feature flags dictionary for workspace-level feature toggles"
+    },
+    "trade_categories_json": {
+      "type": "object",
+      "default": {},
+      "description": "Dictionary of trade categories used in this workspace (e.g. for Xactimate line items)"
+    },
+    "insurance_work_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "DEPRECATED \u2014 previously controlled O&P and Xactimate as a combined toggle. Replaced by overhead_profit_enabled and xactimate_enabled. Kept for backward compatibility."
+    },
+    "overhead_profit_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Controls whether the Overhead & Profit (O&P) percentage field appears on estimates"
+    },
+    "xactimate_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Controls whether individual estimates can toggle into Xactimate formatting mode (trade categories, grouped subtotals for insurance submission)"
+    },
+    "industry_preset": {
+      "type": "string",
+      "enum": [
+        "general_contractor",
+        "specialty_trade",
+        "auto_mechanic",
+        "service_provider"
+      ],
+      "default": "general_contractor",
+      "description": "Controls default feature toggle configuration, field labels, and document template seeding. DEC-090."
+    },
+    "guide_dismissed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the user has dismissed the workspace walkthrough guide"
+    },
+    "linked_business_workspace_id": {
+      "type": "string",
+      "description": "Future link to Business workspace"
+    },
+    "linked_finance_workspace_id": {
+      "type": "string",
+      "description": "Future link to Finance workspace"
+    },
+    "subscription_tier": {
+      "type": "string",
+      "default": "full",
+      "description": "Subscription tier for this workspace (e.g. 'full', 'help', 'free')"
+    },
+    "tier_trial_start": {
+      "type": "string",
+      "description": "ISO datetime when the trial for the current tier started"
+    }
+  },
+  "required": [
+    "user_id",
+    "workspace_name",
+    "business_name",
+    "owner_name"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

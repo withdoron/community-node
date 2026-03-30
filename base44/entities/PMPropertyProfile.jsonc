@@ -1,0 +1,110 @@
+{
+  "name": "PMPropertyProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "workspace_name": {
+      "type": "string"
+    },
+    "business_name": {
+      "type": "string"
+    },
+    "manager_name": {
+      "type": "string"
+    },
+    "manager_email": {
+      "type": "string"
+    },
+    "manager_phone": {
+      "type": "string"
+    },
+    "default_mgmt_fee_pct": {
+      "type": "number",
+      "default": 10
+    },
+    "default_maint_reserve_pct": {
+      "type": "number",
+      "default": 10
+    },
+    "default_emerg_reserve_pct": {
+      "type": "number",
+      "default": 5
+    },
+    "property_types": {
+      "type": "string",
+      "description": "JSON: [\"long_term\", \"short_term\"]"
+    },
+    "user_roles": {
+      "type": "string",
+      "description": "JSON array of user role objects with permission flags and per-user overrides"
+    },
+    "linked_finance_workspace_id": {
+      "type": "string",
+      "description": "Nullable FK to FinancialProfile"
+    },
+    "linked_business_workspace_id": {
+      "type": "string",
+      "description": "Nullable FK to Business workspace"
+    },
+    "guide_dismissed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the user has dismissed the workspace walkthrough guide"
+    },
+    "invite_code": {
+      "type": "string",
+      "description": "Family/tenant invite code for joining the workspace"
+    },
+    "manager_invite_code": {
+      "type": "string",
+      "description": "Property manager invite code"
+    },
+    "owner_invite_code": {
+      "type": "string",
+      "description": "Co-owner invite code"
+    },
+    "subscription_tier": {
+      "type": "string",
+      "default": "full",
+      "description": "Subscription tier for this workspace (e.g. 'full', 'help', 'free')"
+    },
+    "tier_trial_start": {
+      "type": "string",
+      "description": "ISO datetime when the trial for the current tier started"
+    }
+  },
+  "required": [
+    "user_id",
+    "workspace_name"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "name": "FinancialProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Foreign key to Users entity"
+    },
+    "workspace_name": {
+      "type": "string",
+      "description": "Name of the financial workspace"
+    },
+    "contexts": {
+      "type": "object",
+      "description": "JSON object for financial contexts"
+    },
+    "categories": {
+      "type": "object",
+      "description": "JSON object for financial categories"
+    },
+    "enough_number": {
+      "type": "number",
+      "description": "The 'enough' target number"
+    },
+    "enough_number_mode": {
+      "type": "string",
+      "default": "auto",
+      "description": "Mode for the enough number calculation"
+    },
+    "enough_number_explained": {
+      "type": "boolean",
+      "default": false,
+      "description": "Tracks whether user has dismissed the first-view Enough Number explanation"
+    },
+    "profit_first_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Toggle for showing Profit First allocation view on Home tab"
+    },
+    "profit_first_targets": {
+      "type": "object",
+      "description": "Stores Profit First target percentages, e.g. {profit: 5, owners_pay: 50, tax: 15, opex: 30}"
+    },
+    "guide_dismissed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the user has dismissed the workspace walkthrough guide"
+    },
+    "subscription_tier": {
+      "type": "string",
+      "default": "full",
+      "description": "Subscription tier for this workspace (e.g. 'full', 'help', 'free')"
+    },
+    "tier_trial_start": {
+      "type": "string",
+      "description": "ISO datetime when the trial for the current tier started"
+    }
+  },
+  "required": [
+    "user_id",
+    "workspace_name"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
