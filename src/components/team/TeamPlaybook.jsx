@@ -142,9 +142,18 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
       const assignments = await base44.entities.PlayAssignment.filter({ play_id: play.id });
       const assignmentList = Array.isArray(assignments) ? assignments : [];
       for (const a of assignmentList) {
-        await invoke({ action: 'delete', entity_type: 'play_assignment', entity_id: a.id });
+        try {
+          await base44.entities.PlayAssignment.delete(a.id);
+        } catch {
+          // Fallback to server function if direct delete fails
+          await invoke({ action: 'delete', entity_type: 'play_assignment', entity_id: a.id });
+        }
       }
-      await invoke({ action: 'delete', entity_type: 'play', entity_id: play.id });
+      try {
+        await base44.entities.Play.delete(play.id);
+      } catch {
+        await invoke({ action: 'delete', entity_type: 'play', entity_id: play.id });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['plays', team?.id] });
@@ -310,22 +319,12 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
         </div>
         <div className="space-y-6">
           {playbookForSide.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-12 space-y-4">
               <p className="text-slate-500">
                 {side === 'defense'
-                  ? 'No defensive plays yet. Tap + to add your first defense.'
+                  ? 'No defensive plays yet.'
                   : 'No offense plays yet.'}
               </p>
-              {isCoach && (
-                <button
-                  type="button"
-                  onClick={openPlaybookCreate}
-                  className="mt-4 text-amber-500 hover:text-amber-400 font-medium"
-                >
-                  {side === 'defense' ? 'Add your first defensive play' : 'Add your first play'}
-                </button>
-              )}
-              {/* Seed button — defense plays for coaches meeting */}
               {isCoach && side === 'defense' && (
                 <button
                   type="button"
@@ -334,14 +333,24 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
                       const { seedDefensePlays } = await import('@/scripts/seedDefensePlays');
                       const results = await seedDefensePlays(team?.id, currentUserId);
                       queryClient.invalidateQueries({ queryKey: ['plays', team?.id] });
+                      queryClient.invalidateQueries({ queryKey: ['renderer-play-assignments'] });
                       toast.success(`${results.filter((r) => !r.error).length} defense plays seeded!`);
                     } catch (err) {
                       toast.error('Seed failed: ' + (err?.message || 'Unknown error'));
                     }
                   }}
-                  className="mt-3 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-lg font-semibold min-h-[44px] transition-colors"
+                  className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black rounded-lg font-semibold min-h-[44px] transition-colors"
                 >
                   Seed Basic Defenses
+                </button>
+              )}
+              {isCoach && (
+                <button
+                  type="button"
+                  onClick={openPlaybookCreate}
+                  className="block mx-auto text-sm text-slate-400 hover:text-amber-400"
+                >
+                  or create from scratch
                 </button>
               )}
             </div>
