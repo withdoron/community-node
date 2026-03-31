@@ -41,7 +41,7 @@ export default function ClaimBusiness() {
     },
     onSuccess: () => {
       toast.success('Business claimed successfully!');
-      navigate(createPageUrl('BusinessDashboard'));
+      navigate(createPageUrl('MyLane'));
     },
     onError: (error) => {
       console.error('Claim error:', error);

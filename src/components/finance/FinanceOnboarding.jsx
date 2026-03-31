@@ -292,7 +292,7 @@ export default function FinanceOnboarding() {
     },
     onSuccess: (profile) => {
       toast.success('Finance space created');
-      navigate(createPageUrl('BusinessDashboard') + '?finance=' + profile.id);
+      navigate(createPageUrl('MyLane'));
     },
     onError: (err) => {
       toast.error(err?.message || 'Failed to create space');

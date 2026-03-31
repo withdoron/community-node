@@ -181,7 +181,7 @@ export default function JoinTeam() {
         toast.success('You are already a member of this team.');
         localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
         await ensureOnboardingComplete();
-        navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
+        navigate(createPageUrl('MyLane'), { replace: true });
         return;
       }
 
@@ -205,7 +205,7 @@ export default function JoinTeam() {
       toast.success(`Joined as ${member.jersey_name || roleLabel}!`);
       localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
       await ensureOnboardingComplete();
-      navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
+      navigate(createPageUrl('MyLane'), { replace: true });
     } catch (err) {
       toast.error(err?.message || 'Failed to claim spot');
       setClaiming(false);
@@ -216,7 +216,7 @@ export default function JoinTeam() {
   useEffect(() => {
     if (!team || !isAuthenticated || !user?.id) return;
     if (isAlreadyMember) {
-      navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
+      navigate(createPageUrl('MyLane'), { replace: true });
     }
   }, [team, isAuthenticated, user?.id, isAlreadyMember, navigate]);
 
@@ -247,7 +247,7 @@ export default function JoinTeam() {
         toast.success('You are already a member of this team.');
         localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
         await ensureOnboardingComplete();
-        navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
+        navigate(createPageUrl('MyLane'), { replace: true });
         return;
       }
 
@@ -263,7 +263,7 @@ export default function JoinTeam() {
       toast.success(parentSelectedIds.size === 1 ? "You've joined as a parent." : `Linked ${parentSelectedIds.size} children.`);
       localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
       await ensureOnboardingComplete();
-      navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
+      navigate(createPageUrl('MyLane'), { replace: true });
     } catch (err) {
       toast.error(err?.message || 'Failed to join');
       setJoining(false);
@@ -281,7 +281,7 @@ export default function JoinTeam() {
         toast.success('You are already a member of this team.');
         localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
         await ensureOnboardingComplete();
-        navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
+        navigate(createPageUrl('MyLane'), { replace: true });
         return;
       }
 
@@ -297,7 +297,7 @@ export default function JoinTeam() {
       toast.success("You've joined as a coach!");
       localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
       await ensureOnboardingComplete();
-      navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
+      navigate(createPageUrl('MyLane'), { replace: true });
     } catch (err) {
       toast.error(err?.message || 'Failed to join');
       setJoining(false);

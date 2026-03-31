@@ -99,10 +99,7 @@ export default function JoinPM() {
         : 'property manager';
       toast.success(`You've joined as a ${roleLabel}.`);
       localStorage.removeItem(PENDING_INVITE_KEY);
-      navigate(
-        createPageUrl('BusinessDashboard') + '?property_management=' + response.profile_id,
-        { replace: true }
-      );
+      navigate(createPageUrl('MyLane'), { replace: true });
     } catch (err) {
       toast.error(err?.message || 'Failed to join');
       setJoining(false);

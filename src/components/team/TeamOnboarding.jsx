@@ -121,7 +121,7 @@ export default function TeamOnboarding() {
   };
 
   const goToTeam = () => {
-    if (createdTeam?.id) navigate(createPageUrl('BusinessDashboard') + '?team=' + createdTeam.id);
+    if (createdTeam?.id) navigate(createPageUrl('MyLane'));
   };
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://locallane.app';
@@ -192,7 +192,7 @@ export default function TeamOnboarding() {
                     type="button"
                     variant="outline"
                     className="border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:bg-transparent text-sm min-h-[44px]"
-                    onClick={() => navigate(createPageUrl('BusinessDashboard') + '?landing=1')}
+                    onClick={() => navigate(createPageUrl('MyLane'))}
                   >
                     Share on Shaping the Garden
                   </Button>

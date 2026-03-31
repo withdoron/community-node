@@ -126,7 +126,7 @@ export default function BusinessOnboarding() {
       return business;
     },
     onSuccess: (business) => {
-      navigate(createPageUrl('BusinessDashboard'));
+      navigate(createPageUrl('MyLane'));
     },
     onError: (err) => {
       console.error('BusinessOnboarding create failed:', err);
@@ -222,7 +222,7 @@ export default function BusinessOnboarding() {
             size="sm" 
             onClick={() => {
               if (currentStepIndex === 0) {
-                navigate(createPageUrl('BusinessDashboard'));
+                navigate(createPageUrl('MyLane'));
               } else {
                 setCurrentStepIndex(currentStepIndex - 1);
                 if (currentStepIndex === 1 && currentStepId === 'details') {

@@ -176,7 +176,7 @@ export default function PropertyManagementOnboarding() {
     },
     onSuccess: (profile) => {
       toast.success('Property Management space created');
-      navigate(createPageUrl('BusinessDashboard') + '?property_management=' + profile.id);
+      navigate(createPageUrl('MyLane'));
     },
     onError: (err) => {
       toast.error(err?.message || 'Failed to create space');

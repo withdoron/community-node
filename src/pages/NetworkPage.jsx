@@ -1,7 +1,7 @@
 /**
  * Network info page — DEC-050 Build 3.
  * Route: /networks/:slug
- * Public page; follow/unfollow requires auth.
+ * Auth-gated: networks are private gardens discovered through relationships (DEC-121).
  */
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
@@ -13,7 +13,7 @@ import EventDetailModal from '@/components/events/EventDetailModal';
 import WeekCalendarStrip from '@/components/events/WeekCalendarStrip';
 import BusinessCard from '@/components/business/BusinessCard';
 import { Button } from '@/components/ui/button';
-import { Loader2, Store, Calendar, ArrowLeft, X, Search, LayoutGrid, Map as MapIcon } from 'lucide-react';
+import { Loader2, Store, Calendar, ArrowLeft, X, Search, LayoutGrid, Map as MapIcon, Sprout } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
@@ -33,7 +33,7 @@ export default function NetworkPage() {
     return list.find((n) => (n.value ?? n.slug ?? n.id) === slug) ?? null;
   }, [networksConfig, slug]);
 
-  const { data: currentUser } = useQuery({
+  const { data: currentUser, isLoading: authLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
       const isAuth = await base44.auth.isAuthenticated();
@@ -41,6 +41,34 @@ export default function NetworkPage() {
       return base44.auth.me();
     },
   });
+
+  // Auth gate — networks are private gardens (DEC-121)
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      </div>
+    );
+  }
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6">
+        <div className="max-w-md text-center space-y-4">
+          <Sprout className="h-10 w-10 text-amber-500/60 mx-auto" />
+          <h1 className="text-xl font-bold text-white">Sign in to discover networks</h1>
+          <p className="text-slate-400 text-sm">
+            Networks grow from connections. Sign in and they'll find you.
+          </p>
+          <button
+            onClick={() => base44.auth.redirectToLogin()}
+            className="mt-4 bg-amber-500 hover:bg-amber-400 text-black font-bold px-6 py-3 rounded-xl transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     setOptimisticFollowing(null);

@@ -59,7 +59,7 @@ export default function JoinFieldService() {
   useEffect(() => {
     if (workspace && isAlreadyMember) {
       toast.info('You\'re already part of this crew');
-      navigate(createPageUrl('BusinessDashboard') + '?fieldservice=' + workspace.id, { replace: true });
+      navigate(createPageUrl('MyLane'), { replace: true });
     }
   }, [workspace, isAlreadyMember, navigate]);
 
@@ -172,7 +172,7 @@ export default function JoinFieldService() {
             <span className="text-amber-400 font-medium">{claimedResult.role === 'subcontractor' ? 'subcontractor' : 'worker'}</span>.
           </p>
           <Button
-            onClick={() => navigate(createPageUrl('BusinessDashboard') + '?fieldservice=' + claimedResult.workspace_id, { replace: true })}
+            onClick={() => navigate(createPageUrl('MyLane'), { replace: true })}
             className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
           >
             Open Space

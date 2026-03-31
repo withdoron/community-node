@@ -119,7 +119,7 @@ export default function FieldServiceOnboarding() {
     },
     onSuccess: (profile) => {
       toast.success('Field Service space created');
-      navigate(createPageUrl('BusinessDashboard') + '?fieldservice=' + profile.id);
+      navigate(createPageUrl('MyLane'));
     },
     onError: (err) => {
       toast.error(err?.message || 'Failed to create space');
