@@ -410,7 +410,7 @@ export default function FinanceSettings({ profile, currentUser }) {
       queryClient.invalidateQueries({ queryKey: ['finance-recurring'] });
       queryClient.invalidateQueries({ queryKey: ['finance-debts'] });
       toast.success('Finance workspace deleted');
-      navigate(createPageUrl('BusinessDashboard') + '?landing=1');
+      navigate(createPageUrl('MyLane'));
     },
     onError: (err) => toast.error(err?.message || 'Failed to delete workspace'),
   });

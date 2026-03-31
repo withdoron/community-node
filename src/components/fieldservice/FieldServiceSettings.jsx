@@ -314,7 +314,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
       toast.success('Workspace deleted');
-      navigate(createPageUrl('BusinessDashboard') + '?landing=1');
+      navigate(createPageUrl('MyLane'));
     },
     onError: (err) => toast.error(err?.message || 'Failed to delete workspace'),
   });

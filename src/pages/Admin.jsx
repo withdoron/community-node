@@ -144,10 +144,10 @@ export default function Admin() {
           <ShieldAlert className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-slate-100">Access Denied</h2>
           <p className="text-slate-400 mt-2">You don't have permission to access the admin panel.</p>
-          <Link to={createPageUrl('Home')}>
+          <Link to={createPageUrl('MyLane')}>
             <Button className="mt-4 bg-transparent border-slate-600 text-slate-300 hover:bg-transparent hover:border-amber-500 hover:text-amber-500" variant="outline">
               <ChevronLeft className="h-4 w-4 mr-2" />
-              Back to Home
+              Back to My Lane
             </Button>
           </Link>
         </Card>
@@ -164,10 +164,10 @@ export default function Admin() {
               <h1 className="text-2xl font-bold text-slate-100">Admin Panel</h1>
               <p className="text-slate-400 mt-1">Manage businesses, tiers, and settings</p>
             </div>
-            <Link to={createPageUrl('Home')}>
+            <Link to={createPageUrl('MyLane')}>
               <Button variant="outline" size="sm" className="bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500">
                 <ChevronLeft className="h-4 w-4 mr-1" />
-                Back to Site
+                Back to My Lane
               </Button>
             </Link>
           </div>

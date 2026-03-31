@@ -1426,7 +1426,7 @@ const ADMIN_TABS = [
 ];
 
 export default function FrequencyStation() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoadingAuth: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState('listen');
 
   const { data: currentUser } = useQuery({
@@ -1448,6 +1448,34 @@ export default function FrequencyStation() {
     enabled: isAdmin,
     refetchInterval: 30000,
   });
+
+  // Auth gate — community spaces are discovered through the organism
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      </div>
+    );
+  }
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6">
+        <div className="max-w-md text-center space-y-4">
+          <Music className="h-10 w-10 text-amber-500/60 mx-auto" />
+          <h1 className="text-xl font-bold text-white">Sign in to hear the frequency</h1>
+          <p className="text-slate-400 text-sm">
+            The community's radio station. Sign in to listen, contribute, and discover.
+          </p>
+          <button
+            onClick={() => base44.auth.redirectToLogin()}
+            className="mt-4 bg-amber-500 hover:bg-amber-400 text-black font-bold px-6 py-3 rounded-xl transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">

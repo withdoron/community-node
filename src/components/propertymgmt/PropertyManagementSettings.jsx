@@ -235,7 +235,7 @@ export default function PropertyManagementSettings({ profile, currentUser, membe
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pm-profiles'] });
       toast.success('Space deleted');
-      navigate(createPageUrl('BusinessDashboard') + '?landing=1');
+      navigate(createPageUrl('MyLane'));
     },
     onError: (err) => toast.error(err?.message || 'Failed to delete space'),
   });
