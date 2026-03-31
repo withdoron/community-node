@@ -170,6 +170,7 @@ export default function MyLane() {
       return Array.isArray(result) ? result : result ? [result] : [];
     },
     enabled: !!currentUser?.id,
+    staleTime: 5 * 60 * 1000, // 5 min — workspace data doesn't change every second
   });
 
   const teamIds = [...new Set(myTeamMemberships.map((m) => m.team_id).filter(Boolean))];
@@ -182,6 +183,7 @@ export default function MyLane() {
       return teams.filter((t) => t && t.status === 'active');
     },
     enabled: teamIds.length > 0,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Finance profiles
@@ -193,6 +195,7 @@ export default function MyLane() {
       return Array.isArray(list) ? list : list ? [list] : [];
     },
     enabled: !!currentUser?.id,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Field Service profiles (owned)
@@ -204,6 +207,7 @@ export default function MyLane() {
       return Array.isArray(list) ? list : list ? [list] : [];
     },
     enabled: !!currentUser?.id,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Field Service profiles (joined as worker/sub)
@@ -232,6 +236,7 @@ export default function MyLane() {
       } catch { return []; }
     },
     enabled: !!currentUser?.id,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Merge owned + joined FS profiles
@@ -251,6 +256,7 @@ export default function MyLane() {
       return Array.isArray(list) ? list : list ? [list] : [];
     },
     enabled: !!currentUser?.id,
+    staleTime: 5 * 60 * 1000,
   });
 
   // ── Loading ──

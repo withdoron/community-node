@@ -31,6 +31,7 @@ export default function WhatsChangedBar({
       } catch { return []; }
     },
     enabled: enabled && !!fsProfileId,
+    staleTime: 5 * 60 * 1000,
   });
 
   // New maintenance requests since last visit
@@ -46,6 +47,7 @@ export default function WhatsChangedBar({
       } catch { return []; }
     },
     enabled: enabled && !!pmProfileId,
+    staleTime: 5 * 60 * 1000,
   });
 
   // New feedback since last visit
@@ -59,6 +61,7 @@ export default function WhatsChangedBar({
       } catch { return []; }
     },
     enabled,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Build change summary

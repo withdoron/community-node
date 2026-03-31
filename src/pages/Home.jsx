@@ -242,6 +242,7 @@ export default function Home() {
         .filter((e) => e.date >= now && !e.network_only && e.status !== 'cancelled')
         .slice(0, 3);
     },
+    staleTime: 10 * 60 * 1000, // 10 min — landing page data doesn't need real-time
   });
 
   // Real data: recent businesses
@@ -256,6 +257,7 @@ export default function Home() {
       return filterBusinessesByRegion(businesses, region).slice(0, 3);
     },
     enabled: !!region,
+    staleTime: 10 * 60 * 1000,
   });
 
   // Real data: community pulse (aggregate signal)
@@ -272,6 +274,7 @@ export default function Home() {
         return teamCount + memberCount;
       } catch { return 0; }
     },
+    staleTime: 10 * 60 * 1000,
   });
 
   // Build "What's alive" cards from real data

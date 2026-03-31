@@ -15,14 +15,16 @@ export default function UpcomingEventsSection({ currentUser }) {
   const { data: rsvps = [], isSuccess: rsvpsLoaded } = useQuery({
     queryKey: ['user-rsvps', currentUser?.id],
     queryFn: () => base44.entities.RSVP.filter({ user_id: currentUser.id, is_active: true }),
-    enabled: !!currentUser?.id
+    enabled: !!currentUser?.id,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Query all active events — enabled when RSVPs have loaded AND found results
   const { data: allEvents = [] } = useQuery({
     queryKey: ['all-events-for-rsvp'],
     queryFn: () => base44.entities.Event.filter({ is_active: true }, 'start_date', 200),
-    enabled: rsvpsLoaded && rsvps.length > 0
+    enabled: rsvpsLoaded && rsvps.length > 0,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Match RSVPs to events and filter to upcoming only
