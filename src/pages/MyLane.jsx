@@ -69,6 +69,18 @@ export default function MyLane() {
     currentUser?.data?.onboarding_complete === true;
 
   if (!onboardingComplete) {
+    // DEC-119: Invite code IS onboarding — redirect to invite page, not wizard.
+    // Join pages store pending invite codes in localStorage. If one exists, the
+    // user arrived via invite link and should never see the generic wizard.
+    try {
+      const pendingTeam = localStorage.getItem('pendingTeamInvite');
+      if (pendingTeam) return <Navigate to={`/join/${pendingTeam}`} replace />;
+      const pendingFS = localStorage.getItem('pendingFieldServiceInvite');
+      if (pendingFS) return <Navigate to={`/join-field-service/${pendingFS}`} replace />;
+      const pendingPM = localStorage.getItem('pendingPMInvite');
+      if (pendingPM) return <Navigate to={`/join-pm/${pendingPM}`} replace />;
+    } catch { /* localStorage unavailable — fall through to wizard */ }
+
     return <Navigate to={createPageUrl('welcome')} replace />;
   }
 
