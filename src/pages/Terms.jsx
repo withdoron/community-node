@@ -17,26 +17,32 @@ export default function Terms() {
         </Link>
 
         <h1 className="text-3xl font-bold text-white mb-2">Terms of Service</h1>
-        <p className="text-slate-400 text-sm mb-10">Last updated: February 2026</p>
+        <p className="text-slate-400 text-sm mb-10">Last updated: March 2026</p>
 
         <div className="space-y-8 text-slate-300 leading-relaxed">
           {/* 1. About LocalLane */}
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">1. About LocalLane</h2>
             <p>
-              LocalLane is a community discovery platform connecting residents with local businesses
-              through events, experiences, and membership programs in Eugene, Oregon. By using
-              LocalLane, you agree to these terms.
+              LocalLane is a community platform that connects people with local businesses,
+              teams, events, and each other. It includes an AI companion called Mylane that
+              helps you organize your community life. By using LocalLane, you agree to these
+              terms.
             </p>
           </section>
 
           {/* 2. Accounts */}
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">2. Accounts</h2>
-            <p>
+            <p className="mb-3">
               You may browse LocalLane without an account. Creating an account requires a valid email
               address. You are responsible for maintaining the security of your account and for all
               activity that occurs under it. You must be at least 13 years old to create an account.
+            </p>
+            <p>
+              Parents may create and manage accounts for minor children in connection with team
+              workspaces. If you create an account for a child, you are responsible for their
+              activity and for overseeing their participation.
             </p>
           </section>
 
@@ -85,7 +91,7 @@ export default function Terms() {
             </p>
           </section>
 
-          {/* 4. Auto-Renewal and Cancellation (Oregon ORS 646A.293–.295) */}
+          {/* 4. Auto-Renewal and Cancellation */}
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">4. Auto-Renewal and Cancellation</h2>
             <p className="mb-3">
@@ -104,7 +110,7 @@ export default function Terms() {
             </p>
           </section>
 
-          {/* 5. Business Tiers */}
+          {/* 5. Business Subscriptions */}
           <section>
             <h2 className="text-xl font-semibold text-white mb-3">5. Business Subscriptions</h2>
             <p className="mb-3">
@@ -130,32 +136,74 @@ export default function Terms() {
 
           {/* 7. User Content */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">7. User Content and Recommendations</h2>
+            <h2 className="text-xl font-semibold text-white mb-3">7. User Content</h2>
             <p className="mb-3">
-              You may submit recommendations, stories, vouches, and other content. You retain
+              You may submit recommendations, stories, ideas, and other content. You retain
               ownership of your content but grant LocalLane a license to display it on the platform.
+            </p>
+            <p className="mb-3">
+              Conversations with Mylane are considered your content. You retain rights to what you
+              share. Content you create in workspaces — plays, transactions, events, team rosters —
+              belongs to you.
             </p>
             <p>
               Content must be honest and based on genuine experience. LocalLane reserves the right
               to remove content that violates community standards, is fraudulent, or is abusive.
-              Private concerns are routed to platform administrators and are never displayed publicly.
             </p>
           </section>
 
-          {/* 8. Limitation of Liability */}
+          {/* 8. AI Features */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">8. Limitation of Liability</h2>
+            <h2 className="text-xl font-semibold text-white mb-3">8. AI Features</h2>
+            <p className="mb-3">
+              LocalLane includes AI-powered features through Mylane, our companion assistant.
+              Mylane is artificial intelligence — not a human — and identifies itself as such in
+              all interactions.
+            </p>
+            <p className="mb-3">
+              Mylane provides suggestions and assistance but is not a substitute for professional
+              advice (financial, legal, medical, or otherwise). AI-generated responses may
+              occasionally be inaccurate. Always verify important information independently.
+            </p>
             <p>
-              LocalLane is a discovery and connection platform. We do not guarantee the quality,
-              safety, or availability of any business, event, or experience listed on the platform.
+              Mylane requires your confirmation before making changes to your data. She does
+              not take autonomous actions on your behalf without your approval.
+            </p>
+          </section>
+
+          {/* 9. Community Conduct */}
+          <section>
+            <h2 className="text-xl font-semibold text-white mb-3">9. Community Conduct</h2>
+            <p className="mb-3">
+              LocalLane is built on trust and mutual respect. Messaging through the platform
+              requires an existing relationship — you cannot contact strangers. This is by design.
+            </p>
+            <p>
+              Content that promotes harm, harassment, discrimination, or illegal activity will be
+              removed. LocalLane reserves the right to suspend accounts that violate community
+              trust.
+            </p>
+          </section>
+
+          {/* 10. Limitation of Liability */}
+          <section>
+            <h2 className="text-xl font-semibold text-white mb-3">10. Limitation of Liability</h2>
+            <p className="mb-3">
+              LocalLane is a community platform. We do not guarantee the quality, safety, or
+              availability of any business, event, or experience listed on the platform.
               Interactions with businesses are between you and the business. LocalLane is not
               responsible for disputes, injuries, or damages arising from those interactions.
             </p>
+            <p>
+              AI features are provided "as is." LocalLane is not liable for actions taken based
+              on Mylane's suggestions. You are responsible for decisions you make using the
+              platform.
+            </p>
           </section>
 
-          {/* 9. Changes */}
+          {/* 11. Changes */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">9. Changes to These Terms</h2>
+            <h2 className="text-xl font-semibold text-white mb-3">11. Changes to These Terms</h2>
             <p>
               We may update these terms from time to time. Material changes will be communicated
               through the platform or via email. Continued use of LocalLane after changes constitutes
@@ -163,9 +211,9 @@ export default function Terms() {
             </p>
           </section>
 
-          {/* 10. Contact */}
+          {/* 12. Contact */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">10. Contact</h2>
+            <h2 className="text-xl font-semibold text-white mb-3">12. Contact</h2>
             <p>
               Questions about these terms? Reach us at{' '}
               <a href="mailto:support@locallane.app" className="text-amber-500 hover:text-amber-400 transition-colors">
