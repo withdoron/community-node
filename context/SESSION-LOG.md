@@ -384,3 +384,40 @@ Marketing:
 6. Begin league workspace research (Randy interview)
 
 ---
+
+### Session Log — 2026-03-31 (Afternoon)
+**Focus:** Landing page redesign, conversational onboarding, nav simplification, privacy/terms update, pricing economics, credit analysis
+**Shipped:**
+1. Landing page redesign — `4746b17`: 7 sections to 4. "Built by your community. Built for your community." Dual-path cards removed. Feature tags removed. Compressed values line. Aggregate community pulse card.
+2. Finance bug fix round 2 — `37a42fd`: `|| null` patterns on notes fields across TransactionForm.jsx and FinanceDebts.jsx.
+3. Conversational onboarding — `65adbc3`: 4-step wizard replaced with inline welcome in MyLane.jsx. Net -371 lines. Agent-free primary path. mylane_first_visit flag planted.
+4. Nav simplification — `3de7bee`: Desktop nav to Logo | Directory | Events | Become/Avatar. Community dropdown removed. Dashboard link removed. Net -113 lines.
+5. Privacy & Terms update — `299ee4e`: SB 243 compliant. Mylane AI disclosure, children's privacy section, conversation data, interaction patterns, community conduct. Privacy 9→11 sections. Terms 10→12 sections.
+6. Invite link consistency — `e4238de`: Five surfaces unified (BusinessDashboard, MyLaneDrillView, TeamHome, TeamOnboarding, TeamSettings). Family/Coach/Door naming consistent everywhere.
+7. Credit economics analysis from Hyphae — full breakdown of message vs integration credits, cost per operation, league scale projections, optimization path.
+
+**Decisions made:**
+- DEC-127: $3 Ante — every user pays $3/month minimum
+- DEC-128: Dynamic Pricing in $9 Increments with transparent gauge
+- DEC-129: Agent Access is the Pricing Boundary
+- DEC-130: Query Optimization Required Before League Scale
+- Networks (Recess, Harvest) confirmed dark — private, invite-only, not in nav
+- Frequency Station and Shaping the Garden become Mylane cards, not nav destinations
+- Onboarding wizard replaced by Mylane conversational inline welcome
+- Four-layer gardener model: User, Curator, Community, Master Gardeners
+
+**Key analysis (Hyphae credit economics):**
+- 1 message credit per agent conversation turn
+- ~17 integration credits per page load (current, unoptimized)
+- League scale (100 users): 900 message + 23,550 integration monthly (exceeds current plan)
+- With optimization: integration drops to ~6,000 (fits 10k plan)
+- $3 ante x 100 users = $300/month revenue vs $50-100 Base44 cost = sustainable
+
+**Next up:**
+1. Test new user flow end to end (create test user)
+2. Query optimization (getMyLaneProfiles server function) — pre-Randy prerequisite
+3. Call Randy — demo + scheduling workflow research
+4. Coach Rick invite retry
+5. Coast trip planning (North Bend + seed spreading)
+
+---

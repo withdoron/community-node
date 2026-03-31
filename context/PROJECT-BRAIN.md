@@ -65,6 +65,24 @@ Give Hyphae the goal and context, not step-by-step instructions. Include our thi
 
 *"The organism already knows what it knows. The architecture question is always: what's the lightest way to let that knowledge become visible?" — Hyphae, 2026-03-30*
 
+## $3 Ante (DEC-127)
+
+Every user pays $3/month. "You support the platform, not advertisers. This is your space to create." No free tier. The ante is skin in the game. It transforms consumers into participants. Free carries little value.
+
+## Dynamic Pricing as Circulation (DEC-128)
+
+Utility-style pricing in $9 increments. A visible gauge shows what the organism did for you this month. The gauge is predictive — shows cost before action. Dormant months cost $3. Active months scale proportionally. "Money is just the blood — not the purpose of the body, but what keeps the organs alive."
+
+## Agent Access Boundary (DEC-129)
+
+The Mylane surface is free ($3 tier). Agent conversation is paid ($9+). Client-side intelligence costs nothing. Agent intelligence costs credits. The organism is alive for everyone. It works for those who ask.
+
+*"Without money, the organism dies." — Doron, 2026-03-31*
+
+*"Free carries little value. Life isn't free." — Doron, 2026-03-31*
+
+*"Money is just the blood — not the purpose of the body, but what keeps the organs alive." — Doron, 2026-03-31*
+
 ## Who Is Doron
 
 Doron Fletcher is the founder, visionary, and decision-maker. Background in accounting and economics. Previously built Bomb Squad Growers to international recognition before losing it overnight. Now approaches development as a "gardener of life."
