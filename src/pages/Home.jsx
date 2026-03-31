@@ -19,10 +19,6 @@ const ANIMATION_STYLES = `
   85% { opacity: 0.15; }
   100% { opacity: 0; transform: translateY(-700px); }
 }
-@keyframes scrollDot {
-  0%, 100% { transform: translateY(0); opacity: 0.4; }
-  50% { transform: translateY(8px); opacity: 0.8; }
-}
 @keyframes ping-slow {
   0% { transform: scale(1); opacity: 0.2; }
   75%, 100% { transform: scale(2.5); opacity: 0; }
@@ -32,13 +28,13 @@ const ANIMATION_STYLES = `
 // ─── Constants ──────────────────────────────────────────────────────
 const COMPLETIONS = [
   'a better neighbor.',
-  'a creator.',
-  'game ready.',
-  'part of something real.',
-  'the coach they need.',
+  'part of something alive.',
+  'the reason they show up.',
   'connected.',
   'known.',
-  'the reason they show up.',
+  'the coach they need.',
+  'rooted.',
+  'part of something real.',
 ];
 
 const SPORE_COUNT = 7;
@@ -76,9 +72,8 @@ function MyceliumCanvas() {
     function draw(time) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const nodes = nodesRef.current;
-      const sineVal = Math.sin(time / 3000) * 0.5 + 0.5; // 0-1 over ~6s
+      const sineVal = Math.sin(time / 3000) * 0.5 + 0.5;
 
-      // Move nodes
       for (const n of nodes) {
         n.x += n.vx;
         n.y += n.vy;
@@ -86,7 +81,6 @@ function MyceliumCanvas() {
         if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
       }
 
-      // Draw connections
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
           const dx = nodes[i].x - nodes[j].x;
@@ -104,7 +98,6 @@ function MyceliumCanvas() {
         }
       }
 
-      // Draw nodes
       for (const n of nodes) {
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
@@ -119,12 +112,8 @@ function MyceliumCanvas() {
     createNodes();
     animRef.current = requestAnimationFrame(draw);
 
-    const handleResize = () => {
-      resize();
-      createNodes();
-    };
+    const handleResize = () => { resize(); createNodes(); };
     window.addEventListener('resize', handleResize);
-
     return () => {
       if (animRef.current) cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', handleResize);
@@ -204,24 +193,10 @@ function RotatingCompletions() {
   );
 }
 
-// ─── Scroll Indicator ───────────────────────────────────────────────
-function ScrollIndicator() {
-  return (
-    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-      <div className="w-5 h-8 rounded-full border border-slate-700/50 flex items-start justify-center pt-1.5">
-        <div
-          className="w-1 h-1.5 rounded-full bg-slate-500"
-          style={{ animation: 'scrollDot 2s ease-in-out infinite' }}
-        />
-      </div>
-    </div>
-  );
-}
-
 // ─── Organism Pulse Divider ─────────────────────────────────────────
 function PulseDivider() {
   return (
-    <div className="flex items-center justify-center gap-4 py-16">
+    <div className="flex items-center justify-center gap-4 py-12">
       <div className="flex-1 max-w-[120px] h-px bg-gradient-to-r from-transparent to-amber-500/20" />
       <div className="relative">
         <div className="w-2 h-2 rounded-full bg-amber-500/40" />
@@ -283,6 +258,22 @@ export default function Home() {
     enabled: !!region,
   });
 
+  // Real data: community pulse (aggregate signal)
+  const { data: communityCount = 0 } = useQuery({
+    queryKey: ['homepage-community-pulse'],
+    queryFn: async () => {
+      try {
+        const [teams, members] = await Promise.all([
+          base44.entities.Team.filter({ status: 'active' }),
+          base44.entities.TeamMember.filter({ status: 'active' }),
+        ]);
+        const teamCount = Array.isArray(teams) ? teams.length : 0;
+        const memberCount = Array.isArray(members) ? members.length : 0;
+        return teamCount + memberCount;
+      } catch { return 0; }
+    },
+  });
+
   // Build "What's alive" cards from real data
   const aliveCards = useMemo(() => {
     const cards = [];
@@ -308,7 +299,15 @@ export default function Home() {
       });
     }
 
-    if (upcomingEvents.length > 1) {
+    // Community pulse — aggregate signal
+    if (communityCount > 0) {
+      cards.push({
+        dotColor: 'bg-amber-400/60',
+        type: 'Community',
+        title: `${communityCount} people connected`,
+        detail: 'Teams, families, neighbors',
+      });
+    } else if (upcomingEvents.length > 1) {
       const e = upcomingEvents[1];
       const dateStr = e.date ? new Date(e.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : '';
       cards.push({
@@ -317,37 +316,29 @@ export default function Home() {
         title: e.title || 'Community Event',
         detail: dateStr + (e.location_name ? ` · ${e.location_name}` : ''),
       });
-    } else if (recentBusinesses.length > 1) {
-      const b = recentBusinesses[1];
-      cards.push({
-        dotColor: 'bg-amber-400',
-        type: 'Business',
-        title: b.name || 'Local Business',
-        detail: b.category || 'Community business',
-      });
     }
 
-    // Fallback placeholders if no real data
+    // Fallback if no real data at all
     if (cards.length === 0) {
       cards.push(
-        { dotColor: 'bg-emerald-400', type: 'Event', title: 'Community events coming soon', detail: 'Eugene / Springfield' },
-        { dotColor: 'bg-amber-400', type: 'Business', title: 'Local businesses joining daily', detail: 'Directory growing' },
-        { dotColor: 'bg-blue-400', type: 'Network', title: 'Neighborhoods connecting', detail: 'Real people, near you' }
+        { dotColor: 'bg-emerald-400', type: 'Event', title: 'Community events coming soon', detail: 'Something is growing' },
+        { dotColor: 'bg-amber-400', type: 'Business', title: 'Local businesses joining', detail: 'The garden is opening' },
+        { dotColor: 'bg-amber-400/60', type: 'Community', title: 'People connecting', detail: 'Real neighbors, near you' },
       );
     }
 
     // Pad to 3 if needed
     while (cards.length < 3) {
       cards.push({
-        dotColor: 'bg-blue-400',
-        type: 'Network',
-        title: 'Community growing',
-        detail: 'New neighbors joining',
+        dotColor: 'bg-amber-400/60',
+        type: 'Community',
+        title: 'Something is growing',
+        detail: 'Real people, near you',
       });
     }
 
     return cards;
-  }, [upcomingEvents, recentBusinesses]);
+  }, [upcomingEvents, recentBusinesses, communityCount]);
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -362,10 +353,10 @@ export default function Home() {
         <FloatingSpores />
 
         <div className="relative z-10 flex flex-col items-center text-center px-4">
-          {/* Built in Eugene pill */}
+          {/* Community pill */}
           <div className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-500/15 bg-amber-500/5 mb-12">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-xs text-amber-400/80 tracking-wide">Built in Eugene, For Eugene</span>
+            <span className="text-xs text-amber-400/80 tracking-wide">Built by your community. Built for your community.</span>
           </div>
 
           {/* Become */}
@@ -386,74 +377,19 @@ export default function Home() {
           </div>
 
           {/* Supporting text */}
-          <p className="mt-12 text-slate-600 text-base max-w-md leading-relaxed">
-            Support your neighbors. Organize your family.
+          <p className="mt-12 text-slate-500 text-base max-w-sm leading-relaxed">
+            A companion for your community life.
             <br />
-            Strengthen the community you call home.
+            <span className="text-slate-600">It grows with you.</span>
           </p>
         </div>
-
-        <ScrollIndicator />
       </section>
 
       {/* ── Organism Pulse Divider ── */}
       <PulseDivider />
 
-      {/* ── Dual Path Cards ── */}
-      <section className="max-w-4xl mx-auto px-4 pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* For Your Family */}
-          <div className="bg-slate-900/40 border border-slate-800/40 rounded-2xl p-8 hover:border-amber-500/20 transition-colors">
-            <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center mb-5">
-              <svg className="w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-bold text-slate-100 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
-              For Your Family
-            </h3>
-            <p className="text-slate-400 text-sm leading-relaxed mb-5">
-              Build team rosters, run plays from a shared playbook, manage schedules, and track family finances — all in one place.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {['Teams', 'Playbook Pro', 'Schedule', 'Finance'].map((tag) => (
-                <span key={tag} className="px-3 py-1 rounded-full bg-slate-800/40 text-slate-600 text-xs border border-slate-700/20">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* For Your Community */}
-          <div className="bg-slate-900/40 border border-slate-800/40 rounded-2xl p-8 hover:border-amber-500/20 transition-colors">
-            <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center mb-5">
-              <svg className="w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-bold text-slate-100 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
-              For Your Community
-            </h3>
-            <p className="text-slate-400 text-sm leading-relaxed mb-5">
-              Discover local businesses, find family-friendly events, join neighborhood networks, and support the people near you.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {['Directory', 'Events', 'Networks', 'Local Businesses'].map((tag) => (
-                <span key={tag} className="px-3 py-1 rounded-full bg-slate-800/40 text-slate-600 text-xs border border-slate-700/20">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ── What's alive this week ── */}
-      <section className="max-w-4xl mx-auto px-4 pb-16">
+      <section className="max-w-3xl mx-auto px-4 pb-16">
         <div className="mb-8">
           <h2 className="text-xl font-bold text-slate-100" style={{ fontFamily: 'Georgia, serif' }}>
             What's alive this week
@@ -467,27 +403,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Values ── */}
-      <section className="max-w-2xl mx-auto px-4 py-16 text-center space-y-8">
-        <p className="text-slate-300">
-          <strong className="text-amber-400" style={{ fontFamily: 'Georgia, serif' }}>No ads. Ever.</strong>
-          <span className="text-slate-600"> — Businesses earn trust through community, not ad spend.</span>
-        </p>
-        <p className="text-slate-300">
-          <strong className="text-amber-400" style={{ fontFamily: 'Georgia, serif' }}>Your ideas shape this.</strong>
-          <span className="text-slate-600"> — Features come from real conversations with real neighbors.</span>
-        </p>
-        <p className="text-slate-300">
-          <strong className="text-amber-400" style={{ fontFamily: 'Georgia, serif' }}>Money stays local.</strong>
-          <span className="text-slate-600"> — Circulation over extraction. Support the people who live where you live.</span>
-        </p>
-      </section>
-
-      {/* ── How it grows ── */}
-      <section className="max-w-2xl mx-auto px-4 py-12 text-center">
-        <p className="text-xs text-slate-700 tracking-widest uppercase mb-6">How it grows</p>
-        <p className="text-slate-400 italic text-lg leading-relaxed">
-          "Your neighbor suggested this feature. We built it last week."
+      {/* ── Values (compressed) ── */}
+      <section className="max-w-xl mx-auto px-4 py-12 text-center">
+        <p className="text-slate-500 text-sm leading-relaxed">
+          <span className="text-amber-400/80">No ads.</span> Your ideas shape this. <span className="text-amber-400/80">Money stays local.</span>
         </p>
       </section>
 
