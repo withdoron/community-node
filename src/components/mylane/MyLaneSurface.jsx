@@ -115,11 +115,16 @@ export default function MyLaneSurface({
   const {
     trackCardTap,
     trackDrillTime,
+    trackMessage,
     getCardOrder,
     getCardVitality,
+    getModeGradient,
     getLastVisited,
     setLastVisited,
   } = useMyLaneState();
+
+  // Auto/Manual gradient — 0.0 = manual (taps), 1.0 = auto (conversation)
+  const modeGradient = getModeGradient();
 
   const lastVisited = getLastVisited();
 
@@ -134,6 +139,14 @@ export default function MyLaneSurface({
     window.dispatchEvent(new CustomEvent('agent-active', { detail: true }));
     return () => { window.dispatchEvent(new CustomEvent('agent-active', { detail: false })); };
   }, []);
+
+  // Listen for Mylane messages (DEC-120 frequency tracking)
+  // Any chat component can dispatch: window.dispatchEvent(new CustomEvent('mylane-user-message'))
+  useEffect(() => {
+    const handler = () => trackMessage();
+    window.addEventListener('mylane-user-message', handler);
+    return () => window.removeEventListener('mylane-user-message', handler);
+  }, [trackMessage]);
 
   // Urgency callback for cards
   const handleUrgency = useCallback((cardId, isUrgent) => {
@@ -227,7 +240,13 @@ export default function MyLaneSurface({
       ) : (
         <div className="mb-4">
           <h2 className="text-xl font-semibold text-white">MyLane</h2>
-          <p className="text-sm text-slate-400 mt-1">{today}</p>
+          <p className="text-sm text-slate-400 mt-1">
+            {today}
+            {/* At high conversation gradient, Mylane's presence becomes warmer */}
+            {modeGradient > 0.6 && (
+              <span className="text-slate-500 ml-1.5">· Mylane is here</span>
+            )}
+          </p>
         </div>
       )}
 
@@ -280,14 +299,16 @@ export default function MyLaneSurface({
               })}
 
               {/* Discovery whispers — ghost cards for proximate spaces */}
+              {/* Conversational users see whispers slightly brighter (more open to discovery) */}
               {whispers.map((w) => {
                 const Icon = w.icon;
+                const whisperOpacity = w.strength * (0.55 + modeGradient * 0.2);
                 return (
                   <Link
                     key={w.id}
                     to={createPageUrl(w.onboardingPage)}
                     className="group bg-transparent border border-dashed border-slate-800 rounded-xl p-4 transition-all duration-500 hover:border-amber-500/30 hover:bg-slate-900/30"
-                    style={{ opacity: w.strength * 0.55 }}
+                    style={{ opacity: whisperOpacity }}
                   >
                     <div className="flex items-center gap-2 mb-3">
                       <Icon className="h-4 w-4 text-slate-600 group-hover:text-amber-500/60 transition-colors" />
@@ -302,6 +323,16 @@ export default function MyLaneSurface({
             <div className="text-center py-16">
               <p className="text-slate-400">Your spaces will appear here as cards.</p>
             </div>
+          )}
+
+          {/* Conversational nudge — only for users who talk to Mylane (gradient > 0.5) */}
+          {modeGradient > 0.5 && sortedCards.length > 0 && (
+            <p
+              className="text-center text-xs text-slate-600 mt-6 transition-opacity duration-1000"
+              style={{ opacity: Math.min(0.8, (modeGradient - 0.5) * 1.6) }}
+            >
+              Ask Mylane about your spaces
+            </p>
           )}
         </>
       )}

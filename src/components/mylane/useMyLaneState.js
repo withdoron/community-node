@@ -27,6 +27,12 @@ const DEFAULT_STATE = {
   pinnedCards: [],
   hiddenCards: [],
   cardOrder: null,
+  // Frequency tracking — Auto/Manual gradient (DEC-120)
+  frequency: {
+    weekStart: null,  // ISO string — start of current tracking week
+    weeklyTaps: 0,
+    weeklyMessages: 0,
+  },
 };
 
 export default function useMyLaneState() {
@@ -38,7 +44,7 @@ export default function useMyLaneState() {
     saveState(next);
   }, []);
 
-  /** Record a card tap */
+  /** Record a card tap (also bumps weekly tap count for mode gradient) */
   const trackCardTap = useCallback((cardId) => {
     drillStartRef.current[cardId] = Date.now();
     setState((prev) => {
@@ -53,7 +59,8 @@ export default function useMyLaneState() {
       saveState(next);
       return next;
     });
-  }, []);
+    bumpWeeklyTap();
+  }, [bumpWeeklyTap]);
 
   /** Record how long user spent in drill view */
   const trackDrillTime = useCallback((cardId) => {
@@ -120,6 +127,71 @@ export default function useMyLaneState() {
     persist(next);
   }, [state, persist]);
 
+  // ── Frequency tracking — Auto/Manual gradient (DEC-120) ──
+
+  /** Get the current frequency bucket, resetting if the week rolled over. */
+  const getFrequency = useCallback(() => {
+    const freq = state.frequency || DEFAULT_STATE.frequency;
+    const now = Date.now();
+    const weekStart = freq.weekStart ? new Date(freq.weekStart).getTime() : 0;
+    const WEEK_MS = 7 * 86400000;
+    // If more than 7 days since weekStart, the week rolled over — return zeros
+    if (!weekStart || (now - weekStart) > WEEK_MS) {
+      return { weeklyTaps: 0, weeklyMessages: 0, fresh: true };
+    }
+    return { weeklyTaps: freq.weeklyTaps || 0, weeklyMessages: freq.weeklyMessages || 0, fresh: false };
+  }, [state.frequency]);
+
+  /** Increment weekly tap count (called automatically by trackCardTap). */
+  const bumpWeeklyTap = useCallback(() => {
+    setState((prev) => {
+      const freq = { ...(prev.frequency || DEFAULT_STATE.frequency) };
+      const now = Date.now();
+      const weekStart = freq.weekStart ? new Date(freq.weekStart).getTime() : 0;
+      if (!weekStart || (now - weekStart) > 7 * 86400000) {
+        freq.weekStart = new Date().toISOString();
+        freq.weeklyTaps = 1;
+        freq.weeklyMessages = 0;
+      } else {
+        freq.weeklyTaps = (freq.weeklyTaps || 0) + 1;
+      }
+      const next = { ...prev, frequency: freq };
+      saveState(next);
+      return next;
+    });
+  }, []);
+
+  /** Record a message sent to Mylane. Call from AgentChat or via window event. */
+  const trackMessage = useCallback(() => {
+    setState((prev) => {
+      const freq = { ...(prev.frequency || DEFAULT_STATE.frequency) };
+      const now = Date.now();
+      const weekStart = freq.weekStart ? new Date(freq.weekStart).getTime() : 0;
+      if (!weekStart || (now - weekStart) > 7 * 86400000) {
+        freq.weekStart = new Date().toISOString();
+        freq.weeklyTaps = 0;
+        freq.weeklyMessages = 1;
+      } else {
+        freq.weeklyMessages = (freq.weeklyMessages || 0) + 1;
+      }
+      const next = { ...prev, frequency: freq };
+      saveState(next);
+      return next;
+    });
+  }, []);
+
+  /**
+   * Mode gradient: 0.0 = fully manual (taps only), 1.0 = fully auto (conversation only).
+   * Default 0.3 — leans manual for new users. Adjusts as interaction data accumulates.
+   * Needs at least 3 total interactions before adjusting from default.
+   */
+  const getModeGradient = useCallback(() => {
+    const { weeklyTaps, weeklyMessages } = getFrequency();
+    const total = weeklyTaps + weeklyMessages;
+    if (total < 3) return 0.3; // not enough data — lean manual (honest default)
+    return Math.min(1.0, Math.max(0.0, weeklyMessages / total));
+  }, [getFrequency]);
+
   /**
    * Compute vitality (opacity) for a card based on recency of interaction.
    * Returns a value between 0.35 (dormant) and 1.0 (bright).
@@ -150,8 +222,10 @@ export default function useMyLaneState() {
   return {
     trackCardTap,
     trackDrillTime,
+    trackMessage,
     getCardOrder,
     getCardVitality,
+    getModeGradient,
     getLastVisited,
     setLastVisited,
     cardInteractions: state.cardInteractions,
