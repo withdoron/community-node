@@ -69,31 +69,23 @@ export default function Support() {
                   <div>
                     <h3 className="text-white font-medium mb-1">How do I list my business?</h3>
                     <p className="text-slate-400 text-sm">
-                      Create an account, then use the business onboarding wizard to set up your
-                      profile. It takes about 5 minutes. During our pilot, listings are free.
+                      Create an account and you'll be guided through setting up your listing.
+                      It takes about 5 minutes. During our pilot, listings are free.
                     </p>
                   </div>
                   <div className="border-t border-slate-800 pt-4">
                     <h3 className="text-white font-medium mb-1">How do I create an event?</h3>
                     <p className="text-slate-400 text-sm">
-                      Once your business is set up, go to your Business Dashboard and click
-                      "Create Event." You can add details, images, and set pricing options.
+                      Once your business is set up, open your workspace from My Lane and
+                      go to the Events tab. You can add details, images, and set pricing.
                     </p>
                   </div>
                   <div className="border-t border-slate-800 pt-4">
                     <h3 className="text-white font-medium mb-1">Is LocalLane free?</h3>
                     <p className="text-slate-400 text-sm">
-                      Browsing, RSVPing to events, and recommending businesses is always free.
-                      Business listings are free during our pilot. Community Pass memberships
-                      and business tier subscriptions will be available soon.
-                    </p>
-                  </div>
-                  <div className="border-t border-slate-800 pt-4">
-                    <h3 className="text-white font-medium mb-1">What is Community Pass?</h3>
-                    <p className="text-slate-400 text-sm">
-                      Community Pass is a monthly membership that gives you access to
-                      participating local businesses through Joy Coins. Think of it
-                      like a community access pass, not stored value. Coming soon.
+                      LocalLane is free to explore — browse, discover events, and connect with
+                      local businesses. When you want more from the community, transparent
+                      pricing grows with you. You always see the cost before you commit.
                     </p>
                   </div>
                   <div className="border-t border-slate-800 pt-4">

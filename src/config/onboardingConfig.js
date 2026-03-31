@@ -58,12 +58,12 @@ export const ONBOARDING_CONFIG = {
   },
 
   goals: [
-    { value: 'host_events', label: 'Host Events', description: 'Create and manage community events', active: true },
-    { value: 'list_in_directory', label: 'List in Directory', description: 'Appear in the business directory', active: true },
-    { value: 'accept_joy_coins', label: 'Accept Joy Coins', description: 'Accept Joy Coins from Community Pass members', active: false, minTier: 'standard' },
-    { value: 'manage_bookings', label: 'Manage Bookings', description: 'Accept appointments and reservations', active: false, minTier: 'standard' },
-    { value: 'sell_products', label: 'Sell Products', description: 'List products for sale', active: false, minTier: 'standard' },
-    { value: 'post_announcements', label: 'Post Announcements', description: 'Send updates to followers', active: false },
+    { value: 'host_events', label: 'Host Events', description: 'Host events for your community', active: true },
+    { value: 'list_in_directory', label: 'List in Directory', description: 'Be found by your neighbors', active: true },
+    { value: 'accept_joy_coins', label: 'Accept Joy Coins', description: 'Accept Joy Coins from community members', active: false, minTier: 'standard' },
+    { value: 'manage_bookings', label: 'Manage Bookings', description: 'Let people book time with you', active: false, minTier: 'standard' },
+    { value: 'sell_products', label: 'Sell Products', description: 'Share what you make with the community', active: false, minTier: 'standard' },
+    { value: 'post_announcements', label: 'Post Announcements', description: 'Keep your people in the loop', active: false },
   ],
 
   goalsByArchetype: {

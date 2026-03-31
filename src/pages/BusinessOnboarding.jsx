@@ -364,8 +364,8 @@ export default function BusinessOnboarding() {
             return (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-100">Choose your plan</h2>
-                  <p className="text-slate-400 mt-1">Select the tier that works best for your organization</p>
+                  <h2 className="text-2xl font-bold text-slate-100">How would you like to grow?</h2>
+                  <p className="text-slate-400 mt-1">You can always change this later</p>
                 </div>
                 <RadioGroup value={formData.subscription_tier} onValueChange={(v) => setFormData({ ...formData, subscription_tier: v })} className="grid gap-4">
                   {visibleTiers.map((tier) => (
@@ -399,8 +399,8 @@ export default function BusinessOnboarding() {
             return (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-100">Review your listing</h2>
-                  <p className="text-slate-400 mt-1">Make sure everything looks good</p>
+                  <h2 className="text-2xl font-bold text-slate-100">You're almost there</h2>
+                  <p className="text-slate-400 mt-1">Here's what your listing will look like</p>
                 </div>
                 <div className="space-y-4">
                   <div className="p-4 bg-slate-800 rounded-lg border border-slate-700">
@@ -510,7 +510,7 @@ export default function BusinessOnboarding() {
                       Creating...
                     </>
                   ) : (
-                    'Create Organization'
+                    'Get Started'
                   )}
                 </Button>
               )}
