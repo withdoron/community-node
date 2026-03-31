@@ -1,8 +1,8 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Store } from 'lucide-react';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { Loader2, Store, ArrowRight } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useRole } from '@/hooks/useRole';
 import { useUserOwnedBusinesses } from '@/hooks/useUserOwnedBusinesses';
@@ -10,9 +10,140 @@ import MyLaneSurface from '@/components/mylane/MyLaneSurface';
 import UpcomingEventsSection from '@/components/mylane/UpcomingEventsSection';
 import DiscoverSection from '@/components/mylane/DiscoverSection';
 
+// ─── Inline Welcome — replaces the onboarding wizard ───────────────
+// Captures display name, sets onboarding_complete, reveals Mylane.
+// Agent-free, zero-latency, works even if Base44 agent API is down.
+function InlineWelcome({ currentUser, onComplete }) {
+  const queryClient = useQueryClient();
+  const [name, setName] = useState('');
+  const [step, setStep] = useState('name'); // 'name' | 'greeting'
+
+  const completeMutation = useMutation({
+    mutationFn: async (displayName) => {
+      const data = { onboarding_complete: true };
+      if (displayName) {
+        data.display_name = displayName;
+        data.full_name = displayName;
+      }
+      try {
+        await base44.functions.invoke('updateUser', {
+          action: 'update_onboarding',
+          data,
+        });
+      } catch {
+        // Server function failed — try direct update
+        try {
+          await base44.entities.User.update(currentUser.id, data);
+        } catch { /* last resort */ }
+      }
+      // Optimistic cache update
+      queryClient.setQueryData(['currentUser'], (old) =>
+        old ? { ...old, ...data, data: { ...(old.data || {}), ...data } } : old
+      );
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+    },
+    onSuccess: () => {
+      // Mark as first visit so Mylane surface can auto-open chat
+      try { localStorage.setItem('mylane_first_visit', '1'); } catch {}
+      onComplete();
+    },
+  });
+
+  const handleSubmitName = () => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setStep('greeting');
+    // Brief pause on greeting before completing — let the user feel welcomed
+    setTimeout(() => completeMutation.mutate(trimmed), 1200);
+  };
+
+  const handleSkip = () => {
+    completeMutation.mutate(null);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleSubmitName();
+  };
+
+  // Greeting step — warm transition before Mylane opens
+  if (step === 'greeting') {
+    const firstName = name.trim().split(' ')[0];
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-6">
+        <div className="text-center max-w-sm space-y-4 animate-in fade-in duration-500">
+          <h1
+            className="text-3xl md:text-4xl font-bold text-amber-400"
+            style={{ fontFamily: 'Georgia, serif' }}
+          >
+            Welcome, {firstName}.
+          </h1>
+          <p className="text-slate-400 text-sm">Your space is ready.</p>
+          <Loader2 className="h-5 w-5 text-amber-500/50 animate-spin mx-auto mt-4" />
+        </div>
+      </div>
+    );
+  }
+
+  // Name capture step
+  return (
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-6">
+      <div className="w-full max-w-sm space-y-8">
+        {/* Heading */}
+        <div className="text-center">
+          <h1
+            className="text-3xl md:text-4xl font-bold text-white mb-3"
+            style={{ fontFamily: 'Georgia, serif' }}
+          >
+            Welcome
+          </h1>
+          <p className="text-slate-400 text-sm">What should we call you?</p>
+        </div>
+
+        {/* Name input */}
+        <div className="flex gap-3">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Your name"
+            autoFocus
+            className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 min-h-[48px] text-base"
+            disabled={completeMutation.isPending}
+          />
+          <button
+            type="button"
+            onClick={handleSubmitName}
+            disabled={!name.trim() || completeMutation.isPending}
+            className="bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:hover:bg-amber-500 text-black rounded-xl px-4 min-h-[48px] min-w-[48px] flex items-center justify-center transition-colors"
+          >
+            {completeMutation.isPending ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <ArrowRight className="h-5 w-5" />
+            )}
+          </button>
+        </div>
+
+        {/* Skip */}
+        <button
+          type="button"
+          onClick={handleSkip}
+          disabled={completeMutation.isPending}
+          className="block mx-auto text-slate-600 hover:text-slate-400 text-xs transition-colors"
+        >
+          skip for now
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main MyLane page ──────────────────────────────────────────────
 export default function MyLane() {
   const queryClient = useQueryClient();
   const agentMessageRef = useRef(null);
+  const [welcomeJustCompleted, setWelcomeJustCompleted] = useState(false);
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -24,6 +155,10 @@ export default function MyLane() {
 
   const { isAppAdmin } = useRole();
   const { hasOwnedBusinesses } = useUserOwnedBusinesses(currentUser);
+
+  const handleWelcomeComplete = useCallback(() => {
+    setWelcomeJustCompleted(true);
+  }, []);
 
   // ── Workspace profile queries (feed MyLaneSurface) ──
 
@@ -146,12 +281,13 @@ export default function MyLane() {
     );
   }
 
-  // ── Onboarding gate (DEC-119: invite codes skip wizard) ──
+  // ── Onboarding: inline welcome for cold users, invite redirect for invited users ──
   const onboardingComplete =
     currentUser?.onboarding_complete === true ||
     currentUser?.data?.onboarding_complete === true;
 
-  if (!onboardingComplete) {
+  if (!onboardingComplete && !welcomeJustCompleted) {
+    // DEC-119: invite codes skip onboarding entirely
     try {
       const pendingTeam = localStorage.getItem('pendingTeamInvite');
       if (pendingTeam) return <Navigate to={`/join/${pendingTeam}`} replace />;
@@ -163,7 +299,8 @@ export default function MyLane() {
       if (pendingPM) return <Navigate to={`/join-pm/${pendingPM}`} replace />;
     } catch { /* localStorage unavailable */ }
 
-    return <Navigate to={createPageUrl('welcome')} replace />;
+    // Cold users: inline welcome — no wizard redirect
+    return <InlineWelcome currentUser={currentUser} onComplete={handleWelcomeComplete} />;
   }
 
   // ── Mylane: the organism's living surface ──
