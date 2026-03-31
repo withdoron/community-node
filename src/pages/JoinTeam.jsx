@@ -6,10 +6,25 @@ import { useAuth } from '@/lib/AuthContext';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, LogIn } from 'lucide-react';
+import { Loader2, LogIn, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 const PENDING_INVITE_KEY = 'pendingTeamInvite';
+
+/** Human-readable sport name */
+function formatSport(sport) {
+  if (!sport) return 'Team';
+  const MAP = { flag_football: 'Flag Football', basketball: 'Basketball', soccer: 'Soccer', baseball: 'Baseball' };
+  return MAP[sport] || sport.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** Build the sport · format · season subtitle */
+function teamSubtitle(team) {
+  const parts = [formatSport(team?.sport)];
+  if (team?.format) parts.push(team.format);
+  if (team?.season) parts.push(team.season);
+  return parts.join(' · ');
+}
 
 export default function JoinTeam() {
   const { inviteCode } = useParams();
@@ -88,7 +103,7 @@ export default function JoinTeam() {
   const team = teamData?.team;
   const inviteType = teamData?.inviteType;
 
-  // Fetch members (needed for family path to show player list)
+  // Fetch members (needed for player list + head coach name for personalized invite copy)
   const { data: members = [], isLoading: membersLoading } = useQuery({
     queryKey: ['join-team-members', team?.id],
     queryFn: async () => {
@@ -96,8 +111,16 @@ export default function JoinTeam() {
       const result = await base44.entities.TeamMember.filter({ team_id: team.id, status: 'active' });
       return Array.isArray(result) ? result : (result ? [result] : []);
     },
-    enabled: !!team?.id && inviteType === 'family',
+    enabled: !!team?.id,
   });
+
+  // Resolve head coach name from existing members data (no extra API call)
+  const headCoach = members.find(
+    (m) => String(m.user_id) === String(team?.owner_id) && (m.role === 'coach' || m.role === 'assistant_coach')
+  );
+  const headCoachName = headCoach?.jersey_name || null;
+  const players = members.filter((m) => m.role === 'player');
+  const playerCount = players.length;
 
   const isAlreadyMember = isAuthenticated && user?.id && members.some((m) => m.user_id === user.id);
 
@@ -216,17 +239,43 @@ export default function JoinTeam() {
     );
   }
 
-  // ── Not authenticated ──
+  // ── Not authenticated — the organism's handshake ──
   if (!isAuthenticated || !user) {
-    const roleLabel = inviteType === 'coach' ? 'coach' : 'parent';
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col p-6 max-w-md mx-auto">
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-4">
-          <h1 className="text-xl font-bold text-white">{team.name}</h1>
-          <p className="text-slate-400 text-sm">
-            {team.sport === 'flag_football' ? 'Flag Football' : team.sport || 'Team'} · {team.format || ''}
-          </p>
-          <p className="text-slate-300 text-sm">Sign in to join this team as a {roleLabel}.</p>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 max-w-md mx-auto">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-5 w-full">
+          {/* Team name — prominent */}
+          <h1 className="text-2xl font-bold text-white text-center">{team.name}</h1>
+
+          {/* Sport · Format · Season */}
+          <p className="text-slate-400 text-sm text-center">{teamSubtitle(team)}</p>
+
+          {/* Personalized invite copy */}
+          {inviteType === 'coach' ? (
+            <p className="text-slate-300 text-sm text-center">
+              {headCoachName
+                ? <>Coach <span className="text-white font-medium">{headCoachName}</span> invited you to coach this team</>
+                : <>You've been invited to coach this team</>
+              }
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-slate-300 text-sm text-center">
+                {headCoachName
+                  ? <>Coach <span className="text-white font-medium">{headCoachName}</span> invited you to join</>
+                  : <>You've been invited to join this team</>
+                }
+              </p>
+              {playerCount > 0 && (
+                <p className="text-slate-500 text-xs text-center flex items-center justify-center gap-1.5">
+                  <Users className="h-3.5 w-3.5" />
+                  {playerCount} {playerCount === 1 ? 'player' : 'players'} on the roster
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Sign in CTA */}
           <Button
             onClick={handleSignIn}
             className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px] flex items-center justify-center gap-2"
@@ -243,10 +292,14 @@ export default function JoinTeam() {
   if (inviteType === 'coach') {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col p-6 max-w-md mx-auto">
-        <h1 className="text-xl font-bold text-white mb-1">{team.name}</h1>
-        <p className="text-slate-400 text-sm mb-6">
-          {team.sport === 'flag_football' ? 'Flag Football' : team.sport || 'Team'} · {team.format || ''}
-        </p>
+        <h1 className="text-2xl font-bold text-white mb-1">{team.name}</h1>
+        <p className="text-slate-400 text-sm mb-1">{teamSubtitle(team)}</p>
+        {headCoachName && (
+          <p className="text-slate-500 text-xs mb-6">
+            Coach <span className="text-slate-300">{headCoachName}</span> invited you
+          </p>
+        )}
+        {!headCoachName && <div className="mb-6" />}
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
           <h2 className="text-lg font-semibold text-white">Join as Coach</h2>
           <p className="text-slate-400 text-sm">You'll have full access to the playbook, roster, and team settings.</p>
@@ -281,15 +334,18 @@ export default function JoinTeam() {
     );
   }
 
-  const players = members.filter((m) => m.role === 'player');
   const selectedCount = parentSelectedIds.size;
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col p-6 max-w-md mx-auto">
-      <h1 className="text-xl font-bold text-white mb-1">{team.name}</h1>
-      <p className="text-slate-400 text-sm mb-6">
-        {team.sport === 'flag_football' ? 'Flag Football' : team.sport || 'Team'} · {team.format || ''}
-      </p>
+      <h1 className="text-2xl font-bold text-white mb-1">{team.name}</h1>
+      <p className="text-slate-400 text-sm mb-1">{teamSubtitle(team)}</p>
+      {headCoachName && (
+        <p className="text-slate-500 text-xs mb-6">
+          Coach <span className="text-slate-300">{headCoachName}</span> invited you
+        </p>
+      )}
+      {!headCoachName && <div className="mb-6" />}
       <h2 className="text-lg font-semibold text-white mb-1">Link your children</h2>
       <p className="text-slate-400 text-sm mb-4">Select each child on this team. You can switch to their view in the team later.</p>
       {players.length === 0 ? (
