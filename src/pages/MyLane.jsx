@@ -155,6 +155,8 @@ export default function MyLane() {
     try {
       const pendingTeam = localStorage.getItem('pendingTeamInvite');
       if (pendingTeam) return <Navigate to={`/join/${pendingTeam}`} replace />;
+      const pendingDoor = localStorage.getItem('pendingTeamDoorSlug');
+      if (pendingDoor) return <Navigate to={`/door/${pendingDoor}`} replace />;
       const pendingFS = localStorage.getItem('pendingFieldServiceInvite');
       if (pendingFS) return <Navigate to={`/join-field-service/${pendingFS}`} replace />;
       const pendingPM = localStorage.getItem('pendingPMInvite');

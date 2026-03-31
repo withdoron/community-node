@@ -206,6 +206,24 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
               <Copy className="h-4 w-4 mr-2" />
               Coach Link
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+              onClick={() => {
+                const name = team?.name;
+                if (name) {
+                  const slug = name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+                  navigator.clipboard.writeText(`${window.location.origin}/door/${slug}`);
+                  toast.success('Door link copied — great for stickers & flyers');
+                }
+              }}
+              disabled={!team?.name}
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Door Link
+            </Button>
           </div>
           <Button
             type="button"

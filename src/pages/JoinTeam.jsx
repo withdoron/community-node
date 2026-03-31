@@ -11,6 +11,17 @@ import { toast } from 'sonner';
 
 const PENDING_INVITE_KEY = 'pendingTeamInvite';
 
+/** Generate a URL-safe slug from text. "Grab It NFL FLAG" → "grab-it-nfl-flag" */
+function slugify(text) {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 /** Human-readable sport name */
 function formatSport(sport) {
   if (!sport) return 'Team';
@@ -26,8 +37,13 @@ function teamSubtitle(team) {
   return parts.join(' · ');
 }
 
+export { slugify };
+
 export default function JoinTeam() {
-  const { inviteCode } = useParams();
+  const params = useParams();
+  // Two entry paths: /join/:inviteCode OR /door/:slug
+  const inviteCode = params.inviteCode || null;
+  const doorSlug = params.slug || null;
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
@@ -59,14 +75,15 @@ export default function JoinTeam() {
     } catch { /* non-critical */ }
   };
 
-  // Persist invite code for redirect after auth
+  // Persist invite code or slug for redirect after auth
   useEffect(() => {
     if (inviteCode) {
-      try {
-        localStorage.setItem(PENDING_INVITE_KEY, inviteCode);
-      } catch (_) {}
+      try { localStorage.setItem(PENDING_INVITE_KEY, inviteCode); } catch (_) {}
+    } else if (doorSlug) {
+      // Store slug so we can redirect back to /door/:slug after auth
+      try { localStorage.setItem('pendingTeamDoorSlug', doorSlug); } catch (_) {}
     }
-  }, [inviteCode]);
+  }, [inviteCode, doorSlug]);
 
   // Pre-fill coach name from user data
   useEffect(() => {
@@ -76,30 +93,51 @@ export default function JoinTeam() {
     }
   }, [user, coachName]);
 
-  // Detect invite type: family (invite_code) or coach (coach_invite_code)
+  // Detect invite type: family (invite_code), coach (coach_invite_code), or door (slug)
+  const lookupKey = inviteCode?.trim() || doorSlug?.trim() || '';
   const { data: teamData, isLoading: teamLoading, error: teamError } = useQuery({
-    queryKey: ['join-team', inviteCode],
+    queryKey: ['join-team', lookupKey],
     queryFn: async () => {
-      if (!inviteCode?.trim()) return null;
-      const code = inviteCode.trim();
+      if (!lookupKey) return null;
 
-      // Try family invite first
-      const familyResult = await base44.entities.Team.filter({ invite_code: code, status: 'active' });
-      const familyList = Array.isArray(familyResult) ? familyResult : (familyResult ? [familyResult] : []);
-      if (familyList[0]) {
-        return { team: familyList[0], inviteType: 'family' };
+      // Path A: invite code lookup (existing flow)
+      if (inviteCode) {
+        const code = inviteCode.trim();
+        // Try family invite first
+        const familyResult = await base44.entities.Team.filter({ invite_code: code, status: 'active' });
+        const familyList = Array.isArray(familyResult) ? familyResult : (familyResult ? [familyResult] : []);
+        if (familyList[0]) return { team: familyList[0], inviteType: 'family' };
+
+        // Try coach invite
+        const coachResult = await base44.entities.Team.filter({ coach_invite_code: code, status: 'active' });
+        const coachList = Array.isArray(coachResult) ? coachResult : (coachResult ? [coachResult] : []);
+        if (coachList[0]) return { team: coachList[0], inviteType: 'coach' };
+
+        return null;
       }
 
-      // Try coach invite
-      const coachResult = await base44.entities.Team.filter({ coach_invite_code: code, status: 'active' });
-      const coachList = Array.isArray(coachResult) ? coachResult : (coachResult ? [coachResult] : []);
-      if (coachList[0]) {
-        return { team: coachList[0], inviteType: 'coach' };
+      // Path B: slug lookup (door route)
+      if (doorSlug) {
+        const slug = doorSlug.trim().toLowerCase();
+        // Try stored slug field first (future — when Base44 entity has slug field)
+        try {
+          const slugResult = await base44.entities.Team.filter({ slug, status: 'active' });
+          const slugList = Array.isArray(slugResult) ? slugResult : (slugResult ? [slugResult] : []);
+          if (slugList[0]) return { team: slugList[0], inviteType: 'family' };
+        } catch { /* slug field may not exist yet — fall through */ }
+
+        // Fallback: match by slugified team name (works before entity field is added)
+        const allTeams = await base44.entities.Team.filter({ status: 'active' });
+        const teamList = Array.isArray(allTeams) ? allTeams : (allTeams ? [allTeams] : []);
+        const match = teamList.find((t) => slugify(t.name) === slug);
+        if (match) return { team: match, inviteType: 'family' };
+
+        return null;
       }
 
       return null;
     },
-    enabled: !!inviteCode?.trim(),
+    enabled: !!lookupKey,
   });
 
   const team = teamData?.team;
@@ -141,7 +179,7 @@ export default function JoinTeam() {
       const existingList = Array.isArray(existing) ? existing : [];
       if (existingList.length > 0) {
         toast.success('You are already a member of this team.');
-        localStorage.removeItem(PENDING_INVITE_KEY);
+        localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
         await ensureOnboardingComplete();
         navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
         return;
@@ -165,7 +203,7 @@ export default function JoinTeam() {
 
       const roleLabel = member.role === 'parent' ? 'parent' : 'coach';
       toast.success(`Joined as ${member.jersey_name || roleLabel}!`);
-      localStorage.removeItem(PENDING_INVITE_KEY);
+      localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
       await ensureOnboardingComplete();
       navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
     } catch (err) {
@@ -183,7 +221,9 @@ export default function JoinTeam() {
   }, [team, isAuthenticated, user?.id, isAlreadyMember, navigate]);
 
   const handleSignIn = () => {
-    const returnUrl = `${window.location.origin}/join/${inviteCode}`;
+    const returnUrl = doorSlug
+      ? `${window.location.origin}/door/${doorSlug}`
+      : `${window.location.origin}/join/${inviteCode}`;
     base44.auth.redirectToLogin(returnUrl);
   };
 
@@ -205,7 +245,7 @@ export default function JoinTeam() {
       const existingList = Array.isArray(existing) ? existing : [];
       if (existingList.length > 0) {
         toast.success('You are already a member of this team.');
-        localStorage.removeItem(PENDING_INVITE_KEY);
+        localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
         await ensureOnboardingComplete();
         navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
         return;
@@ -221,7 +261,7 @@ export default function JoinTeam() {
       });
 
       toast.success(parentSelectedIds.size === 1 ? "You've joined as a parent." : `Linked ${parentSelectedIds.size} children.`);
-      localStorage.removeItem(PENDING_INVITE_KEY);
+      localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
       await ensureOnboardingComplete();
       navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
     } catch (err) {
@@ -239,7 +279,7 @@ export default function JoinTeam() {
       const existingList = Array.isArray(existing) ? existing : [];
       if (existingList.length > 0) {
         toast.success('You are already a member of this team.');
-        localStorage.removeItem(PENDING_INVITE_KEY);
+        localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
         await ensureOnboardingComplete();
         navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
         return;
@@ -255,7 +295,7 @@ export default function JoinTeam() {
       });
 
       toast.success("You've joined as a coach!");
-      localStorage.removeItem(PENDING_INVITE_KEY);
+      localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
       await ensureOnboardingComplete();
       navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
     } catch (err) {
@@ -265,7 +305,7 @@ export default function JoinTeam() {
   };
 
   // ── Loading ──
-  if (teamLoading || !inviteCode) {
+  if (teamLoading || (!inviteCode && !doorSlug)) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
         <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
