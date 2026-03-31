@@ -335,9 +335,9 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
           amount: row.amount,
           date: row.date,
           description: row.description,
-          category: row.category || null,
+          category: row.category || '',
           context: importContext,
-          notes: null,
+          notes: '',
           source_node: 'csv_import',
           is_recurring_instance: false,
         });
@@ -487,9 +487,9 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
           amount: row.absAmount,
           date: row.date,
           description: row.cleaned_description || row.description,
-          category: row.category || null,
+          category: row.category || '',
           context: pdfContext,
-          notes: row.raw_description || null,
+          notes: row.raw_description || '',
           source_node: 'selco_pdf',
           is_recurring_instance: false,
         });
