@@ -97,12 +97,7 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
 
   const promoteMember = useMutation({
     mutationFn: async (member) => {
-      const response = await base44.serverFunctions.claimTeamSpot({
-        action: 'promote_to_coach',
-        member_id: member.id,
-      });
-      if (response.error) throw new Error(response.error);
-      return response;
+      await base44.entities.TeamMember.update(member.id, { role: 'coach' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team-members', team?.id] });

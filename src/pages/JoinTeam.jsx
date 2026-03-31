@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { createPageUrl } from '@/utils';
@@ -15,9 +15,27 @@ export default function JoinTeam() {
   const { inviteCode } = useParams();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
   const [parentSelectedIds, setParentSelectedIds] = useState(new Set());
   const [joining, setJoining] = useState(false);
   const [coachName, setCoachName] = useState('');
+
+  // Mark onboarding complete so user doesn't loop into the wizard after joining
+  const ensureOnboardingComplete = async () => {
+    try {
+      const me = await base44.auth.me();
+      if (!me?.onboarding_complete && !me?.data?.onboarding_complete) {
+        await base44.functions.invoke('updateUser', {
+          action: 'update_onboarding',
+          data: { onboarding_complete: true },
+        });
+        queryClient.setQueryData(['currentUser'], (old) =>
+          old ? { ...old, onboarding_complete: true } : old
+        );
+        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      }
+    } catch { /* non-critical — user can still use the app */ }
+  };
 
   // Persist invite code for redirect after auth
   useEffect(() => {
@@ -104,18 +122,29 @@ export default function JoinTeam() {
     if (!user?.id || !team?.id || parentSelectedIds.size === 0) return;
     setJoining(true);
     try {
-      const response = await base44.serverFunctions.claimTeamSpot({
-        action: 'join_as_parent',
-        invite_code: inviteCode,
-        linked_player_ids: [...parentSelectedIds],
-      });
-      if (response.error) {
-        toast.error(response.error);
-        setJoining(false);
+      // Check for duplicate membership
+      const existing = await base44.entities.TeamMember.filter({ team_id: team.id, user_id: user.id });
+      const existingList = Array.isArray(existing) ? existing : [];
+      if (existingList.length > 0) {
+        toast.success('You are already a member of this team.');
+        localStorage.removeItem(PENDING_INVITE_KEY);
+        await ensureOnboardingComplete();
+        navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
         return;
       }
+
+      // Create parent member record with linked player IDs
+      await base44.entities.TeamMember.create({
+        team_id: team.id,
+        user_id: user.id,
+        role: 'parent',
+        status: 'active',
+        linked_player_ids: [...parentSelectedIds],
+      });
+
       toast.success(parentSelectedIds.size === 1 ? "You've joined as a parent." : `Linked ${parentSelectedIds.size} children.`);
       localStorage.removeItem(PENDING_INVITE_KEY);
+      await ensureOnboardingComplete();
       navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
     } catch (err) {
       toast.error(err?.message || 'Failed to join');
@@ -124,22 +153,33 @@ export default function JoinTeam() {
   };
 
   const handleJoinAsCoach = async () => {
-    if (!user?.id || !coachName?.trim()) return;
+    if (!user?.id || !coachName?.trim() || !team?.id) return;
     setJoining(true);
     try {
-      const response = await base44.serverFunctions.claimTeamSpot({
-        action: 'join_as_coach',
-        coach_invite_code: inviteCode,
-        jersey_name: coachName.trim(),
-      });
-      if (response.error) {
-        toast.error(response.error);
-        setJoining(false);
+      // Check for duplicate membership
+      const existing = await base44.entities.TeamMember.filter({ team_id: team.id, user_id: user.id });
+      const existingList = Array.isArray(existing) ? existing : [];
+      if (existingList.length > 0) {
+        toast.success('You are already a member of this team.');
+        localStorage.removeItem(PENDING_INVITE_KEY);
+        await ensureOnboardingComplete();
+        navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
         return;
       }
+
+      // Create assistant coach member record
+      await base44.entities.TeamMember.create({
+        team_id: team.id,
+        user_id: user.id,
+        role: 'assistant_coach',
+        jersey_name: coachName.trim(),
+        status: 'active',
+      });
+
       toast.success("You've joined as a coach!");
       localStorage.removeItem(PENDING_INVITE_KEY);
-      navigate(createPageUrl('BusinessDashboard') + '?team=' + response.team_id, { replace: true });
+      await ensureOnboardingComplete();
+      navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
     } catch (err) {
       toast.error(err?.message || 'Failed to join');
       setJoining(false);
