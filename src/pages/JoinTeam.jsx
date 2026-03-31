@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, LogIn, Users, CheckCircle } from 'lucide-react';
+import { Loader2, LogIn, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 const PENDING_INVITE_KEY = 'pendingTeamInvite';
@@ -313,12 +313,19 @@ export default function JoinTeam() {
     );
   }
 
-  // ── Invalid code ──
+  // ── Invalid code or slug ──
   if (teamError || !team) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 max-w-md mx-auto">
-        <h1 className="text-xl font-bold text-white mb-2">Invalid or expired invite</h1>
-        <p className="text-slate-400 text-center mb-6">This invite code is not valid or the team may no longer be active.</p>
+        <h1 className="text-xl font-bold text-white mb-2">
+          {doorSlug ? 'Team not found' : 'Invalid or expired invite'}
+        </h1>
+        <p className="text-slate-400 text-center mb-6">
+          {doorSlug
+            ? `We couldn't find a team matching "${doorSlug.replace(/-/g, ' ')}." It may have been renamed or removed.`
+            : 'This invite code is not valid or the team may no longer be active.'
+          }
+        </p>
         <Button
           onClick={() => navigate(createPageUrl('MyLane'))}
           className="bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px] px-6"
@@ -393,12 +400,9 @@ export default function JoinTeam() {
       <div className="min-h-screen bg-slate-950 flex flex-col p-6 max-w-md mx-auto">
         <h1 className="text-2xl font-bold text-white mb-1">{team.name}</h1>
         <p className="text-slate-400 text-sm mb-1">{teamSubtitle(team)}</p>
-        {headCoachName && (
-          <p className="text-slate-500 text-xs mb-6">
-            Coach <span className="text-slate-300">{headCoachName}</span> invited you
-          </p>
-        )}
-        {!headCoachName && <div className="mb-6" />}
+        <p className={`text-slate-500 text-xs ${headCoachName ? '' : 'invisible'} mb-6`}>
+          {headCoachName ? <>Coach <span className="text-slate-300">{headCoachName}</span> invited you</> : '\u00A0'}
+        </p>
 
         {/* Claim-first: show unclaimed coach spots */}
         {unclaimedCoaches.length > 0 && !showNewCoachForm && (
@@ -490,12 +494,9 @@ export default function JoinTeam() {
     <div className="min-h-screen bg-slate-950 flex flex-col p-6 max-w-md mx-auto">
       <h1 className="text-2xl font-bold text-white mb-1">{team.name}</h1>
       <p className="text-slate-400 text-sm mb-1">{teamSubtitle(team)}</p>
-      {headCoachName && (
-        <p className="text-slate-500 text-xs mb-6">
-          Coach <span className="text-slate-300">{headCoachName}</span> invited you
-        </p>
-      )}
-      {!headCoachName && <div className="mb-6" />}
+      <p className={`text-slate-500 text-xs ${headCoachName ? '' : 'invisible'} mb-6`}>
+        {headCoachName ? <>Coach <span className="text-slate-300">{headCoachName}</span> invited you</> : '\u00A0'}
+      </p>
       <h2 className="text-lg font-semibold text-white mb-1">Link your children</h2>
       <p className="text-slate-400 text-sm mb-4">Select each child on this team. You can switch to their view in the team later.</p>
       {players.length === 0 ? (
