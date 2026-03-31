@@ -124,12 +124,18 @@ export default function TeamOnboarding() {
     if (createdTeam?.id) navigate(createPageUrl('BusinessDashboard') + '?team=' + createdTeam.id);
   };
 
-  const shareLink = createdTeam?.invite_code ? `locallane.app/join/${createdTeam.invite_code}` : '';
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://locallane.app';
+  const familyLink = createdTeam?.invite_code ? `${origin}/join/${createdTeam.invite_code}` : '';
+  const coachLink = createdTeam?.coach_invite_code ? `${origin}/join/${createdTeam.coach_invite_code}` : '';
+  const doorSlug = createdTeam?.name
+    ? createdTeam.name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+    : '';
+  const doorLink = doorSlug ? `${origin}/door/${doorSlug}` : '';
 
-  const copyLink = (link) => {
+  const copyLink = (link, label) => {
     navigator.clipboard.writeText(link);
     setCopied(true);
-    toast.success('Link copied');
+    toast.success(label || 'Link copied');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -292,20 +298,41 @@ export default function TeamOnboarding() {
 
         {createdTeam && (
           <div className="space-y-6">
-            <p className="text-slate-400">Share this with players and parents so they can join your team.</p>
+            <p className="text-slate-400">Share these links so coaches and parents can join your team.</p>
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
-              <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Your team invite code</p>
-                <p className="text-lg font-mono font-bold text-amber-500">{createdTeam.invite_code}</p>
-              </div>
-              <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Share this link</p>
-                <p className="text-slate-300 break-all mb-2">{shareLink}</p>
-                <Button type="button" size="sm" variant="outline" className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px]" onClick={() => copyLink(shareLink)}>
-                  {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-                  {copied ? 'Copied' : 'Copy link'}
-                </Button>
-              </div>
+              {familyLink && (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs text-amber-500 font-semibold uppercase tracking-wider mb-0.5">Family Link</p>
+                    <p className="text-slate-400 text-xs truncate">{familyLink}</p>
+                  </div>
+                  <Button type="button" size="sm" variant="outline" className="flex-shrink-0 border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]" onClick={() => copyLink(familyLink, 'Family link copied')}>
+                    <Copy className="h-4 w-4 mr-1.5" /> Copy
+                  </Button>
+                </div>
+              )}
+              {coachLink && (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs text-slate-300 font-semibold uppercase tracking-wider mb-0.5">Coach Link</p>
+                    <p className="text-slate-400 text-xs truncate">{coachLink}</p>
+                  </div>
+                  <Button type="button" size="sm" variant="outline" className="flex-shrink-0 border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]" onClick={() => copyLink(coachLink, 'Coach link copied')}>
+                    <Copy className="h-4 w-4 mr-1.5" /> Copy
+                  </Button>
+                </div>
+              )}
+              {doorLink && (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-0.5">Door Link</p>
+                    <p className="text-slate-400 text-xs truncate">{doorLink}</p>
+                  </div>
+                  <Button type="button" size="sm" variant="outline" className="flex-shrink-0 border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]" onClick={() => copyLink(doorLink, 'Door link copied — great for stickers & flyers')}>
+                    <Copy className="h-4 w-4 mr-1.5" /> Copy
+                  </Button>
+                </div>
+              )}
             </div>
             <Button type="button" className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px]" onClick={goToTeam}>
               Go to team

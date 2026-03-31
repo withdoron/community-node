@@ -166,6 +166,8 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
   const coachCode = team?.coach_invite_code ?? '';
   const familyJoinUrl = typeof window !== 'undefined' && familyCode ? `${window.location.origin}/join/${familyCode}` : '';
   const coachJoinUrl = typeof window !== 'undefined' && coachCode ? `${window.location.origin}/join/${coachCode}` : '';
+  const teamSlug = team?.name ? team.name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') : '';
+  const doorUrl = typeof window !== 'undefined' && teamSlug ? `${window.location.origin}/door/${teamSlug}` : '';
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
@@ -391,6 +393,29 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
                 </Button>
               )}
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* Door Link — human-readable URL for stickers and flyers */}
+      {isCoach && doorUrl && (
+        <section className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-white mb-1">Door Link</h2>
+          <p className="text-slate-400 text-sm mb-4">A readable URL for stickers, flyers, and QR codes. Anyone who visits joins as a parent.</p>
+          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 space-y-3 max-w-md">
+            <p className="text-sm text-slate-300 break-all font-mono">{doorUrl}</p>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+              onClick={() => {
+                navigator.clipboard.writeText(doorUrl);
+                toast.success('Door link copied — great for stickers & flyers');
+              }}
+            >
+              <Copy className="h-4 w-4 mr-2" /> Copy Door Link
+            </Button>
           </div>
         </section>
       )}

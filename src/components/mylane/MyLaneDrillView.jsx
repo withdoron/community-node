@@ -94,8 +94,8 @@ export default function MyLaneDrillView({
         isCoach: effectiveRole === 'coach',
         onNavigateTab: setActiveTab,
         onCopyInviteLink: () => {
-          const link = profile.invite_code ? `locallane.app/join/${profile.invite_code}` : '';
-          if (link) { navigator.clipboard.writeText(link); toast.success('Invite link copied'); }
+          const code = profile?.invite_code;
+          if (code) { navigator.clipboard.writeText(`${window.location.origin}/join/${code}`); toast.success('Family link copied'); }
         },
         onArchived: () => {},
         viewingAsMember: null,

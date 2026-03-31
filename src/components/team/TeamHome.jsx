@@ -469,7 +469,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
             onClick={() => onCopyInviteLink?.()}
           >
             <Share2 className="h-4 w-4 mr-2" />
-            Share Invite Code
+            Share Family Link
           </Button>
         </div>
       )}

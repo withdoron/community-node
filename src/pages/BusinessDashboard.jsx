@@ -1108,10 +1108,10 @@ export default function BusinessDashboard() {
       isCoach: effectiveRole === 'coach',
       onNavigateTab: setActiveTab,
       onCopyInviteLink: () => {
-        const link = selectedTeam.invite_code ? `locallane.app/join/${selectedTeam.invite_code}` : '';
-        if (link) {
-          navigator.clipboard.writeText(link);
-          toast.success('Invite link copied');
+        const code = selectedTeam?.invite_code;
+        if (code) {
+          navigator.clipboard.writeText(`${window.location.origin}/join/${code}`);
+          toast.success('Family link copied');
         }
       },
       onArchived: () => {
