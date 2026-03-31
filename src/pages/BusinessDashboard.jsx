@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Store, Plus, Loader2, Users, DollarSign, HardHat, Building2, ChevronRight, MessageCircle } from "lucide-react";
+import { ArrowLeft, Store, Plus, Loader2, Users, DollarSign, HardHat, Building2, ChevronRight, MessageCircle, LogIn } from "lucide-react";
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { useRole } from '@/hooks/useRole';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
@@ -125,6 +125,9 @@ export default function BusinessDashboard() {
   });
   const [viewingAsPlayerId, setViewingAsPlayerId] = useState(null);
   const [comingSoonType, setComingSoonType] = useState(null);
+  const [teamJoinStep, setTeamJoinStep] = useState(null); // null | 'choice' | 'code'
+  const [teamInviteCode, setTeamInviteCode] = useState('');
+  const [teamInviteError, setTeamInviteError] = useState('');
   const isMobile = useIsMobile();
   const agentMessageRef = useRef(null);
 
@@ -604,9 +607,15 @@ export default function BusinessDashboard() {
                           setComingSoonType(type);
                           return;
                         }
+                        if (type.id === 'team') {
+                          setTypePickerOpen(false);
+                          setTeamJoinStep('choice');
+                          setTeamInviteCode('');
+                          setTeamInviteError('');
+                          return;
+                        }
                         setTypePickerOpen(false);
                         if (type.id === 'business') navigate(createPageUrl('BusinessOnboarding'));
-                        else if (type.id === 'team') navigate(createPageUrl('TeamOnboarding'));
                         else if (type.id === 'finance') navigate(createPageUrl('FinanceOnboarding'));
                         else if (type.id === 'fieldservice') navigate(createPageUrl('FieldServiceOnboarding'));
                         else if (type.id === 'property_management') navigate(createPageUrl('PropertyManagementOnboarding'));
@@ -655,6 +664,89 @@ export default function BusinessDashboard() {
               Got it
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Team Create or Join */}
+      <Dialog open={!!teamJoinStep} onOpenChange={(open) => { if (!open) setTeamJoinStep(null); }}>
+        <DialogContent className="bg-slate-900 border-slate-800 max-w-sm">
+          {teamJoinStep === 'choice' && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-slate-100">Team</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 py-2">
+                <button
+                  type="button"
+                  onClick={() => { setTeamJoinStep(null); navigate(createPageUrl('TeamOnboarding')); }}
+                  className="w-full flex items-start gap-4 p-4 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-left transition-colors min-h-[44px]"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                    <Plus className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-slate-100">Create a new team</div>
+                    <div className="text-sm text-slate-400">Start fresh — add players, build your playbook</div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTeamJoinStep('code')}
+                  className="w-full flex items-start gap-4 p-4 rounded-xl bg-slate-800 border border-slate-700 hover:border-amber-500/50 text-left transition-colors min-h-[44px]"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                    <LogIn className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-slate-100">I have an invite code</div>
+                    <div className="text-sm text-slate-400">Join an existing team with a code from your coach</div>
+                  </div>
+                </button>
+              </div>
+            </>
+          )}
+          {teamJoinStep === 'code' && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-slate-100">Enter invite code</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                <p className="text-slate-400 text-sm">Enter the 6-character code from your coach or team admin.</p>
+                <input
+                  type="text"
+                  value={teamInviteCode}
+                  onChange={(e) => { setTeamInviteCode(e.target.value.trim().slice(0, 20)); setTeamInviteError(''); }}
+                  placeholder="e.g. ABC123"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white text-center text-lg font-mono tracking-widest placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none min-h-[44px]"
+                  autoFocus
+                />
+                {teamInviteError && <p className="text-red-400 text-sm">{teamInviteError}</p>}
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setTeamJoinStep('choice')}
+                    className="flex-1 border-slate-600 text-slate-300 hover:bg-transparent hover:border-amber-500 hover:text-amber-500 min-h-[44px]"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      const code = teamInviteCode.trim();
+                      if (!code) { setTeamInviteError('Enter an invite code'); return; }
+                      setTeamJoinStep(null);
+                      navigate(`/join/${encodeURIComponent(code)}`);
+                    }}
+                    className="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
+                    disabled={!teamInviteCode.trim()}
+                  >
+                    Join Team
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </>

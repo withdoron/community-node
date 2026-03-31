@@ -177,10 +177,16 @@ export default function UserOnboarding() {
       if (payload.display_name != null && payload.display_name.trim() !== '') {
         data.display_name = payload.display_name.trim();
       }
-      await base44.functions.invoke('updateUser', {
-        action: 'update_onboarding',
-        data,
-      });
+      try {
+        await base44.functions.invoke('updateUser', {
+          action: 'update_onboarding',
+          data,
+        });
+      } catch (err) {
+        // Server function failed — try direct entity update as fallback
+        console.warn('updateUser server function failed, trying direct update:', err?.message);
+        await base44.entities.User.update(currentUser.id, data);
+      }
     },
     onSuccess: () => {
       queryClient.setQueryData(['currentUser'], (old) => {
@@ -188,6 +194,13 @@ export default function UserOnboarding() {
         return { ...old, onboarding_complete: true };
       });
       queryClient.invalidateQueries(['currentUser']);
+    },
+    onError: () => {
+      // Even if both paths fail, optimistically set the cache so user isn't stuck in a loop
+      queryClient.setQueryData(['currentUser'], (old) => {
+        if (!old) return old;
+        return { ...old, onboarding_complete: true };
+      });
     },
   });
 

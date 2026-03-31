@@ -25,16 +25,21 @@ export default function JoinTeam() {
     try {
       const me = await base44.auth.me();
       if (!me?.onboarding_complete && !me?.data?.onboarding_complete) {
-        await base44.functions.invoke('updateUser', {
-          action: 'update_onboarding',
-          data: { onboarding_complete: true },
-        });
+        try {
+          await base44.functions.invoke('updateUser', {
+            action: 'update_onboarding',
+            data: { onboarding_complete: true },
+          });
+        } catch {
+          // Server function failed — try direct update
+          try { await base44.entities.User.update(me.id, { onboarding_complete: true }); } catch { /* last resort fails */ }
+        }
         queryClient.setQueryData(['currentUser'], (old) =>
           old ? { ...old, onboarding_complete: true } : old
         );
         queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       }
-    } catch { /* non-critical — user can still use the app */ }
+    } catch { /* non-critical */ }
   };
 
   // Persist invite code for redirect after auth
