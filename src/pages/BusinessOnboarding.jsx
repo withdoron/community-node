@@ -85,7 +85,8 @@ export default function BusinessOnboarding() {
   // Fetch archetypes from database (only needed for archetype_id on save)
   const { data: dbArchetypes = [] } = useQuery({
     queryKey: ['archetypes'],
-    queryFn: () => base44.entities.Archetype.list()
+    queryFn: () => base44.entities.Archetype.list(),
+    staleTime: 5 * 60 * 1000,
   });
 
   const visibleArchetypes = ONBOARDING_CONFIG.archetypes.filter(a => a.active);

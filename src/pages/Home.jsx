@@ -228,9 +228,9 @@ function AliveCard({ dotColor, type, title, detail }) {
 export default function Home() {
   const { region } = useActiveRegion();
 
-  // Real data: upcoming events
+  // Real data: upcoming events — region-filtered to match businesses query
   const { data: upcomingEvents = [] } = useQuery({
-    queryKey: ['homepage-upcoming-events'],
+    queryKey: ['homepage-upcoming-events', region?.id],
     queryFn: async () => {
       const now = new Date().toISOString();
       const events = await base44.entities.Event.filter(
@@ -238,10 +238,12 @@ export default function Home() {
         'date',
         20
       );
-      return events
+      const regional = filterBusinessesByRegion(events, region);
+      return regional
         .filter((e) => e.date >= now && !e.network_only && e.status !== 'cancelled')
         .slice(0, 3);
     },
+    enabled: !!region,
     staleTime: 10 * 60 * 1000, // 10 min — landing page data doesn't need real-time
   });
 
@@ -307,8 +309,8 @@ export default function Home() {
       cards.push({
         dotColor: 'bg-amber-400/60',
         type: 'Community',
-        title: `${communityCount} people connected`,
-        detail: 'Teams, families, neighbors',
+        title: 'People connected',
+        detail: 'Teams, families, neighbors — near you',
       });
     } else if (upcomingEvents.length > 1) {
       const e = upcomingEvents[1];

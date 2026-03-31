@@ -48,7 +48,8 @@ export default function Directory() {
   // Fetch admin settings for badge visibility
   const { data: savedSettings = [] } = useQuery({
     queryKey: ['admin-settings'],
-    queryFn: () => base44.entities.AdminSettings.list()
+    queryFn: () => base44.entities.AdminSettings.list(),
+    staleTime: 5 * 60 * 1000,
   });
 
   const badgeSettings = useMemo(() => {

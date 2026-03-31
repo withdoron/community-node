@@ -329,6 +329,7 @@ function ListenTab() {
       const arr = Array.isArray(all) ? all : [];
       return arr.filter((s) => s.status === 'published');
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const handleListenCounted = useCallback(
@@ -783,7 +784,7 @@ function MySeedsTab({ user }) {
 
   const { data: seeds = [], isLoading } = useQuery({
     queryKey: ['frequency-my-seeds', user?.id],
-    queryFn: () => base44.entities.FSFrequencySubmission.filter({ user_id: user.id }).list(),
+    queryFn: () => base44.entities.FSFrequencySubmission.filter({ user_id: user.id }),
     enabled: !!user?.id,
   });
 
@@ -1442,7 +1443,7 @@ export default function FrequencyStation() {
   const { data: unseenCount = 0 } = useQuery({
     queryKey: ['frequency-unseen-count'],
     queryFn: async () => {
-      const all = await base44.entities.FSFrequencySubmission.filter({ admin_seen: false }).list();
+      const all = await base44.entities.FSFrequencySubmission.filter({ admin_seen: false });
       return Array.isArray(all) ? all.length : 0;
     },
     enabled: isAdmin,

@@ -1,20 +1,21 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft } from 'lucide-react';
 
 export default function Terms() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-slate-950">
       <div className="max-w-3xl mx-auto px-6 py-12">
-        {/* Back link */}
-        <Link
-          to={createPageUrl('MyLane')}
+        {/* Back — goes to where the user came from, falls back to Home */}
+        <button
+          onClick={() => window.history.length > 1 ? navigate(-1) : navigate(createPageUrl('Home'))}
           className="inline-flex items-center gap-2 text-slate-400 hover:text-amber-500 transition-colors mb-8"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
-        </Link>
+        </button>
 
         <h1 className="text-3xl font-bold text-white mb-2">Terms of Service</h1>
         <p className="text-slate-400 text-sm mb-10">Last updated: March 2026</p>

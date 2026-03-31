@@ -1,5 +1,4 @@
 import Admin from './pages/Admin';
-import BuildLane from './pages/BuildLane';
 import BusinessDashboard from './pages/BusinessDashboard';
 import BusinessOnboarding from './pages/BusinessOnboarding';
 import BusinessProfile from './pages/BusinessProfile';
@@ -28,7 +27,6 @@ import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "Admin": Admin,
-    "BuildLane": BuildLane,
     "BusinessDashboard": BusinessDashboard,
     "BusinessOnboarding": BusinessOnboarding,
     "BusinessProfile": BusinessProfile,

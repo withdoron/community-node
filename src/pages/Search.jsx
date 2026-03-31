@@ -10,7 +10,8 @@ import { rankBusinesses } from '@/components/business/rankingUtils';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
 import { useCategories } from '@/hooks/useCategories';
 import { Button } from "@/components/ui/button";
-import { Loader2, SearchX, MapPin } from "lucide-react";
+import { createPageUrl } from '@/utils';
+import { Loader2, SearchX, MapPin, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function Search() {
@@ -126,7 +127,16 @@ export default function Search() {
       {/* Search Header */}
       <div className="bg-slate-950/90 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <SearchBar 
+          <div className="flex items-center gap-3 mb-3">
+            <button
+              onClick={() => window.history.length > 1 ? navigate(-1) : navigate(createPageUrl('Directory'))}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-slate-800 transition-colors"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+          </div>
+          <SearchBar
             onSearch={handleSearch}
             initialQuery={searchParams.query}
             initialLocation={searchParams.location}

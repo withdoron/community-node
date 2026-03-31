@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { createPageUrl } from '@/utils';
 import { useCategories } from '@/hooks/useCategories';
@@ -73,6 +73,7 @@ export function resolveCategoryAccent(business, legacyCategoryMapping) {
  * Category accent bar signals identity. Hover warmth signals aliveness.
  */
 export default function BusinessCard({ business }) {
+  const navigate = useNavigate();
   const { getLabel, getMainCategory, legacyCategoryMapping } = useCategories();
   const { data: networksConfig = [] } = useConfig('platform', 'networks');
 
@@ -157,13 +158,13 @@ export default function BusinessCard({ business }) {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                window.location.href = `/networks/${slug}`;
+                navigate(`/networks/${slug}`);
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
                   e.stopPropagation();
-                  window.location.href = `/networks/${slug}`;
+                  navigate(`/networks/${slug}`);
                 }
               }}
               className="bg-amber-500/10 text-amber-500 text-xs px-2 py-0.5 rounded-full hover:bg-amber-500/20 transition-colors cursor-pointer"
