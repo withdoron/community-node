@@ -4,7 +4,10 @@
  * Drill-through renders workspace views INSIDE Mylane — user never leaves.
  * Conversation render instructions trigger the same drill mechanism.
  */
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { DollarSign, HardHat, Building2, Users } from 'lucide-react';
 import MY_LANE_REGISTRY from '@/config/myLaneRegistry';
 import WhatsChangedBar from './WhatsChangedBar';
 import MyLaneBreadcrumb from './MyLaneBreadcrumb';
@@ -12,6 +15,70 @@ import MyLaneDrillView from './MyLaneDrillView';
 import useMyLaneState from './useMyLaneState';
 import { parseRenderInstruction } from './parseRenderInstruction';
 import { renderEntityView } from './renderEntityView';
+
+/**
+ * Compute discovery whispers — proximate-but-not-joined spaces.
+ * Single-hop relationships only. Conservative: only show bridges
+ * that feel organic, never algorithmic. Phase 1: everything → finance.
+ */
+function computeWhispers(profiles) {
+  const hasTeam = (profiles.allTeams?.length || 0) > 0;
+  const hasFS = (profiles.fieldServiceProfiles?.length || 0) > 0;
+  const hasPM = (profiles.propertyMgmtProfiles?.length || 0) > 0;
+  const hasFinance = (profiles.financeProfiles?.length || 0) > 0;
+
+  const whispers = [];
+
+  // ── Finance whispers (highest-confidence bridge) ──
+  if (!hasFinance) {
+    if (hasTeam) {
+      whispers.push({
+        id: 'whisper-finance-team',
+        space: 'finance',
+        icon: DollarSign,
+        whisper: 'Track team costs',
+        via: 'team',
+        strength: 0.7,
+        onboardingPage: 'FinanceOnboarding',
+      });
+    } else if (hasFS) {
+      whispers.push({
+        id: 'whisper-finance-fs',
+        space: 'finance',
+        icon: DollarSign,
+        whisper: 'Track your income',
+        via: 'field-service',
+        strength: 0.6,
+        onboardingPage: 'FinanceOnboarding',
+      });
+    } else if (hasPM) {
+      whispers.push({
+        id: 'whisper-finance-pm',
+        space: 'finance',
+        icon: DollarSign,
+        whisper: 'Track property income',
+        via: 'property-pulse',
+        strength: 0.6,
+        onboardingPage: 'FinanceOnboarding',
+      });
+    }
+  }
+
+  // ── Property Pulse whisper (only for field service owners — natural bridge) ──
+  if (!hasPM && hasFS) {
+    whispers.push({
+      id: 'whisper-pm-fs',
+      space: 'property-pulse',
+      icon: Building2,
+      whisper: 'Manage a property',
+      via: 'field-service',
+      strength: 0.4,
+      onboardingPage: 'PropertyManagementOnboarding',
+    });
+  }
+
+  return whispers;
+}
 
 // Map card IDs to drill views
 const CARD_DRILL_MAP = {
@@ -83,6 +150,9 @@ export default function MyLaneSurface({
   })).filter((card) => card.profile !== null);
 
   const sortedCards = getCardOrder(activeCards, urgencyBoosts);
+
+  // Discovery whispers — proximate-but-not-joined spaces
+  const whispers = useMemo(() => computeWhispers(profiles), [profiles]);
 
   // Drill into a workspace view (internal — user stays in Mylane)
   const drillInto = useCallback((drillSpec) => {
@@ -188,8 +258,9 @@ export default function MyLaneSurface({
           />
 
           {/* Card Grid — vitality-driven opacity. The organism breathes. */}
-          {sortedCards.length > 0 ? (
+          {sortedCards.length > 0 || whispers.length > 0 ? (
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {/* Active cards */}
               {sortedCards.map((card) => {
                 const { CardComponent } = card;
                 const vitality = getCardVitality(card.id, !!urgencyBoosts[card.id]);
@@ -205,6 +276,25 @@ export default function MyLaneSurface({
                       onUrgency={handleUrgency}
                     />
                   </div>
+                );
+              })}
+
+              {/* Discovery whispers — ghost cards for proximate spaces */}
+              {whispers.map((w) => {
+                const Icon = w.icon;
+                return (
+                  <Link
+                    key={w.id}
+                    to={createPageUrl(w.onboardingPage)}
+                    className="group bg-transparent border border-dashed border-slate-800 rounded-xl p-4 transition-all duration-500 hover:border-amber-500/30 hover:bg-slate-900/30"
+                    style={{ opacity: w.strength * 0.55 }}
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <Icon className="h-4 w-4 text-slate-600 group-hover:text-amber-500/60 transition-colors" />
+                      <span className="text-xs font-medium text-slate-600 group-hover:text-slate-500 transition-colors">Nearby</span>
+                    </div>
+                    <p className="text-sm text-slate-500 group-hover:text-slate-400 transition-colors">{w.whisper}</p>
+                  </Link>
                 );
               })}
             </div>
