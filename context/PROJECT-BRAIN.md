@@ -53,6 +53,18 @@ Each user has Mylane as their personal conductor. Mylane routes to specialized s
 
 *"We can insert our frequency into the app through the way we interact and present ourselves." — Doron, 2026-03-31*
 
+## Networks Are Private Gardens
+
+Networks like Recess and Harvest are discovered through relationships, not browsed publicly. You find Recess because another parent on your team is already there, not because it's listed on a directory page. Build from within. "Less becomes more."
+
+## Hyphae Prompt Philosophy
+
+Give Hyphae the goal and context, not step-by-step instructions. Include our thinking as input, not commands. Ask for a debrief after each build: "What did you decide and why?" The three gardeners trust each other's strengths.
+
+*"A mirror only matters when there's enough life to reflect." — Hyphae, 2026-03-31*
+
+*"The organism already knows what it knows. The architecture question is always: what's the lightest way to let that knowledge become visible?" — Hyphae, 2026-03-30*
+
 ## Who Is Doron
 
 Doron Fletcher is the founder, visionary, and decision-maker. Background in accounting and economics. Previously built Bomb Squad Growers to international recognition before losing it overnight. Now approaches development as a "gardener of life."

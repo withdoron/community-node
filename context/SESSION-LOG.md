@@ -349,3 +349,38 @@ Marketing:
 - All docs now current — ready to build
 
 ---
+
+### Session Log — 2026-03-31 (Build Day)
+**Focus:** "Dark Until Explored" — full 8-item build, polish pass, post-build audit
+**Shipped:**
+1. Item #1 — `e7ba445`: Contextual landing page. Personalized invite copy: "Coach [Name] invited you to join [Team]." formatSport() helper, teamSubtitle() builder, head coach resolved from existing members data.
+2. Item #2 — `0c117ce`: Claim-first join flow. Coaches see unclaimed roster spots with "That's me" button. Permission-resilient claiming (tries update, falls back to create). Reusable handleClaimSpot handler.
+3. Item #3 — `aaa6e8f`: Onboarding skip for invite entry. 12 lines in MyLane.jsx. Checks localStorage pending invite keys before redirecting to wizard. If found, redirects to join page instead.
+4. Items #4+5 — `57da05c`: Card dimming + Mylane as default destination. Continuous vitality curve (not discrete tiers). Urgency overrides dimming. 700ms CSS transitions. MyLaneSurface mounted directly in MyLane.jsx. Removed: MyNetworksSection, HappeningSoonSection, NewInCommunitySection, YourRecommendationsSection, JoyCoinsCard, Household, GreetingHeader. Light leaks sealed.
+5. Item #6 — `d723784`: Discovery whisper ghost cards. Two bridges only: any workspace to Finance, Field Service to Property Pulse. Dashed borders, strength-scaled opacity, "Nearby" label, hover warmth toward amber. Render after active cards.
+6. Item #7 — `4b0d0e1`: Workspace slugs + /door/:slug route. Two doors one room. Two-layer slug resolution (stored field first, computed fallback). "Door Link" button on TeamRoster. pendingTeamDoorSlug localStorage for auth return. Base44 slug field added to Team entity.
+7. Item #8 — `9e4afb2`: Auto/Manual gradient. getModeGradient() returns 0-1 from weeklyMessages/(weeklyMessages+weeklyTaps). Default 0.3. Three subtle visual adjustments: header subtitle (>0.6), whisper opacity scaling, conversational nudge (>0.5). Intentional wiring gap — AgentChat dispatch not connected yet.
+8. Polish — `fe0a674`: Door link error copy, unused imports, spacing consistency, warmer empty state copy. All 5 user journeys verified clean.
+9. Post-build audit (Phase 11): 8/8 philosophy principles verified aligned. 6 gaps found (1 medium, 5 minor), 0 requiring immediate action. Reality matches intent.
+
+**Decisions made:**
+- Hyphae prompt philosophy: give Goal + Context + Our Thinking + Constraints, not step-by-step instructions. Ask for debrief after each build.
+- Networks should be discovered through relationships, not browsed publicly. Build Recess from within. Private by default.
+- Onboarding wizard should become Mylane agent conversation (future — not built yet)
+- League workspace is a workspace type above teams. Randy is paid, coaches volunteer, parents paid registration. Money flows through Randy's layer.
+- Door links resolve as family invite (correct for stickers/flyers targeting parents)
+
+**Key people:**
+- Coach Rick: invite flow now bulletproof, ready for retry
+- Randy: league-wide sponsorship opportunity, call after items 1-3 (now all 8 done)
+- Duplicate Rick cleaned up from roster manually
+
+**Next up:**
+1. Test full flow with Coach Rick (have him retry invite link)
+2. Call Randy — demo the platform, ask about scheduling workflow
+3. Gap 3 cleanup: delete 6 dead component files
+4. Gap 4 cleanup: remove MyLane Beta toggle
+5. Wire AgentChat dispatch for mylane-user-message event (activates gradient)
+6. Begin league workspace research (Randy interview)
+
+---
