@@ -84,7 +84,7 @@ export default function TransactionForm({
         description: sanitizeText(description.trim()),
         category,
         context,
-        notes: sanitizeText(notes.trim()) || null,
+        notes: sanitizeText(notes.trim()) || '',
         source_node: 'manual',
         is_recurring_instance: false,
       };

@@ -60,7 +60,7 @@ function DebtForm({ open, onOpenChange, profile, currentUser, debt }) {
         minimum_payment: parseFloat(minimumPayment) || 0,
         status: 'active',
         priority: debt?.priority ?? 999,
-        notes: sanitizeText(notes.trim()) || null,
+        notes: sanitizeText(notes.trim()) || '',
       };
       if (isEdit) {
         return base44.entities.Debt.update(debt.id, payload);
@@ -218,7 +218,7 @@ function LogPaymentForm({ open, onOpenChange, debt, profile, currentUser }) {
         description: `Debt payment — ${debt.name}`,
         category: 'Debt Payments',
         context: Object.keys(profile?.contexts || {})[0] || 'personal',
-        notes: notes.trim() || null,
+        notes: notes.trim() || '',
         source_node: 'debt_payment',
         is_recurring_instance: false,
       });
@@ -229,7 +229,7 @@ function LogPaymentForm({ open, onOpenChange, debt, profile, currentUser }) {
         user_id: currentUser.id,
         amount: payAmount,
         date,
-        notes: notes.trim() || null,
+        notes: notes.trim() || '',
         transaction_id: txn.id,
       });
 
