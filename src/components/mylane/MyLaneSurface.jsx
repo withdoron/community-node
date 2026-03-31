@@ -49,6 +49,7 @@ export default function MyLaneSurface({
     trackCardTap,
     trackDrillTime,
     getCardOrder,
+    getCardVitality,
     getLastVisited,
     setLastVisited,
   } = useMyLaneState();
@@ -186,18 +187,24 @@ export default function MyLaneSurface({
             propertyMgmtProfiles={propertyMgmtProfiles}
           />
 
-          {/* Card Grid */}
+          {/* Card Grid — vitality-driven opacity. The organism breathes. */}
           {sortedCards.length > 0 ? (
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {sortedCards.map((card) => {
                 const { CardComponent } = card;
+                const vitality = getCardVitality(card.id, !!urgencyBoosts[card.id]);
                 return (
-                  <CardComponent
+                  <div
                     key={card.id}
-                    profile={card.profile}
-                    onClick={() => handleCardTap(card)}
-                    onUrgency={handleUrgency}
-                  />
+                    className="transition-opacity duration-700"
+                    style={{ opacity: vitality }}
+                  >
+                    <CardComponent
+                      profile={card.profile}
+                      onClick={() => handleCardTap(card)}
+                      onUrgency={handleUrgency}
+                    />
+                  </div>
                 );
               })}
             </div>

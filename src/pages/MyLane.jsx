@@ -1,24 +1,18 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, ThumbsUp, Users, Store } from 'lucide-react';
+import { Loader2, Store } from 'lucide-react';
 import { createPageUrl } from '@/utils';
-import { useUserState } from '@/hooks/useUserState';
 import { useRole } from '@/hooks/useRole';
 import { useUserOwnedBusinesses } from '@/hooks/useUserOwnedBusinesses';
-import GreetingHeader from '@/components/mylane/GreetingHeader';
-import MyNetworksSection from '@/components/mylane/MyNetworksSection';
+import MyLaneSurface from '@/components/mylane/MyLaneSurface';
 import UpcomingEventsSection from '@/components/mylane/UpcomingEventsSection';
-import HappeningSoonSection from '@/components/mylane/HappeningSoonSection';
-import NewInCommunitySection from '@/components/mylane/NewInCommunitySection';
-import YourRecommendationsSection from '@/components/mylane/YourRecommendationsSection';
 import DiscoverSection from '@/components/mylane/DiscoverSection';
-import SectionWrapper from '@/components/mylane/SectionWrapper';
-import { JoyCoinsCard } from '@/components/mylane/JoyCoinsCard';
 
 export default function MyLane() {
   const queryClient = useQueryClient();
+  const agentMessageRef = useRef(null);
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -28,15 +22,104 @@ export default function MyLane() {
     }
   });
 
-  const { recommendations, joyCoins } = useUserState(currentUser?.id);
   const { isAppAdmin } = useRole();
   const { hasOwnedBusinesses } = useUserOwnedBusinesses(currentUser);
 
-  const handleNetworksUpdate = () => {
-    queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-  };
+  // ── Workspace profile queries (feed MyLaneSurface) ──
 
-  // Wait for user to load before deciding auth or onboarding
+  // Teams: find memberships → resolve team records
+  const { data: myTeamMemberships = [] } = useQuery({
+    queryKey: ['mylane-team-memberships', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      const result = await base44.entities.TeamMember.filter({ user_id: currentUser.id, status: 'active' });
+      return Array.isArray(result) ? result : result ? [result] : [];
+    },
+    enabled: !!currentUser?.id,
+  });
+
+  const teamIds = [...new Set(myTeamMemberships.map((m) => m.team_id).filter(Boolean))];
+
+  const { data: allTeams = [] } = useQuery({
+    queryKey: ['mylane-teams', teamIds.sort().join(',')],
+    queryFn: async () => {
+      if (teamIds.length === 0) return [];
+      const teams = await Promise.all(teamIds.map((id) => base44.entities.Team.get(id)));
+      return teams.filter((t) => t && t.status === 'active');
+    },
+    enabled: teamIds.length > 0,
+  });
+
+  // Finance profiles
+  const { data: financeProfiles = [] } = useQuery({
+    queryKey: ['mylane-finance-profiles', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      const list = await base44.entities.FinancialProfile.filter({ user_id: currentUser.id });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!currentUser?.id,
+  });
+
+  // Field Service profiles (owned)
+  const { data: ownedFSProfiles = [] } = useQuery({
+    queryKey: ['mylane-fs-profiles', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      const list = await base44.entities.FieldServiceProfile.filter({ user_id: currentUser.id });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!currentUser?.id,
+  });
+
+  // Field Service profiles (joined as worker/sub)
+  const { data: joinedFSProfiles = [] } = useQuery({
+    queryKey: ['mylane-fs-joined', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      try {
+        const raw = localStorage.getItem('joinedFSWorkspaces');
+        if (!raw) return [];
+        const joined = JSON.parse(raw);
+        if (!Array.isArray(joined)) return [];
+        const results = await Promise.all(
+          joined.map(async (entry) => {
+            try {
+              const list = await base44.entities.FieldServiceProfile.filter({ id: entry.id });
+              const profile = Array.isArray(list) ? list[0] : list;
+              if (profile) return { ...profile, _workerRole: entry.role || 'worker' };
+              return null;
+            } catch {
+              return { id: entry.id, workspace_name: entry.name || 'Field Service', _workerRole: entry.role || 'worker', _cached: true };
+            }
+          })
+        );
+        return results.filter(Boolean);
+      } catch { return []; }
+    },
+    enabled: !!currentUser?.id,
+  });
+
+  // Merge owned + joined FS profiles
+  const fieldServiceProfiles = React.useMemo(() => {
+    const ownedIds = new Set(ownedFSProfiles.map((p) => p.id));
+    const merged = [...ownedFSProfiles];
+    joinedFSProfiles.forEach((jp) => { if (!ownedIds.has(jp.id)) merged.push(jp); });
+    return merged;
+  }, [ownedFSProfiles, joinedFSProfiles]);
+
+  // Property Management profiles
+  const { data: propertyMgmtProfiles = [] } = useQuery({
+    queryKey: ['mylane-pm-profiles', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      const list = await base44.entities.PMPropertyProfile.filter({ user_id: currentUser.id });
+      return Array.isArray(list) ? list : list ? [list] : [];
+    },
+    enabled: !!currentUser?.id,
+  });
+
+  // ── Loading ──
   if (userLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -45,12 +128,13 @@ export default function MyLane() {
     );
   }
 
+  // ── Not authenticated ──
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold text-slate-100 mb-3">Welcome to MyLane</h1>
-          <p className="text-slate-400 mb-6">Sign in to see your personalized community dashboard.</p>
+          <h1 className="text-2xl font-bold text-slate-100 mb-3">Welcome to LocalLane</h1>
+          <p className="text-slate-400 mb-6">Sign in to see your spaces.</p>
           <button
             onClick={() => base44.auth.redirectToLogin()}
             className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-6 py-3 rounded-xl transition-colors"
@@ -62,16 +146,12 @@ export default function MyLane() {
     );
   }
 
-  // Onboarding redirect: server-side user record is the only gate.
-  // No localStorage — that was device-scoped, not user-scoped.
+  // ── Onboarding gate (DEC-119: invite codes skip wizard) ──
   const onboardingComplete =
     currentUser?.onboarding_complete === true ||
     currentUser?.data?.onboarding_complete === true;
 
   if (!onboardingComplete) {
-    // DEC-119: Invite code IS onboarding — redirect to invite page, not wizard.
-    // Join pages store pending invite codes in localStorage. If one exists, the
-    // user arrived via invite link and should never see the generic wizard.
     try {
       const pendingTeam = localStorage.getItem('pendingTeamInvite');
       if (pendingTeam) return <Navigate to={`/join/${pendingTeam}`} replace />;
@@ -79,52 +159,36 @@ export default function MyLane() {
       if (pendingFS) return <Navigate to={`/join-field-service/${pendingFS}`} replace />;
       const pendingPM = localStorage.getItem('pendingPMInvite');
       if (pendingPM) return <Navigate to={`/join-pm/${pendingPM}`} replace />;
-    } catch { /* localStorage unavailable — fall through to wizard */ }
+    } catch { /* localStorage unavailable */ }
 
     return <Navigate to={createPageUrl('welcome')} replace />;
   }
 
+  // ── Mylane: the organism's living surface ──
   return (
     <div className="min-h-screen bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
-        <GreetingHeader currentUser={currentUser} joyCoins={joyCoins} />
-        {isAppAdmin && <JoyCoinsCard />}
-        <MyNetworksSection currentUser={currentUser} onUpdate={handleNetworksUpdate} />
-        {isAppAdmin && (
-          <SectionWrapper title="My Household" seeAllPage="Settings">
-            <div className="py-6 text-center bg-slate-900 border border-slate-800 rounded-xl">
-              <Users className="h-10 w-10 text-slate-500 mx-auto mb-2" />
-              <p className="text-sm text-slate-400">Add family members to quickly select them when RSVPing</p>
-            </div>
-          </SectionWrapper>
-        )}
+
+        {/* Primary: MyLaneSurface — your spaces, vitality-dimmed, organically ordered */}
+        <MyLaneSurface
+          currentUser={currentUser}
+          financeProfiles={financeProfiles}
+          fieldServiceProfiles={fieldServiceProfiles}
+          allTeams={allTeams}
+          propertyMgmtProfiles={propertyMgmtProfiles}
+          agentMessageRef={agentMessageRef}
+        />
+
+        {/* Secondary: community content — upcoming events, directory discovery */}
         <UpcomingEventsSection currentUser={currentUser} />
-        <HappeningSoonSection />
-        <NewInCommunitySection />
-        {recommendations.length > 0 ? (
-          <YourRecommendationsSection recommendations={recommendations} />
-        ) : (
-          <SectionWrapper title="Your Recommendations" seeAllPage="Directory">
-            <div className="text-center py-10 bg-slate-900 border border-slate-800 rounded-xl">
-              <ThumbsUp className="h-12 w-12 text-slate-500 mx-auto mb-3" />
-              <p className="text-slate-300 font-medium">You haven&apos;t recommended any businesses yet</p>
-              <p className="text-sm text-slate-500 mt-1">Discover local spots and share your experience.</p>
-              <Link
-                to={createPageUrl('Directory')}
-                className="mt-4 inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 text-sm font-medium transition-colors"
-              >
-                Browse Directory
-                <span aria-hidden>→</span>
-              </Link>
-            </div>
-          </SectionWrapper>
-        )}
         <DiscoverSection />
+
+        {/* Business CTA for non-business-owners */}
         {!hasOwnedBusinesses && (
-          <section className="space-y-3">
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+          <section>
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center">
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center">
                   <Store className="h-5 w-5 text-amber-500" />
                 </div>
                 <div className="min-w-0 flex-1">

@@ -120,10 +120,38 @@ export default function useMyLaneState() {
     persist(next);
   }, [state, persist]);
 
+  /**
+   * Compute vitality (opacity) for a card based on recency of interaction.
+   * Returns a value between 0.35 (dormant) and 1.0 (bright).
+   * Continuous curve — not binary tiers. The organism breathes.
+   *
+   * 0-3 days   → 1.0       (bright — just touched)
+   * 3-7 days   → 0.85-1.0  (slightly fading)
+   * 7-21 days  → 0.55-0.85 (dimming)
+   * 21+ days   → 0.35-0.55 (dormant but alive)
+   * never used → 0.55      (new cards get moderate visibility)
+   */
+  const getCardVitality = useCallback((cardId, isUrgent) => {
+    // Urgency always overrides — urgent cards are fully bright
+    if (isUrgent) return 1.0;
+
+    const data = state.cardInteractions[cardId];
+    if (!data?.lastTapped) return 0.55; // never tapped — moderate (new card)
+
+    const ageMs = Date.now() - new Date(data.lastTapped).getTime();
+    const ageDays = ageMs / 86400000;
+
+    if (ageDays <= 3) return 1.0;
+    if (ageDays <= 7) return 1.0 - ((ageDays - 3) / 4) * 0.15;   // 1.0 → 0.85
+    if (ageDays <= 21) return 0.85 - ((ageDays - 7) / 14) * 0.30; // 0.85 → 0.55
+    return Math.max(0.35, 0.55 - ((ageDays - 21) / 60) * 0.20);   // 0.55 → 0.35 over ~60 more days
+  }, [state.cardInteractions]);
+
   return {
     trackCardTap,
     trackDrillTime,
     getCardOrder,
+    getCardVitality,
     getLastVisited,
     setLastVisited,
     cardInteractions: state.cardInteractions,
