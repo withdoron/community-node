@@ -13,11 +13,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles, Coins, Settings, MessageSquarePlus, X, Send, Camera, Lightbulb, Bug, ChevronDown, Music, Sprout } from "lucide-react";
+import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles, Settings, MessageSquarePlus, X, Send, Camera, Lightbulb, Bug } from "lucide-react";
 import Footer from '@/components/layout/Footer';
 import { useRole } from '@/hooks/useRole';
-import { useUserOwnedBusinesses } from '@/hooks/useUserOwnedBusinesses';
-import { useUserStaffBusinesses } from '@/hooks/useUserStaffBusinesses';
 import { toast } from 'sonner';
 
 export default function Layout({ children, currentPageName: currentPageNameProp }) {
@@ -33,10 +31,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
     }
   });
 
-  const { hasOwnedBusinesses } = useUserOwnedBusinesses(currentUser);
-  const { hasStaffBusinesses } = useUserStaffBusinesses(currentUser);
   const { isAppAdmin } = useRole();
-  const showBusinessDashboard = isAppAdmin || hasOwnedBusinesses || hasStaffBusinesses;
 
   // Hide feedback button when a workspace superagent is active (agent IS the feedback channel)
   const [agentActive, setAgentActive] = useState(false);
@@ -46,16 +41,6 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
     return () => window.removeEventListener('agent-active', handler);
   }, []);
 
-  // Admin alert badge: unseen frequency submissions
-  const { data: frequencyUnseenCount = 0 } = useQuery({
-    queryKey: ['frequency-unseen-count'],
-    queryFn: async () => {
-      const all = await base44.entities.FSFrequencySubmission.filter({ admin_seen: false }).list();
-      return Array.isArray(all) ? all.length : 0;
-    },
-    enabled: isAppAdmin,
-    refetchInterval: 30000,
-  });
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackType, setFeedbackType] = useState('feedback');
   const [whatHappened, setWhatHappened] = useState('');
@@ -141,7 +126,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
             </span>
           </Link>
 
-          {/* Center-right: Desktop nav */}
+          {/* Desktop nav — garden gate: Directory, Events, Become/Profile */}
           <nav className="hidden md:flex items-center gap-8 ml-auto">
             <Link to={createPageUrl('Directory')} className={navLinkClass('Directory')}>
               Directory
@@ -150,56 +135,8 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
               Events
             </Link>
 
-            {/* Community dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className={`flex items-center gap-1 px-3 py-2 transition-colors relative ${
-                  ['/shaping', '/frequency'].includes(location.pathname)
-                    ? 'text-amber-500'
-                    : 'text-slate-300 hover:text-amber-500'
-                }`}>
-                  Community
-                  {isAppAdmin && frequencyUnseenCount > 0 && (
-                    <span className="absolute -top-0.5 -right-1 h-2 w-2 rounded-full bg-amber-500" />
-                  )}
-                  <ChevronDown className="h-3.5 w-3.5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-72 bg-slate-900 border border-slate-700 shadow-xl shadow-black/20 [&>*]:bg-transparent">
-                <DropdownMenuItem asChild className="!bg-transparent hover:!bg-slate-800 focus:!bg-slate-800 cursor-pointer p-0">
-                  <Link to="/shaping" className="flex items-start gap-3 px-3 py-3">
-                    <Sprout className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-slate-100">Shaping the Garden</p>
-                      <p className="text-xs text-slate-500 mt-0.5">Shape what we build together</p>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="!bg-transparent hover:!bg-slate-800 focus:!bg-slate-800 cursor-pointer p-0">
-                  <Link to="/frequency" className="flex items-start gap-3 px-3 py-3">
-                    <span className="relative shrink-0 mt-0.5">
-                      <Music className="h-5 w-5 text-amber-500" />
-                      {isAppAdmin && frequencyUnseenCount > 0 && (
-                        <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-amber-500" />
-                      )}
-                    </span>
-                    <div>
-                      <p className="text-sm font-medium text-slate-100">Frequency Station</p>
-                      <p className="text-xs text-slate-500 mt-0.5">The community's radio station</p>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {currentUser && (
-              <Link to={createPageUrl('BusinessDashboard') + '?landing=1'} className={navLinkClass('BusinessDashboard')}>
-                Dashboard
-              </Link>
-            )}
-
             {/* Separator */}
-            <div className="w-px h-5 bg-slate-700 mx-3" />
+            <div className="w-px h-5 bg-slate-700 mx-1" />
 
             {/* Far right: User area */}
             {!currentUser ? (
@@ -237,28 +174,11 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                       My Lane
                     </Link>
                   </DropdownMenuItem>
-                  {showBusinessDashboard && (
-                    <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
-                      <Link to={createPageUrl('BusinessDashboard') + '?landing=1'} className="flex items-center">
-                        <LayoutDashboard className="h-4 w-4 mr-2" />
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
                   {currentUser.role === 'admin' && (
                     <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
                       <Link to={createPageUrl('Admin')} className="flex items-center">
                         <Shield className="h-4 w-4 mr-2" />
                         Admin Panel
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  {/* FEATURE_GATE: Community Pass — show when membership system launches */}
-                  {false && (
-                    <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
-                      <Link to="/my-lane/transactions" className="flex items-center">
-                        <Coins className="h-4 w-4 mr-2" />
-                        Community Pass
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -313,6 +233,8 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                       </Link>
                     </SheetClose>
                   </div>
+
+                  {/* Public garden paths */}
                   <div className="py-4 flex flex-col">
                     <SheetClose asChild>
                       <Link to={createPageUrl('Directory')} className={`flex items-center gap-3 ${sheetLinkClass('Directory')}`}>
@@ -328,72 +250,37 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                     </SheetClose>
                   </div>
 
-                  {/* Community section */}
-                  <div className="border-t border-slate-800 my-4" />
-                  <div className="px-4 mb-1">
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Community</p>
-                  </div>
-                  <div className="flex flex-col gap-1 px-4">
-                    <SheetClose asChild>
-                      <Link to="/shaping" className={`flex items-center gap-3 ${location.pathname === '/shaping' ? 'py-3 px-4 rounded-lg bg-amber-500/10 text-amber-500' : 'py-3 px-4 rounded-lg text-slate-300 hover:text-amber-500 hover:bg-slate-800'}`}>
-                        <Sprout className="h-5 w-5 flex-shrink-0" />
-                        Shaping the Garden
-                      </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Link to="/frequency" className={`flex items-center gap-3 ${location.pathname === '/frequency' ? 'py-3 px-4 rounded-lg bg-amber-500/10 text-amber-500' : 'py-3 px-4 rounded-lg text-slate-300 hover:text-amber-500 hover:bg-slate-800'}`}>
-                        <span className="relative flex-shrink-0">
-                          <Music className="h-5 w-5" />
-                          {isAppAdmin && frequencyUnseenCount > 0 && (
-                            <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-amber-500" />
-                          )}
-                        </span>
-                        Frequency Station
-                      </Link>
-                    </SheetClose>
-                  </div>
-
-                  <div className="border-t border-slate-800 my-4" />
+                  {/* Authenticated: My Lane + admin */}
                   {currentUser && (
-                    <div className="flex flex-col gap-1 px-4">
-                      <SheetClose asChild>
-                        <Link to={createPageUrl('MyLane')} className={`flex items-center gap-3 ${sheetLinkClass('MyLane')}`}>
-                          <Sparkles className="h-5 w-5 flex-shrink-0" />
-                          My Lane
-                        </Link>
-                      </SheetClose>
-                      <SheetClose asChild>
-                        <Link to={createPageUrl('BusinessDashboard') + '?landing=1'} className={`flex items-center gap-3 ${sheetLinkClass('BusinessDashboard')}`}>
-                          <LayoutDashboard className="h-5 w-5 flex-shrink-0" />
-                          Dashboard
-                        </Link>
-                      </SheetClose>
-                      {currentUser.role === 'admin' && (
+                    <>
+                      <div className="border-t border-slate-800 my-2" />
+                      <div className="flex flex-col gap-1 px-4 py-2">
                         <SheetClose asChild>
-                          <Link to={createPageUrl('Admin')} className={`flex items-center gap-3 ${sheetLinkClass('Admin')}`}>
-                            <Shield className="h-5 w-5 flex-shrink-0" />
-                            Admin Panel
+                          <Link to={createPageUrl('MyLane')} className={`flex items-center gap-3 ${sheetLinkClass('MyLane')}`}>
+                            <Sparkles className="h-5 w-5 flex-shrink-0" />
+                            My Lane
                           </Link>
                         </SheetClose>
-                      )}
-                      {/* FEATURE_GATE: Community Pass — show when membership system launches */}
-                      {false && (
+                        {currentUser.role === 'admin' && (
+                          <SheetClose asChild>
+                            <Link to={createPageUrl('Admin')} className={`flex items-center gap-3 ${sheetLinkClass('Admin')}`}>
+                              <Shield className="h-5 w-5 flex-shrink-0" />
+                              Admin Panel
+                            </Link>
+                          </SheetClose>
+                        )}
                         <SheetClose asChild>
-                          <Link to="/my-lane/transactions" className={`flex items-center gap-3 ${sheetLinkClass('MyLane')}`}>
-                            <Coins className="h-5 w-5 flex-shrink-0" />
-                            Community Pass
+                          <Link to={createPageUrl('Settings')} className={`flex items-center gap-3 ${sheetLinkClass('Settings')}`}>
+                            <Settings className="h-5 w-5 flex-shrink-0" />
+                            Settings
                           </Link>
                         </SheetClose>
-                      )}
-                      <SheetClose asChild>
-                        <Link to={createPageUrl('Settings')} className={`flex items-center gap-3 ${sheetLinkClass('Settings')}`}>
-                          <Settings className="h-5 w-5 flex-shrink-0" />
-                          Settings
-                        </Link>
-                      </SheetClose>
-                    </div>
+                      </div>
+                    </>
                   )}
                 </div>
+
+                {/* Bottom: User info or Become CTA */}
                 <div className="mt-auto p-4 border-t border-slate-800">
                   {currentUser ? (
                     <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-800">
