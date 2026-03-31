@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, LogIn, Users } from 'lucide-react';
+import { Loader2, LogIn, Users, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const PENDING_INVITE_KEY = 'pendingTeamInvite';
@@ -33,7 +33,9 @@ export default function JoinTeam() {
   const queryClient = useQueryClient();
   const [parentSelectedIds, setParentSelectedIds] = useState(new Set());
   const [joining, setJoining] = useState(false);
+  const [claiming, setClaiming] = useState(false);
   const [coachName, setCoachName] = useState('');
+  const [showNewCoachForm, setShowNewCoachForm] = useState(false);
 
   // Mark onboarding complete so user doesn't loop into the wizard after joining
   const ensureOnboardingComplete = async () => {
@@ -122,7 +124,55 @@ export default function JoinTeam() {
   const players = members.filter((m) => m.role === 'player');
   const playerCount = players.length;
 
+  // Unclaimed roster spots by role — for claim-first flow
+  const unclaimedCoaches = members.filter(
+    (m) => !m.user_id && (m.role === 'coach' || m.role === 'assistant_coach')
+  );
+
   const isAlreadyMember = isAuthenticated && user?.id && members.some((m) => m.user_id === user.id);
+
+  // Claim an existing roster spot by linking user_id to the pre-seeded record
+  const handleClaimSpot = async (member) => {
+    if (!user?.id || !team?.id) return;
+    setClaiming(true);
+    try {
+      // Check for duplicate membership first
+      const existing = await base44.entities.TeamMember.filter({ team_id: team.id, user_id: user.id });
+      const existingList = Array.isArray(existing) ? existing : [];
+      if (existingList.length > 0) {
+        toast.success('You are already a member of this team.');
+        localStorage.removeItem(PENDING_INVITE_KEY);
+        await ensureOnboardingComplete();
+        navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
+        return;
+      }
+
+      // Claim: update the pre-seeded record with user_id
+      try {
+        await base44.entities.TeamMember.update(member.id, { user_id: user.id });
+      } catch {
+        // Update failed (likely Creator Only permission) — create a new record with the same data
+        await base44.entities.TeamMember.create({
+          team_id: team.id,
+          user_id: user.id,
+          role: member.role,
+          jersey_name: member.jersey_name,
+          jersey_number: member.jersey_number || undefined,
+          position: member.position || undefined,
+          status: 'active',
+        });
+      }
+
+      const roleLabel = member.role === 'parent' ? 'parent' : 'coach';
+      toast.success(`Joined as ${member.jersey_name || roleLabel}!`);
+      localStorage.removeItem(PENDING_INVITE_KEY);
+      await ensureOnboardingComplete();
+      navigate(createPageUrl('BusinessDashboard') + '?team=' + team.id, { replace: true });
+    } catch (err) {
+      toast.error(err?.message || 'Failed to claim spot');
+      setClaiming(false);
+    }
+  };
 
   // Redirect if already a member
   useEffect(() => {
@@ -288,8 +338,17 @@ export default function JoinTeam() {
     );
   }
 
-  // ── Coach join path ──
+  // ── Coach join path (claim-first) ──
   if (inviteType === 'coach') {
+    // Wait for members to load so we can show unclaimed spots
+    if (membersLoading) {
+      return (
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
+          <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col p-6 max-w-md mx-auto">
         <h1 className="text-2xl font-bold text-white mb-1">{team.name}</h1>
@@ -300,27 +359,78 @@ export default function JoinTeam() {
           </p>
         )}
         {!headCoachName && <div className="mb-6" />}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-white">Join as Coach</h2>
-          <p className="text-slate-400 text-sm">You'll have full access to the playbook, roster, and team settings.</p>
-          <div>
-            <label className="text-slate-300 text-sm font-medium block mb-1">Your name</label>
-            <Input
-              value={coachName}
-              onChange={(e) => setCoachName(e.target.value)}
-              className="w-full bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 min-h-[44px]"
-              placeholder="Coach name"
-              disabled={joining}
-            />
+
+        {/* Claim-first: show unclaimed coach spots */}
+        {unclaimedCoaches.length > 0 && !showNewCoachForm && (
+          <div className="space-y-4 mb-6">
+            <div>
+              <h2 className="text-lg font-semibold text-white mb-1">Are you on the roster?</h2>
+              <p className="text-slate-400 text-sm">Tap your name to claim your spot.</p>
+            </div>
+            <div className="space-y-2">
+              {unclaimedCoaches.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => handleClaimSpot(m)}
+                  disabled={claiming}
+                  className="w-full flex items-center justify-between p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-colors min-h-[56px] disabled:opacity-60"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-white">{m.jersey_name || 'Coach'}</span>
+                    <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-amber-500/20 text-amber-500">
+                      {m.role === 'assistant_coach' ? 'Asst Coach' : 'Coach'}
+                    </span>
+                  </div>
+                  {claiming ? (
+                    <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
+                  ) : (
+                    <span className="text-amber-500 text-sm font-medium">That's me</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Divider + fallback to new coach form */}
+            <div className="flex items-center gap-3 pt-2">
+              <div className="flex-1 border-t border-slate-800" />
+              <span className="text-slate-500 text-xs">not listed?</span>
+              <div className="flex-1 border-t border-slate-800" />
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowNewCoachForm(true)}
+              className="w-full text-center text-sm text-slate-400 hover:text-amber-500 transition-colors py-2"
+            >
+              Join as a new coach
+            </button>
           </div>
-          <Button
-            onClick={handleJoinAsCoach}
-            disabled={!coachName?.trim() || joining}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px]"
-          >
-            {joining ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Join Team'}
-          </Button>
-        </div>
+        )}
+
+        {/* New coach form — shown when no unclaimed spots exist OR user tapped "not listed" */}
+        {(unclaimedCoaches.length === 0 || showNewCoachForm) && (
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-white">Join as Coach</h2>
+            <p className="text-slate-400 text-sm">You'll have full access to the playbook, roster, and team settings.</p>
+            <div>
+              <label className="text-slate-300 text-sm font-medium block mb-1">Your name</label>
+              <Input
+                value={coachName}
+                onChange={(e) => setCoachName(e.target.value)}
+                className="w-full bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 min-h-[44px]"
+                placeholder="Coach name"
+                disabled={joining}
+              />
+            </div>
+            <Button
+              onClick={handleJoinAsCoach}
+              disabled={!coachName?.trim() || joining}
+              className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px]"
+            >
+              {joining ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Join Team'}
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
