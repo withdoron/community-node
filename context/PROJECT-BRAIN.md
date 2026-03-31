@@ -1,7 +1,7 @@
 # PROJECT-BRAIN.md
 
 > Read this first. This file orients any AI model — Claude, Gemini, GPT, or other — to work effectively on LocalLane. It is the single source of truth for project identity, philosophy, and working style.
-> Last updated: 2026-03-27
+> Last updated: 2026-03-30
 
 ---
 
@@ -20,6 +20,24 @@ This isn't decoration. It's the design principle: every feature should make the 
 ## Circulation Over Extraction
 
 The foundational philosophy. Users earn visibility through community engagement, not paid promotion. Revenue sharing flows to businesses based on actual participation. Joy Coins (the platform's engagement currency) reward real community activity. No ads. No algorithmic manipulation. No pay-to-play.
+
+## Dark Until Explored (DEC-117)
+
+The app only illuminates what the user has entered through. Everything else exists but stays dark — not locked, not hidden, just quiet. Features light up through real connections and organic discovery. Spaces dim when unused but never turn off. The organism remembers. Entry point determines first lit room.
+
+## Two Modes (DEC-120)
+
+Auto mode (Mylane-driven, conversational) and Manual mode (full topology, user navigates). Organic gradient between them based on usage patterns. No toggle — the organism learns your preferred mode.
+
+## Subdomain-as-Hypha (DEC-121)
+
+Workspaces start as seeds inside LocalLane. Seeds that grow earn their own subdomain. Seeds that outgrow LocalLane can become independent platforms. The organism doesn't lose an arm — it grows one strong enough to reach independently.
+
+## The Organism is the Relationship (DEC-123)
+
+Parent-player links, contractor-client links, tenant-owner links — each relationship is a hypha. The organism's growth is the accumulation of these connections. Proximity is computed from existing relationships, not stored. The mycelium doesn't need its own database — it IS the connections between existing records.
+
+*"The organism is the relationship in between." — Doron, 2026-03-30*
 
 ## Who Is Doron
 
@@ -63,6 +81,7 @@ Stripe Connect handles payment processing. Revenue share flows to businesses bas
 - **Family members** — Involved in Property Pulse (family property management).
 - **Peter** — Elite Auto Tech N Tow, Eugene. Potential second vertical for Field Service Engine.
 - **Hayley** — Lane County Farmers Market Executive Director. Relationship building in progress.
+- **Randy** — Head coordinator of Grab It NFL FLAG in Eugene. Met 2026-03-30. League-wide Playmaker sponsorship opportunity.
 
 ## The Node Lab Model (DEC-047)
 

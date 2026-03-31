@@ -205,3 +205,123 @@ Marketing:
 - Farmers market deadline Wednesday
 
 ---
+
+### Session Log — 2026-03-30
+**Focus:** agentScopedQuery auth fix, Mylane render protocol, universal renderer, Scout agent, Renderer agent, full Mylane audit, MCP v2 expansion, Mycelia Superagent creation
+
+**Shipped:**
+1. agentScopedQuery auth pattern discovered — base44.auth.me() does NOT work in agent-called backend functions (service role context). Agent must pass user_id explicitly from conversation context. Forceful instructions ("you MUST pass user_id, NEVER ask") required to make the LLM actually pass the parameter.
+2. Mylane render protocol — two types: TYPE 1 (RENDER — workspace drill via HTML comment) and TYPE 2 (RENDER_DATA — universal renderer with raw data). parseRenderInstruction.js updated. Mylane Base44 instructions updated with full render protocol.
+3. Mylane internal rendering at 992c5b2 — MyLaneDrillView.jsx renders workspace tabs INSIDE Mylane. User never leaves. Chat stays docked. Breadcrumb navigation. Three content modes: cards, drilled workspace, rendered entity data.
+4. renderEntityView.jsx (universal renderer) at d253ff9 — 280 lines, field type detection (phone, email, currency, date, status, boolean, URL, address), 30 entity title mappings, 15 status colors, three display modes (empty, detail, list). Phase 1 coded function — scaffold for future Renderer Agent.
+5. Renderer Agent created in Base44 — 7th superagent, the organism's visual cortex. Internal only, global memory, no entity tools. Receives data, returns Gold Standard HTML.
+6. Scout Agent created in Base44 — 8th superagent, the organism's immune system. Two modes: Knowledge Feeding (industry research per workspace) and AI Scout (tracks AI tool updates). Internal only.
+7. Full Mylane/Renderer audit at 592489c — 4 bugs fixed: Team entity uses owner_id not user_id, daily-log tab alias wrong, recurring tab alias wrong, 10 missing entity title mappings, 4 missing status colors.
+8. ObjectId comparison bug at 96caaa9 — base44 .list() returns IDs as ObjectId type, not string. Added idMatch() helper with String() coercion to all 5 comparison points in agentScopedQuery. Universal Base44 pattern: always use String() coercion for ID comparisons.
+9. MCP v2 deployed — 5 new tools replacing old 5: pulse (platformPulse wrapper), scoped_query (agentScopedQuery wrapper), ask_agent (wired to Mycelia Superagent), write_feedback (ServiceFeedback creation), list_agents (agent registry). Deployed at locallane-mcp.doron-bsg.workers.dev/mcp.
+10. Mycelia Superagent created in Base44 — NOT an App Agent, a Superagent with full API access. Base URL: app.base44.com/api/agents/69c9aec9fc313792b73d8fdd. 7 knowledge files uploaded (all organism specs). GitHub connected. Soul updated with organism identity. Memory seeded. MCP ask_agent wired at f815a402.
+11. Base44 architecture distinction discovered: Superagents (standalone, API access, own workspace) vs App Agents (embedded in app, no API, 4 tabs only). Our 8 workspace agents are App Agents. Mycelia is our first Superagent — the bridge between Claude.ai and the organism.
+12. St. Rita Psychiatry connection — Doron painting there, met April (likely admin staff). Practice serves ages 5-21, neurodivergent kids. April interested in Recess flyers. Potential Recess Network partner.
+13. Protocol established: Base44 reports code errors but does not fix them. Hyphae fixes code. Base44 renamed renderEntityView.js to .jsx which caused preview issues.
+14. Protocol established: Hyphae writes all server functions. Base44 syncs from GitHub on publish. Repo is source of truth.
+15. RENDERER-AGENT-SPEC.md committed to private repo at fc6ca7e.
+
+**Decisions made:**
+- DEC-110: Base44 agent-to-function auth pattern — agents pass user_id from conversation context, backend functions run in service role (auth.me() doesn't work). Universal pattern: always use String() coercion for ID comparisons from .list() results.
+- DEC-111: Two render instruction types — RENDER (workspace drill) and RENDER_DATA (universal renderer with raw data). HTML comment format invisible to ReactMarkdown.
+- DEC-112: Mycelia Superagent architecture — one Superagent (with API access) bridges Claude.ai Mycelia and all App Agents inside the platform. App Agents serve users in UI. Mycelia Superagent serves gardeners externally via MCP.
+- DEC-113: Protocol boundary — Base44 reports code errors, Hyphae fixes them. Hyphae writes all server functions. Repo is source of truth, Base44 syncs from GitHub on publish.
+
+**Next up:**
+- Test MCP circuit from Claude Desktop (ask_agent → Mycelia Superagent)
+- SuperMemory bearer token for Mycelia Superagent connection (deferred)
+- Coaches card for Monday meeting 6:30 PM
+- Re-fax EIN Monday
+- Farmers market deadline Wednesday
+- Follow up with April at St. Rita re: Recess flyers
+- Base44 Superagent API key question for App Agent programmatic access (support ticket sent)
+
+---
+
+### Session Log — 2026-03-30 (Marathon Session)
+**Focus:** MCP circuit test, drift audit, Scout report, DEC-115 agent write + Mylane console upgrades, Base44 publish blocker
+
+**Shipped:**
+1. MCP v2 full circuit test — all 5 tools confirmed working from Claude Desktop: pulse (health), list_agents (8 agents), scoped_query (FSClient, Team), ask_agent (Mycelia Superagent responded coherently, conversation ID 69c9bf482e6fda0e3f68ee1c)
+2. Config fix — remote MCP servers must go through Settings > Connectors UI, NOT claude_desktop_config.json (which only supports local stdio servers)
+3. Drift audit completed — 27-day gap cataloged (2026-03-03 to 2026-03-30). Report committed to spec-repo at audits/DRIFT-REPORT-2026-03-30.md
+4. ACTIVE-CONTEXT.md fully rewritten and synced to both repos. DEC-100 collision fixed (second entry renamed DEC-100b)
+5. Scout report completed — Base44/Wix acquisition ($80M, $100M ARR), OpenClaw (247K GitHub stars, viral open-source agent), Claude Computer Use + Dispatch (March 23-24). Saved to SuperMemory.
+6. Dashboard cleanup (bc116b3) — removed dead Silver/Passes/Tickets badges from BusinessDashboard.jsx header. Mobile nav audit passed clean.
+7. Admin on phone — Doron accessed LocalLane as admin from mobile for the first time. Google sign-in worked.
+8. DEC-115 specced — AGENT-WRITE-AND-MYLANE-CONSOLE-SPEC.md committed to private repo. Covers agentScopedWrite server function, 3-gate tier enforcement, Mylane console upgrades across 5 sessions.
+9. agentScopedWrite server function (ed4ae4c, 244 lines) — 3-gate enforcement: admin check, tier check (subscription_tier on workspace profiles), entity whitelist (22 entities across 5 workspaces). Ownership stamping with created_via:"agent". Required field validation. idMatch() with String() coercion.
+10. Mylane write capability CONFIRMED — Test Client created at 123 Main St Eugene OR via Mylane conversation. First agent-created record in the organism.
+11. subscription_tier (default "full") and tier_trial_start fields added to all 4 workspace profile entities via Base44 dashboard.
+12. Session 3 (0bb796d) — AgentChat: new conversation button (+), conversation history panel (clock icon, localStorage, 20 max entries), file/photo upload (paperclip, Base44 UploadFile, 10MB limit, camera/gallery on mobile).
+13. Session 4 (d1ae66b) — Quick-action chips (workspace-aware, tier-gated, write chips for full tier only, horizontal scroll), ConfirmationCard.jsx (Gold Standard card with Confirm/Edit/Cancel), RENDER_CONFIRM instruction type in parseRenderInstruction.js.
+14. Session 5 (3294f66) — Google Maps link parsing (agent instruction), mobile polish: smart auto-scroll (80px threshold), voice/send toggle (WhatsApp pattern), safe-area padding (env(safe-area-inset-bottom)), hidden scrollbar on chips, input layout verified at 375px.
+15. Mylane Base44 guidelines updated with confirmation cards, Google Maps, quick action awareness, file handling, response style.
+16. Base44 publish blocker — diagnosed: NOT our code. Reverted everything, still failed. TypeScript annotations stripped from agentScopedWrite (Base44 Deno runtime does not process TS syntax despite .ts extension). Escalated to Base44 engineering. Request ID: 95a004a0-5990-4704-ad23-31ddb795dacd. Main restored to full state at cd6dd1c.
+
+**Decisions made:**
+- DEC-115: Agent Write Capability + Tier Gating + Mylane Console
+
+**Key learnings:**
+- Remote MCP servers connect via Settings > Connectors in Claude Desktop, never via claude_desktop_config.json
+- Base44 GitHub sync branch cannot be changed once connected. Disconnecting is permanent. All fixes must go through main.
+- Base44 Deno runtime runs .ts files but does NOT process TypeScript syntax — use plain JS in .ts extensions
+- Base44 publish can fail at infrastructure level — revert does not fix stuck pipeline. Must escalate to engineering.
+
+**Blockers:**
+- Base44 publish failure — escalated to engineering team. All code preserved in git at cd6dd1c.
+
+**Vision seeds planted:**
+- Supplier price sheets for dynamic estimates
+- EuDash — local errand/task marketplace
+- Meal prep agent — recipe + local ad scraping for optimized grocery lists
+
+**Next up:**
+- Coaches meeting Monday 6:30 PM
+- Re-fax EIN Monday
+- Check Base44 support response
+- Once publish unblocked: test full Mylane from phone in field
+- Farmers market deadline Wednesday
+- Follow up with April at St. Rita re: Recess flyers
+
+---
+
+### Session Log — 2026-03-30 (Evening)
+**Focus:** Team invite flow bug fixes, "Dark Until Explored" philosophy, three-gardener architecture session
+**Shipped:**
+1. Team invite join flow fix — commit d703083: removed claimTeamSpot server function calls, replaced with direct entity operations (coach create, parent create, player claim). Added duplicate membership check. Fixed onboarding loop with ensureOnboardingComplete().
+2. Team picker Create/Join choice — commit 05a08fe: "I have an invite code" option in Add Workspace type picker. Onboarding persistence hardened with server function + fallback + optimistic cache. /join/ route confirmed exempt from onboarding guard.
+3. EIN SS-4 form re-faxed with SSN included (administrative, done).
+4. Hyphae architecture questions delivered and fully answered (two rounds, 10 questions + 3 follow-ups). Covers: claim-first join pattern, proximity computation, subdomain-as-hypha model, Mylane-as-dashboard phases, dimming mechanic, Manual/Auto mode gradient.
+5. "Dark Until Explored" philosophy crystallized — platform-wide rendering principle established across all three gardeners.
+6. Three Gardeners song seed written for Suno.
+
+**Decisions made:**
+- DEC-117: Dark Until Explored — platform-wide rendering philosophy
+- DEC-118: Claim-First Join Pattern — universal for all workspace joins
+- DEC-119: Invite Code IS Onboarding — skip wizard for invite-based entry
+- DEC-120: Two Dashboard Modes (Auto/Manual) with organic gradient
+- DEC-121: Subdomain-as-Hypha Growth Model
+- DEC-122: Renderer Agent Stays Visual — context lives upstream
+- DEC-123: Parent-Player Links as Cross-Space Relationship Prototype
+
+**Key people:**
+- Met Randy, head coordinator of Grab It NFL FLAG Eugene
+- Coach Rick attempted onboarding at coaches meeting, hit bugs (now fixed)
+
+**Next up:**
+1. Context-aware landing page (personalized invite copy)
+2. Claim-first join flow (port Field Service pattern)
+3. Onboarding skip for invite entry
+4. Card opacity dimming from existing localStorage
+5. Mylane as default post-login destination
+6. Ghost cards for proximate spaces
+7. Slug field + /door/:slug route
+8. Auto/Manual gradient
+
+---
