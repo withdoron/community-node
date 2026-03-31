@@ -16,6 +16,7 @@ export default function Footer() {
   });
 
   const footerLinks = [
+    { label: 'Philosophy', href: '/Philosophy' },
     { label: 'Terms', href: '/Terms' },
     { label: 'Privacy', href: '/Privacy' },
     { label: 'Support', href: '/Support' }

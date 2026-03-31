@@ -7,7 +7,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { DollarSign, Building2 } from 'lucide-react';
+import { DollarSign, Building2, Users, Store } from 'lucide-react';
 import MY_LANE_REGISTRY from '@/config/myLaneRegistry';
 import WhatsChangedBar from './WhatsChangedBar';
 import MyLaneBreadcrumb from './MyLaneBreadcrumb';
@@ -320,9 +320,34 @@ export default function MyLaneSurface({
               })}
             </div>
           ) : (
-            <div className="text-center py-16 space-y-2">
-              <p className="text-slate-300">Your spaces will appear here</p>
-              <p className="text-slate-500 text-sm">Join a team, start a workspace, or accept an invite to get started.</p>
+            <div className="text-center py-12 space-y-6">
+              <div className="space-y-2">
+                <p className="text-slate-300">Your spaces will appear here</p>
+                <p className="text-slate-500 text-sm">Create something or join an invite to get started.</p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Link
+                  to={createPageUrl('TeamOnboarding')}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 text-sm hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+                >
+                  <Users className="h-4 w-4" />
+                  Start a Team
+                </Link>
+                <Link
+                  to={createPageUrl('BusinessOnboarding')}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 text-sm hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+                >
+                  <Store className="h-4 w-4" />
+                  List a Business
+                </Link>
+                <Link
+                  to={createPageUrl('FinanceOnboarding')}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 text-sm hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+                >
+                  <DollarSign className="h-4 w-4" />
+                  Track Finances
+                </Link>
+              </div>
             </div>
           )}
 

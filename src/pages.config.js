@@ -8,6 +8,7 @@ import Directory from './pages/Directory';
 import Events from './pages/Events';
 import Home from './pages/Home';
 import MyLane from './pages/MyLane';
+import Philosophy from './pages/Philosophy';
 import Privacy from './pages/Privacy';
 import Search from './pages/Search';
 import Settings from './pages/Settings';
@@ -36,6 +37,7 @@ export const PAGES = {
     "Events": Events,
     "Home": Home,
     "MyLane": MyLane,
+    "Philosophy": Philosophy,
     "Privacy": Privacy,
     "Search": Search,
     "Settings": Settings,

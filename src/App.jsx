@@ -33,7 +33,7 @@ const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 // Pages that don't require authentication
 const PUBLIC_PAGES = new Set([
   'Home', 'BusinessProfile', 'CategoryPage', 'Directory', 'Events',
-  'Privacy', 'Search', 'SpokeDetails', 'Support', 'Terms',
+  'Philosophy', 'Privacy', 'Search', 'SpokeDetails', 'Support', 'Terms',
 ]);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?

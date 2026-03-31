@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import { useCategories } from '@/hooks/useCategories';
 import SectionWrapper from './SectionWrapper';
 import { Sprout, Activity, Palette, Wrench, Heart, Store } from 'lucide-react';
@@ -12,6 +14,22 @@ export default function DiscoverSection() {
   const popularCategories = mainCategories.filter((c) =>
     defaultPopularCategoryIds.includes(c.id)
   );
+
+  // Only show Discover when there are actual businesses to browse.
+  // Dark until there's something alive.
+  const { data: businessCount = 0 } = useQuery({
+    queryKey: ['discover-business-count'],
+    queryFn: async () => {
+      try {
+        const list = await base44.entities.Business.filter({ is_active: true });
+        return Array.isArray(list) ? list.length : 0;
+      } catch { return 0; }
+    },
+    staleTime: 5 * 60 * 1000, // cache 5 minutes
+  });
+
+  // No businesses → don't show empty category cards
+  if (businessCount === 0 || popularCategories.length === 0) return null;
 
   return (
     <SectionWrapper

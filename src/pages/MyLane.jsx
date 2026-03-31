@@ -67,7 +67,6 @@ function InlineWelcome({ currentUser, onComplete }) {
 
   // Greeting step — warm transition before Mylane opens
   if (step === 'greeting') {
-    const firstName = name.trim().split(' ')[0];
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-6">
         <div className="text-center max-w-sm space-y-4 animate-in fade-in duration-500">
@@ -75,7 +74,7 @@ function InlineWelcome({ currentUser, onComplete }) {
             className="text-3xl md:text-4xl font-bold text-amber-400"
             style={{ fontFamily: 'Georgia, serif' }}
           >
-            Welcome, {firstName}.
+            Welcome, {name.trim()}.
           </h1>
           <p className="text-slate-400 text-sm">Your space is ready.</p>
           <Loader2 className="h-5 w-5 text-amber-500/50 animate-spin mx-auto mt-4" />
