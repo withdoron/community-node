@@ -325,3 +325,27 @@ Marketing:
 8. Auto/Manual gradient
 
 ---
+
+### Session Log — 2026-03-31 (Morning)
+**Focus:** Architecture deepening — messaging, pricing, creatures, frequency, agent architecture. Hyphae rounds 2-3.
+**Shipped:**
+1. Hyphae architecture round 2 — responses on MylaneMessage entity design, UsageEvent metering pattern, organism creature SVG parameters (7 params, 5 composable layers)
+2. Hyphae structural assessment — foundation is solid, no changes needed before item #1. MylaneMessage and UsageEvent follow existing isPlatform:true pattern. Don't create empty entities early.
+3. Pricing philosophy crystallized — charge only for features that help people make money (business tools, invoicing, listings) or advanced personal assistant capabilities (agent writes, document generation, complex queries). Everything else is free. Dynamic pricing gauge shows real-time usage transparently.
+4. Mylane-to-Mylane communication concept — cross-user messaging through the organism, routed via relationship links (parent-player, coach-team). Not notifications, not chat. Companion-to-companion delivery in context. MylaneMessage entity with whisper/nudge/alert urgency tiers.
+5. Communication as presence/frequency concept — the organism carries MORE of you, not less. How you interact (tapping patterns, conversation style, words, engagement rhythm) is your frequency. Mylane learns it and carries it forward on your behalf.
+6. Personal organism creature concept — parameterized SVG mushroom reflecting user's relationship with the organism. 7 parameters: spaces, connections, recentActivity, tenure, modePreference, networkDepth, diversityScore. Breathing animation. Growth is irreversible. Colors from workspace types. Roots (connections) tell the real story.
+7. Conductor-per-user agent architecture confirmed — each user has Mylane as personal conductor routing to specialized space agents (PlaymakerAgent, HarvestAgent, etc.). Conductor already exists: Per User Only memory, MyLaneProfile, useMyLaneState, auth.me(). No new auth pattern needed.
+8. Pip-Boy wearable concept captured (late night seed) — physical band docking phone to wrist, simplified glanceable interface, voice-first Mylane.
+9. Base44 publish blocker still active (request ID 95a004a0) — blocks UsageEvent server function integration.
+
+**Decisions made:**
+- DEC-124: Mylane-to-Mylane Messaging
+- DEC-125: Pricing Transparency Model
+- DEC-126: Communication as Frequency/Presence
+
+**Next up:**
+- Build item #1: Context-aware landing page (organism's handshake)
+- All docs now current — ready to build
+
+---

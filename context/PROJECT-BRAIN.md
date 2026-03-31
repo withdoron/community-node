@@ -1,7 +1,7 @@
 # PROJECT-BRAIN.md
 
 > Read this first. This file orients any AI model — Claude, Gemini, GPT, or other — to work effectively on LocalLane. It is the single source of truth for project identity, philosophy, and working style.
-> Last updated: 2026-03-30
+> Last updated: 2026-03-31
 
 ---
 
@@ -38,6 +38,20 @@ Workspaces start as seeds inside LocalLane. Seeds that grow earn their own subdo
 Parent-player links, contractor-client links, tenant-owner links — each relationship is a hypha. The organism's growth is the accumulation of these connections. Proximity is computed from existing relationships, not stored. The mycelium doesn't need its own database — it IS the connections between existing records.
 
 *"The organism is the relationship in between." — Doron, 2026-03-30*
+
+## Pricing as Circulation (DEC-125)
+
+Charge only for features that help people make money or for advanced AI that acts on your behalf. Everything else is free. The free layer is circulation — people forming connections, the mycelium growing. A visible price gauge shows real-time usage. Pricing breathes with the dimming — unused features cost nothing. "The organism is honest about what it costs."
+
+## Communication as Frequency (DEC-126)
+
+How you interact with the organism IS your frequency. The organism learns it and carries it forward — through messaging, through your creature, through how Mylane represents you. Every generation of communication has lost more of the person. The organism carries more, not less.
+
+## Conductor-per-User
+
+Each user has Mylane as their personal conductor. Mylane routes to specialized space agents (PlaymakerAgent, HarvestAgent, etc.) in the background. The user only talks to Mylane. The conductor learns your frequency over time.
+
+*"We can insert our frequency into the app through the way we interact and present ourselves." — Doron, 2026-03-31*
 
 ## Who Is Doron
 
