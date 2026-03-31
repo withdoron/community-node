@@ -55,12 +55,22 @@ export default function useMyLaneState() {
         tapCount: existing.tapCount + 1,
         lastTapped: new Date().toISOString(),
       };
-      const next = { ...prev, cardInteractions: interactions };
+      // Also bump weekly tap count (DEC-120 frequency tracking) — atomic update
+      const freq = { ...(prev.frequency || DEFAULT_STATE.frequency) };
+      const now = Date.now();
+      const weekStart = freq.weekStart ? new Date(freq.weekStart).getTime() : 0;
+      if (!weekStart || (now - weekStart) > 7 * 86400000) {
+        freq.weekStart = new Date().toISOString();
+        freq.weeklyTaps = 1;
+        freq.weeklyMessages = 0;
+      } else {
+        freq.weeklyTaps = (freq.weeklyTaps || 0) + 1;
+      }
+      const next = { ...prev, cardInteractions: interactions, frequency: freq };
       saveState(next);
       return next;
     });
-    bumpWeeklyTap();
-  }, [bumpWeeklyTap]);
+  }, []);
 
   /** Record how long user spent in drill view */
   const trackDrillTime = useCallback((cardId) => {
@@ -141,25 +151,6 @@ export default function useMyLaneState() {
     }
     return { weeklyTaps: freq.weeklyTaps || 0, weeklyMessages: freq.weeklyMessages || 0, fresh: false };
   }, [state.frequency]);
-
-  /** Increment weekly tap count (called automatically by trackCardTap). */
-  const bumpWeeklyTap = useCallback(() => {
-    setState((prev) => {
-      const freq = { ...(prev.frequency || DEFAULT_STATE.frequency) };
-      const now = Date.now();
-      const weekStart = freq.weekStart ? new Date(freq.weekStart).getTime() : 0;
-      if (!weekStart || (now - weekStart) > 7 * 86400000) {
-        freq.weekStart = new Date().toISOString();
-        freq.weeklyTaps = 1;
-        freq.weeklyMessages = 0;
-      } else {
-        freq.weeklyTaps = (freq.weeklyTaps || 0) + 1;
-      }
-      const next = { ...prev, frequency: freq };
-      saveState(next);
-      return next;
-    });
-  }, []);
 
   /** Record a message sent to Mylane. Call from AgentChat or via window event. */
   const trackMessage = useCallback(() => {
