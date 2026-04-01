@@ -108,12 +108,13 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
 
   // DEC-117 / Build 2: Hide nav header for unauthenticated visitors on the Home page.
   // Home page handles its own floating logo overlay — the organism invites before gating.
-  const isPublicHome = currentPageName === 'Home' && currentUser === null;
+  // DEC-131: MyLane spinner surface has its own complete header — hide the app nav.
+  const hideNavHeader = (currentPageName === 'Home' && currentUser === null) || currentPageName === 'MyLane';
 
   return (
     <div className="min-h-screen bg-slate-950">
       <style dangerouslySetInnerHTML={{ __html: `@keyframes breathe { 0%, 100% { box-shadow: 0 0 0px rgba(212, 160, 70, 0); } 50% { box-shadow: 0 0 10px rgba(212, 160, 70, 0.25); } }` }} />
-      {!isPublicHome && (
+      {!hideNavHeader && (
       <header className="sticky top-0 z-50 bg-slate-900 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           {/* Left: Logo */}
