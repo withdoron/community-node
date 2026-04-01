@@ -148,7 +148,9 @@ export default function MyLane() {
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [warmEntry, setWarmEntry] = useState(null); // { workspace, message, wizardPage } | null
   const [copilotOpen, setCopilotOpen] = useState(false);
-  const [frequencyPlaying, setFrequencyPlaying] = useState(false);
+  const [frequencyPlaying, setFrequencyPlaying] = useState(() => {
+    try { return localStorage.getItem('freq_playing') === '1'; } catch { return false; }
+  });
   const isMobile = useIsMobile();
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -429,7 +431,11 @@ export default function MyLane() {
           onDoorOpen={handleDoorOpen}
           warmEntryWizardPage={warmEntry?.wizardPage ?? null}
           frequencyPlaying={frequencyPlaying}
-          onFrequencyToggle={() => setFrequencyPlaying((p) => !p)}
+          onFrequencyToggle={() => setFrequencyPlaying((p) => {
+            const next = !p;
+            try { localStorage.setItem('freq_playing', next ? '1' : '0'); } catch {}
+            return next;
+          })}
         />
       </div>
 
