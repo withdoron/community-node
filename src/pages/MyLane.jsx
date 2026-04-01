@@ -2,13 +2,13 @@ import React, { useRef, useState, useCallback, useEffect, useMemo } from 'react'
 import { Link, Navigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { Loader2, Store, ArrowRight, MessageCircle } from 'lucide-react';
+import { Loader2, Store, ArrowRight, X } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useRole } from '@/hooks/useRole';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MyLaneSurface from '@/components/mylane/MyLaneSurface';
-import MylanePanel from '@/components/mylane/MylanePanel';
 import MylaneMobileSheet from '@/components/mylane/MylaneMobileSheet';
+import AgentChat from '@/components/fieldservice/AgentChat';
 import { useMylane } from '@/hooks/useMylane';
 import { WARM_ENTRY } from '@/config/warmEntryMessages';
 
@@ -147,9 +147,6 @@ export default function MyLane() {
   const [welcomeJustCompleted, setWelcomeJustCompleted] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [warmEntry, setWarmEntry] = useState(null); // { workspace, message, wizardPage } | null
-  const [mylaneCollapsed, setMylaneCollapsed] = useState(() => {
-    try { return localStorage.getItem('mylane_panel_collapsed') === 'true'; } catch { return false; }
-  });
   const isMobile = useIsMobile();
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -163,19 +160,12 @@ export default function MyLane() {
   const { isAppAdmin } = useRole();
   const { mylane_tier } = useMylane();
 
-  // Warm workspace entry — open copilot with an intro message for the tapped space
+  // Warm workspace entry — stores intro message for copilot
   const handleDoorOpen = useCallback((workspace) => {
     const config = WARM_ENTRY[workspace];
     if (!config) return;
     setWarmEntry({ workspace, message: config.userMessage, wizardPage: config.wizardPage });
-    // Open copilot immediately
-    if (isMobile) {
-      setMobileSheetOpen(true);
-    } else {
-      setMylaneCollapsed(false);
-      try { localStorage.setItem('mylane_panel_collapsed', 'false'); } catch {}
-    }
-  }, [isMobile]);
+  }, []);
 
   const handleWelcomeComplete = useCallback(() => {
     setWelcomeJustCompleted(true);
@@ -189,20 +179,10 @@ export default function MyLane() {
     };
   }, []);
 
-  // Auto-open copilot on first visit (flag set by InlineWelcome onSuccess)
+  // Clean up first-visit flag (copilot is on-demand now)
   useEffect(() => {
-    try {
-      const flag = localStorage.getItem('mylane_first_visit');
-      if (flag) {
-        localStorage.removeItem('mylane_first_visit');
-        if (isMobile) {
-          setMobileSheetOpen(true);
-        } else {
-          setMylaneCollapsed(false);
-        }
-      }
-    } catch { /* ignore */ }
-  }, [isMobile]);
+    try { localStorage.removeItem('mylane_first_visit'); } catch {}
+  }, []);
 
   // ── Workspace profile queries (DEC-130: single server function call) ──
   // getMyLaneProfiles combines 4 profile entity queries into 1 server function call.
@@ -399,82 +379,145 @@ export default function MyLane() {
   }
 
   // ── Mylane: the organism's living surface ──
+  // DEC-131: One surface, everything renders in place.
+  // Desktop: copilot FAB → slide-in panel from right. Mobile: bottom sheet.
 
-  // Shared surface content — same on mobile and desktop
-  // DEC-131: Spinner replaces card grid. Surface IS the spinner.
-  const cardContent = (
-    <div className="max-w-xl mx-auto px-2 py-4">
-      <MyLaneSurface
-        currentUser={currentUser}
-        financeProfiles={financeProfiles}
-        fieldServiceProfiles={fieldServiceProfiles}
-        allTeams={allTeams}
-        propertyMgmtProfiles={propertyMgmtProfiles}
-        mealPrepProfiles={mealPrepProfiles}
-        businessProfiles={businessProfiles}
-        agentMessageRef={agentMessageRef}
-        onDoorOpen={handleDoorOpen}
-        warmEntryWizardPage={warmEntry?.wizardPage ?? null}
-      />
-    </div>
+  const [copilotOpen, setCopilotOpen] = useState(false);
+
+  // Mushroom FAB SVG
+  const mushroomIcon = (
+    <svg viewBox="0 0 24 24" style={{ width: 16, height: 16 }} stroke="#f59e0b" fill="none" strokeWidth={1.5}>
+      <circle cx="12" cy="10" r="6" />
+      <line x1="12" y1="16" x2="12" y2="22" />
+      <line x1="9" y1="19" x2="12" y2="16" />
+      <line x1="15" y1="19" x2="12" y2="16" />
+    </svg>
   );
 
-  if (isMobile) {
-    // Mobile: scrollable card grid + FAB + full-screen sheet
-    return (
-      <div className="min-h-screen bg-slate-950">
-        {cardContent}
-
-        {/* Mylane Beta FAB */}
-        {!mobileSheetOpen && (
-          <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-1.5">
-            <span className="text-xs text-amber-500/70 font-medium px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
-              Mylane Beta
-            </span>
-            <button
-              type="button"
-              onClick={() => setMobileSheetOpen(true)}
-              className="w-14 h-14 rounded-full bg-amber-500 hover:bg-amber-400 text-black shadow-lg shadow-amber-500/20 flex items-center justify-center transition-all hover:scale-105"
-              style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
-              title="Open Mylane"
-            >
-              <MessageCircle className="h-6 w-6" />
-            </button>
-          </div>
-        )}
-
-        <MylaneMobileSheet
-          isOpen={mobileSheetOpen}
-          onClose={() => setMobileSheetOpen(false)}
+  return (
+    <div className="min-h-screen bg-slate-950">
+      {/* Main surface — full width, shrinks when copilot open on desktop */}
+      <div
+        className="transition-[margin-right] duration-300 ease-in-out"
+        style={{ marginRight: (!isMobile && copilotOpen) ? 320 : 0 }}
+      >
+        <MyLaneSurface
           currentUser={currentUser}
-          onMessage={(msg) => agentMessageRef.current?.(msg)}
-          workspaceProfiles={workspaceProfiles}
-          pendingMessage={warmEntry?.message ?? null}
-          onPendingMessageSent={() => setWarmEntry((prev) => prev ? { ...prev, message: null } : null)}
-          mylane_tier={mylane_tier}
+          financeProfiles={financeProfiles}
+          fieldServiceProfiles={fieldServiceProfiles}
+          allTeams={allTeams}
+          propertyMgmtProfiles={propertyMgmtProfiles}
+          mealPrepProfiles={mealPrepProfiles}
+          businessProfiles={businessProfiles}
+          agentMessageRef={agentMessageRef}
+          onDoorOpen={handleDoorOpen}
+          warmEntryWizardPage={warmEntry?.wizardPage ?? null}
         />
       </div>
-    );
-  }
 
-  // Desktop: resizable side panel — Mylane copilot alongside card grid
-  return (
-    <div className="h-[calc(100vh-64px)] bg-slate-950">
-      <MylanePanel
-        currentUser={currentUser}
-        onMessage={(msg) => agentMessageRef.current?.(msg)}
-        workspaceProfiles={workspaceProfiles}
-        isCollapsed={mylaneCollapsed}
-        onToggle={(collapsed) => {
-          setMylaneCollapsed(collapsed);
-          try { localStorage.setItem('mylane_panel_collapsed', String(collapsed)); } catch {}
-        }}
-        pendingMessage={warmEntry?.message ?? null}
-        onPendingMessageSent={() => setWarmEntry((prev) => prev ? { ...prev, message: null } : null)}
-        mylane_tier={mylane_tier}
-      >
-        {cardContent}
-      </MylanePanel>
+      {/* ── Copilot: desktop slide-in panel ── */}
+      {!isMobile && (
+        <>
+          {/* Slide-in panel from right */}
+          <div
+            className="fixed top-0 h-full flex flex-col z-45"
+            style={{
+              width: 320,
+              right: copilotOpen ? 0 : -320,
+              borderLeft: '1px solid #111827',
+              background: '#060b14',
+              transition: 'right 0.3s ease',
+            }}
+          >
+            {/* Panel header */}
+            <div className="flex items-center gap-2" style={{ padding: '12px 16px', borderBottom: '1px solid #111827' }}>
+              <div className="flex items-center justify-center flex-shrink-0" style={{
+                width: 24, height: 24, borderRadius: '50%', border: '1.5px solid #f59e0b',
+              }}>
+                {mushroomIcon}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: '#f8fafc' }}>Mylane</div>
+                <div style={{ fontSize: 10, color: '#475569' }}>Your companion</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCopilotOpen(false)}
+                className="cursor-pointer"
+                style={{ padding: '4px 8px', color: '#475569', fontSize: 14, transition: 'color 0.15s' }}
+              >
+                <X style={{ width: 14, height: 14 }} strokeWidth={2} />
+              </button>
+            </div>
+
+            {/* AgentChat fills the panel */}
+            <div className="flex-1 overflow-hidden [&>div]:h-full [&>div>div]:h-full [&>div>div]:max-h-full [&>div>div]:rounded-none">
+              <AgentChat
+                agentName="MyLane"
+                userId={currentUser?.id}
+                isOpen={true}
+                onClose={() => setCopilotOpen(false)}
+                docked={true}
+                fillHeight={true}
+                onMessage={(msg) => agentMessageRef.current?.(msg)}
+                workspaceProfiles={workspaceProfiles}
+                pendingMessage={warmEntry?.message ?? null}
+                onPendingMessageSent={() => setWarmEntry((prev) => prev ? { ...prev, message: null } : null)}
+                mylane_tier={mylane_tier}
+              />
+            </div>
+          </div>
+
+          {/* Mushroom FAB — hidden when panel open */}
+          <div
+            className="fixed z-44 cursor-pointer flex items-center justify-center"
+            style={{
+              bottom: 20, right: 20, width: 44, height: 44,
+              borderRadius: '50%', border: '1.5px solid #f59e0b',
+              background: '#0a0f1a', transition: 'all 0.2s',
+              opacity: copilotOpen ? 0 : 1,
+              pointerEvents: copilotOpen ? 'none' : 'auto',
+            }}
+            onClick={() => setCopilotOpen(true)}
+            title="Open Mylane"
+          >
+            {mushroomIcon}
+          </div>
+        </>
+      )}
+
+      {/* ── Copilot: mobile bottom sheet ── */}
+      {isMobile && (
+        <>
+          {/* Mushroom FAB — mobile */}
+          {!mobileSheetOpen && (
+            <div
+              className="fixed z-40 cursor-pointer flex items-center justify-center"
+              style={{
+                bottom: 20, right: 20, width: 44, height: 44,
+                borderRadius: '50%', border: '1.5px solid #f59e0b',
+                background: '#0a0f1a',
+                marginBottom: 'env(safe-area-inset-bottom, 0px)',
+              }}
+              onClick={() => setMobileSheetOpen(true)}
+              title="Open Mylane"
+            >
+              {mushroomIcon}
+            </div>
+          )}
+
+          <MylaneMobileSheet
+            isOpen={mobileSheetOpen}
+            onClose={() => setMobileSheetOpen(false)}
+            currentUser={currentUser}
+            onMessage={(msg) => agentMessageRef.current?.(msg)}
+            workspaceProfiles={workspaceProfiles}
+            pendingMessage={warmEntry?.message ?? null}
+            onPendingMessageSent={() => setWarmEntry((prev) => prev ? { ...prev, message: null } : null)}
+            mylane_tier={mylane_tier}
+          />
+        </>
+      )}
     </div>
   );
 }
