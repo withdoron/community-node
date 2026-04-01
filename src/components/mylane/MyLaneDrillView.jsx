@@ -70,8 +70,21 @@ export default function MyLaneDrillView({
   const pmIsOwner = pmProfile ? pmProfile.user_id === currentUser?.id : false;
 
   // Business workspace: revenue + events + RSVP counts
+  // useBusinessRevenue returns analytics as top-level fields, not nested under 'revenue'.
+  // DashboardHome expects a 'revenue' object — assemble it here with full null guards.
   const businessId = drilledView.workspace === 'business' ? profile?.id : null;
-  const { revenue } = useBusinessRevenue(businessId);
+  const revenueData = useBusinessRevenue(businessId);
+  const revenue = {
+    totalRedemptions: revenueData?.totalRedemptions ?? 0,
+    totalCoinsRedeemed: revenueData?.totalCoinsRedeemed ?? 0,
+    uniqueFamilies: revenueData?.uniqueFamilies ?? 0,
+    redemptionsByEvent: revenueData?.redemptionsByEvent ?? [],
+    redemptionsByDay: revenueData?.redemptionsByDay ?? [],
+    estimatedPerCoinValue: revenueData?.estimatedPerCoinValue ?? 0,
+    estimatedPayout: revenueData?.estimatedPayout ?? 0,
+    isLoading: revenueData?.isLoading ?? false,
+    error: revenueData?.error ?? null,
+  };
 
   const { data: businessEvents = [] } = useQuery({
     queryKey: ['mylane-drill-business-events', businessId],
