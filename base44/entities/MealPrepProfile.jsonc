@@ -1,0 +1,83 @@
+{
+  "name": "MealPrepProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "FK to the user who owns this workspace"
+    },
+    "workspace_name": {
+      "type": "string",
+      "default": "My Kitchen",
+      "description": "Display name for the workspace"
+    },
+    "household_size": {
+      "type": "number",
+      "default": 1,
+      "description": "How many people they cook for"
+    },
+    "dietary_tags": {
+      "type": "string",
+      "description": "JSON string array of dietary preferences"
+    },
+    "skill_level": {
+      "type": "string",
+      "default": "intermediate",
+      "description": "beginner, intermediate, advanced"
+    },
+    "favorite_stores": {
+      "type": "string",
+      "description": "JSON string array of preferred grocery stores"
+    },
+    "invite_code": {
+      "type": "string",
+      "description": "Unique 6-char alphanumeric, auto-generated on create"
+    },
+    "subscription_tier": {
+      "type": "string",
+      "default": "full",
+      "description": "Subscription tier for this workspace (e.g. 'full', 'help', 'free')"
+    },
+    "tier_trial_start": {
+      "type": "string",
+      "description": "ISO datetime when the trial for the current tier started"
+    },
+    "guide_dismissed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the user has dismissed the workspace walkthrough guide"
+    }
+  },
+  "required": [
+    "user_id",
+    "workspace_name"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

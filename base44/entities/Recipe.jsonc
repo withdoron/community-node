@@ -1,0 +1,129 @@
+{
+  "name": "Recipe",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to MealPrepProfile"
+    },
+    "name": {
+      "type": "string",
+      "description": "Recipe name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description or notes"
+    },
+    "instructions": {
+      "type": "string",
+      "description": "Cooking steps as text"
+    },
+    "prep_time_minutes": {
+      "type": "number",
+      "description": "Prep time in minutes"
+    },
+    "cook_time_minutes": {
+      "type": "number",
+      "description": "Cook time in minutes"
+    },
+    "servings": {
+      "type": "number",
+      "default": 4,
+      "description": "Base serving count"
+    },
+    "difficulty": {
+      "type": "string",
+      "default": "medium",
+      "description": "easy, medium, hard"
+    },
+    "cuisine_tags": {
+      "type": "string",
+      "description": "JSON string array of cuisine tags"
+    },
+    "season_tags": {
+      "type": "string",
+      "description": "JSON string array of season tags"
+    },
+    "dietary_tags": {
+      "type": "string",
+      "description": "JSON string array of dietary tags"
+    },
+    "meal_type": {
+      "type": "string",
+      "description": "breakfast, lunch, dinner, snack, dessert"
+    },
+    "kid_friendly": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the recipe is kid-friendly"
+    },
+    "source": {
+      "type": "string",
+      "default": "personal",
+      "description": "personal, community, restaurant, url"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "If imported from URL"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Recipe photo URL"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Personal notes, family preferences"
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a favorite recipe"
+    },
+    "last_cooked": {
+      "type": "string",
+      "description": "ISO datetime of last time made"
+    },
+    "times_cooked": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times this recipe has been cooked"
+    },
+    "is_shared": {
+      "type": "boolean",
+      "default": false,
+      "description": "Community sharing opt-in"
+    },
+    "status": {
+      "type": "string",
+      "default": "active",
+      "description": "active, archived"
+    }
+  },
+  "required": [
+    "profile_id",
+    "name"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
