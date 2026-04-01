@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { UtensilsCrossed, Heart, Clock } from 'lucide-react';
 
-export default function RecipeBookCard({ profile }) {
+export default function RecipeBookCard({ profile, onClick }) {
   const { data: recipes = [], isLoading } = useQuery({
     queryKey: ['recipes', profile?.id],
     queryFn: async () => {
@@ -23,42 +23,48 @@ export default function RecipeBookCard({ profile }) {
     ? [...recipes].sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0))[0]
     : null;
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full min-h-[80px]">
-        <div className="animate-spin h-5 w-5 border-2 border-amber-500 border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  if (total === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[80px] text-center px-2">
-        <UtensilsCrossed className="h-6 w-6 text-slate-600 mb-2" />
-        <p className="text-sm text-slate-500">No recipes yet</p>
-        <p className="text-xs text-slate-600">Tap to add your first recipe</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-3">
-      <div className="flex items-baseline gap-4">
-        <div>
-          <span className="text-2xl font-bold text-amber-500">{total}</span>
-          <span className="text-xs text-slate-400 ml-1">recipe{total !== 1 ? 's' : ''}</span>
-        </div>
-        {favorites > 0 && (
-          <div className="flex items-center gap-1">
-            <Heart className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
-            <span className="text-sm text-slate-300">{favorites}</span>
-          </div>
-        )}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(); }}
+      className="bg-slate-900 border border-slate-800 rounded-xl p-4 cursor-pointer hover:border-amber-500/30 transition-colors"
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <UtensilsCrossed className="h-4 w-4 text-amber-500" />
+        <span className="text-xs font-medium text-amber-500">Recipe Book</span>
       </div>
-      {latest && (
-        <div className="text-xs text-slate-400 truncate">
-          <span className="text-slate-500">Latest:</span>{' '}
-          <span className="text-slate-300">{latest.name}</span>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center min-h-[48px]">
+          <div className="animate-spin h-5 w-5 border-2 border-amber-500 border-t-transparent rounded-full" />
+        </div>
+      ) : total === 0 ? (
+        <div className="min-h-[48px]">
+          <p className="text-sm text-slate-500">No recipes yet</p>
+          <p className="text-xs text-slate-600">Tap to add your first recipe</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <div className="flex items-baseline gap-4">
+            <div>
+              <span className="text-2xl font-bold text-slate-100">{total}</span>
+              <span className="text-xs text-slate-400 ml-1">recipe{total !== 1 ? 's' : ''}</span>
+            </div>
+            {favorites > 0 && (
+              <div className="flex items-center gap-1">
+                <Heart className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                <span className="text-sm text-slate-300">{favorites}</span>
+              </div>
+            )}
+          </div>
+          {latest && (
+            <div className="text-xs text-slate-400 truncate">
+              <span className="text-slate-500">Latest:</span>{' '}
+              <span className="text-slate-300">{latest.name}</span>
+            </div>
+          )}
         </div>
       )}
     </div>
