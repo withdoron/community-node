@@ -53,6 +53,7 @@ Deno.serve(async (req) => {
       entities.FieldServiceProfile.list(),    // [1]
       entities.PMPropertyProfile.list(),      // [2]
       entities.TeamMember.list(),             // [3]
+      entities.MealPrepProfile.list(),        // [4]
     ]);
 
     // Extract arrays safely — resolve or fallback to empty
@@ -68,6 +69,7 @@ Deno.serve(async (req) => {
     var allFS        = safeList(results[1]);
     var allPM        = safeList(results[2]);
     var allMembers   = safeList(results[3]);
+    var allMealPrep  = safeList(results[4]);
 
     // ── Filter by user ──
     var financeProfiles      = allFinance.filter(function(p) { return idMatch(p.user_id, resolvedUserId); });
@@ -76,6 +78,7 @@ Deno.serve(async (req) => {
     var teamMemberships      = allMembers.filter(function(m) {
       return idMatch(m.user_id, resolvedUserId) && m.status === 'active';
     });
+    var mealPrepProfiles     = allMealPrep.filter(function(p) { return idMatch(p.user_id, resolvedUserId); });
 
     // ── Resolve team records for each membership ──
     var teamIds = Array.from(new Set(
@@ -100,6 +103,7 @@ Deno.serve(async (req) => {
       propertyMgmtProfiles: propertyMgmtProfiles,
       teamMemberships: teamMemberships,
       teams: teams,
+      mealPrepProfiles: mealPrepProfiles,
     });
 
   } catch (error) {

@@ -6,6 +6,7 @@ const WORKSPACE_PROFILE_MAP = {
   'finance':       { entity: 'FinancialProfile',    userField: 'user_id' },
   'team':          { entity: 'Team',                userField: 'owner_id' },
   'property-pulse':{ entity: 'PMPropertyProfile',   userField: 'user_id' },
+  'meal-prep':     { entity: 'MealPrepProfile',    userField: 'user_id' },
 };
 
 // ── Entity whitelist per workspace — only these entities accept agent writes ──
@@ -19,6 +20,7 @@ const ENTITY_WHITELIST = {
   'property-pulse': [
     'PMProperty', 'PMTenant', 'PMMaintenanceRequest', 'PMTransaction', 'PMListing',
   ],
+  'meal-prep': ['Recipe', 'RecipeIngredient'],
   'platform': ['ServiceFeedback', 'Recommendation'],
 };
 
@@ -29,6 +31,7 @@ const REQUIRED_FIELDS = {
   Transaction:     ['amount', 'category', 'date'],
   Play:            ['name'],
   PMProperty:      ['name'],
+  Recipe:          ['name'],
   ServiceFeedback: ['message'],
 };
 
@@ -58,6 +61,9 @@ const ENTITY_FK = {
   PMMaintenanceRequest: { fkField: 'profile_id', workspace: 'property-pulse' },
   PMTransaction:        { fkField: 'profile_id', workspace: 'property-pulse' },
   PMListing:            { fkField: 'profile_id', workspace: 'property-pulse' },
+  // Meal Prep
+  Recipe:           { fkField: 'profile_id', workspace: 'meal-prep' },
+  RecipeIngredient: { fkField: 'profile_id', workspace: 'meal-prep' },
   // Platform
   ServiceFeedback: { fkField: 'user_id',  workspace: 'platform' },
   Recommendation:  { fkField: 'user_id',  workspace: 'platform' },

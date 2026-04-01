@@ -421,3 +421,67 @@ Marketing:
 5. Coast trip planning (North Bend + seed spreading)
 
 ---
+
+### Session Log -- 2026-03-31 (Audit)
+**Focus:** Full platform audit + Meal Prep workspace orientation
+**Shipped:**
+1. Complete platform audit — all 7 verification items checked (V1-V7)
+2. MEAL-PREP-READINESS-AUDIT.md written to spec-repo (first real file in spec-repo)
+3. Confirmed: zero meal prep code/entities/config exists — clean slate
+4. Documented exact workspace pattern to follow (Field Service as canonical reference)
+5. Identified agentScopedQuery NOT in repo (exists only in Base44 dashboard)
+6. Identified warm entry message gaps (Field Service + Property Management missing)
+7. SEEDLING-TRACKER.md updated — added Meal Prep seedling, 8 new agents, 3 new contacts (Randy, Coach Rick, April)
+8. STATUS-TRACKER.md updated — added 6 missing session entries (2026-03-30 through 2026-03-31), updated node scores
+9. ACTIVE-CONTEXT.md updated — added Meal Prep as priority #1
+10. Spec-repo confirmed nearly empty (no context/, no MEAL files, no ACTIVE-CONTEXT.md)
+11. Private repo confirmed missing from local disk
+**Decisions made:**
+None (audit only)
+**Next up:**
+1. Base44 entity creation (MealPrepProfile, Recipe, RecipeIngredient) via agent prompt
+2. Hyphae build: Meal Prep Phase 1 (Recipe Book)
+
+---
+
+### Session Log -- 2026-04-01
+**Focus:** Repo cleanup + Meal Prep Phase 1 build (Recipe Book)
+
+**Repo Cleanup Shipped:**
+1. Deleted `locallane-spec-repo/` (empty duplicate) — real spec repo is `Spec-Repo/` (capitals)
+2. Archived 6 legacy lab nodes to `archive/` (contractor-daily, events-node, field-service-engine, financial-node, microbusiness-kit, property-pulse)
+3. Committed contractor-daily's 264 uncommitted spec lines before archiving
+4. Created `private/MEAL-PREP-SEEDLING.md` placeholder
+5. Corrected repo paths saved to Hyphae memory + SuperMemory
+6. Discovered: locallane-mcp has no git remote, private repo GitHub name is `withdoron/private`
+
+**Meal Prep Phase 1 Shipped:**
+7. Config registration — meal_prep in workspaceTypes.js, warmEntryMessages.js, workspaceGuides.js, myLaneRegistry.js
+8. MealPrepOnboarding.jsx — 3-step wizard (kitchen name + household, dietary preferences + skill, summary)
+9. MealPrepHome.jsx — home tab with recipe stats, recently added, workspace guide
+10. RecipeBook.jsx — searchable/filterable recipe grid with detail view, favorite toggle, add/edit/delete
+11. RecipeEditor.jsx — full recipe form with ingredient rows, create + edit modes
+12. MealPrepSettings.jsx — profile settings, dietary preferences, danger zone delete
+13. RecipeBookCard.jsx — MyLane card showing recipe count, favorites, latest recipe
+14. getMyLaneProfiles/entry.ts — added MealPrepProfile query (5th entity in parallel fetch)
+15. agentScopedWrite/entry.ts — added meal-prep workspace mappings (profile, whitelist, FK)
+16. MyLane.jsx — wired mealPrepProfiles through data flow (server function + fallback + surface props)
+17. MyLaneSurface.jsx — added meal_prep door button, workspace label, drill view prop
+18. MyLaneDrillView.jsx — added meal-prep workspace key mapping + profile resolution
+19. renderEntityView.jsx — added entity title mappings for MealPrepProfile, Recipe, RecipeIngredient
+20. pages.config.js + MealPrepOnboarding page route
+21. Warm entry backfill — added missing entries for Field Service and Property Management
+
+**Construction gate:** testingMode: true on meal_prep workspace type (admin-only in workspace picker)
+
+**Decisions made:**
+None (followed existing patterns exactly)
+
+**Next up:**
+1. Doron walkthrough — test onboarding + recipe CRUD + MyLane card
+2. Doron: update agentScopedQuery in Base44 dashboard (add meal-prep workspace)
+3. Flip construction gate (testingMode: false) after walkthrough
+4. Phase 2: Meal planning calendar + shopping list generation
+5. Locallane-mcp needs git remote added
+
+---

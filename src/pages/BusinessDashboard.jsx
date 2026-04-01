@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Store, Plus, Loader2, Users, DollarSign, HardHat, Building2, ChevronRight, MessageCircle, LogIn } from "lucide-react";
+import { ArrowLeft, Store, Plus, Loader2, Users, DollarSign, HardHat, Building2, UtensilsCrossed, ChevronRight, MessageCircle, LogIn } from "lucide-react";
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { useRole } from '@/hooks/useRole';
 import { CheckInMode } from '@/components/dashboard/CheckInMode';
@@ -578,7 +578,7 @@ export default function BusinessDashboard() {
     return 'none';
   };
 
-  const TYPE_ICON_MAP = { Users, Store, DollarSign, HardHat, Building2 };
+  const TYPE_ICON_MAP = { Users, Store, DollarSign, HardHat, Building2, UtensilsCrossed };
 
   const TESTING_MODE_LABELS = { fieldservice: 'contractors', property_management: 'property managers' };
 
@@ -619,6 +619,7 @@ export default function BusinessDashboard() {
                         else if (type.id === 'finance') navigate(createPageUrl('FinanceOnboarding'));
                         else if (type.id === 'fieldservice') navigate(createPageUrl('FieldServiceOnboarding'));
                         else if (type.id === 'property_management') navigate(createPageUrl('PropertyManagementOnboarding'));
+                        else if (type.id === 'meal_prep') navigate(createPageUrl('MealPrepOnboarding'));
                       };
                       return (
                         <button

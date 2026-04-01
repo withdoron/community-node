@@ -238,6 +238,8 @@ export default function MyLane() {
           const teamRecords = await Promise.all(teamIds.map((id) => base44.entities.Team.get(id)));
           teams = teamRecords.filter((t) => t && t.status === 'active');
         }
+        let mealPrepRaw = [];
+        try { mealPrepRaw = await base44.entities.MealPrepProfile.filter({ user_id: currentUser.id }); } catch {}
         return {
           success: true,
           financeProfiles: toArr(financeRaw),
@@ -245,6 +247,7 @@ export default function MyLane() {
           propertyMgmtProfiles: toArr(pmRaw),
           teamMemberships: memberships,
           teams,
+          mealPrepProfiles: toArr(mealPrepRaw),
           _fallback: true,
         };
       }
@@ -258,6 +261,7 @@ export default function MyLane() {
   const ownedFSProfiles      = profileData?.ownedFSProfiles      ?? [];
   const propertyMgmtProfiles = profileData?.propertyMgmtProfiles ?? [];
   const allTeams             = profileData?.teams                 ?? [];
+  const mealPrepProfiles     = profileData?.mealPrepProfiles     ?? [];
 
   // Field Service profiles (joined as worker/sub) — client-only (localStorage)
   const { data: joinedFSProfiles = [] } = useQuery({
@@ -302,9 +306,10 @@ export default function MyLane() {
     finance: financeProfiles,
     teams: allTeams,
     propertyMgmt: propertyMgmtProfiles,
+    mealPrep: mealPrepProfiles,
     isAdmin: currentUser?.role === 'admin',
     mylane_tier,
-  }), [fieldServiceProfiles, financeProfiles, allTeams, propertyMgmtProfiles, currentUser?.role, mylane_tier]);
+  }), [fieldServiceProfiles, financeProfiles, allTeams, propertyMgmtProfiles, mealPrepProfiles, currentUser?.role, mylane_tier]);
 
   // ── Loading ──
   if (userLoading) {
@@ -368,6 +373,7 @@ export default function MyLane() {
         fieldServiceProfiles={fieldServiceProfiles}
         allTeams={allTeams}
         propertyMgmtProfiles={propertyMgmtProfiles}
+        mealPrepProfiles={mealPrepProfiles}
         agentMessageRef={agentMessageRef}
         onDoorOpen={handleDoorOpen}
         warmEntryWizardPage={warmEntry?.wizardPage ?? null}

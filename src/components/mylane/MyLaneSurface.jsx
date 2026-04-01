@@ -7,7 +7,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { DollarSign, Building2, Users, Store } from 'lucide-react';
+import { DollarSign, Building2, Users, Store, UtensilsCrossed } from 'lucide-react';
 import MY_LANE_REGISTRY from '@/config/myLaneRegistry';
 import WhatsChangedBar from './WhatsChangedBar';
 import MyLaneBreadcrumb from './MyLaneBreadcrumb';
@@ -95,6 +95,7 @@ const WORKSPACE_LABELS = {
   'team': 'Team',
   'finance': 'Finance',
   'property-pulse': 'Property Pulse',
+  'meal-prep': 'Meal Prep',
 };
 
 export default function MyLaneSurface({
@@ -103,12 +104,13 @@ export default function MyLaneSurface({
   fieldServiceProfiles = [],
   allTeams = [],
   propertyMgmtProfiles = [],
+  mealPrepProfiles = [],
   agentMessageRef,
-  onDoorOpen = null,   // (workspace: 'team'|'business'|'finance') => void
+  onDoorOpen = null,   // (workspace: 'team'|'business'|'finance'|'meal_prep') => void
   warmEntryWizardPage = null, // when set, show "set up manually" link
 }) {
   const navigate = useNavigate();
-  const profiles = { financeProfiles, fieldServiceProfiles, allTeams, propertyMgmtProfiles };
+  const profiles = { financeProfiles, fieldServiceProfiles, allTeams, propertyMgmtProfiles, mealPrepProfiles };
   const [urgencyBoosts, setUrgencyBoosts] = useState({});
   const [drilledView, setDrilledView] = useState(null);
   const [renderedData, setRenderedData] = useState(null); // { entity, workspace, data, displayHint }
@@ -269,6 +271,7 @@ export default function MyLaneSurface({
           financeProfiles={financeProfiles}
           allTeams={allTeams}
           propertyMgmtProfiles={propertyMgmtProfiles}
+          mealPrepProfiles={mealPrepProfiles}
         />
       ) : (
         <>
@@ -344,9 +347,10 @@ export default function MyLaneSurface({
 
               <div className="flex flex-wrap justify-center gap-3">
                 {[
-                  { workspace: 'team',     icon: Users,      label: 'Start a Team',    page: 'TeamOnboarding' },
-                  { workspace: 'business', icon: Store,      label: 'List a Business', page: 'BusinessOnboarding' },
-                  { workspace: 'finance',  icon: DollarSign, label: 'Track Finances',  page: 'FinanceOnboarding' },
+                  { workspace: 'team',      icon: Users,             label: 'Start a Team',    page: 'TeamOnboarding' },
+                  { workspace: 'business',  icon: Store,             label: 'List a Business', page: 'BusinessOnboarding' },
+                  { workspace: 'finance',   icon: DollarSign,        label: 'Track Finances',  page: 'FinanceOnboarding' },
+                  { workspace: 'meal_prep', icon: UtensilsCrossed,   label: 'Meal Prep',       page: 'MealPrepOnboarding' },
                 ].map(({ workspace, icon: Icon, label, page }) => (
                   <button
                     key={workspace}
@@ -359,6 +363,35 @@ export default function MyLaneSurface({
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Add Space — door buttons for existing users who want another workspace */}
+          {sortedCards.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2 mt-6">
+              {[
+                { workspace: 'team',      icon: Users,           label: 'Start a Team',    page: 'TeamOnboarding' },
+                { workspace: 'business',  icon: Store,           label: 'List a Business', page: 'BusinessOnboarding' },
+                { workspace: 'finance',   icon: DollarSign,      label: 'Track Finances',  page: 'FinanceOnboarding' },
+                { workspace: 'meal_prep', icon: UtensilsCrossed, label: 'Meal Prep',       page: 'MealPrepOnboarding' },
+              ].filter(({ workspace }) => {
+                // Hide doors for workspaces the user already has
+                if (workspace === 'team' && profiles.allTeams?.length > 0) return false;
+                if (workspace === 'finance' && profiles.financeProfiles?.length > 0) return false;
+                if (workspace === 'meal_prep' && profiles.mealPrepProfiles?.length > 0) return false;
+                // Business and FS can have multiples, so always show
+                return true;
+              }).map(({ workspace, icon: Icon, label, page }) => (
+                <button
+                  key={workspace}
+                  type="button"
+                  onClick={() => onDoorOpen ? onDoorOpen(workspace) : navigate(createPageUrl(page))}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/50 border border-slate-800/50 rounded-lg text-slate-500 text-xs hover:border-amber-500/30 hover:text-amber-500 transition-colors min-h-[36px]"
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {label}
+                </button>
+              ))}
             </div>
           )}
 

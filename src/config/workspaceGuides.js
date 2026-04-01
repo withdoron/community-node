@@ -224,4 +224,37 @@ export const WORKSPACE_GUIDES = {
       },
     ],
   },
+
+  meal_prep: {
+    welcome: "Welcome to your kitchen. This is where your recipes come together.",
+    steps: [
+      {
+        id: 'recipe',
+        title: 'Add your first recipe',
+        description:
+          'Start with a go-to recipe you know by heart. Name it, list the ingredients, and jot down the steps.',
+        actionLabel: 'Go to Recipes',
+        targetTab: 'recipes',
+        icon: 'UtensilsCrossed',
+      },
+      {
+        id: 'browse',
+        title: 'Browse your recipe book',
+        description:
+          'As you add more recipes, search by meal type, filter by difficulty, and mark your favorites.',
+        actionLabel: 'Go to Recipes',
+        targetTab: 'recipes',
+        icon: 'BookOpen',
+      },
+      {
+        id: 'settings',
+        title: 'Personalize your space',
+        description:
+          'Set your household size, dietary preferences, and favorite stores so your kitchen knows how you cook.',
+        actionLabel: 'Go to Settings',
+        targetTab: 'settings',
+        icon: 'Settings',
+      },
+    ],
+  },
 };

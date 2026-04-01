@@ -15,6 +15,7 @@ const WORKSPACE_KEY_MAP = {
   'team': 'team',
   'finance': 'finance',
   'property-pulse': 'property_management',
+  'meal-prep': 'meal_prep',
 };
 
 export default function MyLaneDrillView({
@@ -24,6 +25,7 @@ export default function MyLaneDrillView({
   financeProfiles = [],
   allTeams = [],
   propertyMgmtProfiles = [],
+  mealPrepProfiles = [],
 }) {
   const [activeTab, setActiveTab] = useState(drilledView.tab || 'home');
 
@@ -36,6 +38,7 @@ export default function MyLaneDrillView({
     drilledView.workspace === 'finance' ? financeProfiles?.[0] :
     drilledView.workspace === 'team' ? allTeams?.[0] :
     drilledView.workspace === 'property-pulse' ? propertyMgmtProfiles?.[0] :
+    drilledView.workspace === 'meal-prep' ? mealPrepProfiles?.[0] :
     null;
 
   // Fetch team members when drilling into team workspace

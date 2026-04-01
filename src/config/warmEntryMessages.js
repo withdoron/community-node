@@ -28,4 +28,22 @@ export const WARM_ENTRY = {
     wizardPage: 'FinanceOnboarding',
     wizardLabel: 'Set up finance tracking manually',
   },
+  fieldservice: {
+    workspace: 'fieldservice',
+    userMessage: "I just tapped 'Field Service' — can you tell me about the Field Service space and how it helps contractors in the field?",
+    wizardPage: 'FieldServiceOnboarding',
+    wizardLabel: 'Set up field service manually',
+  },
+  property_management: {
+    workspace: 'property_management',
+    userMessage: "I just tapped 'Property Management' — can you tell me about the Property Management space and what I can track here?",
+    wizardPage: 'PropertyManagementOnboarding',
+    wizardLabel: 'Set up property management manually',
+  },
+  meal_prep: {
+    workspace: 'meal_prep',
+    userMessage: "I just tapped 'Meal Prep' — can you tell me about the kitchen space? I'd love to start organizing my recipes.",
+    wizardPage: 'MealPrepOnboarding',
+    wizardLabel: 'Set up your kitchen manually',
+  },
 };

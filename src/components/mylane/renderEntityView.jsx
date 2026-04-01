@@ -93,6 +93,9 @@ const ENTITY_TITLE_FIELDS = {
   Business: ['name'],
   Event: ['title', 'name'],
   ServiceFeedback: ['what_happened'],
+  MealPrepProfile: ['workspace_name'],
+  Recipe: ['name'],
+  RecipeIngredient: ['ingredient_name'],
 };
 
 function getRecordTitle(record, entity) {

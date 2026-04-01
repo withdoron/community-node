@@ -28,6 +28,7 @@ import {
   UserCheck,
   Megaphone,
   Calculator,
+  UtensilsCrossed,
 } from 'lucide-react';
 import DashboardHome from '@/components/dashboard/DashboardHome';
 import AccessWindowManager from '@/components/dashboard/AccessWindowManager';
@@ -61,6 +62,9 @@ import PropertyManagementPeople from '@/components/propertymgmt/PropertyManageme
 import PropertyManagementListings from '@/components/propertymgmt/PropertyManagementListings';
 import PropertyManagementSettlements from '@/components/propertymgmt/PropertyManagementSettlements';
 import PropertyManagementSettings from '@/components/propertymgmt/PropertyManagementSettings';
+import MealPrepHome from '@/components/mealprep/MealPrepHome';
+import RecipeBook from '@/components/mealprep/RecipeBook';
+import MealPrepSettings from '@/components/mealprep/MealPrepSettings';
 
 // ——— Archetype display titles (subtitle under business name) ———
 export const ARCHETYPE_TITLES = {
@@ -271,6 +275,25 @@ export const WORKSPACE_TYPES = {
       { id: 'people', label: 'People', icon: UserCheck, component: PropertyManagementPeople, getProps: (scope) => scope },
       { id: 'listings', label: 'Listings', icon: Megaphone, component: PropertyManagementListings, getProps: (scope) => scope },
       { id: 'settings', label: 'Settings', icon: Settings, component: PropertyManagementSettings, getProps: (scope) => scope },
+    ],
+  },
+  meal_prep: {
+    id: 'meal_prep',
+    label: 'Meal Prep',
+    icon: 'UtensilsCrossed',
+    description: 'Your kitchen companion — recipes, ingredients, and meal ideas',
+    archetypeSupport: false,
+    networkAffinity: false,
+    available: true,
+    testingMode: true,
+    createWizard: 'MealPrepOnboarding',
+    roles: {
+      owner: 'Owner',
+    },
+    tabs: [
+      { id: 'home', label: 'Home', icon: LayoutDashboard, component: MealPrepHome, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser, onNavigateTab: scope.onNavigateTab }) },
+      { id: 'recipes', label: 'Recipes', icon: UtensilsCrossed, component: RecipeBook, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
+      { id: 'settings', label: 'Settings', icon: Settings, component: MealPrepSettings, getProps: (scope) => ({ profile: scope.profile, currentUser: scope.currentUser }) },
     ],
   },
 };
