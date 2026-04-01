@@ -8,10 +8,10 @@ import { ChevronDown } from 'lucide-react';
 const ANIMATION_STYLES = `
 @keyframes emberGlow {
   0%, 100% {
-    text-shadow: 0 0 30px rgba(212, 160, 70, 0.1), 0 0 60px rgba(212, 160, 70, 0.03);
+    text-shadow: 0 0 40px rgba(212, 160, 70, 0.15), 0 0 80px rgba(212, 160, 70, 0.05), 0 0 120px rgba(212, 160, 70, 0.02);
   }
   50% {
-    text-shadow: 0 0 50px rgba(212, 160, 70, 0.3), 0 0 100px rgba(212, 160, 70, 0.10);
+    text-shadow: 0 0 60px rgba(212, 160, 70, 0.45), 0 0 120px rgba(212, 160, 70, 0.18), 0 0 200px rgba(212, 160, 70, 0.07);
   }
 }
 @keyframes floatUp {
@@ -316,36 +316,30 @@ export default function Home() {
         {/* Floating spores */}
         <FloatingSpores />
 
-        {/* Floating logo — top-left, unauth only (auth has nav header) */}
-        {isUnauth && (
-          <div className="absolute top-6 left-6 z-20">
-            <img
-              src="/LocalLaneLogo.png"
-              alt="Local Lane"
-              className="h-10 w-10 rounded-lg opacity-90"
-            />
-          </div>
-        )}
-
-        {/* Text content — "Become" floats in the dark sky above the cap */}
+        {/* Text content — "Become" floats in the dark sky above the cap.
+            For unauthenticated visitors, the entire block is the door.
+            One tap on "Become" and you enter. */}
         <div
-          className="relative z-10 w-full flex flex-col items-center text-center px-4"
+          className={`relative z-10 w-full flex flex-col items-center text-center px-4 group ${isUnauth ? 'cursor-pointer select-none' : ''}`}
           style={{ paddingTop: '10vh' }}
+          onClick={isUnauth ? () => base44.auth.redirectToLogin() : undefined}
+          role={isUnauth ? 'button' : undefined}
+          aria-label={isUnauth ? 'Sign in to LocalLane' : undefined}
         >
           {/* Become */}
           <h1
-            className="text-5xl md:text-8xl lg:text-9xl font-bold text-amber-400"
+            className="text-5xl md:text-8xl lg:text-9xl font-bold text-amber-400 transition-all duration-500 group-hover:scale-[1.03] group-hover:brightness-125"
             style={{
               fontFamily: 'Georgia, serif',
               letterSpacing: '-0.02em',
-              animation: 'emberGlow 6s ease-in-out infinite',
+              animation: 'emberGlow 4s ease-in-out infinite',
             }}
           >
             Become
           </h1>
 
           {/* Rotating completions */}
-          <div className="mt-4">
+          <div className="mt-4 transition-opacity duration-500 group-hover:opacity-80">
             <RotatingCompletions />
           </div>
         </div>
