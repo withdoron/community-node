@@ -1,16 +1,17 @@
 /**
  * MyLaneSurface — the organism's living surface.
- * DEC-131: Spinner-based navigation replaces card grid.
- * Two spinners: horizontal (spaces), vertical (priorities within Home).
- * Horizontal spinner ALWAYS visible, even when inside a space.
- * Drill-through renders workspace views INSIDE Mylane — unchanged.
+ * DEC-131: Spinner-based navigation. Every header icon is a toggle.
+ * Tap = overlay renders below. Tap again = rolls up. One surface, two axes.
+ * Nothing navigates away from MyLane. Everything renders in place.
  */
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
 import {
   Home, UtensilsCrossed, HardHat, DollarSign, Users,
-  Store, Search, Settings, Music,
+  Store, Search, Music, Settings, LogOut, FileText,
+  Lock, Mail, Volume2, VolumeX, Building2, X,
 } from 'lucide-react';
 import MY_LANE_REGISTRY from '@/config/myLaneRegistry';
 import MyLaneDrillView from './MyLaneDrillView';
@@ -18,9 +19,13 @@ import useMyLaneState from './useMyLaneState';
 import SpaceSpinner from './SpaceSpinner';
 import HomeFeed from './HomeFeed';
 import DiscoverPosition from './DiscoverPosition';
-import FrequencyStation, { FrequencyStationButton } from './FrequencyStation';
 import { parseRenderInstruction } from './parseRenderInstruction';
 import { renderEntityView } from './renderEntityView';
+
+// Lazy-load overlay content — these are full page components rendered inline
+const DirectoryPage = React.lazy(() => import('@/pages/Directory'));
+const EventsPage = React.lazy(() => import('@/pages/Events'));
+const FrequencyStationPage = React.lazy(() => import('@/pages/FrequencyStation'));
 
 // Map workspace type IDs to spinner item config
 const SPACE_CONFIG = {
@@ -33,50 +38,137 @@ const SPACE_CONFIG = {
   discover:          { id: 'discover',       label: 'Discover',  icon: Search, dim: true },
 };
 
-// Workspace label map for breadcrumbs
-const WORKSPACE_LABELS = {
-  'field-service': 'Field Service',
-  'team': 'Team',
-  'finance': 'Finance',
-  'property-pulse': 'Property Pulse',
-  'meal-prep': 'Meal Prep',
-  'business': 'Business',
-};
-
-/**
- * Build spinner items from user's active workspace profiles.
- * Always includes Home (first) and Discover (last).
- * Dark Until Explored: zero-state = only Home + Discover.
- */
 function buildSpinnerItems(profiles, businessProfiles = []) {
-  const items = [SPACE_CONFIG.home]; // Home always first
-
-  // Add active workspaces based on profiles
-  if (profiles.mealPrepProfiles?.length > 0) {
-    items.push(SPACE_CONFIG['meal-prep']);
-  }
-  if (profiles.fieldServiceProfiles?.length > 0) {
-    items.push(SPACE_CONFIG['field-service']);
-  }
-  if (profiles.financeProfiles?.length > 0) {
-    items.push(SPACE_CONFIG.finance);
-  }
-  if (profiles.allTeams?.length > 0) {
-    items.push(SPACE_CONFIG.team);
-  }
-  if (businessProfiles.length > 0) {
-    items.push({ ...SPACE_CONFIG.business, dim: false });
-  }
-  if (profiles.propertyMgmtProfiles?.length > 0) {
-    items.push({ id: 'property-pulse', label: 'Property', icon: Store });
-  }
-
-  // Discover always last
+  const items = [SPACE_CONFIG.home];
+  if (profiles.mealPrepProfiles?.length > 0) items.push(SPACE_CONFIG['meal-prep']);
+  if (profiles.fieldServiceProfiles?.length > 0) items.push(SPACE_CONFIG['field-service']);
+  if (profiles.financeProfiles?.length > 0) items.push(SPACE_CONFIG.finance);
+  if (profiles.allTeams?.length > 0) items.push(SPACE_CONFIG.team);
+  if (businessProfiles.length > 0) items.push({ ...SPACE_CONFIG.business, dim: false });
+  if (profiles.propertyMgmtProfiles?.length > 0) items.push({ id: 'property-pulse', label: 'Property', icon: Building2 });
   items.push(SPACE_CONFIG.discover);
-
   return items;
 }
 
+// ─── Overlay system ────────────────────────────────────────────────
+// Every header icon is a toggle. Only one overlay open at a time.
+const OVERLAYS = ['freq', 'dir', 'evt', 'acct'];
+
+function OverlayContainer({ isOpen, children }) {
+  if (!isOpen) return null;
+  return (
+    <div
+      className="absolute left-0 right-0 bottom-0 z-40 flex flex-col overflow-y-auto"
+      style={{
+        top: 45, // below header
+        background: '#030810f2',
+        backdropFilter: 'blur(12px)',
+        animation: 'overlaySlideDown 0.35s ease',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// Account overlay — replaces gear icon. Same toggle pattern as everything else.
+function AccountOverlay({ currentUser, onClose }) {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await base44.auth.signOut();
+      window.location.href = '/';
+    } catch {
+      window.location.href = '/';
+    }
+  };
+
+  return (
+    <div style={{ padding: 24, maxWidth: 480 }}>
+      <div style={{ fontSize: 18, fontWeight: 500, color: '#f8fafc', marginBottom: 20 }}>
+        Account
+      </div>
+
+      {/* Preferences */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 10, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, fontWeight: 500 }}>
+          Preferences
+        </div>
+        <div
+          className="flex items-center gap-2.5 cursor-pointer rounded-lg"
+          style={{ padding: '10px 12px', transition: 'background 0.15s' }}
+          onClick={() => { onClose(); navigate(createPageUrl('Settings')); }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        >
+          <Settings style={{ width: 16, height: 16, color: '#64748b', flexShrink: 0 }} strokeWidth={1.5} />
+          <div>
+            <div style={{ fontSize: 13, color: '#e2e8f0' }}>Settings</div>
+            <div style={{ fontSize: 10, color: '#475569' }}>Profile, notifications, billing</div>
+          </div>
+        </div>
+        <div
+          className="flex items-center gap-2.5 cursor-pointer rounded-lg"
+          style={{ padding: '10px 12px', transition: 'background 0.15s' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        >
+          <Mail style={{ width: 16, height: 16, color: '#64748b', flexShrink: 0 }} strokeWidth={1.5} />
+          <div>
+            <div style={{ fontSize: 13, color: '#e2e8f0' }}>Newsletter</div>
+            <div style={{ fontSize: 10, color: '#475569' }}>The Good News</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ height: 1, background: '#111827', margin: '8px 0' }} />
+
+      {/* Legal */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 10, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, fontWeight: 500 }}>
+          Legal
+        </div>
+        <div
+          className="flex items-center gap-2.5 cursor-pointer rounded-lg"
+          style={{ padding: '10px 12px', transition: 'background 0.15s' }}
+          onClick={() => { onClose(); navigate(createPageUrl('Terms')); }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        >
+          <FileText style={{ width: 16, height: 16, color: '#64748b', flexShrink: 0 }} strokeWidth={1.5} />
+          <div style={{ fontSize: 13, color: '#e2e8f0' }}>Terms of service</div>
+        </div>
+        <div
+          className="flex items-center gap-2.5 cursor-pointer rounded-lg"
+          style={{ padding: '10px 12px', transition: 'background 0.15s' }}
+          onClick={() => { onClose(); navigate(createPageUrl('Privacy')); }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        >
+          <Lock style={{ width: 16, height: 16, color: '#64748b', flexShrink: 0 }} strokeWidth={1.5} />
+          <div style={{ fontSize: 13, color: '#e2e8f0' }}>Privacy</div>
+        </div>
+      </div>
+
+      <div style={{ height: 1, background: '#111827', margin: '8px 0' }} />
+
+      {/* Logout */}
+      <div
+        className="flex items-center gap-2.5 cursor-pointer rounded-lg"
+        style={{ padding: '10px 12px', transition: 'background 0.15s' }}
+        onClick={handleLogout}
+        onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+      >
+        <LogOut style={{ width: 16, height: 16, color: '#ef4444', flexShrink: 0 }} strokeWidth={1.5} />
+        <div style={{ fontSize: 13, color: '#ef4444' }}>Log out</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main component ────────────────────────────────────────────────
 export default function MyLaneSurface({
   currentUser,
   financeProfiles = [],
@@ -94,7 +186,7 @@ export default function MyLaneSurface({
 
   const [spinnerIndex, setSpinnerIndex] = useState(0);
   const [renderedData, setRenderedData] = useState(null);
-  const [frequencyOpen, setFrequencyOpen] = useState(false);
+  const [activeOverlay, setActiveOverlay] = useState(null); // 'freq' | 'dir' | 'evt' | 'acct' | null
   const [frequencyPlaying, setFrequencyPlaying] = useState(false);
   const drillStartRef = useRef(null);
 
@@ -125,6 +217,13 @@ export default function MyLaneSurface({
     return () => window.removeEventListener('mylane-user-message', handler);
   }, [trackMessage]);
 
+  // Close overlay on Escape
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape' && activeOverlay) setActiveOverlay(null); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [activeOverlay]);
+
   // Build spinner items
   const spaceItems = useMemo(
     () => buildSpinnerItems(profiles, businessProfiles),
@@ -133,31 +232,32 @@ export default function MyLaneSurface({
 
   const currentSpace = spaceItems[spinnerIndex] || spaceItems[0];
 
+  // Toggle overlay — only one at a time
+  const toggleOverlay = useCallback((name) => {
+    setActiveOverlay((prev) => prev === name ? null : name);
+  }, []);
+
+  const closeOverlay = useCallback(() => setActiveOverlay(null), []);
+
   // Handle spinner navigation
   const handleSpinnerSelect = useCallback((idx) => {
     setSpinnerIndex(idx);
     setRenderedData(null);
+    setActiveOverlay(null); // close any overlay when navigating
     drillStartRef.current = Date.now();
   }, []);
 
-  // Handle "Open [space]" from HomeFeed priority items
   const handleOpenSpace = useCallback((idx) => {
-    if (idx >= 0 && idx < spaceItems.length) {
-      handleSpinnerSelect(idx);
-    }
+    if (idx >= 0 && idx < spaceItems.length) handleSpinnerSelect(idx);
   }, [spaceItems.length, handleSpinnerSelect]);
 
-  // Return to Home
   const handleLogoClick = useCallback(() => {
+    setActiveOverlay(null);
     handleSpinnerSelect(0);
   }, [handleSpinnerSelect]);
 
-  // Show raw entity data via universal renderer (agent messages)
-  const showRenderedData = useCallback((dataSpec) => {
-    setRenderedData(dataSpec);
-  }, []);
-
-  // Handle agent messages — render instructions
+  // Agent messages
+  const showRenderedData = useCallback((dataSpec) => { setRenderedData(dataSpec); }, []);
   const lastProcessedRef = useRef(null);
   const handleAgentMessage = useCallback((msg) => {
     if (!msg?.content || msg.id === lastProcessedRef.current) return;
@@ -167,7 +267,6 @@ export default function MyLaneSurface({
     if (result.type === 'data') {
       showRenderedData({ entity: result.entity, workspace: result.workspace, data: result.data, displayHint: result.displayHint });
     } else {
-      // Find spinner index for workspace and spin to it
       const targetIdx = spaceItems.findIndex((s) => s.id === result.workspace);
       if (targetIdx >= 0) handleSpinnerSelect(targetIdx);
     }
@@ -177,44 +276,32 @@ export default function MyLaneSurface({
     if (agentMessageRef) agentMessageRef.current = handleAgentMessage;
   }, [agentMessageRef, handleAgentMessage]);
 
-  // Active space IDs for Discover filtering
   const activeSpaceIds = useMemo(() => spaceItems.map((s) => s.id), [spaceItems]);
+  const neighborCount = 22;
 
-  // Neighbor count (placeholder — could be fetched from community data)
-  const neighborCount = 22; // TODO: pull from actual data
+  // User initial for avatar
+  const userInitial = currentUser?.display_name?.[0] || currentUser?.full_name?.[0] || currentUser?.email?.[0] || '?';
 
-  // Render the content area based on current spinner position
+  // Render workspace content
   const renderContent = () => {
-    // Agent rendered data takes priority
     if (renderedData) {
       return renderEntityView({
-        data: renderedData.data,
-        entity: renderedData.entity,
-        workspace: renderedData.workspace,
-        displayHint: renderedData.displayHint,
+        data: renderedData.data, entity: renderedData.entity,
+        workspace: renderedData.workspace, displayHint: renderedData.displayHint,
       });
     }
-
     const space = currentSpace;
-
-    // Home position — tabbed vertical spinner
     if (space.id === 'home') {
       return (
         <HomeFeed
-          profiles={profiles}
-          spaceItems={spaceItems}
-          onOpenSpace={handleOpenSpace}
-          neighborCount={neighborCount}
+          profiles={profiles} spaceItems={spaceItems}
+          onOpenSpace={handleOpenSpace} neighborCount={neighborCount}
         />
       );
     }
-
-    // Discover position
     if (space.id === 'discover') {
       return <DiscoverPosition activeSpaceIds={activeSpaceIds} />;
     }
-
-    // Workspace drill-through — renders workspace tabs inside Mylane
     return (
       <MyLaneDrillView
         drilledView={{ workspace: space.id, view: 'home', tab: 'home' }}
@@ -230,120 +317,161 @@ export default function MyLaneSurface({
   };
 
   return (
-    <div
-      className="flex flex-col relative"
-      style={{
-        background: '#020617',
-        borderRadius: 26,
-        minHeight: 660,
-        overflow: 'hidden',
-      }}
-    >
+    <div className="flex flex-col relative" style={{ background: '#020617', minHeight: '100vh', overflow: 'hidden' }}>
+      {/* Keyframe for overlay slide animation */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes overlaySlideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+      ` }} />
+
       {/* ─── Header ─── */}
       <div
-        className="flex justify-between items-center"
-        style={{ padding: '6px 20px 8px' }}
+        className="flex justify-between items-center relative z-50"
+        style={{ padding: '10px 24px', borderBottom: '1px solid #111827', background: '#020617' }}
       >
         <div
           className="cursor-pointer select-none active:opacity-60"
           onClick={handleLogoClick}
           style={{ fontSize: 15, fontWeight: 500, color: '#f8fafc' }}
         >
-          <span style={{ color: '#f59e0b', fontWeight: 500 }}>Local</span> Lane
+          <span style={{ color: '#f59e0b', fontWeight: 700 }}>Local</span> Lane
         </div>
-        <div className="flex items-center gap-3">
-          <FrequencyStationButton
-            isPlaying={frequencyPlaying}
-            onTogglePlay={() => setFrequencyPlaying(!frequencyPlaying)}
-            onToggleShade={() => setFrequencyOpen(!frequencyOpen)}
-          />
+        <div className="flex items-center" style={{ gap: 16 }}>
+          {/* Music icon with pulse dot when playing */}
+          <div
+            className="cursor-pointer relative"
+            style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            onClick={() => toggleOverlay('freq')}
+          >
+            <Music
+              style={{ width: 14, height: 14, transition: 'color 0.2s' }}
+              strokeWidth={1.5}
+              color={activeOverlay === 'freq' ? '#f59e0b' : '#64748b'}
+            />
+            {frequencyPlaying && (
+              <div style={{
+                position: 'absolute', width: 6, height: 6, borderRadius: '50%',
+                background: '#f59e0b', top: -2, right: -2,
+                animation: 'fpulse 2s infinite',
+              }} />
+            )}
+          </div>
+
+          {/* Directory link-as-toggle */}
           <span
-            className="cursor-pointer hover:text-slate-300"
-            style={{ fontSize: 11, color: '#64748b', padding: '4px 0' }}
-            onClick={() => navigate(createPageUrl('Directory'))}
+            className="cursor-pointer"
+            style={{
+              fontSize: 12, padding: '4px 0', transition: 'color 0.2s',
+              color: activeOverlay === 'dir' ? '#f59e0b' : '#64748b',
+            }}
+            onClick={() => toggleOverlay('dir')}
           >
             Directory
           </span>
+
+          {/* Events link-as-toggle */}
           <span
-            className="cursor-pointer hover:text-slate-300"
-            style={{ fontSize: 11, color: '#64748b', padding: '4px 0' }}
-            onClick={() => navigate(createPageUrl('Events'))}
+            className="cursor-pointer"
+            style={{
+              fontSize: 12, padding: '4px 0', transition: 'color 0.2s',
+              color: activeOverlay === 'evt' ? '#f59e0b' : '#64748b',
+            }}
+            onClick={() => toggleOverlay('evt')}
           >
             Events
           </span>
-          <span
-            className="cursor-pointer hover:text-slate-300"
-            onClick={() => navigate(createPageUrl('Settings'))}
+
+          {/* Avatar — same toggle pattern */}
+          <div
+            className="flex items-center justify-center cursor-pointer select-none"
+            style={{
+              width: 28, height: 28, borderRadius: '50%',
+              border: `1.5px solid ${activeOverlay === 'acct' ? '#f59e0b' : '#334155'}`,
+              fontSize: 11, transition: 'border-color 0.2s, color 0.2s',
+              color: activeOverlay === 'acct' ? '#f59e0b' : '#94a3b8',
+            }}
+            onClick={() => toggleOverlay('acct')}
           >
-            <Settings style={{ width: 14, height: 14, color: '#64748b' }} strokeWidth={1.5} />
-          </span>
+            {userInitial.toUpperCase()}
+          </div>
         </div>
       </div>
 
-      {/* ─── Frequency Station (shade overlay — drops over content) ─── */}
-      <FrequencyStation
-        isOpen={frequencyOpen}
-        onClose={() => setFrequencyOpen(false)}
-        isPlaying={frequencyPlaying}
-        onTogglePlay={() => setFrequencyPlaying(!frequencyPlaying)}
-      />
+      {/* ─── Overlay system ─── */}
 
-      {/* ─── Separator ─── */}
-      <div style={{ height: 1, background: '#111827' }} />
+      {/* Frequency Station overlay */}
+      <OverlayContainer isOpen={activeOverlay === 'freq'}>
+        <div style={{ padding: 24, maxWidth: 640 }}>
+          {/* Title row with on/off toggle */}
+          <div className="flex justify-between items-center" style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 18, fontWeight: 500, color: '#f8fafc' }}>Frequency station</div>
+            <div className="flex items-center gap-2">
+              <span style={{ fontSize: 11, color: '#64748b' }}>{frequencyPlaying ? 'On' : 'Off'}</span>
+              <div
+                className="cursor-pointer relative"
+                style={{
+                  width: 40, height: 22, borderRadius: 11,
+                  background: frequencyPlaying ? '#f59e0b33' : '#1e293b',
+                  transition: 'background 0.2s',
+                }}
+                onClick={() => setFrequencyPlaying(!frequencyPlaying)}
+              >
+                <div style={{
+                  width: 18, height: 18, borderRadius: '50%', position: 'absolute', top: 2,
+                  left: frequencyPlaying ? 20 : 2,
+                  background: frequencyPlaying ? '#f59e0b' : '#475569',
+                  transition: 'all 0.2s',
+                }} />
+              </div>
+            </div>
+          </div>
 
-      {/* ─── Horizontal Space Spinner (ALWAYS VISIBLE) ─── */}
-      <SpaceSpinner
-        items={spaceItems}
-        currentIndex={spinnerIndex}
-        onSelect={handleSpinnerSelect}
-      />
-
-      {/* ─── Content area ─── */}
-      <div
-        className="flex flex-col"
-        style={{ flex: 1, padding: '0 0 58px', overflow: 'hidden' }}
-      >
-        {renderContent()}
-      </div>
-
-      {/* ─── Copilot (always docked bottom) ─── */}
-      <div
-        className="absolute bottom-0 left-0 right-0 flex items-center gap-2"
-        style={{
-          background: '#080d18',
-          borderTop: '1px solid #111827',
-          padding: '8px 16px',
-        }}
-      >
-        <div
-          className="flex items-center justify-center flex-shrink-0"
-          style={{
-            width: 24,
-            height: 24,
-            borderRadius: '50%',
-            border: '1.5px solid #f59e0b',
-          }}
-        >
-          {/* Mushroom icon */}
-          <svg viewBox="0 0 24 24" style={{ width: 10, height: 10 }} stroke="#f59e0b" fill="none" strokeWidth={1.5}>
-            <circle cx="12" cy="10" r="6" />
-            <line x1="12" y1="16" x2="12" y2="22" />
-            <line x1="9" y1="19" x2="12" y2="16" />
-            <line x1="15" y1="19" x2="12" y2="16" />
-          </svg>
+          {/* Render existing Frequency Station Phase 2 UI inline */}
+          <React.Suspense fallback={
+            <div style={{ textAlign: 'center', padding: 40, color: '#475569', fontSize: 12 }}>Loading...</div>
+          }>
+            <FrequencyStationPage />
+          </React.Suspense>
         </div>
-        <div
-          style={{
-            flex: 1,
-            background: '#0f1520',
-            border: '1px solid #1e293b',
-            borderRadius: 16,
-            padding: '6px 12px',
-            fontSize: 11,
-            color: '#475569',
-          }}
-        >
-          Ask Mylane anything...
+      </OverlayContainer>
+
+      {/* Directory overlay */}
+      <OverlayContainer isOpen={activeOverlay === 'dir'}>
+        <React.Suspense fallback={
+          <div style={{ textAlign: 'center', padding: 40, color: '#475569', fontSize: 12 }}>Loading...</div>
+        }>
+          <DirectoryPage />
+        </React.Suspense>
+      </OverlayContainer>
+
+      {/* Events overlay */}
+      <OverlayContainer isOpen={activeOverlay === 'evt'}>
+        <React.Suspense fallback={
+          <div style={{ textAlign: 'center', padding: 40, color: '#475569', fontSize: 12 }}>Loading...</div>
+        }>
+          <EventsPage />
+        </React.Suspense>
+      </OverlayContainer>
+
+      {/* Account overlay */}
+      <OverlayContainer isOpen={activeOverlay === 'acct'}>
+        <AccountOverlay currentUser={currentUser} onClose={closeOverlay} />
+      </OverlayContainer>
+
+      {/* ─── Body (spinner + content) ─── */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Horizontal Space Spinner — ALWAYS VISIBLE */}
+        <SpaceSpinner
+          items={spaceItems}
+          currentIndex={spinnerIndex}
+          onSelect={handleSpinnerSelect}
+        />
+
+        {/* Content area */}
+        <div className="flex-1 overflow-y-auto" style={{ padding: '8px 24px' }}>
+          <div style={{ maxWidth: 768 }}>
+            {renderContent()}
+          </div>
         </div>
       </div>
     </div>
