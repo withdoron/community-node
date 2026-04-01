@@ -5,11 +5,8 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Loader2, Store, ArrowRight, MessageCircle } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useRole } from '@/hooks/useRole';
-import { useUserOwnedBusinesses } from '@/hooks/useUserOwnedBusinesses';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MyLaneSurface from '@/components/mylane/MyLaneSurface';
-import UpcomingEventsSection from '@/components/mylane/UpcomingEventsSection';
-import DiscoverSection from '@/components/mylane/DiscoverSection';
 import MylanePanel from '@/components/mylane/MylanePanel';
 import MylaneMobileSheet from '@/components/mylane/MylaneMobileSheet';
 import { useMylane } from '@/hooks/useMylane';
@@ -164,7 +161,6 @@ export default function MyLane() {
   });
 
   const { isAppAdmin } = useRole();
-  const { hasOwnedBusinesses } = useUserOwnedBusinesses(currentUser);
   const { mylane_tier } = useMylane();
 
   // Warm workspace entry — open copilot with an intro message for the tapped space
@@ -285,6 +281,26 @@ export default function MyLane() {
 
   const mealPrepProfiles = mealPrepFromServer.length > 0 ? mealPrepFromServer : mealPrepDirect;
 
+  // Business profiles — fetch owned businesses for spinner
+  const { data: businessProfiles = [] } = useQuery({
+    queryKey: ['mylane-businesses', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      try {
+        const owned = await base44.entities.Business.filter(
+          { owner_user_id: currentUser.id },
+          '-created_date',
+          100
+        );
+        return (Array.isArray(owned) ? owned : owned ? [owned] : []).filter(
+          (b) => !b.is_deleted && b.status !== 'deleted'
+        );
+      } catch { return []; }
+    },
+    enabled: !!currentUser?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Field Service profiles (joined as worker/sub) — client-only (localStorage)
   const { data: joinedFSProfiles = [] } = useQuery({
     queryKey: ['mylane-fs-joined', currentUser?.id],
@@ -384,11 +400,10 @@ export default function MyLane() {
 
   // ── Mylane: the organism's living surface ──
 
-  // Shared card content — same on mobile and desktop
+  // Shared surface content — same on mobile and desktop
+  // DEC-131: Spinner replaces card grid. Surface IS the spinner.
   const cardContent = (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
-
-      {/* Primary: MyLaneSurface — your spaces, vitality-dimmed, organically ordered */}
+    <div className="max-w-xl mx-auto px-2 py-4">
       <MyLaneSurface
         currentUser={currentUser}
         financeProfiles={financeProfiles}
@@ -396,40 +411,11 @@ export default function MyLane() {
         allTeams={allTeams}
         propertyMgmtProfiles={propertyMgmtProfiles}
         mealPrepProfiles={mealPrepProfiles}
+        businessProfiles={businessProfiles}
         agentMessageRef={agentMessageRef}
         onDoorOpen={handleDoorOpen}
         warmEntryWizardPage={warmEntry?.wizardPage ?? null}
       />
-
-      {/* Secondary: community content — upcoming events, directory discovery */}
-      <UpcomingEventsSection currentUser={currentUser} />
-      <DiscoverSection />
-
-      {/* Business CTA for non-business-owners */}
-      {!hasOwnedBusinesses && (
-        <section>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center">
-                <Store className="h-5 w-5 text-amber-500" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-lg font-semibold text-slate-100">Run a local business?</h2>
-                <p className="text-slate-400 text-sm mt-1">
-                  List your business, create events, and connect with your community.
-                </p>
-                <Link
-                  to={createPageUrl('BusinessOnboarding')}
-                  className="inline-flex items-center gap-1.5 mt-4 text-amber-500 hover:text-amber-400 font-medium text-sm border border-amber-500 hover:border-amber-400 rounded-lg px-4 py-2 transition-colors"
-                >
-                  Get Started
-                  <span aria-hidden>→</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
     </div>
   );
 

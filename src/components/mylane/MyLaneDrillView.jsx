@@ -1,12 +1,13 @@
 /**
  * MyLaneDrillView — renders a workspace tab component inside Mylane.
  * Uses the same WORKSPACE_TYPES config and tab components as BusinessDashboard.
- * Fetches workspace-specific data (team members, FS worker role, etc.) on demand.
+ * Fetches workspace-specific data (team members, FS worker role, business revenue, etc.) on demand.
  */
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
-import { WORKSPACE_TYPES } from '@/config/workspaceTypes';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { WORKSPACE_TYPES, getBusinessTabs, ARCHETYPE_TITLES } from '@/config/workspaceTypes';
+import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { toast } from 'sonner';
 
 // Map drill workspace names to WORKSPACE_TYPES keys
@@ -16,6 +17,7 @@ const WORKSPACE_KEY_MAP = {
   'finance': 'finance',
   'property-pulse': 'property_management',
   'meal-prep': 'meal_prep',
+  'business': 'business',
 };
 
 export default function MyLaneDrillView({
@@ -26,8 +28,12 @@ export default function MyLaneDrillView({
   allTeams = [],
   propertyMgmtProfiles = [],
   mealPrepProfiles = [],
+  businessProfiles = [],
 }) {
   const [activeTab, setActiveTab] = useState(drilledView.tab || 'home');
+  const [checkInEvent, setCheckInEvent] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const wsKey = WORKSPACE_KEY_MAP[drilledView.workspace];
   const wsConfig = wsKey ? WORKSPACE_TYPES[wsKey] : null;
@@ -39,6 +45,7 @@ export default function MyLaneDrillView({
     drilledView.workspace === 'team' ? allTeams?.[0] :
     drilledView.workspace === 'property-pulse' ? propertyMgmtProfiles?.[0] :
     drilledView.workspace === 'meal-prep' ? mealPrepProfiles?.[0] :
+    drilledView.workspace === 'business' ? businessProfiles?.[0] :
     null;
 
   // Fetch team members when drilling into team workspace
@@ -62,6 +69,50 @@ export default function MyLaneDrillView({
   const pmProfile = drilledView.workspace === 'property-pulse' ? profile : null;
   const pmIsOwner = pmProfile ? pmProfile.user_id === currentUser?.id : false;
 
+  // Business workspace: revenue + events + RSVP counts
+  const businessId = drilledView.workspace === 'business' ? profile?.id : null;
+  const { revenue } = useBusinessRevenue(businessId);
+
+  const { data: businessEvents = [] } = useQuery({
+    queryKey: ['mylane-drill-business-events', businessId],
+    queryFn: async () => {
+      if (!businessId) return [];
+      const events = await base44.entities.Event.filter({ business_id: businessId, is_active: true });
+      return Array.isArray(events) ? events : events ? [events] : [];
+    },
+    enabled: !!businessId,
+  });
+
+  const { data: eventRsvpCounts = {} } = useQuery({
+    queryKey: ['mylane-drill-rsvp-counts', businessId],
+    queryFn: async () => {
+      if (!businessEvents.length) return {};
+      const counts = {};
+      for (const evt of businessEvents) {
+        try {
+          const rsvps = await base44.entities.EventRSVP.filter({ event_id: evt.id });
+          counts[evt.id] = Array.isArray(rsvps) ? rsvps.length : 0;
+        } catch { counts[evt.id] = 0; }
+      }
+      return counts;
+    },
+    enabled: businessEvents.length > 0,
+  });
+
+  const businessIsOwner = profile && drilledView.workspace === 'business'
+    ? String(profile.owner_user_id) === String(currentUser?.id) : false;
+  const businessUserRole = businessIsOwner ? 'owner' : 'staff';
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      await base44.entities.Business.update(id, { is_deleted: true, status: 'deleted' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses'] });
+      toast.success('Business deleted');
+    },
+  });
+
   if (!wsConfig || !profile) {
     return (
       <div className="text-center py-16">
@@ -70,12 +121,30 @@ export default function MyLaneDrillView({
     );
   }
 
-  const tabs = wsConfig.tabs;
+  // Business uses archetype-driven tabs
+  const tabs = drilledView.workspace === 'business'
+    ? getBusinessTabs(profile.archetype || 'location')
+    : wsConfig.tabs;
   const activeTabConfig = tabs.find((t) => t.id === activeTab) || tabs[0];
 
   // Build scope object matching BusinessDashboard patterns
   let scope = {};
   switch (drilledView.workspace) {
+    case 'business':
+      scope = {
+        business: profile,
+        currentUser,
+        userRole: businessUserRole,
+        revenue,
+        businessEvents,
+        eventRsvpCounts,
+        setActiveTab,
+        setCheckInEvent,
+        setDeleteDialogOpen,
+        deleteMutation,
+        isOwner: businessIsOwner,
+      };
+      break;
     case 'field-service':
       scope = {
         profile,

@@ -1,102 +1,81 @@
 /**
  * MyLaneSurface — the organism's living surface.
- * Composes card views from all user workspaces into one grid.
- * Drill-through renders workspace views INSIDE Mylane — user never leaves.
- * Conversation render instructions trigger the same drill mechanism.
+ * DEC-131: Spinner-based navigation replaces card grid.
+ * Two spinners: horizontal (spaces), vertical (priorities within Home).
+ * Horizontal spinner ALWAYS visible, even when inside a space.
+ * Drill-through renders workspace views INSIDE Mylane — unchanged.
  */
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { DollarSign, Building2, Users, Store, UtensilsCrossed } from 'lucide-react';
+import {
+  Home, UtensilsCrossed, HardHat, DollarSign, Users,
+  Store, Search, Settings, Music,
+} from 'lucide-react';
 import MY_LANE_REGISTRY from '@/config/myLaneRegistry';
-import WhatsChangedBar from './WhatsChangedBar';
-import MyLaneBreadcrumb from './MyLaneBreadcrumb';
 import MyLaneDrillView from './MyLaneDrillView';
 import useMyLaneState from './useMyLaneState';
+import SpaceSpinner from './SpaceSpinner';
+import HomeFeed from './HomeFeed';
+import DiscoverPosition from './DiscoverPosition';
+import FrequencyStation, { FrequencyStationButton } from './FrequencyStation';
 import { parseRenderInstruction } from './parseRenderInstruction';
 import { renderEntityView } from './renderEntityView';
 
-/**
- * Compute discovery whispers — proximate-but-not-joined spaces.
- * Single-hop relationships only. Conservative: only show bridges
- * that feel organic, never algorithmic. Phase 1: everything → finance.
- */
-function computeWhispers(profiles) {
-  const hasTeam = (profiles.allTeams?.length || 0) > 0;
-  const hasFS = (profiles.fieldServiceProfiles?.length || 0) > 0;
-  const hasPM = (profiles.propertyMgmtProfiles?.length || 0) > 0;
-  const hasFinance = (profiles.financeProfiles?.length || 0) > 0;
-
-  const whispers = [];
-
-  // ── Finance whispers (highest-confidence bridge) ──
-  if (!hasFinance) {
-    if (hasTeam) {
-      whispers.push({
-        id: 'whisper-finance-team',
-        space: 'finance',
-        icon: DollarSign,
-        whisper: 'Track team costs',
-        via: 'team',
-        strength: 0.7,
-        onboardingPage: 'FinanceOnboarding',
-      });
-    } else if (hasFS) {
-      whispers.push({
-        id: 'whisper-finance-fs',
-        space: 'finance',
-        icon: DollarSign,
-        whisper: 'Track your income',
-        via: 'field-service',
-        strength: 0.6,
-        onboardingPage: 'FinanceOnboarding',
-      });
-    } else if (hasPM) {
-      whispers.push({
-        id: 'whisper-finance-pm',
-        space: 'finance',
-        icon: DollarSign,
-        whisper: 'Track property income',
-        via: 'property-pulse',
-        strength: 0.6,
-        onboardingPage: 'FinanceOnboarding',
-      });
-    }
-  }
-
-  // ── Property Pulse whisper (only for field service owners — natural bridge) ──
-  if (!hasPM && hasFS) {
-    whispers.push({
-      id: 'whisper-pm-fs',
-      space: 'property-pulse',
-      icon: Building2,
-      whisper: 'Manage a property',
-      via: 'field-service',
-      strength: 0.4,
-      onboardingPage: 'PropertyManagementOnboarding',
-    });
-  }
-
-  return whispers;
-}
-
-// Map card IDs to drill views
-const CARD_DRILL_MAP = {
-  'enough-number': { workspace: 'finance', view: 'home', tab: 'home' },
-  'pending-estimates': { workspace: 'field-service', view: 'estimates', tab: 'estimates' },
-  'active-projects': { workspace: 'field-service', view: 'projects', tab: 'projects' },
-  'player-readiness': { workspace: 'team', view: 'home', tab: 'home' },
-  'property-overview': { workspace: 'property-pulse', view: 'home', tab: 'home' },
+// Map workspace type IDs to spinner item config
+const SPACE_CONFIG = {
+  home:              { id: 'home',           label: 'Home',      icon: Home },
+  'meal-prep':       { id: 'meal-prep',      label: 'Kitchen',   icon: UtensilsCrossed },
+  'field-service':   { id: 'field-service',  label: 'Jobsite',   icon: HardHat },
+  finance:           { id: 'finance',        label: 'Finances',  icon: DollarSign },
+  team:              { id: 'team',           label: 'Team',      icon: Users },
+  business:          { id: 'business',       label: 'Business',  icon: Store, dim: true },
+  discover:          { id: 'discover',       label: 'Discover',  icon: Search, dim: true },
 };
 
-// Human-readable workspace names
+// Workspace label map for breadcrumbs
 const WORKSPACE_LABELS = {
   'field-service': 'Field Service',
   'team': 'Team',
   'finance': 'Finance',
   'property-pulse': 'Property Pulse',
   'meal-prep': 'Meal Prep',
+  'business': 'Business',
 };
+
+/**
+ * Build spinner items from user's active workspace profiles.
+ * Always includes Home (first) and Discover (last).
+ * Dark Until Explored: zero-state = only Home + Discover.
+ */
+function buildSpinnerItems(profiles, businessProfiles = []) {
+  const items = [SPACE_CONFIG.home]; // Home always first
+
+  // Add active workspaces based on profiles
+  if (profiles.mealPrepProfiles?.length > 0) {
+    items.push(SPACE_CONFIG['meal-prep']);
+  }
+  if (profiles.fieldServiceProfiles?.length > 0) {
+    items.push(SPACE_CONFIG['field-service']);
+  }
+  if (profiles.financeProfiles?.length > 0) {
+    items.push(SPACE_CONFIG.finance);
+  }
+  if (profiles.allTeams?.length > 0) {
+    items.push(SPACE_CONFIG.team);
+  }
+  if (businessProfiles.length > 0) {
+    items.push({ ...SPACE_CONFIG.business, dim: false });
+  }
+  if (profiles.propertyMgmtProfiles?.length > 0) {
+    items.push({ id: 'property-pulse', label: 'Property', icon: Store });
+  }
+
+  // Discover always last
+  items.push(SPACE_CONFIG.discover);
+
+  return items;
+}
 
 export default function MyLaneSurface({
   currentUser,
@@ -105,107 +84,79 @@ export default function MyLaneSurface({
   allTeams = [],
   propertyMgmtProfiles = [],
   mealPrepProfiles = [],
+  businessProfiles = [],
   agentMessageRef,
-  onDoorOpen = null,   // (workspace: 'team'|'business'|'finance'|'meal_prep') => void
-  warmEntryWizardPage = null, // when set, show "set up manually" link
+  onDoorOpen = null,
+  warmEntryWizardPage = null,
 }) {
   const navigate = useNavigate();
   const profiles = { financeProfiles, fieldServiceProfiles, allTeams, propertyMgmtProfiles, mealPrepProfiles };
-  const [urgencyBoosts, setUrgencyBoosts] = useState({});
-  const [drilledView, setDrilledView] = useState(null);
-  const [renderedData, setRenderedData] = useState(null); // { entity, workspace, data, displayHint }
-  const drillCardRef = useRef(null);
+
+  const [spinnerIndex, setSpinnerIndex] = useState(0);
+  const [renderedData, setRenderedData] = useState(null);
+  const [frequencyOpen, setFrequencyOpen] = useState(false);
   const drillStartRef = useRef(null);
 
   const {
     trackCardTap,
     trackDrillTime,
     trackMessage,
-    getCardOrder,
-    getCardVitality,
-    getModeGradient,
     getLastVisited,
     setLastVisited,
   } = useMyLaneState();
 
-  // Auto/Manual gradient — 0.0 = manual (taps), 1.0 = auto (conversation)
-  const modeGradient = getModeGradient();
-
-  const lastVisited = getLastVisited();
-
-  // Record this visit on mount
+  // Record visit on mount
   useEffect(() => {
     const t = setTimeout(() => setLastVisited(), 500);
     return () => clearTimeout(t);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Dispatch agent-active when surface mounts
+  // Dispatch agent-active
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('agent-active', { detail: true }));
     return () => { window.dispatchEvent(new CustomEvent('agent-active', { detail: false })); };
   }, []);
 
-  // Listen for Mylane messages (DEC-120 frequency tracking)
-  // Any chat component can dispatch: window.dispatchEvent(new CustomEvent('mylane-user-message'))
+  // Message frequency tracking
   useEffect(() => {
     const handler = () => trackMessage();
     window.addEventListener('mylane-user-message', handler);
     return () => window.removeEventListener('mylane-user-message', handler);
   }, [trackMessage]);
 
-  // Urgency callback for cards
-  const handleUrgency = useCallback((cardId, isUrgent) => {
-    setUrgencyBoosts((prev) => {
-      if (prev[cardId] === isUrgent) return prev;
-      return { ...prev, [cardId]: isUrgent };
-    });
-  }, []);
+  // Build spinner items
+  const spaceItems = useMemo(
+    () => buildSpinnerItems(profiles, businessProfiles),
+    [profiles, businessProfiles]
+  );
 
-  // Filter and sort cards
-  const activeCards = MY_LANE_REGISTRY.map((card) => ({
-    ...card,
-    profile: card.getProfile(profiles),
-  })).filter((card) => card.profile !== null);
+  const currentSpace = spaceItems[spinnerIndex] || spaceItems[0];
 
-  const sortedCards = getCardOrder(activeCards, urgencyBoosts);
-
-  // Discovery whispers — proximate-but-not-joined spaces
-  const whispers = useMemo(() => computeWhispers(profiles), [profiles]);
-
-  // Drill into a workspace view (internal — user stays in Mylane)
-  const drillInto = useCallback((drillSpec) => {
-    setDrilledView(drillSpec);
+  // Handle spinner navigation
+  const handleSpinnerSelect = useCallback((idx) => {
+    setSpinnerIndex(idx);
     setRenderedData(null);
     drillStartRef.current = Date.now();
   }, []);
 
-  // Show raw entity data via universal renderer
+  // Handle "Open [space]" from HomeFeed priority items
+  const handleOpenSpace = useCallback((idx) => {
+    if (idx >= 0 && idx < spaceItems.length) {
+      handleSpinnerSelect(idx);
+    }
+  }, [spaceItems.length, handleSpinnerSelect]);
+
+  // Return to Home
+  const handleLogoClick = useCallback(() => {
+    handleSpinnerSelect(0);
+  }, [handleSpinnerSelect]);
+
+  // Show raw entity data via universal renderer (agent messages)
   const showRenderedData = useCallback((dataSpec) => {
     setRenderedData(dataSpec);
-    setDrilledView(null);
   }, []);
 
-  // Return to card surface
-  const drillBack = useCallback(() => {
-    if (drillCardRef.current && drillStartRef.current) {
-      const seconds = Math.round((Date.now() - drillStartRef.current) / 1000);
-      if (seconds > 0) trackDrillTime(drillCardRef.current);
-    }
-    drillCardRef.current = null;
-    drillStartRef.current = null;
-    setDrilledView(null);
-    setRenderedData(null);
-  }, [trackDrillTime]);
-
-  // Handle card tap: track + drill internally
-  const handleCardTap = useCallback((card) => {
-    trackCardTap(card.id);
-    drillCardRef.current = card.id;
-    const drillSpec = CARD_DRILL_MAP[card.id] || { workspace: card.space, view: 'home', tab: 'home' };
-    drillInto(drillSpec);
-  }, [trackCardTap, drillInto]);
-
-  // Handle agent messages — render instructions drill internally or show data
+  // Handle agent messages — render instructions
   const lastProcessedRef = useRef(null);
   const handleAgentMessage = useCallback((msg) => {
     if (!msg?.content || msg.id === lastProcessedRef.current) return;
@@ -215,198 +166,176 @@ export default function MyLaneSurface({
     if (result.type === 'data') {
       showRenderedData({ entity: result.entity, workspace: result.workspace, data: result.data, displayHint: result.displayHint });
     } else {
-      drillInto({ workspace: result.workspace, view: result.view, tab: result.tab });
+      // Find spinner index for workspace and spin to it
+      const targetIdx = spaceItems.findIndex((s) => s.id === result.workspace);
+      if (targetIdx >= 0) handleSpinnerSelect(targetIdx);
     }
-  }, [drillInto, showRenderedData]);
+  }, [spaceItems, handleSpinnerSelect, showRenderedData]);
 
-  // Expose handleAgentMessage to parent via ref
   useEffect(() => {
     if (agentMessageRef) agentMessageRef.current = handleAgentMessage;
   }, [agentMessageRef, handleAgentMessage]);
 
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
+  // Active space IDs for Discover filtering
+  const activeSpaceIds = useMemo(() => spaceItems.map((s) => s.id), [spaceItems]);
+
+  // Neighbor count (placeholder — could be fetched from community data)
+  const neighborCount = 22; // TODO: pull from actual data
+
+  // Render the content area based on current spinner position
+  const renderContent = () => {
+    // Agent rendered data takes priority
+    if (renderedData) {
+      return renderEntityView({
+        data: renderedData.data,
+        entity: renderedData.entity,
+        workspace: renderedData.workspace,
+        displayHint: renderedData.displayHint,
+      });
+    }
+
+    const space = currentSpace;
+
+    // Home position — tabbed vertical spinner
+    if (space.id === 'home') {
+      return (
+        <HomeFeed
+          profiles={profiles}
+          spaceItems={spaceItems}
+          onOpenSpace={handleOpenSpace}
+          neighborCount={neighborCount}
+        />
+      );
+    }
+
+    // Discover position
+    if (space.id === 'discover') {
+      return <DiscoverPosition activeSpaceIds={activeSpaceIds} />;
+    }
+
+    // Workspace drill-through — renders workspace tabs inside Mylane
+    return (
+      <MyLaneDrillView
+        drilledView={{ workspace: space.id, view: 'home', tab: 'home' }}
+        currentUser={currentUser}
+        fieldServiceProfiles={fieldServiceProfiles}
+        financeProfiles={financeProfiles}
+        allTeams={allTeams}
+        propertyMgmtProfiles={propertyMgmtProfiles}
+        mealPrepProfiles={mealPrepProfiles}
+        businessProfiles={businessProfiles}
+      />
+    );
+  };
 
   return (
-    <div>
-      {/* Header + Breadcrumb */}
-      {drilledView || renderedData ? (
-        <MyLaneBreadcrumb
-          spaceName={
-            drilledView
-              ? (WORKSPACE_LABELS[drilledView.workspace] || drilledView.workspace)
-              : (renderedData?.entity?.replace(/^(FS|PM)/, '').replace(/([A-Z])/g, ' $1').trim() || 'Results')
-          }
-          onBack={drillBack}
-        />
-      ) : (
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold text-white">MyLane</h2>
-          <p className="text-sm text-slate-400 mt-1">
-            {today}
-            {/* At high conversation gradient, Mylane's presence becomes warmer */}
-            {modeGradient > 0.6 && (
-              <span className="text-slate-500 ml-1.5">· Mylane is here</span>
-            )}
-          </p>
+    <div
+      className="flex flex-col relative"
+      style={{
+        background: '#020617',
+        borderRadius: 26,
+        minHeight: 660,
+        overflow: 'hidden',
+      }}
+    >
+      {/* ─── Header ─── */}
+      <div
+        className="flex justify-between items-center"
+        style={{ padding: '6px 20px 8px' }}
+      >
+        <div
+          className="cursor-pointer select-none active:opacity-60"
+          onClick={handleLogoClick}
+          style={{ fontSize: 15, fontWeight: 500, color: '#f8fafc' }}
+        >
+          <span style={{ color: '#f59e0b', fontWeight: 500 }}>Local</span> Lane
         </div>
-      )}
+        <div className="flex items-center gap-3">
+          <FrequencyStationButton onClick={() => setFrequencyOpen(!frequencyOpen)} />
+          <span
+            className="cursor-pointer hover:text-slate-300"
+            style={{ fontSize: 11, color: '#64748b', padding: '4px 0' }}
+            onClick={() => navigate(createPageUrl('Directory'))}
+          >
+            Directory
+          </span>
+          <span
+            className="cursor-pointer hover:text-slate-300"
+            style={{ fontSize: 11, color: '#64748b', padding: '4px 0' }}
+            onClick={() => navigate(createPageUrl('Events'))}
+          >
+            Events
+          </span>
+          <span
+            className="cursor-pointer hover:text-slate-300"
+            onClick={() => navigate(createPageUrl('Settings'))}
+          >
+            <Settings style={{ width: 14, height: 14, color: '#64748b' }} strokeWidth={1.5} />
+          </span>
+        </div>
+      </div>
 
-      {/* Main content: cards OR drilled workspace view OR rendered entity data */}
-      {renderedData ? (
-        renderEntityView({
-          data: renderedData.data,
-          entity: renderedData.entity,
-          workspace: renderedData.workspace,
-          displayHint: renderedData.displayHint,
-        })
-      ) : drilledView ? (
-        <MyLaneDrillView
-          drilledView={drilledView}
-          currentUser={currentUser}
-          fieldServiceProfiles={fieldServiceProfiles}
-          financeProfiles={financeProfiles}
-          allTeams={allTeams}
-          propertyMgmtProfiles={propertyMgmtProfiles}
-          mealPrepProfiles={mealPrepProfiles}
-        />
-      ) : (
-        <>
-          {/* What Changed whisper */}
-          <WhatsChangedBar
-            lastVisited={lastVisited}
-            fieldServiceProfiles={fieldServiceProfiles}
-            propertyMgmtProfiles={propertyMgmtProfiles}
-          />
+      {/* ─── Frequency Station (expandable) ─── */}
+      <FrequencyStation isOpen={frequencyOpen} />
 
-          {/* Card Grid — vitality-driven opacity. The organism breathes. */}
-          {sortedCards.length > 0 || whispers.length > 0 ? (
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {/* Active cards */}
-              {sortedCards.map((card) => {
-                const { CardComponent } = card;
-                const vitality = getCardVitality(card.id, !!urgencyBoosts[card.id]);
-                return (
-                  <div
-                    key={card.id}
-                    className="transition-opacity duration-700"
-                    style={{ opacity: vitality }}
-                  >
-                    <CardComponent
-                      profile={card.profile}
-                      onClick={() => handleCardTap(card)}
-                      onUrgency={handleUrgency}
-                    />
-                  </div>
-                );
-              })}
+      {/* ─── Separator ─── */}
+      <div style={{ height: 1, background: '#111827' }} />
 
-              {/* Discovery whispers — ghost cards for proximate spaces */}
-              {/* Conversational users see whispers slightly brighter (more open to discovery) */}
-              {whispers.map((w) => {
-                const Icon = w.icon;
-                const whisperOpacity = w.strength * (0.55 + modeGradient * 0.2);
-                return (
-                  <Link
-                    key={w.id}
-                    to={createPageUrl(w.onboardingPage)}
-                    className="group bg-transparent border border-dashed border-slate-800 rounded-xl p-4 transition-all duration-500 hover:border-amber-500/30 hover:bg-slate-900/30"
-                    style={{ opacity: whisperOpacity }}
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <Icon className="h-4 w-4 text-slate-600 group-hover:text-amber-500/60 transition-colors" />
-                      <span className="text-xs font-medium text-slate-600 group-hover:text-slate-500 transition-colors">Nearby</span>
-                    </div>
-                    <p className="text-sm text-slate-500 group-hover:text-slate-400 transition-colors">{w.whisper}</p>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-12 space-y-6">
-              <div className="space-y-2">
-                <p className="text-slate-300">Your spaces will appear here</p>
-                <p className="text-slate-500 text-sm">Create something or join an invite to get started.</p>
-              </div>
+      {/* ─── Horizontal Space Spinner (ALWAYS VISIBLE) ─── */}
+      <SpaceSpinner
+        items={spaceItems}
+        currentIndex={spinnerIndex}
+        onSelect={handleSpinnerSelect}
+      />
 
-              {/* "Set up manually" link when Mylane is introducing a space */}
-              {warmEntryWizardPage && (
-                <div className="flex justify-center">
-                  <button
-                    type="button"
-                    onClick={() => navigate(createPageUrl(warmEntryWizardPage))}
-                    className="text-xs text-slate-500 hover:text-amber-500 transition-colors underline underline-offset-2"
-                  >
-                    Skip the intro — set up manually →
-                  </button>
-                </div>
-              )}
+      {/* ─── Content area ─── */}
+      <div
+        className="flex flex-col"
+        style={{ flex: 1, padding: '0 0 58px', overflow: 'hidden' }}
+      >
+        {renderContent()}
+      </div>
 
-              <div className="flex flex-wrap justify-center gap-3">
-                {[
-                  { workspace: 'team',      icon: Users,             label: 'Start a Team',    page: 'TeamOnboarding' },
-                  { workspace: 'business',  icon: Store,             label: 'List a Business', page: 'BusinessOnboarding' },
-                  { workspace: 'finance',   icon: DollarSign,        label: 'Track Finances',  page: 'FinanceOnboarding' },
-                  { workspace: 'meal_prep', icon: UtensilsCrossed,   label: 'Meal Prep',       page: 'MealPrepOnboarding' },
-                ].map(({ workspace, icon: Icon, label, page }) => (
-                  <button
-                    key={workspace}
-                    type="button"
-                    onClick={() => onDoorOpen ? onDoorOpen(workspace) : navigate(createPageUrl(page))}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 text-sm hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
-                  >
-                    <Icon className="h-4 w-4" />
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Add Space — door buttons for existing users who want another workspace */}
-          {sortedCards.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-2 mt-6">
-              {[
-                { workspace: 'team',      icon: Users,           label: 'Start a Team',    page: 'TeamOnboarding' },
-                { workspace: 'business',  icon: Store,           label: 'List a Business', page: 'BusinessOnboarding' },
-                { workspace: 'finance',   icon: DollarSign,      label: 'Track Finances',  page: 'FinanceOnboarding' },
-                { workspace: 'meal_prep', icon: UtensilsCrossed, label: 'Meal Prep',       page: 'MealPrepOnboarding' },
-              ].filter(({ workspace }) => {
-                // Hide doors for workspaces the user already has
-                if (workspace === 'team' && profiles.allTeams?.length > 0) return false;
-                if (workspace === 'finance' && profiles.financeProfiles?.length > 0) return false;
-                if (workspace === 'meal_prep' && profiles.mealPrepProfiles?.length > 0) return false;
-                // Business and FS can have multiples, so always show
-                return true;
-              }).map(({ workspace, icon: Icon, label, page }) => (
-                <button
-                  key={workspace}
-                  type="button"
-                  onClick={() => onDoorOpen ? onDoorOpen(workspace) : navigate(createPageUrl(page))}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/50 border border-slate-800/50 rounded-lg text-slate-500 text-xs hover:border-amber-500/30 hover:text-amber-500 transition-colors min-h-[36px]"
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Conversational nudge — only for users who talk to Mylane (gradient > 0.5) */}
-          {modeGradient > 0.5 && sortedCards.length > 0 && (
-            <p
-              className="text-center text-xs text-slate-600 mt-6 transition-opacity duration-1000"
-              style={{ opacity: Math.min(0.8, (modeGradient - 0.5) * 1.6) }}
-            >
-              Ask Mylane about your spaces
-            </p>
-          )}
-        </>
-      )}
-
+      {/* ─── Copilot (always docked bottom) ─── */}
+      <div
+        className="absolute bottom-0 left-0 right-0 flex items-center gap-2"
+        style={{
+          background: '#080d18',
+          borderTop: '1px solid #111827',
+          padding: '8px 16px',
+        }}
+      >
+        <div
+          className="flex items-center justify-center flex-shrink-0"
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            border: '1.5px solid #f59e0b',
+          }}
+        >
+          {/* Mushroom icon */}
+          <svg viewBox="0 0 24 24" style={{ width: 10, height: 10 }} stroke="#f59e0b" fill="none" strokeWidth={1.5}>
+            <circle cx="12" cy="10" r="6" />
+            <line x1="12" y1="16" x2="12" y2="22" />
+            <line x1="9" y1="19" x2="12" y2="16" />
+            <line x1="15" y1="19" x2="12" y2="16" />
+          </svg>
+        </div>
+        <div
+          style={{
+            flex: 1,
+            background: '#0f1520',
+            border: '1px solid #1e293b',
+            borderRadius: 16,
+            padding: '6px 12px',
+            fontSize: 11,
+            color: '#475569',
+          }}
+        >
+          Ask Mylane anything...
+        </div>
+      </div>
     </div>
   );
 }

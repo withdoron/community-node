@@ -1,5 +1,5 @@
 import Admin from './pages/Admin';
-import BusinessDashboard from './pages/BusinessDashboard';
+// BusinessDashboard retired (DEC-131) — workspaces render through MyLane spinner + MyLaneDrillView
 import BusinessOnboarding from './pages/BusinessOnboarding';
 import BusinessProfile from './pages/BusinessProfile';
 import CategoryPage from './pages/CategoryPage';
@@ -28,7 +28,7 @@ import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "Admin": Admin,
-    "BusinessDashboard": BusinessDashboard,
+    // "BusinessDashboard" retired (DEC-131) — redirects to MyLane
     "BusinessOnboarding": BusinessOnboarding,
     "BusinessProfile": BusinessProfile,
     "CategoryPage": CategoryPage,
