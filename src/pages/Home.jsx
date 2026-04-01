@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
+import { ChevronDown } from 'lucide-react';
 
 // ─── CSS Animations (injected once) ─────────────────────────────────
 const ANIMATION_STYLES = `
@@ -10,7 +11,7 @@ const ANIMATION_STYLES = `
     text-shadow: 0 0 30px rgba(212, 160, 70, 0.1), 0 0 60px rgba(212, 160, 70, 0.03);
   }
   50% {
-    text-shadow: 0 0 50px rgba(212, 160, 70, 0.2), 0 0 100px rgba(212, 160, 70, 0.06);
+    text-shadow: 0 0 50px rgba(212, 160, 70, 0.3), 0 0 100px rgba(212, 160, 70, 0.10);
   }
 }
 @keyframes floatUp {
@@ -22,6 +23,14 @@ const ANIMATION_STYLES = `
 @keyframes ping-slow {
   0% { transform: scale(1); opacity: 0.2; }
   75%, 100% { transform: scale(2.5); opacity: 0; }
+}
+@keyframes glowBreathe {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(0); opacity: 0.35; }
+  50% { transform: translateY(6px); opacity: 0.65; }
 }
 `;
 
@@ -38,96 +47,6 @@ const COMPLETIONS = [
 ];
 
 const SPORE_COUNT = 7;
-
-// ─── Mycelium Canvas ───────────────────────────────────────────────
-function MyceliumCanvas() {
-  const canvasRef = useRef(null);
-  const animRef = useRef(null);
-  const nodesRef = useRef([]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    const isMobile = window.innerWidth < 768;
-    const NODE_COUNT = isMobile ? 20 : 35;
-    const CONNECTION_DIST = 140;
-
-    function resize() {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    }
-
-    function createNodes() {
-      nodesRef.current = Array.from({ length: NODE_COUNT }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        r: 1.2 + Math.random() * 1.2,
-      }));
-    }
-
-    function draw(time) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const nodes = nodesRef.current;
-      const sineVal = Math.sin(time / 3000) * 0.5 + 0.5;
-
-      for (const n of nodes) {
-        n.x += n.vx;
-        n.y += n.vy;
-        if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
-        if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
-      }
-
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[i].x - nodes[j].x;
-          const dy = nodes[i].y - nodes[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < CONNECTION_DIST) {
-            const alpha = (1 - dist / CONNECTION_DIST) * 0.35 * (0.5 + sineVal * 0.5);
-            ctx.beginPath();
-            ctx.moveTo(nodes[i].x, nodes[i].y);
-            ctx.lineTo(nodes[j].x, nodes[j].y);
-            ctx.strokeStyle = `rgba(212, 160, 70, ${alpha})`;
-            ctx.lineWidth = 0.6;
-            ctx.stroke();
-          }
-        }
-      }
-
-      for (const n of nodes) {
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(212, 160, 70, ${0.3 + sineVal * 0.2})`;
-        ctx.fill();
-      }
-
-      animRef.current = requestAnimationFrame(draw);
-    }
-
-    resize();
-    createNodes();
-    animRef.current = requestAnimationFrame(draw);
-
-    const handleResize = () => { resize(); createNodes(); };
-    window.addEventListener('resize', handleResize);
-    return () => {
-      if (animRef.current) cancelAnimationFrame(animRef.current);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-full h-full"
-      style={{ opacity: 0.45 }}
-    />
-  );
-}
 
 // ─── Floating Spores ────────────────────────────────────────────────
 function FloatingSpores() {
@@ -151,7 +70,7 @@ function FloatingSpores() {
             bottom: '-10px',
             width: s.size,
             height: s.size,
-            backgroundColor: 'rgba(212, 160, 70, 0.1)',
+            backgroundColor: 'rgba(212, 160, 70, 0.12)',
             animation: `floatUp ${s.duration}s ${s.delay}s infinite linear`,
             opacity: 0,
           }}
@@ -228,7 +147,19 @@ function AliveCard({ dotColor, type, title, detail }) {
 export default function Home() {
   const { region } = useActiveRegion();
 
-  // Real data: upcoming events — region-filtered to match businesses query
+  // Auth state — determines hero height and floating logo
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: async () => {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) return null;
+      return base44.auth.me();
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  const isUnauth = currentUser === null; // explicitly not authenticated (not loading)
+
+  // Real data: upcoming events — region-filtered
   const { data: upcomingEvents = [] } = useQuery({
     queryKey: ['homepage-upcoming-events', region?.id],
     queryFn: async () => {
@@ -244,7 +175,7 @@ export default function Home() {
         .slice(0, 3);
     },
     enabled: !!region,
-    staleTime: 10 * 60 * 1000, // 10 min — landing page data doesn't need real-time
+    staleTime: 10 * 60 * 1000,
   });
 
   // Real data: recent businesses
@@ -262,7 +193,7 @@ export default function Home() {
     staleTime: 10 * 60 * 1000,
   });
 
-  // Real data: community pulse (aggregate signal)
+  // Real data: community pulse
   const { data: communityCount = 0 } = useQuery({
     queryKey: ['homepage-community-pulse'],
     queryFn: async () => {
@@ -304,7 +235,6 @@ export default function Home() {
       });
     }
 
-    // Community pulse — aggregate signal
     if (communityCount > 0) {
       cards.push({
         dotColor: 'bg-amber-400/60',
@@ -323,7 +253,6 @@ export default function Home() {
       });
     }
 
-    // Fallback if no real data at all
     if (cards.length === 0) {
       cards.push(
         { dotColor: 'bg-emerald-400', type: 'Event', title: 'Community events coming soon', detail: 'Something is growing' },
@@ -332,7 +261,6 @@ export default function Home() {
       );
     }
 
-    // Pad to 3 if needed
     while (cards.length < 3) {
       cards.push({
         dotColor: 'bg-amber-400/60',
@@ -345,25 +273,65 @@ export default function Home() {
     return cards;
   }, [upcomingEvents, recentBusinesses, communityCount]);
 
+  // Hero height: full viewport when unauth (no nav header), minus 64px header when auth
+  const heroHeight = isUnauth ? '100vh' : 'calc(100vh - 64px)';
+
   return (
     <div className="min-h-screen bg-slate-950">
       <style dangerouslySetInnerHTML={{ __html: ANIMATION_STYLES }} />
 
       {/* ── Hero ── */}
       <section
-        className="relative flex flex-col items-center justify-center overflow-hidden bg-slate-950"
-        style={{ minHeight: 'calc(100vh - 64px)' }}
+        className="relative flex flex-col items-start justify-start overflow-hidden bg-slate-950"
+        style={{ height: heroHeight, minHeight: heroHeight }}
       >
-        <MyceliumCanvas />
+        {/* Mushroom artwork — responsive via <picture> */}
+        <div className="absolute inset-0 w-full h-full">
+          <picture>
+            {/* Portrait crop for mobile — shows mushroom centered */}
+            <source media="(max-width: 767px)" srcSet="/mushroom-portrait.jpg" type="image/jpeg" />
+            {/* Landscape for tablet/desktop */}
+            <source media="(min-width: 768px)" srcSet="/mushroom-landscape.jpg" type="image/jpeg" />
+            <img
+              src="/mushroom-landscape.jpg"
+              alt=""
+              aria-hidden="true"
+              className="w-full h-full object-cover object-center"
+            />
+          </picture>
+
+          {/* Dark base overlay — readability */}
+          <div className="absolute inset-0 bg-slate-950/40" />
+
+          {/* Amber radial glow — breathes over the cap, 4s cycle */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle at 50% 35%, rgba(212,160,70,0.12) 0%, transparent 60%)',
+              animation: 'glowBreathe 4s ease-in-out infinite',
+            }}
+          />
+        </div>
+
+        {/* Floating spores */}
         <FloatingSpores />
 
-        <div className="relative z-10 flex flex-col items-center text-center px-4">
-          {/* Community pill */}
-          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-500/15 bg-amber-500/5 mb-12">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-xs text-amber-400/80 tracking-wide">Built by your community. Built for your community.</span>
+        {/* Floating logo — top-left, unauth only (auth has nav header) */}
+        {isUnauth && (
+          <div className="absolute top-6 left-6 z-20">
+            <img
+              src="/LocalLaneLogo.png"
+              alt="Local Lane"
+              className="h-10 w-10 rounded-lg opacity-90"
+            />
           </div>
+        )}
 
+        {/* Text content — "Become" floats in the dark sky above the cap */}
+        <div
+          className="relative z-10 w-full flex flex-col items-center text-center px-4"
+          style={{ paddingTop: '10vh' }}
+        >
           {/* Become */}
           <h1
             className="text-5xl md:text-8xl lg:text-9xl font-bold text-amber-400"
@@ -380,13 +348,14 @@ export default function Home() {
           <div className="mt-4">
             <RotatingCompletions />
           </div>
+        </div>
 
-          {/* Supporting text */}
-          <p className="mt-12 text-slate-500 text-base max-w-sm leading-relaxed">
-            A companion for your community life.
-            <br />
-            <span className="text-slate-600">It grows with you.</span>
-          </p>
+        {/* Scroll indicator — bottom center */}
+        <div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 pointer-events-none"
+          style={{ animation: 'scrollBounce 2.4s ease-in-out infinite' }}
+        >
+          <ChevronDown className="h-6 w-6 text-amber-400/50" />
         </div>
       </section>
 
