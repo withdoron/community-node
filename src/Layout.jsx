@@ -324,7 +324,8 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
 
       <main>{children}</main>
 
-      <Footer />
+      {/* Footer hidden on MyLane — surface fills edge to edge */}
+      {currentPageName !== 'MyLane' && <Footer />}
 
       {/* Feedback Button + Panel — hidden when superagent is active (agent IS the feedback channel) */}
       {currentUser && !agentActive && (
