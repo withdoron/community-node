@@ -485,3 +485,49 @@ None (followed existing patterns exactly)
 5. Locallane-mcp needs git remote added
 
 ---
+
+## 2026-04-01 — DEC-131: MyLane Spinner Navigation Build
+
+**Gardeners:** Doron (vision + mockup), Mycelia (architecture consultation), Hyphae (build)
+
+**What shipped:**
+1. SpaceSpinner.jsx — horizontal gallery-style space picker (74px items, amber center, audio ticks, swipe)
+2. PrioritySpinner.jsx — vertical gallery for Home feed (scale/opacity depth, vertical swipe, audio ticks)
+3. HomeFeed.jsx — Home position with Attention | This week | Spaces tabs feeding vertical spinner
+4. FrequencyStation.jsx — persistent audio player UI shell (play/pause, progress bar — no real audio)
+5. DiscoverPosition.jsx — available spaces + invite key placeholder
+6. MyLaneDrillView.jsx — added business workspace scope (revenue, events, RSVP, archetype tabs, delete)
+7. MyLaneSurface.jsx — REWRITTEN: spinner-based navigation, header, copilot bar
+8. MyLane.jsx — updated: business profile fetching, simplified layout (spinner IS the surface)
+9. BusinessDashboard.jsx — DELETED (1,586 lines removed)
+10. pages.config.js — BusinessDashboard route removed
+11. DEC-131 appended to both DECISIONS.md files
+12. BUILD-PROTOCOL.md Phase 4 — mandatory mockup requirement added
+
+**New files:**
+- src/components/mylane/SpaceSpinner.jsx
+- src/components/mylane/PrioritySpinner.jsx
+- src/components/mylane/HomeFeed.jsx
+- src/components/mylane/FrequencyStation.jsx
+- src/components/mylane/DiscoverPosition.jsx
+
+**Deleted files:**
+- src/pages/BusinessDashboard.jsx
+
+**Decisions made:**
+- DEC-131: Spinner Navigation (full spec)
+- BUILD-PROTOCOL Phase 4: mandatory mockup before build
+
+**Key architecture decisions:**
+- HomeFeed data approximated from profile existence, not real-time entity queries
+- Business scope in MyLaneDrillView matches BusinessDashboard patterns exactly
+- Copilot bar is visual — real copilot still uses MylanePanel/MylaneMobileSheet
+- Zero-state: Home + Discover only (Dark Until Explored)
+
+**Next up:**
+1. Doron walkthrough — verify mobile swipe, audio ticks, drill-through
+2. Wire real urgency data into HomeFeed (entity queries for pending estimates, upcoming events, etc.)
+3. Base44 publish + agentScopedQuery update
+4. Meal Prep gate flip after walkthrough
+
+---

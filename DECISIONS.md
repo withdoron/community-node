@@ -425,3 +425,13 @@
 **Status:** Active — must ship before Randy league rollout
 
 ---
+
+### DEC-131: MyLane Spinner Navigation (2026-04-01)
+
+**Date:** 2026-04-01
+**Context:** Card grid navigation doesn't give the app identity or handle workspace growth. After two rounds of Hyphae consultation and mockup design sessions.
+**Decision:** Replace card grid with horizontal gallery-style spinner (SpaceSpinner). Home has tabbed vertical spinner (Attention | This week | Spaces). BusinessDashboard retired — business workspace renders through MyLaneDrillView. Artwork mockups mandatory in BUILD-PROTOCOL Phase 4.
+**Rationale:** Spinner gives distinct identity, handles growth, embodies Dark Until Explored, enables future auto-mode.
+**Status:** Active — built
+
+---

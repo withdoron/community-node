@@ -1,60 +1,56 @@
 # ACTIVE-CONTEXT.md
 
 > What's happening RIGHT NOW. This file gets overwritten each session, not appended.
-> Last updated: 2026-04-01 (session end)
+> Last updated: 2026-04-01 (spinner build session)
 
 ## Current Focus
 
-Meal Prep Phase 1 (Recipe Book) shipped and construction-gated. MCP confirmed working from Claude mobile. Architecture questions raised — broad vision audit needed before more detail work. App is public but space layering needs clarity.
+DEC-131 Spinner Navigation built. Card grid replaced with horizontal SpaceSpinner + tabbed Home vertical PrioritySpinner. BusinessDashboard retired. Business workspace ported to MyLaneDrillView. All workspaces accessible through spinner navigation.
+
+## What Just Shipped (2026-04-01)
+
+- **SpaceSpinner** — horizontal gallery picker, always visible, audio ticks, swipe + click
+- **PrioritySpinner** — vertical gallery for Home feed items, scale/opacity depth effect
+- **HomeFeed** — tabbed (Attention | This week | Spaces) with vertical spinner per tab
+- **FrequencyStation** — UI shell (play/pause, progress bar, track info — no real audio)
+- **DiscoverPosition** — available spaces + invite key placeholder
+- **MyLaneDrillView updated** — business workspace scope (revenue, events, RSVP, archetype tabs, delete)
+- **MyLaneSurface rewritten** — spinner-based, header with logo/frequency/directory/events/settings
+- **BusinessDashboard.jsx deleted** — removed from pages.config.js, all workspaces render through MyLane
+- **DEC-131 appended** to both DECISIONS.md files
+- **BUILD-PROTOCOL Phase 4** updated with mandatory mockup requirement
 
 ## Active Nodes
 
-| Node | Status | What Just Shipped | What's Next |
-|------|--------|-------------------|-------------|
-| Community Node | Production, 22 users | Meal Prep P1, repo cleanup, MCP mobile confirmed, door buttons for existing users | Broad vision audit, space architecture clarity |
-| Meal Prep | Phase 1 built (gated) | 3 entities, onboarding, recipe book, MyLane card, server functions, drill-through fix | Gold Standard audit, walkthrough, flip gate |
-| Contractor Daily | Build 17, stable | N/A | Dan Sikes field testing |
-| Property Pulse | Activated | N/A | North Bend coast trip |
-| Personal Finance | V1 | Category bug fixed | Batch categorization via Mylane |
-| Playmaker | ~98/100 | Invite flow bulletproof | Coach Rick, Randy league |
+| Node | Status | What Just Shipped |
+|------|--------|-------------------|
+| Community Node | Spinner build | SpaceSpinner, PrioritySpinner, HomeFeed, BusinessDashboard retirement |
+| Meal Prep | Phase 1 (gated) | Renders through spinner drill-through |
+| Contractor Daily | Build 17 | Renders through Jobsite spinner position |
+| Property Pulse | Activated | Renders through spinner drill-through |
+| Personal Finance | V1 | Renders through Finances spinner position |
+| Playmaker | ~98/100 | Renders through Team spinner position |
+
+## New File Paths
+
+| File | Purpose |
+|------|---------|
+| src/components/mylane/SpaceSpinner.jsx | Horizontal gallery spinner |
+| src/components/mylane/PrioritySpinner.jsx | Vertical gallery spinner |
+| src/components/mylane/HomeFeed.jsx | Home position with tabs |
+| src/components/mylane/FrequencyStation.jsx | Audio player UI shell |
+| src/components/mylane/DiscoverPosition.jsx | Discover position content |
 
 ## Current Blockers
 
-- Base44 publish needed — deploys getMyLaneProfiles server function with MealPrepProfile
-- agentScopedQuery update needed in Base44 dashboard (add meal-prep workspace)
-- Professional legal review (~$100) — needed before formal launch
-
-## Architecture Questions Open (NOT decided)
-
-These were raised this session and need gardener discussion before more building:
-- Do Field Service and Property Pulse sit inside the Business space?
-- Is the Business space the pricing gate container for revenue workspaces?
-- How do events flow across spaces? (cross-cutting service vs. per-space modules)
-- Where does the event creation module live architecturally?
-- Where is Recess as a user-facing space?
-- BusinessDashboard full retirement timeline
-- Broad vision audit needed before detail work — app is public but not flowing well
-
-## Upcoming Priorities
-
-1. Broad vision audit — get space architecture right before more detail work
-2. Hyphae opinion on space layering, event flow, BusinessDashboard retirement
-3. Doron: publish Base44, update agentScopedQuery, walkthrough Meal Prep
-4. Meal Prep Gold Standard polish pass + flip construction gate
-5. Mushroom artwork landing page
-6. Coach Rick invite retry
-7. Call Randy — demo + scheduling workflow
+- Base44 publish still needed — deploys getMyLaneProfiles server function
+- Business profile data in HomeFeed is approximated (no direct entity queries in components)
+- Frequency Station is UI shell only — no actual audio playback
 
 ## Key Context for Next Session
 
-- Meal Prep workspace key: meal_prep (underscore) in workspaceTypes, meal-prep (hyphen) in agentScopedWrite
-- Supplementary MealPrepProfile query in MyLane.jsx (workaround until server function publish)
-- BusinessDashboard does NOT render meal_prep — only works through MyLane drill view
-- Warm entry backfill done for FS + PM (were missing)
-- Repo paths confirmed: Spec-Repo/ (capitals), private/ (lowercase), locallane-spec-repo deleted
-- locallane-mcp has no git remote — needs adding
-- Safeway weekly flyer analyzed for meal prep concept validation
-- Food inflation and Iran war supply chain research completed
-- lanecountyrecess.com domain renews April 23, 2026
-- Traffic ticket ~$520 due ~4/7
-- Custody trial 5/19/2026
+- SpaceSpinner items are computed from profiles — zero-state shows only Home + Discover
+- HomeFeed priority data is approximated from profile existence, not real-time entity queries
+- BusinessDashboard is DELETED — any links to it will 404
+- The copilot bar in MyLaneSurface is visual only — real copilot uses MylanePanel/MylaneMobileSheet
+- Mockup CSS values from MOCKUP-SPINNER-V6-FINAL.html were the spec
