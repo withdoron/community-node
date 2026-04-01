@@ -147,6 +147,7 @@ export default function MyLane() {
   const [welcomeJustCompleted, setWelcomeJustCompleted] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [warmEntry, setWarmEntry] = useState(null); // { workspace, message, wizardPage } | null
+  const [copilotOpen, setCopilotOpen] = useState(false);
   const isMobile = useIsMobile();
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -381,8 +382,6 @@ export default function MyLane() {
   // ── Mylane: the organism's living surface ──
   // DEC-131: One surface, everything renders in place.
   // Desktop: copilot FAB → slide-in panel from right. Mobile: bottom sheet.
-
-  const [copilotOpen, setCopilotOpen] = useState(false);
 
   // Mushroom FAB SVG
   const mushroomIcon = (
