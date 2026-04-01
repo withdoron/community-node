@@ -20,12 +20,14 @@
 | 2026-03-31 (build) | Dark Until Explored 8-item build, polish, post-build audit | 9 | Hyphae prompt philosophy |
 | 2026-03-31 (afternoon) | Landing page, onboarding, nav, privacy/terms, credit analysis | 7 | DEC-127 through DEC-130 |
 | 2026-03-31 (audit) | Meal Prep readiness audit, doc sync | — | — |
+| 2026-04-01 | Repo cleanup, Meal Prep Phase 1 build, drill-through fixes, MCP mobile confirmed | 4 commits | — |
 
 ## Node Status
 
 | Node | Score | Status | Last Updated |
 |------|-------|--------|-------------|
-| Community Node | ~85/100 | Dark Until Explored shipped, 9 agents + Mycelia Superagent, MCP v2 live, 21 users | 2026-03-31 |
+| Community Node | ~85/100 | Meal Prep P1 shipped, repo cleaned, MCP mobile confirmed, 22 users | 2026-04-01 |
+| Meal Prep | Phase 1 (gated) | 3 entities, recipe book, MyLane card, construction gated | 2026-04-01 |
 | Field Service | ~92/100 | Documents + e-sign + FieldServiceAgent + agentScopedWrite live | 2026-03-30 |
 | Harvest Network | ~60/100 | Phase 2 shipped, map gated | 2026-03-27 |
 | Property Management | ~95/100 + agent | PropertyPulseAgent wired | 2026-03-29 |
