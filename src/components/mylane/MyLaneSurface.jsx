@@ -95,6 +95,7 @@ export default function MyLaneSurface({
   const [spinnerIndex, setSpinnerIndex] = useState(0);
   const [renderedData, setRenderedData] = useState(null);
   const [frequencyOpen, setFrequencyOpen] = useState(false);
+  const [frequencyPlaying, setFrequencyPlaying] = useState(false);
   const drillStartRef = useRef(null);
 
   const {
@@ -251,7 +252,11 @@ export default function MyLaneSurface({
           <span style={{ color: '#f59e0b', fontWeight: 500 }}>Local</span> Lane
         </div>
         <div className="flex items-center gap-3">
-          <FrequencyStationButton onClick={() => setFrequencyOpen(!frequencyOpen)} />
+          <FrequencyStationButton
+            isPlaying={frequencyPlaying}
+            onTogglePlay={() => setFrequencyPlaying(!frequencyPlaying)}
+            onToggleShade={() => setFrequencyOpen(!frequencyOpen)}
+          />
           <span
             className="cursor-pointer hover:text-slate-300"
             style={{ fontSize: 11, color: '#64748b', padding: '4px 0' }}
@@ -275,8 +280,13 @@ export default function MyLaneSurface({
         </div>
       </div>
 
-      {/* ─── Frequency Station (expandable) ─── */}
-      <FrequencyStation isOpen={frequencyOpen} />
+      {/* ─── Frequency Station (shade overlay — drops over content) ─── */}
+      <FrequencyStation
+        isOpen={frequencyOpen}
+        onClose={() => setFrequencyOpen(false)}
+        isPlaying={frequencyPlaying}
+        onTogglePlay={() => setFrequencyPlaying(!frequencyPlaying)}
+      />
 
       {/* ─── Separator ─── */}
       <div style={{ height: 1, background: '#111827' }} />
