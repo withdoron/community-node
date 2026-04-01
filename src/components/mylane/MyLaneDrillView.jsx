@@ -126,6 +126,13 @@ export default function MyLaneDrillView({
         isOwner: pmIsOwner,
       };
       break;
+    case 'meal-prep':
+      scope = {
+        profile,
+        currentUser,
+        onNavigateTab: setActiveTab,
+      };
+      break;
     default:
       break;
   }

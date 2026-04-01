@@ -239,7 +239,10 @@ export default function MyLane() {
           teams = teamRecords.filter((t) => t && t.status === 'active');
         }
         let mealPrepRaw = [];
-        try { mealPrepRaw = await base44.entities.MealPrepProfile.filter({ user_id: currentUser.id }); } catch {}
+        try {
+          const allMP = await base44.entities.MealPrepProfile.list();
+          mealPrepRaw = (Array.isArray(allMP) ? allMP : []).filter(p => String(p.user_id) === String(currentUser.id));
+        } catch {}
         return {
           success: true,
           financeProfiles: toArr(financeRaw),
@@ -261,7 +264,26 @@ export default function MyLane() {
   const ownedFSProfiles      = profileData?.ownedFSProfiles      ?? [];
   const propertyMgmtProfiles = profileData?.propertyMgmtProfiles ?? [];
   const allTeams             = profileData?.teams                 ?? [];
-  const mealPrepProfiles     = profileData?.mealPrepProfiles     ?? [];
+  const mealPrepFromServer   = profileData?.mealPrepProfiles     ?? [];
+
+  // Supplementary meal prep query — server function may not include mealPrepProfiles
+  // until re-published. Direct query ensures the card appears immediately.
+  const { data: mealPrepDirect = [] } = useQuery({
+    queryKey: ['mylane-mealprep-direct', currentUser?.id],
+    queryFn: async () => {
+      if (!currentUser?.id) return [];
+      try {
+        const all = await base44.entities.MealPrepProfile.list();
+        return (Array.isArray(all) ? all : []).filter(
+          (p) => String(p.user_id) === String(currentUser.id)
+        );
+      } catch { return []; }
+    },
+    enabled: !!currentUser?.id && mealPrepFromServer.length === 0,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const mealPrepProfiles = mealPrepFromServer.length > 0 ? mealPrepFromServer : mealPrepDirect;
 
   // Field Service profiles (joined as worker/sub) — client-only (localStorage)
   const { data: joinedFSProfiles = [] } = useQuery({
