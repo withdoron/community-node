@@ -148,6 +148,7 @@ export default function MyLane() {
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [warmEntry, setWarmEntry] = useState(null); // { workspace, message, wizardPage } | null
   const [copilotOpen, setCopilotOpen] = useState(false);
+  const [frequencyPlaying, setFrequencyPlaying] = useState(false);
   const isMobile = useIsMobile();
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -383,9 +384,9 @@ export default function MyLane() {
   // DEC-131: One surface, everything renders in place.
   // Desktop: copilot FAB → slide-in panel from right. Mobile: bottom sheet.
 
-  // Mushroom FAB SVG
-  const mushroomIcon = (
-    <svg viewBox="0 0 24 24" style={{ width: 16, height: 16 }} stroke="#f59e0b" fill="none" strokeWidth={1.5}>
+  // Mushroom FAB SVG — sized for FAB (22px per mockup spec)
+  const mushroomSvg = (size = 22) => (
+    <svg viewBox="0 0 24 24" style={{ width: size, height: size }} stroke="#f59e0b" fill="none" strokeWidth={1.5}>
       <circle cx="12" cy="10" r="6" />
       <line x1="12" y1="16" x2="12" y2="22" />
       <line x1="9" y1="19" x2="12" y2="16" />
@@ -395,6 +396,22 @@ export default function MyLane() {
 
   return (
     <div className="min-h-screen bg-slate-950">
+      {/* Holographic FAB keyframes */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes fabBreathe {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); border-color: rgba(245,158,11,0.6); }
+          50% { box-shadow: 0 0 12px 2px rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.9); }
+        }
+        @keyframes iconBreathe {
+          0%, 100% { transform: scale(1); opacity: 0.8; }
+          50% { transform: scale(1.06); opacity: 1; }
+        }
+        @keyframes holoSpin { to { rotate: 360deg; } }
+        .cop-fab-calm { animation: fabBreathe 4s ease-in-out infinite; }
+        .cop-fab-calm svg { animation: iconBreathe 4s ease-in-out infinite; }
+        .cop-fab-active { box-shadow: 0 0 16px 4px rgba(245,158,11,0.15); }
+      ` }} />
+
       {/* Main surface — full width, shrinks when copilot open on desktop */}
       <div
         className="transition-[margin-right] duration-300 ease-in-out"
@@ -411,6 +428,8 @@ export default function MyLane() {
           agentMessageRef={agentMessageRef}
           onDoorOpen={handleDoorOpen}
           warmEntryWizardPage={warmEntry?.wizardPage ?? null}
+          frequencyPlaying={frequencyPlaying}
+          onFrequencyToggle={() => setFrequencyPlaying((p) => !p)}
         />
       </div>
 
@@ -419,13 +438,14 @@ export default function MyLane() {
         <>
           {/* Slide-in panel from right */}
           <div
-            className="fixed top-0 h-full flex flex-col z-45"
+            className="fixed top-0 h-full flex flex-col"
             style={{
               width: 320,
               right: copilotOpen ? 0 : -320,
               borderLeft: '1px solid #111827',
               background: '#060b14',
               transition: 'right 0.3s ease',
+              zIndex: 45,
             }}
           >
             {/* Panel header */}
@@ -433,7 +453,7 @@ export default function MyLane() {
               <div className="flex items-center justify-center flex-shrink-0" style={{
                 width: 24, height: 24, borderRadius: '50%', border: '1.5px solid #f59e0b',
               }}>
-                {mushroomIcon}
+                {mushroomSvg(10)}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 500, color: '#f8fafc' }}>Mylane</div>
@@ -467,20 +487,31 @@ export default function MyLane() {
             </div>
           </div>
 
-          {/* Mushroom FAB — hidden when panel open */}
+          {/* Holographic mushroom FAB — calm when idle, active when copilot open */}
           <div
-            className="fixed z-44 cursor-pointer flex items-center justify-center"
+            className={copilotOpen ? 'cop-fab-active' : 'cop-fab-calm'}
             style={{
-              bottom: 20, right: 20, width: 44, height: 44,
-              borderRadius: '50%', border: '1.5px solid #f59e0b',
-              background: '#0a0f1a', transition: 'all 0.2s',
+              position: 'fixed', bottom: 20, right: 20, width: 44, height: 44,
+              borderRadius: '50%',
+              border: `1.5px solid ${copilotOpen ? 'rgba(245,158,11,1)' : 'rgba(245,158,11,0.6)'}`,
+              background: copilotOpen ? 'rgba(18,14,4,0.95)' : 'rgba(10,15,26,0.9)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', zIndex: 44, transition: 'opacity 0.2s',
               opacity: copilotOpen ? 0 : 1,
               pointerEvents: copilotOpen ? 'none' : 'auto',
             }}
             onClick={() => setCopilotOpen(true)}
             title="Open Mylane"
           >
-            {mushroomIcon}
+            {/* Holographic ring (active state) */}
+            {copilotOpen && (
+              <div style={{
+                position: 'absolute', inset: -2, borderRadius: '50%', pointerEvents: 'none', zIndex: -1,
+                background: 'conic-gradient(from 0deg, rgba(245,158,11,0.15), rgba(168,85,247,0.1), rgba(59,130,246,0.1), rgba(245,158,11,0.15))',
+                animation: 'holoSpin 3s linear infinite',
+              }} />
+            )}
+            {mushroomSvg(22)}
           </div>
         </>
       )}
@@ -488,20 +519,22 @@ export default function MyLane() {
       {/* ── Copilot: mobile bottom sheet ── */}
       {isMobile && (
         <>
-          {/* Mushroom FAB — mobile */}
+          {/* Holographic mushroom FAB — mobile */}
           {!mobileSheetOpen && (
             <div
-              className="fixed z-40 cursor-pointer flex items-center justify-center"
+              className="cop-fab-calm"
               style={{
-                bottom: 20, right: 20, width: 44, height: 44,
-                borderRadius: '50%', border: '1.5px solid #f59e0b',
-                background: '#0a0f1a',
+                position: 'fixed', bottom: 20, right: 20, width: 44, height: 44,
+                borderRadius: '50%', border: '1.5px solid rgba(245,158,11,0.6)',
+                background: 'rgba(10,15,26,0.9)', zIndex: 40,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer',
                 marginBottom: 'env(safe-area-inset-bottom, 0px)',
               }}
               onClick={() => setMobileSheetOpen(true)}
               title="Open Mylane"
             >
-              {mushroomIcon}
+              {mushroomSvg(22)}
             </div>
           )}
 

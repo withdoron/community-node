@@ -180,6 +180,8 @@ export default function MyLaneSurface({
   agentMessageRef,
   onDoorOpen = null,
   warmEntryWizardPage = null,
+  frequencyPlaying = false,
+  onFrequencyToggle,
 }) {
   const navigate = useNavigate();
   const profiles = { financeProfiles, fieldServiceProfiles, allTeams, propertyMgmtProfiles, mealPrepProfiles };
@@ -187,7 +189,6 @@ export default function MyLaneSurface({
   const [spinnerIndex, setSpinnerIndex] = useState(0);
   const [renderedData, setRenderedData] = useState(null);
   const [activeOverlay, setActiveOverlay] = useState(null); // 'freq' | 'dir' | 'evt' | 'acct' | null
-  const [frequencyPlaying, setFrequencyPlaying] = useState(false);
   const drillStartRef = useRef(null);
 
   const {
@@ -322,6 +323,11 @@ export default function MyLaneSurface({
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes overlaySlideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        /* Suppress page headers when rendered inside overlays */
+        .overlay-page-content > div > .mb-6:first-child { display: none; }
+        .overlay-page-content > div > .flex.items-center.gap-3.mb-6:first-child { display: none; }
+        /* Suppress auth gates and min-h-screen in overlay context */
+        .overlay-page-content > div { min-height: auto !important; background: transparent !important; }
       ` }} />
 
       {/* ─── Header ─── */}
@@ -398,6 +404,7 @@ export default function MyLaneSurface({
       </div>
 
       {/* ─── Overlay system ─── */}
+      {/* Page headers are suppressed inside overlays via [data-overlay] > div > .mb-6:first-child CSS */}
 
       {/* Frequency Station overlay */}
       <OverlayContainer isOpen={activeOverlay === 'freq'}>
@@ -414,7 +421,7 @@ export default function MyLaneSurface({
                   background: frequencyPlaying ? '#f59e0b33' : '#1e293b',
                   transition: 'background 0.2s',
                 }}
-                onClick={() => setFrequencyPlaying(!frequencyPlaying)}
+                onClick={() => onFrequencyToggle?.()}
               >
                 <div style={{
                   width: 18, height: 18, borderRadius: '50%', position: 'absolute', top: 2,
@@ -426,11 +433,13 @@ export default function MyLaneSurface({
             </div>
           </div>
 
-          {/* Render existing Frequency Station Phase 2 UI inline */}
+          {/* Phase 2 page inline — suppress its own header + auth gate via overlay-page-content class */}
           <React.Suspense fallback={
             <div style={{ textAlign: 'center', padding: 40, color: '#475569', fontSize: 12 }}>Loading...</div>
           }>
-            <FrequencyStationPage />
+            <div className="overlay-page-content">
+              <FrequencyStationPage />
+            </div>
           </React.Suspense>
         </div>
       </OverlayContainer>
@@ -440,7 +449,9 @@ export default function MyLaneSurface({
         <React.Suspense fallback={
           <div style={{ textAlign: 'center', padding: 40, color: '#475569', fontSize: 12 }}>Loading...</div>
         }>
-          <DirectoryPage />
+          <div className="overlay-page-content">
+            <DirectoryPage />
+          </div>
         </React.Suspense>
       </OverlayContainer>
 
@@ -449,7 +460,9 @@ export default function MyLaneSurface({
         <React.Suspense fallback={
           <div style={{ textAlign: 'center', padding: 40, color: '#475569', fontSize: 12 }}>Loading...</div>
         }>
-          <EventsPage />
+          <div className="overlay-page-content">
+            <EventsPage />
+          </div>
         </React.Suspense>
       </OverlayContainer>
 
