@@ -17,6 +17,9 @@ export default function MylanePanel({
   workspaceProfiles,
   isCollapsed,
   onToggle,
+  pendingMessage = null,
+  onPendingMessageSent = null,
+  mylane_tier = 'basic',
 }) {
   // If parent doesn't control collapsed state, manage locally
   const [localCollapsed, setLocalCollapsed] = useState(() => {
@@ -93,6 +96,9 @@ export default function MylanePanel({
             fillHeight={true}
             onMessage={onMessage}
             workspaceProfiles={workspaceProfiles}
+            pendingMessage={pendingMessage}
+            onPendingMessageSent={onPendingMessageSent}
+            mylane_tier={mylane_tier}
           />
         </div>
       </ResizablePanel>

@@ -5,7 +5,7 @@
  * Conversation render instructions trigger the same drill mechanism.
  */
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { DollarSign, Building2, Users, Store } from 'lucide-react';
 import MY_LANE_REGISTRY from '@/config/myLaneRegistry';
@@ -104,7 +104,10 @@ export default function MyLaneSurface({
   allTeams = [],
   propertyMgmtProfiles = [],
   agentMessageRef,
+  onDoorOpen = null,   // (workspace: 'team'|'business'|'finance') => void
+  warmEntryWizardPage = null, // when set, show "set up manually" link
 }) {
+  const navigate = useNavigate();
   const profiles = { financeProfiles, fieldServiceProfiles, allTeams, propertyMgmtProfiles };
   const [urgencyBoosts, setUrgencyBoosts] = useState({});
   const [drilledView, setDrilledView] = useState(null);
@@ -325,28 +328,36 @@ export default function MyLaneSurface({
                 <p className="text-slate-300">Your spaces will appear here</p>
                 <p className="text-slate-500 text-sm">Create something or join an invite to get started.</p>
               </div>
+
+              {/* "Set up manually" link when Mylane is introducing a space */}
+              {warmEntryWizardPage && (
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => navigate(createPageUrl(warmEntryWizardPage))}
+                    className="text-xs text-slate-500 hover:text-amber-500 transition-colors underline underline-offset-2"
+                  >
+                    Skip the intro — set up manually →
+                  </button>
+                </div>
+              )}
+
               <div className="flex flex-wrap justify-center gap-3">
-                <Link
-                  to={createPageUrl('TeamOnboarding')}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 text-sm hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
-                >
-                  <Users className="h-4 w-4" />
-                  Start a Team
-                </Link>
-                <Link
-                  to={createPageUrl('BusinessOnboarding')}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 text-sm hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
-                >
-                  <Store className="h-4 w-4" />
-                  List a Business
-                </Link>
-                <Link
-                  to={createPageUrl('FinanceOnboarding')}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 text-sm hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
-                >
-                  <DollarSign className="h-4 w-4" />
-                  Track Finances
-                </Link>
+                {[
+                  { workspace: 'team',     icon: Users,      label: 'Start a Team',    page: 'TeamOnboarding' },
+                  { workspace: 'business', icon: Store,      label: 'List a Business', page: 'BusinessOnboarding' },
+                  { workspace: 'finance',  icon: DollarSign, label: 'Track Finances',  page: 'FinanceOnboarding' },
+                ].map(({ workspace, icon: Icon, label, page }) => (
+                  <button
+                    key={workspace}
+                    type="button"
+                    onClick={() => onDoorOpen ? onDoorOpen(workspace) : navigate(createPageUrl(page))}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 text-sm hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
           )}

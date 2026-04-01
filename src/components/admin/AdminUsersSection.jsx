@@ -89,7 +89,8 @@ export default function AdminUsersSection({ businesses = [] }) {
     setEditData({
       status: user.data?.status || 'active',
       tier: user.data?.tier || 'free',
-      admin_notes: user.data?.admin_notes || ''
+      admin_notes: user.data?.admin_notes || '',
+      mylane_tier: user.data?.mylane_tier || 'basic',
     });
   };
 
@@ -387,6 +388,26 @@ export default function AdminUsersSection({ businesses = [] }) {
                         <SelectContent>
                           <SelectItem value="free">Free</SelectItem>
                           <SelectItem value="member">Member</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium text-slate-300 mb-1">
+                        Mylane Beta Access
+                      </Label>
+                      <Select
+                        value={editData.mylane_tier}
+                        onValueChange={(value) =>
+                          setEditData({ ...editData, mylane_tier: value })
+                        }
+                      >
+                        <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="basic">Basic (no agent)</SelectItem>
+                          <SelectItem value="beta">Beta (agent enabled)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

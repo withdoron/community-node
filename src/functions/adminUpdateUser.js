@@ -15,6 +15,7 @@ const ALLOWED_FIELDS = new Set([
   'status',
   'tier',
   'admin_notes',
+  'mylane_tier',
 ]);
 
 export async function adminUpdateUser(userId, updates) {

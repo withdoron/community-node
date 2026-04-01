@@ -11,6 +11,9 @@ export default function MylaneMobileSheet({
   currentUser,
   onMessage,
   workspaceProfiles,
+  pendingMessage = null,
+  onPendingMessageSent = null,
+  mylane_tier = 'basic',
 }) {
   // Animate in: mount first, then transition
   const [visible, setVisible] = useState(false);
@@ -51,6 +54,9 @@ export default function MylaneMobileSheet({
           fillHeight={true}
           onMessage={onMessage}
           workspaceProfiles={workspaceProfiles}
+          pendingMessage={pendingMessage}
+          onPendingMessageSent={onPendingMessageSent}
+          mylane_tier={mylane_tier}
         />
       </div>
     </div>

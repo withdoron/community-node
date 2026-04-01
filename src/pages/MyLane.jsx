@@ -12,6 +12,8 @@ import UpcomingEventsSection from '@/components/mylane/UpcomingEventsSection';
 import DiscoverSection from '@/components/mylane/DiscoverSection';
 import MylanePanel from '@/components/mylane/MylanePanel';
 import MylaneMobileSheet from '@/components/mylane/MylaneMobileSheet';
+import { useMylane } from '@/hooks/useMylane';
+import { WARM_ENTRY } from '@/config/warmEntryMessages';
 
 // ─── Inline Welcome — replaces the onboarding wizard ───────────────
 // Captures display name, sets onboarding_complete, reveals Mylane.
@@ -147,6 +149,7 @@ export default function MyLane() {
   const agentMessageRef = useRef(null);
   const [welcomeJustCompleted, setWelcomeJustCompleted] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [warmEntry, setWarmEntry] = useState(null); // { workspace, message, wizardPage } | null
   const [mylaneCollapsed, setMylaneCollapsed] = useState(() => {
     try { return localStorage.getItem('mylane_panel_collapsed') === 'true'; } catch { return false; }
   });
@@ -162,6 +165,21 @@ export default function MyLane() {
 
   const { isAppAdmin } = useRole();
   const { hasOwnedBusinesses } = useUserOwnedBusinesses(currentUser);
+  const { mylane_tier } = useMylane();
+
+  // Warm workspace entry — open copilot with an intro message for the tapped space
+  const handleDoorOpen = useCallback((workspace) => {
+    const config = WARM_ENTRY[workspace];
+    if (!config) return;
+    setWarmEntry({ workspace, message: config.userMessage, wizardPage: config.wizardPage });
+    // Open copilot immediately
+    if (isMobile) {
+      setMobileSheetOpen(true);
+    } else {
+      setMylaneCollapsed(false);
+      try { localStorage.setItem('mylane_panel_collapsed', 'false'); } catch {}
+    }
+  }, [isMobile]);
 
   const handleWelcomeComplete = useCallback(() => {
     setWelcomeJustCompleted(true);
@@ -285,7 +303,8 @@ export default function MyLane() {
     teams: allTeams,
     propertyMgmt: propertyMgmtProfiles,
     isAdmin: currentUser?.role === 'admin',
-  }), [fieldServiceProfiles, financeProfiles, allTeams, propertyMgmtProfiles, currentUser?.role]);
+    mylane_tier,
+  }), [fieldServiceProfiles, financeProfiles, allTeams, propertyMgmtProfiles, currentUser?.role, mylane_tier]);
 
   // ── Loading ──
   if (userLoading) {
@@ -350,6 +369,8 @@ export default function MyLane() {
         allTeams={allTeams}
         propertyMgmtProfiles={propertyMgmtProfiles}
         agentMessageRef={agentMessageRef}
+        onDoorOpen={handleDoorOpen}
+        warmEntryWizardPage={warmEntry?.wizardPage ?? null}
       />
 
       {/* Secondary: community content — upcoming events, directory discovery */}
@@ -414,6 +435,9 @@ export default function MyLane() {
           currentUser={currentUser}
           onMessage={(msg) => agentMessageRef.current?.(msg)}
           workspaceProfiles={workspaceProfiles}
+          pendingMessage={warmEntry?.message ?? null}
+          onPendingMessageSent={() => setWarmEntry((prev) => prev ? { ...prev, message: null } : null)}
+          mylane_tier={mylane_tier}
         />
       </div>
     );
@@ -431,6 +455,9 @@ export default function MyLane() {
           setMylaneCollapsed(collapsed);
           try { localStorage.setItem('mylane_panel_collapsed', String(collapsed)); } catch {}
         }}
+        pendingMessage={warmEntry?.message ?? null}
+        onPendingMessageSent={() => setWarmEntry((prev) => prev ? { ...prev, message: null } : null)}
+        mylane_tier={mylane_tier}
       >
         {cardContent}
       </MylanePanel>

@@ -159,7 +159,7 @@ function useVoiceInput({ onFinal, onInterim }) {
 
 // ─── Main Component ──────────────────────────────
 
-export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isOpen, onClose, docked = false, fillHeight = false, onMessage, workspaceProfiles = null }) {
+export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isOpen, onClose, docked = false, fillHeight = false, onMessage, workspaceProfiles = null, pendingMessage = null, onPendingMessageSent = null, mylane_tier = 'basic' }) {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -180,6 +180,8 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
   const unsubscribeRef = useRef(null);
   const userScrolledUpRef = useRef(false);
   const hasUserInteractedRef = useRef(false); // don't auto-scroll on mount
+  const pendingSentRef = useRef(false); // guard against double-send on re-mount
+  const handleSendMessageRef = useRef(null); // stable ref for pending message effect
 
   // ─── Smart scroll — don't auto-scroll on mount or if user scrolled up ──
   const scrollToBottom = useCallback((force = false) => {
@@ -505,6 +507,20 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
     [inputValue, conversationObj, isSending, attachment, clearAttachment]
   );
 
+  // Keep handleSendMessageRef current without triggering extra effects
+  useEffect(() => { handleSendMessageRef.current = handleSendMessage; }, [handleSendMessage]);
+
+  // Auto-send pendingMessage once conversation is ready (warm workspace entry)
+  useEffect(() => {
+    if (!pendingMessage || !conversationObj || isLoading || pendingSentRef.current) return;
+    pendingSentRef.current = true;
+    const timer = setTimeout(() => {
+      handleSendMessageRef.current?.(pendingMessage);
+      onPendingMessageSent?.();
+    }, 400); // small delay lets the panel settle before sending
+    return () => clearTimeout(timer);
+  }, [pendingMessage, conversationObj, isLoading, onPendingMessageSent]);
+
   // ─── Voice Input ───────────────────────────────
   const { isListening, startListening, stopListening } = useVoiceInput({
     onFinal: (transcript) => {
@@ -553,7 +569,9 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
       // Tier gating: for now, show write chips if admin or profiles exist
       // (subscription_tier is defaulted to "full" pre-revenue)
       if (chip.write && !isAdmin) {
-        // Check tier on relevant profile if available
+        // Beta/admin users always get write chips
+        if (mylane_tier === 'beta') return true;
+        // Basic users: check workspace profile tier
         if (chip.workspace && workspaceProfiles) {
           const profileMap = {
             'field-service': workspaceProfiles.fieldService,
