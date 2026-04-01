@@ -1,14 +1,17 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { Loader2, Store, ArrowRight } from 'lucide-react';
+import { Loader2, Store, ArrowRight, MessageCircle } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useRole } from '@/hooks/useRole';
 import { useUserOwnedBusinesses } from '@/hooks/useUserOwnedBusinesses';
+import { useIsMobile } from '@/hooks/use-mobile';
 import MyLaneSurface from '@/components/mylane/MyLaneSurface';
 import UpcomingEventsSection from '@/components/mylane/UpcomingEventsSection';
 import DiscoverSection from '@/components/mylane/DiscoverSection';
+import MylanePanel from '@/components/mylane/MylanePanel';
+import MylaneMobileSheet from '@/components/mylane/MylaneMobileSheet';
 
 // ─── Inline Welcome — replaces the onboarding wizard ───────────────
 // Captures display name, sets onboarding_complete, reveals Mylane.
@@ -143,6 +146,11 @@ export default function MyLane() {
   const queryClient = useQueryClient();
   const agentMessageRef = useRef(null);
   const [welcomeJustCompleted, setWelcomeJustCompleted] = useState(false);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [mylaneCollapsed, setMylaneCollapsed] = useState(() => {
+    try { return localStorage.getItem('mylane_panel_collapsed') === 'true'; } catch { return false; }
+  });
+  const isMobile = useIsMobile();
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -158,6 +166,29 @@ export default function MyLane() {
   const handleWelcomeComplete = useCallback(() => {
     setWelcomeJustCompleted(true);
   }, []);
+
+  // Suppress Layout Feedback FAB — Mylane is the feedback channel on this page
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('agent-active', { detail: true }));
+    return () => {
+      window.dispatchEvent(new CustomEvent('agent-active', { detail: false }));
+    };
+  }, []);
+
+  // Auto-open copilot on first visit (flag set by InlineWelcome onSuccess)
+  useEffect(() => {
+    try {
+      const flag = localStorage.getItem('mylane_first_visit');
+      if (flag) {
+        localStorage.removeItem('mylane_first_visit');
+        if (isMobile) {
+          setMobileSheetOpen(true);
+        } else {
+          setMylaneCollapsed(false);
+        }
+      }
+    } catch { /* ignore */ }
+  }, [isMobile]);
 
   // ── Workspace profile queries (feed MyLaneSurface) ──
 
@@ -259,6 +290,15 @@ export default function MyLane() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // ── Copilot workspace context ──
+  const workspaceProfiles = useMemo(() => ({
+    fieldService: fieldServiceProfiles,
+    finance: financeProfiles,
+    teams: allTeams,
+    propertyMgmt: propertyMgmtProfiles,
+    isAdmin: currentUser?.role === 'admin',
+  }), [fieldServiceProfiles, financeProfiles, allTeams, propertyMgmtProfiles, currentUser?.role]);
+
   // ── Loading ──
   if (userLoading) {
     return (
@@ -309,50 +349,103 @@ export default function MyLane() {
   }
 
   // ── Mylane: the organism's living surface ──
-  return (
-    <div className="min-h-screen bg-slate-950">
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
 
-        {/* Primary: MyLaneSurface — your spaces, vitality-dimmed, organically ordered */}
-        <MyLaneSurface
-          currentUser={currentUser}
-          financeProfiles={financeProfiles}
-          fieldServiceProfiles={fieldServiceProfiles}
-          allTeams={allTeams}
-          propertyMgmtProfiles={propertyMgmtProfiles}
-          agentMessageRef={agentMessageRef}
-        />
+  // Shared card content — same on mobile and desktop
+  const cardContent = (
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
 
-        {/* Secondary: community content — upcoming events, directory discovery */}
-        <UpcomingEventsSection currentUser={currentUser} />
-        <DiscoverSection />
+      {/* Primary: MyLaneSurface — your spaces, vitality-dimmed, organically ordered */}
+      <MyLaneSurface
+        currentUser={currentUser}
+        financeProfiles={financeProfiles}
+        fieldServiceProfiles={fieldServiceProfiles}
+        allTeams={allTeams}
+        propertyMgmtProfiles={propertyMgmtProfiles}
+        agentMessageRef={agentMessageRef}
+      />
 
-        {/* Business CTA for non-business-owners */}
-        {!hasOwnedBusinesses && (
-          <section>
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center">
-                  <Store className="h-5 w-5 text-amber-500" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-lg font-semibold text-slate-100">Run a local business?</h2>
-                  <p className="text-slate-400 text-sm mt-1">
-                    List your business, create events, and connect with your community.
-                  </p>
-                  <Link
-                    to={createPageUrl('BusinessOnboarding')}
-                    className="inline-flex items-center gap-1.5 mt-4 text-amber-500 hover:text-amber-400 font-medium text-sm border border-amber-500 hover:border-amber-400 rounded-lg px-4 py-2 transition-colors"
-                  >
-                    Get Started
-                    <span aria-hidden>→</span>
-                  </Link>
-                </div>
+      {/* Secondary: community content — upcoming events, directory discovery */}
+      <UpcomingEventsSection currentUser={currentUser} />
+      <DiscoverSection />
+
+      {/* Business CTA for non-business-owners */}
+      {!hasOwnedBusinesses && (
+        <section>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center">
+                <Store className="h-5 w-5 text-amber-500" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg font-semibold text-slate-100">Run a local business?</h2>
+                <p className="text-slate-400 text-sm mt-1">
+                  List your business, create events, and connect with your community.
+                </p>
+                <Link
+                  to={createPageUrl('BusinessOnboarding')}
+                  className="inline-flex items-center gap-1.5 mt-4 text-amber-500 hover:text-amber-400 font-medium text-sm border border-amber-500 hover:border-amber-400 rounded-lg px-4 py-2 transition-colors"
+                >
+                  Get Started
+                  <span aria-hidden>→</span>
+                </Link>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
+      )}
+    </div>
+  );
+
+  if (isMobile) {
+    // Mobile: scrollable card grid + FAB + full-screen sheet
+    return (
+      <div className="min-h-screen bg-slate-950">
+        {cardContent}
+
+        {/* Mylane Beta FAB */}
+        {!mobileSheetOpen && (
+          <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-1.5">
+            <span className="text-xs text-amber-500/70 font-medium px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+              Mylane Beta
+            </span>
+            <button
+              type="button"
+              onClick={() => setMobileSheetOpen(true)}
+              className="w-14 h-14 rounded-full bg-amber-500 hover:bg-amber-400 text-black shadow-lg shadow-amber-500/20 flex items-center justify-center transition-all hover:scale-105"
+              style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
+              title="Open Mylane"
+            >
+              <MessageCircle className="h-6 w-6" />
+            </button>
+          </div>
         )}
+
+        <MylaneMobileSheet
+          isOpen={mobileSheetOpen}
+          onClose={() => setMobileSheetOpen(false)}
+          currentUser={currentUser}
+          onMessage={(msg) => agentMessageRef.current?.(msg)}
+          workspaceProfiles={workspaceProfiles}
+        />
       </div>
+    );
+  }
+
+  // Desktop: resizable side panel — Mylane copilot alongside card grid
+  return (
+    <div className="h-[calc(100vh-64px)] bg-slate-950">
+      <MylanePanel
+        currentUser={currentUser}
+        onMessage={(msg) => agentMessageRef.current?.(msg)}
+        workspaceProfiles={workspaceProfiles}
+        isCollapsed={mylaneCollapsed}
+        onToggle={(collapsed) => {
+          setMylaneCollapsed(collapsed);
+          try { localStorage.setItem('mylane_panel_collapsed', String(collapsed)); } catch {}
+        }}
+      >
+        {cardContent}
+      </MylanePanel>
     </div>
   );
 }
