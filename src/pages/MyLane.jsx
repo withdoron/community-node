@@ -190,58 +190,58 @@ export default function MyLane() {
     } catch { /* ignore */ }
   }, [isMobile]);
 
-  // ── Workspace profile queries (feed MyLaneSurface) ──
+  // ── Workspace profile queries (DEC-130: single server function call) ──
+  // getMyLaneProfiles combines 4 profile entity queries into 1 server function call.
+  // Target: ~2 integration credits per page load (down from ~17).
 
-  // Teams: find memberships → resolve team records
-  const { data: myTeamMemberships = [] } = useQuery({
-    queryKey: ['mylane-team-memberships', currentUser?.id],
+  const { data: profileData } = useQuery({
+    queryKey: ['mylane-profiles-v2', currentUser?.id],
     queryFn: async () => {
-      if (!currentUser?.id) return [];
-      const result = await base44.entities.TeamMember.filter({ user_id: currentUser.id, status: 'active' });
-      return Array.isArray(result) ? result : result ? [result] : [];
-    },
-    enabled: !!currentUser?.id,
-    staleTime: 5 * 60 * 1000, // 5 min — workspace data doesn't change every second
-  });
-
-  const teamIds = [...new Set(myTeamMemberships.map((m) => m.team_id).filter(Boolean))];
-
-  const { data: allTeams = [] } = useQuery({
-    queryKey: ['mylane-teams', teamIds.sort().join(',')],
-    queryFn: async () => {
-      if (teamIds.length === 0) return [];
-      const teams = await Promise.all(teamIds.map((id) => base44.entities.Team.get(id)));
-      return teams.filter((t) => t && t.status === 'active');
-    },
-    enabled: teamIds.length > 0,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Finance profiles
-  const { data: financeProfiles = [] } = useQuery({
-    queryKey: ['mylane-finance-profiles', currentUser?.id],
-    queryFn: async () => {
-      if (!currentUser?.id) return [];
-      const list = await base44.entities.FinancialProfile.filter({ user_id: currentUser.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
-    },
-    enabled: !!currentUser?.id,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Field Service profiles (owned)
-  const { data: ownedFSProfiles = [] } = useQuery({
-    queryKey: ['mylane-fs-profiles', currentUser?.id],
-    queryFn: async () => {
-      if (!currentUser?.id) return [];
-      const list = await base44.entities.FieldServiceProfile.filter({ user_id: currentUser.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      if (!currentUser?.id) return null;
+      try {
+        const result = await base44.functions.invoke('getMyLaneProfiles', {
+          user_id: currentUser.id,
+        });
+        if (result?.success) return result;
+        throw new Error(result?.error || 'Server function failed');
+      } catch (err) {
+        // Fallback: individual queries if server function unavailable/blocked
+        const [teamMembersRaw, financeRaw, fsRaw, pmRaw] = await Promise.all([
+          base44.entities.TeamMember.filter({ user_id: currentUser.id, status: 'active' }),
+          base44.entities.FinancialProfile.filter({ user_id: currentUser.id }),
+          base44.entities.FieldServiceProfile.filter({ user_id: currentUser.id }),
+          base44.entities.PMPropertyProfile.filter({ user_id: currentUser.id }),
+        ]);
+        const toArr = (r) => Array.isArray(r) ? r : r ? [r] : [];
+        const memberships = toArr(teamMembersRaw);
+        const teamIds = [...new Set(memberships.map((m) => m.team_id).filter(Boolean))];
+        let teams = [];
+        if (teamIds.length > 0) {
+          const teamRecords = await Promise.all(teamIds.map((id) => base44.entities.Team.get(id)));
+          teams = teamRecords.filter((t) => t && t.status === 'active');
+        }
+        return {
+          success: true,
+          financeProfiles: toArr(financeRaw),
+          ownedFSProfiles: toArr(fsRaw),
+          propertyMgmtProfiles: toArr(pmRaw),
+          teamMemberships: memberships,
+          teams,
+          _fallback: true,
+        };
+      }
     },
     enabled: !!currentUser?.id,
     staleTime: 5 * 60 * 1000,
   });
 
-  // Field Service profiles (joined as worker/sub)
+  // Destructure profile data
+  const financeProfiles      = profileData?.financeProfiles      ?? [];
+  const ownedFSProfiles      = profileData?.ownedFSProfiles      ?? [];
+  const propertyMgmtProfiles = profileData?.propertyMgmtProfiles ?? [];
+  const allTeams             = profileData?.teams                 ?? [];
+
+  // Field Service profiles (joined as worker/sub) — client-only (localStorage)
   const { data: joinedFSProfiles = [] } = useQuery({
     queryKey: ['mylane-fs-joined', currentUser?.id],
     queryFn: async () => {
@@ -277,18 +277,6 @@ export default function MyLane() {
     joinedFSProfiles.forEach((jp) => { if (!ownedIds.has(jp.id)) merged.push(jp); });
     return merged;
   }, [ownedFSProfiles, joinedFSProfiles]);
-
-  // Property Management profiles
-  const { data: propertyMgmtProfiles = [] } = useQuery({
-    queryKey: ['mylane-pm-profiles', currentUser?.id],
-    queryFn: async () => {
-      if (!currentUser?.id) return [];
-      const list = await base44.entities.PMPropertyProfile.filter({ user_id: currentUser.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
-    },
-    enabled: !!currentUser?.id,
-    staleTime: 5 * 60 * 1000,
-  });
 
   // ── Copilot workspace context ──
   const workspaceProfiles = useMemo(() => ({
