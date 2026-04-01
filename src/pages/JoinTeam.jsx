@@ -204,6 +204,7 @@ export default function JoinTeam() {
       const roleLabel = member.role === 'parent' ? 'parent' : 'coach';
       toast.success(`Joined as ${member.jersey_name || roleLabel}!`);
       localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
+      try { localStorage.setItem('mylane_welcome', JSON.stringify({ space: 'team', name: team.name })); } catch {}
       await ensureOnboardingComplete();
       navigate(createPageUrl('MyLane'), { replace: true });
     } catch (err) {
@@ -262,6 +263,7 @@ export default function JoinTeam() {
 
       toast.success(parentSelectedIds.size === 1 ? "You've joined as a parent." : `Linked ${parentSelectedIds.size} children.`);
       localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
+      try { localStorage.setItem('mylane_welcome', JSON.stringify({ space: 'team', name: team.name })); } catch {}
       await ensureOnboardingComplete();
       navigate(createPageUrl('MyLane'), { replace: true });
     } catch (err) {
@@ -296,6 +298,7 @@ export default function JoinTeam() {
 
       toast.success("You've joined as a coach!");
       localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
+      try { localStorage.setItem('mylane_welcome', JSON.stringify({ space: 'team', name: team.name })); } catch {}
       await ensureOnboardingComplete();
       navigate(createPageUrl('MyLane'), { replace: true });
     } catch (err) {

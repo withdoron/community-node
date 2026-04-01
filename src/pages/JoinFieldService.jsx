@@ -90,6 +90,7 @@ export default function JoinFieldService() {
           localStorage.setItem('joinedFSWorkspaces', JSON.stringify(existing));
         }
       } catch (_) {}
+      try { localStorage.setItem('mylane_welcome', JSON.stringify({ space: 'field-service', name: response.workspace_name })); } catch {}
       setClaimedResult(response);
       toast.success('You\'re on the team!');
     } catch (err) {

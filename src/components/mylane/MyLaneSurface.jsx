@@ -189,6 +189,13 @@ export default function MyLaneSurface({
   const [spinnerIndex, setSpinnerIndex] = useState(0);
   const [renderedData, setRenderedData] = useState(null);
   const [activeOverlay, setActiveOverlay] = useState(null); // 'freq' | 'dir' | 'evt' | 'acct' | null
+  const [welcomeData, setWelcomeData] = useState(() => {
+    try {
+      const raw = localStorage.getItem('mylane_welcome');
+      if (raw) { localStorage.removeItem('mylane_welcome'); return JSON.parse(raw); }
+    } catch {}
+    return null;
+  });
   const drillStartRef = useRef(null);
 
   const {
@@ -283,6 +290,19 @@ export default function MyLaneSurface({
   // User initial for avatar
   const userInitial = currentUser?.display_name?.[0] || currentUser?.full_name?.[0] || currentUser?.email?.[0] || '?';
 
+  // Space label map for welcome card
+  const WELCOME_LABELS = {
+    'team': 'team', 'field-service': 'jobsite', 'property-pulse': 'property',
+    'finance': 'finances', 'meal-prep': 'kitchen', 'business': 'business',
+  };
+
+  // Navigate spinner to a space by ID (for welcome card)
+  const goToSpace = useCallback((spaceId) => {
+    const idx = spaceItems.findIndex((s) => s.id === spaceId);
+    if (idx >= 0) handleSpinnerSelect(idx);
+    setWelcomeData(null);
+  }, [spaceItems, handleSpinnerSelect]);
+
   // Render workspace content
   const renderContent = () => {
     if (renderedData) {
@@ -294,10 +314,53 @@ export default function MyLaneSurface({
     const space = currentSpace;
     if (space.id === 'home') {
       return (
-        <HomeFeed
-          profiles={profiles} spaceItems={spaceItems}
-          onOpenSpace={handleOpenSpace} neighborCount={neighborCount}
-        />
+        <>
+          {/* Post-join welcome card — shows once after invite accept */}
+          {welcomeData && (
+            <div
+              style={{
+                margin: '0 20px 12px', padding: '14px 16px',
+                background: '#0f172a', border: '1px solid #1e293b',
+                borderRadius: 10,
+              }}
+            >
+              <div className="flex items-start justify-between">
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: '#f8fafc' }}>
+                    Welcome to {welcomeData.name}!
+                  </div>
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                    Swipe the spinner to find your {WELCOME_LABELS[welcomeData.space] || 'space'}.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => goToSpace(welcomeData.space)}
+                    style={{
+                      marginTop: 8, fontSize: 12, fontWeight: 500, color: '#f59e0b',
+                      background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                    }}
+                  >
+                    Go to {WELCOME_LABELS[welcomeData.space] || 'space'} →
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setWelcomeData(null)}
+                  style={{
+                    background: 'none', border: 'none', padding: '2px 4px',
+                    cursor: 'pointer', color: '#475569', fontSize: 14,
+                  }}
+                >
+                  <X style={{ width: 14, height: 14 }} strokeWidth={2} />
+                </button>
+              </div>
+            </div>
+          )}
+          <HomeFeed
+            profiles={profiles} spaceItems={spaceItems}
+            onOpenSpace={handleOpenSpace} neighborCount={neighborCount}
+          />
+        </>
       );
     }
     if (space.id === 'discover') {
