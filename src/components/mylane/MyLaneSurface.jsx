@@ -22,6 +22,7 @@ import DiscoverPosition from './DiscoverPosition';
 import { parseRenderInstruction } from './parseRenderInstruction';
 import { renderEntityView } from './renderEntityView';
 import { useFrequency } from '@/contexts/FrequencyContext';
+import CommandBar from './CommandBar';
 
 // Lazy-load overlay content — these are full page components rendered inline
 const DirectoryPage = lazy(() => import('@/pages/Directory'));
@@ -96,6 +97,10 @@ function OverlayContainer({ isOpen, keepMounted = false, children }) {
 // Settings renders inline. Legal pages open in new tab. Nothing navigates away.
 function AccountOverlay({ currentUser, onClose }) {
   const [showSettings, setShowSettings] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    try { return localStorage.getItem('ll_theme') || 'dark'; } catch { return 'dark'; }
+  });
+  const THEME_LABELS = { dark: 'Gold Standard', light: 'Cloud', fallout: 'Fallout' };
   const [soundOn, setSoundOn] = useState(() => {
     try { return localStorage.getItem('mylane_sound') !== '0'; } catch { return true; }
   });
@@ -197,22 +202,22 @@ function AccountOverlay({ currentUser, onClose }) {
           className="flex items-center gap-2.5 cursor-pointer rounded-lg"
           style={{ padding: '10px 12px', transition: 'background 0.15s' }}
           onClick={() => {
-            const current = document.documentElement.getAttribute('data-theme') || 'dark';
             const THEMES = ['dark', 'light', 'fallout'];
-            const nextIdx = (THEMES.indexOf(current) + 1) % THEMES.length;
+            const nextIdx = (THEMES.indexOf(currentTheme) + 1) % THEMES.length;
             const next = THEMES[nextIdx];
             document.documentElement.setAttribute('data-theme', next);
             try { localStorage.setItem('ll_theme', next); } catch {}
+            setCurrentTheme(next);
           }}
           onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ll-bg-elevated)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
         >
-          <span style={{ fontSize: 16, flexShrink: 0, width: 16, textAlign: 'center' }}>🎨</span>
+          <svg style={{ width: 16, height: 16, flexShrink: 0 }} viewBox="0 0 24 24" fill="none" stroke="var(--ll-text-dim)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" />
+          </svg>
           <div>
             <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)' }}>Theme</div>
-            <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>
-              {(() => { const t = typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') : 'dark'; return { dark: 'Gold Standard', light: 'Cloud', fallout: 'Fallout' }[t || 'dark'] || 'Gold Standard'; })()}
-            </div>
+            <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>{THEME_LABELS[currentTheme] || 'Gold Standard'}</div>
           </div>
         </div>
       </div>
@@ -284,6 +289,7 @@ export default function MyLaneSurface({
 
   const [spinnerIndex, setSpinnerIndex] = useState(0);
   const [renderedData, setRenderedData] = useState(null);
+  const [commandResult, setCommandResult] = useState(null); // { type: 'text'|'data', text?, entity?, data?, ... }
   const [activeOverlay, setActiveOverlay] = useState(null); // 'freq' | 'dir' | 'evt' | 'acct' | null
   const [welcomeData, setWelcomeData] = useState(() => {
     try {
@@ -680,11 +686,59 @@ export default function MyLaneSurface({
         />
 
         {/* Content area — width responds to container queries */}
-        <div className="flex-1 overflow-y-auto" style={{ padding: '8px var(--ll-content-pad, 24px)' }}>
+        <div className="flex-1 overflow-y-auto" style={{ padding: '8px var(--ll-content-pad, 24px)', paddingBottom: 60 }}>
           <div style={{ maxWidth: 'var(--ll-content-max, 768px)' }}>
+
+            {/* Command result card — renders above content when present */}
+            {commandResult && (
+              <div style={{
+                marginBottom: 12, padding: '14px 16px',
+                background: 'var(--ll-bg-elevated)',
+                border: '1px solid var(--ll-border)',
+                borderRadius: 10, position: 'relative',
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setCommandResult(null)}
+                  style={{
+                    position: 'absolute', top: 8, right: 8,
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--ll-text-dim)', padding: 4,
+                  }}
+                >
+                  <X style={{ width: 14, height: 14 }} strokeWidth={2} />
+                </button>
+
+                {commandResult.type === 'text' && (
+                  <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)', lineHeight: 1.5, paddingRight: 24 }}>
+                    {commandResult.text}
+                  </div>
+                )}
+
+                {commandResult.type === 'data' && renderEntityView({
+                  data: commandResult.data,
+                  entity: commandResult.entity,
+                  workspace: commandResult.workspace,
+                  displayHint: commandResult.displayHint,
+                })}
+              </div>
+            )}
+
             {renderContent()}
           </div>
         </div>
+
+        {/* ─── Command Bar (bottom-docked) ─── */}
+        <CommandBar
+          agentName="MyLane"
+          userId={currentUser?.id}
+          onRenderResult={setCommandResult}
+          onNavigate={(nav) => {
+            const idx = spaceItems.findIndex((s) => s.id === nav.workspace);
+            if (idx >= 0) handleSpinnerSelect(idx);
+          }}
+          mylane_tier="basic"
+        />
       </div>
     </div>
   );
