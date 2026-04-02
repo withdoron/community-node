@@ -269,6 +269,68 @@ button:focus-visible {
   --ll-bar-life: #00ff41;
 }
 
+/* ─── Fallout CRT Effects ───────────────────────────────────────────────────
+ * Scanlines, phosphor glow, vignette — makes Fallout feel like a real terminal.
+ * All compositor-friendly (opacity, box-shadow, pseudo-elements). No layout cost.
+ * Scoped entirely to [data-theme="fallout"].
+ */
+
+/* Phosphor glow on text */
+[data-theme="fallout"] h1,
+[data-theme="fallout"] h2,
+[data-theme="fallout"] h3,
+[data-theme="fallout"] h4,
+[data-theme="fallout"] p,
+[data-theme="fallout"] span,
+[data-theme="fallout"] a,
+[data-theme="fallout"] button,
+[data-theme="fallout"] label,
+[data-theme="fallout"] li {
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.3), 0 0 2px rgba(0, 255, 65, 0.15);
+}
+
+/* Dim the glow on muted/secondary text to maintain hierarchy */
+[data-theme="fallout"] .text-muted-foreground,
+[data-theme="fallout"] .text-foreground-soft,
+[data-theme="fallout"] .text-muted-foreground\/70,
+[data-theme="fallout"] .text-muted-foreground\/50 {
+  text-shadow: 0 0 4px rgba(0, 255, 65, 0.1);
+}
+
+/* Scanlines + vignette overlay — fixed fullscreen, non-interactive */
+[data-theme="fallout"] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background:
+    /* Scanlines: 2px lines repeating */
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 2px,
+      rgba(0, 0, 0, 0.06) 2px,
+      rgba(0, 0, 0, 0.06) 4px
+    ),
+    /* Vignette: darkened corners */
+    radial-gradient(
+      ellipse at center,
+      transparent 55%,
+      rgba(0, 0, 0, 0.45) 100%
+    );
+}
+
+/* Subtle screen flicker — 5s cycle, barely perceptible */
+@keyframes crt-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.985; }
+}
+
+[data-theme="fallout"] body {
+  animation: crt-flicker 5s ease-in-out infinite;
+}
+
 /* ─── THEME SYSTEM ──────────────────────────────────────────────────────────
  *
  * HOW TO ADD A NEW THEME:
