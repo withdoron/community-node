@@ -33,23 +33,23 @@ export default function SettlementFinalizeDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <AlertDialogContent className="bg-slate-900 border border-slate-800">
+      <AlertDialogContent className="bg-card border border-border">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-slate-100">
+          <AlertDialogTitle className="text-foreground">
             Finalize settlement?
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-slate-400">
+          <AlertDialogDescription className="text-muted-foreground">
             Finalize the {monthLabel} settlement for {name}? This locks the
             settlement and cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-slate-100">
+          <AlertDialogCancel className="bg-secondary border-border text-foreground-soft hover:bg-surface hover:text-foreground">
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleFinalize}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
           >
             Finalize
           </AlertDialogAction>

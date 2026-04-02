@@ -49,9 +49,9 @@ function StatsOverview({ isAdmin }) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <Card key={i} className="p-4 bg-slate-800 border-slate-700 animate-pulse">
-            <div className="h-8 bg-slate-700 rounded w-12 mb-2" />
-            <div className="h-4 bg-slate-700 rounded w-20" />
+          <Card key={i} className="p-4 bg-secondary border-border animate-pulse">
+            <div className="h-8 bg-surface rounded w-12 mb-2" />
+            <div className="h-4 bg-surface rounded w-20" />
           </Card>
         ))}
       </div>
@@ -60,21 +60,21 @@ function StatsOverview({ isAdmin }) {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      <Card className="p-4 bg-slate-800 border-slate-700">
-        <p className="text-2xl font-bold text-amber-400">{stats.total}</p>
-        <p className="text-xs text-slate-400 mt-1">Total Workspaces</p>
+      <Card className="p-4 bg-secondary border-border">
+        <p className="text-2xl font-bold text-primary-hover">{stats.total}</p>
+        <p className="text-xs text-muted-foreground mt-1">Total Workspaces</p>
       </Card>
-      <Card className="p-4 bg-slate-800 border-slate-700">
+      <Card className="p-4 bg-secondary border-border">
         <p className="text-2xl font-bold text-emerald-400">{stats.active}</p>
-        <p className="text-xs text-slate-400 mt-1">Active</p>
+        <p className="text-xs text-muted-foreground mt-1">Active</p>
       </Card>
-      <Card className="p-4 bg-slate-800 border-slate-700">
-        <p className="text-2xl font-bold text-slate-100">{stats.totalEstimates}</p>
-        <p className="text-xs text-slate-400 mt-1">Total Estimates</p>
+      <Card className="p-4 bg-secondary border-border">
+        <p className="text-2xl font-bold text-foreground">{stats.totalEstimates}</p>
+        <p className="text-xs text-muted-foreground mt-1">Total Estimates</p>
       </Card>
-      <Card className="p-4 bg-slate-800 border-slate-700">
-        <p className="text-2xl font-bold text-slate-100">{stats.totalProjects}</p>
-        <p className="text-xs text-slate-400 mt-1">Total Projects</p>
+      <Card className="p-4 bg-secondary border-border">
+        <p className="text-2xl font-bold text-foreground">{stats.totalProjects}</p>
+        <p className="text-xs text-muted-foreground mt-1">Total Projects</p>
       </Card>
     </div>
   );
@@ -110,38 +110,38 @@ function FeatureTogglesSection() {
 
   if (isLoading) {
     return (
-      <Card className="p-6 bg-slate-900 border-slate-700">
+      <Card className="p-6 bg-card border-border">
         <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </Card>
     );
   }
 
   return (
-    <Card className="p-6 bg-slate-900 border-slate-700">
+    <Card className="p-6 bg-card border-border">
       <div className="flex items-center gap-2 mb-4">
-        <ToggleLeft className="h-5 w-5 text-amber-500" />
-        <h3 className="text-lg font-semibold text-white">Default Feature Toggles</h3>
+        <ToggleLeft className="h-5 w-5 text-primary" />
+        <h3 className="text-lg font-semibold text-foreground">Default Feature Toggles</h3>
       </div>
-      <p className="text-sm text-slate-400 mb-6">
+      <p className="text-sm text-muted-foreground mb-6">
         These defaults are applied when a new Field Service workspace is created. Workspace owners can customize them after creation.
       </p>
       <div className="space-y-3">
         {toggles.map((toggle) => (
           <div
             key={toggle.key}
-            className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-700"
+            className="flex items-center justify-between p-3 bg-secondary rounded-lg border border-border"
           >
             <div className="flex-1 min-w-0 mr-3">
-              <Label className="font-medium text-slate-100">{toggle.label}</Label>
-              <p className="text-xs text-slate-400 mt-0.5">{toggle.description}</p>
+              <Label className="font-medium text-foreground">{toggle.label}</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">{toggle.description}</p>
             </div>
             <Switch
               checked={toggle.enabled}
               onCheckedChange={(checked) => handleToggle(toggle.key, checked)}
               disabled={mutation.isPending}
-              className="data-[state=checked]:bg-amber-500"
+              className="data-[state=checked]:bg-primary"
             />
           </div>
         ))}
@@ -181,40 +181,40 @@ function DocumentStatsCard({ isAdmin }) {
 
   if (isLoading) {
     return (
-      <Card className="p-6 bg-slate-900 border-slate-700">
+      <Card className="p-6 bg-card border-border">
         <div className="flex justify-center py-4">
-          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       </Card>
     );
   }
 
   return (
-    <Card className="p-6 bg-slate-900 border-slate-700">
+    <Card className="p-6 bg-card border-border">
       <div className="flex items-center gap-2 mb-4">
-        <FileText className="h-5 w-5 text-amber-500" />
-        <h3 className="text-lg font-semibold text-white">Document Activity</h3>
+        <FileText className="h-5 w-5 text-primary" />
+        <h3 className="text-lg font-semibold text-foreground">Document Activity</h3>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
-          <p className="text-xl font-bold text-slate-100">{stats.total}</p>
-          <p className="text-xs text-slate-400">Total</p>
+        <div className="bg-secondary rounded-lg p-3 border border-border">
+          <p className="text-xl font-bold text-foreground">{stats.total}</p>
+          <p className="text-xs text-muted-foreground">Total</p>
         </div>
-        <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
-          <p className="text-xl font-bold text-slate-400">{stats.drafts}</p>
-          <p className="text-xs text-slate-500">Drafts</p>
+        <div className="bg-secondary rounded-lg p-3 border border-border">
+          <p className="text-xl font-bold text-muted-foreground">{stats.drafts}</p>
+          <p className="text-xs text-muted-foreground/70">Drafts</p>
         </div>
-        <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
-          <p className="text-xl font-bold text-amber-400">{stats.awaiting}</p>
-          <p className="text-xs text-slate-400">Awaiting Sig</p>
+        <div className="bg-secondary rounded-lg p-3 border border-border">
+          <p className="text-xl font-bold text-primary-hover">{stats.awaiting}</p>
+          <p className="text-xs text-muted-foreground">Awaiting Sig</p>
         </div>
-        <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+        <div className="bg-secondary rounded-lg p-3 border border-border">
           <p className="text-xl font-bold text-emerald-400">{stats.signed}</p>
-          <p className="text-xs text-slate-400">Signed</p>
+          <p className="text-xs text-muted-foreground">Signed</p>
         </div>
-        <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
-          <p className="text-xl font-bold text-slate-600">{stats.archived}</p>
-          <p className="text-xs text-slate-500">Archived</p>
+        <div className="bg-secondary rounded-lg p-3 border border-border">
+          <p className="text-xl font-bold text-muted-foreground/50">{stats.archived}</p>
+          <p className="text-xs text-muted-foreground/70">Archived</p>
         </div>
       </div>
     </Card>
@@ -225,11 +225,11 @@ export default function FieldServiceDefaultsPanel({ isAdmin }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
-          <Wrench className="h-6 w-6 text-amber-500" />
+        <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <Wrench className="h-6 w-6 text-primary" />
           Field Service Defaults
         </h2>
-        <p className="text-slate-400 text-sm mt-1">
+        <p className="text-muted-foreground text-sm mt-1">
           Platform-wide defaults for new Field Service workspaces. Existing workspaces keep their customized versions.
         </p>
       </div>

@@ -31,9 +31,9 @@ import AgentChatButton from '@/components/fieldservice/AgentChatButton';
 
 function PlaceholderSection({ title, description }) {
   return (
-    <Card className="p-6 bg-slate-900 border-slate-700">
-      <h2 className="text-lg font-semibold text-white mb-2">{title}</h2>
-      <p className="text-slate-400 text-sm">{description}</p>
+    <Card className="p-6 bg-card border-border">
+      <h2 className="text-lg font-semibold text-foreground mb-2">{title}</h2>
+      <p className="text-muted-foreground text-sm">{description}</p>
     </Card>
   );
 }
@@ -128,10 +128,10 @@ export default function Admin() {
 
   if (userLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-400 mx-auto mb-4" />
-          <p className="text-slate-400">Loading...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -139,13 +139,13 @@ export default function Admin() {
 
   if (currentUser?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center bg-card border-border">
           <ShieldAlert className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-100">Access Denied</h2>
-          <p className="text-slate-400 mt-2">You don't have permission to access the admin panel.</p>
+          <h2 className="text-xl font-bold text-foreground">Access Denied</h2>
+          <p className="text-muted-foreground mt-2">You don't have permission to access the admin panel.</p>
           <Link to={createPageUrl('MyLane')}>
-            <Button className="mt-4 bg-transparent border-slate-600 text-slate-300 hover:bg-transparent hover:border-amber-500 hover:text-amber-500" variant="outline">
+            <Button className="mt-4 bg-transparent border-border text-foreground-soft hover:bg-transparent hover:border-primary hover:text-primary" variant="outline">
               <ChevronLeft className="h-4 w-4 mr-2" />
               Back to My Lane
             </Button>
@@ -156,16 +156,16 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <div className="bg-slate-900 border-b border-slate-800">
+    <div className="min-h-screen bg-background">
+      <div className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-slate-100">Admin Panel</h1>
-              <p className="text-slate-400 mt-1">Manage businesses, tiers, and settings</p>
+              <h1 className="text-2xl font-bold text-foreground">Admin Panel</h1>
+              <p className="text-muted-foreground mt-1">Manage businesses, tiers, and settings</p>
             </div>
             <Link to={createPageUrl('MyLane')}>
-              <Button variant="outline" size="sm" className="bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500">
+              <Button variant="outline" size="sm" className="bg-transparent border-border text-foreground-soft hover:border-primary hover:text-primary">
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Back to My Lane
               </Button>
@@ -180,28 +180,28 @@ export default function Admin() {
             <Route index element={<Navigate to="businesses" replace />} />
 
             <Route path="businesses" element={
-              <Card className="p-6 bg-slate-900 border-slate-700">
+              <Card className="p-6 bg-card border-border">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex-1">
                     <AdminFilters filters={filters} onFiltersChange={setFilters} />
                   </div>
                   <Button
                     onClick={() => setCreateModalOpen(true)}
-                    className="bg-amber-500 hover:bg-amber-400 text-black font-semibold ml-4 shrink-0"
+                    className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold ml-4 shrink-0"
                   >
                     <Plus className="h-4 w-4 mr-1" />
                     Create Business
                   </Button>
                 </div>
-                <div className="mb-4 text-sm text-slate-400">
+                <div className="mb-4 text-sm text-muted-foreground">
                   Showing {filteredBusinesses.length} of {businesses.length} businesses
                 </div>
                 {businessesLoading ? (
                   <div className="flex items-center justify-center py-20">
-                    <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                   </div>
                 ) : filteredBusinesses.length === 0 ? (
-                  <div className="text-center py-12 text-slate-400">No businesses match your filters</div>
+                  <div className="text-center py-12 text-muted-foreground">No businesses match your filters</div>
                 ) : (
                   <AdminBusinessTable
                     businesses={filteredBusinesses}
@@ -220,15 +220,15 @@ export default function Admin() {
             <Route path="newsletter" element={<AdminNewsletterSection />} />
 
             <Route path="locations" element={
-              <Card className="p-6 bg-slate-900 border-slate-700">
+              <Card className="p-6 bg-card border-border">
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-muted-foreground">
                     Showing {locations.length} locations across all businesses
                   </p>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500"
+                    className="bg-transparent border-border text-foreground-soft hover:border-primary hover:text-primary"
                     onClick={async () => {
                       const { cleanupOrphanedLocations } = await import('@/utils/deleteBusinessCascade');
                       const count = await cleanupOrphanedLocations();
@@ -241,7 +241,7 @@ export default function Admin() {
                 </div>
                 {locationsLoading ? (
                   <div className="flex items-center justify-center py-20">
-                    <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                   </div>
                 ) : (
                   <AdminLocationsTable
@@ -254,57 +254,57 @@ export default function Admin() {
             } />
 
             <Route path="partners" element={
-              <Card className="p-6 bg-slate-900 border-slate-700">
+              <Card className="p-6 bg-card border-border">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h2 className="text-lg font-semibold text-slate-100">Partners (Spoke Apps)</h2>
-                    <p className="text-sm text-slate-400 mt-1">Manage connected spoke applications</p>
+                    <h2 className="text-lg font-semibold text-foreground">Partners (Spoke Apps)</h2>
+                    <p className="text-sm text-muted-foreground mt-1">Manage connected spoke applications</p>
                   </div>
                   <Link to={createPageUrl('SpokeDetails')}>
-                    <Button className="bg-amber-500 hover:bg-amber-600 text-black font-semibold">Add New Spoke</Button>
+                    <Button className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold">Add New Spoke</Button>
                   </Link>
                 </div>
                 {spokesLoading ? (
                   <div className="flex items-center justify-center py-20">
-                    <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                   </div>
                 ) : spokes.length === 0 ? (
                   <div className="text-center py-12">
-                    <Network className="h-12 w-12 text-slate-500 mx-auto mb-4" />
-                    <p className="text-slate-400">No spoke apps configured yet</p>
+                    <Network className="h-12 w-12 text-muted-foreground/70 mx-auto mb-4" />
+                    <p className="text-muted-foreground">No spoke apps configured yet</p>
                     <Link to={createPageUrl('SpokeDetails')}>
-                      <Button className="mt-4 bg-amber-500 hover:bg-amber-600 text-black font-semibold">Create Your First Spoke</Button>
+                      <Button className="mt-4 bg-primary hover:bg-primary/80 text-primary-foreground font-semibold">Create Your First Spoke</Button>
                     </Link>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-slate-700">
-                          <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Organization</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Spoke ID</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Status</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">API Key</th>
-                          <th className="text-right py-3 px-4 text-sm font-medium text-slate-400">Actions</th>
+                        <tr className="border-b border-border">
+                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Organization</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Spoke ID</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Status</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">API Key</th>
+                          <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {spokes.map((spoke) => (
-                          <tr key={spoke.id} className="border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
+                          <tr key={spoke.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
                             <td className="py-3 px-4">
-                              <div className="font-medium text-slate-100">{spoke.organization_name}</div>
-                              {spoke.description && <div className="text-xs text-slate-500 mt-0.5">{spoke.description}</div>}
+                              <div className="font-medium text-foreground">{spoke.organization_name}</div>
+                              {spoke.description && <div className="text-xs text-muted-foreground/70 mt-0.5">{spoke.description}</div>}
                             </td>
-                            <td className="py-3 px-4 text-sm text-slate-300 font-mono">{spoke.spoke_id}</td>
+                            <td className="py-3 px-4 text-sm text-foreground-soft font-mono">{spoke.spoke_id}</td>
                             <td className="py-3 px-4">
-                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${spoke.is_active ? 'bg-emerald-500/20 text-emerald-500' : 'bg-slate-800 text-slate-500'}`}>
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${spoke.is_active ? 'bg-emerald-500/20 text-emerald-500' : 'bg-secondary text-muted-foreground/70'}`}>
                                 {spoke.is_active ? 'Active' : 'Inactive'}
                               </span>
                             </td>
-                            <td className="py-3 px-4 text-xs text-slate-500 font-mono">{spoke.api_key?.substring(0, 20)}...</td>
+                            <td className="py-3 px-4 text-xs text-muted-foreground/70 font-mono">{spoke.api_key?.substring(0, 20)}...</td>
                             <td className="py-3 px-4 text-right">
                               <Link to={createPageUrl('SpokeDetails') + `?spokeId=${spoke.id}`}>
-                                <Button variant="outline" size="sm" className="bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500">Edit</Button>
+                                <Button variant="outline" size="sm" className="bg-transparent border-border text-foreground-soft hover:border-primary hover:text-primary">Edit</Button>
                               </Link>
                             </td>
                           </tr>

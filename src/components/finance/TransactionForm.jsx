@@ -134,9 +134,9 @@ export default function TransactionForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-900 border-slate-800 max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">
+          <DialogTitle className="text-foreground">
             {isEdit ? 'Edit Transaction' : 'Add Transaction'}
           </DialogTitle>
         </DialogHeader>
@@ -150,7 +150,7 @@ export default function TransactionForm({
               className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-colors min-h-[44px] ${
                 type === 'income'
                   ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                  : 'bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-300'
+                  : 'bg-secondary text-muted-foreground border border-border hover:text-foreground-soft'
               }`}
             >
               Income
@@ -161,7 +161,7 @@ export default function TransactionForm({
               className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-colors min-h-[44px] ${
                 type === 'expense'
                   ? 'bg-red-500/20 text-red-400 border border-red-500/50'
-                  : 'bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-300'
+                  : 'bg-secondary text-muted-foreground border border-border hover:text-foreground-soft'
               }`}
             >
               Expense
@@ -170,16 +170,16 @@ export default function TransactionForm({
 
           {/* Amount */}
           <div>
-            <Label className="text-slate-400">Amount *</Label>
+            <Label className="text-muted-foreground">Amount *</Label>
             <div className="relative mt-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">$</span>
               <Input
                 type="number"
                 step="0.01"
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="pl-8 text-xl bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="pl-8 text-xl bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                 placeholder="0.00"
                 autoFocus
                 required
@@ -189,23 +189,23 @@ export default function TransactionForm({
 
           {/* Date */}
           <div>
-            <Label className="text-slate-400">Date *</Label>
+            <Label className="text-muted-foreground">Date *</Label>
             <Input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="mt-1 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
               required
             />
           </div>
 
           {/* Description */}
           <div>
-            <Label className="text-slate-400">Description *</Label>
+            <Label className="text-muted-foreground">Description *</Label>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
               placeholder="e.g. Grocery run, Client payment"
               required
             />
@@ -214,14 +214,14 @@ export default function TransactionForm({
           {/* Context — hidden when single context */}
           {!singleContext && (
             <div>
-              <Label className="text-slate-400">Context</Label>
+              <Label className="text-muted-foreground">Context</Label>
               <select
                 value={context}
                 onChange={(e) => {
                   setContext(e.target.value);
                   setCategory('');
                 }}
-                className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="w-full mt-1 bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
               >
                 {activeContexts.map((ctx) => (
                   <option key={ctx.id} value={ctx.id}>{ctx.label}</option>
@@ -232,11 +232,11 @@ export default function TransactionForm({
 
           {/* Category */}
           <div>
-            <Label className="text-slate-400">Category</Label>
+            <Label className="text-muted-foreground">Category</Label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="w-full mt-1 bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
             >
               <option value="">Select category</option>
               {availableCategories.map((cat) => (
@@ -247,12 +247,12 @@ export default function TransactionForm({
 
           {/* Notes */}
           <div>
-            <Label className="text-slate-400">Notes (optional)</Label>
+            <Label className="text-muted-foreground">Notes (optional)</Label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              className="w-full mt-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm resize-none focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="w-full mt-1 px-3 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm resize-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
               placeholder="Any additional details..."
             />
           </div>
@@ -273,7 +273,7 @@ export default function TransactionForm({
               <Button
                 type="button"
                 onClick={() => deleteMutation.mutate()}
-                className="bg-red-600 hover:bg-red-500 text-white min-h-[44px]"
+                className="bg-red-600 hover:bg-red-500 text-foreground min-h-[44px]"
                 disabled={deleteMutation.isPending}
               >
                 {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm Delete'}
@@ -284,13 +284,13 @@ export default function TransactionForm({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px]"
+              className="border-border text-foreground-soft hover:border-primary hover:text-primary min-h-[44px]"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold min-h-[44px]"
               disabled={saveMutation.isPending}
             >
               {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (isEdit ? 'Update' : 'Save')}

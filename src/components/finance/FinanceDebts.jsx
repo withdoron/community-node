@@ -94,39 +94,39 @@ function DebtForm({ open, onOpenChange, profile, currentUser, debt }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-900 border-slate-800 max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">
+          <DialogTitle className="text-foreground">
             {isEdit ? 'Edit Debt' : 'Add Debt'}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label className="text-slate-400">Name *</Label>
+            <Label className="text-muted-foreground">Name *</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)}
-              className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
               placeholder="e.g. Credit Card, Student Loan" autoFocus required />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-slate-400">Original Amount</Label>
+              <Label className="text-muted-foreground">Original Amount</Label>
               <div className="relative mt-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                 <Input type="number" step="0.01" min="0" value={originalAmount}
                   onChange={(e) => setOriginalAmount(e.target.value)}
-                  className="pl-7 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  className="pl-7 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
                   placeholder="0.00" />
               </div>
             </div>
             <div>
-              <Label className="text-slate-400">Current Balance *</Label>
+              <Label className="text-muted-foreground">Current Balance *</Label>
               <div className="relative mt-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                 <Input type="number" step="0.01" min="0" value={currentBalance}
                   onChange={(e) => setCurrentBalance(e.target.value)}
-                  className="pl-7 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  className="pl-7 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
                   placeholder="0.00" required />
               </div>
             </div>
@@ -134,28 +134,28 @@ function DebtForm({ open, onOpenChange, profile, currentUser, debt }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-slate-400">Interest Rate (%)</Label>
+              <Label className="text-muted-foreground">Interest Rate (%)</Label>
               <Input type="number" step="0.01" min="0" max="100" value={interestRate}
                 onChange={(e) => setInterestRate(e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="mt-1 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
                 placeholder="0.00" />
             </div>
             <div>
-              <Label className="text-slate-400">Minimum Payment</Label>
+              <Label className="text-muted-foreground">Minimum Payment</Label>
               <div className="relative mt-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                 <Input type="number" step="0.01" min="0" value={minimumPayment}
                   onChange={(e) => setMinimumPayment(e.target.value)}
-                  className="pl-7 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  className="pl-7 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
                   placeholder="0.00" />
               </div>
             </div>
           </div>
 
           <div>
-            <Label className="text-slate-400">Notes (optional)</Label>
+            <Label className="text-muted-foreground">Notes (optional)</Label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
-              className="w-full mt-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm resize-none focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="w-full mt-1 px-3 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm resize-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-ring"
               placeholder="Any additional details..." />
           </div>
 
@@ -169,16 +169,16 @@ function DebtForm({ open, onOpenChange, profile, currentUser, debt }) {
             )}
             {isEdit && confirmDelete && (
               <Button type="button" onClick={() => deleteMutation.mutate()}
-                className="bg-red-600 hover:bg-red-500 text-white min-h-[44px]" disabled={deleteMutation.isPending}>
+                className="bg-red-600 hover:bg-red-500 text-foreground min-h-[44px]" disabled={deleteMutation.isPending}>
                 {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm Delete'}
               </Button>
             )}
             <div className="flex-1" />
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}
-              className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px]">
+              className="border-border text-foreground-soft hover:border-primary hover:text-primary min-h-[44px]">
               Cancel
             </Button>
-            <Button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
+            <Button type="submit" className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold min-h-[44px]"
               disabled={saveMutation.isPending}>
               {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (isEdit ? 'Update' : 'Save')}
             </Button>
@@ -257,44 +257,44 @@ function LogPaymentForm({ open, onOpenChange, debt, profile, currentUser }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-900 border-slate-800 max-w-sm">
+      <DialogContent className="bg-card border-border max-w-sm">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">
+          <DialogTitle className="text-foreground">
             Log Payment — {debt?.name}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label className="text-slate-400">Amount</Label>
+            <Label className="text-muted-foreground">Amount</Label>
             <div className="relative mt-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">$</span>
               <Input type="number" step="0.01" min="0" value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="pl-8 text-xl bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="pl-8 text-xl bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
                 placeholder="0.00" autoFocus required />
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-muted-foreground/70 mt-1">
               Balance: {fmt(debt?.current_balance)} · Min: {fmt(debt?.minimum_payment)}
             </p>
           </div>
           <div>
-            <Label className="text-slate-400">Date</Label>
+            <Label className="text-muted-foreground">Date</Label>
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)}
-              className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500" required />
+              className="mt-1 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring" required />
           </div>
           <div>
-            <Label className="text-slate-400">Notes (optional)</Label>
+            <Label className="text-muted-foreground">Notes (optional)</Label>
             <Input value={notes} onChange={(e) => setNotes(e.target.value)}
-              className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
               placeholder="e.g. Extra payment this month" />
           </div>
           <div className="flex gap-3 pt-2">
             <div className="flex-1" />
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}
-              className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px]">
+              className="border-border text-foreground-soft hover:border-primary hover:text-primary min-h-[44px]">
               Cancel
             </Button>
-            <Button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
+            <Button type="submit" className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold min-h-[44px]"
               disabled={payMutation.isPending}>
               {payMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Log Payment'}
             </Button>
@@ -310,7 +310,7 @@ export default function FinanceDebts({ profile, currentUser }) {
   // Ownership guard
   if (profile && currentUser && profile.user_id !== currentUser.id) {
     return (
-      <div className="text-center py-12 text-slate-400">
+      <div className="text-center py-12 text-muted-foreground">
         <p>You don't have access to this workspace.</p>
       </div>
     );
@@ -372,7 +372,7 @@ export default function FinanceDebts({ profile, currentUser }) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="animate-spin h-8 w-8 border-4 border-amber-500 border-t-transparent rounded-full" />
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -381,29 +381,29 @@ export default function FinanceDebts({ profile, currentUser }) {
     <div className="space-y-6">
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
-          <p className="text-xs text-slate-400 mb-1">Total Debt</p>
+        <div className="bg-card border border-border rounded-xl p-4 text-center">
+          <p className="text-xs text-muted-foreground mb-1">Total Debt</p>
           <p className="text-lg font-bold text-red-400">{fmt(summary.totalDebt)}</p>
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
-          <p className="text-xs text-slate-400 mb-1">Monthly Mins</p>
-          <p className="text-lg font-bold text-amber-500">{fmt(summary.monthlyMins)}</p>
+        <div className="bg-card border border-border rounded-xl p-4 text-center">
+          <p className="text-xs text-muted-foreground mb-1">Monthly Mins</p>
+          <p className="text-lg font-bold text-primary">{fmt(summary.monthlyMins)}</p>
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
-          <p className="text-xs text-slate-400 mb-1">Active</p>
-          <p className="text-lg font-bold text-slate-100">{summary.count}</p>
+        <div className="bg-card border border-border rounded-xl p-4 text-center">
+          <p className="text-xs text-muted-foreground mb-1">Active</p>
+          <p className="text-lg font-bold text-foreground">{summary.count}</p>
         </div>
       </div>
 
       {/* Debt list */}
       {activeDebts.length === 0 && paidDebts.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-          <Landmark className="h-8 w-8 text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-400 mb-4">
+        <div className="bg-card border border-border rounded-xl p-8 text-center">
+          <Landmark className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
+          <p className="text-muted-foreground mb-4">
             No debts tracked yet — that's great, or add them to start your payoff plan.
           </p>
           <button type="button" onClick={openAdd}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors min-h-[44px]">
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors min-h-[44px]">
             <Plus className="h-4 w-4" /> Add Debt
           </button>
         </div>
@@ -415,30 +415,30 @@ export default function FinanceDebts({ profile, currentUser }) {
               : 0;
 
             return (
-              <div key={debt.id} className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+              <div key={debt.id} className="bg-card border border-border rounded-xl p-4 space-y-3">
                 {/* Header row */}
                 <div className="flex items-start gap-3">
                   {/* Priority arrows */}
                   <div className="flex flex-col gap-0.5 flex-shrink-0 pt-0.5">
                     <button type="button" disabled={idx === 0}
                       onClick={() => reorderMutation.mutate({ debtId: debt.id, direction: 'up' })}
-                      className={`p-0.5 rounded ${idx === 0 ? 'text-slate-700' : 'text-slate-400 hover:text-amber-500'}`}>
+                      className={`p-0.5 rounded ${idx === 0 ? 'text-slate-700' : 'text-muted-foreground hover:text-primary'}`}>
                       <ChevronUp className="h-4 w-4" />
                     </button>
                     <button type="button" disabled={idx === activeDebts.length - 1}
                       onClick={() => reorderMutation.mutate({ debtId: debt.id, direction: 'down' })}
-                      className={`p-0.5 rounded ${idx === activeDebts.length - 1 ? 'text-slate-700' : 'text-slate-400 hover:text-amber-500'}`}>
+                      className={`p-0.5 rounded ${idx === activeDebts.length - 1 ? 'text-slate-700' : 'text-muted-foreground hover:text-primary'}`}>
                       <ChevronDown className="h-4 w-4" />
                     </button>
                   </div>
 
                   <button type="button" onClick={() => openEdit(debt)} className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-medium text-slate-100 truncate">{debt.name}</p>
-                    <div className="flex gap-3 text-xs text-slate-400 mt-0.5 flex-wrap">
+                    <p className="text-sm font-medium text-foreground truncate">{debt.name}</p>
+                    <div className="flex gap-3 text-xs text-muted-foreground mt-0.5 flex-wrap">
                       {debt.interest_rate > 0 && <span>{debt.interest_rate}% APR</span>}
                       {debt.minimum_payment > 0 && <span>Min: {fmt(debt.minimum_payment)}</span>}
                       {debt.interest_rate > 0 && debt.current_balance > 0 && (
-                        <span className="text-slate-500">~{fmt((debt.current_balance * debt.interest_rate / 100) / 12)}/mo interest</span>
+                        <span className="text-muted-foreground/70">~{fmt((debt.current_balance * debt.interest_rate / 100) / 12)}/mo interest</span>
                       )}
                     </div>
                   </button>
@@ -446,7 +446,7 @@ export default function FinanceDebts({ profile, currentUser }) {
                   <div className="text-right flex-shrink-0">
                     <p className="text-sm font-bold text-red-400">{fmt(debt.current_balance)}</p>
                     {debt.original_amount > 0 && (
-                      <p className="text-xs text-slate-500">of {fmt(debt.original_amount)}</p>
+                      <p className="text-xs text-muted-foreground/70">of {fmt(debt.original_amount)}</p>
                     )}
                   </div>
                 </div>
@@ -454,17 +454,17 @@ export default function FinanceDebts({ profile, currentUser }) {
                 {/* Progress bar */}
                 {debt.original_amount > 0 && (
                   <div className="space-y-1">
-                    <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-amber-500 rounded-full transition-all"
+                    <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                      <div className="h-full bg-primary rounded-full transition-all"
                         style={{ width: `${paidPercent}%` }} />
                     </div>
-                    <p className="text-xs text-slate-500 text-right">{paidPercent.toFixed(0)}% paid off</p>
+                    <p className="text-xs text-muted-foreground/70 text-right">{paidPercent.toFixed(0)}% paid off</p>
                   </div>
                 )}
 
                 {/* Log payment button */}
                 <button type="button" onClick={() => openPay(debt)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm font-medium min-h-[40px]">
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-primary text-primary hover:bg-primary/10 transition-colors text-sm font-medium min-h-[40px]">
                   Log Payment
                 </button>
               </div>
@@ -474,12 +474,12 @@ export default function FinanceDebts({ profile, currentUser }) {
           {/* Paid off debts */}
           {paidDebts.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs text-slate-500 uppercase tracking-wider">Paid Off</p>
+              <p className="text-xs text-muted-foreground/70 uppercase tracking-wider">Paid Off</p>
               {paidDebts.map((debt) => (
                 <button key={debt.id} type="button" onClick={() => openEdit(debt)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-left opacity-60 hover:border-amber-500/50 transition-colors">
+                  className="w-full bg-card border border-border rounded-xl p-4 text-left opacity-60 hover:border-primary/50 transition-colors">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-slate-400 truncate">{debt.name}</p>
+                    <p className="text-sm text-muted-foreground truncate">{debt.name}</p>
                     <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
                       Paid Off
                     </span>
@@ -492,7 +492,7 @@ export default function FinanceDebts({ profile, currentUser }) {
           {/* Add button */}
           <div className="flex justify-center pt-2">
             <button type="button" onClick={openAdd}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors min-h-[44px]">
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors min-h-[44px]">
               <Plus className="h-4 w-4" /> Add Debt
             </button>
           </div>

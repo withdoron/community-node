@@ -30,10 +30,10 @@ export default function JoyCoinHours({ businessId }) {
   if (isLoading || !activeWindows?.length) return null;
 
   return (
-    <Card className="p-4 bg-slate-900 border-slate-800">
+    <Card className="p-4 bg-card border-border">
       <div className="flex items-center gap-2 mb-3">
-        <Coins className="h-4 w-4 text-amber-500" />
-        <h3 className="text-sm font-semibold text-slate-100">Joy Coin Hours</h3>
+        <Coins className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold text-foreground">Joy Coin Hours</h3>
       </div>
 
       <div className="space-y-2">
@@ -43,15 +43,15 @@ export default function JoyCoinHours({ businessId }) {
             className="flex items-center justify-between text-sm"
           >
             <div className="flex items-center gap-2">
-              <span className="text-slate-300 w-8 shrink-0">
+              <span className="text-foreground-soft w-8 shrink-0">
                 {DAY_ABBREV[window.day_of_week] || window.day_of_week?.slice(0, 3)}
               </span>
-              <span className="text-slate-400">
+              <span className="text-muted-foreground">
                 {formatTime(window.start_time)}–{formatTime(window.end_time)}
               </span>
             </div>
             <Badge
-              className="bg-amber-500/20 text-amber-400 border-0 text-xs px-2 py-0.5"
+              className="bg-primary/20 text-primary-hover border-0 text-xs px-2 py-0.5"
             >
               {window.coin_cost} {window.coin_cost === 1 ? 'coin' : 'coins'}
             </Badge>
@@ -60,9 +60,9 @@ export default function JoyCoinHours({ businessId }) {
       </div>
 
       {activeWindows.some(w => w.label) && (
-        <div className="mt-3 pt-3 border-t border-slate-800">
+        <div className="mt-3 pt-3 border-t border-border">
           {activeWindows.filter(w => w.label).map((window) => (
-            <p key={window.id} className="text-xs text-slate-500">
+            <p key={window.id} className="text-xs text-muted-foreground/70">
               {DAY_ABBREV[window.day_of_week]}: {window.label}
             </p>
           ))}

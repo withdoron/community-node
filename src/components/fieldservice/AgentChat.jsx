@@ -50,7 +50,7 @@ function renderMessageContent(text) {
         href={part}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-amber-400 hover:text-amber-300 underline break-all"
+        className="text-primary-hover hover:text-primary-hover underline break-all"
       >
         {part}
       </a>
@@ -596,16 +596,16 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
 
   return (
     <div className={docked ? 'w-full' : 'fixed inset-x-0 bottom-0 sm:inset-auto sm:right-4 sm:bottom-20 z-40'}>
-      <div className={`bg-slate-950 border border-slate-800 shadow-2xl flex flex-col overflow-hidden ${docked ? (fillHeight ? 'w-full h-full' : 'rounded-t-xl w-full max-h-[50vh]') : 'rounded-t-2xl sm:rounded-2xl w-full sm:w-96 max-h-[80vh] sm:max-h-[60vh]'}`}>
+      <div className={`bg-background border border-border shadow-2xl flex flex-col overflow-hidden ${docked ? (fillHeight ? 'w-full h-full' : 'rounded-t-xl w-full max-h-[50vh]') : 'rounded-t-2xl sm:rounded-2xl w-full sm:w-96 max-h-[80vh] sm:max-h-[60vh]'}`}>
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
-              <Bot className="h-4 w-4 text-amber-500" />
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+              <Bot className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-100">{agentDisplayName}</h3>
-              <p className="text-xs text-slate-500">Your {agentName.replace(/Agent$/, '').replace(/([A-Z])/g, ' $1').trim()} assistant</p>
+              <h3 className="text-sm font-semibold text-foreground">{agentDisplayName}</h3>
+              <p className="text-xs text-muted-foreground/70">Your {agentName.replace(/Agent$/, '').replace(/([A-Z])/g, ' $1').trim()} assistant</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -614,7 +614,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
               type="button"
               onClick={handleNewConversation}
               title="New conversation"
-              className="p-2 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-slate-800 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-secondary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
               <Plus className="h-5 w-5" />
             </button>
@@ -624,7 +624,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
               onClick={() => setShowHistory((s) => !s)}
               title="Conversation history"
               className={`p-2 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center ${
-                showHistory ? 'text-amber-500 bg-slate-800' : 'text-slate-400 hover:text-amber-500 hover:bg-slate-800'
+                showHistory ? 'text-primary bg-secondary' : 'text-muted-foreground hover:text-primary hover:bg-secondary'
               }`}
             >
               <Clock className="h-5 w-5" />
@@ -633,7 +633,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
               <X className="h-5 w-5" />
             </button>
@@ -643,11 +643,11 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
         {/* History Panel — loaded from Base44 SDK */}
         {showHistory ? (
           <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
-            <div className="px-4 py-3 border-b border-slate-800">
+            <div className="px-4 py-3 border-b border-border">
               <button
                 type="button"
                 onClick={() => setShowHistory(false)}
-                className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-amber-500 transition-colors"
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to chat
@@ -655,11 +655,11 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
             </div>
             {historyLoading ? (
               <div className="flex-1 flex items-center justify-center py-12">
-                <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
+                <Loader2 className="h-5 w-5 text-primary animate-spin" />
               </div>
             ) : historyEntries.length === 0 ? (
               <div className="flex-1 flex items-center justify-center py-12">
-                <p className="text-sm text-slate-500">No past conversations yet.</p>
+                <p className="text-sm text-muted-foreground/70">No past conversations yet.</p>
               </div>
             ) : (
               <div className="flex-1 overflow-y-auto">
@@ -674,14 +674,14 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
                   return (
                     <div
                       key={conv.id}
-                      className={`border-b border-slate-800 transition-colors ${
-                        isCurrent ? 'bg-amber-500/10 border-l-2 border-l-amber-500' : 'hover:bg-slate-800/50'
+                      className={`border-b border-border transition-colors ${
+                        isCurrent ? 'bg-primary/10 border-l-2 border-l-primary' : 'hover:bg-secondary/50'
                       }`}
                     >
                       {isConfirming ? (
                         /* Inline delete confirmation */
                         <div className="px-4 py-3 flex items-center justify-between">
-                          <p className="text-sm text-slate-400">Delete this conversation?</p>
+                          <p className="text-sm text-muted-foreground">Delete this conversation?</p>
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
@@ -693,7 +693,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
                             <button
                               type="button"
                               onClick={() => setConfirmDeleteId(null)}
-                              className="px-3 py-1.5 text-xs text-slate-400 hover:text-slate-300 transition-colors min-h-[44px]"
+                              className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground-soft transition-colors min-h-[44px]"
                             >
                               Cancel
                             </button>
@@ -706,8 +706,8 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
                             onClick={() => !isCurrent && handleResumeConversation(conv)}
                             className="flex-1 text-left px-4 py-3"
                           >
-                            <p className="text-sm text-slate-300 truncate">{preview}</p>
-                            <p className="text-xs text-slate-500 mt-0.5">
+                            <p className="text-sm text-foreground-soft truncate">{preview}</p>
+                            <p className="text-xs text-muted-foreground/70 mt-0.5">
                               {isCurrent ? 'Current' : relativeTime(timestamp)}
                             </p>
                           </button>
@@ -716,7 +716,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(conv.id); }}
-                              className="p-3 text-slate-500 hover:text-red-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
+                              className="p-3 text-muted-foreground/70 hover:text-red-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
                               title="Delete conversation"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -736,15 +736,15 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
             <div ref={messagesContainerRef} onScroll={handleMessagesScroll} className={`flex-1 overflow-y-auto px-4 py-3 space-y-3 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent ${docked ? 'min-h-0' : 'min-h-[200px]'}`}>
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
+                  <Loader2 className="h-6 w-6 text-primary animate-spin" />
                 </div>
               ) : messages.length === 0 ? (
                 <div className="text-center py-8">
-                  <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center mx-auto mb-3">
-                    <Bot className="h-6 w-6 text-amber-500" />
+                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3">
+                    <Bot className="h-6 w-6 text-primary" />
                   </div>
-                  <p className="text-sm text-slate-300 font-medium">Start a new conversation with {agentDisplayName}.</p>
-                  <p className="text-xs text-slate-500 mt-1">Ask me anything about your workspace.</p>
+                  <p className="text-sm text-foreground-soft font-medium">Start a new conversation with {agentDisplayName}.</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">Ask me anything about your workspace.</p>
                 </div>
               ) : (
                 messages.map((msg, i) => {
@@ -765,8 +765,8 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
                         <div
                           className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
                             msg.role === 'user'
-                              ? 'bg-amber-500/20 text-amber-100 rounded-br-md'
-                              : 'bg-slate-800 text-slate-200 rounded-bl-md'
+                              ? 'bg-primary/20 text-amber-100 rounded-br-md'
+                              : 'bg-secondary text-foreground rounded-bl-md'
                           }`}
                         >
                           {renderMessageContent(visibleContent)}
@@ -790,11 +790,11 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
               {/* Agent thinking indicator */}
               {isAgentThinking && (
                 <div className="flex justify-start">
-                  <div className="bg-slate-800 rounded-2xl rounded-bl-md px-3.5 py-2.5">
+                  <div className="bg-secondary rounded-2xl rounded-bl-md px-3.5 py-2.5">
                     <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                   </div>
                 </div>
@@ -813,7 +813,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
                       type="button"
                       onClick={() => handleSendMessage(chip.message)}
                       disabled={isSending || !conversationObj}
-                      className="flex items-center gap-1.5 bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors whitespace-nowrap flex-shrink-0 disabled:opacity-50"
+                      className="flex items-center gap-1.5 bg-secondary border border-border rounded-full px-4 py-2 text-sm text-foreground-soft hover:border-primary hover:text-primary transition-colors whitespace-nowrap flex-shrink-0 disabled:opacity-50"
                     >
                       {chip.write ? <Pencil className="h-3 w-3" /> : <Search className="h-3 w-3" />}
                       {chip.label}
@@ -826,19 +826,19 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
             {/* Attachment preview */}
             {attachment && (
               <div className="px-3 pt-2 flex-shrink-0">
-                <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2">
                   {attachment.type === 'image' && attachment.previewUrl ? (
                     <img src={attachment.previewUrl} alt="Attachment" className="h-12 w-12 rounded object-cover flex-shrink-0" />
                   ) : (
-                    <div className="h-12 w-12 rounded bg-slate-700 flex items-center justify-center flex-shrink-0">
-                      <FileText className="h-5 w-5 text-slate-400" />
+                    <div className="h-12 w-12 rounded bg-surface flex items-center justify-center flex-shrink-0">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
                     </div>
                   )}
-                  <span className="text-sm text-slate-300 truncate flex-1">{attachment.name}</span>
+                  <span className="text-sm text-foreground-soft truncate flex-1">{attachment.name}</span>
                   <button
                     type="button"
                     onClick={clearAttachment}
-                    className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-700 transition-colors flex-shrink-0"
+                    className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-surface transition-colors flex-shrink-0"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -847,13 +847,13 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
             )}
 
             {/* Input bar */}
-            <div className="flex items-center gap-2 px-3 py-3 border-t border-slate-800 flex-shrink-0" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
+            <div className="flex items-center gap-2 px-3 py-3 border-t border-border flex-shrink-0" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
               {/* File upload button */}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-amber-500 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0 disabled:opacity-50"
+                className="p-2.5 rounded-xl bg-secondary hover:bg-surface text-muted-foreground hover:text-primary transition-all min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0 disabled:opacity-50"
                 title="Attach file"
               >
                 {isUploading ? (
@@ -879,7 +879,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
                 onKeyDown={handleKeyDown}
                 placeholder={isListening ? 'Listening...' : 'Type a message...'}
                 disabled={isLoading || !conversationObj}
-                className="flex-1 min-h-[44px] px-3.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                className="flex-1 min-h-[44px] px-3.5 rounded-xl bg-card border border-border text-foreground text-sm placeholder-muted-foreground/70 focus:outline-none focus:border-primary disabled:opacity-50"
               />
 
               {/* Voice button — shows when input empty, hides when typing (saves mobile space) */}
@@ -890,7 +890,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
                   className={`p-2.5 rounded-xl transition-all min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0 ${
                     isListening
                       ? 'bg-red-500/20 text-red-400 animate-pulse'
-                      : 'bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-amber-500'
+                      : 'bg-secondary hover:bg-surface text-muted-foreground hover:text-primary'
                   }`}
                   title={isListening ? 'Stop listening' : 'Voice input'}
                 >
@@ -903,7 +903,7 @@ export default function AgentChat({ agentName = 'FieldServiceAgent', userId, isO
                 type="button"
                 onClick={() => handleSendMessage()}
                 disabled={(!inputValue.trim() && !attachment) || isSending || isLoading || !conversationObj}
-                className="p-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-900 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSending ? (
                   <Loader2 className="h-4.5 w-4.5 animate-spin" />

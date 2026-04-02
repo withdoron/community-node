@@ -22,9 +22,9 @@ function getLeaseExpiryBadge(leaseEnd) {
     return { label: `${diffDays}d left`, className: 'bg-red-500/20 text-red-400' };
   }
   if (diffDays <= 60) {
-    return { label: `${diffDays}d left`, className: 'bg-amber-500/20 text-amber-500' };
+    return { label: `${diffDays}d left`, className: 'bg-primary/20 text-primary' };
   }
-  return { label: `${diffDays}d left`, className: 'bg-slate-700 text-slate-400' };
+  return { label: `${diffDays}d left`, className: 'bg-surface text-muted-foreground' };
 }
 
 function fmtDate(d) {
@@ -46,11 +46,11 @@ export default function TenantList({ tenants, onEdit }) {
   if (tenants.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-4">
-          <UserCheck className="h-7 w-7 text-amber-500" />
+        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+          <UserCheck className="h-7 w-7 text-primary" />
         </div>
-        <p className="text-slate-300 font-medium mb-1">No tenants yet</p>
-        <p className="text-slate-500 text-sm text-center max-w-xs">
+        <p className="text-foreground-soft font-medium mb-1">No tenants yet</p>
+        <p className="text-muted-foreground/70 text-sm text-center max-w-xs">
           Tenant information is pulled from your property records. Edit a property to add tenant details.
         </p>
       </div>
@@ -64,12 +64,12 @@ export default function TenantList({ tenants, onEdit }) {
         return (
           <div
             key={t.property_id}
-            className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-colors"
+            className="bg-card border border-border rounded-xl p-4 hover:border-border transition-colors"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-sm font-semibold text-slate-100 truncate">
+                  <h3 className="text-sm font-semibold text-foreground truncate">
                     {t.tenant_name}
                   </h3>
                   {badge && (
@@ -78,17 +78,17 @@ export default function TenantList({ tenants, onEdit }) {
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 truncate">{t.propertyLabel}</p>
+                <p className="text-xs text-muted-foreground/70 truncate">{t.propertyLabel}</p>
 
                 {/* Contact info */}
-                <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-400">
+                <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
                   {t.tenant_email && <span>{t.tenant_email}</span>}
                   {t.tenant_phone && <span>{formatPhone(t.tenant_phone)}</span>}
                 </div>
 
                 {/* Lease dates */}
                 {(t.lease_start || t.lease_end) && (
-                  <div className="flex gap-3 mt-1.5 text-xs text-slate-500">
+                  <div className="flex gap-3 mt-1.5 text-xs text-muted-foreground/70">
                     {t.lease_start && <span>Start: {fmtDate(t.lease_start)}</span>}
                     {t.lease_end && <span>End: {fmtDate(t.lease_end)}</span>}
                   </div>
@@ -98,7 +98,7 @@ export default function TenantList({ tenants, onEdit }) {
               <button
                 type="button"
                 onClick={() => onEdit(t)}
-                className="text-slate-400 hover:text-amber-500 p-1 min-h-[32px]"
+                className="text-muted-foreground hover:text-primary p-1 min-h-[32px]"
               >
                 <Pencil className="w-4 h-4" />
               </button>

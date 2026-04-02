@@ -54,14 +54,14 @@ export default function ClaimBusiness() {
   // No token provided
   if (!token) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800">
-          <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-100">Invalid Link</h2>
-          <p className="text-slate-400 mt-2">This claim link is missing a token. Please check the URL and try again.</p>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center bg-card border-border">
+          <AlertCircle className="h-12 w-12 text-primary mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-foreground">Invalid Link</h2>
+          <p className="text-muted-foreground mt-2">This claim link is missing a token. Please check the URL and try again.</p>
           <Button
             onClick={() => navigate(createPageUrl('Home'))}
-            className="mt-6 bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+            className="mt-6 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold"
           >
             Go Home
           </Button>
@@ -73,10 +73,10 @@ export default function ClaimBusiness() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-amber-500 mx-auto mb-4" />
-          <p className="text-slate-400">Looking up business...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Looking up business...</p>
         </div>
       </div>
     );
@@ -85,18 +85,18 @@ export default function ClaimBusiness() {
   // Not logged in
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800">
-          <Store className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-100">Claim Your Business</h2>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center bg-card border-border">
+          <Store className="h-12 w-12 text-primary mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-foreground">Claim Your Business</h2>
           {business ? (
-            <p className="text-slate-400 mt-2">
-              Log in or create an account to claim <span className="text-amber-400 font-medium">{business.name}</span>.
+            <p className="text-muted-foreground mt-2">
+              Log in or create an account to claim <span className="text-primary-hover font-medium">{business.name}</span>.
             </p>
           ) : (
-            <p className="text-slate-400 mt-2">Log in or create an account to claim this business listing.</p>
+            <p className="text-muted-foreground mt-2">Log in or create an account to claim this business listing.</p>
           )}
-          <p className="text-slate-500 text-sm mt-4">
+          <p className="text-muted-foreground/70 text-sm mt-4">
             You'll be redirected back here after logging in.
           </p>
         </Card>
@@ -107,16 +107,16 @@ export default function ClaimBusiness() {
   // Business not found or token invalid
   if (!business) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800">
-          <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-100">Link Expired or Invalid</h2>
-          <p className="text-slate-400 mt-2">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center bg-card border-border">
+          <AlertCircle className="h-12 w-12 text-primary mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-foreground">Link Expired or Invalid</h2>
+          <p className="text-muted-foreground mt-2">
             This claim link is no longer valid. The business may have already been claimed, or the link has expired.
           </p>
           <Button
             onClick={() => navigate(createPageUrl('Home'))}
-            className="mt-6 bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+            className="mt-6 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold"
           >
             Go Home
           </Button>
@@ -128,16 +128,16 @@ export default function ClaimBusiness() {
   // Business already claimed
   if (business.owner_user_id) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center bg-card border-border">
           <CheckCircle className="h-12 w-12 text-emerald-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-100">Already Claimed</h2>
-          <p className="text-slate-400 mt-2">
-            <span className="text-white font-medium">{business.name}</span> has already been claimed.
+          <h2 className="text-xl font-bold text-foreground">Already Claimed</h2>
+          <p className="text-muted-foreground mt-2">
+            <span className="text-foreground font-medium">{business.name}</span> has already been claimed.
           </p>
           <Button
             onClick={() => navigate(createPageUrl('Home'))}
-            className="mt-6 bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+            className="mt-6 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold"
           >
             Go Home
           </Button>
@@ -148,34 +148,34 @@ export default function ClaimBusiness() {
 
   // Ready to claim
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-      <Card className="max-w-md w-full p-8 bg-slate-900 border-slate-800">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <Card className="max-w-md w-full p-8 bg-card border-border">
         <div className="text-center">
-          <Store className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-100">Claim Your Business</h2>
-          <p className="text-slate-400 mt-2">
-            Claim <span className="text-amber-400 font-medium">{business.name}</span> as your business on LocalLane?
+          <Store className="h-12 w-12 text-primary mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-foreground">Claim Your Business</h2>
+          <p className="text-muted-foreground mt-2">
+            Claim <span className="text-primary-hover font-medium">{business.name}</span> as your business on LocalLane?
           </p>
 
           {/* Business preview */}
-          <div className="mt-6 p-4 bg-slate-800 rounded-lg border border-slate-700 text-left">
-            <h3 className="font-semibold text-slate-100">{business.name}</h3>
+          <div className="mt-6 p-4 bg-secondary rounded-lg border border-border text-left">
+            <h3 className="font-semibold text-foreground">{business.name}</h3>
             {business.description && (
-              <p className="text-sm text-slate-400 mt-1 line-clamp-2">{business.description}</p>
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{business.description}</p>
             )}
             <div className="mt-3 flex flex-wrap gap-2 text-xs">
               {business.city && (
-                <span className="px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">{business.city}</span>
+                <span className="px-2 py-0.5 rounded-full bg-surface text-foreground-soft">{business.city}</span>
               )}
               {(business.primary_category || business.sub_category) && (
-                <span className="px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">
+                <span className="px-2 py-0.5 rounded-full bg-surface text-foreground-soft">
                   {business.sub_category || business.primary_category}
                 </span>
               )}
             </div>
           </div>
 
-          <p className="text-slate-500 text-sm mt-4">
+          <p className="text-muted-foreground/70 text-sm mt-4">
             You'll become the owner and can manage this listing from your dashboard.
           </p>
 
@@ -183,7 +183,7 @@ export default function ClaimBusiness() {
             <Button
               onClick={() => claimMutation.mutate()}
               disabled={claimMutation.isPending}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3"
+              className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-bold py-3"
             >
               {claimMutation.isPending ? (
                 <>
@@ -197,7 +197,7 @@ export default function ClaimBusiness() {
             <Button
               variant="outline"
               onClick={() => navigate(createPageUrl('Home'))}
-              className="w-full bg-transparent border-slate-600 text-slate-300 hover:bg-transparent hover:border-slate-500"
+              className="w-full bg-transparent border-border text-foreground-soft hover:bg-transparent hover:border-muted-foreground"
             >
               Not My Business
             </Button>

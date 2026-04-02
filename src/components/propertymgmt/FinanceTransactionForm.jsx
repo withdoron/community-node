@@ -15,8 +15,8 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 
 const inputClass =
-  'w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 px-3 py-2 text-sm';
-const labelClass = 'text-slate-300 text-sm font-medium block mb-1';
+  'w-full rounded-md bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring px-3 py-2 text-sm';
+const labelClass = 'text-foreground-soft text-sm font-medium block mb-1';
 
 const INCOME_CATEGORIES = [
   { value: 'rent', label: 'Rent' },
@@ -233,9 +233,9 @@ export default function FinanceTransactionForm({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-slate-900 border border-slate-800 text-slate-100 max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-card border border-border text-foreground max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">
+          <DialogTitle className="text-foreground">
             {expense ? 'Edit Transaction' : 'Add Transaction'}
           </DialogTitle>
         </DialogHeader>
@@ -253,8 +253,8 @@ export default function FinanceTransactionForm({
                     form.type === t
                       ? t === 'income'
                         ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
-                        : 'bg-amber-500/20 border-amber-500 text-amber-400'
-                      : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'
+                        : 'bg-primary/20 border-primary text-primary-hover'
+                      : 'bg-secondary border-border text-muted-foreground hover:border-border'
                   }`}
                 >
                   {t}
@@ -380,7 +380,7 @@ export default function FinanceTransactionForm({
                 variant="outline"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
-                className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100"
+                className="border-border text-foreground-soft hover:bg-secondary hover:text-foreground"
               >
                 <Upload className="w-3.5 h-3.5 mr-1.5" />
                 {receiptPreview || form.receipt_url ? 'Change' : 'Upload'}
@@ -397,12 +397,12 @@ export default function FinanceTransactionForm({
                   <img
                     src={receiptPreview || (typeof form.receipt_url === 'object' ? form.receipt_url?.url : form.receipt_url)}
                     alt="Receipt"
-                    className="h-10 w-10 rounded border border-slate-700 object-cover"
+                    className="h-10 w-10 rounded border border-border object-cover"
                   />
                   <button
                     type="button"
                     onClick={clearReceipt}
-                    className="text-slate-500 hover:text-red-400"
+                    className="text-muted-foreground/70 hover:text-red-400"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -418,9 +418,9 @@ export default function FinanceTransactionForm({
               id="is_recurring_exp"
               checked={form.is_recurring}
               onChange={(e) => set('is_recurring', e.target.checked)}
-              className="rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+              className="rounded border-border bg-secondary text-primary focus:ring-ring"
             />
-            <label htmlFor="is_recurring_exp" className="text-slate-300 text-sm">
+            <label htmlFor="is_recurring_exp" className="text-foreground-soft text-sm">
               Recurring expense (carries forward monthly)
             </label>
           </div>
@@ -437,8 +437,8 @@ export default function FinanceTransactionForm({
                     onClick={() => set('paid_by', v)}
                     className={`flex-1 px-3 py-2 text-sm rounded-md border transition-colors min-h-[44px] capitalize ${
                       form.paid_by === v
-                        ? 'bg-amber-500/20 border-amber-500 text-amber-400'
-                        : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'
+                        ? 'bg-primary/20 border-primary text-primary-hover'
+                        : 'bg-secondary border-border text-muted-foreground hover:border-border'
                     }`}
                   >
                     {v}
@@ -485,13 +485,13 @@ export default function FinanceTransactionForm({
               type="button"
               variant="ghost"
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-200 hover:bg-transparent"
+              className="text-muted-foreground hover:text-foreground hover:bg-transparent"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
             >
               {expense ? 'Update' : 'Create'}
             </Button>

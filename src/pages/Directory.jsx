@@ -144,14 +144,14 @@ export default function Directory() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Page header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white">Directory</h1>
-          <p className="text-slate-400 mt-1">Find trusted local businesses in your community</p>
+          <h1 className="text-2xl font-bold text-foreground">Directory</h1>
+          <p className="text-muted-foreground mt-1">Find trusted local businesses in your community</p>
           {region && (
-            <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-slate-400 bg-slate-800 border border-slate-700 rounded-full px-2.5 py-1">
+            <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-secondary border border-border rounded-full px-2.5 py-1">
               <MapPin className="h-3 w-3" />
               {region.display_name || region.name}
             </div>
@@ -160,13 +160,13 @@ export default function Directory() {
 
         {/* Search bar */}
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search businesses, services, categories..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="h-12 pl-11 text-base bg-slate-900 border border-slate-700 text-white placeholder:text-slate-500 focus:border-amber-500 focus:ring-amber-500 rounded-xl w-full"
+            className="h-12 pl-11 text-base bg-card border border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:ring-ring rounded-xl w-full"
           />
         </div>
 
@@ -178,8 +178,8 @@ export default function Directory() {
           <button
             onClick={() => setSelectedCategory('all')}
             className={selectedCategory === 'all'
-              ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-500 text-black border border-amber-500 cursor-default whitespace-nowrap flex-shrink-0'
-              : 'px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0'
+              ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-primary text-primary-foreground border border-primary cursor-default whitespace-nowrap flex-shrink-0'
+              : 'px-3 py-1.5 rounded-lg text-sm bg-secondary text-foreground-soft border border-border hover:border-primary hover:text-primary transition-colors cursor-pointer whitespace-nowrap flex-shrink-0'
             }
           >
             All
@@ -191,20 +191,20 @@ export default function Directory() {
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
                 className={isActive
-                  ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-500 text-black border border-amber-500 cursor-default whitespace-nowrap flex-shrink-0'
-                  : 'px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0'
+                  ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-primary text-primary-foreground border border-primary cursor-default whitespace-nowrap flex-shrink-0'
+                  : 'px-3 py-1.5 rounded-lg text-sm bg-secondary text-foreground-soft border border-border hover:border-primary hover:text-primary transition-colors cursor-pointer whitespace-nowrap flex-shrink-0'
                 }
               >
                 {category.label}
               </button>
             );
           })}
-          <div className="w-px h-6 bg-slate-700 flex-shrink-0" />
+          <div className="w-px h-6 bg-surface flex-shrink-0" />
           <button
             onClick={() => setAcceptsJoyCoins(!acceptsJoyCoins)}
             className={acceptsJoyCoins
-              ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-500/20 text-amber-500 border border-amber-500/50 cursor-default whitespace-nowrap flex-shrink-0 flex items-center gap-1.5'
-              : 'px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0 flex items-center gap-1.5'
+              ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-primary/20 text-primary border border-primary/50 cursor-default whitespace-nowrap flex-shrink-0 flex items-center gap-1.5'
+              : 'px-3 py-1.5 rounded-lg text-sm bg-secondary text-foreground-soft border border-border hover:border-primary hover:text-primary transition-colors cursor-pointer whitespace-nowrap flex-shrink-0 flex items-center gap-1.5'
             }
           >
             <Coins className="h-3.5 w-3.5" />
@@ -214,21 +214,21 @@ export default function Directory() {
 
         {/* Results header */}
         <div className="flex items-center justify-between mt-4 mb-4 gap-2">
-          <span className="text-sm text-slate-400 flex-shrink-0">
+          <span className="text-sm text-muted-foreground flex-shrink-0">
             {filteredBusinesses.length} {filteredBusinesses.length === 1 ? 'business' : 'businesses'}
           </span>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[140px] sm:w-[160px] h-9 bg-slate-800 border-slate-700 text-slate-300 text-sm">
+            <SelectTrigger className="w-[140px] sm:w-[160px] h-9 bg-secondary border-border text-foreground-soft text-sm">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
-            <SelectContent className="bg-slate-900 border-slate-700">
-              <SelectItem value="recommended" className="text-slate-300 focus:bg-slate-800 focus:text-white">
+            <SelectContent className="bg-card border-border">
+              <SelectItem value="recommended" className="text-foreground-soft focus:bg-secondary focus:text-foreground">
                 Recommended
               </SelectItem>
-              <SelectItem value="newest" className="text-slate-300 focus:bg-slate-800 focus:text-white">
+              <SelectItem value="newest" className="text-foreground-soft focus:bg-secondary focus:text-foreground">
                 Newest
               </SelectItem>
-              <SelectItem value="alpha" className="text-slate-300 focus:bg-slate-800 focus:text-white">
+              <SelectItem value="alpha" className="text-foreground-soft focus:bg-secondary focus:text-foreground">
                 A-Z
               </SelectItem>
             </SelectContent>
@@ -240,17 +240,17 @@ export default function Directory() {
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="h-48 bg-slate-800 rounded-xl animate-pulse" />
+                <div key={i} className="h-48 bg-secondary rounded-xl animate-pulse" />
               ))}
             </div>
           ) : filteredBusinesses.length === 0 ? (
-            <div className="text-center py-20 bg-slate-900 border border-slate-800 rounded-xl">
-              <SearchX className="h-12 w-12 text-slate-500 mx-auto mb-3" />
-              <p className="text-slate-300 font-medium">No businesses found</p>
-              <p className="text-sm text-slate-400 mt-1">Try adjusting your search or filters, or check back soon — we&apos;re growing.</p>
+            <div className="text-center py-20 bg-card border border-border rounded-xl">
+              <SearchX className="h-12 w-12 text-muted-foreground/70 mx-auto mb-3" />
+              <p className="text-foreground-soft font-medium">No businesses found</p>
+              <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filters, or check back soon — we&apos;re growing.</p>
               <button
                 onClick={handleClearFilters}
-                className="mt-4 px-4 py-2 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors"
+                className="mt-4 px-4 py-2 rounded-lg text-sm font-medium bg-secondary text-foreground-soft border border-border hover:border-primary hover:text-primary transition-colors"
               >
                 Clear filters
               </button>

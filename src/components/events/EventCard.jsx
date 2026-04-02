@@ -36,7 +36,7 @@ const NETWORK_ACCENT_COLORS = {
   creative_alliance: 'border-l-violet-700',
   gathering_circle: 'border-l-rose-700',
 };
-const DEFAULT_ACCENT = 'border-l-slate-500';
+const DEFAULT_ACCENT = 'border-l-muted-foreground';
 
 function resolveEventAccent(event) {
   // 1. Single network field
@@ -79,11 +79,11 @@ export default function EventCard({ event, onClick }) {
     <div
       className={cn(
         "rounded-lg p-5 cursor-pointer",
-        "bg-gradient-to-br from-slate-800 to-slate-800/90",
-        "border border-slate-700",
+        "bg-gradient-to-br from-secondary to-secondary/90",
+        "border border-border",
         isCancelled
-          ? "opacity-60 hover:border-slate-600"
-          : "hover:border-amber-500/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)] hover:-translate-y-0.5",
+          ? "opacity-60 hover:border-border"
+          : "hover:border-primary/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)] hover:-translate-y-0.5",
         "transition-all duration-300 ease-out",
         "border-l-4",
         accentColor
@@ -93,32 +93,32 @@ export default function EventCard({ event, onClick }) {
     >
       {/* Event Title */}
       <h3 className={cn(
-        "text-lg font-semibold text-slate-50 line-clamp-1",
-        isCancelled && "line-through text-slate-400"
+        "text-lg font-semibold text-foreground line-clamp-1",
+        isCancelled && "line-through text-muted-foreground"
       )}>
         {event.title}
       </h3>
 
       {/* Date + Time — amber because time is actionable */}
-      <p className="text-sm text-amber-400 mt-1">
+      <p className="text-sm text-primary-hover mt-1">
         {format(eventDate, 'EEE, MMM d')} · {timeStr}
       </p>
 
       {/* Cancelled label */}
       {isCancelled && (
-        <p className="text-xs text-slate-500 mt-1 uppercase tracking-wide">Cancelled</p>
+        <p className="text-xs text-muted-foreground/70 mt-1 uppercase tracking-wide">Cancelled</p>
       )}
 
       {/* Business name — shown if available (enriched by parent page) */}
       {(event.business_name || event._businessName) && (
-        <p className="text-sm text-slate-400 mt-2">
+        <p className="text-sm text-muted-foreground mt-2">
           {event.business_name || event._businessName}
         </p>
       )}
 
       {/* Location */}
       {event.location && (
-        <p className="text-sm text-slate-500 mt-1 line-clamp-1">
+        <p className="text-sm text-muted-foreground/70 mt-1 line-clamp-1">
           {event.location}
         </p>
       )}
@@ -132,7 +132,7 @@ export default function EventCard({ event, onClick }) {
               e.stopPropagation();
               setShowDates(!showDates);
             }}
-            className="flex items-center gap-1.5 text-slate-400 text-xs cursor-pointer hover:text-slate-300 transition-colors"
+            className="flex items-center gap-1.5 text-muted-foreground text-xs cursor-pointer hover:text-foreground-soft transition-colors"
           >
             <Repeat className="h-3.5 w-3.5" />
             <span>Recurring · {event._groupSize - 1} more date{event._groupSize - 1 !== 1 ? 's' : ''}</span>
@@ -147,7 +147,7 @@ export default function EventCard({ event, onClick }) {
                     e.stopPropagation();
                     onClick?.(ge);
                   }}
-                  className="text-slate-400 text-xs hover:text-amber-500 cursor-pointer transition-colors py-1"
+                  className="text-muted-foreground text-xs hover:text-primary cursor-pointer transition-colors py-1"
                 >
                   {new Date(ge.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                   {ge.start_time ? ` · ${ge.start_time}` : ''}
@@ -162,28 +162,28 @@ export default function EventCard({ event, onClick }) {
       <div className="flex flex-wrap items-center gap-1.5 mt-3">
         {/* Network badge */}
         {event.network && (
-          <span className="bg-amber-500/10 text-amber-500 text-xs px-2 py-0.5 rounded-full capitalize">
+          <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full capitalize">
             {event.network.replace(/_/g, ' ')}
           </span>
         )}
 
         {/* Network-only indicator */}
         {event.network_only && event.network && (
-          <span className="bg-slate-700 text-slate-400 text-xs px-2 py-0.5 rounded-full">
+          <span className="bg-surface text-muted-foreground text-xs px-2 py-0.5 rounded-full">
             Members Only
           </span>
         )}
 
         {/* Price badge */}
         {!isCancelled && !isJoyCoinEvent && priceBadge && (
-          <span className="bg-amber-500/20 text-amber-500 text-xs px-2 py-0.5 rounded-full font-medium">
+          <span className="bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full font-medium">
             {priceBadge.text}
           </span>
         )}
 
         {/* Joy Coins badge */}
         {!isCancelled && isJoyCoinEvent && (
-          <span className="bg-amber-500/20 text-amber-400 text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+          <span className="bg-primary/20 text-primary-hover text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
             <Coins className="h-3 w-3" />
             {joyCoinCost === 1 ? '1 Joy Coin' : `${joyCoinCost} Joy Coins`}
           </span>
@@ -192,7 +192,7 @@ export default function EventCard({ event, onClick }) {
 
       {/* RSVP count — shown if enriched by parent */}
       {event._rsvpCount > 0 && (
-        <p className="text-xs text-slate-500 mt-2">
+        <p className="text-xs text-muted-foreground/70 mt-2">
           {event._rsvpCount} going
         </p>
       )}

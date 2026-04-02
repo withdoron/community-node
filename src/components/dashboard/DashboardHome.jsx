@@ -87,57 +87,57 @@ export default function DashboardHome({
         </div>
       )}
 
-      <p className="text-lg text-slate-300 mb-6">
+      <p className="text-lg text-foreground-soft mb-6">
         {revenue.totalRedemptions > 0 ? (
           <>
             This month, {revenue.uniqueFamilies} families visited through LocalLane. Your estimated pool share:{' '}
-            <span className="text-amber-500 font-bold">{fmt(revenue.estimatedPayout)}</span>
+            <span className="text-primary font-bold">{fmt(revenue.estimatedPayout)}</span>
           </>
         ) : (
           'Welcome to your LocalLane dashboard! Set your Joy Coin access hours and create events to start receiving families.'
         )}
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <Users className="h-5 w-5 text-amber-500 mb-2" />
-          <div className="text-2xl font-bold text-slate-100">{revenue.uniqueFamilies}</div>
-          <div className="text-sm text-slate-400">Families Served</div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <Users className="h-5 w-5 text-primary mb-2" />
+          <div className="text-2xl font-bold text-foreground">{revenue.uniqueFamilies}</div>
+          <div className="text-sm text-muted-foreground">Families Served</div>
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <Coins className="h-5 w-5 text-amber-500 mb-2" />
-          <div className="text-2xl font-bold text-slate-100">{revenue.totalCoinsRedeemed}</div>
-          <div className="text-sm text-slate-400">Joy Coins Redeemed</div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <Coins className="h-5 w-5 text-primary mb-2" />
+          <div className="text-2xl font-bold text-foreground">{revenue.totalCoinsRedeemed}</div>
+          <div className="text-sm text-muted-foreground">Joy Coins Redeemed</div>
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <Wallet className="h-5 w-5 text-amber-500 mb-2" />
-          <div className="text-2xl font-bold text-slate-100">
+        <div className="bg-card border border-border rounded-xl p-4">
+          <Wallet className="h-5 w-5 text-primary mb-2" />
+          <div className="text-2xl font-bold text-foreground">
             {fmt(revenue.estimatedPayout)}
           </div>
-          <div className="text-sm text-slate-400">Pool Share</div>
+          <div className="text-sm text-muted-foreground">Pool Share</div>
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <Calendar className="h-5 w-5 text-amber-500 mb-2" />
-          <div className="text-2xl font-bold text-slate-100">{thisMonthEvents}</div>
-          <div className="text-sm text-slate-400">Events This Month</div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <Calendar className="h-5 w-5 text-primary mb-2" />
+          <div className="text-2xl font-bold text-foreground">{thisMonthEvents}</div>
+          <div className="text-sm text-muted-foreground">Events This Month</div>
         </div>
       </div>
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-slate-100">Upcoming Events</h2>
+          <h2 className="text-xl font-bold text-foreground">Upcoming Events</h2>
           <button
             type="button"
             onClick={() => onNavigateTab?.('events')}
-            className="text-sm text-amber-500 hover:text-amber-400 transition-colors"
+            className="text-sm text-primary hover:text-primary-hover transition-colors"
           >
             See All →
           </button>
         </div>
         {upcoming.length === 0 ? (
-          <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 text-center">
-            <p className="text-slate-400 mb-4">No upcoming events. Create one to start attracting families.</p>
+          <div className="bg-card/50 border border-border rounded-lg p-6 text-center">
+            <p className="text-muted-foreground mb-4">No upcoming events. Create one to start attracting families.</p>
             <Button
               variant="outline"
-              className="bg-transparent border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent transition-colors"
+              className="bg-transparent border border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent transition-colors"
               onClick={() => onNavigateTab?.('events')}
             >
               Create Event
@@ -150,22 +150,22 @@ export default function DashboardHome({
               return (
                 <div
                   key={event.id}
-                  className="bg-slate-900/50 border border-slate-800 rounded-lg p-3 flex justify-between items-center"
+                  className="bg-card/50 border border-border rounded-lg p-3 flex justify-between items-center"
                 >
                   <div>
-                    <div className="font-medium text-slate-100">{event.title}</div>
-                    <div className="text-sm text-slate-400">
+                    <div className="font-medium text-foreground">{event.title}</div>
+                    <div className="text-sm text-muted-foreground">
                       {event.date || event.start_date ? new Date(event.date || event.start_date).toLocaleString() : '—'}
                       {rsvpCount !== undefined && (
-                        <span className="ml-2 text-slate-500">
+                        <span className="ml-2 text-muted-foreground/70">
                           — {rsvpCount === 0 ? 'No RSVPs yet' : `${rsvpCount} RSVP${rsvpCount !== 1 ? 's' : ''}`}
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 text-sm text-slate-400">
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     {event.joy_coin_enabled && event.joy_coin_cost > 0 && (
-                      <span className="text-amber-500">{event.joy_coin_cost} coin(s)</span>
+                      <span className="text-primary">{event.joy_coin_cost} coin(s)</span>
                     )}
                     <span>—</span>
                   </div>
@@ -178,21 +178,21 @@ export default function DashboardHome({
       <div className="flex flex-wrap gap-3">
         <Button
           variant="outline"
-          className="bg-transparent border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent transition-colors"
+          className="bg-transparent border border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent transition-colors"
           onClick={() => onNavigateTab?.('events')}
         >
           Create Event
         </Button>
         <Button
           variant="outline"
-          className="bg-transparent border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent transition-colors"
+          className="bg-transparent border border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent transition-colors"
           onClick={() => onNavigateTab?.('joy-coins')}
         >
           Joy Coin Hours
         </Button>
         <Button
           variant="outline"
-          className="bg-transparent border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent transition-colors"
+          className="bg-transparent border border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent transition-colors"
           onClick={() => onNavigateTab?.('revenue')}
         >
           View Revenue

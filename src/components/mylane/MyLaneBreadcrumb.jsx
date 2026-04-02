@@ -9,12 +9,12 @@ export default function MyLaneBreadcrumb({ spaceName, onBack }) {
       <button
         type="button"
         onClick={onBack}
-        className="text-amber-500 hover:text-amber-400 font-medium transition-colors"
+        className="text-primary hover:text-primary-hover font-medium transition-colors"
       >
         MyLane
       </button>
-      <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
-      <span className="text-slate-300">{spaceName}</span>
+      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50" />
+      <span className="text-foreground-soft">{spaceName}</span>
     </div>
   );
 }

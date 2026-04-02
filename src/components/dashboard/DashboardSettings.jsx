@@ -21,14 +21,14 @@ export default function DashboardSettings({
     <div className="space-y-6">
       <BusinessSettings business={business} currentUserId={currentUserId} onNavigateTab={onNavigateTab} />
       {isOwner && (
-        <Card className="p-6 bg-slate-900 border-slate-800">
+        <Card className="p-6 bg-card border-border">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <Settings className="h-5 w-5 text-slate-400" />
-              <h2 className="text-xl font-bold text-slate-100">Business settings</h2>
+              <Settings className="h-5 w-5 text-muted-foreground" />
+              <h2 className="text-xl font-bold text-foreground">Business settings</h2>
             </div>
           </div>
-          <p className="text-sm text-slate-400 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Permanently remove this business and its data. This action uses a soft delete (business is marked deleted).
           </p>
           <Button

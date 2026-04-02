@@ -30,8 +30,8 @@ export default function AgentChatButton({ agentName = 'FieldServiceAgent', userI
         onClick={() => setIsOpen((prev) => !prev)}
         className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 ${
           isOpen
-            ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 rotate-0'
-            : 'bg-amber-500 hover:bg-amber-400 text-slate-900 hover:scale-105'
+            ? 'bg-secondary hover:bg-surface text-foreground-soft rotate-0'
+            : 'bg-primary hover:bg-primary-hover text-primary-foreground hover:scale-105'
         }`}
         title={isOpen ? 'Close chat' : 'Open agent chat'}
         aria-label={isOpen ? 'Close chat' : 'Open agent chat'}

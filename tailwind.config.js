@@ -11,7 +11,11 @@ module.exports = {
   		},
   		colors: {
   			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
+  			foreground: {
+  				DEFAULT: 'hsl(var(--foreground))',
+  				soft: 'hsl(var(--foreground-soft))'
+  			},
+  			surface: 'hsl(var(--surface))',
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
@@ -22,7 +26,8 @@ module.exports = {
   			},
   			primary: {
   				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
+  				foreground: 'hsl(var(--primary-foreground))',
+  				hover: 'hsl(var(--primary-hover))'
   			},
   			secondary: {
   				DEFAULT: 'hsl(var(--secondary))',

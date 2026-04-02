@@ -44,17 +44,17 @@ function formatPhone(value) {
 const STATUS_COLORS = {
   active: 'bg-emerald-500/20 text-emerald-400',
   quoting: 'bg-emerald-500/20 text-emerald-400', // legacy — treated as active
-  paused: 'bg-amber-500/20 text-amber-400',
-  completed: 'bg-slate-500/20 text-slate-400',
-  cancelled: 'bg-slate-500/20 text-slate-400',
+  paused: 'bg-primary/20 text-primary-hover',
+  completed: 'bg-muted-foreground/20 text-muted-foreground',
+  cancelled: 'bg-muted-foreground/20 text-muted-foreground',
 };
 
 const ESTIMATE_STATUS_COLORS = {
-  draft: 'bg-slate-500/20 text-slate-400',
+  draft: 'bg-muted-foreground/20 text-muted-foreground',
   sent: 'bg-blue-500/20 text-blue-400',
   accepted: 'bg-emerald-500/20 text-emerald-400',
   declined: 'bg-red-500/20 text-red-400',
-  expired: 'bg-amber-500/20 text-amber-400',
+  expired: 'bg-primary/20 text-primary-hover',
 };
 
 export default function FieldServiceClientDetail({
@@ -150,49 +150,49 @@ export default function FieldServiceClientDetail({
 
   if (clientLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
 
   if (!client) {
     return (
-      <div className="min-h-screen bg-slate-950 p-4">
+      <div className="min-h-screen bg-background p-4">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-slate-300 hover:text-amber-400 transition-colors min-h-[44px]"
+          className="flex items-center gap-2 text-foreground-soft hover:text-primary-hover transition-colors min-h-[44px]"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Back</span>
         </button>
-        <div className="mt-12 text-center text-slate-400">Client not found.</div>
+        <div className="mt-12 text-center text-muted-foreground">Client not found.</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 p-4 pb-24 space-y-4">
+    <div className="min-h-screen bg-background p-4 pb-24 space-y-4">
       {/* Back button */}
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-slate-300 hover:text-amber-400 transition-colors min-h-[44px]"
+        className="flex items-center gap-2 text-foreground-soft hover:text-primary-hover transition-colors min-h-[44px]"
       >
         <ArrowLeft className="w-5 h-5" />
         <span>Back</span>
       </button>
 
       {/* Client header card */}
-      <div className="bg-slate-900 rounded-xl p-5 space-y-4">
+      <div className="bg-card rounded-xl p-5 space-y-4">
         {editing ? (
           /* Edit mode */
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white">Edit Client</h2>
+              <h2 className="text-lg font-bold text-foreground">Edit Client</h2>
               <div className="flex items-center gap-2">
                 <button
                   onClick={cancelEdit}
-                  className="flex items-center gap-1.5 px-3 min-h-[44px] rounded-lg bg-slate-800 text-slate-300 hover:text-white transition-colors"
+                  className="flex items-center gap-1.5 px-3 min-h-[44px] rounded-lg bg-secondary text-foreground-soft hover:text-foreground transition-colors"
                 >
                   <X className="w-4 h-4" />
                   <span>Cancel</span>
@@ -200,7 +200,7 @@ export default function FieldServiceClientDetail({
                 <button
                   onClick={handleSave}
                   disabled={updateMutation.isPending}
-                  className="flex items-center gap-1.5 px-4 min-h-[44px] rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-4 min-h-[44px] rounded-lg bg-primary text-slate-950 font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50"
                 >
                   {updateMutation.isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -214,99 +214,99 @@ export default function FieldServiceClientDetail({
 
             <div className="space-y-3">
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Name</label>
+                <label className="block text-sm text-muted-foreground mb-1">Name</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full min-h-[44px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                  className="w-full min-h-[44px] px-3 rounded-lg bg-secondary border border-border text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary"
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Email</label>
+                <label className="block text-sm text-muted-foreground mb-1">Email</label>
                 <input
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full min-h-[44px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                  className="w-full min-h-[44px] px-3 rounded-lg bg-secondary border border-border text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary"
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Phone</label>
+                <label className="block text-sm text-muted-foreground mb-1">Phone</label>
                 <input
                   type="tel"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })}
-                  className="w-full min-h-[44px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                  className="w-full min-h-[44px] px-3 rounded-lg bg-secondary border border-border text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary"
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Company</label>
+                <label className="block text-sm text-muted-foreground mb-1">Company</label>
                 <input
                   type="text"
                   value={form.company_name}
                   onChange={(e) => setForm({ ...form, company_name: e.target.value })}
-                  className="w-full min-h-[44px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                  className="w-full min-h-[44px] px-3 rounded-lg bg-secondary border border-border text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary"
                   placeholder="Company or business name"
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Address</label>
+                <label className="block text-sm text-muted-foreground mb-1">Address</label>
                 <input
                   type="text"
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
-                  className="w-full min-h-[44px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                  className="w-full min-h-[44px] px-3 rounded-lg bg-secondary border border-border text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary"
                   placeholder="Street address"
                 />
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1">City</label>
+                  <label className="block text-sm text-muted-foreground mb-1">City</label>
                   <input
                     type="text"
                     value={form.city}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
-                    className="w-full min-h-[44px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                    className="w-full min-h-[44px] px-3 rounded-lg bg-secondary border border-border text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary"
                     placeholder="City"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1">State</label>
+                  <label className="block text-sm text-muted-foreground mb-1">State</label>
                   <input
                     type="text"
                     value={form.state}
                     onChange={(e) => setForm({ ...form, state: e.target.value })}
-                    className="w-full min-h-[44px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                    className="w-full min-h-[44px] px-3 rounded-lg bg-secondary border border-border text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary"
                     placeholder="State"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1">Zip</label>
+                  <label className="block text-sm text-muted-foreground mb-1">Zip</label>
                   <input
                     type="text"
                     value={form.zip_code}
                     onChange={(e) => setForm({ ...form, zip_code: e.target.value })}
-                    className="w-full min-h-[44px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                    className="w-full min-h-[44px] px-3 rounded-lg bg-secondary border border-border text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary"
                     placeholder="Zip code"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Notes</label>
+                <label className="block text-sm text-muted-foreground mb-1">Notes</label>
                 <textarea
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 resize-none"
+                  className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-foreground placeholder-muted-foreground/70 focus:outline-none focus:border-primary resize-none"
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Status</label>
+                <label className="block text-sm text-muted-foreground mb-1">Status</label>
                 <select
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="w-full min-h-[44px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-amber-500"
+                  className="w-full min-h-[44px] px-3 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:border-primary"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
@@ -319,16 +319,16 @@ export default function FieldServiceClientDetail({
           <>
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                  <User className="w-6 h-6 text-amber-500" />
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <User className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-white">{client.name}</h1>
+                  <h1 className="text-xl font-bold text-foreground">{client.name}</h1>
                   <span
                     className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       client.status === 'active'
                         ? 'bg-emerald-500/20 text-emerald-400'
-                        : 'bg-slate-500/20 text-slate-500'
+                        : 'bg-muted-foreground/20 text-muted-foreground/70'
                     }`}
                   >
                     {client.status || 'active'}
@@ -337,7 +337,7 @@ export default function FieldServiceClientDetail({
               </div>
               <button
                 onClick={startEdit}
-                className="flex items-center justify-center w-10 min-h-[44px] rounded-lg text-slate-400 hover:text-amber-400 transition-colors"
+                className="flex items-center justify-center w-10 min-h-[44px] rounded-lg text-muted-foreground hover:text-primary-hover transition-colors"
               >
                 <Pencil className="w-5 h-5" />
               </button>
@@ -347,38 +347,38 @@ export default function FieldServiceClientDetail({
               {client.phone && (
                 <a
                   href={`tel:${client.phone.replace(/\D/g, '')}`}
-                  className="flex items-center gap-2.5 text-slate-300 hover:text-amber-400 transition-colors min-h-[44px]"
+                  className="flex items-center gap-2.5 text-foreground-soft hover:text-primary-hover transition-colors min-h-[44px]"
                 >
-                  <Phone className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <Phone className="w-4 h-4 text-primary flex-shrink-0" />
                   <span>{formatPhone(client.phone)}</span>
                 </a>
               )}
               {client.email && (
                 <a
                   href={`mailto:${client.email}`}
-                  className="flex items-center gap-2.5 text-slate-300 hover:text-amber-400 transition-colors min-h-[44px]"
+                  className="flex items-center gap-2.5 text-foreground-soft hover:text-primary-hover transition-colors min-h-[44px]"
                 >
-                  <Mail className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <Mail className="w-4 h-4 text-primary flex-shrink-0" />
                   <span>{client.email}</span>
                 </a>
               )}
               {(client.address || client.city || client.state || client.zip_code) && (
-                <div className="flex items-center gap-2.5 text-slate-300 min-h-[44px]">
-                  <MapPin className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <div className="flex items-center gap-2.5 text-foreground-soft min-h-[44px]">
+                  <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
                   <span>{[client.address, client.city, [client.state, client.zip_code].filter(Boolean).join(' ')].filter(Boolean).join(', ')}</span>
                 </div>
               )}
               {client.company_name && (
-                <div className="flex items-center gap-2.5 text-slate-300 min-h-[44px]">
-                  <span className="w-4 h-4 text-amber-500 flex-shrink-0 text-center text-xs font-bold">Co</span>
+                <div className="flex items-center gap-2.5 text-foreground-soft min-h-[44px]">
+                  <span className="w-4 h-4 text-primary flex-shrink-0 text-center text-xs font-bold">Co</span>
                   <span>{client.company_name}</span>
                 </div>
               )}
             </div>
 
             {client.notes && (
-              <div className="pt-2 border-t border-slate-800">
-                <p className="text-sm text-slate-400">{client.notes}</p>
+              <div className="pt-2 border-t border-border">
+                <p className="text-sm text-muted-foreground">{client.notes}</p>
               </div>
             )}
           </>
@@ -387,35 +387,35 @@ export default function FieldServiceClientDetail({
 
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="bg-slate-900 rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-white">{stats.totalProjects}</div>
-          <div className="text-sm text-slate-400 mt-1">Total Projects</div>
+        <div className="bg-card rounded-xl p-4 text-center">
+          <div className="text-2xl font-bold text-foreground">{stats.totalProjects}</div>
+          <div className="text-sm text-muted-foreground mt-1">Total Projects</div>
         </div>
-        <div className="bg-slate-900 rounded-xl p-4 text-center">
+        <div className="bg-card rounded-xl p-4 text-center">
           <div className="text-2xl font-bold text-emerald-400">{stats.activeProjects}</div>
-          <div className="text-sm text-slate-400 mt-1">Active Projects</div>
+          <div className="text-sm text-muted-foreground mt-1">Active Projects</div>
         </div>
-        <div className="bg-slate-900 rounded-xl p-4 text-center col-span-2 sm:col-span-1">
-          <div className="text-2xl font-bold text-white">{stats.totalEstimates}</div>
-          <div className="text-sm text-slate-400 mt-1">Total Estimates</div>
+        <div className="bg-card rounded-xl p-4 text-center col-span-2 sm:col-span-1">
+          <div className="text-2xl font-bold text-foreground">{stats.totalEstimates}</div>
+          <div className="text-sm text-muted-foreground mt-1">Total Estimates</div>
         </div>
       </div>
 
       {/* Projects section */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <FolderOpen className="w-5 h-5 text-amber-500" />
-          <h2 className="text-lg font-semibold text-white">Projects</h2>
+          <FolderOpen className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-semibold text-foreground">Projects</h2>
         </div>
 
         {projectsLoading ? (
           <div className="flex justify-center py-8">
-            <Loader2 className="w-6 h-6 text-amber-500 animate-spin" />
+            <Loader2 className="w-6 h-6 text-primary animate-spin" />
           </div>
         ) : projects.length === 0 ? (
-          <div className="bg-slate-900 rounded-xl p-6 text-center">
-            <FolderOpen className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-            <p className="text-slate-400">No projects yet</p>
+          <div className="bg-card rounded-xl p-6 text-center">
+            <FolderOpen className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+            <p className="text-muted-foreground">No projects yet</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -423,10 +423,10 @@ export default function FieldServiceClientDetail({
               <button
                 key={project.id}
                 onClick={() => onViewProject(project.id)}
-                className="w-full text-left bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-amber-500/50 transition-colors min-h-[44px]"
+                className="w-full text-left bg-card border border-border rounded-xl p-4 hover:border-primary/50 transition-colors min-h-[44px]"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-white truncate pr-2">{project.name}</h3>
+                  <h3 className="font-semibold text-foreground truncate pr-2">{project.name}</h3>
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
                       STATUS_COLORS[project.status] || STATUS_COLORS.active
@@ -438,14 +438,14 @@ export default function FieldServiceClientDetail({
                 {(project.budget != null || project.spent != null) && (
                   <div className="mt-2">
                     <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-slate-400">Budget</span>
-                      <span className="text-slate-300">
+                      <span className="text-muted-foreground">Budget</span>
+                      <span className="text-foreground-soft">
                         {fmt(project.spent || 0)} / {fmt(project.budget || 0)}
                       </span>
                     </div>
-                    <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-amber-500 rounded-full transition-all"
+                        className="h-full bg-primary rounded-full transition-all"
                         style={{
                           width: `${Math.min(
                             100,
@@ -458,7 +458,7 @@ export default function FieldServiceClientDetail({
                     </div>
                   </div>
                 )}
-                <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-500">
+                <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground/70">
                   <Eye className="h-3 w-3" />
                   <span>Client sees: {project.client_show_breakdown ? 'Full breakdown' : 'Total only'}</span>
                 </div>
@@ -471,18 +471,18 @@ export default function FieldServiceClientDetail({
       {/* Estimates section */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-amber-500" />
-          <h2 className="text-lg font-semibold text-white">Estimates</h2>
+          <FileText className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-semibold text-foreground">Estimates</h2>
         </div>
 
         {estimatesLoading ? (
           <div className="flex justify-center py-8">
-            <Loader2 className="w-6 h-6 text-amber-500 animate-spin" />
+            <Loader2 className="w-6 h-6 text-primary animate-spin" />
           </div>
         ) : estimates.length === 0 ? (
-          <div className="bg-slate-900 rounded-xl p-6 text-center">
-            <FileText className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-            <p className="text-slate-400">No estimates yet</p>
+          <div className="bg-card rounded-xl p-6 text-center">
+            <FileText className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+            <p className="text-muted-foreground">No estimates yet</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -490,10 +490,10 @@ export default function FieldServiceClientDetail({
               <button
                 key={estimate.id}
                 onClick={() => onViewEstimate(estimate.id)}
-                className="w-full text-left bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-amber-500/50 transition-colors min-h-[44px]"
+                className="w-full text-left bg-card border border-border rounded-xl p-4 hover:border-primary/50 transition-colors min-h-[44px]"
               >
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-semibold text-white truncate pr-2">
+                  <h3 className="font-semibold text-foreground truncate pr-2">
                     {estimate.title || 'Untitled Estimate'}
                   </h3>
                   <span
@@ -505,14 +505,14 @@ export default function FieldServiceClientDetail({
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-400">
+                  <span className="text-sm text-muted-foreground">
                     {estimate.estimate_number || '—'}
                   </span>
-                  <span className="text-sm font-medium text-slate-100">
+                  <span className="text-sm font-medium text-foreground">
                     {fmt(estimate.total)}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-500">
+                <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground/70">
                   <Eye className="h-3 w-3" />
                   <span>Client sees: {estimate.client_show_breakdown ? 'Full breakdown' : 'Total only'}</span>
                 </div>

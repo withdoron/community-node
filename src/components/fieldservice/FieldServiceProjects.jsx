@@ -19,8 +19,8 @@ import {
 /** Budget bar color: amber shades only — no red. */
 function budgetBarColor(pct) {
   if (pct >= 95) return 'bg-amber-700';
-  if (pct >= 75) return 'bg-amber-600';
-  return 'bg-amber-500';
+  if (pct >= 75) return 'bg-primary/80';
+  return 'bg-primary';
 }
 
 function parseWorkers(val) {
@@ -42,14 +42,14 @@ function generateCONumber(existingCOs) {
 }
 
 const INPUT_CLASS =
-  'w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent';
-const LABEL_CLASS = 'block text-slate-300 text-sm font-medium mb-1';
+  'w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent';
+const LABEL_CLASS = 'block text-foreground-soft text-sm font-medium mb-1';
 
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active', color: 'bg-emerald-500/20 text-emerald-400' },
-  { value: 'paused', label: 'Paused', color: 'bg-amber-500/20 text-amber-400' },
-  { value: 'completed', label: 'Completed', color: 'bg-slate-500/20 text-slate-400' },
-  { value: 'cancelled', label: 'Cancelled', color: 'bg-slate-500/20 text-slate-500' },
+  { value: 'paused', label: 'Paused', color: 'bg-primary/20 text-primary-hover' },
+  { value: 'completed', label: 'Completed', color: 'bg-muted-foreground/20 text-muted-foreground' },
+  { value: 'cancelled', label: 'Cancelled', color: 'bg-muted-foreground/20 text-muted-foreground/70' },
 ];
 
 function formatPhone(value) {
@@ -508,7 +508,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
+        <Loader2 className="h-6 w-6 text-primary animate-spin" />
       </div>
     );
   }
@@ -557,12 +557,12 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         <button
           type="button"
           onClick={() => { setView(editingId ? 'detail' : 'list'); setFormData(EMPTY_PROJECT); setEditingId(null); }}
-          className="flex items-center gap-2 text-slate-400 hover:text-amber-500 text-sm mb-2 min-h-[44px]"
+          className="flex items-center gap-2 text-muted-foreground hover:text-primary text-sm mb-2 min-h-[44px]"
         >
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
 
-        <h2 className="text-xl font-bold text-slate-100">
+        <h2 className="text-xl font-bold text-foreground">
           {editingId ? 'Edit Project' : 'New Project'}
         </h2>
 
@@ -584,8 +584,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           </div>
 
           {/* Client Info */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-            <p className="text-sm font-medium text-slate-400">Client info</p>
+          <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+            <p className="text-sm font-medium text-muted-foreground">Client info</p>
             <ClientSelector
               clients={clients}
               selectedClientId={formData.client_id}
@@ -716,7 +716,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           <div>
             <label className={LABEL_CLASS}>Total budget</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70">$</span>
               <input
                 type="number"
                 step="0.01"
@@ -751,7 +751,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
             <button
               type="submit"
               disabled={isPending}
-              className="flex-1 flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-xl py-3 transition-colors min-h-[44px] disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-xl py-3 transition-colors min-h-[44px] disabled:opacity-50"
             >
               {isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -762,7 +762,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
             <button
               type="button"
               onClick={() => { setView(editingId ? 'detail' : 'list'); setFormData(EMPTY_PROJECT); setEditingId(null); }}
-              className="px-6 py-3 rounded-xl border border-slate-700 text-slate-400 hover:text-slate-200 hover:bg-transparent transition-colors min-h-[44px]"
+              className="px-6 py-3 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-transparent transition-colors min-h-[44px]"
             >
               Cancel
             </button>
@@ -796,27 +796,27 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         <button
           type="button"
           onClick={() => { setView('list'); setSelectedId(null); }}
-          className="flex items-center gap-2 text-slate-400 hover:text-amber-500 text-sm mb-2 min-h-[44px]"
+          className="flex items-center gap-2 text-muted-foreground hover:text-primary text-sm mb-2 min-h-[44px]"
         >
           <ArrowLeft className="h-4 w-4" /> All Projects
         </button>
 
         {/* Project Header */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+        <div className="bg-card border border-border rounded-xl p-5">
           <div className="flex items-start justify-between mb-3">
             <div className="min-w-0 flex-1">
-              <h2 className="text-xl font-bold text-slate-100">{proj.name}</h2>
+              <h2 className="text-xl font-bold text-foreground">{proj.name}</h2>
               {clientName && (
                 proj.client_id ? (
                   <button
                     type="button"
                     onClick={() => { setClientDetailId(proj.client_id); setView('client_detail'); }}
-                    className="flex items-center gap-1.5 text-sm text-amber-500 hover:text-amber-400 mt-1 transition-colors"
+                    className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover mt-1 transition-colors"
                   >
                     <User className="h-3.5 w-3.5" /> {clientName}
                   </button>
                 ) : (
-                  <p className="text-sm text-slate-400 mt-1">{clientName}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{clientName}</p>
                 )
               )}
             </div>
@@ -826,14 +826,14 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           </div>
 
           {proj.address && (
-            <div className="flex items-center gap-2 text-slate-400 text-sm mb-2">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
               <MapPin className="h-4 w-4 flex-shrink-0" />
               <span>{proj.address}</span>
             </div>
           )}
 
           {(proj.start_date || proj.estimated_end_date) && (
-            <div className="flex items-center gap-2 text-slate-400 text-sm mb-2">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
               <Calendar className="h-4 w-4 flex-shrink-0" />
               <span>
                 {proj.start_date ? fmtDate(proj.start_date) : '—'}
@@ -844,23 +844,23 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           )}
 
           {proj.description && (
-            <p className="text-sm text-slate-300 mt-3">{proj.description}</p>
+            <p className="text-sm text-foreground-soft mt-3">{proj.description}</p>
           )}
 
           {(clientPhone || clientEmail) && (
-            <div className="flex flex-wrap gap-3 mt-3 text-sm text-slate-400">
-              {clientPhone && <a href={`tel:${clientPhone.replace(/\D/g, '')}`} className="hover:text-amber-500 transition-colors">Phone: {formatPhone(clientPhone)}</a>}
-              {clientEmail && <a href={`mailto:${clientEmail}`} className="hover:text-amber-500 transition-colors">Email: {clientEmail}</a>}
+            <div className="flex flex-wrap gap-3 mt-3 text-sm text-muted-foreground">
+              {clientPhone && <a href={`tel:${clientPhone.replace(/\D/g, '')}`} className="hover:text-primary transition-colors">Phone: {formatPhone(clientPhone)}</a>}
+              {clientEmail && <a href={`mailto:${clientEmail}`} className="hover:text-primary transition-colors">Email: {clientEmail}</a>}
             </div>
           )}
 
           {/* Client Visibility Toggle — inline in header */}
-          <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-800 px-1">
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-border px-1">
             <div className="flex items-center gap-2">
-              <Eye className="h-4 w-4 text-slate-400" />
+              <Eye className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-sm text-white">Client sees: {proj.client_show_breakdown ? 'Full breakdown' : 'Total only'}</p>
-                <p className="text-xs text-slate-400 mt-0.5">Toggle to change what clients see in the portal</p>
+                <p className="text-sm text-foreground">Client sees: {proj.client_show_breakdown ? 'Full breakdown' : 'Total only'}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Toggle to change what clients see in the portal</p>
               </div>
             </div>
             <button
@@ -870,7 +870,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                 updateProject.mutate({ id: proj.id, data: { client_show_breakdown: !current } });
               }}
               className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
-                proj.client_show_breakdown ? 'bg-amber-500' : 'bg-slate-700'
+                proj.client_show_breakdown ? 'bg-primary' : 'bg-surface'
               }`}
             >
               <span className={`inline-block h-4 w-4 rounded-full bg-slate-100 transition-transform ${
@@ -881,8 +881,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         </div>
 
         {/* Status Quick Change */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <p className="text-sm text-slate-400 mb-3">Change status</p>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-sm text-muted-foreground mb-3">Change status</p>
           <div className="flex flex-wrap gap-2">
             {STATUS_OPTIONS.map((s) => (
               <button
@@ -893,7 +893,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[44px] ${
                   s.value === proj.status
                     ? `${s.color} ring-2 ring-white/20`
-                    : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                    : 'bg-secondary text-muted-foreground hover:text-foreground'
                 } disabled:opacity-50`}
               >
                 {s.label}
@@ -904,29 +904,29 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
 
         {/* Assigned Team */}
         {assignedTeam.length > 0 && (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <h3 className="text-sm font-medium text-slate-400 mb-3">Assigned Team</h3>
+          <div className="bg-card border border-border rounded-xl p-4">
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">Assigned Team</h3>
             <div className="space-y-2">
               {assignedTeam.map((person, idx) => (
-                <div key={idx} className="flex items-center gap-3 bg-slate-800/50 rounded-lg p-2.5">
+                <div key={idx} className="flex items-center gap-3 bg-secondary/50 rounded-lg p-2.5">
                   {person.role === 'subcontractor' ? (
                     <Briefcase className="h-4 w-4 text-sky-400 flex-shrink-0" />
                   ) : (
-                    <HardHat className="h-4 w-4 text-amber-400 flex-shrink-0" />
+                    <HardHat className="h-4 w-4 text-primary-hover flex-shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-100 truncate">{person.name}</p>
+                    <p className="text-sm font-medium text-foreground truncate">{person.name}</p>
                     {person.company_name && (
-                      <p className="text-xs text-slate-500">{person.company_name}</p>
+                      <p className="text-xs text-muted-foreground/70">{person.company_name}</p>
                     )}
                   </div>
                   <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
-                    person.role === 'subcontractor' ? 'bg-sky-500/20 text-sky-400' : 'bg-amber-500/20 text-amber-400'
+                    person.role === 'subcontractor' ? 'bg-sky-500/20 text-sky-400' : 'bg-primary/20 text-primary-hover'
                   }`}>
                     {person.role === 'subcontractor' ? 'Sub' : 'Worker'}
                   </span>
                   {person.phone && (
-                    <a href={`tel:${person.phone.replace(/\D/g, '')}`} className="text-slate-500 hover:text-amber-500 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+                    <a href={`tel:${person.phone.replace(/\D/g, '')}`} className="text-muted-foreground/70 hover:text-primary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
                       <Phone className="h-4 w-4" />
                     </a>
                   )}
@@ -938,9 +938,9 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
 
         {/* Budget & Spend */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <p className="text-xs text-slate-400 mb-1">Budget</p>
-            <p className="text-lg font-bold text-slate-100">{budget > 0 ? fmt(budget) : '—'}</p>
+          <div className="bg-card border border-border rounded-xl p-4">
+            <p className="text-xs text-muted-foreground mb-1">Budget</p>
+            <p className="text-lg font-bold text-foreground">{budget > 0 ? fmt(budget) : '—'}</p>
             {/* Budget breakdown with change orders */}
             {(() => {
               const acceptedCOs = changeOrders.filter((co) => co.status === 'accepted');
@@ -948,38 +948,38 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
               const originalBudget = parseFloat(proj.original_budget || proj.total_budget) || 0;
               const coTotal = acceptedCOs.reduce((s, co) => s + (parseFloat(co.total) || 0), 0);
               return (
-                <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground/70 mt-1">
                   <span>Original: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(originalBudget)}</span>
                   <span>|</span>
-                  <span className="text-amber-400">COs: {coTotal >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(coTotal)}</span>
+                  <span className="text-primary-hover">COs: {coTotal >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(coTotal)}</span>
                 </div>
               );
             })()}
           </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <p className="text-xs text-slate-400 mb-1">Spent</p>
-            <p className="text-lg font-bold text-amber-500">{fmt(spent)}</p>
+          <div className="bg-card border border-border rounded-xl p-4">
+            <p className="text-xs text-muted-foreground mb-1">Spent</p>
+            <p className="text-lg font-bold text-primary">{fmt(spent)}</p>
           </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <p className="text-xs text-slate-400 mb-1">Remaining</p>
-            <p className={`text-lg font-bold ${budget > 0 && spent > budget ? 'text-red-400' : 'text-slate-100'}`}>
+          <div className="bg-card border border-border rounded-xl p-4">
+            <p className="text-xs text-muted-foreground mb-1">Remaining</p>
+            <p className={`text-lg font-bold ${budget > 0 && spent > budget ? 'text-red-400' : 'text-foreground'}`}>
               {budget > 0 ? fmt(budget - spent) : '—'}
             </p>
           </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <p className="text-xs text-slate-400 mb-1">Daily Logs</p>
-            <p className="text-lg font-bold text-slate-100">{logCount}</p>
+          <div className="bg-card border border-border rounded-xl p-4">
+            <p className="text-xs text-muted-foreground mb-1">Daily Logs</p>
+            <p className="text-lg font-bold text-foreground">{logCount}</p>
           </div>
         </div>
 
         {/* Budget Progress */}
         {budget > 0 && (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div className="bg-card border border-border rounded-xl p-4">
             <div className="flex justify-between text-sm mb-2">
-              <span className="text-slate-400">Budget used</span>
-              <span className="text-slate-300">{Math.round(pct)}%</span>
+              <span className="text-muted-foreground">Budget used</span>
+              <span className="text-foreground-soft">{Math.round(pct)}%</span>
             </div>
-            <div className="w-full bg-slate-800 rounded-full h-2.5">
+            <div className="w-full bg-secondary rounded-full h-2.5">
               <div
                 className={`h-2.5 rounded-full transition-all ${budgetBarColor(pct)}`}
                 style={{ width: `${pct}%` }}
@@ -1034,26 +1034,26 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           const varianceColor = (v) => {
             if (v > 0) return 'text-emerald-400';
             if (v < 0) return 'text-red-400';
-            return 'text-slate-400';
+            return 'text-muted-foreground';
           };
 
           return (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div className="bg-card border border-border rounded-xl overflow-hidden">
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <LayoutList className="h-4 w-4 text-amber-500" />
-                  <h3 className="text-sm font-bold text-slate-100">Financial Ledger</h3>
+                  <LayoutList className="h-4 w-4 text-primary" />
+                  <h3 className="text-sm font-bold text-foreground">Financial Ledger</h3>
                 </div>
 
                 {/* Category breakdown table */}
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-slate-700">
-                        <th className="text-left py-2 text-slate-400 font-medium text-xs">Category</th>
-                        {hasEstimate && <th className="text-right py-2 text-slate-400 font-medium text-xs">Estimated</th>}
-                        <th className="text-right py-2 text-slate-400 font-medium text-xs">Actual</th>
-                        {hasEstimate && <th className="text-right py-2 text-slate-400 font-medium text-xs">Variance</th>}
+                      <tr className="border-b border-border">
+                        <th className="text-left py-2 text-muted-foreground font-medium text-xs">Category</th>
+                        {hasEstimate && <th className="text-right py-2 text-muted-foreground font-medium text-xs">Estimated</th>}
+                        <th className="text-right py-2 text-muted-foreground font-medium text-xs">Actual</th>
+                        {hasEstimate && <th className="text-right py-2 text-muted-foreground font-medium text-xs">Variance</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -1062,10 +1062,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                         const act = actualByCategory[c.key] || 0;
                         const v = est - act;
                         return (
-                          <tr key={c.key} className="border-b border-slate-800/50">
-                            <td className="py-2 text-slate-300">{c.label}</td>
-                            {hasEstimate && <td className="py-2 text-right text-slate-400">{fmt(est)}</td>}
-                            <td className="py-2 text-right text-slate-200">{fmt(act)}</td>
+                          <tr key={c.key} className="border-b border-border/50">
+                            <td className="py-2 text-foreground-soft">{c.label}</td>
+                            {hasEstimate && <td className="py-2 text-right text-muted-foreground">{fmt(est)}</td>}
+                            <td className="py-2 text-right text-foreground">{fmt(act)}</td>
                             {hasEstimate && (
                               <td className={`py-2 text-right font-medium ${varianceColor(v)}`}>
                                 {v >= 0 ? '+' : ''}{fmt(v)}
@@ -1076,10 +1076,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                       })}
                     </tbody>
                     <tfoot>
-                      <tr className="border-t border-slate-700">
-                        <td className="py-2 text-slate-100 font-bold">Totals</td>
-                        {hasEstimate && <td className="py-2 text-right text-slate-300 font-bold">{fmt(totalEstimated)}</td>}
-                        <td className="py-2 text-right text-amber-500 font-bold">{fmt(totalActual)}</td>
+                      <tr className="border-t border-border">
+                        <td className="py-2 text-foreground font-bold">Totals</td>
+                        {hasEstimate && <td className="py-2 text-right text-foreground-soft font-bold">{fmt(totalEstimated)}</td>}
+                        <td className="py-2 text-right text-primary font-bold">{fmt(totalActual)}</td>
                         {hasEstimate && (
                           <td className={`py-2 text-right font-bold ${varianceColor(totalVariance)}`}>
                             {totalVariance >= 0 ? '+' : ''}{fmt(totalVariance)}
@@ -1096,12 +1096,12 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
 
         {/* Linked Estimate */}
         {proj.estimate_id && (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-slate-300 text-sm">
-              <FileText className="h-4 w-4 text-amber-500" />
+          <div className="bg-card border border-border rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-foreground-soft text-sm">
+              <FileText className="h-4 w-4 text-primary" />
               <span>Created from estimate</span>
             </div>
-            <span className="text-xs text-slate-500">{proj.estimate_id}</span>
+            <span className="text-xs text-muted-foreground/70">{proj.estimate_id}</span>
           </div>
         )}
 
@@ -1128,91 +1128,91 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         />
 
         {/* ═══ Change Orders ═══ */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
           <div className="flex items-center justify-between p-4">
-            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
-              Change Orders {changeOrders.length > 0 && <span className="text-slate-500 ml-1">({changeOrders.length})</span>}
+            <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">
+              Change Orders {changeOrders.length > 0 && <span className="text-muted-foreground/70 ml-1">({changeOrders.length})</span>}
             </h3>
             <button type="button" onClick={() => setShowCOForm((prev) => !prev)}
-              className="flex items-center gap-1.5 text-sm text-amber-500 hover:text-amber-400 min-h-[44px]">
+              className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover min-h-[44px]">
               <Plus className="h-4 w-4" /> New Change Order
             </button>
           </div>
 
           {/* CO Form */}
           {showCOForm && (
-            <div className="px-4 pb-4 space-y-3 border-t border-slate-800 pt-3">
+            <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
               <input type="text" value={coTitle} onChange={(e) => setCOTitle(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 placeholder="What changed? e.g., Additional bathroom scope" />
               <textarea value={coDescription} onChange={(e) => setCODescription(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 min-h-[60px]"
+                className="w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[60px]"
                 placeholder="Why did it change?" rows={2} />
 
               {/* CO Line Items */}
               {coItems.map((item, idx) => (
-                <div key={item.id} className="bg-slate-800/50 rounded-lg p-3 space-y-2">
+                <div key={item.id} className="bg-secondary/50 rounded-lg p-3 space-y-2">
                   <input type="text" value={item.description}
                     onChange={(e) => {
                       const next = [...coItems]; next[idx] = { ...next[idx], description: e.target.value }; setCOItems(next);
                     }}
-                    className="w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     placeholder="Description" />
                   <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <label className="text-xs text-slate-500">Qty</label>
+                      <label className="text-xs text-muted-foreground/70">Qty</label>
                       <input type="number" value={item.quantity}
                         onChange={(e) => {
                           const next = [...coItems]; const q = e.target.value; next[idx] = { ...next[idx], quantity: q, amount: (parseFloat(q) || 0) * (parseFloat(next[idx].unit_price) || 0) }; setCOItems(next);
                         }}
                         onFocus={(e) => { if (parseFloat(e.target.value) === 0) { const next = [...coItems]; next[idx] = { ...next[idx], quantity: '' }; setCOItems(next); } }}
                         onBlur={(e) => { if (e.target.value === '') { const next = [...coItems]; next[idx] = { ...next[idx], quantity: 0 }; setCOItems(next); } }}
-                        className="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="w-full bg-secondary border border-border text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                         min="0" step="any" />
                     </div>
                     <div>
-                      <label className="text-xs text-slate-500">Unit Price</label>
+                      <label className="text-xs text-muted-foreground/70">Unit Price</label>
                       <input type="number" value={item.unit_price}
                         onChange={(e) => {
                           const next = [...coItems]; const p = e.target.value; next[idx] = { ...next[idx], unit_price: p, amount: (parseFloat(next[idx].quantity) || 0) * (parseFloat(p) || 0) }; setCOItems(next);
                         }}
                         onFocus={(e) => { if (parseFloat(e.target.value) === 0) { const next = [...coItems]; next[idx] = { ...next[idx], unit_price: '' }; setCOItems(next); } }}
                         onBlur={(e) => { if (e.target.value === '') { const next = [...coItems]; next[idx] = { ...next[idx], unit_price: 0 }; setCOItems(next); } }}
-                        className="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="w-full bg-secondary border border-border text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                         step="0.01" />
                     </div>
                     <div>
-                      <label className="text-xs text-slate-500">Amount</label>
+                      <label className="text-xs text-muted-foreground/70">Amount</label>
                       <input type="number" value={item.amount}
                         onChange={(e) => {
                           const next = [...coItems]; next[idx] = { ...next[idx], amount: e.target.value }; setCOItems(next);
                         }}
                         onFocus={(e) => { if (parseFloat(e.target.value) === 0) { const next = [...coItems]; next[idx] = { ...next[idx], amount: '' }; setCOItems(next); } }}
                         onBlur={(e) => { if (e.target.value === '') { const next = [...coItems]; next[idx] = { ...next[idx], amount: (parseFloat(next[idx].quantity) || 0) * (parseFloat(next[idx].unit_price) || 0) }; setCOItems(next); } }}
-                        className="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="w-full bg-secondary border border-border text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                         step="0.01" />
                     </div>
                   </div>
                   {coItems.length > 1 && (
                     <button type="button" onClick={() => setCOItems((prev) => prev.filter((_, i) => i !== idx))}
-                      className="text-xs text-slate-500 hover:text-amber-500">Remove</button>
+                      className="text-xs text-muted-foreground/70 hover:text-primary">Remove</button>
                   )}
                 </div>
               ))}
 
               <button type="button" onClick={() => setCOItems((prev) => [...prev, { id: `co_${Date.now()}_${prev.length}`, category: 'materials', description: '', quantity: 1, unit_price: 0, amount: 0 }])}
-                className="flex items-center gap-1 text-sm text-amber-500 hover:text-amber-400 min-h-[44px]">
+                className="flex items-center gap-1 text-sm text-primary hover:text-primary-hover min-h-[44px]">
                 <Plus className="h-4 w-4" /> Add Line Item
               </button>
 
-              <div className="flex justify-between items-center pt-2 border-t border-slate-800">
-                <span className="text-sm text-slate-400">Total: <span className="text-amber-500 font-bold">{fmt(coItems.reduce((s, it) => s + (parseFloat(it.amount) || 0), 0))}</span></span>
+              <div className="flex justify-between items-center pt-2 border-t border-border">
+                <span className="text-sm text-muted-foreground">Total: <span className="text-primary font-bold">{fmt(coItems.reduce((s, it) => s + (parseFloat(it.amount) || 0), 0))}</span></span>
                 <div className="flex gap-2">
                   <button type="button" onClick={() => setShowCOForm(false)}
-                    className="px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-slate-100 text-sm min-h-[44px]">Cancel</button>
+                    className="px-3 py-2 rounded-lg border border-border text-foreground-soft hover:text-foreground text-sm min-h-[44px]">Cancel</button>
                   <button type="button" disabled={!coTitle.trim() || createCOMutation.isPending}
                     onClick={() => createCOMutation.mutate()}
-                    className="px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm min-h-[44px] disabled:opacity-50">
+                    className="px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] disabled:opacity-50">
                     {createCOMutation.isPending ? 'Saving...' : 'Save Draft'}
                   </button>
                 </div>
@@ -1222,9 +1222,9 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
 
           {/* Existing Change Orders */}
           {changeOrders.length > 0 && (
-            <div className="divide-y divide-slate-800">
+            <div className="divide-y divide-border">
               {changeOrders.map((co) => {
-                const coSc = co.status === 'accepted' ? 'bg-emerald-500/20 text-emerald-400' : co.status === 'sent' ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-500/20 text-slate-400';
+                const coSc = co.status === 'accepted' ? 'bg-emerald-500/20 text-emerald-400' : co.status === 'sent' ? 'bg-primary/20 text-primary-hover' : 'bg-muted-foreground/20 text-muted-foreground';
                 const coLineItems = (() => { const li = co.line_items; if (Array.isArray(li)) return li; if (li?.items) return li.items; return []; })();
                 const isExpanded = expandedCO === co.id;
                 return (
@@ -1233,22 +1233,22 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                       className="w-full flex items-center justify-between text-left min-h-[44px]">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-slate-100">{co.title || 'Change Order'}</span>
+                          <span className="text-sm font-medium text-foreground">{co.title || 'Change Order'}</span>
                           <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${coSc}`}>{co.status || 'draft'}</span>
                         </div>
-                        <p className="text-xs text-slate-500">{co.change_order_number}</p>
+                        <p className="text-xs text-muted-foreground/70">{co.change_order_number}</p>
                       </div>
-                      <span className={`text-sm font-bold ${(parseFloat(co.total) || 0) >= 0 ? 'text-amber-500' : 'text-slate-400'}`}>
+                      <span className={`text-sm font-bold ${(parseFloat(co.total) || 0) >= 0 ? 'text-primary' : 'text-muted-foreground'}`}>
                         {(parseFloat(co.total) || 0) >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(co.total || 0)}
                       </span>
                     </button>
                     {isExpanded && (
                       <div className="mt-2 pl-2 space-y-2">
-                        {co.description && <p className="text-xs text-slate-400">{co.description}</p>}
+                        {co.description && <p className="text-xs text-muted-foreground">{co.description}</p>}
                         {coLineItems.length > 0 && (
                           <div className="space-y-1">
                             {coLineItems.map((it, i) => (
-                              <div key={i} className="flex justify-between text-xs text-slate-400">
+                              <div key={i} className="flex justify-between text-xs text-muted-foreground">
                                 <span>{it.description || '\u2014'}</span>
                                 <span>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(it.amount) || 0)}</span>
                               </div>
@@ -1274,8 +1274,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
 
         {/* Recent Logs */}
         {projectLogs.length > 0 && (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-            <h3 className="text-lg font-bold text-slate-100 mb-3">Recent Logs</h3>
+          <div className="bg-card border border-border rounded-xl p-5">
+            <h3 className="text-lg font-bold text-foreground mb-3">Recent Logs</h3>
             <div className="space-y-2">
               {projectLogs.slice(0, 5).map((log) => {
                 const taskPreview = (() => {
@@ -1293,20 +1293,20 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                   return '';
                 })();
                 return (
-                  <div key={log.id} className="bg-slate-800/50 rounded-lg p-3">
+                  <div key={log.id} className="bg-secondary/50 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-500">{fmtDate(log.date)}</span>
+                      <span className="text-xs text-muted-foreground/70">{fmtDate(log.date)}</span>
                       {log.day_number && (
-                        <span className="text-xs text-slate-500">
+                        <span className="text-xs text-muted-foreground/70">
                           {String(log.day_number).startsWith('Day ') ? log.day_number : `Day ${log.day_number}`}
                         </span>
                       )}
                     </div>
                     {taskPreview && (
-                      <p className="text-sm text-slate-300 line-clamp-2">{taskPreview}</p>
+                      <p className="text-sm text-foreground-soft line-clamp-2">{taskPreview}</p>
                     )}
                     {log.weather && (
-                      <p className="text-xs text-slate-500 mt-1">{log.weather}</p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">{log.weather}</p>
                     )}
                     {/* Inline photo thumbnails */}
                     {photosByLogId[log.id]?.length > 0 && (
@@ -1319,7 +1319,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                               key={photo.id}
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setLightboxPhoto(url); }}
-                              className="h-14 w-14 rounded-lg overflow-hidden border border-slate-700 hover:border-amber-500 transition-colors flex-shrink-0"
+                              className="h-14 w-14 rounded-lg overflow-hidden border border-border hover:border-primary transition-colors flex-shrink-0"
                             >
                               <img src={url} alt={photo.caption || ''} className="h-full w-full object-cover" />
                             </button>
@@ -1331,7 +1331,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                 );
               })}
               {projectLogs.length > 5 && (
-                <p className="text-xs text-slate-500 text-center pt-2">
+                <p className="text-xs text-muted-foreground/70 text-center pt-2">
                   + {projectLogs.length - 5} more logs
                 </p>
               )}
@@ -1341,9 +1341,9 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
 
         {/* Notes */}
         {proj.notes && (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <h3 className="text-sm font-medium text-slate-400 mb-2">Notes</h3>
-            <p className="text-sm text-slate-300 whitespace-pre-wrap">{proj.notes}</p>
+          <div className="bg-card border border-border rounded-xl p-4">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Notes</h3>
+            <p className="text-sm text-foreground-soft whitespace-pre-wrap">{proj.notes}</p>
           </div>
         )}
 
@@ -1355,7 +1355,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
               const url = `${window.location.origin}/client-portal/${profile?.id}/${proj.id}`;
               window.open(url, '_blank');
             }}
-            className="flex-1 flex items-center justify-center gap-2 border border-amber-500/30 text-amber-500 hover:bg-amber-500/10 hover:bg-transparent rounded-xl py-3 transition-colors text-sm font-medium min-h-[44px]"
+            className="flex-1 flex items-center justify-center gap-2 border border-primary/30 text-primary hover:bg-primary/10 hover:bg-transparent rounded-xl py-3 transition-colors text-sm font-medium min-h-[44px]"
           >
             <Eye className="h-4 w-4" /> Preview as Client
           </button>
@@ -1365,7 +1365,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
               const url = `${window.location.origin}/client-portal/${profile?.id}/${proj.id}`;
               navigator.clipboard.writeText(url).then(() => toast.success('Client link copied!'));
             }}
-            className="flex items-center justify-center gap-2 border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent rounded-xl py-3 px-4 transition-colors text-sm font-medium min-h-[44px]"
+            className="flex items-center justify-center gap-2 border border-border text-foreground-soft hover:text-primary hover:border-primary hover:bg-transparent rounded-xl py-3 px-4 transition-colors text-sm font-medium min-h-[44px]"
           >
             <Copy className="h-4 w-4" /> Copy Link
           </button>
@@ -1373,7 +1373,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
             <button
               type="button"
               onClick={() => { setTimelineProjectId(proj.id); setView('timeline'); }}
-              className="flex-1 flex items-center justify-center gap-2 border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent rounded-xl py-3 transition-colors text-sm font-medium min-h-[44px]"
+              className="flex-1 flex items-center justify-center gap-2 border border-border text-foreground-soft hover:text-primary hover:border-primary hover:bg-transparent rounded-xl py-3 transition-colors text-sm font-medium min-h-[44px]"
             >
               <GitBranch className="h-4 w-4" /> Timeline
             </button>
@@ -1385,7 +1385,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           <button
             type="button"
             onClick={() => openEditForm(proj)}
-            className="flex-1 flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl py-3 transition-colors min-h-[44px]"
+            className="flex-1 flex items-center justify-center gap-2 bg-secondary hover:bg-surface text-foreground-soft rounded-xl py-3 transition-colors min-h-[44px]"
           >
             <Pencil className="h-4 w-4" /> Edit
           </button>
@@ -1407,14 +1407,14 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                 type="button"
                 onClick={() => deleteProject.mutate(proj.id)}
                 disabled={deleteProject.isPending}
-                className="px-6 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-medium transition-colors min-h-[44px] disabled:opacity-50"
+                className="px-6 py-2 bg-red-600 hover:bg-red-500 text-foreground rounded-lg font-medium transition-colors min-h-[44px] disabled:opacity-50"
               >
                 {deleteProject.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Yes, Delete'}
               </button>
               <button
                 type="button"
                 onClick={() => setDeleteConfirm(null)}
-                className="px-6 py-2 bg-slate-800 text-slate-400 rounded-lg transition-colors min-h-[44px]"
+                className="px-6 py-2 bg-secondary text-muted-foreground rounded-lg transition-colors min-h-[44px]"
               >
                 Cancel
               </button>
@@ -1425,7 +1425,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         {/* Photo Lightbox */}
         {lightboxPhoto && (
           <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setLightboxPhoto(null)}>
-            <button type="button" onClick={() => setLightboxPhoto(null)} className="absolute top-4 right-4 text-white/80 hover:text-white min-h-[44px] min-w-[44px] flex items-center justify-center">
+            <button type="button" onClick={() => setLightboxPhoto(null)} className="absolute top-4 right-4 text-foreground/80 hover:text-foreground min-h-[44px] min-w-[44px] flex items-center justify-center">
               <X className="h-6 w-6" />
             </button>
             <img src={lightboxPhoto} alt="" className="max-h-[85vh] max-w-full object-contain rounded-lg" />
@@ -1440,11 +1440,11 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-100">Projects</h2>
+        <h2 className="text-xl font-bold text-foreground">Projects</h2>
         <button
           type="button"
           onClick={openCreateForm}
-          className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black font-semibold px-4 py-2 rounded-xl transition-colors text-sm min-h-[44px]"
+          className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-4 py-2 rounded-xl transition-colors text-sm min-h-[44px]"
         >
           <Plus className="h-4 w-4" /> New Project
         </button>
@@ -1453,7 +1453,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       {/* Search + Filter + Group Toggle */}
       <div className="flex gap-3">
         <div className="flex-1 relative">
-          <Search className="h-4 w-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="h-4 w-4 text-muted-foreground/70 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
@@ -1477,8 +1477,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           title={groupByClient ? 'Flat list' : 'Group by client'}
           className={`flex items-center justify-center w-10 h-10 rounded-lg border transition-colors min-h-[44px] min-w-[44px] ${
             groupByClient
-              ? 'border-amber-500 text-amber-500 bg-amber-500/10'
-              : 'border-slate-700 text-slate-400 hover:text-amber-500 hover:border-amber-500'
+              ? 'border-primary text-primary bg-primary/10'
+              : 'border-border text-muted-foreground hover:text-primary hover:border-primary'
           }`}
         >
           {groupByClient ? <Users className="h-4 w-4" /> : <LayoutList className="h-4 w-4" />}
@@ -1487,9 +1487,9 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
 
       {/* Project Cards */}
       {filteredProjects.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-          <FolderOpen className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-          <p className="text-slate-400">
+        <div className="bg-card border border-border rounded-xl p-8 text-center">
+          <FolderOpen className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+          <p className="text-muted-foreground">
             {projects.length === 0
               ? 'No projects yet. Create your first project to get started.'
               : 'No projects match your filters.'}
@@ -1498,7 +1498,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
             <button
               type="button"
               onClick={openCreateForm}
-              className="mt-4 text-amber-500 hover:text-amber-400 font-medium text-sm"
+              className="mt-4 text-primary hover:text-primary-hover font-medium text-sm"
             >
               + Create Project
             </button>
@@ -1517,16 +1517,16 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                 }}
                 className={`flex items-center gap-2 mb-2 text-sm font-semibold ${
                   group.clientId
-                    ? 'text-amber-500 hover:text-amber-400 transition-colors'
-                    : 'text-slate-500 cursor-default'
+                    ? 'text-primary hover:text-primary-hover transition-colors'
+                    : 'text-muted-foreground/70 cursor-default'
                 }`}
               >
                 <User className="h-3.5 w-3.5" />
                 {group.clientName}
-                <span className="text-slate-600 font-normal">({group.projects.length})</span>
+                <span className="text-muted-foreground/50 font-normal">({group.projects.length})</span>
               </button>
 
-              <div className="space-y-2 pl-1 border-l-2 border-slate-800 ml-1.5">
+              <div className="space-y-2 pl-1 border-l-2 border-border ml-1.5">
                 {group.projects.map((proj) => {
                   const statusObj = STATUS_OPTIONS.find((s) => s.value === proj.status) || STATUS_OPTIONS[0];
                   const spent = spendByProject[proj.id] || 0;
@@ -1539,16 +1539,16 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                       key={proj.id}
                       type="button"
                       onClick={() => openDetail(proj)}
-                      className="w-full text-left bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 transition-colors"
+                      className="w-full text-left bg-card border border-border hover:border-primary/50 rounded-xl p-4 transition-colors"
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <p className="text-sm font-medium text-slate-100 truncate min-w-0 flex-1">{proj.name}</p>
+                        <p className="text-sm font-medium text-foreground truncate min-w-0 flex-1">{proj.name}</p>
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusObj.color} flex-shrink-0 ml-2`}>
                           {statusObj.label}
                         </span>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground/70">
                         {proj.address && (
                           <span className="flex items-center gap-1 truncate max-w-[200px]">
                             <MapPin className="h-3 w-3 flex-shrink-0" /> {proj.address}
@@ -1560,7 +1560,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                           </span>
                         )}
                         {spent > 0 && (
-                          <span className="flex items-center gap-1 text-amber-500">
+                          <span className="flex items-center gap-1 text-primary">
                             <DollarSign className="h-3 w-3" /> {fmt(spent)}
                           </span>
                         )}
@@ -1568,13 +1568,13 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
 
                       {budget > 0 && (
                         <div className="mt-2">
-                          <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                          <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all ${budgetBarColor(pct)}`}
                               style={{ width: `${pct}%` }}
                             />
                           </div>
-                          <div className="flex justify-between text-xs text-slate-600 mt-1">
+                          <div className="flex justify-between text-xs text-muted-foreground/50 mt-1">
                             <span>{fmt(spent)}</span>
                             <span>{fmt(budget)}</span>
                           </div>
@@ -1602,13 +1602,13 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                 key={proj.id}
                 type="button"
                 onClick={() => openDetail(proj)}
-                className="w-full text-left bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 transition-colors"
+                className="w-full text-left bg-card border border-border hover:border-primary/50 rounded-xl p-4 transition-colors"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-100 truncate">{proj.name}</p>
+                    <p className="text-sm font-medium text-foreground truncate">{proj.name}</p>
                     {proj.client_name && (
-                      <p className="text-xs text-slate-400 truncate">{proj.client_name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{proj.client_name}</p>
                     )}
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusObj.color} flex-shrink-0 ml-2`}>
@@ -1616,7 +1616,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                   </span>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground/70">
                   {proj.address && (
                     <span className="flex items-center gap-1 truncate max-w-[200px]">
                       <MapPin className="h-3 w-3 flex-shrink-0" /> {proj.address}
@@ -1628,7 +1628,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                     </span>
                   )}
                   {spent > 0 && (
-                    <span className="flex items-center gap-1 text-amber-500">
+                    <span className="flex items-center gap-1 text-primary">
                       <DollarSign className="h-3 w-3" /> {fmt(spent)}
                     </span>
                   )}
@@ -1636,13 +1636,13 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
 
                 {budget > 0 && (
                   <div className="mt-2">
-                    <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all ${budgetBarColor(pct)}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <div className="flex justify-between text-xs text-slate-600 mt-1">
+                    <div className="flex justify-between text-xs text-muted-foreground/50 mt-1">
                       <span>{fmt(spent)}</span>
                       <span>{fmt(budget)}</span>
                     </div>

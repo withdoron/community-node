@@ -20,13 +20,13 @@ const fmt = (n) =>
 
 const STATUS_STYLES = {
   active: 'bg-green-500/20 text-green-400',
-  pending: 'bg-amber-500/20 text-amber-500',
-  rented: 'bg-slate-700 text-slate-400',
+  pending: 'bg-primary/20 text-primary',
+  rented: 'bg-surface text-muted-foreground',
 };
 
 const TYPE_STYLES = {
   long_term: 'bg-blue-500/20 text-blue-400',
-  short_term: 'bg-amber-500/20 text-amber-500',
+  short_term: 'bg-primary/20 text-primary',
 };
 
 const AMENITY_LABELS = {
@@ -71,10 +71,10 @@ export default function ListingCard({
           : null;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hover:border-slate-700 transition-colors">
+    <div className="bg-card border border-border rounded-xl overflow-hidden hover:border-border transition-colors">
       <div className="flex flex-col sm:flex-row">
         {/* Photo thumbnail */}
-        <div className="sm:w-40 h-32 sm:h-auto flex-shrink-0 bg-slate-800 relative">
+        <div className="sm:w-40 h-32 sm:h-auto flex-shrink-0 bg-secondary relative">
           {firstPhoto ? (
             <img
               src={firstPhoto}
@@ -82,12 +82,12 @@ export default function ListingCard({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-600 text-xs">
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground/50 text-xs">
               No photo
             </div>
           )}
           {photos.length > 1 && (
-            <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+            <span className="absolute bottom-2 right-2 bg-black/60 text-foreground text-[10px] px-1.5 py-0.5 rounded">
               +{photos.length - 1}
             </span>
           )}
@@ -97,10 +97,10 @@ export default function ListingCard({
         <div className="flex-1 p-4 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-slate-100 truncate">
+              <h3 className="text-sm font-semibold text-foreground truncate">
                 {listing.title || 'Untitled Listing'}
               </h3>
-              <p className="text-xs text-slate-500 truncate">{propertyLabel}</p>
+              <p className="text-xs text-muted-foreground/70 truncate">{propertyLabel}</p>
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${TYPE_STYLES[listing.listing_type] || TYPE_STYLES.long_term}`}>
@@ -114,15 +114,15 @@ export default function ListingCard({
 
           {/* Price + details */}
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-amber-500 font-bold text-sm">{priceLabel}</span>
+            <span className="text-primary font-bold text-sm">{priceLabel}</span>
             {listing.bedrooms && (
-              <span className="text-xs text-slate-400">{listing.bedrooms} bed</span>
+              <span className="text-xs text-muted-foreground">{listing.bedrooms} bed</span>
             )}
             {listing.bathrooms && (
-              <span className="text-xs text-slate-400">{listing.bathrooms} bath</span>
+              <span className="text-xs text-muted-foreground">{listing.bathrooms} bath</span>
             )}
             {listing.sqft && (
-              <span className="text-xs text-slate-400">{listing.sqft} sqft</span>
+              <span className="text-xs text-muted-foreground">{listing.sqft} sqft</span>
             )}
           </div>
 
@@ -132,30 +132,30 @@ export default function ListingCard({
               {amenities.slice(0, 5).map((a) => (
                 <span
                   key={a}
-                  className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400"
+                  className="text-[10px] px-1.5 py-0.5 rounded bg-secondary text-muted-foreground"
                 >
                   {AMENITY_LABELS[a] || a}
                 </span>
               ))}
               {amenities.length > 5 && (
-                <span className="text-[10px] text-slate-500">+{amenities.length - 5}</span>
+                <span className="text-[10px] text-muted-foreground/70">+{amenities.length - 5}</span>
               )}
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-800">
+          <div className="flex items-center gap-2 pt-1 border-t border-border">
             <button
               type="button"
               onClick={() => onPreview(listing)}
-              className="flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400 min-h-[32px]"
+              className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover min-h-[32px]"
             >
               <Eye className="w-3.5 h-3.5" /> Preview
             </button>
             <button
               type="button"
               onClick={() => onEdit(listing)}
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 min-h-[32px]"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground min-h-[32px]"
             >
               <Pencil className="w-3.5 h-3.5" /> Edit
             </button>
@@ -163,7 +163,7 @@ export default function ListingCard({
               <button
                 type="button"
                 onClick={() => onStatusAction(listing, nextAction.next)}
-                className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 min-h-[32px] ml-auto"
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground min-h-[32px] ml-auto"
               >
                 {nextAction.label} <ChevronRight className="w-3 h-3" />
               </button>
@@ -171,7 +171,7 @@ export default function ListingCard({
             <button
               type="button"
               onClick={() => onDelete(listing)}
-              className="text-xs text-slate-500 hover:text-red-400 ml-auto min-h-[32px] p-1"
+              className="text-xs text-muted-foreground/70 hover:text-red-400 ml-auto min-h-[32px] p-1"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>

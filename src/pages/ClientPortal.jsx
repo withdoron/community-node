@@ -97,12 +97,12 @@ function PortalHeader({ profile, brandColor }) {
             <h1 className="text-2xl font-bold" style={{ color: brandColor }}>
               {profile.business_name || 'Contractor'}
             </h1>
-            {profile.license_number && <p className="text-sm text-slate-500">Lic# {profile.license_number}</p>}
+            {profile.license_number && <p className="text-sm text-muted-foreground/70">Lic# {profile.license_number}</p>}
           </div>
         </div>
-        <div className="text-right text-sm text-slate-600">
-          {profile.phone && <p><a href={`tel:${profile.phone.replace(/\D/g, '')}`} className="hover:text-slate-900 underline">{formatPhone(profile.phone)}</a></p>}
-          {profile.email && <p><a href={`mailto:${profile.email}`} className="hover:text-slate-900 underline">{profile.email}</a></p>}
+        <div className="text-right text-sm text-muted-foreground/50">
+          {profile.phone && <p><a href={`tel:${profile.phone.replace(/\D/g, '')}`} className="hover:text-primary-foreground underline">{formatPhone(profile.phone)}</a></p>}
+          {profile.email && <p><a href={`mailto:${profile.email}`} className="hover:text-primary-foreground underline">{profile.email}</a></p>}
         </div>
       </div>
     </div>
@@ -150,20 +150,20 @@ function EstimatePortalView({ estimateId, signMode = false }) {
           {/* Title + Meta */}
           <div className="flex items-start justify-between gap-3 mb-4">
             <div>
-              <h2 className="text-xl font-bold text-slate-900">{estimate.title || 'Estimate'}</h2>
-              {estimate.estimate_number && <p className="text-sm text-slate-500 mt-0.5">#{estimate.estimate_number}</p>}
+              <h2 className="text-xl font-bold text-primary-foreground">{estimate.title || 'Estimate'}</h2>
+              {estimate.estimate_number && <p className="text-sm text-muted-foreground/70 mt-0.5">#{estimate.estimate_number}</p>}
             </div>
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
               (estimate.status === 'accepted' || estimate.status === 'signed') ? 'bg-emerald-100 text-emerald-700' :
               (estimate.status === 'sent' || estimate.status === 'awaiting_signature') ? 'bg-amber-100 text-amber-700' :
-              'bg-slate-100 text-slate-600'
+              'bg-slate-100 text-muted-foreground/50'
             }`}>
               {STATUS_LABELS[estimate.status] || estimate.status}
             </span>
           </div>
 
           {/* Dates */}
-          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-500 mb-4">
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground/70 mb-4">
             {estimate.date && <span>Date: {fmtDate(estimate.date)}</span>}
             {estimate.valid_until && <span>Valid until: {fmtDate(estimate.valid_until)}</span>}
           </div>
@@ -171,11 +171,11 @@ function EstimatePortalView({ estimateId, signMode = false }) {
           {/* Client info */}
           {estimate.client_name && (
             <div className="bg-slate-50 rounded-lg p-4 mb-6">
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Customer</p>
-              <p className="font-semibold text-slate-900">{estimate.client_name}</p>
-              {estimate.client_address && <p className="text-sm text-slate-600">{estimate.client_address}</p>}
-              {estimate.client_phone && <p className="text-sm text-slate-600">{formatPhone(estimate.client_phone)}</p>}
-              {estimate.client_email && <p className="text-sm text-slate-600">{estimate.client_email}</p>}
+              <p className="text-xs text-muted-foreground/70 uppercase tracking-wider mb-1">Customer</p>
+              <p className="font-semibold text-primary-foreground">{estimate.client_name}</p>
+              {estimate.client_address && <p className="text-sm text-muted-foreground/50">{estimate.client_address}</p>}
+              {estimate.client_phone && <p className="text-sm text-muted-foreground/50">{formatPhone(estimate.client_phone)}</p>}
+              {estimate.client_email && <p className="text-sm text-muted-foreground/50">{estimate.client_email}</p>}
             </div>
           )}
 
@@ -184,11 +184,11 @@ function EstimatePortalView({ estimateId, signMode = false }) {
             <div className="mb-6">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 text-left">
-                    <th className="pb-2 text-slate-500 font-medium">Description</th>
-                    <th className="pb-2 text-slate-500 font-medium text-right">Qty</th>
-                    <th className="pb-2 text-slate-500 font-medium text-right">Unit Price</th>
-                    <th className="pb-2 text-slate-500 font-medium text-right">Amount</th>
+                  <tr className="border-b border-border text-left">
+                    <th className="pb-2 text-muted-foreground/70 font-medium">Description</th>
+                    <th className="pb-2 text-muted-foreground/70 font-medium text-right">Qty</th>
+                    <th className="pb-2 text-muted-foreground/70 font-medium text-right">Unit Price</th>
+                    <th className="pb-2 text-muted-foreground/70 font-medium text-right">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -196,10 +196,10 @@ function EstimatePortalView({ estimateId, signMode = false }) {
                     const amount = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
                     return (
                       <tr key={item.id || i} className="border-b border-slate-100">
-                        <td className="py-2 text-slate-900">{item.description || '—'}</td>
-                        <td className="py-2 text-slate-600 text-right">{item.quantity}</td>
-                        <td className="py-2 text-slate-600 text-right">{fmt(item.unit_price)}</td>
-                        <td className="py-2 text-slate-900 font-medium text-right">{fmt(amount)}</td>
+                        <td className="py-2 text-primary-foreground">{item.description || '—'}</td>
+                        <td className="py-2 text-muted-foreground/50 text-right">{item.quantity}</td>
+                        <td className="py-2 text-muted-foreground/50 text-right">{fmt(item.unit_price)}</td>
+                        <td className="py-2 text-primary-foreground font-medium text-right">{fmt(amount)}</td>
                       </tr>
                     );
                   })}
@@ -209,20 +209,20 @@ function EstimatePortalView({ estimateId, signMode = false }) {
           )}
 
           {/* Totals */}
-          <div className="border-t border-slate-200 pt-4 space-y-1 text-sm">
+          <div className="border-t border-border pt-4 space-y-1 text-sm">
             {estimate.subtotal > 0 && (
               <div className="flex justify-between">
-                <span className="text-slate-500">Subtotal</span>
+                <span className="text-muted-foreground/70">Subtotal</span>
                 <span className="font-medium">{fmt(estimate.subtotal)}</span>
               </div>
             )}
             {estimate.tax_amount > 0 && (
               <div className="flex justify-between">
-                <span className="text-slate-500">Tax ({estimate.tax_rate}%)</span>
+                <span className="text-muted-foreground/70">Tax ({estimate.tax_rate}%)</span>
                 <span className="font-medium">{fmt(estimate.tax_amount)}</span>
               </div>
             )}
-            <div className="flex justify-between text-base font-bold pt-2 border-t border-slate-200">
+            <div className="flex justify-between text-base font-bold pt-2 border-t border-border">
               <span>Total</span>
               <span style={{ color: brandColor }}>{fmt(estimate.total)}</span>
             </div>
@@ -230,23 +230,23 @@ function EstimatePortalView({ estimateId, signMode = false }) {
 
           {/* Terms */}
           {estimate.terms && (
-            <div className="mt-6 pt-4 border-t border-slate-200">
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Terms & Conditions</p>
-              <p className="text-sm text-slate-600 whitespace-pre-line">{estimate.terms}</p>
+            <div className="mt-6 pt-4 border-t border-border">
+              <p className="text-xs text-muted-foreground/70 uppercase tracking-wider mb-1">Terms & Conditions</p>
+              <p className="text-sm text-muted-foreground/50 whitespace-pre-line">{estimate.terms}</p>
             </div>
           )}
 
           {/* Notes */}
           {estimate.notes && (
             <div className="mt-4">
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Notes</p>
-              <p className="text-sm text-slate-600 whitespace-pre-line">{estimate.notes}</p>
+              <p className="text-xs text-muted-foreground/70 uppercase tracking-wider mb-1">Notes</p>
+              <p className="text-sm text-muted-foreground/50 whitespace-pre-line">{estimate.notes}</p>
             </div>
           )}
 
           {/* Signature display (already signed) */}
           {estimate.signature_data && (
-            <div className="mt-6 pt-4 border-t border-slate-200">
+            <div className="mt-6 pt-4 border-t border-border">
               <SignatureDisplay signatureData={estimate.signature_data} darkMode={false} />
             </div>
           )}
@@ -373,8 +373,8 @@ function DocumentPortalView({ docId, signMode = false, portalToken = null }) {
             <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-4">
               <ClipboardList className="h-6 w-6 text-orange-600" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Document Recalled</h2>
-            <p className="text-sm text-slate-500 max-w-md mx-auto">
+            <h2 className="text-xl font-bold text-primary-foreground mb-2">Document Recalled</h2>
+            <p className="text-sm text-muted-foreground/70 max-w-md mx-auto">
               This document has been recalled by {businessName}. Please contact them for the updated version.
             </p>
           </div>
@@ -396,36 +396,36 @@ function DocumentPortalView({ docId, signMode = false, portalToken = null }) {
 
         <div className="px-6 sm:px-8 py-6">
           <div className="flex items-start justify-between gap-3 mb-4">
-            <h2 className="text-xl font-bold text-slate-900">{doc.title}</h2>
+            <h2 className="text-xl font-bold text-primary-foreground">{doc.title}</h2>
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
               alreadySigned ? 'bg-emerald-100 text-emerald-700' :
               normalizedStatus === 'awaiting_signature' ? 'bg-amber-100 text-amber-700' :
-              'bg-slate-100 text-slate-600'
+              'bg-slate-100 text-muted-foreground/50'
             }`}>
               {STATUS_LABELS[normalizedStatus] || normalizedStatus}
             </span>
           </div>
 
-          {doc.client_name && <p className="text-sm text-slate-500 mb-1">Client: {doc.client_name}</p>}
-          {doc.created_at && <p className="text-xs text-slate-400 mb-4">{fmtDate(doc.created_at)}</p>}
+          {doc.client_name && <p className="text-sm text-muted-foreground/70 mb-1">Client: {doc.client_name}</p>}
+          {doc.created_at && <p className="text-xs text-muted-foreground mb-4">{fmtDate(doc.created_at)}</p>}
 
           {/* Document content */}
           <div className="bg-slate-50 rounded-lg p-6 print:bg-white print:p-0">
-            <pre className="whitespace-pre-wrap text-sm text-slate-900 font-sans leading-relaxed">
+            <pre className="whitespace-pre-wrap text-sm text-primary-foreground font-sans leading-relaxed">
               {doc.content}
             </pre>
           </div>
 
           {/* Signature display (already signed) */}
           {doc.signature_data && (
-            <div className="mt-6 pt-4 border-t border-slate-200">
+            <div className="mt-6 pt-4 border-t border-border">
               <SignatureDisplay signatureData={doc.signature_data} darkMode={false} />
             </div>
           )}
 
           {/* Already signed — show message if they opened the signing link again */}
           {alreadySigned && hasToken && (
-            <div className="mt-6 pt-4 border-t border-slate-200 text-center">
+            <div className="mt-6 pt-4 border-t border-border text-center">
               <p className="text-sm text-emerald-700 font-medium">This document has already been signed.</p>
             </div>
           )}
@@ -441,7 +441,7 @@ function DocumentPortalView({ docId, signMode = false, portalToken = null }) {
         {/* Prompt when awaiting but not in sign mode (no token) */}
         {!signMode && normalizedStatus === 'awaiting_signature' && !doc.signature_data && (
           <div className="px-6 sm:px-8 pb-6 text-center">
-            <p className="text-sm text-slate-500 italic">
+            <p className="text-sm text-muted-foreground/70 italic">
               {businessName} will send you a signing link when this document is ready for your signature.
             </p>
           </div>
@@ -499,9 +499,9 @@ function DocumentSigningSection({ doc, profile, queryClient }) {
           <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
             <FileText className="h-6 w-6 text-emerald-600" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900 mb-1">Document Signed Successfully</h3>
-          <p className="text-sm text-slate-600 mb-4">{doc.title}</p>
-          <div className="text-sm text-slate-500 space-y-0.5">
+          <h3 className="text-lg font-bold text-primary-foreground mb-1">Document Signed Successfully</h3>
+          <p className="text-sm text-muted-foreground/50 mb-4">{doc.title}</p>
+          <div className="text-sm text-muted-foreground/70 space-y-0.5">
             <p>Signed by: {signatureResult.signer_name}</p>
             {signedDate && <p>Date: {signedDate}</p>}
           </div>
@@ -516,20 +516,20 @@ function DocumentSigningSection({ doc, profile, queryClient }) {
 
         {/* Construction Gate — remove when post-signature invitation passes walkthrough */}
         {false && (
-          <div className="border border-slate-200 rounded-xl p-6 text-center space-y-4">
+          <div className="border border-border rounded-xl p-6 text-center space-y-4">
             <div className="h-px bg-slate-200" />
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground/50">
               {businessName} uses Local Lane to manage their work. Stay connected?
             </p>
             <div className="flex flex-col sm:flex-row gap-2 justify-center">
-              <a href="/signup?role=client" className="px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm transition-colors text-center">
+              <a href="/signup?role=client" className="px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm transition-colors text-center">
                 See my documents & projects
               </a>
-              <a href="/onboarding" className="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 hover:text-slate-900 text-sm transition-colors text-center">
+              <a href="/onboarding" className="px-4 py-2.5 rounded-lg border border-border text-slate-700 hover:text-primary-foreground text-sm transition-colors text-center">
                 Start my own business on Local Lane
               </a>
             </div>
-            <button type="button" className="text-xs text-slate-400 hover:text-slate-600">No thanks</button>
+            <button type="button" className="text-xs text-muted-foreground hover:text-muted-foreground/50">No thanks</button>
           </div>
         )}
       </div>
@@ -671,14 +671,14 @@ function ProjectPortalView({ profileId: pathProfileId, projectId: pathProjectId 
 
         {/* Project Info */}
         <div className="px-6 sm:px-8 py-6">
-          <h2 className="text-xl font-bold text-slate-900">{project.name}</h2>
-          {project.address && <p className="text-sm text-slate-500 mt-1">{project.address}</p>}
+          <h2 className="text-xl font-bold text-primary-foreground">{project.name}</h2>
+          {project.address && <p className="text-sm text-muted-foreground/70 mt-1">{project.address}</p>}
           <div className="flex items-center gap-3 mt-2">
             <span className="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 capitalize">
               {project.status}
             </span>
             {daysSinceStart > 0 && (
-              <span className="text-xs text-slate-500">Day {daysSinceStart} &middot; {dayCount} logs</span>
+              <span className="text-xs text-muted-foreground/70">Day {daysSinceStart} &middot; {dayCount} logs</span>
             )}
           </div>
         </div>
@@ -687,17 +687,17 @@ function ProjectPortalView({ profileId: pathProfileId, projectId: pathProjectId 
         <div className="px-6 sm:px-8 pb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Budget Progress */}
           {referenceTotal > 0 && (
-            <div className="border border-slate-200 rounded-xl p-5">
+            <div className="border border-border rounded-xl p-5">
               <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3">Budget Progress</h3>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Estimate Total</span>
+                  <span className="text-muted-foreground/70">Estimate Total</span>
                   <span className="font-bold">{fmt(referenceTotal)}</span>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-3">
                   <div className="h-3 rounded-full transition-all" style={{ width: `${paidPct}%`, backgroundColor: brandColor }} />
                 </div>
-                <div className="flex justify-between text-xs text-slate-500">
+                <div className="flex justify-between text-xs text-muted-foreground/70">
                   <span>{Math.round(paidPct)}% complete</span>
                   <span>{fmt(balance)} remaining</span>
                 </div>
@@ -706,21 +706,21 @@ function ProjectPortalView({ profileId: pathProfileId, projectId: pathProjectId 
               {/* Open Books — budget breakdown */}
               {showBreakdown && (
                 <div className="mt-4 pt-3 border-t border-slate-100 space-y-2">
-                  <p className="text-xs text-slate-500 uppercase tracking-wider">Cost Breakdown</p>
+                  <p className="text-xs text-muted-foreground/70 uppercase tracking-wider">Cost Breakdown</p>
                   {project.original_budget > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">Original Budget</span>
+                      <span className="text-muted-foreground/70">Original Budget</span>
                       <span className="font-medium">{fmt(project.original_budget)}</span>
                     </div>
                   )}
                   {project.original_budget > 0 && project.total_budget !== project.original_budget && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">Change Orders</span>
+                      <span className="text-muted-foreground/70">Change Orders</span>
                       <span className="font-medium">{fmt((project.total_budget || 0) - (project.original_budget || 0))}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Total Paid</span>
+                    <span className="text-muted-foreground/70">Total Paid</span>
                     <span className="font-medium text-emerald-600">{fmt(totalPaid)}</span>
                   </div>
                   <div className="flex justify-between text-sm font-bold">
@@ -734,26 +734,26 @@ function ProjectPortalView({ profileId: pathProfileId, projectId: pathProjectId 
 
           {/* Payment Summary */}
           {payments.length > 0 && (
-            <div className="border border-slate-200 rounded-xl p-5">
+            <div className="border border-border rounded-xl p-5">
               <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3">Payment Summary</h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Total Paid</span>
+                  <span className="text-muted-foreground/70">Total Paid</span>
                   <span className="font-bold text-emerald-600">{fmt(totalPaid)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Balance</span>
+                  <span className="text-muted-foreground/70">Balance</span>
                   <span className="font-bold" style={{ color: brandColor }}>{fmt(balance)}</span>
                 </div>
                 <div className="border-t border-slate-100 pt-2 mt-2 space-y-1">
                   {payments.slice(0, 4).map((p) => (
-                    <div key={p.id} className="flex justify-between text-xs text-slate-500">
+                    <div key={p.id} className="flex justify-between text-xs text-muted-foreground/70">
                       <span>{fmtDate(p.date)} &middot; <span className="capitalize">{p.type?.replace('_', ' ')}</span></span>
                       <span className="font-medium text-slate-700">{fmt(p.amount)}</span>
                     </div>
                   ))}
                   {payments.length > 4 && (
-                    <p className="text-xs text-slate-400 text-center pt-1">+ {payments.length - 4} more payments</p>
+                    <p className="text-xs text-muted-foreground text-center pt-1">+ {payments.length - 4} more payments</p>
                   )}
                 </div>
               </div>
@@ -762,26 +762,26 @@ function ProjectPortalView({ profileId: pathProfileId, projectId: pathProjectId 
 
           {/* Photos */}
           {photoUrls.length > 0 && (
-            <div className="border border-slate-200 rounded-xl p-5 md:col-span-2">
+            <div className="border border-border rounded-xl p-5 md:col-span-2">
               <div className="flex items-center gap-2 mb-3">
                 <Camera className="h-4 w-4" style={{ color: brandColor }} />
                 <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider">Latest Photos</h3>
-                <span className="text-xs text-slate-400 ml-auto">{photos.length} total</span>
+                <span className="text-xs text-muted-foreground ml-auto">{photos.length} total</span>
               </div>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {photoUrls.slice(0, 12).map((p, i) => (
                   <button key={p.id || i} type="button" onClick={() => setLightboxPhoto(p.url)}
-                    className="aspect-square rounded-lg overflow-hidden border border-slate-200 relative">
+                    className="aspect-square rounded-lg overflow-hidden border border-border relative">
                     <img src={p.url} alt={p.caption || ''} className="w-full h-full object-cover" />
                     {p.phase && (
-                      <span className="absolute bottom-1 left-1 text-xs bg-black/60 text-white px-1 py-0.5 rounded">
+                      <span className="absolute bottom-1 left-1 text-xs bg-black/60 text-foreground px-1 py-0.5 rounded">
                         {p.phase}
                       </span>
                     )}
                   </button>
                 ))}
                 {photoUrls.length > 12 && (
-                  <div className="aspect-square rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-sm font-medium text-slate-400">
+                  <div className="aspect-square rounded-lg bg-slate-50 border border-border flex items-center justify-center text-sm font-medium text-muted-foreground">
                     +{photoUrls.length - 12}
                   </div>
                 )}
@@ -791,7 +791,7 @@ function ProjectPortalView({ profileId: pathProfileId, projectId: pathProjectId 
 
           {/* Permits */}
           {permits.length > 0 && (
-            <div className="border border-slate-200 rounded-xl p-5">
+            <div className="border border-border rounded-xl p-5">
               <div className="flex items-center gap-2 mb-3">
                 <Shield className="h-4 w-4" style={{ color: brandColor }} />
                 <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider">Permits</h3>
@@ -804,7 +804,7 @@ function ProjectPortalView({ profileId: pathProfileId, projectId: pathProjectId 
                     <div key={permit.id} className="flex items-center justify-between text-sm">
                       <div>
                         <span className="font-medium capitalize">{permit.permit_type}</span>
-                        {permit.permit_number && <span className="text-xs text-slate-400 ml-1">#{permit.permit_number}</span>}
+                        {permit.permit_number && <span className="text-xs text-muted-foreground ml-1">#{permit.permit_number}</span>}
                       </div>
                       <div className="text-right">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -813,7 +813,7 @@ function ProjectPortalView({ profileId: pathProfileId, projectId: pathProjectId 
                           {PERMIT_STATUS[permit.status] || permit.status}
                         </span>
                         {lastInsp && (
-                          <p className="text-xs text-slate-400 mt-0.5">
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             Last: {lastInsp.type} — {lastInsp.status}
                           </p>
                         )}
@@ -827,7 +827,7 @@ function ProjectPortalView({ profileId: pathProfileId, projectId: pathProjectId 
 
           {/* Recent Updates */}
           {logs.length > 0 && (
-            <div className="border border-slate-200 rounded-xl p-5">
+            <div className="border border-border rounded-xl p-5">
               <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-3">Recent Updates</h3>
               <div className="space-y-3">
                 {logs.slice(0, 5).map((log) => {
@@ -836,15 +836,15 @@ function ProjectPortalView({ profileId: pathProfileId, projectId: pathProjectId 
                   return (
                     <div key={log.id} className="border-b border-slate-100 pb-2 last:border-0 last:pb-0">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs text-slate-500">{fmtDate(log.date)}</span>
+                        <span className="text-xs text-muted-foreground/70">{fmtDate(log.date)}</span>
                         {logPhotos.length > 0 && (
-                          <span className="text-xs text-slate-400 flex items-center gap-1">
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <Camera className="h-3 w-3" /> {logPhotos.length}
                           </span>
                         )}
                       </div>
                       {taskPreview && (
-                        <p className="text-sm text-slate-600 line-clamp-2">{taskPreview}</p>
+                        <p className="text-sm text-muted-foreground/50 line-clamp-2">{taskPreview}</p>
                       )}
                     </div>
                   );
@@ -862,7 +862,7 @@ function ProjectPortalView({ profileId: pathProfileId, projectId: pathProjectId 
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 print:hidden"
           onClick={() => setLightboxPhoto(null)} role="dialog" aria-modal="true">
           <button type="button" onClick={() => setLightboxPhoto(null)}
-            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-amber-500 rounded-lg bg-slate-800/80"
+            className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-primary rounded-lg bg-secondary/80"
             aria-label="Close">
             <X className="h-6 w-6" />
           </button>
@@ -889,7 +889,7 @@ function PortalShell({ children }) {
       {/* Print button */}
       <div className="max-w-3xl mx-auto px-4 py-4 flex justify-end print:hidden">
         <button type="button" onClick={() => window.print()}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-300 text-slate-600 hover:text-slate-900 transition-colors text-sm">
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-muted-foreground/50 hover:text-primary-foreground transition-colors text-sm">
           <Printer className="h-4 w-4" /> Print
         </button>
       </div>
@@ -902,7 +902,7 @@ function PortalShell({ children }) {
 function PortalLoading() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">
-      <Loader2 className="h-8 w-8 text-slate-400 animate-spin" />
+      <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
     </div>
   );
 }
@@ -911,9 +911,9 @@ function PortalNotFound({ message }) {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
       <div className="text-center">
-        <h1 className="text-xl font-bold text-slate-900 mb-2">Not Found</h1>
-        <p className="text-slate-500">{message || 'This link may be invalid or expired.'}</p>
-        <p className="text-sm text-slate-400 mt-4">If you believe this is an error, contact your contractor.</p>
+        <h1 className="text-xl font-bold text-primary-foreground mb-2">Not Found</h1>
+        <p className="text-muted-foreground/70">{message || 'This link may be invalid or expired.'}</p>
+        <p className="text-sm text-muted-foreground mt-4">If you believe this is an error, contact your contractor.</p>
       </div>
     </div>
   );
@@ -922,7 +922,7 @@ function PortalNotFound({ message }) {
 function PortalFooter() {
   return (
     <div className="px-6 sm:px-8 py-4 bg-slate-50 text-center">
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-muted-foreground">
         Powered by LocalLane — Connecting Eugene's community
       </p>
     </div>
@@ -963,12 +963,12 @@ export default function ClientPortal() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
       <div className="text-center max-w-md">
-        <h1 className="text-xl font-bold text-slate-900 mb-2">Client Portal</h1>
-        <p className="text-slate-500 mb-4">
+        <h1 className="text-xl font-bold text-primary-foreground mb-2">Client Portal</h1>
+        <p className="text-muted-foreground/70 mb-4">
           This portal is accessed through a link shared by your contractor.
           If you received a link, please use the full URL provided.
         </p>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-muted-foreground">
           Contact your contractor for an updated link if this page was reached in error.
         </p>
       </div>

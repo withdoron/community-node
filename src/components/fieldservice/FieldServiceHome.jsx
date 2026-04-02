@@ -230,49 +230,49 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
 
       {/* Stats Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Users className="h-4 w-4 text-amber-500" />
-            <span className="text-xs text-slate-400">Clients</span>
+            <Users className="h-4 w-4 text-primary" />
+            <span className="text-xs text-muted-foreground">Clients</span>
           </div>
-          <p className="text-2xl font-bold text-slate-100">{activeClients.length}</p>
+          <p className="text-2xl font-bold text-foreground">{activeClients.length}</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
-            <FolderOpen className="h-4 w-4 text-amber-500" />
-            <span className="text-xs text-slate-400">Active Projects</span>
+            <FolderOpen className="h-4 w-4 text-primary" />
+            <span className="text-xs text-muted-foreground">Active Projects</span>
           </div>
-          <p className="text-2xl font-bold text-slate-100">{activeProjects.length}</p>
+          <p className="text-2xl font-bold text-foreground">{activeProjects.length}</p>
         </div>
 
         <button
           type="button"
           onClick={() => onNavigateTab?.('estimates')}
-          className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-left hover:border-amber-500/50 transition-colors"
+          className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors"
         >
           <div className="flex items-center gap-2 mb-2">
-            <FileText className="h-4 w-4 text-amber-500" />
-            <span className="text-xs text-slate-400">Estimates</span>
+            <FileText className="h-4 w-4 text-primary" />
+            <span className="text-xs text-muted-foreground">Estimates</span>
           </div>
-          <p className="text-2xl font-bold text-slate-100">{estimates.length}</p>
+          <p className="text-2xl font-bold text-foreground">{estimates.length}</p>
           {outstandingEstimates.length > 0 && (
-            <p className="text-xs text-amber-400 mt-0.5">{outstandingEstimates.length} outstanding</p>
+            <p className="text-xs text-primary-hover mt-0.5">{outstandingEstimates.length} outstanding</p>
           )}
         </button>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
-            <HardHat className="h-4 w-4 text-amber-500" />
-            <span className="text-xs text-slate-400">This Month</span>
+            <HardHat className="h-4 w-4 text-primary" />
+            <span className="text-xs text-muted-foreground">This Month</span>
           </div>
-          <p className="text-2xl font-bold text-amber-500">{fmt(monthTotal)}</p>
+          <p className="text-2xl font-bold text-primary">{fmt(monthTotal)}</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="h-4 w-4 text-amber-500" />
-            <span className="text-xs text-slate-400">Received</span>
+            <DollarSign className="h-4 w-4 text-primary" />
+            <span className="text-xs text-muted-foreground">Received</span>
           </div>
           <p className="text-2xl font-bold text-emerald-400">{fmt(paymentsReceived)}</p>
         </div>
@@ -280,13 +280,13 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
         <button
           type="button"
           onClick={() => onNavigateTab?.('people')}
-          className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-left hover:border-amber-500/50 transition-colors"
+          className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors"
         >
           <div className="flex items-center gap-2 mb-2">
-            <Briefcase className="h-4 w-4 text-amber-500" />
-            <span className="text-xs text-slate-400">Team</span>
+            <Briefcase className="h-4 w-4 text-primary" />
+            <span className="text-xs text-muted-foreground">Team</span>
           </div>
-          <p className="text-2xl font-bold text-slate-100">{teamCount}</p>
+          <p className="text-2xl font-bold text-foreground">{teamCount}</p>
         </button>
       </div>
 
@@ -295,31 +295,31 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
         <button
           type="button"
           onClick={() => onNavigateTab?.('log')}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px]"
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors text-sm min-h-[44px]"
         >
           + Log Today's Work
         </button>
         <button
           type="button"
           onClick={() => onNavigateTab?.('estimates')}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm font-medium min-h-[44px]"
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-primary text-primary hover:bg-primary/10 transition-colors text-sm font-medium min-h-[44px]"
         >
           + New Estimate
         </button>
       </div>
 
       {/* Active Project Cards */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <div className="bg-card border border-border rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <FolderOpen className="h-5 w-5 text-amber-500" />
-            <h2 className="text-lg font-bold text-slate-100">Active Projects</h2>
+            <FolderOpen className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-bold text-foreground">Active Projects</h2>
           </div>
           {activeProjects.length > 0 && (
             <button
               type="button"
               onClick={() => onNavigateTab?.('projects')}
-              className="text-xs text-amber-500 hover:text-amber-400"
+              className="text-xs text-primary hover:text-primary-hover"
             >
               View all
             </button>
@@ -327,7 +327,7 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
         </div>
 
         {activeProjects.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground/70">
             No active projects yet. Create your first project or estimate to get started.
           </p>
         ) : (
@@ -341,28 +341,28 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
                   key={project.id}
                   type="button"
                   onClick={() => onNavigateTab?.('projects')}
-                  className="w-full text-left bg-slate-800/50 rounded-lg p-4 hover:bg-slate-800 transition-colors"
+                  className="w-full text-left bg-secondary/50 rounded-lg p-4 hover:bg-secondary transition-colors"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-slate-100 truncate">{project.name}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{project.name}</p>
                       {project.client_name && (
-                        <p className="text-xs text-slate-400">{project.client_name}</p>
+                        <p className="text-xs text-muted-foreground">{project.client_name}</p>
                       )}
                     </div>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 flex-shrink-0 ml-2">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary flex-shrink-0 ml-2">
                       Active
                     </span>
                   </div>
                   {budget > 0 && (
                     <div className="space-y-1">
-                      <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-surface rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-amber-500 rounded-full transition-all"
+                          className="h-full bg-primary rounded-full transition-all"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <div className="flex justify-between text-xs text-slate-500">
+                      <div className="flex justify-between text-xs text-muted-foreground/70">
                         <span>{fmt(spent)} spent</span>
                         <span>{fmt(budget)} budget</span>
                       </div>
@@ -376,14 +376,14 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
       </div>
 
       {/* Recent Activity Feed */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <div className="bg-card border border-border rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
-          <ClipboardList className="h-5 w-5 text-amber-500" />
-          <h2 className="text-lg font-bold text-slate-100">Recent Activity</h2>
+          <ClipboardList className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold text-foreground">Recent Activity</h2>
         </div>
 
         {recentLogs.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground/70">
             No activity yet. Log your first day's work to see it here.
           </p>
         ) : (
@@ -407,16 +407,16 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
               return (
                 <div
                   key={log.id}
-                  className="bg-slate-800/50 rounded-lg p-3"
+                  className="bg-secondary/50 rounded-lg p-3"
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-slate-500">{fmtShortDate(log.date)}</span>
+                    <span className="text-xs text-muted-foreground/70">{fmtShortDate(log.date)}</span>
                     {project && (
-                      <span className="text-xs text-amber-500 truncate ml-2">{project.name}</span>
+                      <span className="text-xs text-primary truncate ml-2">{project.name}</span>
                     )}
                   </div>
                   {taskPreview && (
-                    <p className="text-sm text-slate-300 line-clamp-2">{taskPreview}</p>
+                    <p className="text-sm text-foreground-soft line-clamp-2">{taskPreview}</p>
                   )}
                 </div>
               );
@@ -427,8 +427,8 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
 
       {/* Finance Link Hook (future) */}
       {profile?.linked_finance_workspace_id && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <p className="text-sm text-slate-400 text-center">Financial summary coming soon</p>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-sm text-muted-foreground text-center">Financial summary coming soon</p>
         </div>
       )}
     </div>

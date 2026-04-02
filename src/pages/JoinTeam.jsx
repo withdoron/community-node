@@ -310,8 +310,8 @@ export default function JoinTeam() {
   // ── Loading ──
   if (teamLoading || (!inviteCode && !doorSlug)) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
-        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -319,11 +319,11 @@ export default function JoinTeam() {
   // ── Invalid code or slug ──
   if (teamError || !team) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 max-w-md mx-auto">
-        <h1 className="text-xl font-bold text-white mb-2">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 max-w-md mx-auto">
+        <h1 className="text-xl font-bold text-foreground mb-2">
           {doorSlug ? 'Team not found' : 'Invalid or expired invite'}
         </h1>
-        <p className="text-slate-400 text-center mb-6">
+        <p className="text-muted-foreground text-center mb-6">
           {doorSlug
             ? `We couldn't find a team matching "${doorSlug.replace(/-/g, ' ')}." It may have been renamed or removed.`
             : 'This invite code is not valid or the team may no longer be active.'
@@ -331,7 +331,7 @@ export default function JoinTeam() {
         </p>
         <Button
           onClick={() => navigate(createPageUrl('MyLane'))}
-          className="bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px] px-6"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px] px-6"
         >
           Go to My Lane
         </Button>
@@ -342,32 +342,32 @@ export default function JoinTeam() {
   // ── Not authenticated — the organism's handshake ──
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 max-w-md mx-auto">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-5 w-full">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 max-w-md mx-auto">
+        <div className="bg-card border border-border rounded-2xl p-8 space-y-5 w-full">
           {/* Team name — prominent */}
-          <h1 className="text-2xl font-bold text-white text-center">{team.name}</h1>
+          <h1 className="text-2xl font-bold text-foreground text-center">{team.name}</h1>
 
           {/* Sport · Format · Season */}
-          <p className="text-slate-400 text-sm text-center">{teamSubtitle(team)}</p>
+          <p className="text-muted-foreground text-sm text-center">{teamSubtitle(team)}</p>
 
           {/* Personalized invite copy */}
           {inviteType === 'coach' ? (
-            <p className="text-slate-300 text-sm text-center">
+            <p className="text-foreground-soft text-sm text-center">
               {headCoachName
-                ? <>Coach <span className="text-white font-medium">{headCoachName}</span> invited you to coach this team</>
+                ? <>Coach <span className="text-foreground font-medium">{headCoachName}</span> invited you to coach this team</>
                 : <>You've been invited to coach this team</>
               }
             </p>
           ) : (
             <div className="space-y-2">
-              <p className="text-slate-300 text-sm text-center">
+              <p className="text-foreground-soft text-sm text-center">
                 {headCoachName
-                  ? <>Coach <span className="text-white font-medium">{headCoachName}</span> invited you to join</>
+                  ? <>Coach <span className="text-foreground font-medium">{headCoachName}</span> invited you to join</>
                   : <>You've been invited to join this team</>
                 }
               </p>
               {playerCount > 0 && (
-                <p className="text-slate-500 text-xs text-center flex items-center justify-center gap-1.5">
+                <p className="text-muted-foreground/70 text-xs text-center flex items-center justify-center gap-1.5">
                   <Users className="h-3.5 w-3.5" />
                   {playerCount} {playerCount === 1 ? 'player' : 'players'} on the roster
                 </p>
@@ -378,7 +378,7 @@ export default function JoinTeam() {
           {/* Sign in CTA */}
           <Button
             onClick={handleSignIn}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px] flex items-center justify-center gap-2"
+            className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px] flex items-center justify-center gap-2"
           >
             <LogIn className="h-5 w-5" />
             Sign in to join
@@ -393,26 +393,26 @@ export default function JoinTeam() {
     // Wait for members to load so we can show unclaimed spots
     if (membersLoading) {
       return (
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
-          <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+        <div className="min-h-screen bg-background flex items-center justify-center p-6">
+          <Loader2 className="h-8 w-8 text-primary animate-spin" />
         </div>
       );
     }
 
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col p-6 max-w-md mx-auto">
-        <h1 className="text-2xl font-bold text-white mb-1">{team.name}</h1>
-        <p className="text-slate-400 text-sm mb-1">{teamSubtitle(team)}</p>
-        <p className={`text-slate-500 text-xs ${headCoachName ? '' : 'invisible'} mb-6`}>
-          {headCoachName ? <>Coach <span className="text-slate-300">{headCoachName}</span> invited you</> : '\u00A0'}
+      <div className="min-h-screen bg-background flex flex-col p-6 max-w-md mx-auto">
+        <h1 className="text-2xl font-bold text-foreground mb-1">{team.name}</h1>
+        <p className="text-muted-foreground text-sm mb-1">{teamSubtitle(team)}</p>
+        <p className={`text-muted-foreground/70 text-xs ${headCoachName ? '' : 'invisible'} mb-6`}>
+          {headCoachName ? <>Coach <span className="text-foreground-soft">{headCoachName}</span> invited you</> : '\u00A0'}
         </p>
 
         {/* Claim-first: show unclaimed coach spots */}
         {unclaimedCoaches.length > 0 && !showNewCoachForm && (
           <div className="space-y-4 mb-6">
             <div>
-              <h2 className="text-lg font-semibold text-white mb-1">Are you on the roster?</h2>
-              <p className="text-slate-400 text-sm">Tap your name to claim your spot.</p>
+              <h2 className="text-lg font-semibold text-foreground mb-1">Are you on the roster?</h2>
+              <p className="text-muted-foreground text-sm">Tap your name to claim your spot.</p>
             </div>
             <div className="space-y-2">
               {unclaimedCoaches.map((m) => (
@@ -421,18 +421,18 @@ export default function JoinTeam() {
                   type="button"
                   onClick={() => handleClaimSpot(m)}
                   disabled={claiming}
-                  className="w-full flex items-center justify-between p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-colors min-h-[56px] disabled:opacity-60"
+                  className="w-full flex items-center justify-between p-4 rounded-xl bg-card border border-border hover:border-primary/50 transition-colors min-h-[56px] disabled:opacity-60"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="font-medium text-white">{m.jersey_name || 'Coach'}</span>
-                    <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-amber-500/20 text-amber-500">
+                    <span className="font-medium text-foreground">{m.jersey_name || 'Coach'}</span>
+                    <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-primary/20 text-primary">
                       {m.role === 'assistant_coach' ? 'Asst Coach' : 'Coach'}
                     </span>
                   </div>
                   {claiming ? (
-                    <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
+                    <Loader2 className="h-5 w-5 text-primary animate-spin" />
                   ) : (
-                    <span className="text-amber-500 text-sm font-medium">That's me</span>
+                    <span className="text-primary text-sm font-medium">That's me</span>
                   )}
                 </button>
               ))}
@@ -440,14 +440,14 @@ export default function JoinTeam() {
 
             {/* Divider + fallback to new coach form */}
             <div className="flex items-center gap-3 pt-2">
-              <div className="flex-1 border-t border-slate-800" />
-              <span className="text-slate-500 text-xs">not listed?</span>
-              <div className="flex-1 border-t border-slate-800" />
+              <div className="flex-1 border-t border-border" />
+              <span className="text-muted-foreground/70 text-xs">not listed?</span>
+              <div className="flex-1 border-t border-border" />
             </div>
             <button
               type="button"
               onClick={() => setShowNewCoachForm(true)}
-              className="w-full text-center text-sm text-slate-400 hover:text-amber-500 transition-colors py-2"
+              className="w-full text-center text-sm text-muted-foreground hover:text-primary transition-colors py-2"
             >
               Join as a new coach
             </button>
@@ -456,15 +456,15 @@ export default function JoinTeam() {
 
         {/* New coach form — shown when no unclaimed spots exist OR user tapped "not listed" */}
         {(unclaimedCoaches.length === 0 || showNewCoachForm) && (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-            <h2 className="text-lg font-semibold text-white">Join as Coach</h2>
-            <p className="text-slate-400 text-sm">You'll have full access to the playbook, roster, and team settings.</p>
+          <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-foreground">Join as Coach</h2>
+            <p className="text-muted-foreground text-sm">You'll have full access to the playbook, roster, and team settings.</p>
             <div>
-              <label className="text-slate-300 text-sm font-medium block mb-1">Your name</label>
+              <label className="text-foreground-soft text-sm font-medium block mb-1">Your name</label>
               <Input
                 value={coachName}
                 onChange={(e) => setCoachName(e.target.value)}
-                className="w-full bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 min-h-[44px]"
+                className="w-full bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring min-h-[44px]"
                 placeholder="Coach name"
                 disabled={joining}
               />
@@ -472,7 +472,7 @@ export default function JoinTeam() {
             <Button
               onClick={handleJoinAsCoach}
               disabled={!coachName?.trim() || joining}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px]"
+              className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px]"
             >
               {joining ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Join Team'}
             </Button>
@@ -485,8 +485,8 @@ export default function JoinTeam() {
   // ── Family/parent join path ──
   if (membersLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
-        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -494,17 +494,17 @@ export default function JoinTeam() {
   const selectedCount = parentSelectedIds.size;
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col p-6 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold text-white mb-1">{team.name}</h1>
-      <p className="text-slate-400 text-sm mb-1">{teamSubtitle(team)}</p>
-      <p className={`text-slate-500 text-xs ${headCoachName ? '' : 'invisible'} mb-6`}>
-        {headCoachName ? <>Coach <span className="text-slate-300">{headCoachName}</span> invited you</> : '\u00A0'}
+    <div className="min-h-screen bg-background flex flex-col p-6 max-w-md mx-auto">
+      <h1 className="text-2xl font-bold text-foreground mb-1">{team.name}</h1>
+      <p className="text-muted-foreground text-sm mb-1">{teamSubtitle(team)}</p>
+      <p className={`text-muted-foreground/70 text-xs ${headCoachName ? '' : 'invisible'} mb-6`}>
+        {headCoachName ? <>Coach <span className="text-foreground-soft">{headCoachName}</span> invited you</> : '\u00A0'}
       </p>
-      <h2 className="text-lg font-semibold text-white mb-1">Link your children</h2>
-      <p className="text-slate-400 text-sm mb-4">Select each child on this team. You can switch to their view in the team later.</p>
+      <h2 className="text-lg font-semibold text-foreground mb-1">Link your children</h2>
+      <p className="text-muted-foreground text-sm mb-4">Select each child on this team. You can switch to their view in the team later.</p>
       {players.length === 0 ? (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 text-center">
-          <p className="text-slate-400">No players on the roster yet. Ask a coach to add your child first.</p>
+        <div className="bg-secondary border border-border rounded-xl p-6 text-center">
+          <p className="text-muted-foreground">No players on the roster yet. Ask a coach to add your child first.</p>
         </div>
       ) : (
         <>
@@ -518,26 +518,26 @@ export default function JoinTeam() {
                   onClick={() => !joining && toggleParentChild(m.id)}
                   disabled={joining}
                   className={`w-full flex items-center gap-3 p-4 rounded-xl border text-left transition-colors min-h-[56px] disabled:opacity-60 ${
-                    checked ? 'bg-slate-800 border-amber-500' : 'bg-slate-800 border-slate-700 hover:border-amber-500/50'
+                    checked ? 'bg-secondary border-primary' : 'bg-secondary border-border hover:border-primary/50'
                   }`}
                 >
                   <div
                     className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center ${
-                      checked ? 'bg-amber-500 border-amber-500' : 'bg-transparent border-amber-500'
+                      checked ? 'bg-primary border-primary' : 'bg-transparent border-primary'
                     }`}
                   >
-                    {checked && <span className="text-black font-bold text-sm leading-none">✓</span>}
+                    {checked && <span className="text-primary-foreground font-bold text-sm leading-none">✓</span>}
                   </div>
-                  <span className="font-medium text-white flex-1">{m.jersey_name || 'Unnamed'}</span>
-                  {m.jersey_number && <span className="text-slate-400">#{m.jersey_number}</span>}
-                  {m.position && <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded">{m.position}</span>}
-                  {!m.user_id && <span className="text-xs bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded">Pending</span>}
+                  <span className="font-medium text-foreground flex-1">{m.jersey_name || 'Unnamed'}</span>
+                  {m.jersey_number && <span className="text-muted-foreground">#{m.jersey_number}</span>}
+                  {m.position && <span className="text-xs bg-surface text-foreground-soft px-2 py-0.5 rounded">{m.position}</span>}
+                  {!m.user_id && <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">Pending</span>}
                 </button>
               );
             })}
           </div>
           {selectedCount > 0 && (
-            <p className="text-slate-400 text-sm mt-3">
+            <p className="text-muted-foreground text-sm mt-3">
               {selectedCount} {selectedCount === 1 ? 'child' : 'children'} selected
             </p>
           )}
@@ -545,7 +545,7 @@ export default function JoinTeam() {
             type="button"
             onClick={handleJoinAsParent}
             disabled={selectedCount === 0 || joining}
-            className="mt-6 w-full bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px]"
+            className="mt-6 w-full bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px]"
           >
             {joining ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : `Link ${selectedCount === 0 ? 'children' : selectedCount === 1 ? 'child' : 'children'}`}
           </Button>

@@ -87,10 +87,10 @@ function StepIndicator({ current, total }) {
           key={i}
           className={`h-2 rounded-full transition-all ${
             i + 1 === current
-              ? 'w-8 bg-amber-500'
+              ? 'w-8 bg-primary'
               : i + 1 < current
-                ? 'w-2 bg-amber-500/60'
-                : 'w-2 bg-slate-700'
+                ? 'w-2 bg-primary/60'
+                : 'w-2 bg-surface'
           }`}
         />
       ))}
@@ -302,24 +302,24 @@ export default function FinanceOnboarding() {
   // ─── Loading gate ─────────────────────────────────
   if (!currentUser?.id) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-amber-500 border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
 
   // ─── Render ───────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-6 py-10">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-            <DollarSign className="h-6 w-6 text-amber-500" />
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+            <DollarSign className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-100">Create a Finance Space</h1>
-            <p className="text-sm text-slate-400">
+            <h1 className="text-xl font-bold text-foreground">Create a Finance Space</h1>
+            <p className="text-sm text-muted-foreground">
               {step === 1 && 'Name your space'}
               {step === 2 && 'Set up your essentials'}
               {step === 3 && 'Track your debts'}
@@ -332,30 +332,30 @@ export default function FinanceOnboarding() {
         {/* ═══ Step 1: Name It ═══ */}
         {step === 1 && (
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 What should we call this space?
               </h2>
-              <p className="text-sm text-slate-400 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 This is your private financial mirror. Only you can see it.
               </p>
               <div>
-                <Label className="text-slate-400">Space name</Label>
+                <Label className="text-muted-foreground">Space name</Label>
                 <Input
                   value={workspaceName}
                   onChange={(e) => setWorkspaceName(e.target.value)}
-                  className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                   placeholder="My Finances"
                   autoFocus
                 />
-                <p className="text-xs text-slate-500 mt-1">You can change this later in Settings.</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">You can change this later in Settings.</p>
               </div>
             </div>
 
             <div className="flex justify-end">
               <Button
                 onClick={() => setStep(2)}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-6 min-h-[44px]"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 min-h-[44px]"
               >
                 Next <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
@@ -368,10 +368,10 @@ export default function FinanceOnboarding() {
           <div className="space-y-6">
             {/* ── Income Section ── */}
             <div>
-              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 What money comes in each month?
               </h2>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-muted-foreground">
                 Tap your income sources and enter the monthly amount.
               </p>
             </div>
@@ -384,13 +384,13 @@ export default function FinanceOnboarding() {
                     onClick={() => toggleIncome(source.id)}
                     className={`w-full text-left rounded-xl p-4 border transition-all min-h-[72px] ${
                       source.selected
-                        ? 'bg-slate-900 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
-                        : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                        ? 'bg-card border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                        : 'bg-card border-border hover:border-border'
                     }`}
                   >
                     <p
                       className={`text-sm font-medium ${
-                        source.selected ? 'text-emerald-400' : 'text-slate-300'
+                        source.selected ? 'text-emerald-400' : 'text-foreground-soft'
                       }`}
                     >
                       {source.label}
@@ -403,19 +403,19 @@ export default function FinanceOnboarding() {
                         <Input
                           value={source.customName}
                           onChange={(e) => updateIncomeName(source.id, e.target.value)}
-                          className="bg-slate-800 border-slate-700 text-white text-sm placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                          className="bg-secondary border-border text-foreground text-sm placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                           placeholder="What is it?"
                         />
                       )}
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                         <Input
                           type="number"
                           step="0.01"
                           min="0"
                           value={source.amount}
                           onChange={(e) => updateIncomeAmount(source.id, e.target.value)}
-                          className="pl-7 bg-slate-800 border-slate-700 text-white text-sm placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                          className="pl-7 bg-secondary border-border text-foreground text-sm placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                           placeholder="0.00"
                         />
                       </div>
@@ -427,10 +427,10 @@ export default function FinanceOnboarding() {
 
             {/* ── Expenses Section ── */}
             <div className="pt-2">
-              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 What are your monthly essentials?
               </h2>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-muted-foreground">
                 These will build your Monthly Target.
               </p>
             </div>
@@ -443,19 +443,19 @@ export default function FinanceOnboarding() {
                     onClick={() => toggleEssential(essential.id)}
                     className={`w-full text-left rounded-xl p-4 border transition-all min-h-[72px] ${
                       essential.selected
-                        ? 'bg-slate-900 border-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.15)]'
-                        : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                        ? 'bg-card border-primary shadow-[0_0_12px_rgba(245,158,11,0.15)]'
+                        : 'bg-card border-border hover:border-border'
                     }`}
                   >
                     <p
                       className={`text-sm font-medium ${
-                        essential.selected ? 'text-amber-500' : 'text-slate-300'
+                        essential.selected ? 'text-primary' : 'text-foreground-soft'
                       }`}
                     >
                       {essential.label}
                     </p>
                     {essential.subtitle && (
-                      <p className="text-xs text-slate-500 mt-0.5">{essential.subtitle}</p>
+                      <p className="text-xs text-muted-foreground/70 mt-0.5">{essential.subtitle}</p>
                     )}
                   </button>
 
@@ -465,19 +465,19 @@ export default function FinanceOnboarding() {
                         <Input
                           value={essential.customName}
                           onChange={(e) => updateEssentialName(essential.id, e.target.value)}
-                          className="bg-slate-800 border-slate-700 text-white text-sm placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                          className="bg-secondary border-border text-foreground text-sm placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                           placeholder="What is it?"
                         />
                       )}
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                         <Input
                           type="number"
                           step="0.01"
                           min="0"
                           value={essential.amount}
                           onChange={(e) => updateEssentialAmount(essential.id, e.target.value)}
-                          className="pl-7 bg-slate-800 border-slate-700 text-white text-sm placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                          className="pl-7 bg-secondary border-border text-foreground text-sm placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                           placeholder="0.00"
                         />
                       </div>
@@ -488,23 +488,23 @@ export default function FinanceOnboarding() {
             </div>
 
             {/* ── Running Totals ── */}
-            <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-4 space-y-2">
+            <div className="bg-card border border-primary/30 rounded-xl p-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Monthly income</span>
+                <span className="text-muted-foreground">Monthly income</span>
                 <span className="text-emerald-400 font-medium">{fmt(incomeTotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Your Monthly Target</span>
-                <span className="text-amber-500 font-medium">{fmt(essentialTotal)}/month</span>
+                <span className="text-muted-foreground">Your Monthly Target</span>
+                <span className="text-primary font-medium">{fmt(essentialTotal)}/month</span>
               </div>
               {incomeTotal > 0 && essentialTotal > 0 && (
-                <div className="border-t border-slate-800 pt-2 mt-1">
+                <div className="border-t border-border pt-2 mt-1">
                   {incomeTotal >= essentialTotal ? (
                     <p className="text-sm text-emerald-400 text-center">
                       You'd have {fmt(incomeTotal - essentialTotal)} left to spend
                     </p>
                   ) : (
-                    <p className="text-sm text-amber-500 text-center">
+                    <p className="text-sm text-primary text-center">
                       Gap: {fmt(essentialTotal - incomeTotal)}/month
                     </p>
                   )}
@@ -517,13 +517,13 @@ export default function FinanceOnboarding() {
               <Button
                 variant="outline"
                 onClick={() => setStep(1)}
-                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+                className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent min-h-[44px]"
               >
                 <ChevronLeft className="h-4 w-4 mr-1" /> Back
               </Button>
               <Button
                 onClick={() => setStep(3)}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-6 min-h-[44px]"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 min-h-[44px]"
               >
                 Next <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
@@ -535,10 +535,10 @@ export default function FinanceOnboarding() {
         {step === 3 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 Got any debts to track?
               </h2>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-muted-foreground">
                 These minimums will be added to your Monthly Target.
               </p>
             </div>
@@ -549,16 +549,16 @@ export default function FinanceOnboarding() {
                 type="button"
                 onClick={() => createWorkspace.mutate()}
                 disabled={createWorkspace.isPending}
-                className="w-full bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-5 text-center transition-colors"
+                className="w-full bg-card border border-border hover:border-primary/50 rounded-xl p-5 text-center transition-colors"
               >
                 {createWorkspace.isPending ? (
-                  <Loader2 className="h-5 w-5 animate-spin text-amber-500 mx-auto" />
+                  <Loader2 className="h-5 w-5 animate-spin text-primary mx-auto" />
                 ) : (
                   <>
-                    <p className="text-sm font-medium text-slate-300">
+                    <p className="text-sm font-medium text-foreground-soft">
                       Not right now — I'll add these later
                     </p>
-                    <p className="text-xs text-slate-500 mt-1">Skip to create your space</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">Skip to create your space</p>
                   </>
                 )}
               </button>
@@ -566,55 +566,55 @@ export default function FinanceOnboarding() {
 
             {/* Debt cards */}
             {debts.map((debt, idx) => (
-              <div key={idx} className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+              <div key={idx} className="bg-card border border-border rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-slate-300">Debt {idx + 1}</p>
+                  <p className="text-sm font-medium text-foreground-soft">Debt {idx + 1}</p>
                   <button
                     type="button"
                     onClick={() => removeDebt(idx)}
-                    className="text-slate-500 hover:text-red-400 transition-colors"
+                    className="text-muted-foreground/70 hover:text-red-400 transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
 
                 <div>
-                  <Label className="text-slate-400 text-xs">Name</Label>
+                  <Label className="text-muted-foreground text-xs">Name</Label>
                   <Input
                     value={debt.name}
                     onChange={(e) => updateDebt(idx, 'name', e.target.value)}
-                    className="mt-1 bg-slate-800 border-slate-700 text-white text-sm placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    className="mt-1 bg-secondary border-border text-foreground text-sm placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                     placeholder="e.g. Credit Card, Car Loan"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-slate-400 text-xs">Current Balance</Label>
+                    <Label className="text-muted-foreground text-xs">Current Balance</Label>
                     <div className="relative mt-1">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                       <Input
                         type="number"
                         step="0.01"
                         min="0"
                         value={debt.balance}
                         onChange={(e) => updateDebt(idx, 'balance', e.target.value)}
-                        className="pl-7 bg-slate-800 border-slate-700 text-white text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                        className="pl-7 bg-secondary border-border text-foreground text-sm focus:border-primary focus:ring-1 focus:ring-ring"
                         placeholder="0.00"
                       />
                     </div>
                   </div>
                   <div>
-                    <Label className="text-slate-400 text-xs">Minimum Payment</Label>
+                    <Label className="text-muted-foreground text-xs">Minimum Payment</Label>
                     <div className="relative mt-1">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                       <Input
                         type="number"
                         step="0.01"
                         min="0"
                         value={debt.minimum}
                         onChange={(e) => updateDebt(idx, 'minimum', e.target.value)}
-                        className="pl-7 bg-slate-800 border-slate-700 text-white text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                        className="pl-7 bg-secondary border-border text-foreground text-sm focus:border-primary focus:ring-1 focus:ring-ring"
                         placeholder="0.00"
                       />
                     </div>
@@ -627,21 +627,21 @@ export default function FinanceOnboarding() {
             <button
               type="button"
               onClick={addDebt}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed border-slate-700 text-slate-400 hover:border-amber-500/50 hover:text-amber-500 transition-colors text-sm min-h-[44px]"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed border-border text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors text-sm min-h-[44px]"
             >
               <Plus className="h-4 w-4" />
               {debts.length === 0 ? 'Add a debt' : 'Add another debt'}
             </button>
 
             {/* Running total */}
-            <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-4 text-center">
-              <p className="text-sm text-slate-400">Your Monthly Target</p>
-              <p className="text-2xl font-bold text-amber-500 mt-1">
+            <div className="bg-card border border-primary/30 rounded-xl p-4 text-center">
+              <p className="text-sm text-muted-foreground">Your Monthly Target</p>
+              <p className="text-2xl font-bold text-primary mt-1">
                 {fmt(enoughTotal)}
-                <span className="text-sm font-normal text-slate-400">/month</span>
+                <span className="text-sm font-normal text-muted-foreground">/month</span>
               </p>
               {debtMinTotal > 0 && (
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-muted-foreground/70 mt-1">
                   {fmt(essentialTotal)} essentials + {fmt(debtMinTotal)} debt minimums
                 </p>
               )}
@@ -652,13 +652,13 @@ export default function FinanceOnboarding() {
               <Button
                 variant="outline"
                 onClick={() => setStep(2)}
-                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+                className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent min-h-[44px]"
               >
                 <ChevronLeft className="h-4 w-4 mr-1" /> Back
               </Button>
               <Button
                 onClick={() => createWorkspace.mutate()}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-6 min-h-[44px]"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 min-h-[44px]"
                 disabled={createWorkspace.isPending}
               >
                 {createWorkspace.isPending ? (

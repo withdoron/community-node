@@ -285,15 +285,15 @@ export default function StaffWidget({ business, currentUserId }) {
   const getRoleBadge = (role) => {
     switch (role) {
       case 'co-owner':
-        return <Badge className="border-amber-500 text-amber-500" variant="outline">Co-Owner</Badge>;
+        return <Badge className="border-primary text-primary" variant="outline">Co-Owner</Badge>;
       case 'manager':
         return <Badge className="bg-purple-500 text-white">Manager</Badge>;
       case 'instructor':
         return <Badge className="bg-blue-500 text-white">Instructor</Badge>;
       case 'staff':
-        return <Badge variant="outline" className="border-slate-500 text-slate-300">Staff</Badge>;
+        return <Badge variant="outline" className="border-muted-foreground text-foreground-soft">Staff</Badge>;
       default:
-        return <Badge variant="outline" className="border-slate-600 text-slate-400">Unknown</Badge>;
+        return <Badge variant="outline" className="border-border text-muted-foreground">Unknown</Badge>;
     }
   };
 
@@ -346,16 +346,16 @@ export default function StaffWidget({ business, currentUserId }) {
 
   return (
     <>
-    <Card className="p-6 bg-slate-900 border-slate-800">
+    <Card className="p-6 bg-card border-border">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">Staff & Instructors</h2>
-          <p className="text-sm text-slate-400">Manage your team members</p>
+          <h2 className="text-xl font-bold text-foreground">Staff & Instructors</h2>
+          <p className="text-sm text-muted-foreground">Manage your team members</p>
         </div>
         {(isOwner || isCoOwner || isManager) && (
           <Button
             variant="outline"
-            className="border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-black"
+            className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
             onClick={() => {
               setAddStaffOpen(true);
               setSearchEmail('');
@@ -372,32 +372,32 @@ export default function StaffWidget({ business, currentUserId }) {
 
       <div className="space-y-3">
         {/* Owner row */}
-        <div className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+        <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-slate-400" />
+            <div className="w-10 h-10 bg-surface rounded-full flex items-center justify-center">
+              <User className="w-5 h-5 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-white font-medium">{business?.owner_email}</p>
-              <p className="text-slate-400 text-sm">Owner</p>
+              <p className="text-foreground font-medium">{business?.owner_email}</p>
+              <p className="text-muted-foreground text-sm">Owner</p>
             </div>
           </div>
-          <Badge className="bg-amber-500 text-black">Owner</Badge>
+          <Badge className="bg-primary text-primary-foreground">Owner</Badge>
         </div>
 
         {/* Staff list */}
         {staffUsers.map((user) => (
-          <div key={user.id} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+          <div key={user.id} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center shrink-0">
-                <User className="w-5 h-5 text-slate-400" />
+              <div className="w-10 h-10 bg-surface rounded-full flex items-center justify-center shrink-0">
+                <User className="w-5 h-5 text-muted-foreground" />
               </div>
               <div className="min-w-0">
-                <p className="text-white font-medium truncate">
+                <p className="text-foreground font-medium truncate">
                   {user._permissionDenied ? 'Team Member' : (user.full_name || user.email)}
                 </p>
                 {!user._permissionDenied && user.email && (
-                  <p className="text-slate-400 text-sm truncate">{user.email}</p>
+                  <p className="text-muted-foreground text-sm truncate">{user.email}</p>
                 )}
               </div>
             </div>
@@ -409,7 +409,7 @@ export default function StaffWidget({ business, currentUserId }) {
                   size="icon"
                   onClick={() => removeStaffMutation.mutate(user.id)}
                   disabled={removeStaffMutation.isPending}
-                  className="text-slate-400 hover:text-red-400 hover:bg-slate-700"
+                  className="text-muted-foreground hover:text-red-400 hover:bg-surface"
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -420,33 +420,33 @@ export default function StaffWidget({ business, currentUserId }) {
 
         {/* Pending Invites */}
         {pendingInvites.length > 0 && (
-          <div className="space-y-2 pt-4 mt-4 border-t border-slate-700">
-            <p className="text-slate-400 text-xs uppercase tracking-wide">Pending Invites</p>
+          <div className="space-y-2 pt-4 mt-4 border-t border-border">
+            <p className="text-muted-foreground text-xs uppercase tracking-wide">Pending Invites</p>
             {pendingInvites.map((invite, idx) => (
               <div
                 key={(invite.email || 'invite') + idx}
-                className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg"
+                className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center shrink-0">
-                    <Mail className="w-5 h-5 text-slate-500" />
+                  <div className="w-10 h-10 bg-surface rounded-full flex items-center justify-center shrink-0">
+                    <Mail className="w-5 h-5 text-muted-foreground/70" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-slate-300 truncate">{invite.email}</p>
-                    <p className="text-slate-500 text-sm">Invited as {invite.role}</p>
+                    <p className="text-foreground-soft truncate">{invite.email}</p>
+                    <p className="text-muted-foreground/70 text-sm">Invited as {invite.role}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="border-amber-500/50 text-amber-500">
+                  <Badge variant="outline" className="border-primary/50 text-primary">
                     Pending
                   </Badge>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="hover:bg-slate-800"
+                    className="hover:bg-secondary"
                     onClick={() => removeStaffMutation.mutate(invite.email)}
                     disabled={removeStaffMutation.isPending}
-                    className="text-slate-400 hover:text-red-400 hover:bg-slate-700"
+                    className="text-muted-foreground hover:text-red-400 hover:bg-surface"
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -458,35 +458,35 @@ export default function StaffWidget({ business, currentUserId }) {
 
         {/* Loading state */}
         {staffLoading && staffList.length > 0 && (
-          <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
-            <div className="w-10 h-10 bg-slate-700 rounded-full animate-pulse" />
+          <div className="flex items-center gap-3 p-3 bg-secondary rounded-lg">
+            <div className="w-10 h-10 bg-surface rounded-full animate-pulse" />
             <div className="flex-1 space-y-1">
-              <div className="h-4 bg-slate-700 rounded w-32 animate-pulse" />
-              <div className="h-3 bg-slate-700 rounded w-48 animate-pulse" />
+              <div className="h-4 bg-surface rounded w-32 animate-pulse" />
+              <div className="h-3 bg-surface rounded w-48 animate-pulse" />
             </div>
           </div>
         )}
 
         {/* Empty state when no staff and no pending invites */}
         {!staffLoading && staffList.length === 0 && pendingInvites.length === 0 && (
-          <div className="text-center py-6 border border-dashed border-slate-700 rounded-lg">
-            <UserPlus className="w-10 h-10 text-slate-600 mx-auto mb-2" />
-            <p className="text-slate-400">Invite your team</p>
-            <p className="text-slate-500 text-sm">Give permissions to managers or door staff</p>
+          <div className="text-center py-6 border border-dashed border-border rounded-lg">
+            <UserPlus className="w-10 h-10 text-muted-foreground/50 mx-auto mb-2" />
+            <p className="text-muted-foreground">Invite your team</p>
+            <p className="text-muted-foreground/70 text-sm">Give permissions to managers or door staff</p>
           </div>
         )}
       </div>
     </Card>
 
     <Dialog open={addStaffOpen} onOpenChange={setAddStaffOpen}>
-      <DialogContent className="bg-slate-900 border-slate-700">
+      <DialogContent className="bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-white">Add Staff Member</DialogTitle>
+          <DialogTitle className="text-foreground">Add Staff Member</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <Label className="text-slate-300">Search by email</Label>
+            <Label className="text-foreground-soft">Search by email</Label>
             <div className="flex gap-2 mt-1">
               <Input
                 type="email"
@@ -494,12 +494,12 @@ export default function StaffWidget({ business, currentUserId }) {
                 value={searchEmail}
                 onChange={(e) => setSearchEmail(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchUser()}
-                className="bg-slate-800 border-slate-700 text-white"
+                className="bg-secondary border-border text-foreground"
               />
               <Button
                 onClick={handleSearchUser}
                 disabled={isSearching || !searchEmail.trim()}
-                className="bg-amber-500 hover:bg-amber-600 text-black"
+                className="bg-primary hover:bg-primary/80 text-primary-foreground"
               >
                 {isSearching ? 'Searching...' : 'Search'}
               </Button>
@@ -511,29 +511,29 @@ export default function StaffWidget({ business, currentUserId }) {
           )}
 
           {searchResult && (
-            <div className="p-3 bg-slate-800 rounded-lg">
+            <div className="p-3 bg-secondary rounded-lg">
               {searchResult.notFound ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
-                      <Mail className="w-5 h-5 text-slate-400" />
+                    <div className="w-10 h-10 bg-surface rounded-full flex items-center justify-center">
+                      <Mail className="w-5 h-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-white font-medium">{searchResult.email}</p>
-                      <p className="text-amber-500 text-sm">No account found — send invite</p>
+                      <p className="text-foreground font-medium">{searchResult.email}</p>
+                      <p className="text-primary text-sm">No account found — send invite</p>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-300 text-sm">Role</Label>
+                    <Label className="text-foreground-soft text-sm">Role</Label>
                     <Select value={selectedRole} onValueChange={setSelectedRole}>
-                      <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                      <SelectTrigger className="bg-surface border-border text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-700">
-                        <SelectItem value="co-owner" className="text-slate-300 focus:bg-slate-700">Co-Owner</SelectItem>
-                        <SelectItem value="manager" className="text-slate-300 focus:bg-slate-700">Manager</SelectItem>
-                        <SelectItem value="instructor" className="text-slate-300 focus:bg-slate-700">Instructor</SelectItem>
-                        <SelectItem value="staff" className="text-slate-300 focus:bg-slate-700">Staff</SelectItem>
+                      <SelectContent className="bg-secondary border-border">
+                        <SelectItem value="co-owner" className="text-foreground-soft focus:bg-surface">Co-Owner</SelectItem>
+                        <SelectItem value="manager" className="text-foreground-soft focus:bg-surface">Manager</SelectItem>
+                        <SelectItem value="instructor" className="text-foreground-soft focus:bg-surface">Instructor</SelectItem>
+                        <SelectItem value="staff" className="text-foreground-soft focus:bg-surface">Staff</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -545,7 +545,7 @@ export default function StaffWidget({ business, currentUserId }) {
                       })
                     }
                     disabled={inviteStaffMutation.isPending}
-                    className="w-full bg-amber-500 hover:bg-amber-600 text-black"
+                    className="w-full bg-primary hover:bg-primary/80 text-primary-foreground"
                   >
                     <Mail className="w-4 h-4 mr-2" />
                     {inviteStaffMutation.isPending ? 'Sending...' : 'Send Invite'}
@@ -554,19 +554,19 @@ export default function StaffWidget({ business, currentUserId }) {
               ) : (
                 <>
                   <div className="space-y-2 mb-3">
-                    <Label className="text-slate-300">Role</Label>
+                    <Label className="text-foreground-soft">Role</Label>
                     <Select value={selectedRole} onValueChange={setSelectedRole}>
-                      <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                      <SelectTrigger className="bg-secondary border-border text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-700">
-                        <SelectItem value="co-owner" className="text-slate-300 focus:bg-slate-700">Co-Owner</SelectItem>
-                        <SelectItem value="manager" className="text-slate-300 focus:bg-slate-700">Manager</SelectItem>
-                        <SelectItem value="instructor" className="text-slate-300 focus:bg-slate-700">Instructor</SelectItem>
-                        <SelectItem value="staff" className="text-slate-300 focus:bg-slate-700">Staff</SelectItem>
+                      <SelectContent className="bg-secondary border-border">
+                        <SelectItem value="co-owner" className="text-foreground-soft focus:bg-surface">Co-Owner</SelectItem>
+                        <SelectItem value="manager" className="text-foreground-soft focus:bg-surface">Manager</SelectItem>
+                        <SelectItem value="instructor" className="text-foreground-soft focus:bg-surface">Instructor</SelectItem>
+                        <SelectItem value="staff" className="text-foreground-soft focus:bg-surface">Staff</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-slate-500 text-xs">
+                    <p className="text-muted-foreground/70 text-xs">
                       {selectedRole === 'co-owner' && 'Owner-level access: everything except delete business'}
                       {selectedRole === 'manager' && 'Full access: create events, manage staff, view analytics'}
                       {selectedRole === 'instructor' && 'Can edit assigned events and use check-in'}
@@ -575,12 +575,12 @@ export default function StaffWidget({ business, currentUserId }) {
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center shrink-0">
-                        <User className="w-5 h-5 text-slate-400" />
+                      <div className="w-10 h-10 bg-surface rounded-full flex items-center justify-center shrink-0">
+                        <User className="w-5 h-5 text-muted-foreground" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-white font-medium truncate">{searchResult.full_name || searchResult.email}</p>
-                        <p className="text-slate-400 text-sm truncate">{searchResult.email}</p>
+                        <p className="text-foreground font-medium truncate">{searchResult.full_name || searchResult.email}</p>
+                        <p className="text-muted-foreground text-sm truncate">{searchResult.email}</p>
                       </div>
                     </div>
                     <Button
@@ -592,7 +592,7 @@ export default function StaffWidget({ business, currentUserId }) {
                         })
                       }
                       disabled={addStaffMutation.isPending}
-                      className="bg-amber-500 hover:bg-amber-600 text-black"
+                      className="bg-primary hover:bg-primary/80 text-primary-foreground"
                     >
                       {addStaffMutation.isPending ? 'Adding...' : 'Add'}
                     </Button>
@@ -602,7 +602,7 @@ export default function StaffWidget({ business, currentUserId }) {
             </div>
           )}
 
-          <p className="text-slate-500 text-sm">
+          <p className="text-muted-foreground/70 text-sm">
             The person must have a LocalLane account. They'll appear in your staff list and can be assigned to events.
           </p>
         </div>

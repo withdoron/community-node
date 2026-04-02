@@ -22,29 +22,29 @@ export default function FinanceDefaultsPanel({ isAdmin }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
-          <Calculator className="h-6 w-6 text-amber-500" />
+        <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <Calculator className="h-6 w-6 text-primary" />
           Finance Defaults
         </h2>
-        <p className="text-slate-400 text-sm mt-1">
+        <p className="text-muted-foreground text-sm mt-1">
           Platform-wide defaults for new Finance workspaces.
         </p>
       </div>
 
-      <Card className="p-4 bg-slate-800 border-slate-700 inline-block">
+      <Card className="p-4 bg-secondary border-border inline-block">
         {isLoading ? (
-          <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         ) : (
           <>
-            <p className="text-2xl font-bold text-amber-400">{profiles.length}</p>
-            <p className="text-xs text-slate-400 mt-1">Total Finance Workspaces</p>
+            <p className="text-2xl font-bold text-primary-hover">{profiles.length}</p>
+            <p className="text-xs text-muted-foreground mt-1">Total Finance Workspaces</p>
           </>
         )}
       </Card>
 
-      <Card className="p-6 bg-slate-900 border-slate-700">
-        <h3 className="text-lg font-semibold text-white mb-2">Finance Defaults</h3>
-        <p className="text-slate-400 text-sm">
+      <Card className="p-6 bg-card border-border">
+        <h3 className="text-lg font-semibold text-foreground mb-2">Finance Defaults</h3>
+        <p className="text-muted-foreground text-sm">
           Spending categories, context defaults. Coming soon.
         </p>
       </Card>

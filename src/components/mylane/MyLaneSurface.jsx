@@ -535,6 +535,7 @@ export default function MyLaneSurface({
           .mylane-bar-mobile { display: none !important; }
           .mylane-panel-desktop { display: flex !important; }
           .mylane-main-area { flex-direction: row; }
+          .mylane-spinner-wrap { padding-right: 300px; }
         }
       ` }} />
 
@@ -691,11 +692,13 @@ export default function MyLaneSurface({
       {/* ─── Body (spinner + content + command panel) ─── */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Horizontal Space Spinner — ALWAYS VISIBLE */}
-        <SpaceSpinner
-          items={spaceItems}
-          currentIndex={spinnerIndex}
-          onSelect={handleSpinnerSelect}
-        />
+        <div className="mylane-spinner-wrap">
+          <SpaceSpinner
+            items={spaceItems}
+            currentIndex={spinnerIndex}
+            onSelect={handleSpinnerSelect}
+          />
+        </div>
 
         {/* Main area: on desktop (container >= 1024px), flex row with panel on right */}
         <div className="mylane-main-area flex flex-1 overflow-hidden">

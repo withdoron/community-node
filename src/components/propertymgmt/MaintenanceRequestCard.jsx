@@ -5,18 +5,18 @@ import MaintenancePhotoGrid from './MaintenancePhotoGrid';
 
 const PRIORITY_STYLES = {
   emergency: 'bg-red-500/20 text-red-400 border border-red-500/30',
-  high: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+  high: 'bg-primary/20 text-primary-hover border border-primary/30',
   medium: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
-  low: 'bg-slate-700 text-slate-400',
+  low: 'bg-surface text-muted-foreground',
 };
 
 const STATUS_STYLES = {
   submitted: 'bg-blue-500/20 text-blue-400',
   triaged: 'bg-purple-500/20 text-purple-400',
-  assigned: 'bg-amber-500/20 text-amber-400',
+  assigned: 'bg-primary/20 text-primary-hover',
   in_progress: 'bg-sky-500/20 text-sky-400',
   complete: 'bg-green-500/20 text-green-400',
-  cancelled: 'bg-slate-700 text-slate-500',
+  cancelled: 'bg-surface text-muted-foreground/70',
 };
 
 const PRIORITY_LABELS = { emergency: 'Emergency', high: 'High', medium: 'Medium', low: 'Low' };
@@ -70,10 +70,10 @@ export default function MaintenanceRequestCard({
   const photoCount = photos.length + completionPhotos.length;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 flex flex-col gap-3">
+    <div className="bg-card border border-border rounded-lg p-4 flex flex-col gap-3">
       {/* Header row */}
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <h3 className="text-lg font-semibold text-slate-100 flex-1 min-w-0">
+        <h3 className="text-lg font-semibold text-foreground flex-1 min-w-0">
           {request.title}
         </h3>
         <div className="flex items-center gap-2 flex-wrap shrink-0">
@@ -87,14 +87,14 @@ export default function MaintenanceRequestCard({
       </div>
 
       {/* Meta row */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-400">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
         <span>{propertyLabel}</span>
         {request.reported_date && <span>{formatDate(request.reported_date)}</span>}
         {request.assigned_to && (
-          <span className="text-amber-400">→ {request.assigned_to}</span>
+          <span className="text-primary-hover">→ {request.assigned_to}</span>
         )}
         {photoCount > 0 && (
-          <span className="flex items-center gap-1 text-slate-500">
+          <span className="flex items-center gap-1 text-muted-foreground/70">
             <Camera className="w-3 h-3" /> {photoCount}
           </span>
         )}
@@ -102,13 +102,13 @@ export default function MaintenanceRequestCard({
 
       {/* Description */}
       {desc && (
-        <div className="text-sm text-slate-300">
+        <div className="text-sm text-foreground-soft">
           <p>{showDesc}</p>
           {hasLongDesc && (
             <button
               type="button"
               onClick={() => setDescExpanded((e) => !e)}
-              className="text-amber-500 hover:text-amber-400 text-sm mt-1"
+              className="text-primary hover:text-primary-hover text-sm mt-1"
             >
               {descExpanded ? 'Show less' : 'Show more'}
             </button>
@@ -124,20 +124,20 @@ export default function MaintenanceRequestCard({
       />
 
       {/* Actions bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-800">
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-border">
         <div className="flex items-center gap-3 text-sm">
           {request.estimated_cost != null && request.estimated_cost !== '' && (
-            <span className="text-slate-400">
+            <span className="text-muted-foreground">
               Est: {formatCurrency(request.estimated_cost)}
             </span>
           )}
           {request.actual_cost != null && request.actual_cost !== '' && (
-            <span className="text-amber-500 font-bold">
+            <span className="text-primary font-bold">
               Actual: {formatCurrency(request.actual_cost)}
             </span>
           )}
           {request.status === 'complete' && request.completed_date && (
-            <span className="text-slate-500">Done {formatDate(request.completed_date)}</span>
+            <span className="text-muted-foreground/70">Done {formatDate(request.completed_date)}</span>
           )}
         </div>
         <div className="flex items-center gap-1">
@@ -147,7 +147,7 @@ export default function MaintenanceRequestCard({
               variant="outline"
               size="sm"
               onClick={() => onStatusChange(request, 'triaged')}
-              className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100 gap-1.5"
+              className="border-border text-foreground-soft hover:bg-secondary hover:text-foreground gap-1.5"
             >
               <Eye className="w-3.5 h-3.5" /> Triage
             </Button>
@@ -157,7 +157,7 @@ export default function MaintenanceRequestCard({
               variant="outline"
               size="sm"
               onClick={() => onStatusChange(request, 'assigned')}
-              className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100 gap-1.5"
+              className="border-border text-foreground-soft hover:bg-secondary hover:text-foreground gap-1.5"
             >
               Assign
             </Button>
@@ -167,7 +167,7 @@ export default function MaintenanceRequestCard({
               variant="outline"
               size="sm"
               onClick={() => onStatusChange(request, 'in_progress')}
-              className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100 gap-1.5"
+              className="border-border text-foreground-soft hover:bg-secondary hover:text-foreground gap-1.5"
             >
               <PlayCircle className="w-3.5 h-3.5" /> Start
             </Button>
@@ -177,7 +177,7 @@ export default function MaintenanceRequestCard({
               variant="outline"
               size="sm"
               onClick={() => onMarkComplete(request)}
-              className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100 gap-1.5"
+              className="border-border text-foreground-soft hover:bg-secondary hover:text-foreground gap-1.5"
             >
               <CheckCircle className="w-3.5 h-3.5" /> Complete
             </Button>
@@ -187,7 +187,7 @@ export default function MaintenanceRequestCard({
               variant="outline"
               size="sm"
               onClick={() => onStatusChange(request, 'submitted')}
-              className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100 gap-1.5"
+              className="border-border text-foreground-soft hover:bg-secondary hover:text-foreground gap-1.5"
             >
               <Clock className="w-3.5 h-3.5" /> Reopen
             </Button>
@@ -196,7 +196,7 @@ export default function MaintenanceRequestCard({
             variant="ghost"
             size="icon"
             onClick={() => onEdit(request)}
-            className="h-8 w-8 text-slate-400 hover:text-amber-500 hover:bg-slate-800"
+            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-secondary"
           >
             <Pencil className="w-4 h-4" />
           </Button>
@@ -204,7 +204,7 @@ export default function MaintenanceRequestCard({
             variant="ghost"
             size="icon"
             onClick={() => onDelete(request)}
-            className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-slate-800"
+            className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-secondary"
           >
             <Trash2 className="w-4 h-4" />
           </Button>

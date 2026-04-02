@@ -27,7 +27,7 @@ const ARCHETYPE_ACCENT_COLORS = {
   product_seller: 'border-l-amber-700',
 };
 
-const DEFAULT_ACCENT = 'border-l-slate-500';
+const DEFAULT_ACCENT = 'border-l-muted-foreground';
 
 function getCategoryLabel(business, getLabel, getMainCategory, legacyCategoryMapping) {
   const mainId = business.main_category || business.primary_category;
@@ -104,9 +104,9 @@ export default function BusinessCard({ business }) {
       to={profileUrl}
       className={cn(
         "block rounded-lg p-5 cursor-pointer",
-        "bg-gradient-to-br from-slate-800 to-slate-800/90",
-        "border border-slate-700",
-        "hover:border-amber-500/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)]",
+        "bg-gradient-to-br from-secondary to-secondary/90",
+        "border border-border",
+        "hover:border-primary/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)]",
         "hover:-translate-y-0.5",
         "transition-all duration-300 ease-out",
         "border-l-4",
@@ -115,13 +115,13 @@ export default function BusinessCard({ business }) {
       data-vitality="neutral"
     >
       {/* Business Name */}
-      <h3 className="text-lg font-semibold text-slate-50 line-clamp-1">
+      <h3 className="text-lg font-semibold text-foreground line-clamp-1">
         {business.name}
       </h3>
 
       {/* Category line */}
       {categoryLabel && (
-        <p className="text-sm text-slate-400 mt-1 line-clamp-1">
+        <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
           {categoryLabel}
         </p>
       )}
@@ -130,19 +130,19 @@ export default function BusinessCard({ business }) {
       {Array.isArray(business.product_tags) && business.product_tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-1.5">
           {business.product_tags.slice(0, 3).map((tag, idx) => (
-            <span key={idx} className="text-xs bg-slate-800 text-slate-300 rounded-full px-2 py-0.5">
+            <span key={idx} className="text-xs bg-secondary text-foreground-soft rounded-full px-2 py-0.5">
               {tag}
             </span>
           ))}
           {business.product_tags.length > 3 && (
-            <span className="text-xs text-slate-500">+{business.product_tags.length - 3} more</span>
+            <span className="text-xs text-muted-foreground/70">+{business.product_tags.length - 3} more</span>
           )}
         </div>
       )}
 
       {/* Location */}
       {locationStr && (
-        <p className="text-sm text-slate-500 mt-2">
+        <p className="text-sm text-muted-foreground/70 mt-2">
           {locationStr}
         </p>
       )}
@@ -167,7 +167,7 @@ export default function BusinessCard({ business }) {
                   navigate(`/networks/${slug}`);
                 }
               }}
-              className="bg-amber-500/10 text-amber-500 text-xs px-2 py-0.5 rounded-full hover:bg-amber-500/20 transition-colors cursor-pointer"
+              className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full hover:bg-primary/20 transition-colors cursor-pointer"
             >
               {label}
             </span>
@@ -177,12 +177,12 @@ export default function BusinessCard({ business }) {
 
       {/* Tier badge — only for standard or partner */}
       {tier === 'partner' && (
-        <p className="mt-3 text-xs text-amber-500">
+        <p className="mt-3 text-xs text-primary">
           {business.founding_member ? 'Founding Partner' : 'Partner'}
         </p>
       )}
       {tier === 'standard' && (
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 text-xs text-muted-foreground/70">
           {business.founding_member ? 'Founding Member' : 'Standard Member'}
         </p>
       )}

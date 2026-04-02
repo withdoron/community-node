@@ -27,17 +27,17 @@ function PinEntryModal({ attendee, onConfirm, onCancel, isLoading }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 rounded-xl max-w-sm w-full p-6 border border-slate-800">
-        <h3 className="text-lg font-semibold text-slate-100 mb-1">
+      <div className="bg-card rounded-xl max-w-sm w-full p-6 border border-border">
+        <h3 className="text-lg font-semibold text-foreground mb-1">
           Check In — {partyLabel}
         </h3>
-        <p className="text-sm text-slate-400 mb-4">
+        <p className="text-sm text-muted-foreground mb-4">
           {attendee.party_size > 1 ? `Party of ${attendee.party_size}` : 'Single attendee'}
           {attendee.joy_coin_total > 0 && ` · ${attendee.joy_coin_total} coins`}
         </p>
 
         <form onSubmit={handleSubmit}>
-          <label className="block text-sm text-slate-400 mb-2">Enter 4-digit PIN</label>
+          <label className="block text-sm text-muted-foreground mb-2">Enter 4-digit PIN</label>
           <Input
             type="password"
             inputMode="numeric"
@@ -46,7 +46,7 @@ function PinEntryModal({ attendee, onConfirm, onCancel, isLoading }) {
             value={pin}
             onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
             placeholder="• • • •"
-            className="bg-slate-800 border-slate-700 text-slate-100 text-center text-2xl tracking-widest mb-2"
+            className="bg-secondary border-border text-foreground text-center text-2xl tracking-widest mb-2"
             autoFocus
           />
           {error && <p className="text-sm text-red-400 mb-2">{error}</p>}
@@ -57,24 +57,24 @@ function PinEntryModal({ attendee, onConfirm, onCancel, isLoading }) {
               variant="ghost"
               onClick={onCancel}
               disabled={isLoading}
-              className="flex-1 text-slate-400 hover:text-slate-200"
+              className="flex-1 text-muted-foreground hover:text-foreground"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isLoading || pin.length !== 4}
-              className="flex-1 bg-amber-500 hover:bg-amber-400 text-black"
+              className="flex-1 bg-primary hover:bg-primary-hover text-primary-foreground"
             >
               {isLoading ? 'Checking...' : 'Confirm'}
             </Button>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-slate-800">
+          <div className="mt-4 pt-4 border-t border-border">
             <button
               type="button"
               onClick={() => onConfirm(null)}
-              className="text-sm text-slate-500 hover:text-slate-400 w-full text-center py-2 inline-block"
+              className="text-sm text-muted-foreground/70 hover:text-muted-foreground w-full text-center py-2 inline-block"
             >
               Can&apos;t get PIN? Check in without PIN
             </button>
@@ -95,22 +95,22 @@ function AttendeeRow({ attendee, onCheckIn, isCheckedIn }) {
     : null;
 
   return (
-    <div className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0">
+    <div className="flex items-center justify-between py-3 border-b border-border last:border-0">
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        <div className={`p-2 rounded-lg shrink-0 ${isCheckedIn ? 'bg-emerald-500/10' : 'bg-slate-800'}`}>
+        <div className={`p-2 rounded-lg shrink-0 ${isCheckedIn ? 'bg-emerald-500/10' : 'bg-secondary'}`}>
           {isCheckedIn ? (
             <CheckCircle className="h-5 w-5 text-emerald-500" />
           ) : (
-            <Clock className="h-5 w-5 text-slate-500" />
+            <Clock className="h-5 w-5 text-muted-foreground/70" />
           )}
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-medium text-slate-100 truncate">{partyLabel}</p>
+          <p className="text-sm font-medium text-foreground truncate">{partyLabel}</p>
           {partyNames && (
-            <p className="text-xs text-slate-500">{partyNames}</p>
+            <p className="text-xs text-muted-foreground/70">{partyNames}</p>
           )}
           {attendee.joy_coin_total > 0 && (
-            <p className="text-xs text-amber-500">{attendee.joy_coin_total} coins</p>
+            <p className="text-xs text-primary">{attendee.joy_coin_total} coins</p>
           )}
         </div>
       </div>
@@ -124,7 +124,7 @@ function AttendeeRow({ attendee, onCheckIn, isCheckedIn }) {
           <Button
             size="sm"
             onClick={() => onCheckIn(attendee)}
-            className="bg-amber-500 hover:bg-amber-400 text-black"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground"
           >
             Check In
           </Button>
@@ -218,20 +218,20 @@ export function CheckInMode({ event, onExit }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 pb-20">
+    <div className="min-h-screen bg-background pb-20">
       <div className="max-w-2xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <button
               onClick={onExit}
-              className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-slate-100"
+              className="p-2 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div className="min-w-0">
-              <p className="text-sm text-amber-500 font-medium">CHECK-IN MODE</p>
-              <h1 className="text-lg font-bold text-slate-100 truncate">{event.title}</h1>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-primary font-medium">CHECK-IN MODE</p>
+              <h1 className="text-lg font-bold text-foreground truncate">{event.title}</h1>
+              <p className="text-sm text-muted-foreground">
                 {eventDate && new Date(eventDate).toLocaleDateString('en-US', {
                   weekday: 'short',
                   month: 'short',
@@ -246,23 +246,23 @@ export function CheckInMode({ event, onExit }) {
             variant="outline"
             size="sm"
             onClick={onExit}
-            className="border-slate-700 text-slate-300 hover:bg-slate-800"
+            className="border-border text-foreground-soft hover:bg-secondary"
           >
             Exit Check-In
           </Button>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-card border-border">
             <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-slate-100">{checkedInCount}</p>
-              <p className="text-sm text-slate-400">Checked In</p>
+              <p className="text-2xl font-bold text-foreground">{checkedInCount}</p>
+              <p className="text-sm text-muted-foreground">Checked In</p>
             </CardContent>
           </Card>
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-card border-border">
             <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-slate-100">{totalExpected}</p>
-              <p className="text-sm text-slate-400">Expected</p>
+              <p className="text-2xl font-bold text-foreground">{totalExpected}</p>
+              <p className="text-sm text-muted-foreground">Expected</p>
             </CardContent>
           </Card>
         </div>
@@ -293,23 +293,23 @@ export function CheckInMode({ event, onExit }) {
         )}
 
         <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by name..."
-            className="pl-10 bg-slate-900 border-slate-800 text-slate-100 placeholder:text-slate-500"
+            className="pl-10 bg-card border-border text-foreground placeholder:text-muted-foreground/70"
           />
         </div>
 
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-card border-border">
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-medium text-slate-400">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Expected ({rsvps.length} {rsvps.length === 1 ? 'RSVP' : 'RSVPs'})
             </CardTitle>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-400 p-2"
+              className="flex items-center gap-1 text-sm text-muted-foreground/70 hover:text-muted-foreground p-2"
             >
               <Printer className="h-4 w-4" />
               Print
@@ -317,11 +317,11 @@ export function CheckInMode({ event, onExit }) {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <p className="text-sm text-slate-500 py-4 text-center">Loading...</p>
+              <p className="text-sm text-muted-foreground/70 py-4 text-center">Loading...</p>
             ) : filteredRsvps.length === 0 ? (
               <div className="py-6 text-center">
-                <Users className="h-10 w-10 text-slate-600 mx-auto mb-2" />
-                <p className="text-sm text-slate-500">
+                <Users className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground/70">
                   {searchQuery ? 'No matching attendees' : 'No RSVPs yet'}
                 </p>
               </div>

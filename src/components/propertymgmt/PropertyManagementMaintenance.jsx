@@ -25,7 +25,7 @@ export default function PropertyManagementMaintenance({ profile, currentUser, me
   // Role guard
   if (!memberRole) {
     return (
-      <div className="text-center py-12 text-slate-400">
+      <div className="text-center py-12 text-muted-foreground">
         <p>You don't have access to this workspace.</p>
       </div>
     );
@@ -235,12 +235,12 @@ export default function PropertyManagementMaintenance({ profile, currentUser, me
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-12 bg-slate-900 border border-slate-800 rounded-lg animate-pulse" />
+        <div className="h-12 bg-card border border-border rounded-lg animate-pulse" />
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-slate-900 border border-slate-800 rounded-lg p-4 animate-pulse">
-            <div className="h-5 w-48 bg-slate-700 rounded mb-3" />
-            <div className="h-4 w-full bg-slate-700 rounded mb-2" />
-            <div className="h-4 w-2/3 bg-slate-700 rounded" />
+          <div key={i} className="bg-card border border-border rounded-lg p-4 animate-pulse">
+            <div className="h-5 w-48 bg-surface rounded mb-3" />
+            <div className="h-4 w-full bg-surface rounded mb-2" />
+            <div className="h-4 w-2/3 bg-surface rounded" />
           </div>
         ))}
       </div>
@@ -251,13 +251,13 @@ export default function PropertyManagementMaintenance({ profile, currentUser, me
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-bold text-slate-100">Maintenance</h2>
+        <h2 className="text-lg font-bold text-foreground">Maintenance</h2>
         <Button
           onClick={() => {
             setEditingRequest(null);
             setFormOpen(true);
           }}
-          className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
         >
           <Plus className="w-4 h-4 mr-1.5" />
           New Request
@@ -276,18 +276,18 @@ export default function PropertyManagementMaintenance({ profile, currentUser, me
       {/* List */}
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-4">
-            <Wrench className="h-7 w-7 text-amber-500" />
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+            <Wrench className="h-7 w-7 text-primary" />
           </div>
           {requests.length === 0 ? (
             <>
-              <p className="text-slate-300 font-medium mb-1">No maintenance requests yet</p>
-              <p className="text-slate-500 text-sm text-center max-w-xs">
+              <p className="text-foreground-soft font-medium mb-1">No maintenance requests yet</p>
+              <p className="text-muted-foreground/70 text-sm text-center max-w-xs">
                 Create your first maintenance request to start tracking repairs and upkeep.
               </p>
             </>
           ) : (
-            <p className="text-slate-400 text-sm">No requests match your filters</p>
+            <p className="text-muted-foreground text-sm">No requests match your filters</p>
           )}
         </div>
       ) : (
@@ -338,22 +338,22 @@ export default function PropertyManagementMaintenance({ profile, currentUser, me
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
       >
-        <AlertDialogContent className="bg-slate-900 border border-slate-800">
+        <AlertDialogContent className="bg-card border border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">
+            <AlertDialogTitle className="text-foreground">
               Delete Maintenance Request?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogDescription className="text-muted-foreground">
               This will permanently remove &ldquo;{deleteTarget?.title}&rdquo; and cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-slate-100">
+            <AlertDialogCancel className="bg-secondary border-border text-foreground-soft hover:bg-surface hover:text-foreground">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-500 text-white"
+              className="bg-red-600 hover:bg-red-500 text-foreground"
             >
               Delete
             </AlertDialogAction>

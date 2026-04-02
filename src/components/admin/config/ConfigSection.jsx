@@ -154,23 +154,23 @@ export default function ConfigSection({ domain, configType, title }) {
 
   if (isLoading) {
     return (
-      <Card className="p-6 bg-slate-900 border-slate-700">
+      <Card className="p-6 bg-card border-border">
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </Card>
     );
   }
 
   return (
-    <Card className="p-6 bg-slate-900 border-slate-700">
+    <Card className="p-6 bg-card border-border">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-white">{title}</h2>
+        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
         {!adding ? (
           <Button
             type="button"
             size="sm"
-            className="bg-amber-500 hover:bg-amber-600 text-black font-semibold"
+            className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold"
             onClick={() => setAdding(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -183,22 +183,22 @@ export default function ConfigSection({ domain, configType, title }) {
               placeholder="Label"
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
-              className="bg-slate-800 border border-slate-600 text-white rounded px-3 py-1.5 text-sm w-full sm:w-40"
+              className="bg-secondary border border-border text-foreground rounded px-3 py-1.5 text-sm w-full sm:w-40"
             />
             <input
               type="text"
               placeholder="Value (optional)"
               value={newValue}
               onChange={(e) => setNewValue(e.target.value)}
-              className="bg-slate-800 border border-slate-600 text-white rounded px-3 py-1.5 text-sm w-full sm:w-32"
+              className="bg-secondary border border-border text-foreground rounded px-3 py-1.5 text-sm w-full sm:w-32"
             />
-            <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black" onClick={handleAdd}>
+            <Button size="sm" className="bg-primary hover:bg-primary/80 text-primary-foreground" onClick={handleAdd}>
               Save
             </Button>
             <Button
               size="sm"
               variant="outline"
-              className="border-slate-600 text-slate-300"
+              className="border-border text-foreground-soft"
               onClick={() => { setAdding(false); setNewValue(''); setNewLabel(''); }}
             >
               Cancel
@@ -214,14 +214,14 @@ export default function ConfigSection({ domain, configType, title }) {
             <li
               key={itemId}
               className={cn(
-                'flex items-center gap-2 py-2 px-3 rounded-md border border-slate-700/50',
-                isEditing ? 'bg-slate-800' : 'bg-slate-800/50'
+                'flex items-center gap-2 py-2 px-3 rounded-md border border-border/50',
+                isEditing ? 'bg-secondary' : 'bg-secondary/50'
               )}
             >
               <div className="flex flex-col gap-0">
                 <button
                   type="button"
-                  className="text-slate-500 hover:text-amber-500 disabled:opacity-30 disabled:cursor-not-allowed p-1.5"
+                  className="text-muted-foreground/70 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed p-1.5"
                   disabled={index === 0}
                   onClick={() => handleReorder(index, -1)}
                   aria-label="Move up"
@@ -230,7 +230,7 @@ export default function ConfigSection({ domain, configType, title }) {
                 </button>
                 <button
                   type="button"
-                  className="text-slate-500 hover:text-amber-500 disabled:opacity-30 disabled:cursor-not-allowed p-1.5"
+                  className="text-muted-foreground/70 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed p-1.5"
                   disabled={index === sortedItems.length - 1}
                   onClick={() => handleReorder(index, 1)}
                   aria-label="Move down"
@@ -246,17 +246,17 @@ export default function ConfigSection({ domain, configType, title }) {
                       value={editLabel}
                       onChange={(e) => setEditLabel(e.target.value)}
                       placeholder="Label (name)"
-                      className="bg-slate-800 border border-slate-600 text-white rounded px-2 py-1 flex-1 min-w-0 max-w-xs"
+                      className="bg-secondary border border-border text-foreground rounded px-2 py-1 flex-1 min-w-0 max-w-xs"
                       autoFocus
                     />
                     <div className="flex gap-2 flex-shrink-0">
-                      <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black" onClick={handleSaveEdit}>
+                      <Button size="sm" className="bg-primary hover:bg-primary/80 text-primary-foreground" onClick={handleSaveEdit}>
                         Save
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-slate-600 text-slate-300"
+                        className="border-border text-foreground-soft"
                         onClick={() => { setEditingId(null); setEditLabel(''); setEditTagline(''); setEditDescription(''); setEditImage(''); setEditGallery([]); }}
                       >
                         Cancel
@@ -266,33 +266,33 @@ export default function ConfigSection({ domain, configType, title }) {
                   {isNetworks(domain, configType) && (
                     <>
                       <div>
-                        <label className="text-xs text-slate-400 block mb-1">Tagline (optional)</label>
+                        <label className="text-xs text-muted-foreground block mb-1">Tagline (optional)</label>
                         <input
                           type="text"
                           value={editTagline}
                           onChange={(e) => setEditTagline(e.target.value)}
                           placeholder="e.g., Move your body, build your crew"
-                          className="w-full bg-slate-800 border border-slate-600 text-white rounded px-2 py-1.5 text-sm"
+                          className="w-full bg-secondary border border-border text-foreground rounded px-2 py-1.5 text-sm"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-400 block mb-1">Description (optional)</label>
+                        <label className="text-xs text-muted-foreground block mb-1">Description (optional)</label>
                         <textarea
                           value={editDescription}
                           onChange={(e) => setEditDescription(e.target.value)}
                           placeholder="2–3 sentences about what this network is"
                           rows={3}
-                          className="w-full bg-slate-800 border border-slate-600 text-white rounded px-2 py-1.5 text-sm resize-y"
+                          className="w-full bg-secondary border border-border text-foreground rounded px-2 py-1.5 text-sm resize-y"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-400 block mb-1">Network Image</label>
+                        <label className="text-xs text-muted-foreground block mb-1">Network Image</label>
                         {editImage ? (
                           <div className="space-y-2">
                             <img
                               src={editImage}
                               alt="Network"
-                              className="h-24 w-24 rounded-lg object-cover border border-slate-600"
+                              className="h-24 w-24 rounded-lg object-cover border border-border"
                             />
                             <div className="flex flex-wrap gap-2 items-center">
                               <input
@@ -300,7 +300,7 @@ export default function ConfigSection({ domain, configType, title }) {
                                 value={editImage}
                                 onChange={(e) => setEditImage(e.target.value)}
                                 placeholder="Image URL"
-                                className="flex-1 min-w-0 bg-slate-800 border border-slate-600 text-white rounded px-2 py-1.5 text-sm max-w-xs"
+                                className="flex-1 min-w-0 bg-secondary border border-border text-foreground rounded px-2 py-1.5 text-sm max-w-xs"
                               />
                               <input
                                 ref={networkImageInputRef}
@@ -313,7 +313,7 @@ export default function ConfigSection({ domain, configType, title }) {
                                 type="button"
                                 size="sm"
                                 variant="outline"
-                                className="border-slate-600 text-slate-300"
+                                className="border-border text-foreground-soft"
                                 onClick={() => networkImageInputRef.current?.click()}
                                 disabled={uploadingImage}
                               >
@@ -329,7 +329,7 @@ export default function ConfigSection({ domain, configType, title }) {
                               value={editImage}
                               onChange={(e) => setEditImage(e.target.value)}
                               placeholder="Image URL (or upload below)"
-                              className="flex-1 min-w-0 bg-slate-800 border border-slate-600 text-white rounded px-2 py-1.5 text-sm"
+                              className="flex-1 min-w-0 bg-secondary border border-border text-foreground rounded px-2 py-1.5 text-sm"
                             />
                             <input
                               ref={networkImageInputRef}
@@ -342,7 +342,7 @@ export default function ConfigSection({ domain, configType, title }) {
                               type="button"
                               size="sm"
                               variant="outline"
-                              className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+                              className="border-primary/50 text-primary-hover hover:bg-primary/10"
                               onClick={() => networkImageInputRef.current?.click()}
                               disabled={uploadingImage}
                             >
@@ -353,14 +353,14 @@ export default function ConfigSection({ domain, configType, title }) {
                         )}
                       </div>
                       <div>
-                        <label className="text-xs text-slate-400 block mb-1">Gallery Images</label>
+                        <label className="text-xs text-muted-foreground block mb-1">Gallery Images</label>
                         <div className="grid grid-cols-4 gap-2 mb-2">
                           {(editGallery || []).map((url) => (
-                            <div key={url} className="relative w-20 aspect-square rounded border border-slate-600 overflow-hidden">
+                            <div key={url} className="relative w-20 aspect-square rounded border border-border overflow-hidden">
                               <img src={url} alt="" className="w-full h-full object-cover" />
                               <button
                                 type="button"
-                                className="absolute top-0 right-0 bg-red-600 rounded-full w-5 h-5 text-xs flex items-center justify-center text-white hover:bg-red-500 transition-colors"
+                                className="absolute top-0 right-0 bg-red-600 rounded-full w-5 h-5 text-xs flex items-center justify-center text-foreground hover:bg-red-500 transition-colors"
                                 onClick={() => setEditGallery((prev) => prev.filter((u) => u !== url))}
                                 aria-label="Remove photo"
                               >
@@ -380,7 +380,7 @@ export default function ConfigSection({ domain, configType, title }) {
                           type="button"
                           size="sm"
                           variant="outline"
-                          className="border-slate-600 text-slate-300"
+                          className="border-border text-foreground-soft"
                           onClick={() => galleryInputRef.current?.click()}
                           disabled={uploadingGallery}
                         >
@@ -394,12 +394,12 @@ export default function ConfigSection({ domain, configType, title }) {
               ) : (
                 <div className="flex flex-1 items-center justify-between min-w-0">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className={cn("truncate", item.active === false ? "text-slate-500 line-through" : "text-slate-200")}>{item.label}</span>
+                    <span className={cn("truncate", item.active === false ? "text-muted-foreground/70 line-through" : "text-foreground")}>{item.label}</span>
                     {item.active === false && (
-                      <span className="text-xs text-slate-500 flex-shrink-0">Hidden</span>
+                      <span className="text-xs text-muted-foreground/70 flex-shrink-0">Hidden</span>
                     )}
                   </div>
-                  <span className="text-slate-500 text-sm font-mono mr-2 flex-shrink-0 hidden sm:inline">{item.value}</span>
+                  <span className="text-muted-foreground/70 text-sm font-mono mr-2 flex-shrink-0 hidden sm:inline">{item.value}</span>
                   <div className="flex gap-1 items-center flex-shrink-0">
                     {/* Active toggle — controls visibility to community */}
                     <button
@@ -419,7 +419,7 @@ export default function ConfigSection({ domain, configType, title }) {
                       }}
                       className={cn(
                         "relative w-9 h-5 rounded-full transition-colors flex-shrink-0",
-                        item.active !== false ? "bg-amber-500" : "bg-slate-600"
+                        item.active !== false ? "bg-primary" : "bg-surface"
                       )}
                       title={item.active !== false ? 'Visible to community' : 'Hidden from community'}
                     >
@@ -431,7 +431,7 @@ export default function ConfigSection({ domain, configType, title }) {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-slate-400 hover:text-amber-500 p-2 h-10 w-10"
+                      className="text-muted-foreground hover:text-primary p-2 h-10 w-10"
                       onClick={() => {
                         setEditingId(itemId);
                         setEditLabel(item.label || '');
@@ -446,7 +446,7 @@ export default function ConfigSection({ domain, configType, title }) {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-slate-400 hover:text-red-400 p-2 h-10 w-10"
+                      className="text-muted-foreground hover:text-red-400 p-2 h-10 w-10"
                       onClick={() => handleDelete(item)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -459,7 +459,7 @@ export default function ConfigSection({ domain, configType, title }) {
         })}
       </ul>
       {items.length === 0 && !adding && (
-        <p className="text-slate-500 text-sm py-4">No items yet. Add one above or they will use defaults.</p>
+        <p className="text-muted-foreground/70 text-sm py-4">No items yet. Add one above or they will use defaults.</p>
       )}
     </Card>
   );

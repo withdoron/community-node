@@ -534,10 +534,10 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-2 mb-2">
-          <Upload className="h-5 w-5 text-amber-500" />
-          <h2 className="text-lg font-bold text-slate-100">Import Transactions</h2>
+          <Upload className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold text-foreground">Import Transactions</h2>
         </div>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-muted-foreground">
           Choose an import method to add transactions to your financial profile.
         </p>
 
@@ -546,13 +546,13 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
           <button
             type="button"
             onClick={() => setMode('csv')}
-            className="bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-6 text-left transition-colors group"
+            className="bg-card border border-border hover:border-primary/50 rounded-xl p-6 text-left transition-colors group"
           >
-            <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-4 group-hover:bg-amber-500/20 transition-colors">
-              <FileSpreadsheet className="h-6 w-6 text-amber-500" />
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+              <FileSpreadsheet className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-base font-semibold text-slate-100 mb-1">CSV File</h3>
-            <p className="text-sm text-slate-400">Import from any bank</p>
+            <h3 className="text-base font-semibold text-foreground mb-1">CSV File</h3>
+            <p className="text-sm text-muted-foreground">Import from any bank</p>
           </button>
 
           {/* PDF Card */}
@@ -563,13 +563,13 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
               const defaultCtx = Object.keys(profile?.contexts || {})[0] || 'personal';
               setPdfContext(defaultCtx);
             }}
-            className="bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-6 text-left transition-colors group"
+            className="bg-card border border-border hover:border-primary/50 rounded-xl p-6 text-left transition-colors group"
           >
-            <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-4 group-hover:bg-amber-500/20 transition-colors">
-              <FileText className="h-6 w-6 text-amber-500" />
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+              <FileText className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-base font-semibold text-slate-100 mb-1">PDF Statement</h3>
-            <p className="text-sm text-slate-400">SELCO Credit Union</p>
+            <h3 className="text-base font-semibold text-foreground mb-1">PDF Statement</h3>
+            <p className="text-sm text-muted-foreground">SELCO Credit Union</p>
           </button>
         </div>
       </div>
@@ -584,34 +584,34 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
     if (step === 'upload') {
       return (
         <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <div className="bg-card border border-border rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Upload className="h-5 w-5 text-amber-500" />
-                <h2 className="text-lg font-bold text-slate-100">Import Bank Statement</h2>
+                <Upload className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-bold text-foreground">Import Bank Statement</h2>
               </div>
-              <button type="button" onClick={resetToModeSelector} className="text-sm text-slate-400 hover:text-amber-500 transition-colors flex items-center gap-1">
+              <button type="button" onClick={resetToModeSelector} className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
                 <ArrowLeft className="h-3 w-3" /> Back
               </button>
             </div>
-            <p className="text-sm text-slate-400 mb-6">
+            <p className="text-sm text-muted-foreground mb-6">
               Upload a CSV file from your bank to quickly add transactions. You'll map columns, review, and categorize before importing.
             </p>
 
             <div
               onDrop={handleDrop}
               onDragOver={handleDragOver}
-              className="border-2 border-dashed border-slate-700 hover:border-amber-500/50 rounded-xl p-10 text-center transition-colors cursor-pointer"
+              className="border-2 border-dashed border-border hover:border-primary/50 rounded-xl p-10 text-center transition-colors cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
             >
-              <FileSpreadsheet className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-              <p className="text-sm text-slate-300 mb-2">
+              <FileSpreadsheet className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+              <p className="text-sm text-foreground-soft mb-2">
                 Drag & drop a CSV file here
               </p>
-              <p className="text-xs text-slate-500 mb-4">or</p>
+              <p className="text-xs text-muted-foreground/70 mb-4">or</p>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors min-h-[44px]"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors min-h-[44px]"
               >
                 <Upload className="h-4 w-4" />
                 Browse Files
@@ -624,7 +624,7 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
                 onChange={(e) => handleFile(e.target.files?.[0])}
               />
             </div>
-            <p className="text-xs text-slate-500 mt-3">Accepts .csv files. All processing is done locally in your browser.</p>
+            <p className="text-xs text-muted-foreground/70 mt-3">Accepts .csv files. All processing is done locally in your browser.</p>
           </div>
         </div>
       );
@@ -636,13 +636,13 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
 
       return (
         <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <div className="bg-card border border-border rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <FileSpreadsheet className="h-5 w-5 text-amber-500" />
-                <h2 className="text-lg font-bold text-slate-100">Map Columns</h2>
+                <FileSpreadsheet className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-bold text-foreground">Map Columns</h2>
               </div>
-              <span className="text-xs text-slate-500">{fileName} — {rawRows.length - 1} rows</span>
+              <span className="text-xs text-muted-foreground/70">{fileName} — {rawRows.length - 1} rows</span>
             </div>
 
             <div className="overflow-x-auto mb-6">
@@ -650,7 +650,7 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
                 <thead>
                   <tr>
                     {headers.map((h, i) => (
-                      <th key={i} className="text-left p-2 text-slate-400 border-b border-slate-800 whitespace-nowrap">{h}</th>
+                      <th key={i} className="text-left p-2 text-muted-foreground border-b border-border whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -658,7 +658,7 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
                   {previewRows.map((row, ri) => (
                     <tr key={ri}>
                       {row.map((cell, ci) => (
-                        <td key={ci} className="p-2 text-slate-300 border-b border-slate-800/50 whitespace-nowrap max-w-[200px] truncate">{cell}</td>
+                        <td key={ci} className="p-2 text-foreground-soft border-b border-border/50 whitespace-nowrap max-w-[200px] truncate">{cell}</td>
                       ))}
                     </tr>
                   ))}
@@ -667,15 +667,15 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
             </div>
 
             <div className="space-y-3 mb-6">
-              <p className="text-sm text-slate-300 font-medium">Map each column to a field:</p>
+              <p className="text-sm text-foreground-soft font-medium">Map each column to a field:</p>
               {headers.map((h, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <span className="text-sm text-slate-400 w-32 truncate flex-shrink-0">{h}</span>
-                  <span className="text-slate-600">→</span>
+                  <span className="text-sm text-muted-foreground w-32 truncate flex-shrink-0">{h}</span>
+                  <span className="text-muted-foreground/50">→</span>
                   <select
                     value={columnMap[i] || 'skip'}
                     onChange={(e) => setColumnMap((prev) => ({ ...prev, [i]: e.target.value }))}
-                    className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 min-h-[36px]"
+                    className="flex-1 bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary min-h-[36px]"
                   >
                     {MAPPING_OPTIONS.map((opt) => (
                       <option key={opt.id} value={opt.id}>{opt.label}</option>
@@ -687,14 +687,14 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
 
             {hasSingleAmount && !hasDebitCredit && (
               <div className="mb-6">
-                <Label className="text-slate-400 text-sm">Amount convention</Label>
+                <Label className="text-muted-foreground text-sm">Amount convention</Label>
                 <div className="flex gap-2 mt-2">
                   <button type="button"
                     onClick={() => setAmountConvention('negative_expense')}
                     className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-colors min-h-[36px] ${
                       amountConvention === 'negative_expense'
-                        ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50'
-                        : 'bg-slate-800 text-slate-400 border border-slate-700'
+                        ? 'bg-primary/20 text-primary border border-primary/50'
+                        : 'bg-secondary text-muted-foreground border border-border'
                     }`}>
                     Negative = Expense
                   </button>
@@ -702,8 +702,8 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
                     onClick={() => setAmountConvention('positive_expense')}
                     className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-colors min-h-[36px] ${
                       amountConvention === 'positive_expense'
-                        ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50'
-                        : 'bg-slate-800 text-slate-400 border border-slate-700'
+                        ? 'bg-primary/20 text-primary border border-primary/50'
+                        : 'bg-secondary text-muted-foreground border border-border'
                     }`}>
                     Positive = Expense
                   </button>
@@ -712,11 +712,11 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
             )}
 
             <div className="mb-6">
-              <Label className="text-slate-400 text-sm">Which account is this from?</Label>
+              <Label className="text-muted-foreground text-sm">Which account is this from?</Label>
               <select
                 value={importContext}
                 onChange={(e) => setImportContext(e.target.value)}
-                className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 min-h-[36px]"
+                className="w-full mt-1 bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary min-h-[36px]"
               >
                 {activeContexts.map((ctx) => (
                   <option key={ctx.id} value={ctx.id}>{ctx.label}</option>
@@ -725,7 +725,7 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
             </div>
 
             {!mappingValid && (
-              <div className="flex items-center gap-2 text-amber-500 text-sm mb-4">
+              <div className="flex items-center gap-2 text-primary text-sm mb-4">
                 <AlertTriangle className="h-4 w-4" />
                 <span>Map at least Date, Description, and Amount (or Debit/Credit) to continue</span>
               </div>
@@ -734,14 +734,14 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
             <div className="flex gap-3">
               <Button type="button" variant="outline"
                 onClick={resetCsvImport}
-                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px]">
+                className="border-border text-foreground-soft hover:border-primary hover:text-primary min-h-[44px]">
                 <ArrowLeft className="h-4 w-4 mr-1" /> Back
               </Button>
               <div className="flex-1" />
               <Button type="button"
                 onClick={proceedToReview}
                 disabled={!mappingValid}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px] disabled:opacity-50">
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold min-h-[44px] disabled:opacity-50">
                 Next <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
             </div>
@@ -757,21 +757,21 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
 
       return (
         <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div className="bg-card border border-border rounded-xl p-4">
             <div className="flex flex-wrap gap-4 items-center justify-between">
-              <div className="text-sm text-slate-300">
-                <span className="font-semibold text-amber-500">{selectedRows.length}</span> transactions selected
-                <span className="text-slate-500 ml-2">
+              <div className="text-sm text-foreground-soft">
+                <span className="font-semibold text-primary">{selectedRows.length}</span> transactions selected
+                <span className="text-muted-foreground/70 ml-2">
                   ({selectedIncome.length} income, {selectedExpenses.length} expenses)
                 </span>
               </div>
               <div className="flex gap-2">
                 <button type="button" onClick={() => toggleAll(true)}
-                  className={`text-xs px-3 py-1 rounded-lg transition-colors ${allIncluded ? 'text-slate-600' : 'text-amber-500 hover:text-amber-400'}`}>
+                  className={`text-xs px-3 py-1 rounded-lg transition-colors ${allIncluded ? 'text-muted-foreground/50' : 'text-primary hover:text-primary-hover'}`}>
                   Select all
                 </button>
                 <button type="button" onClick={() => toggleAll(false)}
-                  className={`text-xs px-3 py-1 rounded-lg transition-colors ${noneIncluded ? 'text-slate-600' : 'text-amber-500 hover:text-amber-400'}`}>
+                  className={`text-xs px-3 py-1 rounded-lg transition-colors ${noneIncluded ? 'text-muted-foreground/50' : 'text-primary hover:text-primary-hover'}`}>
                   Deselect all
                 </button>
               </div>
@@ -783,25 +783,25 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
               const cats = getCategoriesForType(row.type);
               return (
                 <div key={idx}
-                  className={`bg-slate-900 border rounded-xl p-3 transition-colors ${
-                    row.duplicate ? 'border-amber-500/40' :
-                    !row.category ? 'border-amber-500/20' :
-                    'border-slate-800'
+                  className={`bg-card border rounded-xl p-3 transition-colors ${
+                    row.duplicate ? 'border-primary/40' :
+                    !row.category ? 'border-primary/20' :
+                    'border-border'
                   } ${!row.included ? 'opacity-50' : ''}`}
                 >
                   <div className="flex items-center gap-3">
                     <button type="button" onClick={() => toggleRow(idx)}
                       className={`flex-shrink-0 h-5 w-5 rounded border flex items-center justify-center ${
-                        row.included ? 'bg-amber-500 border-amber-500' : 'border-slate-600 bg-transparent'
+                        row.included ? 'bg-primary border-primary' : 'border-border bg-transparent'
                       }`}>
                       {row.included && (
-                        <svg className="h-3 w-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       )}
                     </button>
-                    <span className="text-xs text-slate-500 w-16 flex-shrink-0">{row.date}</span>
-                    <span className="text-sm text-slate-200 flex-1 min-w-0 truncate">{row.description}</span>
+                    <span className="text-xs text-muted-foreground/70 w-16 flex-shrink-0">{row.date}</span>
+                    <span className="text-sm text-foreground flex-1 min-w-0 truncate">{row.description}</span>
                     <span className={`text-sm font-semibold flex-shrink-0 ${
                       row.type === 'income' ? 'text-emerald-400' : 'text-red-400'
                     }`}>
@@ -813,8 +813,8 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
                     <select
                       value={row.category}
                       onChange={(e) => updateCategory(idx, e.target.value)}
-                      className={`bg-slate-800 border rounded-lg px-2 py-1 text-xs text-white focus:border-amber-500 min-h-[28px] ${
-                        !row.category ? 'border-amber-500/50' : 'border-slate-700'
+                      className={`bg-secondary border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary min-h-[28px] ${
+                        !row.category ? 'border-primary/50' : 'border-border'
                       }`}
                     >
                       <option value="">Uncategorized</option>
@@ -822,7 +822,7 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
                     </select>
 
                     {row.duplicate && (
-                      <span className="text-xs text-amber-500 flex items-center gap-1">
+                      <span className="text-xs text-primary flex items-center gap-1">
                         <AlertTriangle className="h-3 w-3" /> Possible duplicate
                       </span>
                     )}
@@ -835,14 +835,14 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
           <div className="flex gap-3">
             <Button type="button" variant="outline"
               onClick={() => setStep('map')}
-              className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px]">
+              className="border-border text-foreground-soft hover:border-primary hover:text-primary min-h-[44px]">
               <ArrowLeft className="h-4 w-4 mr-1" /> Back
             </Button>
             <div className="flex-1" />
             <Button type="button"
               onClick={() => importMutation.mutate()}
               disabled={selectedRows.length === 0 || importMutation.isPending}
-              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px] disabled:opacity-50">
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold min-h-[44px] disabled:opacity-50">
               {importMutation.isPending ? (
                 <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Importing...</>
               ) : (
@@ -858,19 +858,19 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
     if (step === 'done') {
       return (
         <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+          <div className="bg-card border border-border rounded-xl p-8 text-center">
             <CheckCircle className="h-12 w-12 text-emerald-400 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-slate-100 mb-2">Import Complete</h2>
-            <p className="text-sm text-slate-400 mb-6">
+            <h2 className="text-xl font-bold text-foreground mb-2">Import Complete</h2>
+            <p className="text-sm text-muted-foreground mb-6">
               Successfully imported {importingCount} transactions from {fileName}
             </p>
             <div className="flex gap-3 justify-center">
               <button type="button" onClick={() => onNavigateTab?.('transactions')}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors min-h-[44px]">
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors min-h-[44px]">
                 View Transactions
               </button>
               <button type="button" onClick={resetToModeSelector}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors min-h-[44px]">
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border text-foreground-soft hover:border-primary hover:text-primary transition-colors min-h-[44px]">
                 Import Another
               </button>
             </div>
@@ -888,17 +888,17 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
     if (pdfStep === 'upload') {
       return (
         <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <div className="bg-card border border-border rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-amber-500" />
-                <h2 className="text-lg font-bold text-slate-100">Import SELCO Statement</h2>
+                <FileText className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-bold text-foreground">Import SELCO Statement</h2>
               </div>
-              <button type="button" onClick={resetToModeSelector} className="text-sm text-slate-400 hover:text-amber-500 transition-colors flex items-center gap-1">
+              <button type="button" onClick={resetToModeSelector} className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
                 <ArrowLeft className="h-3 w-3" /> Back
               </button>
             </div>
-            <p className="text-sm text-slate-400 mb-6">
+            <p className="text-sm text-muted-foreground mb-6">
               Upload a SELCO Credit Union PDF statement. Transactions will be automatically extracted and parsed.
             </p>
 
@@ -907,26 +907,26 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
               onDragOver={handlePdfDragOver}
               onDragLeave={handlePdfDragLeave}
               className={`border-2 border-dashed rounded-xl p-10 text-center transition-colors cursor-pointer ${
-                pdfDragging ? 'border-amber-500 bg-amber-500/5' : 'border-slate-700 hover:border-amber-500/50'
+                pdfDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
               }`}
               onClick={() => !pdfLoading && pdfInputRef.current?.click()}
             >
               {pdfLoading ? (
                 <>
-                  <Loader2 className="h-12 w-12 text-amber-500 animate-spin mx-auto mb-4" />
-                  <p className="text-sm text-slate-300">Processing PDF...</p>
-                  <p className="text-xs text-slate-500 mt-1">Extracting text and parsing transactions</p>
+                  <Loader2 className="h-12 w-12 text-primary animate-spin mx-auto mb-4" />
+                  <p className="text-sm text-foreground-soft">Processing PDF...</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">Extracting text and parsing transactions</p>
                 </>
               ) : (
                 <>
-                  <FileText className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-                  <p className="text-sm text-slate-300 mb-2">
+                  <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                  <p className="text-sm text-foreground-soft mb-2">
                     Drag & drop a PDF statement here
                   </p>
-                  <p className="text-xs text-slate-500 mb-4">or</p>
+                  <p className="text-xs text-muted-foreground/70 mb-4">or</p>
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors min-h-[44px]"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors min-h-[44px]"
                   >
                     <Upload className="h-4 w-4" />
                     Browse Files
@@ -945,7 +945,7 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
                 disabled={pdfLoading}
               />
             </div>
-            <p className="text-xs text-slate-500 mt-3">Accepts .pdf files only. SELCO Credit Union statements. All processing is done locally in your browser.</p>
+            <p className="text-xs text-muted-foreground/70 mt-3">Accepts .pdf files only. SELCO Credit Union statements. All processing is done locally in your browser.</p>
 
             {pdfError && (
               <div className="mt-4 bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-start gap-3">
@@ -969,24 +969,24 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
       return (
         <div className="space-y-6">
           {/* Header */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div className="bg-card border border-border rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-amber-500" />
-                <h2 className="text-base font-bold text-slate-100">
+                <FileText className="h-5 w-5 text-primary" />
+                <h2 className="text-base font-bold text-foreground">
                   Review Transactions
                 </h2>
               </div>
-              <span className="text-xs text-slate-500">{pdfFileName} — {formatStatementMonth(pdfStatementMonth)}</span>
+              <span className="text-xs text-muted-foreground/70">{pdfFileName} — {formatStatementMonth(pdfStatementMonth)}</span>
             </div>
 
             {/* Context selector */}
             <div className="mb-3">
-              <Label className="text-slate-400 text-xs">Which account is this from?</Label>
+              <Label className="text-muted-foreground text-xs">Which account is this from?</Label>
               <select
                 value={pdfContext}
                 onChange={(e) => setPdfContext(e.target.value)}
-                className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 min-h-[36px]"
+                className="w-full mt-1 bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary min-h-[36px]"
               >
                 {activeContexts.map((ctx) => (
                   <option key={ctx.id} value={ctx.id}>{ctx.label}</option>
@@ -996,19 +996,19 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
 
             {/* Summary bar */}
             <div className="flex flex-wrap gap-4 items-center justify-between">
-              <div className="text-sm text-slate-300">
-                <span className="font-semibold text-amber-500">{pdfSelectedRows.length}</span> transactions selected
-                <span className="text-slate-500 ml-2">
+              <div className="text-sm text-foreground-soft">
+                <span className="font-semibold text-primary">{pdfSelectedRows.length}</span> transactions selected
+                <span className="text-muted-foreground/70 ml-2">
                   ({pdfSelectedDeposits.length} deposits, {pdfSelectedWithdrawals.length} withdrawals)
                 </span>
               </div>
               <div className="flex gap-2">
                 <button type="button" onClick={() => toggleAllPdf(true)}
-                  className={`text-xs px-3 py-1 rounded-lg transition-colors ${allIncluded ? 'text-slate-600' : 'text-amber-500 hover:text-amber-400'}`}>
+                  className={`text-xs px-3 py-1 rounded-lg transition-colors ${allIncluded ? 'text-muted-foreground/50' : 'text-primary hover:text-primary-hover'}`}>
                   Select all
                 </button>
                 <button type="button" onClick={() => toggleAllPdf(false)}
-                  className={`text-xs px-3 py-1 rounded-lg transition-colors ${noneIncluded ? 'text-slate-600' : 'text-amber-500 hover:text-amber-400'}`}>
+                  className={`text-xs px-3 py-1 rounded-lg transition-colors ${noneIncluded ? 'text-muted-foreground/50' : 'text-primary hover:text-primary-hover'}`}>
                   Deselect all
                 </button>
               </div>
@@ -1021,36 +1021,36 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
               const cats = getCategoriesForType(row.type);
               return (
                 <div key={idx}
-                  className={`bg-slate-900 border rounded-xl p-3 transition-colors ${
-                    row.duplicate ? 'border-amber-500/40' :
-                    !row.category ? 'border-amber-500/20' :
-                    'border-slate-800'
+                  className={`bg-card border rounded-xl p-3 transition-colors ${
+                    row.duplicate ? 'border-primary/40' :
+                    !row.category ? 'border-primary/20' :
+                    'border-border'
                   } ${!row.included ? 'opacity-50' : ''}`}
                 >
                   <div className="flex items-center gap-3">
                     {/* Checkbox */}
                     <button type="button" onClick={() => togglePdfRow(idx)}
                       className={`flex-shrink-0 h-5 w-5 rounded border flex items-center justify-center ${
-                        row.included ? 'bg-amber-500 border-amber-500' : 'border-slate-600 bg-transparent'
+                        row.included ? 'bg-primary border-primary' : 'border-border bg-transparent'
                       }`}>
                       {row.included && (
-                        <svg className="h-3 w-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       )}
                     </button>
 
                     {/* Date */}
-                    <span className="text-xs text-slate-500 w-16 flex-shrink-0">{row.date}</span>
+                    <span className="text-xs text-muted-foreground/70 w-16 flex-shrink-0">{row.date}</span>
 
                     {/* Description */}
-                    <span className="text-sm text-slate-200 flex-1 min-w-0 truncate">
+                    <span className="text-sm text-foreground flex-1 min-w-0 truncate">
                       {row.cleaned_description || row.description}
                     </span>
 
                     {/* Transaction type badge */}
                     {row.transaction_type && row.transaction_type !== 'other' && (
-                      <span className="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded flex-shrink-0">
+                      <span className="text-[10px] bg-surface text-foreground-soft px-2 py-0.5 rounded flex-shrink-0">
                         {TXN_TYPE_LABELS[row.transaction_type] || row.transaction_type}
                       </span>
                     )}
@@ -1068,8 +1068,8 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
                     <select
                       value={row.category}
                       onChange={(e) => updatePdfCategory(idx, e.target.value)}
-                      className={`bg-slate-800 border rounded-lg px-2 py-1 text-xs text-white focus:border-amber-500 min-h-[28px] ${
-                        !row.category ? 'border-amber-500/50' : 'border-slate-700'
+                      className={`bg-secondary border rounded-lg px-2 py-1 text-xs text-foreground focus:border-primary min-h-[28px] ${
+                        !row.category ? 'border-primary/50' : 'border-border'
                       }`}
                     >
                       <option value="">Uncategorized</option>
@@ -1077,7 +1077,7 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
                     </select>
 
                     {row.duplicate && (
-                      <span className="text-xs text-amber-500 flex items-center gap-1">
+                      <span className="text-xs text-primary flex items-center gap-1">
                         <AlertTriangle className="h-3 w-3" /> Possible duplicate
                       </span>
                     )}
@@ -1093,14 +1093,14 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
               onClick={() => {
                 resetPdfImport();
               }}
-              className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px]">
+              className="border-border text-foreground-soft hover:border-primary hover:text-primary min-h-[44px]">
               <ArrowLeft className="h-4 w-4 mr-1" /> Back
             </Button>
             <div className="flex-1" />
             <Button type="button"
               onClick={() => pdfImportMutation.mutate()}
               disabled={pdfSelectedRows.length === 0 || pdfImportMutation.isPending}
-              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px] disabled:opacity-50">
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold min-h-[44px] disabled:opacity-50">
               {pdfImportMutation.isPending ? (
                 <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Importing...</>
               ) : (
@@ -1116,19 +1116,19 @@ export default function FinanceImport({ profile, currentUser, onNavigateTab }) {
     if (pdfStep === 'done') {
       return (
         <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+          <div className="bg-card border border-border rounded-xl p-8 text-center">
             <CheckCircle className="h-12 w-12 text-emerald-400 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-slate-100 mb-2">Import Complete</h2>
-            <p className="text-sm text-slate-400 mb-6">
+            <h2 className="text-xl font-bold text-foreground mb-2">Import Complete</h2>
+            <p className="text-sm text-muted-foreground mb-6">
               Imported {pdfImportingCount} transactions from {formatStatementMonth(pdfStatementMonth)}
             </p>
             <div className="flex gap-3 justify-center">
               <button type="button" onClick={() => onNavigateTab?.('transactions')}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors min-h-[44px]">
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors min-h-[44px]">
                 View Transactions
               </button>
               <button type="button" onClick={resetToModeSelector}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors min-h-[44px]">
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border text-foreground-soft hover:border-primary hover:text-primary transition-colors min-h-[44px]">
                 Import Another
               </button>
             </div>

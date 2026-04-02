@@ -76,7 +76,7 @@ export default function VoiceInput({ onTranscript, mode = 'single', className = 
       className={`p-2 rounded-lg transition-all ${
         listening
           ? 'bg-red-500/20 text-red-400 animate-pulse'
-          : 'bg-slate-700 hover:bg-slate-600 text-slate-400 hover:text-amber-500'
+          : 'bg-surface hover:bg-surface text-muted-foreground hover:text-primary'
       } ${className}`}
       title={listening ? 'Stop listening' : 'Speak'}
     >

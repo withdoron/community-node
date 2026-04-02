@@ -110,8 +110,8 @@ export default function JoinPM() {
   // ── Loading ──
   if (isLoading || !inviteCode) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
-        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -119,12 +119,12 @@ export default function JoinPM() {
   // ── Invalid code ──
   if (queryError || !profile) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 max-w-md mx-auto">
-        <h1 className="text-xl font-bold text-white mb-2">Invalid or expired invite</h1>
-        <p className="text-slate-400 text-center mb-6">This invite code is not valid or the workspace may no longer be active.</p>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 max-w-md mx-auto">
+        <h1 className="text-xl font-bold text-foreground mb-2">Invalid or expired invite</h1>
+        <p className="text-muted-foreground text-center mb-6">This invite code is not valid or the workspace may no longer be active.</p>
         <Button
           onClick={() => navigate(createPageUrl('MyLane'))}
-          className="bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px] px-6"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px] px-6"
         >
           Go to My Lane
         </Button>
@@ -138,16 +138,16 @@ export default function JoinPM() {
       : inviteType === 'owner' ? 'co-owner'
       : 'property manager';
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col p-6 max-w-md mx-auto">
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-4">
+      <div className="min-h-screen bg-background flex flex-col p-6 max-w-md mx-auto">
+        <div className="bg-secondary border border-border rounded-xl p-6 space-y-4">
           <div className="flex items-center gap-3">
-            <Building2 className="h-6 w-6 text-amber-500" />
-            <h1 className="text-xl font-bold text-white">{workspaceName}</h1>
+            <Building2 className="h-6 w-6 text-primary" />
+            <h1 className="text-xl font-bold text-foreground">{workspaceName}</h1>
           </div>
-          <p className="text-slate-300 text-sm">Sign in to join this workspace as a {roleLabel}.</p>
+          <p className="text-foreground-soft text-sm">Sign in to join this workspace as a {roleLabel}.</p>
           <Button
             onClick={handleSignIn}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px] flex items-center justify-center gap-2"
+            className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px] flex items-center justify-center gap-2"
           >
             <LogIn className="h-5 w-5" />
             Sign in to join
@@ -160,20 +160,20 @@ export default function JoinPM() {
   // ── Tenant join path ──
   if (inviteType === 'tenant') {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col p-6 max-w-md mx-auto">
+      <div className="min-h-screen bg-background flex flex-col p-6 max-w-md mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <Building2 className="h-6 w-6 text-amber-500" />
-          <h1 className="text-xl font-bold text-white">{workspaceName}</h1>
+          <Building2 className="h-6 w-6 text-primary" />
+          <h1 className="text-xl font-bold text-foreground">{workspaceName}</h1>
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-white">Join as Tenant</h2>
-          <p className="text-slate-400 text-sm">
+        <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-foreground">Join as Tenant</h2>
+          <p className="text-muted-foreground text-sm">
             You'll be able to view your unit details, submit maintenance requests, and communicate with your property manager.
           </p>
           <Button
             onClick={handleJoin}
             disabled={joining}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px]"
+            className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px]"
           >
             {joining ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Join as Tenant'}
           </Button>
@@ -185,22 +185,22 @@ export default function JoinPM() {
   // ── Owner join path ──
   if (inviteType === 'owner') {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col p-6 max-w-md mx-auto">
+      <div className="min-h-screen bg-background flex flex-col p-6 max-w-md mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <Building2 className="h-6 w-6 text-amber-500" />
-          <h1 className="text-xl font-bold text-white">{workspaceName}</h1>
+          <Building2 className="h-6 w-6 text-primary" />
+          <h1 className="text-xl font-bold text-foreground">{workspaceName}</h1>
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-white">Join as Co-Owner</h2>
-          <p className="text-slate-400 text-sm">
+        <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-foreground">Join as Co-Owner</h2>
+          <p className="text-muted-foreground text-sm">
             You'll be able to view property data, financial summaries, and your ownership distributions.
           </p>
           <div>
-            <label className="text-slate-300 text-sm font-medium block mb-1">Your name</label>
+            <label className="text-foreground-soft text-sm font-medium block mb-1">Your name</label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 min-h-[44px]"
+              className="w-full bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring min-h-[44px]"
               placeholder="Your name"
               disabled={joining}
             />
@@ -208,7 +208,7 @@ export default function JoinPM() {
           <Button
             onClick={handleJoin}
             disabled={!name?.trim() || joining}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px]"
+            className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px]"
           >
             {joining ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Join as Co-Owner'}
           </Button>
@@ -219,22 +219,22 @@ export default function JoinPM() {
 
   // ── Manager join path ──
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col p-6 max-w-md mx-auto">
+    <div className="min-h-screen bg-background flex flex-col p-6 max-w-md mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <Building2 className="h-6 w-6 text-amber-500" />
-        <h1 className="text-xl font-bold text-white">{workspaceName}</h1>
+        <Building2 className="h-6 w-6 text-primary" />
+        <h1 className="text-xl font-bold text-foreground">{workspaceName}</h1>
       </div>
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-        <h2 className="text-lg font-semibold text-white">Join as Property Manager</h2>
-        <p className="text-slate-400 text-sm">
+      <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-foreground">Join as Property Manager</h2>
+        <p className="text-muted-foreground text-sm">
           You'll have access to manage properties, expenses, maintenance, and financial summaries.
         </p>
         <div>
-          <label className="text-slate-300 text-sm font-medium block mb-1">Your name</label>
+          <label className="text-foreground-soft text-sm font-medium block mb-1">Your name</label>
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 min-h-[44px]"
+            className="w-full bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring min-h-[44px]"
             placeholder="Your name"
             disabled={joining}
           />
@@ -242,7 +242,7 @@ export default function JoinPM() {
         <Button
           onClick={handleJoin}
           disabled={!name?.trim() || joining}
-          className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px]"
+          className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px]"
         >
           {joining ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Join as Manager'}
         </Button>

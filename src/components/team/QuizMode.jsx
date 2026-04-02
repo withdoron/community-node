@@ -162,7 +162,7 @@ function RouteVisual({ routePath, positionColor, mirrored }) {
         viewBox="0 0 300 300"
         width="100%"
         preserveAspectRatio="xMidYMid meet"
-        className="rounded-xl border border-amber-500/30"
+        className="rounded-xl border border-primary/30"
         style={{ minHeight: 220, maxHeight: 320 }}
       >
         {/* Field background */}
@@ -221,7 +221,7 @@ function Hearts({ lives, maxLives = MAX_LIVES, lostLife }) {
           key={i}
           className={`h-5 w-5 transition-all duration-300 ${
             i < lives
-              ? 'text-amber-500 fill-amber-500'
+              ? 'text-primary fill-primary'
               : 'text-slate-700 fill-slate-700'
           } ${lostLife && i === lives ? 'animate-heartLose' : ''}`}
         />
@@ -233,8 +233,8 @@ function Hearts({ lives, maxLives = MAX_LIVES, lostLife }) {
 function ScoreDisplay({ score, lastPoints }) {
   return (
     <div className="relative flex items-center gap-1.5">
-      <Zap className="h-4 w-4 text-amber-500" />
-      <span className="text-amber-500 font-bold text-lg tabular-nums">{score.toLocaleString()}</span>
+      <Zap className="h-4 w-4 text-primary" />
+      <span className="text-primary font-bold text-lg tabular-nums">{score.toLocaleString()}</span>
       {lastPoints > 0 && (
         <span
           key={`pts-${score}`}
@@ -252,10 +252,10 @@ function TimerBar({ timeRemaining, timerSeconds }) {
   const pct = Math.max(0, (timeRemaining / timerSeconds) * 100);
   const isLow = timeRemaining <= 5;
   return (
-    <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+    <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
       <div
         className={`h-full rounded-full transition-all duration-1000 ease-linear ${
-          isLow ? 'bg-red-500' : 'bg-amber-500'
+          isLow ? 'bg-red-500' : 'bg-primary'
         }`}
         style={{ width: `${pct}%` }}
       />
@@ -268,9 +268,9 @@ function CelebrationOverlay({ celebration }) {
   return (
     <div className="fixed inset-0 z-[70] pointer-events-none flex items-center justify-center">
       <div className="animate-bounce">
-        <div className="bg-amber-500/20 border border-amber-500/50 rounded-2xl px-8 py-6 flex flex-col items-center gap-2 backdrop-blur-sm">
+        <div className="bg-primary/20 border border-primary/50 rounded-2xl px-8 py-6 flex flex-col items-center gap-2 backdrop-blur-sm">
           <span className="text-4xl">{celebration.emoji}</span>
-          <span className="text-amber-500 text-xl font-bold">{celebration.message}</span>
+          <span className="text-primary text-xl font-bold">{celebration.message}</span>
           {celebration.recoversLife && (
             <span className="text-green-400 text-sm font-medium flex items-center gap-1">
               <Heart className="h-3.5 w-3.5 fill-green-400" /> +1 Life
@@ -287,8 +287,8 @@ function PhaseTransition({ label, visible }) {
   return (
     <div className="fixed inset-0 z-[60] pointer-events-none flex items-center justify-center">
       <div className="animate-pulse">
-        <div className="bg-slate-900/90 border border-amber-500/30 rounded-2xl px-8 py-4 text-center backdrop-blur-sm">
-          <span className="text-amber-500 text-xs uppercase tracking-widest font-bold">{label}</span>
+        <div className="bg-card/90 border border-primary/30 rounded-2xl px-8 py-4 text-center backdrop-blur-sm">
+          <span className="text-primary text-xs uppercase tracking-widest font-bold">{label}</span>
         </div>
       </div>
     </div>
@@ -309,7 +309,7 @@ function ResultRow({ result }) {
       )}
       <div className="flex-1 min-w-0">
         {result.isCorrect ? (
-          <span className="text-white text-sm font-medium truncate block">
+          <span className="text-foreground text-sm font-medium truncate block">
             {formatRouteLabel(result.correctAnswer)}
           </span>
         ) : (
@@ -324,7 +324,7 @@ function ResultRow({ result }) {
         )}
       </div>
       {result.isCorrect && result.pointsEarned > 0 && (
-        <span className="text-amber-500 text-sm font-medium">+{result.pointsEarned}</span>
+        <span className="text-primary text-sm font-medium">+{result.pointsEarned}</span>
       )}
     </div>
   );
@@ -344,7 +344,7 @@ function PositionBadge({ positionLabel, positionColor }) {
         className="w-2.5 h-2.5 rounded-full flex-shrink-0"
         style={{ backgroundColor: positionColor || '#94a3b8' }}
       />
-      <span className="text-slate-300 text-sm font-medium">{positionLabel}</span>
+      <span className="text-foreground-soft text-sm font-medium">{positionLabel}</span>
     </div>
   );
 }
@@ -389,10 +389,10 @@ function WrongAnswerCard({ question }) {
   if (!heading) return null;
 
   return (
-    <div className="mt-3 bg-slate-800/50 rounded-xl p-4">
-      <p className="text-amber-500 font-semibold text-sm">{heading}</p>
+    <div className="mt-3 bg-secondary/50 rounded-xl p-4">
+      <p className="text-primary font-semibold text-sm">{heading}</p>
       {description && (
-        <p className="text-slate-400 text-sm mt-1">{description}</p>
+        <p className="text-muted-foreground text-sm mt-1">{description}</p>
       )}
     </div>
   );
@@ -521,26 +521,26 @@ export default function QuizMode({
     });
 
     return (
-      <div className="fixed inset-0 z-50 bg-slate-950 overflow-y-auto">
+      <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
         <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-white">Playbook Pro</h1>
+            <h1 className="text-2xl font-bold text-foreground">Playbook Pro</h1>
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <X className="h-6 w-6" />
             </button>
           </div>
 
           {/* Lives + High Score */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <div className="bg-card border border-border rounded-xl p-4">
             <div className="flex items-center justify-between mb-4">
               <Hearts lives={STARTING_LIVES} />
-              <div className="flex items-center gap-2 text-slate-400 text-sm">
-                <Trophy className="h-4 w-4 text-amber-500" />
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                <Trophy className="h-4 w-4 text-primary" />
                 <span className="font-medium">Best: {game.highScore.toLocaleString()}</span>
               </div>
             </div>
@@ -548,38 +548,38 @@ export default function QuizMode({
             {/* Mastery breakdown */}
             <div className="grid grid-cols-4 gap-2 text-center">
               <div>
-                <div className="text-lg font-bold text-slate-400">{masteryBreakdown.new}</div>
-                <div className="text-xs text-slate-500">New</div>
+                <div className="text-lg font-bold text-muted-foreground">{masteryBreakdown.new}</div>
+                <div className="text-xs text-muted-foreground/70">New</div>
               </div>
               <div>
                 <div className="text-lg font-bold text-blue-400">{masteryBreakdown.learning}</div>
-                <div className="text-xs text-slate-500">Learning</div>
+                <div className="text-xs text-muted-foreground/70">Learning</div>
               </div>
               <div>
                 <div className="text-lg font-bold text-purple-400">{masteryBreakdown.familiar}</div>
-                <div className="text-xs text-slate-500">Familiar</div>
+                <div className="text-xs text-muted-foreground/70">Familiar</div>
               </div>
               <div>
-                <div className="text-lg font-bold text-amber-500">{masteryBreakdown.mastered}</div>
-                <div className="text-xs text-slate-500">Mastered</div>
+                <div className="text-lg font-bold text-primary">{masteryBreakdown.mastered}</div>
+                <div className="text-xs text-muted-foreground/70">Mastered</div>
               </div>
             </div>
           </div>
 
           {/* How it works */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 space-y-2">
-            <p className="text-sm text-slate-300 font-medium">How it works</p>
-            <ul className="text-sm text-slate-400 space-y-1">
+          <div className="bg-card/50 border border-border rounded-xl p-4 space-y-2">
+            <p className="text-sm text-foreground-soft font-medium">How it works</p>
+            <ul className="text-sm text-muted-foreground space-y-1">
               <li className="flex items-center gap-2">
-                <Heart className="h-3.5 w-3.5 text-amber-500 fill-amber-500 flex-shrink-0" />
+                <Heart className="h-3.5 w-3.5 text-primary fill-primary flex-shrink-0" />
                 3 lives — wrong answers cost a life
               </li>
               <li className="flex items-center gap-2">
-                <Flame className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
+                <Flame className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                 Streaks multiply your score
               </li>
               <li className="flex items-center gap-2">
-                <Star className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
+                <Star className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                 Weaker plays appear more often
               </li>
             </ul>
@@ -588,12 +588,12 @@ export default function QuizMode({
           {/* Game day filter */}
           <div
             onClick={() => setGameDayFilter(!gameDayFilter)}
-            className="flex items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-xl cursor-pointer min-h-[44px]"
+            className="flex items-center justify-between p-3 bg-card border border-border rounded-xl cursor-pointer min-h-[44px]"
           >
-            <span className="text-slate-300 text-sm">Game Day plays only</span>
+            <span className="text-foreground-soft text-sm">Game Day plays only</span>
             <div
               className={`relative w-10 h-5 rounded-full transition-colors ${
-                gameDayFilter ? 'bg-amber-500' : 'bg-slate-700'
+                gameDayFilter ? 'bg-primary' : 'bg-surface'
               }`}
             >
               <span
@@ -609,7 +609,7 @@ export default function QuizMode({
             type="button"
             onClick={handleStart}
             disabled={availableCount === 0 || !game.isInitialized}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold text-lg py-6 min-h-[56px]"
+            className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-lg py-6 min-h-[56px]"
           >
             {!game.isInitialized
               ? 'Loading…'
@@ -627,11 +627,11 @@ export default function QuizMode({
     const q = game.currentQuestion;
     if (!q) {
       return (
-        <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6">
-          <p className="text-slate-400 text-lg mb-4">No questions available.</p>
+        <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center p-6">
+          <p className="text-muted-foreground text-lg mb-4">No questions available.</p>
           <Button
             onClick={onClose}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-medium"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium"
           >
             Close
           </Button>
@@ -640,7 +640,7 @@ export default function QuizMode({
     }
 
     return (
-      <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col">
+      <div className="fixed inset-0 z-50 bg-background flex flex-col">
         <CelebrationOverlay celebration={game.celebration} />
         <PhaseTransition label={game.currentPhaseLabel} visible={game.showPhaseTransition} />
 
@@ -651,12 +651,12 @@ export default function QuizMode({
             <ScoreDisplay score={game.score} lastPoints={game.lastPointsEarned} />
             <div className="flex items-center gap-2">
               {game.difficultyPhase && (
-                <span className="text-[10px] text-slate-600 uppercase tracking-wider font-medium">
+                <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-medium">
                   {game.difficultyPhase.label}
                 </span>
               )}
               {game.streak > 0 && (
-                <span className="flex items-center gap-1 text-amber-500 text-sm font-medium">
+                <span className="flex items-center gap-1 text-primary text-sm font-medium">
                   <Flame className="h-4 w-4" />
                   {game.streak}
                 </span>
@@ -664,7 +664,7 @@ export default function QuizMode({
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 -mr-2 text-slate-400 hover:text-white min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="p-2 -mr-2 text-muted-foreground hover:text-foreground min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -689,7 +689,7 @@ export default function QuizMode({
           {/* Formation hint */}
           {q.showFormationHint && q.play?.formation && (
             <div className="text-center mb-2">
-              <span className="bg-slate-800 text-slate-400 text-xs px-3 py-1 rounded-full">
+              <span className="bg-secondary text-muted-foreground text-xs px-3 py-1 rounded-full">
                 Formation: {formatRouteLabel(q.play.formation)}
               </span>
             </div>
@@ -698,7 +698,7 @@ export default function QuizMode({
           {/* Visual area */}
           {q.type === 'name_that_play' && (q.play.use_renderer === true || q.play.use_renderer === 'true') ? (
             <div
-              className="rounded-xl overflow-hidden bg-slate-900 border border-slate-700 mb-4 flex items-center justify-center"
+              className="rounded-xl overflow-hidden bg-card border border-border mb-4 flex items-center justify-center"
               style={{ minHeight: 250 }}
             >
               <PlayRenderer
@@ -712,7 +712,7 @@ export default function QuizMode({
               />
             </div>
           ) : q.type === 'name_that_play' && q.play.diagram_image ? (
-            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4">
+            <div className="rounded-xl overflow-hidden bg-secondary border border-border mb-4">
               <img src={q.play.diagram_image} alt="" className="w-full aspect-video object-contain" />
             </div>
           ) : q.type === 'identify_route' && q.routePath ? (
@@ -722,10 +722,10 @@ export default function QuizMode({
               mirrored={q.mirrored}
             />
           ) : q.type === 'know_your_job' ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-4 text-center">
-              <h2 className="text-2xl font-bold text-white mb-2">{q.play.name}</h2>
+            <div className="bg-card border border-border rounded-xl p-6 mb-4 text-center">
+              <h2 className="text-2xl font-bold text-foreground mb-2">{q.play.name}</h2>
               {q.showFormationHint && q.play.formation && (
-                <span className="bg-slate-800 text-slate-300 text-sm px-3 py-1 rounded">
+                <span className="bg-secondary text-foreground-soft text-sm px-3 py-1 rounded">
                   {formatRouteLabel(q.play.formation)}
                 </span>
               )}
@@ -737,26 +737,26 @@ export default function QuizMode({
               mirrored={q.mirrored}
             />
           ) : q.type === 'true_false' ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-4 text-center">
-              <h2 className="text-xl font-bold text-white mb-3">{q.play.name}</h2>
-              <p className="text-slate-300 text-base italic">
+            <div className="bg-card border border-border rounded-xl p-6 mb-4 text-center">
+              <h2 className="text-xl font-bold text-foreground mb-3">{q.play.name}</h2>
+              <p className="text-foreground-soft text-base italic">
                 &ldquo;{q.questionText}&rdquo;
               </p>
             </div>
           ) : q.type === 'coach_says' ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-4">
-              <div className="border-l-4 border-amber-500 pl-4">
-                <p className="text-xs text-amber-500 uppercase tracking-wider font-bold mb-2">Coach Says</p>
-                <p className="text-white text-lg italic">&ldquo;{q.assignmentDisplay}&rdquo;</p>
+            <div className="bg-card border border-border rounded-xl p-6 mb-4">
+              <div className="border-l-4 border-primary pl-4">
+                <p className="text-xs text-primary uppercase tracking-wider font-bold mb-2">Coach Says</p>
+                <p className="text-foreground text-lg italic">&ldquo;{q.assignmentDisplay}&rdquo;</p>
               </div>
               {q.coachSaysVariant === 'position' && (
-                <p className="text-slate-400 text-sm mt-3 text-center">In: {q.play.name}</p>
+                <p className="text-muted-foreground text-sm mt-3 text-center">In: {q.play.name}</p>
               )}
             </div>
           ) : q.type === 'odd_one_out' ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-4 text-center">
-              <h2 className="text-2xl font-bold text-white mb-2">{q.play.name}</h2>
-              <p className="text-slate-400 text-sm">Three routes below are from this play</p>
+            <div className="bg-card border border-border rounded-xl p-6 mb-4 text-center">
+              <h2 className="text-2xl font-bold text-foreground mb-2">{q.play.name}</h2>
+              <p className="text-muted-foreground text-sm">Three routes below are from this play</p>
             </div>
           ) : null}
 
@@ -767,7 +767,7 @@ export default function QuizMode({
                 className="w-2 h-2 rounded-full flex-shrink-0"
                 style={{ backgroundColor: q.positionColor || '#94a3b8' }}
               />
-              <span className="text-slate-500 text-xs">{q.positionLabel}</span>
+              <span className="text-muted-foreground/70 text-xs">{q.positionLabel}</span>
             </div>
           )}
 
@@ -777,7 +777,7 @@ export default function QuizMode({
           )}
 
           {/* Question text */}
-          <p className="text-white text-lg font-semibold mb-4 text-center">
+          <p className="text-foreground text-lg font-semibold mb-4 text-center">
             {q.type === 'true_false' ? 'True or False?' : q.questionText}
           </p>
 
@@ -785,7 +785,7 @@ export default function QuizMode({
           {q.type === 'true_false' ? (
             <div className="flex gap-3">
               {q.options.map((option, i) => {
-                let btnClass = 'bg-slate-800 border-slate-700 text-white hover:border-slate-600';
+                let btnClass = 'bg-secondary border-border text-foreground hover:border-border';
                 if (game.lastAnswerCorrect != null) {
                   if (option === game.lastCorrectAnswer) {
                     btnClass = 'bg-green-500/20 border-green-500 text-green-400';
@@ -812,7 +812,7 @@ export default function QuizMode({
           ) : (
             <div className="space-y-3">
               {q.options.map((option, i) => {
-                let btnClass = 'bg-slate-800 border-slate-700 text-white hover:border-slate-600';
+                let btnClass = 'bg-secondary border-border text-foreground hover:border-border';
 
                 if (game.lastAnswerCorrect != null) {
                   if (option === game.lastCorrectAnswer) {
@@ -860,65 +860,65 @@ export default function QuizMode({
         : 0;
 
     return (
-      <div className="fixed inset-0 z-50 bg-slate-950 overflow-y-auto">
+      <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
         <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-white">Game Over</h1>
+            <h1 className="text-2xl font-bold text-foreground">Game Over</h1>
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-white min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="p-2 text-muted-foreground hover:text-foreground min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <X className="h-6 w-6" />
             </button>
           </div>
 
           {/* Score card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center">
+          <div className="bg-card border border-border rounded-xl p-6 text-center">
             {game.isNewHighScore && (
-              <div className="flex items-center justify-center gap-2 mb-3 text-amber-500 animate-bounce">
+              <div className="flex items-center justify-center gap-2 mb-3 text-primary animate-bounce">
                 <Trophy className="h-6 w-6" />
                 <span className="font-bold text-lg">New High Score!</span>
               </div>
             )}
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Zap className="h-8 w-8 text-amber-500" />
-              <span className="text-5xl font-bold text-white">{game.score.toLocaleString()}</span>
+              <Zap className="h-8 w-8 text-primary" />
+              <span className="text-5xl font-bold text-foreground">{game.score.toLocaleString()}</span>
             </div>
-            <div className="text-slate-400 text-sm">
+            <div className="text-muted-foreground text-sm">
               {game.questionsCorrect} / {game.questionsAnswered} correct ({pct}%)
             </div>
           </div>
 
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
-              <div className="text-lg font-bold text-white">
+            <div className="bg-card border border-border rounded-xl p-3 text-center">
+              <div className="text-lg font-bold text-foreground">
                 {minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`}
               </div>
-              <div className="text-xs text-slate-400">Time</div>
+              <div className="text-xs text-muted-foreground">Time</div>
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
-              <div className="text-lg font-bold text-amber-500 flex items-center justify-center gap-1">
+            <div className="bg-card border border-border rounded-xl p-3 text-center">
+              <div className="text-lg font-bold text-primary flex items-center justify-center gap-1">
                 <Flame className="h-4 w-4" />
                 {game.bestStreak}
               </div>
-              <div className="text-xs text-slate-400">Best streak</div>
+              <div className="text-xs text-muted-foreground">Best streak</div>
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
-              <div className="text-lg font-bold text-white flex items-center justify-center gap-1">
-                <Trophy className="h-4 w-4 text-amber-500" />
+            <div className="bg-card border border-border rounded-xl p-3 text-center">
+              <div className="text-lg font-bold text-foreground flex items-center justify-center gap-1">
+                <Trophy className="h-4 w-4 text-primary" />
                 {game.highScore.toLocaleString()}
               </div>
-              <div className="text-xs text-slate-400">High score</div>
+              <div className="text-xs text-muted-foreground">High score</div>
             </div>
           </div>
 
           {/* Per-question breakdown */}
           {game.results.length > 0 && (
             <div>
-              <p className="text-xs text-slate-400 uppercase tracking-wider mb-3">Breakdown</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Breakdown</p>
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {game.results.map((result, i) => (
                   <ResultRow key={i} result={result} />
@@ -933,7 +933,7 @@ export default function QuizMode({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 border-slate-600 text-slate-300 hover:bg-transparent hover:border-amber-500 hover:text-amber-500 min-h-[48px]"
+              className="flex-1 border-border text-foreground-soft hover:bg-transparent hover:border-primary hover:text-primary min-h-[48px]"
             >
               <BookOpen className="h-4 w-4 mr-2" />
               Playbook
@@ -941,7 +941,7 @@ export default function QuizMode({
             <Button
               type="button"
               onClick={handlePlayAgain}
-              className="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[48px]"
+              className="flex-1 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold min-h-[48px]"
             >
               <RotateCcw className="h-4 w-4 mr-2" />
               Play Again

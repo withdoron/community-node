@@ -129,7 +129,7 @@ export default function MyLaneDrillView({
   if (!wsConfig || !profile) {
     return (
       <div className="text-center py-16">
-        <p className="text-slate-400">This workspace is not available.</p>
+        <p className="text-muted-foreground">This workspace is not available.</p>
       </div>
     );
   }
@@ -227,7 +227,7 @@ export default function MyLaneDrillView({
   return (
     <div>
       {/* Tab bar */}
-      <div className="flex gap-1 overflow-x-auto flex-nowrap pb-1 mb-4 scrollbar-hide border-b border-slate-800">
+      <div className="flex gap-1 overflow-x-auto flex-nowrap pb-1 mb-4 scrollbar-hide border-b border-border">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -238,8 +238,8 @@ export default function MyLaneDrillView({
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 text-sm whitespace-nowrap transition-colors min-h-[44px] ${
                 isActive
-                  ? 'text-amber-500 border-b-2 border-amber-500 font-semibold'
-                  : 'text-slate-400 hover:text-slate-300'
+                  ? 'text-primary border-b-2 border-primary font-semibold'
+                  : 'text-muted-foreground hover:text-foreground-soft'
               }`}
             >
               <Icon className="h-4 w-4" />

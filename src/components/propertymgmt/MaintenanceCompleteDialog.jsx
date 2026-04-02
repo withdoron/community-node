@@ -11,8 +11,8 @@ import { Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 const inputClass =
-  'w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 px-3 py-2 text-sm';
-const labelClass = 'text-slate-300 text-sm font-medium block mb-1';
+  'w-full rounded-md bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring px-3 py-2 text-sm';
+const labelClass = 'text-foreground-soft text-sm font-medium block mb-1';
 
 /**
  * Close-out dialog: captures actual cost, completion photos,
@@ -152,11 +152,11 @@ export default function MaintenanceCompleteDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
-      <DialogContent className="bg-slate-900 border border-slate-800 text-slate-100 max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-card border border-border text-foreground max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">Complete Request</DialogTitle>
+          <DialogTitle className="text-foreground">Complete Request</DialogTitle>
           {request && (
-            <p className="text-sm text-slate-400 mt-1">{request.title}</p>
+            <p className="text-sm text-muted-foreground mt-1">{request.title}</p>
           )}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -196,7 +196,7 @@ export default function MaintenanceCompleteDialog({
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100"
+                className="border-border text-foreground-soft hover:bg-secondary hover:text-foreground"
               >
                 <Upload className="w-3.5 h-3.5 mr-1.5" />
                 Add Photos
@@ -217,14 +217,14 @@ export default function MaintenanceCompleteDialog({
                     <img
                       src={resolveUrl(url)}
                       alt={`After ${i + 1}`}
-                      className="h-12 w-12 rounded border border-slate-700 object-cover"
+                      className="h-12 w-12 rounded border border-border object-cover"
                     />
                     <button
                       type="button"
                       onClick={() => removePhoto(i)}
                       className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full flex items-center justify-center"
                     >
-                      <X className="w-2.5 h-2.5 text-white" />
+                      <X className="w-2.5 h-2.5 text-foreground" />
                     </button>
                   </div>
                 ))}
@@ -245,8 +245,8 @@ export default function MaintenanceCompleteDialog({
           </div>
 
           {/* Separator */}
-          <div className="border-t border-slate-700 pt-4">
-            <p className="text-xs text-slate-500 uppercase tracking-wide mb-3">
+          <div className="border-t border-border pt-4">
+            <p className="text-xs text-muted-foreground/70 uppercase tracking-wide mb-3">
               Auto-create records
             </p>
 
@@ -257,9 +257,9 @@ export default function MaintenanceCompleteDialog({
                 id="log_expense_maint"
                 checked={logExpense}
                 onChange={(e) => setLogExpense(e.target.checked)}
-                className="rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                className="rounded border-border bg-secondary text-primary focus:ring-ring"
               />
-              <label htmlFor="log_expense_maint" className="text-slate-300 text-sm">
+              <label htmlFor="log_expense_maint" className="text-foreground-soft text-sm">
                 Log as expense (repairs, {actualCost ? `$${actualCost}` : '$0'})
               </label>
             </div>
@@ -271,9 +271,9 @@ export default function MaintenanceCompleteDialog({
                 id="log_labor_maint"
                 checked={logLabor}
                 onChange={(e) => setLogLabor(e.target.checked)}
-                className="rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                className="rounded border-border bg-secondary text-primary focus:ring-ring"
               />
-              <label htmlFor="log_labor_maint" className="text-slate-300 text-sm">
+              <label htmlFor="log_labor_maint" className="text-foreground-soft text-sm">
                 Log labor entry
               </label>
             </div>
@@ -321,13 +321,13 @@ export default function MaintenanceCompleteDialog({
               type="button"
               variant="ghost"
               onClick={handleClose}
-              className="text-slate-400 hover:text-slate-200 hover:bg-transparent"
+              className="text-muted-foreground hover:text-foreground hover:bg-transparent"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
             >
               Complete
             </Button>

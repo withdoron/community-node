@@ -51,13 +51,13 @@ export default function ConcernForm({ businessId, businessName, onClose, onSucce
 
   if (!currentUser) {
     return (
-      <Card className="p-6 sm:p-8 bg-slate-900 border-slate-800">
+      <Card className="p-6 sm:p-8 bg-card border-border">
         <div className="flex items-center gap-3 mb-4">
-          <ShieldAlert className="h-6 w-6 text-slate-400" />
-          <h2 className="text-xl font-bold text-white">Share a Concern</h2>
+          <ShieldAlert className="h-6 w-6 text-muted-foreground" />
+          <h2 className="text-xl font-bold text-foreground">Share a Concern</h2>
         </div>
-        <p className="text-slate-400 mb-4">Sign in to submit a concern. Your feedback helps us maintain community trust.</p>
-        <Button className="bg-amber-500 hover:bg-amber-400 text-black font-semibold" onClick={() => base44.auth.signIn()}>
+        <p className="text-muted-foreground mb-4">Sign in to submit a concern. Your feedback helps us maintain community trust.</p>
+        <Button className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold" onClick={() => base44.auth.signIn()}>
           Sign In
         </Button>
       </Card>
@@ -65,43 +65,43 @@ export default function ConcernForm({ businessId, businessName, onClose, onSucce
   }
 
   return (
-    <Card className="p-6 sm:p-8 bg-slate-900 border-slate-800">
+    <Card className="p-6 sm:p-8 bg-card border-border">
       <div className="flex items-center gap-3 mb-2">
-        <ShieldAlert className="h-6 w-6 text-slate-400" />
-        <h2 className="text-xl font-bold text-white">Share a Concern</h2>
+        <ShieldAlert className="h-6 w-6 text-muted-foreground" />
+        <h2 className="text-xl font-bold text-foreground">Share a Concern</h2>
       </div>
-      <p className="text-slate-400 text-sm mb-1">This goes directly to LocalLane — it won't be posted publicly.</p>
-      <p className="text-slate-500 text-sm mb-6">Your concern helps us maintain community trust.</p>
+      <p className="text-muted-foreground text-sm mb-1">This goes directly to LocalLane — it won't be posted publicly.</p>
+      <p className="text-muted-foreground/70 text-sm mb-6">Your concern helps us maintain community trust.</p>
 
       <div className="space-y-4">
         <div>
-          <Label className="text-slate-100">What happened? <span className="text-red-500">*</span></Label>
+          <Label className="text-foreground">What happened? <span className="text-red-500">*</span></Label>
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Describe your experience..."
-            className="mt-2 min-h-[100px] bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+            className="mt-2 min-h-[100px] bg-secondary border-border text-foreground placeholder:text-muted-foreground/70"
             required
           />
         </div>
 
         <div>
-          <Label className="text-slate-100">When did this happen? (optional)</Label>
+          <Label className="text-foreground">When did this happen? (optional)</Label>
           <Input
             value={approximateDate}
             onChange={(e) => setApproximateDate(e.target.value)}
             placeholder="e.g., Last Tuesday, January 15th"
-            className="mt-2 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+            className="mt-2 bg-secondary border-border text-foreground placeholder:text-muted-foreground/70"
           />
         </div>
 
         <div>
-          <Label className="text-slate-100">What would you like to happen? (optional)</Label>
+          <Label className="text-foreground">What would you like to happen? (optional)</Label>
           <Textarea
             value={desiredResolution}
             onChange={(e) => setDesiredResolution(e.target.value)}
             placeholder="e.g., A refund, an apology, just want LocalLane to know"
-            className="mt-2 min-h-[80px] bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+            className="mt-2 min-h-[80px] bg-secondary border-border text-foreground placeholder:text-muted-foreground/70"
           />
         </div>
 
@@ -109,14 +109,14 @@ export default function ConcernForm({ businessId, businessName, onClose, onSucce
           <Button
             variant="ghost"
             onClick={onClose}
-            className="h-11 text-slate-400 hover:text-white"
+            className="h-11 text-muted-foreground hover:text-foreground"
           >
             Cancel
           </Button>
           <Button
             onClick={() => submitConcern.mutate()}
             disabled={!description.trim() || submitConcern.isPending}
-            className="h-11 bg-slate-700 hover:bg-slate-600 text-white"
+            className="h-11 bg-surface hover:bg-surface text-foreground"
           >
             {submitConcern.isPending ? (
               <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Submitting...</>

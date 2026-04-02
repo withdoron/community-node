@@ -34,25 +34,25 @@ export default function AdminFilters({ filters, onFiltersChange }) {
       {/* Search */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
           <Input
             name="admin-filter-search"
             id="admin-filter-search"
             placeholder="Search by business name..."
             value={filters.search}
             onChange={(e) => updateFilter('search', e.target.value)}
-            className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-amber-500"
+            className="pl-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground/70 focus:ring-2 focus:ring-ring"
           />
         </div>
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
           <Input
             name="admin-filter-owner-email"
             id="admin-filter-owner-email"
             placeholder="Search by owner email..."
             value={filters.ownerSearch || ''}
             onChange={(e) => updateFilter('ownerSearch', e.target.value)}
-            className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-amber-500"
+            className="pl-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground/70 focus:ring-2 focus:ring-ring"
           />
         </div>
       </div>
@@ -60,63 +60,63 @@ export default function AdminFilters({ filters, onFiltersChange }) {
       {/* Filter dropdowns */}
       <div className="flex flex-wrap gap-3">
         <Select value={filters.tier} onValueChange={(v) => updateFilter('tier', v)}>
-          <SelectTrigger className="flex-1 min-w-[120px] bg-slate-800 border-slate-700 text-slate-300">
+          <SelectTrigger className="flex-1 min-w-[120px] bg-secondary border-border text-foreground-soft">
             <SelectValue placeholder="Tier" />
           </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-800">
-            <SelectItem value="all" className="text-slate-300 focus:bg-slate-800">All Tiers</SelectItem>
-            <SelectItem value="basic" className="text-slate-300 focus:bg-slate-800">Basic</SelectItem>
-            <SelectItem value="standard" className="text-slate-300 focus:bg-slate-800">Standard</SelectItem>
-            <SelectItem value="partner" className="text-slate-300 focus:bg-slate-800">Partner</SelectItem>
+          <SelectContent className="bg-card border-border">
+            <SelectItem value="all" className="text-foreground-soft focus:bg-secondary">All Tiers</SelectItem>
+            <SelectItem value="basic" className="text-foreground-soft focus:bg-secondary">Basic</SelectItem>
+            <SelectItem value="standard" className="text-foreground-soft focus:bg-secondary">Standard</SelectItem>
+            <SelectItem value="partner" className="text-foreground-soft focus:bg-secondary">Partner</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={filters.acceptsSilver} onValueChange={(v) => updateFilter('acceptsSilver', v)}>
-          <SelectTrigger className="flex-1 min-w-[120px] bg-slate-800 border-slate-700 text-slate-300">
+          <SelectTrigger className="flex-1 min-w-[120px] bg-secondary border-border text-foreground-soft">
             <SelectValue placeholder="Accepts Silver" />
           </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-800">
-            <SelectItem value="all" className="text-slate-300 focus:bg-slate-800">All</SelectItem>
-            <SelectItem value="yes" className="text-slate-300 focus:bg-slate-800">Accepts Silver</SelectItem>
-            <SelectItem value="no" className="text-slate-300 focus:bg-slate-800">No Silver</SelectItem>
+          <SelectContent className="bg-card border-border">
+            <SelectItem value="all" className="text-foreground-soft focus:bg-secondary">All</SelectItem>
+            <SelectItem value="yes" className="text-foreground-soft focus:bg-secondary">Accepts Silver</SelectItem>
+            <SelectItem value="no" className="text-foreground-soft focus:bg-secondary">No Silver</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={filters.localFranchise} onValueChange={(v) => updateFilter('localFranchise', v)}>
-          <SelectTrigger className="flex-1 min-w-[120px] bg-slate-800 border-slate-700 text-slate-300">
+          <SelectTrigger className="flex-1 min-w-[120px] bg-secondary border-border text-foreground-soft">
             <SelectValue placeholder="Local Franchise" />
           </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-800">
-            <SelectItem value="all" className="text-slate-300 focus:bg-slate-800">All</SelectItem>
-            <SelectItem value="yes" className="text-slate-300 focus:bg-slate-800">Local Franchise</SelectItem>
-            <SelectItem value="no" className="text-slate-300 focus:bg-slate-800">Not Franchise</SelectItem>
+          <SelectContent className="bg-card border-border">
+            <SelectItem value="all" className="text-foreground-soft focus:bg-secondary">All</SelectItem>
+            <SelectItem value="yes" className="text-foreground-soft focus:bg-secondary">Local Franchise</SelectItem>
+            <SelectItem value="no" className="text-foreground-soft focus:bg-secondary">Not Franchise</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={filters.status} onValueChange={(v) => updateFilter('status', v)}>
-          <SelectTrigger className="flex-1 min-w-[120px] bg-slate-800 border-slate-700 text-slate-300">
+          <SelectTrigger className="flex-1 min-w-[120px] bg-secondary border-border text-foreground-soft">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-800">
-            <SelectItem value="all" className="text-slate-300 focus:bg-slate-800">All Status</SelectItem>
-            <SelectItem value="active" className="text-slate-300 focus:bg-slate-800">Active</SelectItem>
-            <SelectItem value="inactive" className="text-slate-300 focus:bg-slate-800">Inactive</SelectItem>
+          <SelectContent className="bg-card border-border">
+            <SelectItem value="all" className="text-foreground-soft focus:bg-secondary">All Status</SelectItem>
+            <SelectItem value="active" className="text-foreground-soft focus:bg-secondary">Active</SelectItem>
+            <SelectItem value="inactive" className="text-foreground-soft focus:bg-secondary">Inactive</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={filters.ownership || 'all'} onValueChange={(v) => updateFilter('ownership', v)}>
-          <SelectTrigger className="flex-1 min-w-[120px] bg-slate-800 border-slate-700 text-slate-300">
+          <SelectTrigger className="flex-1 min-w-[120px] bg-secondary border-border text-foreground-soft">
             <SelectValue placeholder="Ownership" />
           </SelectTrigger>
-          <SelectContent className="bg-slate-900 border-slate-800">
-            <SelectItem value="all" className="text-slate-300 focus:bg-slate-800">All Ownership</SelectItem>
-            <SelectItem value="claimed" className="text-slate-300 focus:bg-slate-800">Claimed</SelectItem>
-            <SelectItem value="unclaimed" className="text-slate-300 focus:bg-slate-800">Unclaimed</SelectItem>
+          <SelectContent className="bg-card border-border">
+            <SelectItem value="all" className="text-foreground-soft focus:bg-secondary">All Ownership</SelectItem>
+            <SelectItem value="claimed" className="text-foreground-soft focus:bg-secondary">Claimed</SelectItem>
+            <SelectItem value="unclaimed" className="text-foreground-soft focus:bg-secondary">Unclaimed</SelectItem>
           </SelectContent>
         </Select>
 
         {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-slate-400 hover:text-amber-500">
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-primary">
             <X className="h-4 w-4 mr-1" />
             Clear
           </Button>

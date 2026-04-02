@@ -596,18 +596,18 @@ export default function EventEditor({
     <form onSubmit={handleSubmit} className="space-y-6 pt-2">
         {/* Basic info */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-            <Info className="h-5 w-5 text-amber-500" />
+          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <Info className="h-5 w-5 text-primary" />
             Basic Information
           </h3>
           <div data-error="title">
-            <Label className="text-slate-300">Event Title *</Label>
+            <Label className="text-foreground-soft">Event Title *</Label>
             <Input
               value={formData.title}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, title: e.target.value }))
               }
-              className="bg-slate-900 border-slate-700 text-white mt-1"
+              className="bg-card border-border text-foreground mt-1"
               placeholder="e.g., Summer Art Workshop"
             />
             {errors.title && (
@@ -618,13 +618,13 @@ export default function EventEditor({
             )}
           </div>
           <div data-error="description">
-            <Label className="text-slate-300">Description *</Label>
+            <Label className="text-foreground-soft">Description *</Label>
             <Textarea
               value={formData.description}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, description: e.target.value }))
               }
-              className="bg-slate-900 border-slate-700 text-white mt-1 min-h-[100px]"
+              className="bg-card border-border text-foreground mt-1 min-h-[100px]"
               placeholder="Describe your event..."
             />
             {errors.description && (
@@ -638,15 +638,15 @@ export default function EventEditor({
 
         {/* Date & time */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-white">Date & Time</h3>
+          <h3 className="text-lg font-semibold text-foreground">Date & Time</h3>
           <div data-error="start_date">
-            <Label className="text-slate-300">Start Date *</Label>
+            <Label className="text-foreground-soft">Start Date *</Label>
             <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
               <PopoverTrigger asChild>
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full justify-start text-left bg-slate-900 border-slate-700 text-slate-100 mt-1"
+                  className="w-full justify-start text-left bg-card border-border text-foreground mt-1"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {formData.start_date
@@ -654,7 +654,7 @@ export default function EventEditor({
                     : "Select date"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-slate-900 border-slate-700">
+              <PopoverContent className="w-auto p-0 bg-card border-border">
                 <Calendar
                   mode="single"
                   selected={formData.start_date}
@@ -674,18 +674,18 @@ export default function EventEditor({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label className="text-slate-300">Start Time</Label>
+              <Label className="text-foreground-soft">Start Time</Label>
               <Input
                 type="time"
                 value={formData.start_time}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, start_time: e.target.value }))
                 }
-                className="bg-slate-900 border-slate-700 text-white mt-1"
+                className="bg-card border-border text-foreground mt-1"
               />
             </div>
             <div>
-              <Label className="text-slate-300">End</Label>
+              <Label className="text-foreground-soft">End</Label>
               <div className="flex gap-2 mt-1">
                 <button
                   type="button"
@@ -693,8 +693,8 @@ export default function EventEditor({
                   className={cn(
                     "px-3 py-2 rounded-lg text-sm font-medium transition-all",
                     endTimeMode === "duration"
-                      ? "bg-amber-500 text-black"
-                      : "bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-foreground-soft border border-border hover:border-primary/50"
                   )}
                 >
                   Duration
@@ -705,8 +705,8 @@ export default function EventEditor({
                   className={cn(
                     "px-3 py-2 rounded-lg text-sm font-medium transition-all",
                     endTimeMode === "end_time"
-                      ? "bg-amber-500 text-black"
-                      : "bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-foreground-soft border border-border hover:border-primary/50"
                   )}
                 >
                   End Time
@@ -717,7 +717,7 @@ export default function EventEditor({
 
           {endTimeMode === "duration" ? (
             <div>
-              <Label className="text-slate-300">Duration</Label>
+              <Label className="text-foreground-soft">Duration</Label>
               <Select
                 value={String(formData.duration_minutes)}
                 onValueChange={(v) =>
@@ -727,17 +727,17 @@ export default function EventEditor({
                   }))
                 }
               >
-                <SelectTrigger className="bg-slate-900 border-slate-700 text-white mt-1">
+                <SelectTrigger className="bg-card border-border text-foreground mt-1">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-700">
+                <SelectContent className="bg-card border-border">
                   {durationPresets
                     .filter((d) => d.active !== false)
                     .map((duration) => (
                       <SelectItem
                         key={duration.value ?? duration.minutes}
                         value={String(duration.minutes ?? duration.value)}
-                        className="text-slate-300"
+                        className="text-foreground-soft"
                       >
                         {duration.label}
                       </SelectItem>
@@ -748,12 +748,12 @@ export default function EventEditor({
           ) : (
             <div className="space-y-3">
               <div data-error="end_time">
-                <Label className="text-slate-300">End Time *</Label>
+                <Label className="text-foreground-soft">End Time *</Label>
                 <Input
                   type="time"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="bg-slate-900 border-slate-700 text-white mt-1"
+                  className="bg-card border-border text-foreground mt-1"
                 />
                 {errors.end_time && (
                   <p className="text-red-400 text-sm mt-1 flex items-center gap-1">
@@ -763,19 +763,19 @@ export default function EventEditor({
                 )}
               </div>
               <div>
-                <Label className="text-slate-300">Different end date (optional)</Label>
+                <Label className="text-foreground-soft">Different end date (optional)</Label>
                 <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full justify-start text-left bg-slate-900 border-slate-700 text-slate-100 mt-1"
+                      className="w-full justify-start text-left bg-card border-border text-foreground mt-1"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {endDate ? format(endDate, "PPP") : "Same day"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-slate-900 border-slate-700">
+                  <PopoverContent className="w-auto p-0 bg-card border-border">
                     <Calendar
                       mode="single"
                       selected={endDate}
@@ -798,7 +798,7 @@ export default function EventEditor({
                   <button
                     type="button"
                     onClick={() => setEndDate(null)}
-                    className="text-slate-400 text-sm mt-1 hover:text-white"
+                    className="text-muted-foreground text-sm mt-1 hover:text-foreground"
                   >
                     Clear (same day)
                   </button>
@@ -813,24 +813,24 @@ export default function EventEditor({
 
         {/* Recurring Event Section */}
         {isAppAdmin ? (
-          <div className="space-y-4 p-4 border border-slate-700 rounded-lg">
+          <div className="space-y-4 p-4 border border-border rounded-lg">
             <div
               role="button"
               tabIndex={0}
               onClick={() => setIsRecurring(!isRecurring)}
               onKeyDown={(e) => e.key === "Enter" && setIsRecurring(!isRecurring)}
-              className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
+              className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-primary/50 transition-colors -m-1 p-1"
             >
               <div className="pointer-events-none">
-                <p className="text-white font-medium">This event repeats</p>
-                <p className="text-slate-400 text-sm">
+                <p className="text-foreground font-medium">This event repeats</p>
+                <p className="text-muted-foreground text-sm">
                   Create multiple event instances on a schedule
                 </p>
               </div>
               <div
                 className={cn(
                   "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
-                  isRecurring ? "bg-amber-500" : "bg-slate-600"
+                  isRecurring ? "bg-primary" : "bg-surface"
                 )}
               >
                 <span
@@ -843,27 +843,27 @@ export default function EventEditor({
             </div>
 
             {isRecurring && (
-              <div className="space-y-4 pt-4 border-t border-slate-700">
+              <div className="space-y-4 pt-4 border-t border-border">
                 <div>
-                  <Label className="text-slate-300">Pattern</Label>
+                  <Label className="text-foreground-soft">Pattern</Label>
                   <Select
                     value={recurrencePattern}
                     onValueChange={setRecurrencePattern}
                   >
-                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                    <SelectTrigger className="bg-secondary border-border text-foreground mt-1">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700">
-                      <SelectItem value="daily" className="text-slate-300">
+                    <SelectContent className="bg-secondary border-border">
+                      <SelectItem value="daily" className="text-foreground-soft">
                         Daily
                       </SelectItem>
-                      <SelectItem value="weekly" className="text-slate-300">
+                      <SelectItem value="weekly" className="text-foreground-soft">
                         Weekly
                       </SelectItem>
-                      <SelectItem value="biweekly" className="text-slate-300">
+                      <SelectItem value="biweekly" className="text-foreground-soft">
                         Every 2 weeks
                       </SelectItem>
-                      <SelectItem value="monthly" className="text-slate-300">
+                      <SelectItem value="monthly" className="text-foreground-soft">
                         Monthly
                       </SelectItem>
                     </SelectContent>
@@ -873,7 +873,7 @@ export default function EventEditor({
                 {(recurrencePattern === "weekly" ||
                   recurrencePattern === "biweekly") && (
                   <div>
-                    <Label className="text-slate-300">Repeats on</Label>
+                    <Label className="text-foreground-soft">Repeats on</Label>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
                         (day) => (
@@ -884,8 +884,8 @@ export default function EventEditor({
                             className={cn(
                               "px-4 py-2 rounded-lg border transition-colors",
                               selectedDays.includes(day)
-                                ? "bg-amber-500 border-amber-500 text-black"
-                                : "bg-slate-800 border-slate-700 text-white hover:border-slate-600"
+                                ? "bg-primary border-primary text-primary-foreground"
+                                : "bg-secondary border-border text-foreground hover:border-border"
                             )}
                           >
                             {day}
@@ -897,13 +897,13 @@ export default function EventEditor({
                 )}
 
                 <div>
-                  <Label className="text-slate-300">Ends on (Optional)</Label>
+                  <Label className="text-foreground-soft">Ends on (Optional)</Label>
                   <Popover open={recurrenceEndDateOpen} onOpenChange={setRecurrenceEndDateOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         type="button"
                         variant="outline"
-                        className="w-full justify-start mt-1 bg-slate-800 border-slate-700 text-white hover:bg-slate-700"
+                        className="w-full justify-start mt-1 bg-secondary border-border text-foreground hover:bg-surface"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {recurrenceEndDate
@@ -911,7 +911,7 @@ export default function EventEditor({
                           : "Select end date"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="bg-slate-800 border-slate-700 p-0 w-auto">
+                    <PopoverContent className="bg-secondary border-border p-0 w-auto">
                       <Calendar
                         mode="single"
                         selected={recurrenceEndDate}
@@ -933,14 +933,14 @@ export default function EventEditor({
                     <button
                       type="button"
                       onClick={() => setRecurrenceEndDate(null)}
-                      className="text-slate-400 text-sm mt-1 hover:text-white"
+                      className="text-muted-foreground text-sm mt-1 hover:text-foreground"
                     >
                       Clear end date
                     </button>
                   )}
                 </div>
-                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-                  <p className="text-xs text-amber-500">
+                <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                  <p className="text-xs text-primary">
                     <AlertCircle className="h-3 w-3 inline mr-1" />
                     Each occurrence will be created as a separate event
                   </p>
@@ -949,21 +949,21 @@ export default function EventEditor({
             )}
           </div>
         ) : (
-          <div className="flex items-center justify-between p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl mt-2 opacity-50 cursor-not-allowed">
+          <div className="flex items-center justify-between p-4 bg-secondary/30 border border-border/50 rounded-xl mt-2 opacity-50 cursor-not-allowed">
             <div className="flex-1">
-              <p className="text-slate-400 font-medium">This event repeats</p>
-              <p className="text-slate-500 text-sm">Create multiple event instances on a schedule</p>
+              <p className="text-muted-foreground font-medium">This event repeats</p>
+              <p className="text-muted-foreground/70 text-sm">Create multiple event instances on a schedule</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-amber-500/70">Coming Soon</span>
-              <Lock className="h-4 w-4 text-amber-500/70" />
+              <span className="text-xs text-primary/70">Coming Soon</span>
+              <Lock className="h-4 w-4 text-primary/70" />
             </div>
           </div>
         )}
 
         {/* Location / Virtual / TBD */}
         <div className="space-y-3">
-          <Label className="text-slate-300">Location</Label>
+          <Label className="text-foreground-soft">Location</Label>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -977,8 +977,8 @@ export default function EventEditor({
               className={cn(
                 "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
                 formData.is_virtual
-                  ? "bg-amber-500 text-black"
-                  : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-foreground-soft border border-border hover:border-primary/50"
               )}
             >
               <Video className="h-4 w-4" />
@@ -996,8 +996,8 @@ export default function EventEditor({
               className={cn(
                 "px-4 py-2 rounded-lg text-sm font-medium transition-all",
                 formData.is_location_tbd
-                  ? "bg-amber-500 text-black"
-                  : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-foreground-soft border border-border hover:border-primary/50"
               )}
             >
               Location TBD
@@ -1007,14 +1007,14 @@ export default function EventEditor({
           {formData.is_virtual ? (
             <div className="space-y-3 pt-2">
               <div data-error="virtual_url">
-                <Label className="text-slate-300">Virtual Meeting Link *</Label>
+                <Label className="text-foreground-soft">Virtual Meeting Link *</Label>
                 <Input
                   type="url"
                   value={formData.virtual_url}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, virtual_url: e.target.value }))
                   }
-                  className="bg-slate-900 border-slate-700 text-white mt-1"
+                  className="bg-card border-border text-foreground mt-1"
                   placeholder="https://zoom.us/j/..."
                 />
                 {errors.virtual_url && (
@@ -1025,38 +1025,38 @@ export default function EventEditor({
                 )}
               </div>
               <div>
-                <Label className="text-slate-300">Platform</Label>
+                <Label className="text-foreground-soft">Platform</Label>
                 <Select
                   value={formData.virtual_platform || "zoom"}
                   onValueChange={(v) =>
                     setFormData((prev) => ({ ...prev, virtual_platform: v }))
                   }
                 >
-                  <SelectTrigger className="bg-slate-900 border-slate-700 text-white mt-1">
+                  <SelectTrigger className="bg-card border-border text-foreground mt-1">
                     <SelectValue placeholder="Select platform" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-slate-700">
-                    <SelectItem value="zoom" className="text-slate-300">Zoom</SelectItem>
-                    <SelectItem value="google_meet" className="text-slate-300">Google Meet</SelectItem>
-                    <SelectItem value="microsoft_teams" className="text-slate-300">Microsoft Teams</SelectItem>
-                    <SelectItem value="other" className="text-slate-300">Other</SelectItem>
+                  <SelectContent className="bg-card border-border">
+                    <SelectItem value="zoom" className="text-foreground-soft">Zoom</SelectItem>
+                    <SelectItem value="google_meet" className="text-foreground-soft">Google Meet</SelectItem>
+                    <SelectItem value="microsoft_teams" className="text-foreground-soft">Microsoft Teams</SelectItem>
+                    <SelectItem value="other" className="text-foreground-soft">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
           ) : (
             <div data-error="location" className="pt-2">
-              <Label className="text-slate-300">
+              <Label className="text-foreground-soft">
                 {formData.is_location_tbd ? "Location (optional)" : "Location *"}
               </Label>
               <div className="flex items-center gap-2 mt-1">
-                <MapPin className="h-4 w-4 text-slate-400" />
+                <MapPin className="h-4 w-4 text-muted-foreground" />
                 <Input
                   value={formData.location}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, location: e.target.value }))
                   }
-                  className="bg-slate-900 border-slate-700 text-white"
+                  className="bg-card border-border text-foreground"
                   placeholder={
                     formData.is_location_tbd
                       ? "Location to be announced"
@@ -1076,17 +1076,17 @@ export default function EventEditor({
 
         {/* Images (up to 3) */}
         <div>
-          <Label className="text-slate-300">Event Images</Label>
+          <Label className="text-foreground-soft">Event Images</Label>
           <div className="flex flex-wrap gap-4 mt-2">
             {(formData.images || []).map((url, index) => (
               <div key={url + index} className="relative group w-32 h-32">
                 <img
                   src={url}
                   alt=""
-                  className="w-32 h-32 object-cover rounded-lg border border-slate-700"
+                  className="w-32 h-32 object-cover rounded-lg border border-border"
                 />
                 {index === 0 && (
-                  <span className="absolute top-1 right-1 bg-slate-900/80 px-2 py-1 rounded text-xs text-slate-300">
+                  <span className="absolute top-1 right-1 bg-card/80 px-2 py-1 rounded text-xs text-foreground-soft">
                     Hero
                   </span>
                 )}
@@ -1095,14 +1095,14 @@ export default function EventEditor({
                   onClick={() => removeImage(index)}
                   className="absolute bottom-1 right-1 p-1 bg-red-600 rounded hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  <Trash2 className="h-4 w-4 text-white" />
+                  <Trash2 className="h-4 w-4 text-foreground" />
                 </button>
               </div>
             ))}
             {(formData.images || []).length < 3 && (
-              <label className="w-32 h-32 border-2 border-dashed border-slate-700 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-amber-500/50 transition-colors">
-                <Upload className="h-6 w-6 text-slate-400" />
-                <span className="text-xs text-slate-400 mt-1">Upload</span>
+              <label className="w-32 h-32 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
+                <Upload className="h-6 w-6 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground mt-1">Upload</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -1112,19 +1112,19 @@ export default function EventEditor({
               </label>
             )}
           </div>
-          <p className="text-xs text-slate-500 mt-2">
+          <p className="text-xs text-muted-foreground/70 mt-2">
             Up to 3 images. First image is the hero. Recommended: 1200×675px (16:9)
           </p>
         </div>
 
         {/* Pricing */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-amber-500" />
+          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <DollarSign className="h-5 w-5 text-primary" />
             Pricing
           </h3>
           <div data-error="pricing_type">
-            <Label className="text-slate-300">Pricing Type</Label>
+            <Label className="text-foreground-soft">Pricing Type</Label>
             <div className="grid grid-cols-2 gap-2 mt-2">
               {["free", "single_price", "multiple_tickets", "pay_what_you_wish"].map((type) => {
                 const isDisabled = false;
@@ -1143,8 +1143,8 @@ export default function EventEditor({
                     className={cn(
                       "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1",
                       formData.pricing_type === type
-                        ? "bg-amber-500 text-black"
-                        : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card text-foreground-soft border border-border hover:border-primary/50"
                     )}
                   >
                     {type === "free" && "Free"}
@@ -1161,7 +1161,7 @@ export default function EventEditor({
           </div>
           {formData.pricing_type === "single_price" && (
             <div data-error="price">
-              <Label className="text-slate-300">Price ($)</Label>
+              <Label className="text-foreground-soft">Price ($)</Label>
               <Input
                 type="number"
                 min="0"
@@ -1170,7 +1170,7 @@ export default function EventEditor({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, price: e.target.value }))
                 }
-                className="bg-slate-900 border-slate-700 text-white mt-1 w-32"
+                className="bg-card border-border text-foreground mt-1 w-32"
               />
               {errors.price && (
                 <p className="text-red-400 text-sm mt-1">{errors.price}</p>
@@ -1180,13 +1180,13 @@ export default function EventEditor({
           {formData.pricing_type === "multiple_tickets" && (
             <div className="space-y-3" data-error="ticket_types">
               {(formData.ticket_types || []).map((ticket, index) => (
-                <div key={index} className="flex gap-2 items-start p-3 bg-slate-800 rounded-lg border border-slate-700">
+                <div key={index} className="flex gap-2 items-start p-3 bg-secondary rounded-lg border border-border">
                   <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <Input
                       placeholder="Tier name"
                       value={ticket.name}
                       onChange={(e) => updateTicketType(index, "name", e.target.value)}
-                      className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500 focus:border-amber-500"
+                      className="bg-surface border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary"
                     />
                     <Input
                       type="number"
@@ -1195,7 +1195,7 @@ export default function EventEditor({
                       placeholder="Price"
                       value={ticket.price}
                       onChange={(e) => updateTicketType(index, "price", e.target.value)}
-                      className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500 focus:border-amber-500"
+                      className="bg-surface border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary"
                     />
                     <Input
                       type="number"
@@ -1203,7 +1203,7 @@ export default function EventEditor({
                       placeholder="Limit (optional)"
                       value={ticket.quantity_limit}
                       onChange={(e) => updateTicketType(index, "quantity_limit", e.target.value)}
-                      className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500 focus:border-amber-500"
+                      className="bg-surface border-border text-foreground placeholder:text-muted-foreground/70 focus:border-primary"
                     />
                   </div>
                   <Button
@@ -1221,7 +1221,7 @@ export default function EventEditor({
               <Button
                 type="button"
                 onClick={addTicketType}
-                className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Ticket Type
@@ -1236,7 +1236,7 @@ export default function EventEditor({
           )}
           {formData.pricing_type === "pay_what_you_wish" && (
             <div data-error="min_price">
-              <Label className="text-slate-300">Minimum suggested ($)</Label>
+              <Label className="text-foreground-soft">Minimum suggested ($)</Label>
               <Input
                 type="number"
                 min="0"
@@ -1245,7 +1245,7 @@ export default function EventEditor({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, min_price: e.target.value }))
                 }
-                className="bg-slate-900 border-slate-700 text-white mt-1 w-32"
+                className="bg-card border-border text-foreground mt-1 w-32"
                 placeholder="0"
               />
               {errors.min_price && (
@@ -1257,9 +1257,9 @@ export default function EventEditor({
 
         {/* Joy Coins */}
         {isAppAdmin ? (
-          <div className="space-y-3 p-4 rounded-xl border border-slate-700 bg-slate-800/50">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Coins className="h-5 w-5 text-amber-500" />
+          <div className="space-y-3 p-4 rounded-xl border border-border bg-secondary/50">
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Coins className="h-5 w-5 text-primary" />
               Joy Coins
             </h3>
             <div
@@ -1272,15 +1272,15 @@ export default function EventEditor({
                 e.key === "Enter" &&
                 setFormData((prev) => ({ ...prev, joy_coin_enabled: !prev.joy_coin_enabled }))
               }
-              className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
+              className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-primary/50 transition-colors -m-1 p-1"
             >
-              <span className="text-slate-300 pointer-events-none">
+              <span className="text-foreground-soft pointer-events-none">
                 Accept Joy Coins for this event
               </span>
               <div
                 className={cn(
                   "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
-                  formData.joy_coin_enabled ? "bg-amber-500" : "bg-slate-600"
+                  formData.joy_coin_enabled ? "bg-primary" : "bg-surface"
                 )}
               >
                 <span
@@ -1292,28 +1292,28 @@ export default function EventEditor({
               </div>
             </div>
             {formData.joy_coin_enabled && (
-              <div className="space-y-4 pt-3 border-t border-slate-700">
+              <div className="space-y-4 pt-3 border-t border-border">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-slate-300">Coins per person</Label>
+                    <Label className="text-foreground-soft">Coins per person</Label>
                     <Input
                       type="number"
                       min="1"
                       value={formData.joy_coin_cost}
                       onChange={(e) => setFormData((prev) => ({ ...prev, joy_coin_cost: e.target.value }))}
-                      className="bg-slate-900 border-slate-700 text-white mt-1"
+                      className="bg-card border-border text-foreground mt-1"
                       placeholder="e.g., 3"
                     />
                   </div>
                   {!formData.joy_coin_unlimited && (
                     <div>
-                      <Label className="text-slate-300">Joy Coin spots</Label>
+                      <Label className="text-foreground-soft">Joy Coin spots</Label>
                       <Input
                         type="number"
                         min="1"
                         value={formData.joy_coin_spots}
                         onChange={(e) => setFormData((prev) => ({ ...prev, joy_coin_spots: e.target.value }))}
-                        className="bg-slate-900 border-slate-700 text-white mt-1"
+                        className="bg-card border-border text-foreground mt-1"
                         placeholder="Defaults to capacity"
                       />
                     </div>
@@ -1321,14 +1321,14 @@ export default function EventEditor({
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
                   <div className="flex-1">
-                    <Label className="text-slate-300">Max party size</Label>
+                    <Label className="text-foreground-soft">Max party size</Label>
                     <Input
                       type="number"
                       min="1"
                       max="20"
                       value={formData.max_party_size}
                       onChange={(e) => setFormData((prev) => ({ ...prev, max_party_size: e.target.value }))}
-                      className="bg-slate-900 border-slate-700 text-white mt-1 w-24"
+                      className="bg-card border-border text-foreground mt-1 w-24"
                       placeholder="10"
                     />
                   </div>
@@ -1339,11 +1339,11 @@ export default function EventEditor({
                     onKeyDown={(e) => e.key === "Enter" && setFormData((prev) => ({ ...prev, joy_coin_unlimited: !prev.joy_coin_unlimited }))}
                     className="flex items-center gap-3 cursor-pointer"
                   >
-                    <span className="text-slate-300 text-sm">Unlimited spots</span>
+                    <span className="text-foreground-soft text-sm">Unlimited spots</span>
                     <div
                       className={cn(
                         "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0",
-                        formData.joy_coin_unlimited ? "bg-amber-500" : "bg-slate-600"
+                        formData.joy_coin_unlimited ? "bg-primary" : "bg-surface"
                       )}
                     >
                       <span
@@ -1356,47 +1356,47 @@ export default function EventEditor({
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Attendance limit (optional)</Label>
-                  <p className="text-xs text-slate-500">Limit how often the same member can attend</p>
+                  <Label className="text-foreground-soft">Attendance limit (optional)</Label>
+                  <p className="text-xs text-muted-foreground/70">Limit how often the same member can attend</p>
                   <div className="flex flex-wrap items-center gap-2">
                     <Input
                       type="number"
                       min="1"
                       value={formData.frequency_limit_count}
                       onChange={(e) => setFormData((prev) => ({ ...prev, frequency_limit_count: e.target.value }))}
-                      className="bg-slate-900 border-slate-700 text-white w-20"
+                      className="bg-card border-border text-foreground w-20"
                       placeholder="∞"
                     />
-                    <span className="text-slate-400">times per</span>
+                    <span className="text-muted-foreground">times per</span>
                     <Select
                       value={formData.frequency_limit_period}
                       onValueChange={(value) => setFormData((prev) => ({ ...prev, frequency_limit_period: value }))}
                     >
-                      <SelectTrigger className="w-32 bg-slate-900 border-slate-700 text-white">
+                      <SelectTrigger className="w-32 bg-card border-border text-foreground">
                         <SelectValue placeholder="Select..." />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-700">
-                        <SelectItem value="week" className="text-slate-300">week</SelectItem>
-                        <SelectItem value="month" className="text-slate-300">month</SelectItem>
-                        <SelectItem value="total" className="text-slate-300">total</SelectItem>
+                      <SelectContent className="bg-card border-border">
+                        <SelectItem value="week" className="text-foreground-soft">week</SelectItem>
+                        <SelectItem value="month" className="text-foreground-soft">month</SelectItem>
+                        <SelectItem value="total" className="text-foreground-soft">total</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <Label className="text-slate-300">Refund policy</Label>
+                    <Label className="text-foreground-soft">Refund policy</Label>
                     <Select
                       value={formData.refund_policy || "moderate"}
                       onValueChange={(value) => setFormData((prev) => ({ ...prev, refund_policy: value }))}
                     >
-                      <SelectTrigger className="bg-slate-900 border-slate-700 text-white mt-1">
+                      <SelectTrigger className="bg-card border-border text-foreground mt-1">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-700">
-                        <SelectItem value="flexible" className="text-slate-300">Flexible (2 hours)</SelectItem>
-                        <SelectItem value="moderate" className="text-slate-300">Moderate (24 hours)</SelectItem>
-                        <SelectItem value="strict" className="text-slate-300">Strict (no refunds)</SelectItem>
+                      <SelectContent className="bg-card border-border">
+                        <SelectItem value="flexible" className="text-foreground-soft">Flexible (2 hours)</SelectItem>
+                        <SelectItem value="moderate" className="text-foreground-soft">Moderate (24 hours)</SelectItem>
+                        <SelectItem value="strict" className="text-foreground-soft">Strict (no refunds)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1407,11 +1407,11 @@ export default function EventEditor({
                     onKeyDown={(e) => e.key === "Enter" && setFormData((prev) => ({ ...prev, adults_only: !prev.adults_only }))}
                     className="flex items-center gap-3 cursor-pointer pt-6"
                   >
-                    <span className="text-slate-300 text-sm">18+ only</span>
+                    <span className="text-foreground-soft text-sm">18+ only</span>
                     <div
                       className={cn(
                         "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0",
-                        formData.adults_only ? "bg-amber-500" : "bg-slate-600"
+                        formData.adults_only ? "bg-primary" : "bg-surface"
                       )}
                     >
                       <span
@@ -1427,24 +1427,24 @@ export default function EventEditor({
             )}
           </div>
         ) : (
-          <div className="p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl opacity-50 cursor-not-allowed">
+          <div className="p-4 bg-secondary/30 border border-border/50 rounded-xl opacity-50 cursor-not-allowed">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Coins className="h-5 w-5 text-amber-500/50" />
-                <h3 className="text-slate-400 font-semibold">Joy Coins</h3>
+                <Coins className="h-5 w-5 text-primary/50" />
+                <h3 className="text-muted-foreground font-semibold">Joy Coins</h3>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-amber-500/70">Coming Soon</span>
-                <Lock className="h-4 w-4 text-amber-500/70" />
+                <span className="text-xs text-primary/70">Coming Soon</span>
+                <Lock className="h-4 w-4 text-primary/70" />
               </div>
             </div>
-            <p className="text-slate-500 text-sm mt-2">Accept Joy Coins for this event</p>
+            <p className="text-muted-foreground/70 text-sm mt-2">Accept Joy Coins for this event</p>
           </div>
         )}
 
         {/* Event Type */}
         <div data-error="event_types">
-          <Label className="text-slate-300">Event Type</Label>
+          <Label className="text-foreground-soft">Event Type</Label>
           <div className="flex flex-wrap gap-2 mt-2">
             {(eventTypes || [])
               .filter((t) => t.active !== false)
@@ -1456,8 +1456,8 @@ export default function EventEditor({
                   className={cn(
                     "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
                     formData.event_types?.includes(type.value)
-                      ? "bg-amber-500 text-black"
-                      : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-card text-foreground-soft border border-border hover:border-primary/50"
                   )}
                 >
                   {type.label}
@@ -1472,7 +1472,7 @@ export default function EventEditor({
         {/* Networks — only show if business has assigned networks (or admin sees all) */}
         {allowedNetworks.length > 0 && (
           <div>
-            <Label className="text-slate-300">Networks / Communities (optional)</Label>
+            <Label className="text-foreground-soft">Networks / Communities (optional)</Label>
             <div className="flex flex-wrap gap-2 mt-2">
               {allowedNetworks.map((network) => {
                 const slug = network.value ?? network.slug ?? network.id;
@@ -1484,8 +1484,8 @@ export default function EventEditor({
                     className={cn(
                       "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
                       formData.networks.includes(slug)
-                        ? "bg-amber-500 text-black"
-                        : "bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/50"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card text-foreground-soft border border-border hover:border-primary/50"
                     )}
                   >
                     {network.label ?? network.name ?? slug}
@@ -1498,7 +1498,7 @@ export default function EventEditor({
 
         {/* Network Members Only — visible only when a network is selected */}
         {allowedNetworks.length > 0 && formData.networks?.length > 0 && (
-          <div className="space-y-4 p-4 border border-slate-700 rounded-lg">
+          <div className="space-y-4 p-4 border border-border rounded-lg">
             <div
               role="button"
               tabIndex={0}
@@ -1509,13 +1509,13 @@ export default function EventEditor({
                 e.key === "Enter" &&
                 setFormData((prev) => ({ ...prev, network_only: !prev.network_only }))
               }
-              className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-amber-500/50 transition-colors -m-1 p-1"
+              className="flex items-center justify-between cursor-pointer rounded-lg border border-transparent hover:border-primary/50 transition-colors -m-1 p-1"
             >
               <div className="pointer-events-none flex items-start gap-3">
-                <Shield className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <Shield className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-white font-medium">Network Members Only</p>
-                  <p className="text-slate-400 text-sm">
+                  <p className="text-foreground font-medium">Network Members Only</p>
+                  <p className="text-muted-foreground text-sm">
                     Only visible to users following this network
                   </p>
                 </div>
@@ -1523,7 +1523,7 @@ export default function EventEditor({
               <div
                 className={cn(
                   "relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 pointer-events-none",
-                  formData.network_only ? "bg-amber-500" : "bg-slate-600"
+                  formData.network_only ? "bg-primary" : "bg-surface"
                 )}
               >
                 <span
@@ -1539,7 +1539,7 @@ export default function EventEditor({
 
         {/* Age / Audience */}
         <div>
-          <Label className="text-slate-300">Age / Audience (optional)</Label>
+          <Label className="text-foreground-soft">Age / Audience (optional)</Label>
           <Select
             value={formData.age_info || "none"}
             onValueChange={(v) =>
@@ -1549,11 +1549,11 @@ export default function EventEditor({
               }))
             }
           >
-            <SelectTrigger className="bg-slate-900 border-slate-700 text-white mt-1">
+            <SelectTrigger className="bg-card border-border text-foreground mt-1">
               <SelectValue placeholder="Select" />
             </SelectTrigger>
-            <SelectContent className="bg-slate-900 border-slate-700">
-              <SelectItem value="none" className="text-slate-300">
+            <SelectContent className="bg-card border-border">
+              <SelectItem value="none" className="text-foreground-soft">
                 —
               </SelectItem>
               {ageGroups
@@ -1562,7 +1562,7 @@ export default function EventEditor({
                   <SelectItem
                     key={age.value}
                     value={age.value}
-                    className="text-slate-300"
+                    className="text-foreground-soft"
                   >
                     {age.label}
                   </SelectItem>
@@ -1573,7 +1573,7 @@ export default function EventEditor({
 
         {/* Capacity */}
         <div>
-          <Label className="text-slate-300">Capacity (optional)</Label>
+          <Label className="text-foreground-soft">Capacity (optional)</Label>
           <Input
             type="number"
             min="1"
@@ -1581,41 +1581,41 @@ export default function EventEditor({
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, capacity: e.target.value }))
             }
-            className="bg-slate-900 border-slate-700 text-white mt-1 w-32"
+            className="bg-card border-border text-foreground mt-1 w-32"
             placeholder="e.g., 50"
           />
         </div>
 
         {/* Additional Settings */}
-        <div className="space-y-4 p-4 border border-slate-700 rounded-lg bg-slate-900/50">
-          <h3 className="text-lg font-semibold text-white">Additional Settings</h3>
+        <div className="space-y-4 p-4 border border-border rounded-lg bg-card/50">
+          <h3 className="text-lg font-semibold text-foreground">Additional Settings</h3>
           <div className="flex items-center justify-between">
             <div>
-              <Label className="text-slate-300">Accept RSVPs for this event</Label>
-              <p className="text-sm text-slate-400 mt-0.5">Allow attendees to RSVP through Local Lane</p>
+              <Label className="text-foreground-soft">Accept RSVPs for this event</Label>
+              <p className="text-sm text-muted-foreground mt-0.5">Allow attendees to RSVP through Local Lane</p>
             </div>
             <Switch
               checked={formData.accepts_rsvps}
               onCheckedChange={(checked) =>
                 setFormData((prev) => ({ ...prev, accepts_rsvps: checked }))
               }
-              className="data-[state=checked]:bg-amber-500"
+              className="data-[state=checked]:bg-primary"
             />
           </div>
           <div>
-            <Label className="text-slate-300">Additional Notes (Optional)</Label>
+            <Label className="text-foreground-soft">Additional Notes (Optional)</Label>
             <Textarea
               value={formData.additional_notes}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, additional_notes: e.target.value }))
               }
-              className="bg-slate-900 border-slate-700 text-white mt-1 min-h-[80px]"
+              className="bg-card border-border text-foreground mt-1 min-h-[80px]"
               placeholder="Parking details, what to bring, etc."
               rows={3}
             />
           </div>
           <div>
-            <Label className="text-slate-300">Accessibility (Optional)</Label>
+            <Label className="text-foreground-soft">Accessibility (Optional)</Label>
             <div className="space-y-2 mt-2">
               {(accessibilityOptions || [])
                 .filter((o) => o.active !== false)
@@ -1630,25 +1630,25 @@ export default function EventEditor({
                     className={cn(
                       "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors",
                       formData.accessibility_features?.includes(opt.value)
-                        ? "border-amber-500 bg-amber-500/10"
-                        : "border-slate-700 hover:border-amber-500/50 bg-slate-800/50"
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50 bg-secondary/50"
                     )}
                   >
                     <div
                       className={cn(
                         "h-4 w-4 rounded border flex items-center justify-center flex-shrink-0",
                         formData.accessibility_features?.includes(opt.value)
-                          ? "bg-amber-500 border-amber-500"
-                          : "border-slate-600 bg-transparent"
+                          ? "bg-primary border-primary"
+                          : "border-border bg-transparent"
                       )}
                     >
                       {formData.accessibility_features?.includes(opt.value) && (
-                        <svg className="h-3 w-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       )}
                     </div>
-                    <span className="text-slate-200 text-sm">{opt.label}</span>
+                    <span className="text-foreground text-sm">{opt.label}</span>
                   </div>
                 ))}
             </div>
@@ -1656,9 +1656,9 @@ export default function EventEditor({
         </div>
 
         {/* Actions */}
-        <div className="space-y-3 pt-4 border-t border-slate-800">
+        <div className="space-y-3 pt-4 border-t border-border">
           {lastSaved && (
-            <p className="text-xs text-slate-500 text-center">
+            <p className="text-xs text-muted-foreground/70 text-center">
               Last auto-saved {formatDistanceToNow(lastSaved, { addSuffix: true })}
             </p>
           )}
@@ -1666,7 +1666,7 @@ export default function EventEditor({
             <Button
               type="button"
               onClick={onCancel}
-              className="bg-transparent border-none text-slate-400 hover:text-slate-300 hover:underline hover:bg-transparent w-full sm:w-auto px-6 sm:px-8 py-3 shadow-none order-3 sm:order-1"
+              className="bg-transparent border-none text-muted-foreground hover:text-foreground-soft hover:underline hover:bg-transparent w-full sm:w-auto px-6 sm:px-8 py-3 shadow-none order-3 sm:order-1"
             >
               Cancel
             </Button>
@@ -1674,7 +1674,7 @@ export default function EventEditor({
               type="button"
               disabled={isSubmitting}
               onClick={(e) => handleSubmit(e, { isDraft: true })}
-              className="bg-transparent border border-slate-600 text-slate-200 hover:bg-slate-800 hover:border-slate-500 w-full sm:w-auto px-6 sm:px-8 py-3 order-2 sm:order-2"
+              className="bg-transparent border border-border text-foreground hover:bg-secondary hover:border-muted-foreground w-full sm:w-auto px-6 sm:px-8 py-3 order-2 sm:order-2"
             >
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Save as Draft
@@ -1682,7 +1682,7 @@ export default function EventEditor({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold w-full sm:w-auto px-6 sm:px-8 py-3 order-1 sm:order-3"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold w-full sm:w-auto px-6 sm:px-8 py-3 order-1 sm:order-3"
             >
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Publish Event

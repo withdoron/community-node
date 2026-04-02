@@ -99,7 +99,7 @@ function RotatingCompletions() {
   return (
     <div className="h-10 md:h-14 flex items-center justify-center overflow-hidden">
       <p
-        className="text-lg md:text-3xl text-slate-300 transition-all duration-500 ease-out"
+        className="text-lg md:text-3xl text-foreground-soft transition-all duration-500 ease-out"
         style={{
           fontWeight: 300,
           opacity: visible ? 1 : 0,
@@ -118,9 +118,9 @@ function PulseDivider() {
     <div className="flex items-center justify-center gap-4 py-12">
       <div className="flex-1 max-w-[120px] h-px bg-gradient-to-r from-transparent to-amber-500/20" />
       <div className="relative">
-        <div className="w-2 h-2 rounded-full bg-amber-500/40" />
+        <div className="w-2 h-2 rounded-full bg-primary/40" />
         <div
-          className="absolute inset-0 w-2 h-2 rounded-full bg-amber-500/20"
+          className="absolute inset-0 w-2 h-2 rounded-full bg-primary/20"
           style={{ animation: 'ping-slow 2s cubic-bezier(0,0,0.2,1) infinite' }}
         />
       </div>
@@ -132,13 +132,13 @@ function PulseDivider() {
 // ─── What's Alive Card ──────────────────────────────────────────────
 function AliveCard({ dotColor, type, title, detail }) {
   return (
-    <div className="bg-slate-900/40 border border-slate-800/40 rounded-xl p-5 hover:border-amber-500/20 transition-colors">
+    <div className="bg-card/40 border border-border/40 rounded-xl p-5 hover:border-primary/20 transition-colors">
       <div className="flex items-center gap-2.5 mb-3">
         <span className={`w-2 h-2 rounded-full ${dotColor} animate-pulse`} />
-        <span className="text-xs text-slate-500 uppercase tracking-wider">{type}</span>
+        <span className="text-xs text-muted-foreground/70 uppercase tracking-wider">{type}</span>
       </div>
-      <h4 className="text-slate-200 font-semibold text-sm mb-1">{title}</h4>
-      <p className="text-slate-500 text-xs">{detail}</p>
+      <h4 className="text-foreground font-semibold text-sm mb-1">{title}</h4>
+      <p className="text-muted-foreground/70 text-xs">{detail}</p>
     </div>
   );
 }
@@ -228,7 +228,7 @@ export default function Home() {
     if (recentBusinesses.length > 0) {
       const b = recentBusinesses[0];
       cards.push({
-        dotColor: 'bg-amber-400',
+        dotColor: 'bg-primary-hover',
         type: 'Business',
         title: b.name || 'Local Business',
         detail: b.category || 'Community business',
@@ -237,7 +237,7 @@ export default function Home() {
 
     if (communityCount > 0) {
       cards.push({
-        dotColor: 'bg-amber-400/60',
+        dotColor: 'bg-primary-hover/60',
         type: 'Community',
         title: 'People connected',
         detail: 'Teams, families, neighbors — near you',
@@ -256,14 +256,14 @@ export default function Home() {
     if (cards.length === 0) {
       cards.push(
         { dotColor: 'bg-emerald-400', type: 'Event', title: 'Community events coming soon', detail: 'Something is growing' },
-        { dotColor: 'bg-amber-400', type: 'Business', title: 'Local businesses joining', detail: 'The garden is opening' },
-        { dotColor: 'bg-amber-400/60', type: 'Community', title: 'People connecting', detail: 'Real neighbors, near you' },
+        { dotColor: 'bg-primary-hover', type: 'Business', title: 'Local businesses joining', detail: 'The garden is opening' },
+        { dotColor: 'bg-primary-hover/60', type: 'Community', title: 'People connecting', detail: 'Real neighbors, near you' },
       );
     }
 
     while (cards.length < 3) {
       cards.push({
-        dotColor: 'bg-amber-400/60',
+        dotColor: 'bg-primary-hover/60',
         type: 'Community',
         title: 'Something is growing',
         detail: 'Real people, near you',
@@ -277,12 +277,12 @@ export default function Home() {
   const heroHeight = isUnauth ? '100vh' : 'calc(100vh - 64px)';
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       <style dangerouslySetInnerHTML={{ __html: ANIMATION_STYLES }} />
 
       {/* ── Hero ── */}
       <section
-        className="relative flex flex-col items-start justify-start overflow-hidden bg-slate-950"
+        className="relative flex flex-col items-start justify-start overflow-hidden bg-background"
         style={{ height: heroHeight, minHeight: heroHeight }}
       >
         {/* Mushroom artwork — responsive via <picture> */}
@@ -301,7 +301,7 @@ export default function Home() {
           </picture>
 
           {/* Dark base overlay — readability */}
-          <div className="absolute inset-0 bg-slate-950/40" />
+          <div className="absolute inset-0 bg-background/40" />
 
           {/* Amber radial glow — breathes over the cap, 4s cycle */}
           <div
@@ -328,7 +328,7 @@ export default function Home() {
         >
           {/* Become */}
           <h1
-            className="text-5xl md:text-8xl lg:text-9xl font-bold text-amber-400 transition-all duration-500 group-hover:scale-[1.03] group-hover:brightness-125"
+            className="text-5xl md:text-8xl lg:text-9xl font-bold text-primary-hover transition-all duration-500 group-hover:scale-[1.03] group-hover:brightness-125"
             style={{
               fontFamily: 'Georgia, serif',
               letterSpacing: '-0.02em',
@@ -349,7 +349,7 @@ export default function Home() {
           className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 pointer-events-none"
           style={{ animation: 'scrollBounce 2.4s ease-in-out infinite' }}
         >
-          <ChevronDown className="h-6 w-6 text-amber-400/50" />
+          <ChevronDown className="h-6 w-6 text-primary-hover/50" />
         </div>
       </section>
 
@@ -359,10 +359,10 @@ export default function Home() {
       {/* ── What's alive this week ── */}
       <section className="max-w-3xl mx-auto px-4 pb-16">
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-slate-100" style={{ fontFamily: 'Georgia, serif' }}>
+          <h2 className="text-xl font-bold text-foreground" style={{ fontFamily: 'Georgia, serif' }}>
             What's alive this week
           </h2>
-          <p className="text-slate-500 text-sm mt-1">Real things. Real people. Near you.</p>
+          <p className="text-muted-foreground/70 text-sm mt-1">Real things. Real people. Near you.</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {aliveCards.map((card, i) => (
@@ -373,8 +373,8 @@ export default function Home() {
 
       {/* ── Values (compressed) ── */}
       <section className="max-w-xl mx-auto px-4 py-12 text-center">
-        <p className="text-slate-500 text-sm leading-relaxed">
-          <span className="text-amber-400/80">No ads.</span> Your ideas shape this. <span className="text-amber-400/80">Money stays local.</span>
+        <p className="text-muted-foreground/70 text-sm leading-relaxed">
+          <span className="text-primary-hover/80">No ads.</span> Your ideas shape this. <span className="text-primary-hover/80">Money stays local.</span>
         </p>
       </section>
 

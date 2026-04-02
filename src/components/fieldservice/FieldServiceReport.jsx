@@ -114,7 +114,7 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
+        <Loader2 className="h-6 w-6 text-primary animate-spin" />
       </div>
     );
   }
@@ -122,9 +122,9 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
   if (!log) {
     return (
       <div className="text-center py-12">
-        <p className="text-slate-400">Log not found</p>
+        <p className="text-muted-foreground">Log not found</p>
         {onBack && (
-          <button type="button" onClick={onBack} className="text-amber-500 hover:text-amber-400 text-sm mt-4 min-h-[44px]">
+          <button type="button" onClick={onBack} className="text-primary hover:text-primary-hover text-sm mt-4 min-h-[44px]">
             <ArrowLeft className="h-4 w-4 inline mr-1" /> Back
           </button>
         )}
@@ -142,24 +142,24 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
       {/* Back + toolbar — hidden in print */}
       <div className="mb-4 print:hidden">
         {onBack && (
-          <button type="button" onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-amber-500 text-sm min-h-[44px]">
+          <button type="button" onClick={onBack} className="flex items-center gap-2 text-muted-foreground hover:text-primary text-sm min-h-[44px]">
             <ArrowLeft className="h-4 w-4" /> Back
           </button>
         )}
       </div>
 
-      <div className="bg-slate-900 rounded-xl p-3 flex flex-wrap gap-3 items-center justify-center mb-6 print:hidden">
+      <div className="bg-card rounded-xl p-3 flex flex-wrap gap-3 items-center justify-center mb-6 print:hidden">
         <button
           type="button"
           onClick={handlePrint}
-          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-sm transition-colors min-h-[44px]"
+          className="flex items-center gap-2 bg-secondary hover:bg-surface text-foreground-soft px-4 py-2 rounded-lg text-sm transition-colors min-h-[44px]"
         >
           <Download className="h-4 w-4" /> Print / Save PDF
         </button>
         <button
           type="button"
           onClick={handleCopyLink}
-          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-sm transition-colors min-h-[44px]"
+          className="flex items-center gap-2 bg-secondary hover:bg-surface text-foreground-soft px-4 py-2 rounded-lg text-sm transition-colors min-h-[44px]"
         >
           {linkCopied ? (
             <><Check className="h-4 w-4 text-emerald-400" /> Copied!</>
@@ -178,24 +178,24 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
               <img src={profile.logo_url} alt={profile?.business_name || ''} className="max-h-16 max-w-[200px] object-contain print:border print:border-gray-300" />
             ) : null}
             <div>
-              <h1 className="text-2xl font-bold text-slate-100 print:text-black">
+              <h1 className="text-2xl font-bold text-foreground print:text-primary-foreground">
                 {profile?.business_name || 'Field Service'}
               </h1>
-              <p className="text-amber-500 text-lg font-medium mt-1 print:text-amber-600">
+              <p className="text-primary text-lg font-medium mt-1 print:text-amber-600">
                 Daily Progress Report
               </p>
             </div>
           </div>
           {(profile?.license_number || profile?.phone || profile?.email) && (
-            <p className="text-slate-500 text-sm mt-2 print:text-gray-500">
+            <p className="text-muted-foreground/70 text-sm mt-2 print:text-gray-500">
               {profile.license_number && <span>License {profile.license_number}</span>}
               {profile.license_number && profile.phone && ' · '}
-              {profile.phone && <a href={`tel:${profile.phone.replace(/\D/g, '')}`} className="hover:text-amber-500 transition-colors">{formatPhone(profile.phone)}</a>}
+              {profile.phone && <a href={`tel:${profile.phone.replace(/\D/g, '')}`} className="hover:text-primary transition-colors">{formatPhone(profile.phone)}</a>}
               {(profile.license_number || profile.phone) && profile.email && ' · '}
-              {profile.email && <a href={`mailto:${profile.email}`} className="hover:text-amber-500 transition-colors">{profile.email}</a>}
+              {profile.email && <a href={`mailto:${profile.email}`} className="hover:text-primary transition-colors">{profile.email}</a>}
             </p>
           )}
-          <div className="mt-3 space-y-0.5 text-slate-400 text-sm print:text-gray-600">
+          <div className="mt-3 space-y-0.5 text-muted-foreground text-sm print:text-gray-600">
             <p>Date: {fmtDate(log.date)}</p>
             {log.day_number && <p>Day: {String(log.day_number).startsWith('Day ') ? log.day_number : `Day ${log.day_number}`}</p>}
             <p>Project: {project?.name ?? '—'}</p>
@@ -203,7 +203,7 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
             {project?.address && <p>Address: {project.address}</p>}
           </div>
           {log.weather && (
-            <div className="inline-flex items-center gap-2 bg-slate-800/50 rounded-lg px-3 py-1.5 text-slate-400 text-sm mt-3 print:bg-gray-100 print:text-gray-600">
+            <div className="inline-flex items-center gap-2 bg-secondary/50 rounded-lg px-3 py-1.5 text-muted-foreground text-sm mt-3 print:bg-gray-100 print:text-gray-600">
               <Cloud className="h-4 w-4" />
               <span>{log.weather}</span>
             </div>
@@ -213,7 +213,7 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
         {/* Photos */}
         {photos.length > 0 && (
           <section className="mb-8 print:mb-6 print:break-inside-avoid">
-            <h2 className="text-lg font-bold text-slate-100 mb-3 print:text-black">Photos</h2>
+            <h2 className="text-lg font-bold text-foreground mb-3 print:text-primary-foreground">Photos</h2>
             <div className="grid grid-cols-2 gap-4">
               {photos.map((p, i) => {
                 const photoUrl = typeof p.photo === 'object' && p.photo?.url ? p.photo.url : (p.photo || '');
@@ -223,15 +223,15 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
                       <img
                         src={photoUrl}
                         alt={p.caption || 'Photo'}
-                        className="w-full max-h-64 object-cover rounded-lg border border-slate-700 print:border-gray-300"
+                        className="w-full max-h-64 object-cover rounded-lg border border-border print:border-gray-300"
                       />
                     ) : (
-                      <div className="w-full aspect-square max-h-64 bg-slate-800 rounded-lg border border-slate-700 flex items-center justify-center text-slate-500 text-sm">
+                      <div className="w-full aspect-square max-h-64 bg-secondary rounded-lg border border-border flex items-center justify-center text-muted-foreground/70 text-sm">
                         No image
                       </div>
                     )}
                     {(p.caption || p.phase) && (
-                      <p className="text-slate-400 text-sm italic mt-1 print:text-gray-600">
+                      <p className="text-muted-foreground text-sm italic mt-1 print:text-gray-600">
                         {[p.phase, p.caption].filter(Boolean).join(' — ')}
                       </p>
                     )}
@@ -245,11 +245,11 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
         {/* Work Completed */}
         {tasks.length > 0 && (
           <section className="mb-8 print:mb-6 print:break-inside-avoid">
-            <h2 className="text-lg font-bold text-slate-100 mb-3 print:text-black">Work Completed</h2>
-            <ul className="space-y-1 text-slate-300 text-sm print:text-gray-800 list-none pl-0">
+            <h2 className="text-lg font-bold text-foreground mb-3 print:text-primary-foreground">Work Completed</h2>
+            <ul className="space-y-1 text-foreground-soft text-sm print:text-gray-800 list-none pl-0">
               {tasks.map((t, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <span className="text-amber-500 mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full bg-amber-500 print:bg-amber-600" aria-hidden />
+                  <span className="text-primary mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full bg-primary print:bg-primary/80" aria-hidden />
                   <span>{t}</span>
                 </li>
               ))}
@@ -260,31 +260,31 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
         {/* Materials */}
         {materials.length > 0 && (
           <section className="mb-8 print:mb-6 print:break-inside-avoid">
-            <h2 className="text-lg font-bold text-slate-100 mb-3 print:text-black">Materials Used</h2>
+            <h2 className="text-lg font-bold text-foreground mb-3 print:text-primary-foreground">Materials Used</h2>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-sm">
                 <thead>
-                  <tr className="bg-slate-800 text-slate-300 text-xs uppercase print:bg-gray-200 print:text-black">
-                    <th className="text-left py-2 px-3 border border-slate-700 print:border-gray-300 font-medium">Description</th>
-                    <th className="text-right py-2 px-3 border border-slate-700 print:border-gray-300 font-medium">Qty</th>
-                    <th className="text-left py-2 px-3 border border-slate-700 print:border-gray-300 font-medium">Unit</th>
-                    <th className="text-right py-2 px-3 border border-slate-700 print:border-gray-300 font-medium">Unit Cost</th>
-                    <th className="text-right py-2 px-3 border border-slate-700 print:border-gray-300 font-medium">Total</th>
+                  <tr className="bg-secondary text-foreground-soft text-xs uppercase print:bg-gray-200 print:text-primary-foreground">
+                    <th className="text-left py-2 px-3 border border-border print:border-gray-300 font-medium">Description</th>
+                    <th className="text-right py-2 px-3 border border-border print:border-gray-300 font-medium">Qty</th>
+                    <th className="text-left py-2 px-3 border border-border print:border-gray-300 font-medium">Unit</th>
+                    <th className="text-right py-2 px-3 border border-border print:border-gray-300 font-medium">Unit Cost</th>
+                    <th className="text-right py-2 px-3 border border-border print:border-gray-300 font-medium">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {materials.map((m, i) => (
-                    <tr key={i} className={i % 2 === 0 ? 'bg-slate-900 print:bg-white' : 'bg-slate-950/50 print:bg-gray-50'}>
-                      <td className="py-2 px-3 border border-slate-700 print:border-gray-300 text-slate-100 print:text-black">{m.description}</td>
-                      <td className="py-2 px-3 border border-slate-700 print:border-gray-300 text-slate-300 print:text-black text-right">{m.quantity}</td>
-                      <td className="py-2 px-3 border border-slate-700 print:border-gray-300 text-slate-300 print:text-black">{m.unit}</td>
-                      <td className="py-2 px-3 border border-slate-700 print:border-gray-300 text-slate-300 print:text-black text-right">{fmt(m.unit_cost)}</td>
-                      <td className="py-2 px-3 border border-slate-700 print:border-gray-300 text-slate-300 print:text-black text-right">{fmt(m.total_cost)}</td>
+                    <tr key={i} className={i % 2 === 0 ? 'bg-card print:bg-white' : 'bg-background/50 print:bg-gray-50'}>
+                      <td className="py-2 px-3 border border-border print:border-gray-300 text-foreground print:text-primary-foreground">{m.description}</td>
+                      <td className="py-2 px-3 border border-border print:border-gray-300 text-foreground-soft print:text-primary-foreground text-right">{m.quantity}</td>
+                      <td className="py-2 px-3 border border-border print:border-gray-300 text-foreground-soft print:text-primary-foreground">{m.unit}</td>
+                      <td className="py-2 px-3 border border-border print:border-gray-300 text-foreground-soft print:text-primary-foreground text-right">{fmt(m.unit_cost)}</td>
+                      <td className="py-2 px-3 border border-border print:border-gray-300 text-foreground-soft print:text-primary-foreground text-right">{fmt(m.total_cost)}</td>
                     </tr>
                   ))}
-                  <tr className="bg-slate-800 font-bold print:bg-gray-200">
-                    <td colSpan={4} className="py-2 px-3 border border-slate-700 print:border-gray-300 text-slate-300 print:text-black text-right">Subtotal</td>
-                    <td className="py-2 px-3 border border-slate-700 print:border-gray-300 text-amber-500 font-bold text-right print:text-amber-700">{fmt(materialsTotal)}</td>
+                  <tr className="bg-secondary font-bold print:bg-gray-200">
+                    <td colSpan={4} className="py-2 px-3 border border-border print:border-gray-300 text-foreground-soft print:text-primary-foreground text-right">Subtotal</td>
+                    <td className="py-2 px-3 border border-border print:border-gray-300 text-primary font-bold text-right print:text-amber-700">{fmt(materialsTotal)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -295,29 +295,29 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
         {/* Labor */}
         {labor.length > 0 && (
           <section className="mb-8 print:mb-6 print:break-inside-avoid">
-            <h2 className="text-lg font-bold text-slate-100 mb-3 print:text-black">Labor</h2>
+            <h2 className="text-lg font-bold text-foreground mb-3 print:text-primary-foreground">Labor</h2>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-sm">
                 <thead>
-                  <tr className="bg-slate-800 text-slate-300 text-xs uppercase print:bg-gray-200 print:text-black">
-                    <th className="text-left py-2 px-3 border border-slate-700 print:border-gray-300 font-medium">Worker</th>
-                    <th className="text-right py-2 px-3 border border-slate-700 print:border-gray-300 font-medium">Hours</th>
-                    <th className="text-right py-2 px-3 border border-slate-700 print:border-gray-300 font-medium">Rate</th>
-                    <th className="text-right py-2 px-3 border border-slate-700 print:border-gray-300 font-medium">Total</th>
+                  <tr className="bg-secondary text-foreground-soft text-xs uppercase print:bg-gray-200 print:text-primary-foreground">
+                    <th className="text-left py-2 px-3 border border-border print:border-gray-300 font-medium">Worker</th>
+                    <th className="text-right py-2 px-3 border border-border print:border-gray-300 font-medium">Hours</th>
+                    <th className="text-right py-2 px-3 border border-border print:border-gray-300 font-medium">Rate</th>
+                    <th className="text-right py-2 px-3 border border-border print:border-gray-300 font-medium">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {labor.map((l, i) => (
-                    <tr key={i} className={i % 2 === 0 ? 'bg-slate-900 print:bg-white' : 'bg-slate-950/50 print:bg-gray-50'}>
-                      <td className="py-2 px-3 border border-slate-700 print:border-gray-300 text-slate-100 print:text-black">{l.worker_name}</td>
-                      <td className="py-2 px-3 border border-slate-700 print:border-gray-300 text-slate-300 print:text-black text-right">{l.hours}</td>
-                      <td className="py-2 px-3 border border-slate-700 print:border-gray-300 text-slate-300 print:text-black text-right">{fmt(l.hourly_rate)}</td>
-                      <td className="py-2 px-3 border border-slate-700 print:border-gray-300 text-slate-300 print:text-black text-right">{fmt(l.total_cost)}</td>
+                    <tr key={i} className={i % 2 === 0 ? 'bg-card print:bg-white' : 'bg-background/50 print:bg-gray-50'}>
+                      <td className="py-2 px-3 border border-border print:border-gray-300 text-foreground print:text-primary-foreground">{l.worker_name}</td>
+                      <td className="py-2 px-3 border border-border print:border-gray-300 text-foreground-soft print:text-primary-foreground text-right">{l.hours}</td>
+                      <td className="py-2 px-3 border border-border print:border-gray-300 text-foreground-soft print:text-primary-foreground text-right">{fmt(l.hourly_rate)}</td>
+                      <td className="py-2 px-3 border border-border print:border-gray-300 text-foreground-soft print:text-primary-foreground text-right">{fmt(l.total_cost)}</td>
                     </tr>
                   ))}
-                  <tr className="bg-slate-800 font-bold print:bg-gray-200">
-                    <td colSpan={3} className="py-2 px-3 border border-slate-700 print:border-gray-300 text-slate-300 print:text-black text-right">Subtotal</td>
-                    <td className="py-2 px-3 border border-slate-700 print:border-gray-300 text-amber-500 font-bold text-right print:text-amber-700">{fmt(laborTotal)}</td>
+                  <tr className="bg-secondary font-bold print:bg-gray-200">
+                    <td colSpan={3} className="py-2 px-3 border border-border print:border-gray-300 text-foreground-soft print:text-primary-foreground text-right">Subtotal</td>
+                    <td className="py-2 px-3 border border-border print:border-gray-300 text-primary font-bold text-right print:text-amber-700">{fmt(laborTotal)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -327,20 +327,20 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
 
         {/* Daily Summary */}
         <section className="mb-8 print:mb-6 print:break-inside-avoid">
-          <h2 className="text-lg font-bold text-slate-100 mb-3 print:text-black">Daily Summary</h2>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 print:bg-gray-50 print:border-gray-200">
+          <h2 className="text-lg font-bold text-foreground mb-3 print:text-primary-foreground">Daily Summary</h2>
+          <div className="bg-card border border-border rounded-xl p-6 print:bg-gray-50 print:border-gray-200">
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-400 print:text-gray-600">Materials</span>
-                <span className="text-slate-300 print:text-black">{fmt(materialsTotal)}</span>
+                <span className="text-muted-foreground print:text-gray-600">Materials</span>
+                <span className="text-foreground-soft print:text-primary-foreground">{fmt(materialsTotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400 print:text-gray-600">Labor</span>
-                <span className="text-slate-300 print:text-black">{fmt(laborTotal)}</span>
+                <span className="text-muted-foreground print:text-gray-600">Labor</span>
+                <span className="text-foreground-soft print:text-primary-foreground">{fmt(laborTotal)}</span>
               </div>
-              <div className="flex justify-between pt-3 border-t border-slate-700 print:border-gray-300">
-                <span className="text-slate-100 font-bold print:text-black">Day Total</span>
-                <span className="text-amber-500 font-bold text-lg print:text-amber-700">{fmt(dayTotal)}</span>
+              <div className="flex justify-between pt-3 border-t border-border print:border-gray-300">
+                <span className="text-foreground font-bold print:text-primary-foreground">Day Total</span>
+                <span className="text-primary font-bold text-lg print:text-amber-700">{fmt(dayTotal)}</span>
               </div>
             </div>
           </div>
@@ -349,17 +349,17 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
         {/* Notes */}
         {log.notes && (
           <section className="mb-8 print:mb-6 print:break-inside-avoid">
-            <h2 className="text-lg font-bold text-slate-100 mb-3 print:text-black">Notes</h2>
-            <p className="text-slate-300 print:text-gray-800 whitespace-pre-wrap">{log.notes}</p>
+            <h2 className="text-lg font-bold text-foreground mb-3 print:text-primary-foreground">Notes</h2>
+            <p className="text-foreground-soft print:text-gray-800 whitespace-pre-wrap">{log.notes}</p>
           </section>
         )}
 
         {/* Footer */}
-        <footer className="pt-8 border-t border-slate-800 print:border-gray-300 print:pt-6">
-          <p className="text-slate-500 text-sm print:text-gray-600">
+        <footer className="pt-8 border-t border-border print:border-gray-300 print:pt-6">
+          <p className="text-muted-foreground/70 text-sm print:text-gray-600">
             Report generated by {profile?.business_name || 'Field Service'} · {new Date().toLocaleDateString()}
           </p>
-          <p className="text-slate-600 text-xs mt-1 print:text-gray-500">
+          <p className="text-muted-foreground/50 text-xs mt-1 print:text-gray-500">
             Powered by LocalLane
           </p>
         </footer>
@@ -373,7 +373,7 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
           body { background: white !important; margin: 0; padding: 0; }
           .report-content { background: white !important; color: #111827 !important; }
           .report-content * { color: #111827 !important; }
-          .report-content .text-amber-500, .report-content .text-amber-600 { color: #b45309 !important; }
+          .report-content .text-primary, .report-content .text-amber-600 { color: #b45309 !important; }
           .report-content h2 { font-size: 14pt !important; font-weight: 700 !important; }
           .report-content table { width: 100% !important; border-collapse: collapse !important; }
           .report-content thead tr { background: #1e293b !important; }

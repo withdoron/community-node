@@ -136,23 +136,23 @@ export default function RouteSelector({
   const showGrid = segments.length === 0 || pickingNext;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-3">
           <div
             className="w-6 h-6 rounded-full flex-shrink-0"
             style={{ backgroundColor: position.color }}
           />
-          <span className="font-semibold text-white">{position.label}</span>
-          <span className="text-slate-400 text-sm">{position.shortLabel}</span>
+          <span className="font-semibold text-foreground">{position.label}</span>
+          <span className="text-muted-foreground text-sm">{position.shortLabel}</span>
         </div>
         <div className="flex items-center gap-2">
           {(segments.length > 0 || currentRoute?.movementType) && (
             <button
               type="button"
               onClick={handleClear}
-              className="text-slate-400 hover:text-red-400 p-1.5 rounded-lg transition-colors"
+              className="text-muted-foreground hover:text-red-400 p-1.5 rounded-lg transition-colors"
               title="Clear route"
             >
               <Trash2 className="h-4 w-4" />
@@ -162,7 +162,7 @@ export default function RouteSelector({
             <button
               type="button"
               onClick={onClose}
-              className="text-slate-400 hover:text-white p-1.5 rounded-lg transition-colors"
+              className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -174,7 +174,7 @@ export default function RouteSelector({
         {/* Segment list (when segments exist) */}
         {segments.length > 0 && (
           <div className="space-y-2">
-            <p className="text-xs text-slate-400 uppercase tracking-wider">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">
               Route segments
             </p>
             {segments.map((seg, i) => {
@@ -183,12 +183,12 @@ export default function RouteSelector({
               return (
                 <div
                   key={`${seg.routeId}-${i}`}
-                  className="flex items-center gap-2 bg-slate-800 rounded-lg px-3 py-2 border border-slate-700"
+                  className="flex items-center gap-2 bg-secondary rounded-lg px-3 py-2 border border-border"
                 >
-                  <span className="text-amber-500 font-bold text-sm w-5 text-center">
+                  <span className="text-primary font-bold text-sm w-5 text-center">
                     {i + 1}
                   </span>
-                  <span className="text-white text-sm font-medium flex-1 min-w-0 truncate">
+                  <span className="text-foreground text-sm font-medium flex-1 min-w-0 truncate">
                     {label}
                   </span>
                   {/* Yard stepper */}
@@ -197,18 +197,18 @@ export default function RouteSelector({
                       type="button"
                       onClick={() => handleYardsChange(i, -1)}
                       disabled={seg.yards <= MIN_YARDS}
-                      className="w-8 h-8 flex items-center justify-center rounded bg-slate-700 text-slate-300 hover:bg-slate-600 disabled:opacity-30 disabled:hover:bg-slate-700 transition-colors"
+                      className="w-8 h-8 flex items-center justify-center rounded bg-surface text-foreground-soft hover:bg-surface disabled:opacity-30 disabled:hover:bg-surface transition-colors"
                     >
                       <Minus className="h-3 w-3" />
                     </button>
-                    <span className="text-slate-300 text-sm font-medium w-10 text-center tabular-nums">
+                    <span className="text-foreground-soft text-sm font-medium w-10 text-center tabular-nums">
                       {seg.yards} yd
                     </span>
                     <button
                       type="button"
                       onClick={() => handleYardsChange(i, 1)}
                       disabled={seg.yards >= MAX_YARDS}
-                      className="w-8 h-8 flex items-center justify-center rounded bg-slate-700 text-slate-300 hover:bg-slate-600 disabled:opacity-30 disabled:hover:bg-slate-700 transition-colors"
+                      className="w-8 h-8 flex items-center justify-center rounded bg-surface text-foreground-soft hover:bg-surface disabled:opacity-30 disabled:hover:bg-surface transition-colors"
                     >
                       <Plus className="h-3 w-3" />
                     </button>
@@ -217,7 +217,7 @@ export default function RouteSelector({
                   <button
                     type="button"
                     onClick={() => handleRemoveSegment(i)}
-                    className="text-slate-500 hover:text-red-400 p-1 transition-colors"
+                    className="text-muted-foreground/70 hover:text-red-400 p-1 transition-colors"
                     title="Remove segment"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -228,7 +228,7 @@ export default function RouteSelector({
 
             {/* Compound name */}
             {segments.length > 1 && (
-              <p className="text-amber-500/70 text-xs font-medium px-1">
+              <p className="text-primary/70 text-xs font-medium px-1">
                 {compoundName}
               </p>
             )}
@@ -238,7 +238,7 @@ export default function RouteSelector({
               <button
                 type="button"
                 onClick={() => setPickingNext(true)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] border border-dashed border-slate-600 text-slate-400 hover:border-amber-500/50 hover:text-amber-500"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors min-h-[44px] border border-dashed border-border text-muted-foreground hover:border-primary/50 hover:text-primary"
               >
                 <Plus className="h-4 w-4" />
                 Add segment
@@ -250,8 +250,8 @@ export default function RouteSelector({
         {/* Picking indicator */}
         {pickingNext && (
           <div className="flex items-center gap-2 px-1">
-            <ChevronRight className="h-3.5 w-3.5 text-amber-500" />
-            <span className="text-amber-500 text-xs font-medium">
+            <ChevronRight className="h-3.5 w-3.5 text-primary" />
+            <span className="text-primary text-xs font-medium">
               Pick segment {segments.length + 1}
             </span>
           </div>
@@ -260,7 +260,7 @@ export default function RouteSelector({
         {/* Route preset grid */}
         {showGrid && (
           <div>
-            <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
               {pickingNext ? 'Next route' : 'Route'}
             </p>
             <div className="grid grid-cols-3 gap-2">
@@ -273,8 +273,8 @@ export default function RouteSelector({
                     onClick={() => handleRouteTap(route.id)}
                     className={`py-2.5 px-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
                       isActive
-                        ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50'
-                        : 'bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600'
+                        ? 'bg-primary/20 text-primary border border-primary/50'
+                        : 'bg-secondary text-foreground-soft border border-border hover:border-border'
                     }`}
                   >
                     {route.label}
@@ -292,8 +292,8 @@ export default function RouteSelector({
             onClick={onDrawCustom}
             className={`w-full py-2.5 px-4 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center justify-center gap-2 ${
               currentRoute?.movementType === 'custom'
-                ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50'
-                : 'bg-transparent text-slate-300 border border-slate-600 hover:border-amber-500/50 hover:text-amber-500'
+                ? 'bg-primary/20 text-primary border border-primary/50'
+                : 'bg-transparent text-foreground-soft border border-border hover:border-primary/50 hover:text-primary'
             }`}
           >
             <Pencil className="h-4 w-4" />
@@ -303,13 +303,13 @@ export default function RouteSelector({
 
         {/* Assignment text */}
         <div>
-          <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Assignment</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Assignment</p>
           <textarea
             value={assignmentText}
             onChange={(e) => onAssignmentTextChange?.(e.target.value)}
             placeholder="What does this player do?"
             rows={2}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none resize-none min-h-[60px]"
+            className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-foreground text-sm placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none resize-none min-h-[60px]"
           />
         </div>
       </div>

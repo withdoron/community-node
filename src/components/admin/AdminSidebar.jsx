@@ -1,7 +1,7 @@
 /**
  * Admin sidebar navigation per ADMIN-ARCHITECTURE.md.
  * Sections: MANAGEMENT, PLATFORM, WORKSPACES, EVENTS, ONBOARDING.
- * Styling: bg-slate-900, border-r border-slate-700; active: bg-slate-800 border-l-2 border-amber-500.
+ * Styling: bg-card, border-r border-border; active: bg-secondary border-l-2 border-primary.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -105,11 +105,11 @@ export default function AdminSidebar({ onItemClick }) {
   }, []);
 
   return (
-    <aside className="w-64 shrink-0 bg-slate-900 border-r border-slate-700 flex flex-col">
+    <aside className="w-64 shrink-0 bg-card border-r border-border flex flex-col">
       <nav className="p-3 space-y-6 overflow-y-auto">
         {sections.map((section) => (
           <div key={section.label}>
-            <div className="text-slate-400 text-xs uppercase tracking-wider px-3 py-2 font-medium">
+            <div className="text-muted-foreground text-xs uppercase tracking-wider px-3 py-2 font-medium">
               {section.label}
             </div>
             <ul className="space-y-0.5">
@@ -126,18 +126,18 @@ export default function AdminSidebar({ onItemClick }) {
                         cn(
                           'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                           isActive
-                            ? 'bg-slate-800 border-l-2 border-amber-500 text-white'
-                            : 'text-slate-300 hover:bg-slate-800/50 hover:text-white border-l-2 border-transparent'
+                            ? 'bg-secondary border-l-2 border-primary text-foreground'
+                            : 'text-foreground-soft hover:bg-secondary/50 hover:text-foreground border-l-2 border-transparent'
                         )
                       }
                     >
                       <Icon className="h-4 w-4 shrink-0" />
                       <span>{item.label}</span>
                       {item.placeholder && (
-                        <span className="text-xs text-slate-500 ml-1">(soon)</span>
+                        <span className="text-xs text-muted-foreground/70 ml-1">(soon)</span>
                       )}
                       {isFeedback && feedbackCount > 0 && (
-                        <span className="ml-auto rounded-full bg-amber-500 text-slate-900 text-xs font-bold min-w-5 h-5 flex items-center justify-center px-1.5">
+                        <span className="ml-auto rounded-full bg-primary text-primary-foreground text-xs font-bold min-w-5 h-5 flex items-center justify-center px-1.5">
                           {feedbackCount > 99 ? '99+' : feedbackCount}
                         </span>
                       )}

@@ -53,9 +53,9 @@ export const getTierLabel = (tier) => {
 
 export const getTierBadgeClasses = (tier) => {
   const classes = {
-    partner: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+    partner: 'bg-primary/20 text-primary-hover border-primary/30',
     standard: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    basic: 'bg-slate-700 text-slate-300 border-slate-600'
+    basic: 'bg-surface text-foreground-soft border-border'
   };
   return classes[tier] || classes.basic;
 };

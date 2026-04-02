@@ -10,10 +10,10 @@ import {
 } from 'lucide-react';
 
 const INPUT_CLASS =
-  'w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent';
-const LABEL_CLASS = 'block text-slate-300 text-sm font-medium mb-1';
-const SECTION_CLASS = 'bg-slate-900 border border-slate-800 rounded-xl p-4 mb-4';
-const SECTION_HEADER_CLASS = 'text-lg font-bold text-slate-100 mb-3 flex items-center gap-2';
+  'w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent';
+const LABEL_CLASS = 'block text-foreground-soft text-sm font-medium mb-1';
+const SECTION_CLASS = 'bg-card border border-border rounded-xl p-4 mb-4';
+const SECTION_HEADER_CLASS = 'text-lg font-bold text-foreground mb-3 flex items-center gap-2';
 const UNITS = ['each', 'ft', 'sq ft', 'board', 'roll', 'box', 'bag', 'gal'];
 const WEATHER_CHIPS = ['Sunny', 'Cloudy', 'Rain', 'Snow', 'Hot', 'Cold'];
 const LAST_PROJECT_KEY = 'fs-last-project';
@@ -519,10 +519,10 @@ export default function FieldServiceLog({ profile, currentUser }) {
   return (
     <div className="space-y-0 pb-24">
       {editingLogId && (
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-4 flex items-center justify-between">
-          <span className="text-sm text-amber-500 font-medium">Editing log — {date}</span>
+        <div className="bg-primary/10 border border-primary/30 rounded-xl p-3 mb-4 flex items-center justify-between">
+          <span className="text-sm text-primary font-medium">Editing log — {date}</span>
           <button type="button" onClick={cancelEditing}
-            className="text-xs text-slate-400 hover:text-slate-200 min-h-[44px]">Cancel</button>
+            className="text-xs text-muted-foreground hover:text-foreground min-h-[44px]">Cancel</button>
         </div>
       )}
 
@@ -530,7 +530,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
       {projectId && existingLogs.length > 0 && !editingLogId && (
         <div className={SECTION_CLASS}>
           <div className={SECTION_HEADER_CLASS}>
-            <ClipboardList className="h-5 w-5 text-amber-500" />
+            <ClipboardList className="h-5 w-5 text-primary" />
             Recent Logs
           </div>
           <div className="space-y-2">
@@ -553,22 +553,22 @@ export default function FieldServiceLog({ profile, currentUser }) {
                   return '';
                 })();
                 return (
-                  <div key={log.id} className="flex items-center gap-3 bg-slate-800/50 rounded-lg p-3">
+                  <div key={log.id} className="flex items-center gap-3 bg-secondary/50 rounded-lg p-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-xs text-slate-500">
+                        <span className="text-xs text-muted-foreground/70">
                           {log.date ? new Date(log.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
                         </span>
                         {log.day_number && (
-                          <span className="text-xs text-slate-500">Day {String(log.day_number).replace('Day ', '')}</span>
+                          <span className="text-xs text-muted-foreground/70">Day {String(log.day_number).replace('Day ', '')}</span>
                         )}
                       </div>
-                      {tasks && <p className="text-sm text-slate-300 truncate">{tasks}</p>}
+                      {tasks && <p className="text-sm text-foreground-soft truncate">{tasks}</p>}
                     </div>
                     <button
                       type="button"
                       onClick={() => loadLogForEditing(log)}
-                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-400 hover:text-amber-500 transition-colors"
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
@@ -582,7 +582,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
       {/* Project + Date + Day */}
       <div className={SECTION_CLASS}>
         <div className={SECTION_HEADER_CLASS}>
-          <FolderOpen className="h-5 w-5 text-amber-500" />
+          <FolderOpen className="h-5 w-5 text-primary" />
           Project & Date
         </div>
 
@@ -630,7 +630,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
       {/* Weather */}
       <div className={SECTION_CLASS}>
         <div className={SECTION_HEADER_CLASS}>
-          <Cloud className="h-5 w-5 text-amber-500" />
+          <Cloud className="h-5 w-5 text-primary" />
           Weather
         </div>
         <div className="flex flex-wrap gap-2">
@@ -641,8 +641,8 @@ export default function FieldServiceLog({ profile, currentUser }) {
               onClick={() => setWeather((prev) => (prev === w ? '' : w))}
               className={`px-3 py-1.5 rounded-full text-sm transition-colors min-h-[44px] ${
                 weather === w
-                  ? 'bg-amber-500 text-black font-medium'
-                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-primary text-primary-foreground font-medium'
+                  : 'bg-secondary text-muted-foreground hover:text-foreground'
               }`}
             >
               {w}
@@ -654,7 +654,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
       {/* Photos */}
       <div className={SECTION_CLASS}>
         <div className={SECTION_HEADER_CLASS}>
-          <Camera className="h-5 w-5 text-amber-500" />
+          <Camera className="h-5 w-5 text-primary" />
           Photos
         </div>
 
@@ -665,12 +665,12 @@ export default function FieldServiceLog({ profile, currentUser }) {
                 <img
                   src={photo.preview}
                   alt=""
-                  className="w-full aspect-square object-cover rounded-lg border border-slate-700"
+                  className="w-full aspect-square object-cover rounded-lg border border-border"
                 />
                 <button
                   type="button"
                   onClick={() => removePhoto(idx)}
-                  className="absolute top-1 right-1 p-1 bg-black/60 rounded-full text-white hover:text-red-400"
+                  className="absolute top-1 right-1 p-1 bg-black/60 rounded-full text-foreground hover:text-red-400"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -679,13 +679,13 @@ export default function FieldServiceLog({ profile, currentUser }) {
                     type="text"
                     value={photo.caption}
                     onChange={(e) => updatePhoto(idx, 'caption', e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded px-2 py-1 text-xs placeholder:text-slate-500"
+                    className="w-full bg-secondary border border-border text-foreground rounded px-2 py-1 text-xs placeholder:text-muted-foreground/70"
                     placeholder="Caption..."
                   />
                   <select
                     value={photo.phase}
                     onChange={(e) => updatePhoto(idx, 'phase', e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 text-slate-100 rounded px-2 py-1 text-xs"
+                    className="w-full bg-secondary border border-border text-foreground rounded px-2 py-1 text-xs"
                   >
                     <option value="">No phase</option>
                     {phases.map((p) => (
@@ -710,7 +710,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
         <button
           type="button"
           onClick={() => photoInputRef.current?.click()}
-          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-700 rounded-xl py-4 text-slate-400 hover:text-amber-500 hover:border-amber-500/50 transition-colors min-h-[44px]"
+          className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-xl py-4 text-muted-foreground hover:text-primary hover:border-primary/50 transition-colors min-h-[44px]"
         >
           <Camera className="h-5 w-5" />
           {photos.length > 0 ? 'Add More Photos' : 'Add Photos'}
@@ -720,7 +720,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
       {/* Work Completed */}
       <div className={SECTION_CLASS}>
         <div className={SECTION_HEADER_CLASS}>
-          <ClipboardList className="h-5 w-5 text-amber-500" />
+          <ClipboardList className="h-5 w-5 text-primary" />
           Work Completed
         </div>
         <div className="flex gap-2 items-start">
@@ -741,10 +741,10 @@ export default function FieldServiceLog({ profile, currentUser }) {
       {/* Materials */}
       <div className={SECTION_CLASS}>
         <div className={SECTION_HEADER_CLASS}>
-          <Package className="h-5 w-5 text-amber-500" />
+          <Package className="h-5 w-5 text-primary" />
           Materials
           {materialsTotal > 0 && (
-            <span className="text-sm font-normal text-amber-500 ml-auto">{fmt(materialsTotal)}</span>
+            <span className="text-sm font-normal text-primary ml-auto">{fmt(materialsTotal)}</span>
           )}
         </div>
 
@@ -753,7 +753,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
             {materials.map((mat, idx) => {
               const lineTotal = (parseFloat(mat.quantity) || 0) * (parseFloat(mat.unit_cost) || 0);
               return (
-                <div key={idx} className="bg-slate-800/50 rounded-lg p-3 space-y-2">
+                <div key={idx} className="bg-secondary/50 rounded-lg p-3 space-y-2">
                   <div className="flex items-start gap-2">
                     <div className="flex-1 space-y-2">
                       <div className="flex gap-2">
@@ -788,7 +788,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
                           ))}
                         </select>
                         <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground/70 text-sm">$</span>
                           <input
                             type="number"
                             step="0.01"
@@ -806,7 +806,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
                     <button
                       type="button"
                       onClick={() => removeMaterial(idx)}
-                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-500 hover:text-red-400 transition-colors"
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground/70 hover:text-red-400 transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -815,7 +815,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
                   <div className="flex items-center justify-between">
                     {/* Receipt photo */}
                     <div className="flex items-center gap-2">
-                      <label className="flex items-center gap-1 text-xs text-slate-500 hover:text-amber-500 cursor-pointer min-h-[44px]">
+                      <label className="flex items-center gap-1 text-xs text-muted-foreground/70 hover:text-primary cursor-pointer min-h-[44px]">
                         <Receipt className="h-3.5 w-3.5" />
                         {mat.receipt_preview ? 'Change receipt' : 'Add receipt'}
                         {/* No capture attribute — lets mobile users choose camera OR gallery */}
@@ -830,12 +830,12 @@ export default function FieldServiceLog({ profile, currentUser }) {
                         <img
                           src={mat.receipt_preview}
                           alt="Receipt"
-                          className="h-8 w-8 object-cover rounded border border-slate-600"
+                          className="h-8 w-8 object-cover rounded border border-border"
                         />
                       )}
                     </div>
                     {lineTotal > 0 && (
-                      <span className="text-sm text-amber-500 font-medium">{fmt(lineTotal)}</span>
+                      <span className="text-sm text-primary font-medium">{fmt(lineTotal)}</span>
                     )}
                   </div>
                 </div>
@@ -847,7 +847,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
         <button
           type="button"
           onClick={addMaterial}
-          className="flex items-center gap-2 text-sm text-amber-500 hover:text-amber-400 min-h-[44px]"
+          className="flex items-center gap-2 text-sm text-primary hover:text-primary-hover min-h-[44px]"
         >
           <Plus className="h-4 w-4" /> Add Material
         </button>
@@ -856,10 +856,10 @@ export default function FieldServiceLog({ profile, currentUser }) {
       {/* Labor */}
       <div className={SECTION_CLASS}>
         <div className={SECTION_HEADER_CLASS}>
-          <Users className="h-5 w-5 text-amber-500" />
+          <Users className="h-5 w-5 text-primary" />
           Labor
           {laborTotal > 0 && (
-            <span className="text-sm font-normal text-amber-500 ml-auto">{fmt(laborTotal)}</span>
+            <span className="text-sm font-normal text-primary ml-auto">{fmt(laborTotal)}</span>
           )}
         </div>
 
@@ -868,7 +868,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
             {labor.map((lab, idx) => {
               const lineTotal = (parseFloat(lab.hours) || 0) * (parseFloat(lab.hourly_rate) || 0);
               return (
-                <div key={idx} className="bg-slate-800/50 rounded-lg p-3 space-y-2">
+                <div key={idx} className="bg-secondary/50 rounded-lg p-3 space-y-2">
                   <div className="flex items-start gap-2">
                     <div className="flex-1 space-y-2">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -909,7 +909,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
                           placeholder="Hours"
                         />
                         <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$/hr</span>
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground/70 text-sm">$/hr</span>
                           <input
                             type="number"
                             step="0.01"
@@ -937,14 +937,14 @@ export default function FieldServiceLog({ profile, currentUser }) {
                     <button
                       type="button"
                       onClick={() => removeLabor(idx)}
-                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-500 hover:text-red-400 transition-colors"
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground/70 hover:text-red-400 transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                   {lineTotal > 0 && (
                     <div className="text-right">
-                      <span className="text-sm text-amber-500 font-medium">{fmt(lineTotal)}</span>
+                      <span className="text-sm text-primary font-medium">{fmt(lineTotal)}</span>
                     </div>
                   )}
                 </div>
@@ -956,7 +956,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
         <button
           type="button"
           onClick={addLabor}
-          className="flex items-center gap-2 text-sm text-amber-500 hover:text-amber-400 min-h-[44px]"
+          className="flex items-center gap-2 text-sm text-primary hover:text-primary-hover min-h-[44px]"
         >
           <Plus className="h-4 w-4" /> Add Labor
         </button>
@@ -984,23 +984,23 @@ export default function FieldServiceLog({ profile, currentUser }) {
 
       {/* Day Summary */}
       {(materialsTotal > 0 || laborTotal > 0) && (
-        <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-4 mb-4">
+        <div className="bg-card border border-primary/30 rounded-xl p-4 mb-4">
           <div className="space-y-1 text-sm">
             {materialsTotal > 0 && (
               <div className="flex justify-between">
-                <span className="text-slate-400">Materials</span>
-                <span className="text-slate-300">{fmt(materialsTotal)}</span>
+                <span className="text-muted-foreground">Materials</span>
+                <span className="text-foreground-soft">{fmt(materialsTotal)}</span>
               </div>
             )}
             {laborTotal > 0 && (
               <div className="flex justify-between">
-                <span className="text-slate-400">Labor</span>
-                <span className="text-slate-300">{fmt(laborTotal)}</span>
+                <span className="text-muted-foreground">Labor</span>
+                <span className="text-foreground-soft">{fmt(laborTotal)}</span>
               </div>
             )}
-            <div className="flex justify-between pt-2 border-t border-slate-800">
-              <span className="text-slate-100 font-bold">Day Total</span>
-              <span className="text-amber-500 font-bold text-lg">{fmt(materialsTotal + laborTotal)}</span>
+            <div className="flex justify-between pt-2 border-t border-border">
+              <span className="text-foreground font-bold">Day Total</span>
+              <span className="text-primary font-bold text-lg">{fmt(materialsTotal + laborTotal)}</span>
             </div>
           </div>
         </div>
@@ -1011,7 +1011,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
           <button
             type="button"
             onClick={cancelEditing}
-            className="w-full flex items-center justify-center gap-2 border border-slate-700 text-slate-400 hover:text-slate-200 hover:bg-transparent rounded-xl py-3 transition-colors text-sm min-h-[44px]"
+            className="w-full flex items-center justify-center gap-2 border border-border text-muted-foreground hover:text-foreground hover:bg-transparent rounded-xl py-3 transition-colors text-sm min-h-[44px]"
           >
             <X className="h-4 w-4" /> Cancel Editing
           </button>
@@ -1019,12 +1019,12 @@ export default function FieldServiceLog({ profile, currentUser }) {
       )}
 
       {/* Save Button — sticky at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-slate-950/95 backdrop-blur border-t border-slate-800 p-4 z-20">
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border p-4 z-20">
         <button
           type="button"
           onClick={handleSubmit}
           disabled={saving || !projectId || !date}
-          className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl py-4 transition-colors text-lg min-h-[56px] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground font-bold rounded-xl py-4 transition-colors text-lg min-h-[56px] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? (
             <><Loader2 className="h-5 w-5 animate-spin" /> {editingLogId ? 'Updating...' : 'Saving...'}</>

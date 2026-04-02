@@ -57,24 +57,24 @@ export default function PrintPlaybook({
   if (plays.length === 0) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-950 overflow-auto print:bg-white print:static print:overflow-visible">
+    <div className="fixed inset-0 z-[100] bg-background overflow-auto print:bg-white print:static print:overflow-visible">
       {/* Screen-only toolbar */}
-      <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-800 print:hidden">
+      <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-card border-b border-border print:hidden">
         <button
           type="button"
           onClick={onClose}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white transition-colors min-h-[44px]"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-foreground-soft hover:text-foreground transition-colors min-h-[44px]"
         >
           <X className="h-5 w-5" />
           Back
         </button>
-        <span className="text-slate-400 text-sm">
+        <span className="text-muted-foreground text-sm">
           {plays.length} play{plays.length !== 1 ? 's' : ''} — {layout === 'player_card' ? 'Player Card' : layout === 'quick_reference' ? 'Quick Reference' : 'Full Page'}
         </span>
         <button
           type="button"
           onClick={handlePrint}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-medium transition-colors min-h-[44px]"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-medium transition-colors min-h-[44px]"
         >
           <Printer className="h-4 w-4" />
           Print

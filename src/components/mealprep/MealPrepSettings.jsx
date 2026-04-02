@@ -144,38 +144,38 @@ export default function MealPrepSettings({ profile, currentUser }) {
   return (
     <div className="space-y-6">
       {/* Section: General */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-slate-100 mb-6">General</h2>
+      <div className="bg-card border border-border rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-6">General</h2>
 
         <div className="space-y-4">
           <div>
-            <Label className="text-slate-400">Kitchen name</Label>
+            <Label className="text-muted-foreground">Kitchen name</Label>
             <Input
               value={workspaceName}
               onChange={(e) => setWorkspaceName(e.target.value)}
-              className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
               placeholder="My Kitchen"
             />
           </div>
 
           <div>
-            <Label className="text-slate-400">Household size</Label>
+            <Label className="text-muted-foreground">Household size</Label>
             <Input
               type="number"
               min="1"
               value={householdSize}
               onChange={(e) => setHouseholdSize(e.target.value)}
-              className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
               placeholder="4"
             />
           </div>
 
           <div>
-            <Label className="text-slate-400">Favorite stores (comma-separated)</Label>
+            <Label className="text-muted-foreground">Favorite stores (comma-separated)</Label>
             <Input
               value={favoriteStores}
               onChange={(e) => setFavoriteStores(e.target.value)}
-              className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
               placeholder="Market of Choice, WinCo, Trader Joe's"
             />
           </div>
@@ -183,13 +183,13 @@ export default function MealPrepSettings({ profile, currentUser }) {
       </div>
 
       {/* Section: Preferences */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-slate-100 mb-6">Preferences</h2>
+      <div className="bg-card border border-border rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-6">Preferences</h2>
 
         <div className="space-y-6">
           {/* Dietary tags */}
           <div>
-            <Label className="text-slate-400 mb-3 block">Dietary preferences</Label>
+            <Label className="text-muted-foreground mb-3 block">Dietary preferences</Label>
             <div className="flex flex-wrap gap-2">
               {DIETARY_OPTIONS.map((diet) => (
                 <div
@@ -205,8 +205,8 @@ export default function MealPrepSettings({ profile, currentUser }) {
                   }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all select-none ${
                     selectedDiets.includes(diet)
-                      ? 'bg-amber-500 text-black'
-                      : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary border border-border text-foreground-soft hover:border-primary hover:text-primary'
                   }`}
                 >
                   {diet.charAt(0).toUpperCase() + diet.slice(1)}
@@ -217,7 +217,7 @@ export default function MealPrepSettings({ profile, currentUser }) {
 
           {/* Skill level */}
           <div>
-            <Label className="text-slate-400 mb-3 block">Cooking skill level</Label>
+            <Label className="text-muted-foreground mb-3 block">Cooking skill level</Label>
             <div className="grid grid-cols-3 gap-3">
               {SKILL_LEVELS.map((level) => (
                 <div
@@ -233,8 +233,8 @@ export default function MealPrepSettings({ profile, currentUser }) {
                   }}
                   className={`p-4 rounded-xl text-center text-sm font-medium cursor-pointer transition-all select-none ${
                     skillLevel === level.value
-                      ? 'bg-amber-500 text-black'
-                      : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary border border-border text-foreground-soft hover:border-primary hover:text-primary'
                   }`}
                 >
                   {level.label}
@@ -250,7 +250,7 @@ export default function MealPrepSettings({ profile, currentUser }) {
         <Button
           onClick={() => saveSettings.mutate()}
           disabled={saveSettings.isPending}
-          className="bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold min-h-[44px]"
         >
           {saveSettings.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -269,13 +269,13 @@ export default function MealPrepSettings({ profile, currentUser }) {
           <AlertTriangle className="h-4 w-4 text-red-400" />
           <p className="text-sm font-medium text-red-400">Danger Zone</p>
         </div>
-        <p className="text-xs text-slate-400 mb-3">
+        <p className="text-xs text-muted-foreground mb-3">
           Permanently delete this workspace and all its data. This cannot be undone.
         </p>
         <Button
           variant="outline"
           onClick={() => setDeleteDialogOpen(true)}
-          className="bg-red-600 hover:bg-red-700 text-white border-red-600 hover:border-red-700 min-h-[44px]"
+          className="bg-red-600 hover:bg-red-700 text-foreground border-red-600 hover:border-red-700 min-h-[44px]"
         >
           <Trash2 className="h-4 w-4 mr-2" />
           Delete Workspace
@@ -284,12 +284,12 @@ export default function MealPrepSettings({ profile, currentUser }) {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-slate-900 border-slate-800">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">
+            <AlertDialogTitle className="text-foreground">
               Delete Meal Prep Workspace?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogDescription className="text-muted-foreground">
               This will permanently delete your kitchen, all recipes, and all ingredients.
               Type <span className="text-red-400 font-mono">delete</span> to confirm.
             </AlertDialogDescription>
@@ -297,17 +297,17 @@ export default function MealPrepSettings({ profile, currentUser }) {
           <Input
             value={deleteConfirmText}
             onChange={(e) => setDeleteConfirmText(e.target.value)}
-            className="bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+            className="bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-red-500 focus:ring-1 focus:ring-red-500"
             placeholder='Type "delete" to confirm'
           />
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800">
+            <AlertDialogCancel className="bg-transparent border-border text-foreground-soft hover:bg-secondary">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteWorkspace.mutate()}
               disabled={deleteConfirmText !== 'delete' || deleteWorkspace.isPending}
-              className="bg-red-600 hover:bg-red-500 text-white disabled:opacity-50"
+              className="bg-red-600 hover:bg-red-500 text-foreground disabled:opacity-50"
             >
               {deleteWorkspace.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

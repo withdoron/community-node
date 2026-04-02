@@ -3,9 +3,9 @@ import { Pencil, Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const ROLE_STYLES = {
-  owner: 'bg-slate-700 text-slate-300',
-  manager: 'bg-amber-500/20 text-amber-400',
-  both: 'bg-amber-500/20 text-amber-400',
+  owner: 'bg-surface text-foreground-soft',
+  manager: 'bg-primary/20 text-primary-hover',
+  both: 'bg-primary/20 text-primary-hover',
 };
 
 function getRoleLabel(role) {
@@ -54,18 +54,18 @@ export default function OwnerCard({
   const roleStyle = ROLE_STYLES[owner.role] || ROLE_STYLES.owner;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+    <div className="bg-card border border-border rounded-lg p-6">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
         <div>
-          <h3 className="text-xl font-bold text-slate-100">{owner.name}</h3>
+          <h3 className="text-xl font-bold text-foreground">{owner.name}</h3>
           <div className="flex flex-wrap items-center gap-2 mt-1.5">
             <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${roleStyle}`}>
               {getRoleLabel(owner.role)}
             </span>
           </div>
           {(owner.email || owner.phone) && (
-            <div className="mt-2 space-y-0.5 text-sm text-slate-400">
+            <div className="mt-2 space-y-0.5 text-sm text-muted-foreground">
               {owner.email && <div>{owner.email}</div>}
               {owner.phone && <div>{formatPhone(owner.phone)}</div>}
             </div>
@@ -76,7 +76,7 @@ export default function OwnerCard({
             variant="ghost"
             size="icon"
             onClick={() => onEdit(owner)}
-            className="h-8 w-8 text-slate-400 hover:text-amber-500 hover:bg-slate-800"
+            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-secondary"
           >
             <Pencil className="w-4 h-4" />
           </Button>
@@ -84,7 +84,7 @@ export default function OwnerCard({
             variant="ghost"
             size="icon"
             onClick={() => onDelete(owner)}
-            className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-slate-800"
+            className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-secondary"
           >
             <Trash2 className="w-4 h-4" />
           </Button>
@@ -93,11 +93,11 @@ export default function OwnerCard({
 
       {/* Ownership Stakes */}
       <div className="mb-6">
-        <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-3">
+        <h4 className="text-sm font-semibold text-foreground-soft uppercase tracking-wide mb-3">
           Ownership Stakes
         </h4>
         {!stakes || stakes.length === 0 ? (
-          <p className="text-slate-500 italic text-sm">No ownership stakes</p>
+          <p className="text-muted-foreground/70 italic text-sm">No ownership stakes</p>
         ) : (
           <ul className="space-y-2">
             {stakes.map((s) => {
@@ -106,18 +106,18 @@ export default function OwnerCard({
               return (
                 <li
                   key={s.id}
-                  className="flex items-center justify-between gap-2 py-2 border-b border-slate-800 last:border-0"
+                  className="flex items-center justify-between gap-2 py-2 border-b border-border last:border-0"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-slate-100 truncate">{groupName}</span>
-                    <span className="font-bold text-amber-500 shrink-0">{s.ownership_pct}%</span>
+                    <span className="text-foreground truncate">{groupName}</span>
+                    <span className="font-bold text-primary shrink-0">{s.ownership_pct}%</span>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => onEditStake(s)}
-                      className="h-7 w-7 text-slate-400 hover:text-amber-500 hover:bg-slate-800"
+                      className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-secondary"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
@@ -125,7 +125,7 @@ export default function OwnerCard({
                       variant="ghost"
                       size="icon"
                       onClick={() => onDeleteStake(s)}
-                      className="h-7 w-7 text-slate-400 hover:text-red-500 hover:bg-slate-800"
+                      className="h-7 w-7 text-muted-foreground hover:text-red-500 hover:bg-secondary"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
@@ -143,7 +143,7 @@ export default function OwnerCard({
               const groupName = group ? group.name : '(Unknown group)';
               const total = ownershipTotalByGroup[s.group_id];
               if (total == null) return null;
-              let statusClass = 'text-amber-400';
+              let statusClass = 'text-primary-hover';
               let suffix = '(incomplete)';
               if (total === 100) {
                 statusClass = 'text-emerald-400';
@@ -164,7 +164,7 @@ export default function OwnerCard({
           variant="outline"
           size="sm"
           onClick={onAddStake}
-          className="mt-3 border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100"
+          className="mt-3 border-border text-foreground-soft hover:bg-secondary hover:text-foreground"
         >
           <Plus className="w-3.5 h-3.5 mr-1.5" /> Add Stake
         </Button>
@@ -172,11 +172,11 @@ export default function OwnerCard({
 
       {/* Distribution Splits */}
       <div>
-        <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-3">
+        <h4 className="text-sm font-semibold text-foreground-soft uppercase tracking-wide mb-3">
           Distribution Splits
         </h4>
         {(!splitsGiving || splitsGiving.length === 0) && (!splitsReceiving || splitsReceiving.length === 0) ? (
-          <p className="text-slate-500 italic text-sm">No distribution splits</p>
+          <p className="text-muted-foreground/70 italic text-sm">No distribution splits</p>
         ) : (
           <ul className="space-y-2">
             {splitsGiving && splitsGiving.map((sp) => {
@@ -187,14 +187,14 @@ export default function OwnerCard({
               return (
                 <li
                   key={sp.id}
-                  className="flex items-center justify-between gap-2 py-2 border-b border-slate-800 last:border-0"
+                  className="flex items-center justify-between gap-2 py-2 border-b border-border last:border-0"
                 >
                   <div className="min-w-0">
-                    <span className="text-slate-100 text-sm">
+                    <span className="text-foreground text-sm">
                       Gives {sp.split_pct}% to {toName} from {groupName}
                     </span>
                     {sp.reason && (
-                      <p className="text-slate-500 text-xs mt-0.5">{sp.reason}</p>
+                      <p className="text-muted-foreground/70 text-xs mt-0.5">{sp.reason}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -202,7 +202,7 @@ export default function OwnerCard({
                       variant="ghost"
                       size="icon"
                       onClick={() => onEditSplit(sp)}
-                      className="h-7 w-7 text-slate-400 hover:text-amber-500 hover:bg-slate-800"
+                      className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-secondary"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </Button>
@@ -210,7 +210,7 @@ export default function OwnerCard({
                       variant="ghost"
                       size="icon"
                       onClick={() => onDeleteSplit(sp)}
-                      className="h-7 w-7 text-slate-400 hover:text-red-500 hover:bg-slate-800"
+                      className="h-7 w-7 text-muted-foreground hover:text-red-500 hover:bg-secondary"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
@@ -224,8 +224,8 @@ export default function OwnerCard({
               const fromName = fromOwner ? fromOwner.name : '(Unknown)';
               const groupName = group ? group.name : '(Unknown group)';
               return (
-                <li key={sp.id} className="py-2 border-b border-slate-800 last:border-0">
-                  <span className="text-slate-400 text-sm">
+                <li key={sp.id} className="py-2 border-b border-border last:border-0">
+                  <span className="text-muted-foreground text-sm">
                     Receives {sp.split_pct}% from {fromName} from {groupName}
                   </span>
                 </li>
@@ -237,7 +237,7 @@ export default function OwnerCard({
           variant="outline"
           size="sm"
           onClick={onAddSplit}
-          className="mt-3 border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100"
+          className="mt-3 border-border text-foreground-soft hover:bg-secondary hover:text-foreground"
         >
           <Plus className="w-3.5 h-3.5 mr-1.5" /> Add Split
         </Button>

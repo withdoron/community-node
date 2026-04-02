@@ -5,12 +5,12 @@ import { toast } from 'sonner';
 import { ArrowLeft, Plus, X } from 'lucide-react';
 
 const inputClass =
-  'w-full rounded-md bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none px-3 py-2 text-sm min-h-[44px]';
+  'w-full rounded-md bg-secondary border border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none px-3 py-2 text-sm min-h-[44px]';
 const selectClass =
-  'w-full rounded-md bg-slate-800 border border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none px-3 py-2 text-sm min-h-[44px] appearance-none';
+  'w-full rounded-md bg-secondary border border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none px-3 py-2 text-sm min-h-[44px] appearance-none';
 const textareaClass =
-  'w-full rounded-md bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none px-3 py-2 text-sm min-h-[100px] resize-y';
-const labelClass = 'text-slate-300 text-sm font-medium block mb-1';
+  'w-full rounded-md bg-secondary border border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none px-3 py-2 text-sm min-h-[100px] resize-y';
+const labelClass = 'text-foreground-soft text-sm font-medium block mb-1';
 
 const DIFFICULTY_OPTIONS = [
   { value: 'easy', label: 'Easy' },
@@ -247,30 +247,30 @@ export default function RecipeEditor({ profile, currentUser, recipe, onClose, on
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950 overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-slate-800 transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-secondary transition-colors"
           >
-            <ArrowLeft className="h-5 w-5 text-slate-400" />
+            <ArrowLeft className="h-5 w-5 text-muted-foreground" />
           </button>
-          <h1 className="text-xl font-semibold text-white">
+          <h1 className="text-xl font-semibold text-foreground">
             {isEdit ? 'Edit Recipe' : 'Add Recipe'}
           </h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Info */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-            <h2 className="text-white font-medium text-base mb-2">Basic Info</h2>
+          <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+            <h2 className="text-foreground font-medium text-base mb-2">Basic Info</h2>
 
             <div>
               <label className={labelClass}>
-                Name <span className="text-amber-500">*</span>
+                Name <span className="text-primary">*</span>
               </label>
               <input
                 type="text"
@@ -304,8 +304,8 @@ export default function RecipeEditor({ profile, currentUser, recipe, onClose, on
           </div>
 
           {/* Details */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-            <h2 className="text-white font-medium text-base mb-2">Details</h2>
+          <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+            <h2 className="text-foreground font-medium text-base mb-2">Details</h2>
 
             <div className="grid grid-cols-3 gap-3">
               <div>
@@ -383,7 +383,7 @@ export default function RecipeEditor({ profile, currentUser, recipe, onClose, on
                 value={form.tags}
                 onChange={(e) => handleChange('tags', e.target.value)}
               />
-              <p className="text-slate-500 text-xs mt-1">Comma-separated</p>
+              <p className="text-muted-foreground/70 text-xs mt-1">Comma-separated</p>
             </div>
 
             <div>
@@ -393,8 +393,8 @@ export default function RecipeEditor({ profile, currentUser, recipe, onClose, on
                 onClick={() => handleChange('kid_friendly', !form.kid_friendly)}
                 className={`min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   form.kid_friendly
-                    ? 'bg-amber-500 text-black'
-                    : 'bg-slate-800 border border-slate-700 text-slate-400 hover:border-slate-600'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary border border-border text-muted-foreground hover:border-border'
                 }`}
               >
                 {form.kid_friendly ? 'Yes' : 'No'}
@@ -424,13 +424,13 @@ export default function RecipeEditor({ profile, currentUser, recipe, onClose, on
           </div>
 
           {/* Ingredients */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
+          <div className="bg-card border border-border rounded-xl p-6 space-y-4">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-white font-medium text-base">Ingredients</h2>
+              <h2 className="text-foreground font-medium text-base">Ingredients</h2>
               <button
                 type="button"
                 onClick={addIngredient}
-                className="min-h-[44px] px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-amber-500 hover:border-amber-500 transition-colors flex items-center gap-1.5 text-sm font-medium"
+                className="min-h-[44px] px-3 py-2 rounded-lg bg-secondary border border-border text-primary hover:border-primary transition-colors flex items-center gap-1.5 text-sm font-medium"
               >
                 <Plus className="h-4 w-4" />
                 Add Ingredient
@@ -441,19 +441,19 @@ export default function RecipeEditor({ profile, currentUser, recipe, onClose, on
               {ingredients.map((ing, index) => (
                 <div
                   key={index}
-                  className="bg-slate-800/50 rounded-lg p-3 space-y-3"
+                  className="bg-secondary/50 rounded-lg p-3 space-y-3"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500 text-xs font-medium">
+                    <span className="text-muted-foreground/70 text-xs font-medium">
                       #{index + 1}
                     </span>
                     {ingredients.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeIngredient(index)}
-                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-slate-700 transition-colors"
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-surface transition-colors"
                       >
-                        <X className="h-4 w-4 text-slate-400 hover:text-white" />
+                        <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                       </button>
                     )}
                   </div>
@@ -519,8 +519,8 @@ export default function RecipeEditor({ profile, currentUser, recipe, onClose, on
                         }
                         className={`min-h-[44px] px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full ${
                           ing.is_optional
-                            ? 'bg-amber-500/20 text-amber-500 border border-amber-500/40'
-                            : 'bg-slate-800 border border-slate-700 text-slate-400 hover:border-slate-600'
+                            ? 'bg-primary/20 text-primary border border-primary/40'
+                            : 'bg-secondary border border-border text-muted-foreground hover:border-border'
                         }`}
                       >
                         {ing.is_optional ? 'Optional' : 'Required'}
@@ -537,14 +537,14 @@ export default function RecipeEditor({ profile, currentUser, recipe, onClose, on
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 min-h-[44px] rounded-lg border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent transition-colors text-sm font-medium"
+              className="flex-1 min-h-[44px] rounded-lg border border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent transition-colors text-sm font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saveMutation.isPending}
-              className="flex-1 min-h-[44px] rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold transition-colors disabled:opacity-50"
+              className="flex-1 min-h-[44px] rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-semibold transition-colors disabled:opacity-50"
             >
               {saveMutation.isPending
                 ? 'Saving...'

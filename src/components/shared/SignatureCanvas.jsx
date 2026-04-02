@@ -158,22 +158,22 @@ export default function SignatureCanvas({ onChange, signerName = '', darkMode = 
         <button type="button" onClick={() => switchMode('draw')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium min-h-[36px] transition-colors ${
             mode === 'draw'
-              ? darkMode ? 'bg-amber-500 text-black' : 'bg-slate-900 text-white'
-              : darkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600'
+              ? darkMode ? 'bg-primary text-primary-foreground' : 'bg-card text-foreground'
+              : darkMode ? 'bg-secondary text-muted-foreground' : 'bg-slate-100 text-muted-foreground/50'
           }`}>
           <Pencil className="h-3 w-3" /> Draw
         </button>
         <button type="button" onClick={() => switchMode('type')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium min-h-[36px] transition-colors ${
             mode === 'type'
-              ? darkMode ? 'bg-amber-500 text-black' : 'bg-slate-900 text-white'
-              : darkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600'
+              ? darkMode ? 'bg-primary text-primary-foreground' : 'bg-card text-foreground'
+              : darkMode ? 'bg-secondary text-muted-foreground' : 'bg-slate-100 text-muted-foreground/50'
           }`}>
           <Type className="h-3 w-3" /> Type
         </button>
         <button type="button" onClick={clear}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium min-h-[36px] transition-colors ml-auto ${
-            darkMode ? 'text-slate-400 hover:text-amber-500' : 'text-slate-500 hover:text-slate-900'
+            darkMode ? 'text-muted-foreground hover:text-primary' : 'text-muted-foreground/70 hover:text-primary-foreground'
           }`}>
           <RotateCcw className="h-3 w-3" /> Clear
         </button>
@@ -208,16 +208,16 @@ export default function SignatureCanvas({ onChange, signerName = '', darkMode = 
             value={typedName}
             onChange={(e) => setTypedName(e.target.value)}
             placeholder="Type your full name"
-            className={`w-full rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-amber-500 min-h-[44px] ${
+            className={`w-full rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] ${
               darkMode
-                ? 'bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500'
-                : 'bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400'
+                ? 'bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70'
+                : 'bg-white border border-border text-primary-foreground placeholder:text-muted-foreground'
             }`}
           />
         </div>
       )}
 
-      <p className={`text-xs ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+      <p className={`text-xs ${darkMode ? 'text-muted-foreground/70' : 'text-muted-foreground'}`}>
         {mode === 'draw' ? 'Draw your signature above using mouse or finger' : 'Type your name to generate a signature'}
       </p>
     </div>

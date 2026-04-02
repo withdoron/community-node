@@ -13,7 +13,7 @@ function fmtDate(d) {
 const STATUS_STYLES = {
   confirmed: 'bg-blue-500/20 text-blue-400',
   checked_in: 'bg-green-500/20 text-green-400',
-  checked_out: 'bg-slate-700 text-slate-400',
+  checked_out: 'bg-surface text-muted-foreground',
   cancelled: 'bg-red-500/20 text-red-400',
 };
 
@@ -25,10 +25,10 @@ const STATUS_LABELS = {
 };
 
 const SOURCE_STYLES = {
-  direct: 'bg-amber-500/20 text-amber-500',
+  direct: 'bg-primary/20 text-primary',
   airbnb: 'bg-rose-500/20 text-rose-400',
   vrbo: 'bg-blue-500/20 text-blue-400',
-  other: 'bg-slate-700 text-slate-400',
+  other: 'bg-surface text-muted-foreground',
 };
 
 export default function GuestList({
@@ -41,11 +41,11 @@ export default function GuestList({
   if (guests.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-4">
-          <Users className="h-7 w-7 text-amber-500" />
+        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+          <Users className="h-7 w-7 text-primary" />
         </div>
-        <p className="text-slate-300 font-medium mb-1">No guests yet</p>
-        <p className="text-slate-500 text-sm text-center max-w-xs">
+        <p className="text-foreground-soft font-medium mb-1">No guests yet</p>
+        <p className="text-muted-foreground/70 text-sm text-center max-w-xs">
           Add your first guest booking to start tracking short-term rentals
         </p>
       </div>
@@ -74,12 +74,12 @@ export default function GuestList({
         return (
           <div
             key={g.id}
-            className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-colors"
+            className="bg-card border border-border rounded-xl p-4 hover:border-border transition-colors"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <h3 className="text-sm font-semibold text-slate-100 truncate">
+                  <h3 className="text-sm font-semibold text-foreground truncate">
                     {g.guest_name || 'Unnamed Guest'}
                   </h3>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[g.status] || STATUS_STYLES.confirmed}`}>
@@ -90,12 +90,12 @@ export default function GuestList({
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-500 truncate">
+                <p className="text-xs text-muted-foreground/70 truncate">
                   {propertyLabels[g.property_id] || '—'}
                 </p>
 
                 {/* Dates + pricing */}
-                <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-400">
+                <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
                   <span>
                     {fmtDate(g.check_in)} → {fmtDate(g.check_out)}
                     {nights > 0 && ` (${nights} night${nights !== 1 ? 's' : ''})`}
@@ -110,7 +110,7 @@ export default function GuestList({
 
                 {/* Total */}
                 {g.total_amount > 0 && (
-                  <p className="text-sm font-bold text-amber-500 mt-1.5">
+                  <p className="text-sm font-bold text-primary mt-1.5">
                     {fmt(g.total_amount)}
                   </p>
                 )}
@@ -122,7 +122,7 @@ export default function GuestList({
                   <button
                     type="button"
                     onClick={() => onStatusAction(g, nextAction.next)}
-                    className="flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400 min-h-[28px] font-medium"
+                    className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover min-h-[28px] font-medium"
                   >
                     {nextAction.label} <ChevronRight className="w-3 h-3" />
                   </button>
@@ -131,14 +131,14 @@ export default function GuestList({
                   <button
                     type="button"
                     onClick={() => onEdit(g)}
-                    className="text-slate-400 hover:text-slate-200 p-1 min-h-[28px]"
+                    className="text-muted-foreground hover:text-foreground p-1 min-h-[28px]"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={() => onDelete(g)}
-                    className="text-slate-500 hover:text-red-400 p-1 min-h-[28px]"
+                    className="text-muted-foreground/70 hover:text-red-400 p-1 min-h-[28px]"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

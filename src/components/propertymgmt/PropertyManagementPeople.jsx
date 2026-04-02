@@ -29,7 +29,7 @@ export default function PropertyManagementPeople({ profile, currentUser, memberR
   // Role guard
   if (!memberRole) {
     return (
-      <div className="text-center py-12 text-slate-400">
+      <div className="text-center py-12 text-muted-foreground">
         <p>You don't have access to this workspace.</p>
       </div>
     );
@@ -255,19 +255,19 @@ export default function PropertyManagementPeople({ profile, currentUser, memberR
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-10 w-48 bg-slate-900 border border-slate-800 rounded-lg animate-pulse" />
+        <div className="h-10 w-48 bg-card border border-border rounded-lg animate-pulse" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl p-3 animate-pulse">
-              <div className="h-3 w-16 bg-slate-700 rounded mb-2" />
-              <div className="h-5 w-12 bg-slate-700 rounded" />
+            <div key={i} className="bg-card border border-border rounded-xl p-3 animate-pulse">
+              <div className="h-3 w-16 bg-surface rounded mb-2" />
+              <div className="h-5 w-12 bg-surface rounded" />
             </div>
           ))}
         </div>
         {[1, 2].map((i) => (
-          <div key={i} className="bg-slate-900 border border-slate-800 rounded-lg p-4 animate-pulse">
-            <div className="h-5 w-40 bg-slate-700 rounded mb-2" />
-            <div className="h-4 w-24 bg-slate-700 rounded" />
+          <div key={i} className="bg-card border border-border rounded-lg p-4 animate-pulse">
+            <div className="h-5 w-40 bg-surface rounded mb-2" />
+            <div className="h-4 w-24 bg-surface rounded" />
           </div>
         ))}
       </div>
@@ -278,7 +278,7 @@ export default function PropertyManagementPeople({ profile, currentUser, memberR
     <div className="space-y-6">
       {/* Sub-tab toggle + action */}
       <div className="flex items-center justify-between gap-3">
-        <div className="flex gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1">
+        <div className="flex gap-1 bg-card border border-border rounded-lg p-1">
           {SUB_TABS.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -288,16 +288,16 @@ export default function PropertyManagementPeople({ profile, currentUser, memberR
                 onClick={() => setSubTab(tab.key)}
                 className={`flex items-center gap-1.5 px-4 py-2 text-sm rounded-md transition-colors min-h-[40px] ${
                   subTab === tab.key
-                    ? 'bg-amber-500 text-black font-bold'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                    ? 'bg-primary text-primary-foreground font-bold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                 }`}
               >
                 <Icon className="w-4 h-4" />
                 {tab.label}
                 <span className={`text-xs px-1.5 py-0.5 rounded-full ml-0.5 ${
                   subTab === tab.key
-                    ? 'bg-black/20 text-black'
-                    : 'bg-slate-800 text-slate-500'
+                    ? 'bg-black/20 text-primary-foreground'
+                    : 'bg-secondary text-muted-foreground/70'
                 }`}>
                   {tab.key === 'tenants' ? tenants.length : guests.length}
                 </span>
@@ -312,7 +312,7 @@ export default function PropertyManagementPeople({ profile, currentUser, memberR
               setEditingGuest(null);
               setGuestFormOpen(true);
             }}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
           >
             <Plus className="w-4 h-4 mr-1.5" />
             Add Guest
@@ -370,23 +370,23 @@ export default function PropertyManagementPeople({ profile, currentUser, memberR
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
       >
-        <AlertDialogContent className="bg-slate-900 border border-slate-800">
+        <AlertDialogContent className="bg-card border border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">
+            <AlertDialogTitle className="text-foreground">
               Delete this guest?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogDescription className="text-muted-foreground">
               This will permanently remove &ldquo;{deleteTarget?.guest_name}&rdquo;. This action
               cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-slate-100">
+            <AlertDialogCancel className="bg-secondary border-border text-foreground-soft hover:bg-surface hover:text-foreground">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-500 text-white"
+              className="bg-red-600 hover:bg-red-500 text-foreground"
             >
               Delete
             </AlertDialogAction>

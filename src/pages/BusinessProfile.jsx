@@ -119,18 +119,18 @@ export default function BusinessProfile() {
 
   if (businessLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (!business) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-white">Business not found</h2>
-          <Button onClick={() => navigate(-1)} className="mt-4 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500">
+          <h2 className="text-xl font-semibold text-foreground">Business not found</h2>
+          <Button onClick={() => navigate(-1)} className="mt-4 border-border text-foreground-soft hover:border-primary hover:text-primary">
             Back
           </Button>
         </div>
@@ -139,18 +139,18 @@ export default function BusinessProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-slate-950/90 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-10">
+      <div className="bg-background/90 backdrop-blur-sm border-b border-border sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-slate-300 hover:text-amber-500 hover:bg-slate-800">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-foreground-soft hover:text-primary hover:bg-secondary">
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="hover:bg-slate-800"
+            className="hover:bg-secondary"
             onClick={() => {
               const url = window.location.href;
               navigator.clipboard.writeText(url).then(() => {
@@ -170,7 +170,7 @@ export default function BusinessProfile() {
         const heroImage = business.banner_url || business.photos?.[0] || business.logo_url;
         if (heroImage) {
           return (
-            <div className="relative h-52 sm:h-64 lg:h-72 w-full overflow-hidden bg-slate-900">
+            <div className="relative h-52 sm:h-64 lg:h-72 w-full overflow-hidden bg-card">
               <img
                 src={heroImage}
                 alt={business.name}
@@ -183,8 +183,8 @@ export default function BusinessProfile() {
         const accentBorder = resolveCategoryAccent(business, legacyCategoryMapping);
         const accentBg = accentBorder.replace('border-l-', 'bg-');
         return (
-          <div className="relative h-32 sm:h-40 w-full bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 flex items-center justify-center">
-            <span className="text-2xl font-bold text-slate-300/20 select-none truncate px-8 max-w-full">
+          <div className="relative h-32 sm:h-40 w-full bg-gradient-to-br from-secondary via-slate-900 to-background flex items-center justify-center">
+            <span className="text-2xl font-bold text-foreground-soft/20 select-none truncate px-8 max-w-full">
               {business.name}
             </span>
             <div className={`absolute bottom-0 left-0 right-0 h-1 ${accentBg}`} />
@@ -201,23 +201,23 @@ export default function BusinessProfile() {
               <div className="flex items-start gap-4">
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <Badge variant="secondary" className="bg-slate-800 text-slate-300">
+                    <Badge variant="secondary" className="bg-secondary text-foreground-soft">
                       {getCategoryDisplayLabel(business, getLabel, legacyCategoryMapping)}
                     </Badge>
                     {isPartner && (
-                      <Badge className="bg-amber-500 text-black">
+                      <Badge className="bg-primary text-primary-foreground">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Partner
                       </Badge>
                     )}
                     {business.accepts_silver && (
-                      <Badge variant="outline" className="border-amber-500/30 text-amber-500 bg-amber-500/10">
+                      <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10">
                         <Coins className="h-3 w-3 mr-1" />
                         Accepts Silver
                       </Badge>
                     )}
                     {business.accepts_joy_coins && (
-                      <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                      <Badge className="bg-primary/20 text-primary-hover border border-primary/30 flex items-center gap-1">
                         <Coins className="h-3 w-3" />
                         Accepts Joy Coins
                       </Badge>
@@ -226,22 +226,22 @@ export default function BusinessProfile() {
                       <Link
                         key={slug}
                         to={`/networks/${slug}`}
-                        className="bg-amber-500/10 text-amber-500 text-xs px-2 py-0.5 rounded-full hover:bg-amber-500/20 transition-colors"
+                        className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full hover:bg-primary/20 transition-colors"
                       >
                         {label}
                       </Link>
                     ))}
                   </div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-white">{business.name}</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{business.name}</h1>
                   {business.subcategory?.trim() && (
-                    <p className="text-slate-400 text-sm mt-1">{business.subcategory.trim()}</p>
+                    <p className="text-muted-foreground text-sm mt-1">{business.subcategory.trim()}</p>
                   )}
                   <div className="mt-3">
                     <TrustSignal business={business} />
                   </div>
 
                   {(primaryLocation || business.city) && (
-                    <div className="flex items-start gap-1.5 text-slate-400 mt-3">
+                    <div className="flex items-start gap-1.5 text-muted-foreground mt-3">
                       <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                       <div>
                         {primaryLocation ? (
@@ -257,32 +257,32 @@ export default function BusinessProfile() {
                 </div>
               </div>
 
-              <p className="text-slate-400 mt-6 leading-relaxed">
+              <p className="text-muted-foreground mt-6 leading-relaxed">
                 {business.description || 'No description available.'}
               </p>
 
               {business.service_area?.trim() && (
-                <p className="text-slate-300 mt-4 flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4 flex-shrink-0 text-slate-400" />
+                <p className="text-foreground-soft mt-4 flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                   Serves: {business.service_area.trim()}
                 </p>
               )}
               {business.services_offered?.trim() && (
                 <div className="mt-4">
-                  <p className="text-slate-300 whitespace-pre-line">{business.services_offered.trim()}</p>
+                  <p className="text-foreground-soft whitespace-pre-line">{business.services_offered.trim()}</p>
                 </div>
               )}
 
               {/* What's Available — product tags */}
               {Array.isArray(business.product_tags) && business.product_tags.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-3">
-                    <Sprout className="h-4 w-4 text-amber-500" />
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-3">
+                    <Sprout className="h-4 w-4 text-primary" />
                     What's Available
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {business.product_tags.map((tag, idx) => (
-                      <span key={idx} className="bg-amber-500/20 text-amber-500 rounded-full px-3 py-1 text-sm">
+                      <span key={idx} className="bg-primary/20 text-primary rounded-full px-3 py-1 text-sm">
                         {tag}
                       </span>
                     ))}
@@ -292,23 +292,23 @@ export default function BusinessProfile() {
 
               {/* How to Purchase — payment methods */}
               {Array.isArray(business.payment_methods) && business.payment_methods.length > 0 && (
-                <div className="mt-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-                  <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-3">
-                    <ShoppingBag className="h-4 w-4 text-amber-500" />
+                <div className="mt-6 p-4 bg-secondary/50 rounded-lg border border-border">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-3">
+                    <ShoppingBag className="h-4 w-4 text-primary" />
                     How to Purchase
                   </h3>
                   <div className="flex flex-wrap gap-2 mb-2">
                     {business.payment_methods.map((method, idx) => {
                       const labels = { cash: 'Cash', venmo: 'Venmo', cashapp: 'CashApp', zelle: 'Zelle', paypal: 'PayPal', other: 'Other' };
                       return (
-                        <span key={idx} className="bg-slate-800 text-slate-200 rounded-full px-3 py-1 text-sm border border-slate-700">
+                        <span key={idx} className="bg-secondary text-foreground rounded-full px-3 py-1 text-sm border border-border">
                           {labels[method] || method}
                         </span>
                       );
                     })}
                   </div>
                   {business.payment_notes?.trim() && (
-                    <p className="text-slate-300 text-sm mt-2">{business.payment_notes.trim()}</p>
+                    <p className="text-foreground-soft text-sm mt-2">{business.payment_notes.trim()}</p>
                   )}
                 </div>
               )}
@@ -318,10 +318,10 @@ export default function BusinessProfile() {
             {upcomingEvents.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-lg font-semibold text-white font-serif">Upcoming Events</h2>
+                  <h2 className="text-lg font-semibold text-foreground font-serif">Upcoming Events</h2>
                   <Link
                     to="/Events"
-                    className="text-sm text-amber-500 hover:text-amber-400 transition-colors"
+                    className="text-sm text-primary hover:text-primary-hover transition-colors"
                   >
                     See all
                   </Link>
@@ -342,25 +342,25 @@ export default function BusinessProfile() {
 
             {/* Tabs */}
             <Tabs defaultValue="services" className="w-full">
-              <TabsList className="w-full justify-start bg-slate-900 border border-slate-800 p-1">
+              <TabsList className="w-full justify-start bg-card border border-border p-1">
                 <TabsTrigger value="services">Services</TabsTrigger>
                 <TabsTrigger value="photos">Photos</TabsTrigger>
                 <TabsTrigger value="recommendations">Recommendations ({recommendations.length})</TabsTrigger>
               </TabsList>
 
               <TabsContent value="services" className="mt-4">
-                <Card className="divide-y divide-slate-800">
+                <Card className="divide-y divide-border">
                   {business.services?.length > 0 ? (
                     business.services.map((service, idx) => (
                       <div key={idx} className="p-4 flex items-start justify-between gap-4">
                         <div>
-                          <h4 className="font-medium text-slate-100">{service.name}</h4>
+                          <h4 className="font-medium text-foreground">{service.name}</h4>
                           {service.description && (
-                            <p className="text-sm text-slate-400 mt-1">{service.description}</p>
+                            <p className="text-sm text-muted-foreground mt-1">{service.description}</p>
                           )}
                         </div>
                         {service.starting_price && (
-                          <p className="font-semibold text-amber-500 whitespace-nowrap">
+                          <p className="font-semibold text-primary whitespace-nowrap">
                             From ${service.starting_price}
                           </p>
                         )}
@@ -368,10 +368,10 @@ export default function BusinessProfile() {
                     ))
                   ) : business.services_offered?.trim() ? (
                     <div className="p-4">
-                      <p className="text-slate-300 whitespace-pre-line">{business.services_offered.trim()}</p>
+                      <p className="text-foreground-soft whitespace-pre-line">{business.services_offered.trim()}</p>
                     </div>
                   ) : (
-                    <div className="p-8 text-center text-slate-400">
+                    <div className="p-8 text-center text-muted-foreground">
                       No services listed yet
                     </div>
                   )}
@@ -382,7 +382,7 @@ export default function BusinessProfile() {
                 {business.photos?.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {business.photos.map((photo, idx) => (
-                      <div key={idx} className="aspect-square rounded-xl overflow-hidden bg-slate-800">
+                      <div key={idx} className="aspect-square rounded-xl overflow-hidden bg-secondary">
                         <img
                           src={photo}
                           alt={`${business.name} photo ${idx + 1}`}
@@ -392,7 +392,7 @@ export default function BusinessProfile() {
                     ))}
                   </div>
                 ) : (
-                  <Card className="p-8 text-center text-slate-500">
+                  <Card className="p-8 text-center text-muted-foreground/70">
                     No photos available
                   </Card>
                 )}
@@ -400,30 +400,30 @@ export default function BusinessProfile() {
 
               <TabsContent value="recommendations" className="mt-4 space-y-6">
                 {/* Recommendation Summary */}
-                <Card className="p-6 border-slate-800 bg-slate-900">
+                <Card className="p-6 border-border bg-card">
                   <div className="flex flex-col sm:flex-row items-center gap-6">
                     <div className="text-center">
-                      <div className="h-16 w-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <ThumbsUp className="h-8 w-8 text-amber-500" />
+                      <div className="h-16 w-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <ThumbsUp className="h-8 w-8 text-primary" />
                       </div>
-                      <p className="text-3xl font-bold text-white">
+                      <p className="text-3xl font-bold text-foreground">
                         {(business.recommendation_count || 0)}
                       </p>
-                      <p className="text-sm text-slate-400 mt-1">neighbors recommend</p>
+                      <p className="text-sm text-muted-foreground mt-1">neighbors recommend</p>
                     </div>
                     <div className="flex-1 w-full space-y-4">
                       {/* Nod avatars */}
                       {nods.length > 0 && (
                         <div>
-                          <p className="text-sm text-slate-400 mb-2">{nods.length} quick recommendations</p>
+                          <p className="text-sm text-muted-foreground mb-2">{nods.length} quick recommendations</p>
                           <NodAvatars recommendations={nods} maxShow={8} />
                         </div>
                       )}
                       {/* Story count */}
                       {stories.length > 0 && (
                         <div className="flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-amber-500" />
-                          <p className="text-sm text-slate-300">{stories.length} {stories.length === 1 ? 'story' : 'stories'} shared</p>
+                          <BookOpen className="h-4 w-4 text-primary" />
+                          <p className="text-sm text-foreground-soft">{stories.length} {stories.length === 1 ? 'story' : 'stories'} shared</p>
                         </div>
                       )}
                     </div>
@@ -434,8 +434,8 @@ export default function BusinessProfile() {
                 {vouches.length > 0 && (
                   <div className="mt-6">
                     <div className="flex items-center gap-2 mb-3">
-                      <Shield className="h-5 w-5 text-amber-500" />
-                      <h3 className="text-lg font-semibold text-white">
+                      <Shield className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold text-foreground">
                         {vouches.length} Verified {vouches.length === 1 ? 'Vouch' : 'Vouches'}
                       </h3>
                     </div>
@@ -450,19 +450,19 @@ export default function BusinessProfile() {
                 {/* Recommend CTA */}
                 <div className="flex flex-col sm:flex-row gap-3 justify-end">
                   <Link to={createPageUrl(`Recommend?businessId=${business.id}`)}>
-                    <Button className="bg-amber-500 hover:bg-amber-400 text-black font-semibold">
+                    <Button className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold">
                       <ThumbsUp className="h-4 w-4 mr-2" />
                       Recommend
                     </Button>
                   </Link>
                   <Link to={createPageUrl(`Recommend?businessId=${business.id}&mode=story`)}>
-                    <Button variant="outline" className="border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent">
+                    <Button variant="outline" className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent">
                       <BookOpen className="h-4 w-4 mr-2" />
                       Share a Story
                     </Button>
                   </Link>
                   <Link to={createPageUrl(`Recommend?businessId=${business.id}&mode=vouch`)}>
-                    <Button variant="outline" className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10">
+                    <Button variant="outline" className="border-primary/50 text-primary hover:bg-primary/10">
                       <Shield className="h-4 w-4 mr-2" />
                       Vouch for This Business
                     </Button>
@@ -471,7 +471,7 @@ export default function BusinessProfile() {
                 <div className="mt-4 text-center">
                   <Link
                     to={createPageUrl(`Recommend?businessId=${business.id}&mode=concern`)}
-                    className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
+                    className="text-sm text-muted-foreground/70 hover:text-foreground-soft transition-colors"
                   >
                     Had a different experience?
                   </Link>
@@ -480,7 +480,7 @@ export default function BusinessProfile() {
                 {/* Stories List */}
                 {recommendationsLoading ? (
                   <div className="flex justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                   </div>
                 ) : stories.length > 0 ? (
                   <div className="space-y-4">
@@ -489,9 +489,9 @@ export default function BusinessProfile() {
                     ))}
                   </div>
                 ) : (
-                  <Card className="p-8 text-center border-slate-800">
-                    <BookOpen className="h-8 w-8 text-slate-600 mx-auto mb-3" />
-                    <p className="text-slate-400">No stories yet. Be the first to share your experience!</p>
+                  <Card className="p-8 text-center border-border">
+                    <BookOpen className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
+                    <p className="text-muted-foreground">No stories yet. Be the first to share your experience!</p>
                   </Card>
                 )}
               </TabsContent>
@@ -502,12 +502,12 @@ export default function BusinessProfile() {
           <div className="space-y-4">
             {/* Contact Card */}
             <Card className="p-5 sticky top-20">
-              <h3 className="font-semibold text-white mb-4">Contact</h3>
+              <h3 className="font-semibold text-foreground mb-4">Contact</h3>
               <div className="space-y-3">
                 {business.phone && (
                   <a 
                     href={`tel:${business.phone}`}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-amber-500 text-black hover:bg-amber-400 transition-colors font-medium"
+                    className="flex items-center gap-3 p-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary-hover transition-colors font-medium"
                   >
                     <Phone className="h-5 w-5" />
                     <span className="font-medium">{formatPhone(business.phone)}</span>
@@ -517,7 +517,7 @@ export default function BusinessProfile() {
                 {business.email && (
                   <a 
                     href={`mailto:${business.email}`}
-                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border text-foreground-soft hover:border-primary hover:text-primary transition-colors"
                   >
                     <Mail className="h-5 w-5" />
                     <span>{business.email}</span>
@@ -529,7 +529,7 @@ export default function BusinessProfile() {
                     href={business.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border text-foreground-soft hover:border-primary hover:text-primary transition-colors"
                   >
                     <Globe className="h-5 w-5" />
                     <span className="truncate">{business.website.replace(/^https?:\/\//, '')}</span>
@@ -538,9 +538,9 @@ export default function BusinessProfile() {
                 )}
 
                 {business.business_hours?.trim() && (
-                  <div className="flex items-start gap-3 p-3 rounded-lg border border-slate-700">
-                    <Clock className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                    <span className="text-slate-300 text-sm whitespace-pre-line">{business.business_hours.trim()}</span>
+                  <div className="flex items-start gap-3 p-3 rounded-lg border border-border">
+                    <Clock className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <span className="text-foreground-soft text-sm whitespace-pre-line">{business.business_hours.trim()}</span>
                   </div>
                 )}
 
@@ -549,9 +549,9 @@ export default function BusinessProfile() {
                     href={business.instagram.trim().startsWith('http') ? business.instagram.trim() : `https://instagram.com/${business.instagram.trim().replace(/^@/, '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-700 text-amber-500 hover:text-amber-400 underline underline-offset-2 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border text-primary hover:text-primary-hover underline underline-offset-2 transition-colors"
                   >
-                    <Instagram className="h-5 w-5 flex-shrink-0 text-amber-500" />
+                    <Instagram className="h-5 w-5 flex-shrink-0 text-primary" />
                     <span className="truncate">@{business.instagram.trim().replace(/^@/, '')}</span>
                     <ExternalLink className="h-4 w-4 ml-auto flex-shrink-0" />
                   </a>
@@ -562,9 +562,9 @@ export default function BusinessProfile() {
                     href={business.facebook.trim().startsWith('http') ? business.facebook.trim() : `https://${business.facebook.trim()}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-700 text-amber-500 hover:text-amber-400 underline underline-offset-2 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border text-primary hover:text-primary-hover underline underline-offset-2 transition-colors"
                   >
-                    <Facebook className="h-5 w-5 flex-shrink-0 text-amber-500" />
+                    <Facebook className="h-5 w-5 flex-shrink-0 text-primary" />
                     <span className="truncate">{business.facebook.trim().replace(/^https?:\/\//, '')}</span>
                     <ExternalLink className="h-4 w-4 ml-auto flex-shrink-0" />
                   </a>
@@ -575,9 +575,9 @@ export default function BusinessProfile() {
                     href={business.shop_url.trim().startsWith('http') ? business.shop_url.trim() : `https://${business.shop_url.trim()}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-lg border border-slate-700 text-amber-500 hover:text-amber-400 underline underline-offset-2 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border text-primary hover:text-primary-hover underline underline-offset-2 transition-colors"
                   >
-                    <ShoppingBag className="h-5 w-5 flex-shrink-0 text-amber-500" />
+                    <ShoppingBag className="h-5 w-5 flex-shrink-0 text-primary" />
                     <span>Shop Online</span>
                     <ExternalLink className="h-4 w-4 ml-auto flex-shrink-0" />
                   </a>
@@ -585,8 +585,8 @@ export default function BusinessProfile() {
 
                 {/* Locations Section */}
               {locations.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-slate-800">
-                  <h4 className="text-sm font-medium text-slate-300 mb-3">
+                <div className="mt-4 pt-4 border-t border-border">
+                  <h4 className="text-sm font-medium text-foreground-soft mb-3">
                     {locations.length === 1 ? 'Location' : `${locations.length} Locations`}
                   </h4>
                   <div className="space-y-3">
@@ -596,17 +596,17 @@ export default function BusinessProfile() {
                         href={`https://maps.google.com/?q=${buildMapsQuery(loc)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-start gap-3 p-3 rounded-lg border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors"
+                        className="flex items-start gap-3 p-3 rounded-lg border border-border text-foreground-soft hover:border-primary hover:text-primary transition-colors"
                       >
-                        <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0 text-slate-400" />
+                        <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0 text-muted-foreground" />
                         <div className="flex-1">
-                          {loc.name && <span className="block text-sm font-medium text-slate-200">{loc.name}</span>}
+                          {loc.name && <span className="block text-sm font-medium text-foreground">{loc.name}</span>}
                           {formatAddress(loc, { multiline: true, forPublic: true }).map((line, lineIdx) => (
-                            <span key={lineIdx} className="block text-sm text-slate-400">{line}</span>
+                            <span key={lineIdx} className="block text-sm text-muted-foreground">{line}</span>
                           ))}
-                          {loc.phone && <span className="block text-sm text-slate-500 mt-1">{formatPhone(loc.phone)}</span>}
+                          {loc.phone && <span className="block text-sm text-muted-foreground/70 mt-1">{formatPhone(loc.phone)}</span>}
                         </div>
-                        <ExternalLink className="h-4 w-4 flex-shrink-0 mt-0.5 text-slate-400" />
+                        <ExternalLink className="h-4 w-4 flex-shrink-0 mt-0.5 text-muted-foreground" />
                       </a>
                     ))}
                   </div>
@@ -619,7 +619,7 @@ export default function BusinessProfile() {
                   href={`https://maps.google.com/?q=${encodeURIComponent(business.address + ', ' + business.city)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-start gap-3 p-3 rounded-lg border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 transition-colors"
+                  className="flex items-start gap-3 p-3 rounded-lg border border-border text-foreground-soft hover:border-primary hover:text-primary transition-colors"
                 >
                   <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0" />
                   <span>{business.address}, {business.city}</span>
@@ -629,8 +629,8 @@ export default function BusinessProfile() {
               </div>
 
               {business.accepts_silver && (
-                <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
-                  <p className="text-sm text-amber-500 flex items-center gap-2">
+                <div className="mt-4 p-3 rounded-lg bg-primary/10 border border-primary/30">
+                  <p className="text-sm text-primary flex items-center gap-2">
                     <Coins className="h-4 w-4" />
                     This business accepts silver as payment
                   </p>

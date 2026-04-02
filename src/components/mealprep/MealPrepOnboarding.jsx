@@ -19,10 +19,10 @@ function StepIndicator({ current, total }) {
           key={i}
           className={`h-2 rounded-full transition-all ${
             i + 1 === current
-              ? 'w-8 bg-amber-500'
+              ? 'w-8 bg-primary'
               : i + 1 < current
-                ? 'w-2 bg-amber-500/60'
-                : 'w-2 bg-slate-700'
+                ? 'w-2 bg-primary/60'
+                : 'w-2 bg-surface'
           }`}
         />
       ))}
@@ -131,24 +131,24 @@ export default function MealPrepOnboarding() {
   // ─── Loading gate ─────────────────────────────────
   if (!currentUser?.id) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-amber-500 border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
 
   // ─── Render ───────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-6 py-10">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-            <UtensilsCrossed className="h-6 w-6 text-amber-500" />
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+            <UtensilsCrossed className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-100">Create a Meal Prep Space</h1>
-            <p className="text-sm text-slate-400">
+            <h1 className="text-xl font-bold text-foreground">Create a Meal Prep Space</h1>
+            <p className="text-sm text-muted-foreground">
               {step === 1 && 'Set up your kitchen'}
               {step === 2 && 'Tell us your preferences'}
               {step === 3 && "Your kitchen is ready"}
@@ -161,34 +161,34 @@ export default function MealPrepOnboarding() {
         {/* ═══ Step 1: Your Kitchen ═══ */}
         {step === 1 && (
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 Your Kitchen
               </h2>
-              <p className="text-sm text-slate-400 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 Name your kitchen and tell us about your household.
               </p>
 
               <div className="space-y-4">
                 <div>
-                  <Label className="text-slate-400">Kitchen name *</Label>
+                  <Label className="text-muted-foreground">Kitchen name *</Label>
                   <Input
                     value={workspaceName}
                     onChange={(e) => setWorkspaceName(e.target.value)}
-                    className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                     placeholder="My Kitchen"
                     autoFocus
                   />
                 </div>
 
                 <div>
-                  <Label className="text-slate-400">Household size</Label>
+                  <Label className="text-muted-foreground">Household size</Label>
                   <Input
                     type="number"
                     min="1"
                     value={householdSize}
                     onChange={(e) => setHouseholdSize(e.target.value)}
-                    className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                     placeholder="4"
                   />
                 </div>
@@ -199,7 +199,7 @@ export default function MealPrepOnboarding() {
               <Button
                 onClick={() => setStep(2)}
                 disabled={!step1Valid}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-6 min-h-[44px] disabled:opacity-50"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 min-h-[44px] disabled:opacity-50"
               >
                 Next <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
@@ -210,18 +210,18 @@ export default function MealPrepOnboarding() {
         {/* ═══ Step 2: Preferences ═══ */}
         {step === 2 && (
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 Preferences
               </h2>
-              <p className="text-sm text-slate-400 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 You can always change these later in Settings.
               </p>
 
               <div className="space-y-6">
                 {/* Dietary tags */}
                 <div>
-                  <Label className="text-slate-400 mb-3 block">Dietary preferences</Label>
+                  <Label className="text-muted-foreground mb-3 block">Dietary preferences</Label>
                   <div className="flex flex-wrap gap-2">
                     {DIETARY_OPTIONS.map((diet) => (
                       <div
@@ -237,8 +237,8 @@ export default function MealPrepOnboarding() {
                         }}
                         className={`px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all select-none ${
                           selectedDiets.includes(diet)
-                            ? 'bg-amber-500 text-black'
-                            : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary border border-border text-foreground-soft hover:border-primary hover:text-primary'
                         }`}
                       >
                         {diet.charAt(0).toUpperCase() + diet.slice(1)}
@@ -249,7 +249,7 @@ export default function MealPrepOnboarding() {
 
                 {/* Skill level */}
                 <div>
-                  <Label className="text-slate-400 mb-3 block">Cooking skill level</Label>
+                  <Label className="text-muted-foreground mb-3 block">Cooking skill level</Label>
                   <div className="grid grid-cols-3 gap-3">
                     {SKILL_LEVELS.map((level) => (
                       <div
@@ -265,8 +265,8 @@ export default function MealPrepOnboarding() {
                         }}
                         className={`p-4 rounded-xl text-center text-sm font-medium cursor-pointer transition-all select-none ${
                           skillLevel === level.value
-                            ? 'bg-amber-500 text-black'
-                            : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary border border-border text-foreground-soft hover:border-primary hover:text-primary'
                         }`}
                       >
                         {level.label}
@@ -281,13 +281,13 @@ export default function MealPrepOnboarding() {
               <Button
                 variant="outline"
                 onClick={() => setStep(1)}
-                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+                className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent min-h-[44px]"
               >
                 <ChevronLeft className="h-4 w-4 mr-1" /> Back
               </Button>
               <Button
                 onClick={() => setStep(3)}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-6 min-h-[44px]"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 min-h-[44px]"
               >
                 Next <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
@@ -298,46 +298,46 @@ export default function MealPrepOnboarding() {
         {/* ═══ Step 3: Your Kitchen is Ready ═══ */}
         {step === 3 && (
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 Your Kitchen is Ready
               </h2>
-              <p className="text-sm text-slate-400 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 Here's what you've set up.
               </p>
 
               {/* Summary */}
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Kitchen</span>
-                  <span className="text-slate-100 font-medium">{workspaceName || 'My Kitchen'}</span>
+                  <span className="text-muted-foreground">Kitchen</span>
+                  <span className="text-foreground font-medium">{workspaceName || 'My Kitchen'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Household size</span>
-                  <span className="text-slate-100">{householdSize || '1'}</span>
+                  <span className="text-muted-foreground">Household size</span>
+                  <span className="text-foreground">{householdSize || '1'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Dietary preferences</span>
-                  <span className="text-slate-100">
+                  <span className="text-muted-foreground">Dietary preferences</span>
+                  <span className="text-foreground">
                     {selectedDiets.length > 0
                       ? selectedDiets.map((d) => d.charAt(0).toUpperCase() + d.slice(1)).join(', ')
                       : 'None selected'}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Skill level</span>
-                  <span className="text-amber-500 font-medium">
+                  <span className="text-muted-foreground">Skill level</span>
+                  <span className="text-primary font-medium">
                     {skillLevel.charAt(0).toUpperCase() + skillLevel.slice(1)}
                   </span>
                 </div>
               </div>
 
-              <div className="border-t border-slate-800 pt-6">
-                <p className="text-sm text-slate-300 mb-3">Your space includes:</p>
+              <div className="border-t border-border pt-6">
+                <p className="text-sm text-foreground-soft mb-3">Your space includes:</p>
                 <ul className="space-y-2">
                   {WORKSPACE_FEATURES.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm text-slate-400">
-                      <Check className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                    <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Check className="h-4 w-4 text-primary flex-shrink-0" />
                       {feature}
                     </li>
                   ))}
@@ -349,13 +349,13 @@ export default function MealPrepOnboarding() {
               <Button
                 variant="outline"
                 onClick={() => setStep(2)}
-                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+                className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent min-h-[44px]"
               >
                 <ChevronLeft className="h-4 w-4 mr-1" /> Back
               </Button>
               <Button
                 onClick={() => createWorkspace.mutate()}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-6 min-h-[44px]"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 min-h-[44px]"
                 disabled={createWorkspace.isPending}
               >
                 {createWorkspace.isPending ? (

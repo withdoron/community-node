@@ -44,10 +44,10 @@ export default function DiscoverSection() {
             <Link
               key={cat.id}
               to={createPageUrl(`CategoryPage?id=${cat.id}`)}
-              className="bg-slate-800 border border-slate-700 rounded-xl p-4 text-center hover:border-amber-500/50 hover:bg-slate-800/80 transition-all group"
+              className="bg-secondary border border-border rounded-xl p-4 text-center hover:border-primary/50 hover:bg-secondary/80 transition-all group"
             >
-              <Icon className="h-8 w-8 mx-auto mb-2 text-amber-500" />
-              <span className="text-sm font-medium text-slate-300 group-hover:text-amber-500 transition-colors block">
+              <Icon className="h-8 w-8 mx-auto mb-2 text-primary" />
+              <span className="text-sm font-medium text-foreground-soft group-hover:text-primary transition-colors block">
                 {cat.label}
               </span>
             </Link>

@@ -104,16 +104,16 @@ export default function AllWorkspacesPanel({ isAdmin }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-100">All Workspaces</h2>
-          <p className="text-slate-400 text-sm mt-1">{allWorkspaces.length} total across all types</p>
+          <h2 className="text-2xl font-bold text-foreground">All Workspaces</h2>
+          <p className="text-muted-foreground text-sm mt-1">{allWorkspaces.length} total across all types</p>
         </div>
         <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search workspaces..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 bg-slate-800 border-slate-700 text-slate-100"
+            className="pl-10 bg-secondary border-border text-foreground"
           />
         </div>
       </div>
@@ -126,22 +126,22 @@ export default function AllWorkspacesPanel({ isAdmin }) {
             onClick={() => setTypeFilter(t.key)}
             className={`px-3 py-2 rounded-full text-sm font-medium transition-colors ${
               typeFilter === t.key
-                ? 'bg-amber-500 text-black'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-foreground-soft hover:bg-surface'
             }`}
           >
             {t.label} ({typeCounts[t.key] || 0})
           </button>
         ))}
-        <div className="border-l border-slate-700 mx-1" />
+        <div className="border-l border-border mx-1" />
         {['all', 'active', 'inactive'].map((s) => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
             className={`px-3 py-2 rounded-full text-sm font-medium capitalize transition-colors ${
               statusFilter === s
-                ? 'bg-amber-500 text-black'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-foreground-soft hover:bg-surface'
             }`}
           >
             {s === 'all' ? 'All Status' : s}
@@ -151,29 +151,29 @@ export default function AllWorkspacesPanel({ isAdmin }) {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : filtered.length === 0 ? (
-        <Card className="p-12 bg-slate-900 border-slate-800 text-center">
-          <Layers className="h-12 w-12 text-slate-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-white">No workspaces found</h3>
-          <p className="text-slate-400 mt-2">
+        <Card className="p-12 bg-card border-border text-center">
+          <Layers className="h-12 w-12 text-muted-foreground/70 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground">No workspaces found</h3>
+          <p className="text-muted-foreground mt-2">
             {allWorkspaces.length === 0
               ? 'No workspaces have been created yet.'
               : 'No workspaces match your filters.'}
           </p>
         </Card>
       ) : (
-        <Card className="bg-slate-900 border-slate-800 overflow-hidden">
+        <Card className="bg-card border-border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-800/50 border-b border-slate-800">
+              <thead className="bg-secondary/50 border-b border-border">
                 <tr>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">Workspace</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">Type</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300 hidden sm:table-cell">Owner</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">Status</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300 hidden sm:table-cell">Created</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-foreground-soft">Workspace</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-foreground-soft">Type</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-foreground-soft hidden sm:table-cell">Owner</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-foreground-soft">Status</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-foreground-soft hidden sm:table-cell">Created</th>
                 </tr>
               </thead>
               <tbody>
@@ -184,16 +184,16 @@ export default function AllWorkspacesPanel({ isAdmin }) {
                     <tr
                       key={`${w.type}-${w.id}`}
                       onClick={() => navigate(`/Admin/workspaces/${typeConfig?.route || w.type}`)}
-                      className="border-b border-slate-800 hover:bg-slate-800/30 cursor-pointer transition-colors"
+                      className="border-b border-border hover:bg-secondary/30 cursor-pointer transition-colors"
                     >
-                      <td className="py-3 px-4 text-slate-100 font-medium">{w.name}</td>
+                      <td className="py-3 px-4 text-foreground font-medium">{w.name}</td>
                       <td className="py-3 px-4">
-                        <span className="inline-flex items-center gap-1.5 text-sm text-slate-300">
-                          <TypeIcon className="h-3.5 w-3.5 text-amber-500" />
+                        <span className="inline-flex items-center gap-1.5 text-sm text-foreground-soft">
+                          <TypeIcon className="h-3.5 w-3.5 text-primary" />
                           {typeConfig?.label || w.type}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-slate-400 truncate max-w-[150px] hidden sm:table-cell">
+                      <td className="py-3 px-4 text-muted-foreground truncate max-w-[150px] hidden sm:table-cell">
                         {w.owner_email}
                       </td>
                       <td className="py-3 px-4">
@@ -201,13 +201,13 @@ export default function AllWorkspacesPanel({ isAdmin }) {
                           className={
                             w.is_active
                               ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30'
-                              : 'bg-slate-700 text-slate-400 border-slate-600'
+                              : 'bg-surface text-muted-foreground border-border'
                           }
                         >
                           {w.is_active ? 'Active' : 'Inactive'}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4 text-slate-400 hidden sm:table-cell">
+                      <td className="py-3 px-4 text-muted-foreground hidden sm:table-cell">
                         {w.created_date
                           ? format(new Date(w.created_date), 'MMM d, yyyy')
                           : '—'}

@@ -26,9 +26,9 @@ function getSenderLabel(userId, team, members = []) {
 }
 
 function getRoleBadgeClass(role, ownerId, userId) {
-  if (userId === ownerId || role === 'coach') return 'bg-amber-500/20 text-amber-500';
-  if (role === 'parent') return 'bg-slate-700 text-slate-400';
-  return 'bg-slate-700 text-slate-300';
+  if (userId === ownerId || role === 'coach') return 'bg-primary/20 text-primary';
+  if (role === 'parent') return 'bg-surface text-muted-foreground';
+  return 'bg-surface text-foreground-soft';
 }
 
 export default function TeamMessages({ teamId, teamScope }) {
@@ -119,7 +119,7 @@ export default function TeamMessages({ teamId, teamScope }) {
             type="button"
             onClick={() => setActiveChannel(ch.id)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeChannel === ch.id ? 'bg-amber-500 text-black' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              activeChannel === ch.id ? 'bg-primary text-primary-foreground' : 'bg-surface text-foreground-soft hover:bg-surface'
             }`}
           >
             {ch.label}
@@ -128,17 +128,17 @@ export default function TeamMessages({ teamId, teamScope }) {
       </div>
 
       {activeChannel === 'announcement' && (
-        <p className="text-slate-400 text-sm">
+        <p className="text-muted-foreground text-sm">
           {isCoach ? 'Only coaches can post announcements. Pinned messages stay at the top.' : 'Announcements from your coach.'}
         </p>
       )}
 
       {isLoading ? (
-        <p className="text-slate-400">Loading messages…</p>
+        <p className="text-muted-foreground">Loading messages…</p>
       ) : messages.length === 0 ? (
-        <div className="text-center py-12 bg-slate-900 border border-slate-800 rounded-xl">
-          <MessageSquare className="h-12 w-12 mx-auto mb-3 text-slate-600" />
-          <p className="text-slate-400">
+        <div className="text-center py-12 bg-card border border-border rounded-xl">
+          <MessageSquare className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
+          <p className="text-muted-foreground">
             {activeChannel === 'announcement' ? 'No announcements yet.' : 'No messages in discussion yet.'}
           </p>
         </div>
@@ -166,13 +166,13 @@ export default function TeamMessages({ teamId, teamScope }) {
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
             placeholder={activeChannel === 'announcement' ? 'Post an announcement…' : 'Message the team…'}
-            className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none transition-colors"
+            className="flex-1 bg-secondary border border-border rounded-lg px-3 py-2 text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none transition-colors"
           />
           <Button
             type="button"
             onClick={handleSend}
             disabled={!inputText.trim() || createMutation.isPending}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
           >
             <Send className="h-4 w-4" />
           </Button>
@@ -180,7 +180,7 @@ export default function TeamMessages({ teamId, teamScope }) {
       )}
 
       {activeChannel === 'discussion' && !currentUserId && (
-        <p className="text-slate-500 text-sm">Sign in to join the discussion.</p>
+        <p className="text-muted-foreground/70 text-sm">Sign in to join the discussion.</p>
       )}
     </div>
   );
@@ -194,26 +194,26 @@ function MessageCard({ msg, team, members, isCoach, onPin }) {
   const timeStr = msg.created_at ? new Date(msg.created_at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
 
   return (
-    <div className={`bg-slate-800 border rounded-xl p-4 transition-colors ${msg.pinned ? 'border-amber-500/50' : 'border-slate-700'}`}>
+    <div className={`bg-secondary border rounded-xl p-4 transition-colors ${msg.pinned ? 'border-primary/50' : 'border-border'}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-white">{senderLabel}</span>
+            <span className="font-medium text-foreground">{senderLabel}</span>
             {role && (
               <span className={`text-xs px-2 py-0.5 rounded-full ${badgeClass}`}>
                 {role === 'coach' ? 'Coach' : role}
               </span>
             )}
-            {msg.pinned && <Pin className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />}
+            {msg.pinned && <Pin className="h-3.5 w-3.5 text-primary flex-shrink-0" />}
           </div>
-          <p className="text-slate-400 text-xs mt-0.5">{timeStr}</p>
-          <p className="text-slate-300 mt-2 whitespace-pre-wrap break-words">{msg.message}</p>
+          <p className="text-muted-foreground text-xs mt-0.5">{timeStr}</p>
+          <p className="text-foreground-soft mt-2 whitespace-pre-wrap break-words">{msg.message}</p>
         </div>
         {isCoach && (
           <button
             type="button"
             onClick={onPin}
-            className={`flex-shrink-0 p-1.5 rounded-lg transition-colors ${msg.pinned ? 'text-amber-500 bg-amber-500/10' : 'text-slate-400 hover:text-amber-500 hover:bg-slate-700'}`}
+            className={`flex-shrink-0 p-1.5 rounded-lg transition-colors ${msg.pinned ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-primary hover:bg-surface'}`}
             title={msg.pinned ? 'Unpin' : 'Pin'}
           >
             <Pin className="h-4 w-4" />

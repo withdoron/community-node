@@ -26,7 +26,7 @@ export default function PropertyManagementOwners({ profile, currentUser, memberR
   // Role guard
   if (!memberRole) {
     return (
-      <div className="text-center py-12 text-slate-400">
+      <div className="text-center py-12 text-muted-foreground">
         <p>You don't have access to this workspace.</p>
       </div>
     );
@@ -259,7 +259,7 @@ export default function PropertyManagementOwners({ profile, currentUser, memberR
     return (
       <div className="space-y-4">
         {[...Array(2)].map((_, i) => (
-          <div key={i} className="h-64 bg-slate-800 rounded-lg animate-pulse" />
+          <div key={i} className="h-64 bg-secondary rounded-lg animate-pulse" />
         ))}
       </div>
     );
@@ -270,8 +270,8 @@ export default function PropertyManagementOwners({ profile, currentUser, memberR
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-100">Owners</h2>
-          <p className="text-sm text-slate-400 mt-1">
+          <h2 className="text-2xl font-bold text-foreground">Owners</h2>
+          <p className="text-sm text-muted-foreground mt-1">
             {sortedOwners.length === 0
               ? 'No owners yet'
               : `${sortedOwners.length} owner${sortedOwners.length !== 1 ? 's' : ''}`}
@@ -282,7 +282,7 @@ export default function PropertyManagementOwners({ profile, currentUser, memberR
             setEditingOwner(null);
             setOwnerDialogOpen(true);
           }}
-          className="bg-amber-500 hover:bg-amber-400 text-black font-bold gap-2"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold gap-2"
         >
           <Plus className="w-4 h-4" /> Add Owner
         </Button>
@@ -303,10 +303,10 @@ export default function PropertyManagementOwners({ profile, currentUser, memberR
             {warnings.map((w) => (
               <div
                 key={w.name}
-                className="flex items-center gap-2 px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-lg"
+                className="flex items-center gap-2 px-4 py-3 bg-primary/10 border border-primary/30 rounded-lg"
               >
-                <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                <p className="text-sm text-amber-400">
+                <AlertTriangle className="w-4 h-4 text-primary flex-shrink-0" />
+                <p className="text-sm text-primary-hover">
                   Ownership stakes for <span className="font-semibold">{w.name}</span> total{' '}
                   <span className="font-semibold">{w.total}%</span> — must equal 100% before settlement finalization.
                 </p>
@@ -319,14 +319,14 @@ export default function PropertyManagementOwners({ profile, currentUser, memberR
       {/* Content */}
       {sortedOwners.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-4">
-          <Users className="w-12 h-12 text-slate-600 mb-4" />
-          <h3 className="text-xl font-semibold text-slate-300 mb-1">No owners yet</h3>
-          <p className="text-slate-400 mb-6 text-center max-w-sm">
+          <Users className="w-12 h-12 text-muted-foreground/50 mb-4" />
+          <h3 className="text-xl font-semibold text-foreground-soft mb-1">No owners yet</h3>
+          <p className="text-muted-foreground mb-6 text-center max-w-sm">
             Add property owners to set up ownership stakes and distributions
           </p>
           <Button
             onClick={() => setOwnerDialogOpen(true)}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-bold gap-2"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold gap-2"
           >
             <Plus className="w-4 h-4" /> Add Owner
           </Button>
@@ -397,14 +397,14 @@ export default function PropertyManagementOwners({ profile, currentUser, memberR
       />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="bg-slate-900 border border-slate-800">
+        <AlertDialogContent className="bg-card border border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">
+            <AlertDialogTitle className="text-foreground">
               {deleteType === 'owner' && 'Delete owner?'}
               {deleteType === 'stake' && 'Delete ownership stake?'}
               {deleteType === 'split' && 'Delete distribution split?'}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogDescription className="text-muted-foreground">
               {deleteType === 'owner' && (
                 <>
                   This will also delete all ownership stakes and distribution splits for this
@@ -423,12 +423,12 @@ export default function PropertyManagementOwners({ profile, currentUser, memberR
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-slate-600 text-slate-300 hover:bg-slate-800">
+            <AlertDialogCancel className="border-border text-foreground-soft hover:bg-secondary">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-500 text-white"
+              className="bg-red-600 hover:bg-red-500 text-foreground"
               disabled={saving}
             >
               Delete

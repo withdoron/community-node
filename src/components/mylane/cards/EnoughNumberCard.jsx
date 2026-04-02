@@ -35,9 +35,9 @@ export default function EnoughNumberCard({ profile, onClick, onUrgency }) {
   const daysLeft = daysInMonth - now.getDate();
   const endOfMonthUrgent = daysLeft <= 7 && remaining > 0 && enoughTarget > 0;
 
-  const barColor = pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-rose-500';
-  const borderColor = endOfMonthUrgent ? 'border-amber-500/40' : 'border-slate-800';
-  const valueColor = endOfMonthUrgent && pct < 50 ? 'text-amber-400' : 'text-white';
+  const barColor = pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-primary' : 'bg-rose-500';
+  const borderColor = endOfMonthUrgent ? 'border-primary/40' : 'border-border';
+  const valueColor = endOfMonthUrgent && pct < 50 ? 'text-primary-hover' : 'text-foreground';
 
   // Report urgency to parent for sort boost
   useEffect(() => {
@@ -50,18 +50,18 @@ export default function EnoughNumberCard({ profile, onClick, onUrgency }) {
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(); }}
-      className={`bg-slate-900 border ${borderColor} rounded-xl p-4 cursor-pointer hover:border-amber-500/30 transition-colors`}
+      className={`bg-card border ${borderColor} rounded-xl p-4 cursor-pointer hover:border-primary/30 transition-colors`}
     >
       <div className="flex items-center gap-2 mb-2">
-        <DollarSign className="h-4 w-4 text-amber-500" />
-        <span className="text-xs font-medium text-amber-500">Enough Number</span>
+        <DollarSign className="h-4 w-4 text-primary" />
+        <span className="text-xs font-medium text-primary">Enough Number</span>
       </div>
       <div className={`text-2xl font-bold ${valueColor}`}>{fmtUsd(monthIncome)}</div>
-      <div className="text-xs text-slate-400 mt-1">
+      <div className="text-xs text-muted-foreground mt-1">
         {remaining > 0 ? `${fmtUsd(remaining)} left to enough` : 'Target reached'}
       </div>
       {enoughTarget > 0 && (
-        <div className="w-full h-1.5 bg-slate-800 rounded-full mt-2 overflow-hidden">
+        <div className="w-full h-1.5 bg-secondary rounded-full mt-2 overflow-hidden">
           <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${pct}%` }} />
         </div>
       )}

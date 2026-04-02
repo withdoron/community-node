@@ -328,16 +328,16 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
 
   return (
     <>
-    <Card className="p-6 bg-slate-900 border-slate-800">
+    <Card className="p-6 bg-card border-border">
       <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-3 mb-6">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">Events</h2>
-          <p className="text-sm text-slate-400">Manage your upcoming events</p>
+          <h2 className="text-xl font-bold text-foreground">Events</h2>
+          <p className="text-sm text-muted-foreground">Manage your upcoming events</p>
         </div>
         {allowEdit && (
           <Button 
             onClick={handleAddEvent}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Event
@@ -346,18 +346,18 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
       </div>
 
       {isLoading ? (
-        <p className="text-slate-400">Loading events...</p>
+        <p className="text-muted-foreground">Loading events...</p>
       ) : events.length === 0 ? (
         <div 
-          className="border-2 border-dashed border-slate-700 hover:border-amber-500/50 rounded-lg p-12 text-center cursor-pointer transition-all group"
+          className="border-2 border-dashed border-border hover:border-primary/50 rounded-lg p-12 text-center cursor-pointer transition-all group"
           onClick={allowEdit ? handleAddEvent : undefined}
         >
           <div className="flex flex-col items-center">
-            <div className="h-16 w-16 bg-amber-500/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-amber-500/20 transition-colors">
-              <PlusCircle className="h-8 w-8 text-amber-500" />
+            <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+              <PlusCircle className="h-8 w-8 text-primary" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-100 mb-2">Schedule your first event</h3>
-            <p className="text-sm text-slate-400 mb-4">Create classes, workshops, or gatherings for your community</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Schedule your first event</h3>
+            <p className="text-sm text-muted-foreground mb-4">Create classes, workshops, or gatherings for your community</p>
             {allowEdit && (
               <Button 
                 variant="outline" 
@@ -365,7 +365,7 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
                   e.stopPropagation();
                   handleAddEvent();
                 }}
-                className="bg-slate-800 border-slate-700 text-slate-200 hover:border-amber-500 hover:text-amber-400"
+                className="bg-secondary border-border text-foreground hover:border-primary hover:text-primary-hover"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Event
@@ -376,13 +376,13 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
       ) : (
         <div className="space-y-3">
           {sortedEvents.map((event) => (
-            <div key={event.id} className="border border-slate-700 rounded-lg p-4 bg-slate-800 hover:border-amber-500/30 transition-all">
+            <div key={event.id} className="border border-border rounded-lg p-4 bg-secondary hover:border-primary/30 transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-slate-100">{event.title}</h3>
+                    <h3 className="font-semibold text-foreground">{event.title}</h3>
                     {event.network && (
-                      <Badge variant="outline" className="text-xs border-slate-600 text-slate-300">
+                      <Badge variant="outline" className="text-xs border-border text-foreground-soft">
                         {(() => {
                           const matched = Array.isArray(networksConfig) && networksConfig.find((n) => n.value === event.network);
                           return matched?.label ?? (event.network && event.network.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())) ?? '';
@@ -390,11 +390,11 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
                       </Badge>
                     )}
                     {event.boost_end_at && new Date(event.boost_end_at) > new Date() && (
-                      <Badge className="bg-amber-500/10 text-amber-500 text-xs border-amber-500/30">Boosted</Badge>
+                      <Badge className="bg-primary/10 text-primary text-xs border-primary/30">Boosted</Badge>
                     )}
                   </div>
-                  <p className="text-sm text-slate-400 mb-2">{event.description}</p>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                  <p className="text-sm text-muted-foreground mb-2">{event.description}</p>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground/70">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       {format(new Date(event.date), 'MMM d, yyyy • h:mm a')}
@@ -414,52 +414,52 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
                 {allowEdit && ['owner', 'manager'].includes(userRole?.toLowerCase()) && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" variant="ghost" className="text-slate-400 hover:text-slate-100 hover:bg-slate-700">
+                      <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground hover:bg-surface">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700 min-w-[160px]">
+                    <DropdownMenuContent align="end" className="bg-secondary border-border min-w-[160px]">
                       <DropdownMenuItem
                         onClick={() => handleEditEvent(event)}
-                        className="text-slate-200 focus:bg-slate-700 focus:text-white cursor-pointer"
+                        className="text-foreground focus:bg-surface focus:text-foreground cursor-pointer"
                       >
-                        <Pencil className="h-4 w-4 mr-2 text-slate-400" />
+                        <Pencil className="h-4 w-4 mr-2 text-muted-foreground" />
                         Edit
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleDuplicate(event)}
-                        className="text-slate-200 focus:bg-slate-700 focus:text-white cursor-pointer"
+                        className="text-foreground focus:bg-surface focus:text-foreground cursor-pointer"
                       >
-                        <Copy className="h-4 w-4 mr-2 text-slate-400" />
+                        <Copy className="h-4 w-4 mr-2 text-muted-foreground" />
                         Duplicate
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleViewOnLocalLane(event)}
-                        className="text-slate-200 focus:bg-slate-700 focus:text-white cursor-pointer"
+                        className="text-foreground focus:bg-surface focus:text-foreground cursor-pointer"
                       >
-                        <ExternalLink className="h-4 w-4 mr-2 text-slate-400" />
+                        <ExternalLink className="h-4 w-4 mr-2 text-muted-foreground" />
                         View on Local Lane
                       </DropdownMenuItem>
                       {onEnterCheckIn && new Date(event.date || event.start_date) >= new Date() && (
                         <DropdownMenuItem
                           onClick={() => onEnterCheckIn(event)}
-                          className="text-emerald-400 focus:bg-slate-700 focus:text-emerald-300 cursor-pointer"
+                          className="text-emerald-400 focus:bg-surface focus:text-emerald-300 cursor-pointer"
                         >
                           <UserCheck className="h-4 w-4 mr-2" />
                           Check-In Mode
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuSeparator className="bg-slate-700" />
+                      <DropdownMenuSeparator className="bg-surface" />
                       <DropdownMenuItem
                         onClick={() => handleCancelEvent(event)}
-                        className="text-orange-500 focus:bg-slate-700 focus:text-orange-400 cursor-pointer"
+                        className="text-orange-500 focus:bg-surface focus:text-orange-400 cursor-pointer"
                       >
                         <XCircle className="h-4 w-4 mr-2" />
                         Cancel Event
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleDeleteEvent(event)}
-                        className="text-red-500 focus:bg-slate-700 focus:text-red-400 cursor-pointer"
+                        className="text-red-500 focus:bg-surface focus:text-red-400 cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete
@@ -475,9 +475,9 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
     </Card>
 
     <Dialog open={editorOpen} onOpenChange={(open) => { setEditorOpen(open); if (!open) setEditingEvent(null); }}>
-      <DialogContent className="w-[calc(100vw-32px)] sm:w-auto max-w-3xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700">
+      <DialogContent className="w-[calc(100vw-32px)] sm:w-auto max-w-3xl max-h-[90vh] overflow-y-auto bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-white">
+          <DialogTitle className="text-foreground">
             {editingEvent ? 'Edit Event' : 'Create Event'}
           </DialogTitle>
         </DialogHeader>
@@ -494,20 +494,20 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
 
     {/* Delete Confirmation Dialog */}
     <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-      <AlertDialogContent className="bg-slate-900 border-slate-700">
+      <AlertDialogContent className="bg-card border-border">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-white">Delete Event</AlertDialogTitle>
-          <AlertDialogDescription className="text-slate-400">
+          <AlertDialogTitle className="text-foreground">Delete Event</AlertDialogTitle>
+          <AlertDialogDescription className="text-muted-foreground">
             Are you sure you want to delete &quot;{selectedEventForAction?.title}&quot;? This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white">
+          <AlertDialogCancel className="bg-secondary border-border text-foreground-soft hover:bg-surface hover:text-foreground">
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={confirmDelete}
-            className="bg-red-500 hover:bg-red-400 text-white font-semibold"
+            className="bg-red-500 hover:bg-red-400 text-foreground font-semibold"
           >
             Delete
           </AlertDialogAction>
@@ -517,20 +517,20 @@ export default function EventsWidget({ business, allowEdit, userRole, onEnterChe
 
     {/* Cancel Event Confirmation Dialog */}
     <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
-      <AlertDialogContent className="bg-slate-900 border-slate-700">
+      <AlertDialogContent className="bg-card border-border">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-white">Cancel Event</AlertDialogTitle>
-          <AlertDialogDescription className="text-slate-400">
+          <AlertDialogTitle className="text-foreground">Cancel Event</AlertDialogTitle>
+          <AlertDialogDescription className="text-muted-foreground">
             Are you sure you want to cancel &quot;{selectedEventForAction?.title}&quot;? This will mark the event as cancelled and hide it from listings.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white">
+          <AlertDialogCancel className="bg-secondary border-border text-foreground-soft hover:bg-surface hover:text-foreground">
             Go Back
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={confirmCancel}
-            className="bg-orange-500 hover:bg-orange-400 text-white font-semibold"
+            className="bg-orange-500 hover:bg-orange-400 text-foreground font-semibold"
           >
             Cancel Event
           </AlertDialogAction>

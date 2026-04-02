@@ -9,8 +9,8 @@ import {
 import { Button } from '@/components/ui/button';
 
 const inputClass =
-  'w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 px-3 py-2 text-sm';
-const labelClass = 'text-slate-300 text-sm font-medium block mb-1';
+  'w-full rounded-md bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring px-3 py-2 text-sm';
+const labelClass = 'text-foreground-soft text-sm font-medium block mb-1';
 
 const WORKER_TYPES = [
   { value: 'handyman', label: 'Handyman' },
@@ -140,9 +140,9 @@ export default function FinanceLaborForm({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-slate-900 border border-slate-800 text-slate-100 max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-card border border-border text-foreground max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">
+          <DialogTitle className="text-foreground">
             {entry ? 'Edit Labor Entry' : 'Log Labor'}
           </DialogTitle>
         </DialogHeader>
@@ -218,7 +218,7 @@ export default function FinanceLaborForm({
                 <button
                   type="button"
                   onClick={() => setTotalOverride(!totalOverride)}
-                  className="text-[10px] text-amber-500 hover:text-amber-400 ml-1"
+                  className="text-[10px] text-primary hover:text-primary-hover ml-1"
                 >
                   {totalOverride ? '(auto)' : '(override)'}
                 </button>
@@ -303,13 +303,13 @@ export default function FinanceLaborForm({
               type="button"
               variant="ghost"
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-200 hover:bg-transparent"
+              className="text-muted-foreground hover:text-foreground hover:bg-transparent"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
             >
               {entry ? 'Update' : 'Log'}
             </Button>

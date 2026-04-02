@@ -65,8 +65,8 @@ export default function SidelineMode({
   if (filteredPlays.length === 0) {
     return (
       <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-8">
-        <p className="text-slate-400 text-lg mb-6">No plays in this view. Try turning off Game Day filter.</p>
-        <button type="button" onClick={onClose} className="bg-amber-500 text-black px-6 py-3 rounded-xl font-medium text-lg">
+        <p className="text-muted-foreground text-lg mb-6">No plays in this view. Try turning off Game Day filter.</p>
+        <button type="button" onClick={onClose} className="bg-primary text-primary-foreground px-6 py-3 rounded-xl font-medium text-lg">
           Close
         </button>
       </div>
@@ -85,28 +85,28 @@ export default function SidelineMode({
       onTouchEnd={handleTouchEnd}
     >
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-3 bg-black border-b border-slate-800 flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 bg-black border-b border-border flex-shrink-0">
         <button
           type="button"
           onClick={onClose}
-          className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors min-w-[44px] min-h-[44px] md:min-w-[56px] md:min-h-[56px] flex items-center justify-center"
+          className="p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] md:min-w-[56px] md:min-h-[56px] flex items-center justify-center"
           aria-label="Close"
         >
           <X className="h-6 w-6 md:h-7 md:w-7" />
         </button>
-        <h1 className="text-lg md:text-xl font-bold text-white">Sideline</h1>
+        <h1 className="text-lg md:text-xl font-bold text-foreground">Sideline</h1>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={() => setGameDayOnly(false)}
-            className={`px-2 md:px-3 py-2 rounded-lg text-sm font-medium min-h-[44px] ${!gameDayOnly ? 'bg-slate-700 text-white' : 'text-slate-400'}`}
+            className={`px-2 md:px-3 py-2 rounded-lg text-sm font-medium min-h-[44px] ${!gameDayOnly ? 'bg-surface text-foreground' : 'text-muted-foreground'}`}
           >
             All
           </button>
           <button
             type="button"
             onClick={() => setGameDayOnly(true)}
-            className={`px-2 md:px-3 py-2 rounded-lg text-sm font-medium min-h-[44px] ${gameDayOnly ? 'bg-amber-500 text-black' : 'text-slate-400'}`}
+            className={`px-2 md:px-3 py-2 rounded-lg text-sm font-medium min-h-[44px] ${gameDayOnly ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
           >
             Game Day
           </button>
@@ -136,21 +136,21 @@ export default function SidelineMode({
           </div>
         ) : null}
         <div className="px-4 py-1 flex-shrink-0 flex items-center gap-3">
-          <h2 className="text-lg md:text-xl font-bold text-white">{play?.name}</h2>
-          <span className="bg-slate-800 text-slate-300 text-sm px-3 py-0.5 rounded">
+          <h2 className="text-lg md:text-xl font-bold text-foreground">{play?.name}</h2>
+          <span className="bg-secondary text-foreground-soft text-sm px-3 py-0.5 rounded">
             {play?.formation || '—'}
           </span>
         </div>
       </div>
 
       {/* Position buttons */}
-      <div className="flex justify-center gap-2 md:gap-3 px-3 py-3 md:p-4 bg-black border-t border-slate-800 flex-shrink-0 flex-wrap">
+      <div className="flex justify-center gap-2 md:gap-3 px-3 py-3 md:p-4 bg-black border-t border-border flex-shrink-0 flex-wrap">
         {positions.map((pos) => (
           <button
             key={pos}
             type="button"
             onClick={() => setPositionOverlay(pos)}
-            className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-xl bg-slate-800 border-2 border-slate-700 text-amber-500 font-bold text-sm md:text-lg hover:border-amber-500 hover:bg-slate-700 transition-colors flex items-center justify-center"
+            className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-xl bg-secondary border-2 border-border text-primary font-bold text-sm md:text-lg hover:border-primary hover:bg-surface transition-colors flex items-center justify-center"
           >
             {pos}
           </button>
@@ -163,19 +163,19 @@ export default function SidelineMode({
           type="button"
           onClick={goPrev}
           disabled={currentIndex === 0}
-          className="p-3 rounded-xl bg-white/10 text-white disabled:opacity-30 min-w-[48px] min-h-[48px] md:min-w-[56px] md:min-h-[56px] flex items-center justify-center"
+          className="p-3 rounded-xl bg-white/10 text-foreground disabled:opacity-30 min-w-[48px] min-h-[48px] md:min-w-[56px] md:min-h-[56px] flex items-center justify-center"
           aria-label="Previous play"
         >
           <ChevronLeft className="h-6 w-6 md:h-8 md:w-8" />
         </button>
-        <span className="text-slate-400 text-sm">
+        <span className="text-muted-foreground text-sm">
           {currentIndex + 1} / {filteredPlays.length}
         </span>
         <button
           type="button"
           onClick={goNext}
           disabled={currentIndex === filteredPlays.length - 1}
-          className="p-3 rounded-xl bg-white/10 text-white disabled:opacity-30 min-w-[48px] min-h-[48px] md:min-w-[56px] md:min-h-[56px] flex items-center justify-center"
+          className="p-3 rounded-xl bg-white/10 text-foreground disabled:opacity-30 min-w-[48px] min-h-[48px] md:min-w-[56px] md:min-h-[56px] flex items-center justify-center"
           aria-label="Next play"
         >
           <ChevronRight className="h-6 w-6 md:h-8 md:w-8" />
@@ -192,23 +192,23 @@ export default function SidelineMode({
           {/* Mobile: tap top area to dismiss */}
           <div className="flex-1 md:hidden" onClick={() => setPositionOverlay(null)} />
           <div className="p-6 md:p-8 flex flex-col items-center md:max-w-lg">
-            <span className="text-amber-500 text-5xl md:text-6xl font-bold mb-4">{positionOverlay}</span>
+            <span className="text-primary text-5xl md:text-6xl font-bold mb-4">{positionOverlay}</span>
             {overlayAssignment ? (
               <>
-                <span className="bg-slate-800 text-slate-300 text-lg md:text-xl px-4 py-2 rounded-lg mb-4 md:mb-6">
+                <span className="bg-secondary text-foreground-soft text-lg md:text-xl px-4 py-2 rounded-lg mb-4 md:mb-6">
                   {overlayRouteDisplay}
                 </span>
-                <p className="text-white text-xl md:text-2xl text-center max-w-lg leading-relaxed">
+                <p className="text-foreground text-xl md:text-2xl text-center max-w-lg leading-relaxed">
                   {overlayAssignment.assignment_text || 'No assignment'}
                 </p>
               </>
             ) : (
-              <p className="text-slate-400 text-lg md:text-xl">No assignment for this position.</p>
+              <p className="text-muted-foreground text-lg md:text-xl">No assignment for this position.</p>
             )}
             <button
               type="button"
               onClick={() => setPositionOverlay(null)}
-              className="mt-8 md:mt-10 bg-amber-500 hover:bg-amber-400 text-black px-8 py-4 rounded-xl text-lg font-medium min-h-[56px] transition-colors"
+              className="mt-8 md:mt-10 bg-primary hover:bg-primary-hover text-primary-foreground px-8 py-4 rounded-xl text-lg font-medium min-h-[56px] transition-colors"
             >
               Got it
             </button>

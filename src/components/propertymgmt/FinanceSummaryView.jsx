@@ -7,7 +7,7 @@ function formatCurrency(n) {
 }
 
 const inputClass =
-  'rounded-md bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500 px-3 py-2 text-sm';
+  'rounded-md bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-ring px-3 py-2 text-sm';
 
 /**
  * Waterfall summary view: shows settlement breakdown per property group for a selected month.
@@ -70,7 +70,7 @@ export default function FinanceSummaryView({
     <div className="space-y-6">
       {/* Month selector */}
       <div className="flex items-center gap-3">
-        <label className="text-sm text-slate-400">Month:</label>
+        <label className="text-sm text-muted-foreground">Month:</label>
         <select
           className={inputClass + ' w-auto min-w-[180px]'}
           value={selectedMonth}
@@ -86,7 +86,7 @@ export default function FinanceSummaryView({
 
       {settlements.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-slate-400">No property groups to display for {formatMonthDisplay(selectedMonth)}</p>
+          <p className="text-muted-foreground">No property groups to display for {formatMonthDisplay(selectedMonth)}</p>
         </div>
       )}
 
@@ -105,8 +105,8 @@ export default function FinanceSummaryView({
         ];
 
         return (
-          <div key={groupKey} className="bg-slate-900 border border-slate-800 rounded-lg p-6">
-            <h3 className="text-lg font-bold text-slate-100 mb-4">{s.group?.name || 'Unknown Group'}</h3>
+          <div key={groupKey} className="bg-card border border-border rounded-lg p-6">
+            <h3 className="text-lg font-bold text-foreground mb-4">{s.group?.name || 'Unknown Group'}</h3>
 
             <div className="space-y-1">
               {lines.map((line, i) => {
@@ -120,34 +120,34 @@ export default function FinanceSummaryView({
                       type="button"
                       onClick={() => hasItems && toggleExpand(expandKey)}
                       className={`w-full flex items-center justify-between py-2 px-2 rounded transition-colors ${
-                        hasItems ? 'hover:bg-slate-800 cursor-pointer' : 'cursor-default'
+                        hasItems ? 'hover:bg-secondary cursor-pointer' : 'cursor-default'
                       }`}
                     >
                       <div className="flex items-center gap-2">
                         {hasItems ? (
                           isExpanded ? (
-                            <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/70" />
                           ) : (
-                            <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/70" />
                           )
                         ) : (
                           <span className="w-3.5" />
                         )}
-                        <span className="text-sm text-slate-300">{line.label}</span>
+                        <span className="text-sm text-foreground-soft">{line.label}</span>
                       </div>
                       <span
                         className={`text-sm font-mono font-medium ${
-                          line.type === 'income' ? 'text-emerald-400' : 'text-amber-400'
+                          line.type === 'income' ? 'text-emerald-400' : 'text-primary-hover'
                         }`}
                       >
                         {line.amount >= 0 ? '' : ''}{formatCurrency(Math.abs(line.amount))}
-                        {line.amount < 0 && <span className="text-xs ml-1 text-slate-500">−</span>}
+                        {line.amount < 0 && <span className="text-xs ml-1 text-muted-foreground/70">−</span>}
                       </span>
                     </button>
                     {isExpanded && hasItems && (
                       <div className="ml-8 mb-2 space-y-1">
                         {line.items.map((item, j) => (
-                          <p key={j} className="text-xs text-slate-500 py-0.5">
+                          <p key={j} className="text-xs text-muted-foreground/70 py-0.5">
                             {line.itemLabel(item)}
                           </p>
                         ))}
@@ -159,14 +159,14 @@ export default function FinanceSummaryView({
             </div>
 
             {/* Separator */}
-            <div className="border-t border-slate-700 my-3" />
+            <div className="border-t border-border my-3" />
 
             {/* Net distributable */}
             <div className="flex items-center justify-between py-2 px-2">
-              <span className="text-sm font-semibold text-slate-100">Net Distributable</span>
+              <span className="text-sm font-semibold text-foreground">Net Distributable</span>
               <span
                 className={`text-lg font-bold font-mono ${
-                  s.net_distributable >= 0 ? 'text-emerald-400' : 'text-amber-400'
+                  s.net_distributable >= 0 ? 'text-emerald-400' : 'text-primary-hover'
                 }`}
               >
                 {formatCurrency(s.net_distributable)}
@@ -176,27 +176,27 @@ export default function FinanceSummaryView({
             {/* Distributions */}
             {distributions.length > 0 && (
               <div className="mt-4">
-                <h4 className="text-xs text-slate-500 uppercase tracking-wide mb-2">
+                <h4 className="text-xs text-muted-foreground/70 uppercase tracking-wide mb-2">
                   Owner Distributions
                 </h4>
                 <div className="space-y-2">
                   {distributions.map((d, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between py-1.5 px-2 bg-slate-800/50 rounded"
+                      className="flex items-center justify-between py-1.5 px-2 bg-secondary/50 rounded"
                     >
                       <div className="min-w-0">
-                        <span className="text-sm text-slate-200">{d.owner_name}</span>
-                        <span className="text-xs text-slate-500 ml-2">
+                        <span className="text-sm text-foreground">{d.owner_name}</span>
+                        <span className="text-xs text-muted-foreground/70 ml-2">
                           {d.ownership_pct}%
                         </span>
                         {d.reimbursement > 0 && (
-                          <span className="text-xs text-amber-400 ml-2">
+                          <span className="text-xs text-primary-hover ml-2">
                             +{formatCurrency(d.reimbursement)} reimb.
                           </span>
                         )}
                       </div>
-                      <span className="text-sm font-bold text-slate-100 font-mono">
+                      <span className="text-sm font-bold text-foreground font-mono">
                         {formatCurrency(d.net_amount)}
                       </span>
                     </div>

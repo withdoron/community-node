@@ -102,13 +102,13 @@ export default function Settings() {
 
   if (!userLoading && !currentUser) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold text-slate-100 mb-3">Settings</h1>
-          <p className="text-slate-400 mb-6">Please sign in to manage your settings.</p>
+          <h1 className="text-2xl font-bold text-foreground mb-3">Settings</h1>
+          <p className="text-muted-foreground mb-6">Please sign in to manage your settings.</p>
           <button
             onClick={() => base44.auth.redirectToLogin()}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-6 py-3 rounded-xl transition-colors"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-6 py-3 rounded-xl transition-colors"
           >
             Sign In
           </button>
@@ -119,8 +119,8 @@ export default function Settings() {
 
   if (userLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -137,68 +137,68 @@ export default function Settings() {
     .toUpperCase() || '?';
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <Link
             to={createPageUrl('MyLane')}
-            className="text-slate-400 hover:text-amber-500 text-sm flex items-center gap-1 transition-colors"
+            className="text-muted-foreground hover:text-primary text-sm flex items-center gap-1 transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
             Back to My Lane
           </Link>
-          <h1 className="text-2xl font-bold text-slate-100">Settings</h1>
+          <h1 className="text-2xl font-bold text-foreground">Settings</h1>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-8">
+        <div className="bg-card border border-border rounded-xl p-6 space-y-8">
           {/* Avatar Section */}
           <div className="flex flex-col items-center">
-            <div className="h-20 w-20 rounded-full bg-amber-500 flex items-center justify-center mb-3">
-              <span className="text-2xl font-bold text-black">{initials}</span>
+            <div className="h-20 w-20 rounded-full bg-primary flex items-center justify-center mb-3">
+              <span className="text-2xl font-bold text-primary-foreground">{initials}</span>
             </div>
             {/* Photo upload disabled for now */}
-            <p className="text-xs text-slate-500">Profile photo coming soon</p>
+            <p className="text-xs text-muted-foreground/70">Profile photo coming soon</p>
           </div>
 
           {/* Profile Section */}
           <div>
-            <div className="border-b border-slate-800 pb-2 mb-4">
-              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="border-b border-border pb-2 mb-4">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Profile
               </h2>
             </div>
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="full_name" className="text-sm font-medium text-slate-300 mb-1">
+                <Label htmlFor="full_name" className="text-sm font-medium text-foreground-soft mb-1">
                   Display Name *
                 </Label>
                 <Input
                   id="full_name"
                   value={formData.full_name}
                   onChange={(e) => handleChange('full_name', e.target.value)}
-                  className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg focus:border-amber-500 focus:ring-amber-500/20"
+                  className="bg-secondary border-border text-foreground rounded-lg focus:border-primary focus:ring-ring/20"
                   required
                 />
               </div>
 
               <div>
-                <Label htmlFor="email" className="text-sm font-medium text-slate-300 mb-1">
+                <Label htmlFor="email" className="text-sm font-medium text-foreground-soft mb-1">
                   Email
                 </Label>
                 <div className="relative">
                   <Input
                     id="email"
                     value={currentUser?.email || ''}
-                    className="bg-slate-800/50 border-slate-700/50 text-slate-500 rounded-lg cursor-not-allowed pr-10"
+                    className="bg-secondary/50 border-border/50 text-muted-foreground/70 rounded-lg cursor-not-allowed pr-10"
                     readOnly
                   />
-                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="phone" className="text-sm font-medium text-slate-300 mb-1">
+                <Label htmlFor="phone" className="text-sm font-medium text-foreground-soft mb-1">
                   Phone (optional)
                 </Label>
                 <Input
@@ -207,7 +207,7 @@ export default function Settings() {
                   value={formatPhoneNumber(formData.phone)}
                   onChange={(e) => handleChange('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
                   placeholder="(541) 555-1234"
-                  className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg focus:border-amber-500 focus:ring-amber-500/20"
+                  className="bg-secondary border-border text-foreground rounded-lg focus:border-primary focus:ring-ring/20"
                 />
               </div>
             </div>
@@ -215,21 +215,21 @@ export default function Settings() {
 
           {/* My Community Section */}
           <div>
-            <div className="border-b border-slate-800 pb-2 mb-4">
-              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="border-b border-border pb-2 mb-4">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 My Community
               </h2>
             </div>
 
             <div>
-              <Label htmlFor="home_region" className="text-sm font-medium text-slate-300 mb-1">
+              <Label htmlFor="home_region" className="text-sm font-medium text-foreground-soft mb-1">
                 Home Community
               </Label>
               <Select
                 value={formData.home_region}
                 onValueChange={(value) => handleChange('home_region', value)}
               >
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg">
+                <SelectTrigger className="bg-secondary border-border text-foreground rounded-lg">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -244,7 +244,7 @@ export default function Settings() {
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-muted-foreground/70 mt-1">
                 This is your home community. Your recommendations and trust signals live here.
               </p>
             </div>
@@ -254,7 +254,7 @@ export default function Settings() {
           {false && (
             <div>
               <HouseholdManager />
-              <p className="text-xs text-slate-500 mt-2 text-center">
+              <p className="text-xs text-muted-foreground/70 mt-2 text-center">
                 Household changes are saved automatically
               </p>
             </div>
@@ -262,20 +262,20 @@ export default function Settings() {
 
           {/* Account Section */}
           <div>
-            <div className="border-b border-slate-800 pb-2 mb-4">
-              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="border-b border-border pb-2 mb-4">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Account
               </h2>
             </div>
 
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-400">Member since:</span>
-                <span className="text-slate-100">{memberSince}</span>
+                <span className="text-muted-foreground">Member since:</span>
+                <span className="text-foreground">{memberSince}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Account type:</span>
-                <span className="text-slate-100">{accountType}</span>
+                <span className="text-muted-foreground">Account type:</span>
+                <span className="text-foreground">{accountType}</span>
               </div>
             </div>
           </div>
@@ -284,7 +284,7 @@ export default function Settings() {
           <Button
             onClick={handleSave}
             disabled={!hasChanges || updateUserMutation.isPending}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-bold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {updateUserMutation.isPending ? (
               <>

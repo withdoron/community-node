@@ -92,12 +92,12 @@ export default function SettlementCarryForward({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-slate-900 border border-slate-800 text-slate-100 max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-card border border-border text-foreground max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">
+          <DialogTitle className="text-foreground">
             Carry Forward Recurring Expenses
           </DialogTitle>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             These expenses from {previousMonthLabel} can be copied to{' '}
             {currentMonthLabel}. Recurring expenses are pre-selected.
           </p>
@@ -107,20 +107,20 @@ export default function SettlementCarryForward({
             <button
               type="button"
               onClick={selectAll}
-              className="text-amber-500 hover:text-amber-400"
+              className="text-primary hover:text-primary-hover"
             >
               Select all
             </button>
-            <span className="text-slate-500">|</span>
+            <span className="text-muted-foreground/70">|</span>
             <button
               type="button"
               onClick={selectNone}
-              className="text-slate-400 hover:text-slate-300"
+              className="text-muted-foreground hover:text-foreground-soft"
             >
               Clear
             </button>
           </div>
-          <div className="border border-slate-800 rounded-lg divide-y divide-slate-800 max-h-[280px] overflow-y-auto">
+          <div className="border border-border rounded-lg divide-y divide-border max-h-[280px] overflow-y-auto">
             {(candidates || []).map((exp, index) => {
               const categoryLabel =
                 CATEGORY_LABELS[exp.category] || exp.category || 'Other';
@@ -134,36 +134,36 @@ export default function SettlementCarryForward({
               return (
                 <label
                   key={key}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 cursor-pointer"
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/50 cursor-pointer"
                 >
                   {/* Pure CSS checkbox — avoids Radix Checkbox infinite loop (DEC-018) */}
                   <input
                     type="checkbox"
                     checked={isChecked}
                     onChange={() => toggle(key)}
-                    className="rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                    className="rounded border-border bg-secondary text-primary focus:ring-ring"
                   />
                   <div className="flex-1 min-w-0">
-                    <span className="text-slate-200 font-medium">
+                    <span className="text-foreground font-medium">
                       {categoryLabel}
                     </span>
-                    <span className="text-slate-400 text-sm block truncate">
+                    <span className="text-muted-foreground text-sm block truncate">
                       {exp.description || '—'}
                     </span>
-                    <span className="text-slate-500 text-xs">{propLabel}</span>
+                    <span className="text-muted-foreground/70 text-xs">{propLabel}</span>
                   </div>
-                  <span className="text-amber-500 font-bold shrink-0">
+                  <span className="text-primary font-bold shrink-0">
                     {formatCurrency(exp.amount)}
                   </span>
                 </label>
               );
             })}
           </div>
-          <div className="flex items-center justify-between text-sm text-slate-400 pt-1">
+          <div className="flex items-center justify-between text-sm text-muted-foreground pt-1">
             <span>
               {selectedList.length} of {candidates.length} selected
             </span>
-            <span className="font-semibold text-slate-200">
+            <span className="font-semibold text-foreground">
               Total: {formatCurrency(totalAmount)}
             </span>
           </div>
@@ -173,7 +173,7 @@ export default function SettlementCarryForward({
             type="button"
             variant="ghost"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-200 hover:bg-transparent"
+            className="text-muted-foreground hover:text-foreground hover:bg-transparent"
           >
             Skip
           </Button>
@@ -181,7 +181,7 @@ export default function SettlementCarryForward({
             type="button"
             onClick={handleConfirm}
             disabled={selectedList.length === 0}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-bold disabled:opacity-50"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold disabled:opacity-50"
           >
             Add {selectedList.length} Expense
             {selectedList.length !== 1 ? 's' : ''}

@@ -9,8 +9,8 @@ import {
 const STATUS_COLORS = {
   active: 'bg-emerald-500/20 text-emerald-400',
   quoting: 'bg-emerald-500/20 text-emerald-400', // legacy — treated as active
-  paused: 'bg-amber-500/20 text-amber-400',
-  completed: 'bg-slate-500/20 text-slate-400',
+  paused: 'bg-primary/20 text-primary-hover',
+  completed: 'bg-muted-foreground/20 text-muted-foreground',
   cancelled: 'bg-red-500/20 text-red-400',
 };
 
@@ -144,9 +144,9 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
   if (!projectId) {
     return (
       <div className="text-center py-12">
-        <p className="text-slate-400">No project selected.</p>
+        <p className="text-muted-foreground">No project selected.</p>
         {onBack && (
-          <button type="button" onClick={onBack} className="text-amber-500 hover:text-amber-400 text-sm mt-4 min-h-[44px]">
+          <button type="button" onClick={onBack} className="text-primary hover:text-primary-hover text-sm mt-4 min-h-[44px]">
             <ArrowLeft className="h-4 w-4 inline mr-1" /> Back to Projects
           </button>
         )}
@@ -157,7 +157,7 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
+        <Loader2 className="h-6 w-6 text-primary animate-spin" />
       </div>
     );
   }
@@ -165,9 +165,9 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
   if (!project) {
     return (
       <div className="text-center py-12">
-        <p className="text-slate-400">Project not found.</p>
+        <p className="text-muted-foreground">Project not found.</p>
         {onBack && (
-          <button type="button" onClick={onBack} className="text-amber-500 hover:text-amber-400 text-sm mt-4 min-h-[44px]">
+          <button type="button" onClick={onBack} className="text-primary hover:text-primary-hover text-sm mt-4 min-h-[44px]">
             <ArrowLeft className="h-4 w-4 inline mr-1" /> Back
           </button>
         )}
@@ -182,14 +182,14 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
       {/* Header */}
       <div>
         {onBack && (
-          <button type="button" onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-amber-500 text-sm mb-3 min-h-[44px]">
+          <button type="button" onClick={onBack} className="flex items-center gap-2 text-muted-foreground hover:text-primary text-sm mb-3 min-h-[44px]">
             <ArrowLeft className="h-4 w-4" /> Back to project
           </button>
         )}
-        <h1 className="text-2xl font-bold text-slate-100">{project.name}</h1>
-        {project.client_name && <p className="text-slate-400 text-sm mt-0.5">{project.client_name}</p>}
+        <h1 className="text-2xl font-bold text-foreground">{project.name}</h1>
+        {project.client_name && <p className="text-muted-foreground text-sm mt-0.5">{project.client_name}</p>}
         {project.address && (
-          <div className="flex items-center gap-2 text-slate-400 text-sm mt-1">
+          <div className="flex items-center gap-2 text-muted-foreground text-sm mt-1">
             <MapPin className="h-4 w-4 flex-shrink-0" />
             <span>{project.address}</span>
           </div>
@@ -202,31 +202,31 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
       </div>
 
       {/* Running totals */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="bg-card border border-border rounded-xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <p className="text-slate-400 text-sm">Total Materials</p>
-          <p className="text-slate-100 text-lg font-bold">{fmt(totals.materials)}</p>
+          <p className="text-muted-foreground text-sm">Total Materials</p>
+          <p className="text-foreground text-lg font-bold">{fmt(totals.materials)}</p>
         </div>
         <div>
-          <p className="text-slate-400 text-sm">Total Labor</p>
-          <p className="text-slate-100 text-lg font-bold">{fmt(totals.labor)}</p>
+          <p className="text-muted-foreground text-sm">Total Labor</p>
+          <p className="text-foreground text-lg font-bold">{fmt(totals.labor)}</p>
         </div>
         <div>
-          <p className="text-slate-400 text-sm">Grand Total</p>
-          <p className="text-amber-500 text-lg font-bold">{fmt(grandTotal)}</p>
+          <p className="text-muted-foreground text-sm">Grand Total</p>
+          <p className="text-primary text-lg font-bold">{fmt(grandTotal)}</p>
         </div>
       </div>
 
       {/* Budget progress */}
       {project.total_budget > 0 && (
-        <div className="bg-slate-900 rounded-xl p-4">
+        <div className="bg-card rounded-xl p-4">
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-slate-400">Budget Progress</span>
-            <span className="text-slate-100">{fmt(grandTotal)} of {fmt(project.total_budget)}</span>
+            <span className="text-muted-foreground">Budget Progress</span>
+            <span className="text-foreground">{fmt(grandTotal)} of {fmt(project.total_budget)}</span>
           </div>
-          <div className="w-full bg-slate-800 rounded-full h-2.5">
+          <div className="w-full bg-secondary rounded-full h-2.5">
             <div
-              className={`h-2.5 rounded-full transition-all ${grandTotal > project.total_budget * 0.95 ? 'bg-amber-700' : grandTotal > project.total_budget * 0.75 ? 'bg-amber-600' : 'bg-amber-500'}`}
+              className={`h-2.5 rounded-full transition-all ${grandTotal > project.total_budget * 0.95 ? 'bg-amber-700' : grandTotal > project.total_budget * 0.75 ? 'bg-primary/80' : 'bg-primary'}`}
               style={{ width: `${Math.min((grandTotal / project.total_budget) * 100, 100)}%` }}
             />
           </div>
@@ -235,9 +235,9 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
 
       {/* Timeline Feed */}
       {logs.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-          <p className="text-slate-400">No daily logs yet.</p>
-          <p className="text-slate-500 text-sm mt-1">Start logging from the Daily Log tab.</p>
+        <div className="bg-card border border-border rounded-xl p-8 text-center">
+          <p className="text-muted-foreground">No daily logs yet.</p>
+          <p className="text-muted-foreground/70 text-sm mt-1">Start logging from the Daily Log tab.</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -255,19 +255,19 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
             return (
               <article
                 key={log.id}
-                className="bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 transition-colors"
+                className="bg-card border border-border hover:border-primary/50 rounded-xl p-4 transition-colors"
               >
                 <div className="flex justify-between items-start gap-2 mb-2">
-                  <p className="text-slate-400 text-sm">{fmtLongDate(log.date)}</p>
+                  <p className="text-muted-foreground text-sm">{fmtLongDate(log.date)}</p>
                   {log.day_number && (
-                    <p className="text-slate-400 text-sm">
+                    <p className="text-muted-foreground text-sm">
                       {String(log.day_number).startsWith('Day ') ? log.day_number : `Day ${log.day_number}`}
                     </p>
                   )}
                 </div>
 
                 {log.weather && (
-                  <div className="flex items-center gap-1.5 text-slate-500 text-sm mb-2">
+                  <div className="flex items-center gap-1.5 text-muted-foreground/70 text-sm mb-2">
                     <Cloud className="h-4 w-4" />
                     <span>{log.weather}</span>
                   </div>
@@ -281,7 +281,7 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
                         key={i}
                         type="button"
                         onClick={() => setLightboxPhoto(url)}
-                        className="aspect-square rounded-lg overflow-hidden border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="aspect-square rounded-lg overflow-hidden border border-border focus:outline-none focus:ring-2 focus:ring-ring"
                       >
                         <img src={url} alt="" className="w-full h-full object-cover" />
                       </button>
@@ -290,7 +290,7 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
                       <button
                         type="button"
                         onClick={() => setLightboxPhoto(photoUrls[4])}
-                        className="aspect-square rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 text-sm font-medium"
+                        className="aspect-square rounded-lg bg-secondary border border-border flex items-center justify-center text-muted-foreground text-sm font-medium"
                       >
                         +{photoUrls.length - 4} more
                       </button>
@@ -300,7 +300,7 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
 
                 {/* Tasks */}
                 {tasks.length > 0 && (
-                  <ul className="list-disc list-inside text-slate-300 text-sm space-y-0.5 mb-2">
+                  <ul className="list-disc list-inside text-foreground-soft text-sm space-y-0.5 mb-2">
                     {tasks.map((t, i) => (
                       <li key={i}>{t}</li>
                     ))}
@@ -308,7 +308,7 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
                 )}
 
                 {/* Costs */}
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-300 text-sm mb-2">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-foreground-soft text-sm mb-2">
                   {matCount > 0 && (
                     <span>Materials: {fmt(detail.materialsTotal)} ({matCount} items)</span>
                   )}
@@ -318,16 +318,16 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
                 </div>
 
                 {/* Footer */}
-                <div className="flex justify-between items-center pt-2 border-t border-slate-800">
+                <div className="flex justify-between items-center pt-2 border-t border-border">
                   <button
                     type="button"
                     onClick={() => setReportLogId(log.id)}
-                    className="text-slate-400 hover:text-amber-500 text-sm transition-colors flex items-center gap-1 min-h-[44px]"
+                    className="text-muted-foreground hover:text-primary text-sm transition-colors flex items-center gap-1 min-h-[44px]"
                   >
                     <FileText className="h-3.5 w-3.5" /> View Report
                   </button>
                   {dayTotal > 0 && (
-                    <span className="text-amber-500 font-bold">{fmt(dayTotal)}</span>
+                    <span className="text-primary font-bold">{fmt(dayTotal)}</span>
                   )}
                 </div>
               </article>
@@ -348,7 +348,7 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
           <button
             type="button"
             onClick={() => setLightboxPhoto(null)}
-            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-amber-500 rounded-lg bg-slate-800/80 transition-colors"
+            className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-primary rounded-lg bg-secondary/80 transition-colors"
             aria-label="Close"
           >
             <X className="h-6 w-6" />

@@ -16,24 +16,24 @@ export default function ShapingTheGarden() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
       </div>
     );
   }
 
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
         <div className="max-w-md text-center space-y-4">
-          <Sprout className="h-10 w-10 text-amber-500/60 mx-auto" />
-          <h1 className="text-xl font-bold text-white">Sign in to shape the garden</h1>
-          <p className="text-slate-400 text-sm">
+          <Sprout className="h-10 w-10 text-primary/60 mx-auto" />
+          <h1 className="text-xl font-bold text-foreground">Sign in to shape the garden</h1>
+          <p className="text-muted-foreground text-sm">
             Ideas grow from community. Sign in to plant yours.
           </p>
           <button
             onClick={() => base44.auth.redirectToLogin()}
-            className="mt-4 bg-amber-500 hover:bg-amber-400 text-black font-bold px-6 py-3 rounded-xl transition-colors"
+            className="mt-4 bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-6 py-3 rounded-xl transition-colors"
           >
             Sign In
           </button>

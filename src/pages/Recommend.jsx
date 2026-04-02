@@ -242,12 +242,12 @@ export default function Recommend() {
   // Not logged in
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800">
-          <ThumbsUp className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white">Sign in to Recommend</h2>
-          <p className="text-slate-400 mt-2">Your name stands behind your recommendation — sign in to get started.</p>
-          <Button className="mt-6 bg-amber-500 hover:bg-amber-400 text-black font-semibold" onClick={() => base44.auth.signIn()}>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center bg-card border-border">
+          <ThumbsUp className="h-12 w-12 text-primary mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-foreground">Sign in to Recommend</h2>
+          <p className="text-muted-foreground mt-2">Your name stands behind your recommendation — sign in to get started.</p>
+          <Button className="mt-6 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold" onClick={() => base44.auth.signIn()}>
             Sign In
           </Button>
         </Card>
@@ -258,15 +258,15 @@ export default function Recommend() {
   // Nod success
   if (mode === 'nod-done') {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center bg-card border-border">
           <div className="h-16 w-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <ThumbsUp className="h-8 w-8 text-emerald-500" />
           </div>
-          <h2 className="text-2xl font-bold text-white">You've Recommended {business?.name}!</h2>
-          <p className="text-slate-400 mt-2">Your neighbors can see your recommendation on their profile.</p>
+          <h2 className="text-2xl font-bold text-foreground">You've Recommended {business?.name}!</h2>
+          <p className="text-muted-foreground mt-2">Your neighbors can see your recommendation on their profile.</p>
           <Link to={createPageUrl(`BusinessProfile?id=${businessId}`)}>
-            <Button className="mt-6 bg-amber-500 hover:bg-amber-400 text-black font-semibold">
+            <Button className="mt-6 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold">
               Back to {business?.name}
             </Button>
           </Link>
@@ -278,10 +278,10 @@ export default function Recommend() {
   // Concern form
   if (mode === 'concern') {
     return (
-      <div className="min-h-screen bg-slate-950">
-        <div className="bg-slate-950/90 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-10">
+      <div className="min-h-screen bg-background">
+        <div className="bg-background/90 backdrop-blur-sm border-b border-border sticky top-0 z-10">
           <div className="max-w-2xl mx-auto px-4 py-3 flex items-center">
-            <Button variant="ghost" size="sm" className="text-slate-300 hover:text-amber-500 hover:bg-slate-800" onClick={() => setMode('choose')}>
+            <Button variant="ghost" size="sm" className="text-foreground-soft hover:text-primary hover:bg-secondary" onClick={() => setMode('choose')}>
               <ChevronLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
@@ -302,15 +302,15 @@ export default function Recommend() {
   // Concern success
   if (mode === 'concern-done') {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center bg-card border-border">
           <div className="h-16 w-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <ShieldCheck className="h-8 w-8 text-emerald-500" />
           </div>
-          <h2 className="text-2xl font-bold text-white">Concern Received</h2>
-          <p className="text-slate-400 mt-2">We'll review this and follow up if needed. Thank you for helping keep our community trustworthy.</p>
+          <h2 className="text-2xl font-bold text-foreground">Concern Received</h2>
+          <p className="text-muted-foreground mt-2">We'll review this and follow up if needed. Thank you for helping keep our community trustworthy.</p>
           <Link to={createPageUrl(`BusinessProfile?id=${businessId}`)}>
-            <Button className="mt-6 bg-slate-700 hover:bg-slate-600 text-white">
+            <Button className="mt-6 bg-surface hover:bg-surface text-foreground">
               Back to {business?.name}
             </Button>
           </Link>
@@ -322,15 +322,15 @@ export default function Recommend() {
   // Vouch success
   if (mode === 'vouch-done') {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800">
-          <div className="h-16 w-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Shield className="h-8 w-8 text-amber-500" />
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center bg-card border-border">
+          <div className="h-16 w-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Shield className="h-8 w-8 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-white">Vouch Submitted!</h2>
-          <p className="text-slate-400 mt-2">Your verified endorsement helps your neighbors find businesses they can trust.</p>
+          <h2 className="text-2xl font-bold text-foreground">Vouch Submitted!</h2>
+          <p className="text-muted-foreground mt-2">Your verified endorsement helps your neighbors find businesses they can trust.</p>
           <Link to={createPageUrl(`BusinessProfile?id=${businessId}`)}>
-            <Button className="mt-6 bg-amber-500 hover:bg-amber-400 text-black font-semibold">
+            <Button className="mt-6 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold">
               Back to {business?.name}
             </Button>
           </Link>
@@ -342,10 +342,10 @@ export default function Recommend() {
   // Vouch form
   if (mode === 'vouch') {
     return (
-      <div className="min-h-screen bg-slate-950">
-        <div className="bg-slate-950/90 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-10">
+      <div className="min-h-screen bg-background">
+        <div className="bg-background/90 backdrop-blur-sm border-b border-border sticky top-0 z-10">
           <div className="max-w-2xl mx-auto px-4 py-3 flex items-center">
-            <Button variant="ghost" size="sm" className="text-slate-300 hover:text-amber-500 hover:bg-slate-800" onClick={() => setMode('choose')}>
+            <Button variant="ghost" size="sm" className="text-foreground-soft hover:text-primary hover:bg-secondary" onClick={() => setMode('choose')}>
               <ChevronLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
@@ -353,41 +353,41 @@ export default function Recommend() {
         </div>
 
         <div className="max-w-2xl mx-auto px-4 py-8">
-          <Card className="p-6 sm:p-8 bg-slate-900 border-slate-800">
+          <Card className="p-6 sm:p-8 bg-card border-border">
             <div className="flex items-center gap-3 mb-1">
-              <Shield className="h-6 w-6 text-amber-500" />
-              <h1 className="text-2xl font-bold text-white">Vouch for {business?.name}</h1>
+              <Shield className="h-6 w-6 text-primary" />
+              <h1 className="text-2xl font-bold text-foreground">Vouch for {business?.name}</h1>
             </div>
-            <p className="text-slate-400 mt-1 mb-2">A vouch is a verified endorsement. It carries weight because you're putting your reputation behind it.</p>
-            <p className="text-slate-500 text-sm mb-8">We'll ask a few verification questions to confirm your experience.</p>
+            <p className="text-muted-foreground mt-1 mb-2">A vouch is a verified endorsement. It carries weight because you're putting your reputation behind it.</p>
+            <p className="text-muted-foreground/70 text-sm mb-8">We'll ask a few verification questions to confirm your experience.</p>
 
             <div className="space-y-6">
               <div>
-                <Label className="text-base font-medium text-slate-100">
+                <Label className="text-base font-medium text-foreground">
                   What service or product did you use? <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   value={vouchServiceUsed}
                   onChange={(e) => setVouchServiceUsed(e.target.value)}
                   placeholder="e.g., Kitchen remodel, Oil change, Farm stand purchase"
-                  className="mt-2 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                  className="mt-2 bg-secondary border-border text-foreground placeholder:text-muted-foreground/70"
                 />
               </div>
 
               <div>
-                <Label className="text-base font-medium text-slate-100">
+                <Label className="text-base font-medium text-foreground">
                   Approximately when? <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   value={vouchDate}
                   onChange={(e) => setVouchDate(e.target.value)}
                   placeholder="e.g., January 2026, Last summer, Two weeks ago"
-                  className="mt-2 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                  className="mt-2 bg-secondary border-border text-foreground placeholder:text-muted-foreground/70"
                 />
               </div>
 
               <div>
-                <Label className="text-base font-medium text-slate-100">
+                <Label className="text-base font-medium text-foreground">
                   Would you use them again? <span className="text-red-500">*</span>
                 </Label>
                 <div className="flex gap-3 mt-2">
@@ -395,8 +395,8 @@ export default function Recommend() {
                     onClick={() => setVouchHireAgain(true)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       vouchHireAgain === true
-                        ? 'bg-amber-500 text-black'
-                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary text-foreground-soft hover:bg-surface'
                     }`}
                   >
                     Absolutely
@@ -405,22 +405,22 @@ export default function Recommend() {
                     onClick={() => setVouchHireAgain(false)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       vouchHireAgain === false
-                        ? 'bg-slate-600 text-white'
-                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                        ? 'bg-surface text-foreground'
+                        : 'bg-secondary text-foreground-soft hover:bg-surface'
                     }`}
                   >
                     Probably not
                   </button>
                 </div>
                 {vouchHireAgain === false && (
-                  <p className="text-sm text-slate-500 mt-2">
+                  <p className="text-sm text-muted-foreground/70 mt-2">
                     A vouch means you stand behind them. If you wouldn't use them again, consider sharing a Story or flagging a Concern instead.
                   </p>
                 )}
               </div>
 
               <div>
-                <Label className="text-base font-medium text-slate-100">
+                <Label className="text-base font-medium text-foreground">
                   How do you know this business?
                 </Label>
                 <div className="flex flex-wrap gap-2 mt-2">
@@ -435,8 +435,8 @@ export default function Recommend() {
                       onClick={() => setVouchRelationship(opt.value)}
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                         vouchRelationship === opt.value
-                          ? 'bg-amber-500 text-black'
-                          : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-secondary text-foreground-soft hover:bg-surface'
                       }`}
                     >
                       {opt.label}
@@ -446,23 +446,23 @@ export default function Recommend() {
               </div>
 
               <div>
-                <Label className="text-base font-medium text-slate-100">
+                <Label className="text-base font-medium text-foreground">
                   Why do you vouch for them? (optional)
                 </Label>
                 <Textarea
                   value={vouchStatement}
                   onChange={(e) => setVouchStatement(e.target.value)}
                   placeholder="A sentence or two about why you trust this business..."
-                  className="mt-2 min-h-[80px] bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                  className="mt-2 min-h-[80px] bg-secondary border-border text-foreground placeholder:text-muted-foreground/70"
                 />
               </div>
 
-              <div className="flex items-center gap-2 p-3 bg-slate-800/50 rounded-lg">
-                <div className="h-8 w-8 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                  <Shield className="h-4 w-4 text-amber-500" />
+              <div className="flex items-center gap-2 p-3 bg-secondary/50 rounded-lg">
+                <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <Shield className="h-4 w-4 text-primary" />
                 </div>
-                <p className="text-sm text-slate-400">
-                  Your vouch will appear as <span className="text-slate-200 font-medium">{currentUser?.full_name || currentUser?.email}</span> — verified endorsement, visible to the community.
+                <p className="text-sm text-muted-foreground">
+                  Your vouch will appear as <span className="text-foreground font-medium">{currentUser?.full_name || currentUser?.email}</span> — verified endorsement, visible to the community.
                 </p>
               </div>
 
@@ -470,14 +470,14 @@ export default function Recommend() {
                 <Button
                   variant="ghost"
                   onClick={() => setMode('choose')}
-                  className="text-slate-400 hover:text-white"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={() => submitVouch.mutate()}
                   disabled={!vouchServiceUsed.trim() || !vouchDate.trim() || vouchHireAgain === null || vouchHireAgain === false || submitVouch.isPending}
-                  className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                  className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold"
                 >
                   {submitVouch.isPending ? (
                     <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Submitting...</>
@@ -496,15 +496,15 @@ export default function Recommend() {
   // Story success
   if (mode === 'story-done') {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full p-8 text-center bg-slate-900 border-slate-800">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center bg-card border-border">
           <div className="h-16 w-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="h-8 w-8 text-emerald-500" />
           </div>
-          <h2 className="text-2xl font-bold text-white">Story Shared!</h2>
-          <p className="text-slate-400 mt-2">Thank you for helping your neighbors discover {business?.name}.</p>
+          <h2 className="text-2xl font-bold text-foreground">Story Shared!</h2>
+          <p className="text-muted-foreground mt-2">Thank you for helping your neighbors discover {business?.name}.</p>
           <Link to={createPageUrl(`BusinessProfile?id=${businessId}`)}>
-            <Button className="mt-6 bg-amber-500 hover:bg-amber-400 text-black font-semibold">
+            <Button className="mt-6 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold">
               Back to {business?.name}
             </Button>
           </Link>
@@ -516,10 +516,10 @@ export default function Recommend() {
   // Story form
   if (mode === 'story') {
     return (
-      <div className="min-h-screen bg-slate-950">
-        <div className="bg-slate-950/90 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-10">
+      <div className="min-h-screen bg-background">
+        <div className="bg-background/90 backdrop-blur-sm border-b border-border sticky top-0 z-10">
           <div className="max-w-2xl mx-auto px-4 py-3 flex items-center">
-            <Button variant="ghost" size="sm" className="text-slate-300 hover:text-amber-500 hover:bg-slate-800" onClick={() => setMode('choose')}>
+            <Button variant="ghost" size="sm" className="text-foreground-soft hover:text-primary hover:bg-secondary" onClick={() => setMode('choose')}>
               <ChevronLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
@@ -527,47 +527,47 @@ export default function Recommend() {
         </div>
 
         <div className="max-w-2xl mx-auto px-4 py-8">
-          <Card className="p-6 sm:p-8 bg-slate-900 border-slate-800">
+          <Card className="p-6 sm:p-8 bg-card border-border">
             <div className="flex items-center gap-3 mb-1">
-              <BookOpen className="h-6 w-6 text-amber-500" />
-              <h1 className="text-2xl font-bold text-white">Share Your Story</h1>
+              <BookOpen className="h-6 w-6 text-primary" />
+              <h1 className="text-2xl font-bold text-foreground">Share Your Story</h1>
             </div>
             {business && (
-              <p className="text-slate-400 mt-1">about {business.name}</p>
+              <p className="text-muted-foreground mt-1">about {business.name}</p>
             )}
 
             <div className="mt-8 space-y-6">
               {/* Service Used */}
               <div>
-                <Label className="text-base font-medium text-slate-100">
+                <Label className="text-base font-medium text-foreground">
                   What service or experience did you have?
                 </Label>
                 <Input
                   value={serviceUsed}
                   onChange={(e) => setServiceUsed(e.target.value)}
                   placeholder="e.g., Kitchen remodel, Oil change, Farm stand"
-                  className="mt-2 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                  className="mt-2 bg-secondary border-border text-foreground placeholder:text-muted-foreground/70"
                 />
               </div>
 
               {/* Story Content */}
               <div>
-                <Label className="text-base font-medium text-slate-100">
+                <Label className="text-base font-medium text-foreground">
                   Tell your story <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="What happened? How did it go? Would you go back?"
-                  className="mt-2 min-h-[150px] bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                  className="mt-2 min-h-[150px] bg-secondary border-border text-foreground placeholder:text-muted-foreground/70"
                   required
                 />
               </div>
 
               {/* Photos */}
               <div>
-                <Label className="text-base font-medium text-slate-100">Add photos (optional)</Label>
-                <p className="text-sm text-slate-500 mt-1">Photos help your neighbors see the experience</p>
+                <Label className="text-base font-medium text-foreground">Add photos (optional)</Label>
+                <p className="text-sm text-muted-foreground/70 mt-1">Photos help your neighbors see the experience</p>
                 <div className="mt-3 flex flex-wrap gap-3">
                   {photos.map((photo, idx) => (
                     <div key={idx} className="relative group">
@@ -575,17 +575,17 @@ export default function Recommend() {
                       <button
                         type="button"
                         onClick={() => removePhoto(idx)}
-                        className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X className="h-3 w-3" />
                       </button>
                     </div>
                   ))}
-                  <label className="h-20 w-20 rounded-lg border-2 border-dashed border-slate-600 flex items-center justify-center cursor-pointer hover:border-amber-500 hover:bg-amber-500/10 transition-colors">
+                  <label className="h-20 w-20 rounded-lg border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/10 transition-colors">
                     {uploading ? (
-                      <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                     ) : (
-                      <Upload className="h-5 w-5 text-slate-400" />
+                      <Upload className="h-5 w-5 text-muted-foreground" />
                     )}
                     <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" disabled={uploading} />
                   </label>
@@ -593,21 +593,21 @@ export default function Recommend() {
               </div>
 
               {/* Identity reminder */}
-              <div className="flex items-center gap-3 pt-2 border-t border-slate-800">
-                <div className="h-8 w-8 rounded-full bg-slate-800 flex items-center justify-center">
-                  <span className="text-xs font-semibold text-slate-300">
+              <div className="flex items-center gap-3 pt-2 border-t border-border">
+                <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center">
+                  <span className="text-xs font-semibold text-foreground-soft">
                     {(currentUser?.full_name || currentUser?.email || 'Y')[0].toUpperCase()}
                   </span>
                 </div>
-                <p className="text-sm text-slate-400">
-                  Your story will be published as <span className="text-slate-200 font-medium">{currentUser?.full_name || currentUser?.email}</span>
+                <p className="text-sm text-muted-foreground">
+                  Your story will be published as <span className="text-foreground font-medium">{currentUser?.full_name || currentUser?.email}</span>
                 </p>
               </div>
 
               {/* Submit */}
               <Button
                 size="lg"
-                className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold"
                 disabled={!content.trim() || submitStory.isPending}
                 onClick={() => submitStory.mutate()}
               >
@@ -626,11 +626,11 @@ export default function Recommend() {
 
   // Choose mode (default)
   return (
-    <div className="min-h-screen bg-slate-950">
-      <div className="bg-slate-950/90 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-10">
+    <div className="min-h-screen bg-background">
+      <div className="bg-background/90 backdrop-blur-sm border-b border-border sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center">
           <Link to={createPageUrl(`BusinessProfile?id=${businessId}`)}>
-            <Button variant="ghost" size="sm" className="text-slate-300 hover:text-amber-500 hover:bg-slate-800">
+            <Button variant="ghost" size="sm" className="text-foreground-soft hover:text-primary hover:bg-secondary">
               <ChevronLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
@@ -639,17 +639,17 @@ export default function Recommend() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-white">
+        <h1 className="text-2xl font-bold text-foreground">
           How would you like to recommend{business ? ` ${business.name}` : ''}?
         </h1>
-        <p className="text-slate-400 mt-2">Your name stands behind your recommendation</p>
+        <p className="text-muted-foreground mt-2">Your name stands behind your recommendation</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
           {/* Quick Nod Card */}
-          <Card className="p-6 bg-slate-900 border-slate-800 hover:border-amber-500/50 transition-all flex flex-col">
-            <ThumbsUp className="h-10 w-10 text-amber-500 mb-4" />
-            <h2 className="text-lg font-semibold text-white">Quick Nod</h2>
-            <p className="text-sm text-slate-400 mt-2">One click. Your name says it all.</p>
+          <Card className="p-6 bg-card border-border hover:border-primary/50 transition-all flex flex-col">
+            <ThumbsUp className="h-10 w-10 text-primary mb-4" />
+            <h2 className="text-lg font-semibold text-foreground">Quick Nod</h2>
+            <p className="text-sm text-muted-foreground mt-2">One click. Your name says it all.</p>
 
             {existingNod ? (
               <div className="mt-4">
@@ -660,14 +660,14 @@ export default function Recommend() {
                 <button
                   onClick={() => removeNod.mutate()}
                   disabled={removeNod.isPending}
-                  className="text-sm text-slate-500 hover:text-red-400 mt-2 transition-colors"
+                  className="text-sm text-muted-foreground/70 hover:text-red-400 mt-2 transition-colors"
                 >
                   {removeNod.isPending ? 'Removing...' : 'Remove recommendation'}
                 </button>
               </div>
             ) : (
               <Button
-                className="w-full mt-4 bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                className="w-full mt-4 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold"
                 disabled={submitNod.isPending}
                 onClick={() => submitNod.mutate()}
               >
@@ -681,13 +681,13 @@ export default function Recommend() {
           </Card>
 
           {/* Share a Story Card */}
-          <Card className="p-6 bg-slate-900 border-slate-800 hover:border-amber-500/50 transition-all flex flex-col">
-            <BookOpen className="h-10 w-10 text-amber-500 mb-4" />
-            <h2 className="text-lg font-semibold text-white">Share a Story</h2>
-            <p className="text-sm text-slate-400 mt-2">Tell your neighbors what happened.</p>
+          <Card className="p-6 bg-card border-border hover:border-primary/50 transition-all flex flex-col">
+            <BookOpen className="h-10 w-10 text-primary mb-4" />
+            <h2 className="text-lg font-semibold text-foreground">Share a Story</h2>
+            <p className="text-sm text-muted-foreground mt-2">Tell your neighbors what happened.</p>
             <Button
               variant="outline"
-              className="w-full mt-4 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
+              className="w-full mt-4 border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent"
               onClick={() => setMode('story')}
             >
               Start Writing
@@ -696,14 +696,14 @@ export default function Recommend() {
 
           {/* Vouch Card */}
           <Card
-            className="p-6 bg-slate-900 border-slate-800 hover:border-amber-500/50 transition-all cursor-pointer flex flex-col items-center text-center"
+            className="p-6 bg-card border-border hover:border-primary/50 transition-all cursor-pointer flex flex-col items-center text-center"
             onClick={() => !existingVouch && setMode('vouch')}
           >
-            <div className="h-12 w-12 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
-              <Shield className="h-6 w-6 text-amber-500" />
+            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+              <Shield className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Vouch</h3>
-            <p className="text-sm text-slate-400">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Vouch</h3>
+            <p className="text-sm text-muted-foreground">
               Stand behind this business. Verified endorsement with your reputation.
             </p>
             {existingVouch ? (
@@ -714,7 +714,7 @@ export default function Recommend() {
                 </div>
               </div>
             ) : (
-              <Button className="mt-4 bg-amber-500 hover:bg-amber-400 text-black font-semibold w-full" onClick={(e) => { e.stopPropagation(); setMode('vouch'); }}>
+              <Button className="mt-4 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold w-full" onClick={(e) => { e.stopPropagation(); setMode('vouch'); }}>
                 Vouch for Them
               </Button>
             )}
@@ -724,7 +724,7 @@ export default function Recommend() {
         <div className="mt-8 text-center">
           <button
             onClick={() => setMode('concern')}
-            className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
+            className="text-sm text-muted-foreground/70 hover:text-foreground-soft transition-colors"
           >
             Had a different experience?
           </button>

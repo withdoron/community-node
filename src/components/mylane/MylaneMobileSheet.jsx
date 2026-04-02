@@ -39,7 +39,7 @@ export default function MylaneMobileSheet({
 
   return (
     <div
-      className={`fixed inset-0 z-50 bg-slate-950 flex flex-col transition-transform duration-300 ease-out ${
+      className={`fixed inset-0 z-50 bg-background flex flex-col transition-transform duration-300 ease-out ${
         visible ? 'translate-y-0' : 'translate-y-full'
       }`}
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}

@@ -24,7 +24,7 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
   // Role guard
   if (!memberRole) {
     return (
-      <div className="text-center py-12 text-slate-400">
+      <div className="text-center py-12 text-muted-foreground">
         <p>You don't have access to this workspace.</p>
       </div>
     );
@@ -291,14 +291,14 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-10 w-48 bg-slate-900 border border-slate-800 rounded-lg animate-pulse" />
+        <div className="h-10 w-48 bg-card border border-border rounded-lg animate-pulse" />
         {[1, 2].map((i) => (
           <div
             key={i}
-            className="bg-slate-900 border border-slate-800 rounded-lg p-4 animate-pulse"
+            className="bg-card border border-border rounded-lg p-4 animate-pulse"
           >
-            <div className="h-6 w-40 bg-slate-700 rounded mb-2" />
-            <div className="h-4 w-24 bg-slate-700 rounded" />
+            <div className="h-6 w-40 bg-surface rounded mb-2" />
+            <div className="h-4 w-24 bg-surface rounded" />
           </div>
         ))}
       </div>
@@ -310,8 +310,8 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-slate-100">Settlements</h2>
-          <p className="text-sm text-slate-400">
+          <h2 className="text-lg font-bold text-foreground">Settlements</h2>
+          <p className="text-sm text-muted-foreground">
             {settlements.length === 0
               ? 'No settlements yet'
               : `${settlements.length} settlement${settlements.length !== 1 ? 's' : ''}`}
@@ -319,7 +319,7 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
         </div>
         <Button
           onClick={() => setNewDialogOpen(true)}
-          className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
         >
           <Plus className="w-4 h-4 mr-1.5" />
           New Settlement
@@ -329,13 +329,13 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
       {/* Empty state */}
       {settlements.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-4">
-            <Calculator className="h-7 w-7 text-amber-500" />
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+            <Calculator className="h-7 w-7 text-primary" />
           </div>
-          <h3 className="text-xl font-semibold text-slate-300 mb-1">
+          <h3 className="text-xl font-semibold text-foreground-soft mb-1">
             No settlements yet
           </h3>
-          <p className="text-slate-400 mb-6 text-center max-w-sm">
+          <p className="text-muted-foreground mb-6 text-center max-w-sm">
             Run your first monthly settlement to see the financial waterfall
           </p>
         </div>
@@ -434,12 +434,12 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
         open={!!finalizeWarningTarget}
         onOpenChange={(open) => !open && setFinalizeWarningTarget(null)}
       >
-        <AlertDialogContent className="bg-slate-900 border border-slate-800">
+        <AlertDialogContent className="bg-card border border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">
+            <AlertDialogTitle className="text-foreground">
               Unreconciled Expenses
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogDescription className="text-muted-foreground">
               {finalizeWarningTarget &&
                 (() => {
                   const monthExpenses = (expenses || []).filter(
@@ -456,7 +456,7 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-slate-100">
+            <AlertDialogCancel className="bg-secondary border-border text-foreground-soft hover:bg-surface hover:text-foreground">
               Go Back
             </AlertDialogCancel>
             <AlertDialogAction
@@ -466,7 +466,7 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
                   setFinalizeWarningTarget(null);
                 }
               }}
-              className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
             >
               Finalize Anyway
             </AlertDialogAction>
@@ -479,25 +479,25 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
         open={!!unfinalizeTarget}
         onOpenChange={(open) => !open && setUnfinalizeTarget(null)}
       >
-        <AlertDialogContent className="bg-slate-900 border border-slate-800">
+        <AlertDialogContent className="bg-card border border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">
+            <AlertDialogTitle className="text-foreground">
               Reopen settlement?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogDescription className="text-muted-foreground">
               This will reopen the settlement for editing and reset any
               reimbursements back to pending. Continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-slate-100">
+            <AlertDialogCancel className="bg-secondary border-border text-foreground-soft hover:bg-surface hover:text-foreground">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() =>
                 unfinalizeTarget && handleUnfinalize(unfinalizeTarget)
               }
-              className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100"
+              className="border-border text-foreground-soft hover:bg-secondary hover:text-foreground"
             >
               Reopen
             </AlertDialogAction>
@@ -510,22 +510,22 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
       >
-        <AlertDialogContent className="bg-slate-900 border border-slate-800">
+        <AlertDialogContent className="bg-card border border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">
+            <AlertDialogTitle className="text-foreground">
               Delete this draft settlement?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogDescription className="text-muted-foreground">
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-slate-100">
+            <AlertDialogCancel className="bg-secondary border-border text-foreground-soft hover:bg-surface hover:text-foreground">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-500 text-white"
+              className="bg-red-600 hover:bg-red-500 text-foreground"
             >
               Delete
             </AlertDialogAction>

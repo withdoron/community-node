@@ -55,7 +55,7 @@ export default function FinanceActivity({ profile, currentUser }) {
   // Ownership guard
   if (profile && currentUser && profile.user_id !== currentUser.id) {
     return (
-      <div className="text-center py-12 text-slate-400">
+      <div className="text-center py-12 text-muted-foreground">
         <p>You don't have access to this workspace.</p>
       </div>
     );
@@ -158,7 +158,7 @@ export default function FinanceActivity({ profile, currentUser }) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="animate-spin h-8 w-8 border-4 border-amber-500 border-t-transparent rounded-full" />
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -166,11 +166,11 @@ export default function FinanceActivity({ profile, currentUser }) {
   return (
     <div className="space-y-6">
       {/* Filter Bar */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
+      <div className="bg-card border border-border rounded-xl p-4 space-y-4">
         {/* Row 1: Type + Context + Category + Import */}
         <div className="flex flex-wrap gap-3 items-end">
           {/* Type toggle */}
-          <div className="flex rounded-lg overflow-hidden border border-slate-700">
+          <div className="flex rounded-lg overflow-hidden border border-border">
             {['all', 'income', 'expense'].map((t) => (
               <button
                 key={t}
@@ -178,8 +178,8 @@ export default function FinanceActivity({ profile, currentUser }) {
                 onClick={() => setTypeFilter(t)}
                 className={`px-3 py-1.5 text-sm font-medium transition-colors min-h-[36px] ${
                   typeFilter === t
-                    ? 'bg-amber-500 text-black'
-                    : 'bg-slate-800 text-slate-400 hover:text-slate-300'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-muted-foreground hover:text-foreground-soft'
                 }`}
               >
                 {t === 'all' ? 'All' : t === 'income' ? 'Income' : 'Expense'}
@@ -192,7 +192,7 @@ export default function FinanceActivity({ profile, currentUser }) {
             <select
               value={contextFilter}
               onChange={(e) => handleContextFilterChange(e.target.value)}
-              className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white focus:border-amber-500 min-h-[36px]"
+              className="bg-secondary border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:border-primary min-h-[36px]"
             >
               <option value="all">All Contexts</option>
               {activeContexts.map((ctx) => (
@@ -206,7 +206,7 @@ export default function FinanceActivity({ profile, currentUser }) {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white focus:border-amber-500 min-h-[36px]"
+              className="bg-secondary border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:border-primary min-h-[36px]"
             >
               <option value="all">All Categories</option>
               {filterCategories.map((cat) => (
@@ -219,7 +219,7 @@ export default function FinanceActivity({ profile, currentUser }) {
           <button
             type="button"
             onClick={() => setImportOpen(true)}
-            className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500/50 transition-colors min-h-[36px]"
+            className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-secondary border border-border text-foreground-soft hover:text-primary hover:border-primary/50 transition-colors min-h-[36px]"
           >
             <Upload className="h-3.5 w-3.5" />
             Import
@@ -235,8 +235,8 @@ export default function FinanceActivity({ profile, currentUser }) {
               onClick={() => setDateRange(p.id)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-[32px] ${
                 dateRange === p.id
-                  ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50'
-                  : 'bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-300'
+                  ? 'bg-primary/20 text-primary border border-primary/50'
+                  : 'bg-secondary text-muted-foreground border border-border hover:text-foreground-soft'
               }`}
             >
               {p.label}
@@ -247,16 +247,16 @@ export default function FinanceActivity({ profile, currentUser }) {
 
       {/* Monthly Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
-          <p className="text-xs text-slate-400 mb-1">Income</p>
+        <div className="bg-card border border-border rounded-xl p-4 text-center">
+          <p className="text-xs text-muted-foreground mb-1">Income</p>
           <p className="text-lg font-bold text-emerald-400">{fmt(summary.income)}</p>
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
-          <p className="text-xs text-slate-400 mb-1">Expenses</p>
+        <div className="bg-card border border-border rounded-xl p-4 text-center">
+          <p className="text-xs text-muted-foreground mb-1">Expenses</p>
           <p className="text-lg font-bold text-red-400">{fmt(summary.expenses)}</p>
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
-          <p className="text-xs text-slate-400 mb-1">Net</p>
+        <div className="bg-card border border-border rounded-xl p-4 text-center">
+          <p className="text-xs text-muted-foreground mb-1">Net</p>
           <p className={`text-lg font-bold ${summary.net >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             {fmt(summary.net)}
           </p>
@@ -265,14 +265,14 @@ export default function FinanceActivity({ profile, currentUser }) {
 
       {/* Transaction List */}
       {filtered.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-          <p className="text-slate-400 mb-4">
+        <div className="bg-card border border-border rounded-xl p-8 text-center">
+          <p className="text-muted-foreground mb-4">
             No transactions yet. Add your first income or expense to start tracking.
           </p>
           <button
             type="button"
             onClick={() => openAddForm()}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors min-h-[44px]"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors min-h-[44px]"
           >
             <Plus className="h-4 w-4" />
             Add Transaction
@@ -285,21 +285,21 @@ export default function FinanceActivity({ profile, currentUser }) {
               key={txn.id}
               type="button"
               onClick={() => openEditForm(txn)}
-              className="w-full bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 text-left transition-colors"
+              className="w-full bg-card border border-border hover:border-primary/50 rounded-xl p-4 text-left transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="text-xs text-slate-500 w-14 flex-shrink-0">{fmtDate(txn.date)}</div>
+                <div className="text-xs text-muted-foreground/70 w-14 flex-shrink-0">{fmtDate(txn.date)}</div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-100 truncate">{txn.description}</p>
+                  <p className="text-sm text-foreground truncate">{txn.description}</p>
                   <div className="flex gap-2 mt-1">
                     {/* Context badge — hidden when single context */}
                     {!singleContext && txn.context && (
-                      <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">
+                      <span className="text-xs bg-secondary text-muted-foreground px-2 py-0.5 rounded-full">
                         {getContextLabel(txn.context)}
                       </span>
                     )}
                     {txn.category && (
-                      <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">
+                      <span className="text-xs bg-secondary text-muted-foreground px-2 py-0.5 rounded-full">
                         {txn.category}
                       </span>
                     )}
@@ -322,7 +322,7 @@ export default function FinanceActivity({ profile, currentUser }) {
           <button
             type="button"
             onClick={() => openAddForm()}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors min-h-[44px]"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors min-h-[44px]"
           >
             <Plus className="h-4 w-4" />
             Add Transaction
@@ -343,7 +343,7 @@ export default function FinanceActivity({ profile, currentUser }) {
 
       {/* Import Modal */}
       <Dialog open={importOpen} onOpenChange={setImportOpen}>
-        <DialogContent className="bg-slate-900 border-slate-800 max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+        <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto p-0">
           <div className="p-6">
             <FinanceImport
               profile={profile}

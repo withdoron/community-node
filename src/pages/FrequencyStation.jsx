@@ -48,19 +48,19 @@ const ACCEPTED_AUDIO_TYPES = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/x-m
 const THEMES = [
   { id: 'fire', label: 'Fire', icon: Flame, color: 'text-red-400', bg: 'bg-red-500/20', border: 'border-red-500/40', selectedBg: 'bg-red-500/30' },
   { id: 'water', label: 'Water', icon: Droplets, color: 'text-blue-400', bg: 'bg-blue-500/20', border: 'border-blue-500/40', selectedBg: 'bg-blue-500/30' },
-  { id: 'earth', label: 'Earth', icon: Mountain, color: 'text-amber-400', bg: 'bg-amber-500/20', border: 'border-amber-500/40', selectedBg: 'bg-amber-500/30' },
+  { id: 'earth', label: 'Earth', icon: Mountain, color: 'text-primary-hover', bg: 'bg-primary/20', border: 'border-primary/40', selectedBg: 'bg-primary/30' },
   { id: 'air', label: 'Air', icon: Wind, color: 'text-cyan-400', bg: 'bg-cyan-500/20', border: 'border-cyan-500/40', selectedBg: 'bg-cyan-500/30' },
   { id: 'storm', label: 'Storm', icon: CloudLightning, color: 'text-purple-400', bg: 'bg-purple-500/20', border: 'border-purple-500/40', selectedBg: 'bg-purple-500/30' },
-  { id: 'custom', label: 'Custom', icon: Sparkles, color: 'text-slate-400', bg: 'bg-slate-500/20', border: 'border-slate-500/40', selectedBg: 'bg-slate-500/30' },
+  { id: 'custom', label: 'Custom', icon: Sparkles, color: 'text-muted-foreground', bg: 'bg-muted-foreground/20', border: 'border-muted-foreground/40', selectedBg: 'bg-muted-foreground/30' },
 ];
 
 const THEME_MAP = Object.fromEntries(THEMES.map((t) => [t.id, t]));
 
 const STATUS_CONFIG = {
-  submitted: { label: 'Submitted', color: 'text-amber-400', bg: 'bg-amber-500/20' },
+  submitted: { label: 'Submitted', color: 'text-primary-hover', bg: 'bg-primary/20' },
   in_progress: { label: 'In Progress', color: 'text-blue-400', bg: 'bg-blue-500/20' },
   released: { label: 'Released', color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
-  archived: { label: 'Archived', color: 'text-slate-400', bg: 'bg-slate-500/20' },
+  archived: { label: 'Archived', color: 'text-muted-foreground', bg: 'bg-muted-foreground/20' },
 };
 
 // ─── Slug generation ─────────────────────────────────────────────────────────
@@ -195,7 +195,7 @@ function AudioPlayer({ audioUrl, variant = 'compact', onPlay }) {
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 text-xs text-slate-500">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
         <AlertCircle className="h-3 w-3" />
         Audio unavailable
       </div>
@@ -211,7 +211,7 @@ function AudioPlayer({ audioUrl, variant = 'compact', onPlay }) {
         type="button"
         onClick={togglePlay}
         disabled={isLoading}
-        className={`shrink-0 flex items-center justify-center rounded-full bg-amber-500 hover:bg-amber-400 text-black transition-colors disabled:bg-slate-700 disabled:text-slate-500 ${
+        className={`shrink-0 flex items-center justify-center rounded-full bg-primary hover:bg-primary-hover text-primary-foreground transition-colors disabled:bg-surface disabled:text-muted-foreground/70 ${
           isCompact ? 'w-8 h-8' : 'w-12 h-12'
         }`}
       >
@@ -227,22 +227,22 @@ function AudioPlayer({ audioUrl, variant = 'compact', onPlay }) {
         <div
           ref={progressRef}
           onClick={handleProgressClick}
-          className={`w-full bg-slate-700 rounded-full cursor-pointer ${isCompact ? 'h-1' : 'h-1.5'}`}
+          className={`w-full bg-surface rounded-full cursor-pointer ${isCompact ? 'h-1' : 'h-1.5'}`}
         >
           <div
-            className="bg-amber-500 rounded-full h-full transition-[width] duration-100"
+            className="bg-primary rounded-full h-full transition-[width] duration-100"
             style={{ width: `${progress}%` }}
           />
         </div>
         {!isCompact && (
           <div className="flex justify-between mt-1">
-            <span className="text-xs text-slate-400">{formatTime(currentTime)}</span>
-            <span className="text-xs text-slate-400">{formatTime(duration)}</span>
+            <span className="text-xs text-muted-foreground">{formatTime(currentTime)}</span>
+            <span className="text-xs text-muted-foreground">{formatTime(duration)}</span>
           </div>
         )}
       </div>
       {isCompact && (
-        <span className="text-xs text-slate-500 shrink-0 tabular-nums">{formatTime(duration)}</span>
+        <span className="text-xs text-muted-foreground/70 shrink-0 tabular-nums">{formatTime(duration)}</span>
       )}
     </div>
   );
@@ -282,10 +282,10 @@ function SongCard({ song, onListenCounted }) {
   return (
     <div
       onClick={handleCardClick}
-      className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden cursor-pointer hover:border-slate-700 transition-colors group"
+      className="bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:border-border transition-colors group"
     >
       {/* Cover image or placeholder */}
-      <div className="relative aspect-[16/9] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden">
+      <div className="relative aspect-[16/9] bg-gradient-to-br from-secondary to-card flex items-center justify-center overflow-hidden">
         {song.cover_image_url ? (
           <img
             src={song.cover_image_url}
@@ -294,22 +294,22 @@ function SongCard({ song, onListenCounted }) {
           />
         ) : (
           <div className="flex flex-col items-center gap-2">
-            <Music className="h-10 w-10 text-amber-500/30" />
+            <Music className="h-10 w-10 text-primary/30" />
           </div>
         )}
       </div>
       {/* Card body */}
       <div className="p-4 space-y-3">
         <div>
-          <h3 className="font-bold text-slate-100 text-sm group-hover:text-amber-500 transition-colors line-clamp-1">
+          <h3 className="font-bold text-foreground text-sm group-hover:text-primary transition-colors line-clamp-1">
             {song.title}
           </h3>
-          <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">{song.credit_line}</p>
+          <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{song.credit_line}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {song.mood_tag && <ThemePill themeId={song.mood_tag} />}
           {song.style_genre && (
-            <span className="text-xs text-slate-500">{song.style_genre}</span>
+            <span className="text-xs text-muted-foreground/70">{song.style_genre}</span>
           )}
         </div>
         {/* Audio player */}
@@ -317,15 +317,15 @@ function SongCard({ song, onListenCounted }) {
           <AudioPlayer audioUrl={song.audio_url} variant="compact" onPlay={handlePlay} />
         )}
         {/* Footer: listen count + share */}
-        <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-          <div className="flex items-center gap-1 text-xs text-slate-500">
+        <div className="flex items-center justify-between pt-2 border-t border-border">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground/70">
             <Headphones className="h-3 w-3" />
             {song.listen_count || 0}
           </div>
           <button
             type="button"
             onClick={handleShare}
-            className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 transition-colors"
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
           >
             <Link2 className="h-3 w-3" />
             Share
@@ -365,7 +365,7 @@ function ListenTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -373,11 +373,11 @@ function ListenTab() {
   if (songs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-4">
-          <Music className="h-8 w-8 text-amber-500" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 mb-4">
+          <Music className="h-8 w-8 text-primary" />
         </div>
-        <h3 className="text-xl font-bold text-slate-100 mb-2">No songs yet</h3>
-        <p className="text-slate-400 max-w-sm">
+        <h3 className="text-xl font-bold text-foreground mb-2">No songs yet</h3>
+        <p className="text-muted-foreground max-w-sm">
           When community seeds become songs, they'll appear here. Submit your writing and we'll turn it into music.
         </p>
       </div>
@@ -439,44 +439,44 @@ function FeaturedSongCard({ song, onListenCounted }) {
   return (
     <div
       onClick={() => navigate(`/frequency/${song.slug}`)}
-      className="bg-slate-900 border border-amber-500/30 rounded-xl overflow-hidden cursor-pointer hover:border-amber-500/50 transition-colors"
+      className="bg-card border border-primary/30 rounded-xl overflow-hidden cursor-pointer hover:border-primary/50 transition-colors"
     >
       <div className="p-1">
         <div className="flex items-center gap-1.5 px-3 pt-2 pb-1">
-          <Sparkles className="h-3 w-3 text-amber-500" />
-          <span className="text-xs font-medium text-amber-500">Featured</span>
+          <Sparkles className="h-3 w-3 text-primary" />
+          <span className="text-xs font-medium text-primary">Featured</span>
         </div>
       </div>
       <div className="flex flex-col sm:flex-row gap-4 p-4 pt-2">
         {/* Cover */}
-        <div className="sm:w-40 sm:h-40 aspect-square bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
+        <div className="sm:w-40 sm:h-40 aspect-square bg-gradient-to-br from-secondary to-card rounded-lg flex items-center justify-center overflow-hidden shrink-0">
           {song.cover_image_url ? (
             <img src={song.cover_image_url} alt={song.title} className="w-full h-full object-cover rounded-lg" />
           ) : (
-            <Music className="h-12 w-12 text-amber-500/30" />
+            <Music className="h-12 w-12 text-primary/30" />
           )}
         </div>
         {/* Info */}
         <div className="flex-1 min-w-0 space-y-3">
           <div>
-            <h3 className="text-lg font-bold text-slate-100">{song.title}</h3>
-            <p className="text-sm text-slate-400">{song.credit_line}</p>
+            <h3 className="text-lg font-bold text-foreground">{song.title}</h3>
+            <p className="text-sm text-muted-foreground">{song.credit_line}</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {song.mood_tag && <ThemePill themeId={song.mood_tag} size="md" />}
-            {song.style_genre && <span className="text-xs text-slate-500">{song.style_genre}</span>}
+            {song.style_genre && <span className="text-xs text-muted-foreground/70">{song.style_genre}</span>}
           </div>
           {song.audio_url && (
             <AudioPlayer audioUrl={song.audio_url} variant="full" onPlay={handlePlay} />
           )}
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1 text-xs text-slate-500">
+            <span className="flex items-center gap-1 text-xs text-muted-foreground/70">
               <Headphones className="h-3 w-3" /> {song.listen_count || 0} listens
             </span>
             <button
               type="button"
               onClick={handleShare}
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 transition-colors"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
             >
               <Link2 className="h-3 w-3" /> Share
             </button>
@@ -542,9 +542,9 @@ function SubmitTab({ user, onSubmitSuccess }) {
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <AlertCircle className="h-8 w-8 text-amber-500 mb-4" />
-        <h3 className="text-xl font-bold text-slate-100 mb-2">Sign in to submit</h3>
-        <p className="text-slate-400">You need to be a member to plant a seed.</p>
+        <AlertCircle className="h-8 w-8 text-primary mb-4" />
+        <h3 className="text-xl font-bold text-foreground mb-2">Sign in to submit</h3>
+        <p className="text-muted-foreground">You need to be a member to plant a seed.</p>
       </div>
     );
   }
@@ -552,26 +552,26 @@ function SubmitTab({ user, onSubmitSuccess }) {
   return (
     <form onSubmit={handleSubmit} className="max-w-xl mx-auto space-y-6 py-6">
       <div>
-        <h3 className="text-lg font-bold text-slate-100 mb-1">Plant a seed</h3>
-        <p className="text-sm text-slate-400">Write what's on your heart. We turn it into music.</p>
+        <h3 className="text-lg font-bold text-foreground mb-1">Plant a seed</h3>
+        <p className="text-sm text-muted-foreground">Write what's on your heart. We turn it into music.</p>
       </div>
 
       {/* Raw text */}
       <div>
-        <label className="text-sm text-slate-400 mb-1.5 block">Your words *</label>
+        <label className="text-sm text-muted-foreground mb-1.5 block">Your words *</label>
         <textarea
           value={rawText}
           onChange={(e) => setRawText(e.target.value)}
           placeholder="A poem, a feeling, a letter, a rant, a prayer... anything real."
           rows={6}
-          className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm resize-none focus:outline-none focus:border-amber-500"
+          className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm resize-none focus:outline-none focus:border-primary"
           required
         />
       </div>
 
       {/* Theme selector */}
       <div>
-        <label className="text-sm text-slate-400 mb-2 block">Theme (optional)</label>
+        <label className="text-sm text-muted-foreground mb-2 block">Theme (optional)</label>
         <div className="flex flex-wrap gap-2">
           {THEMES.map((t) => {
             const Icon = t.icon;
@@ -584,7 +584,7 @@ function SubmitTab({ user, onSubmitSuccess }) {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                   selected
                     ? `${t.selectedBg} ${t.color} ${t.border}`
-                    : 'bg-slate-900 text-slate-400 border-slate-700 hover:border-slate-600'
+                    : 'bg-card text-muted-foreground border-border hover:border-border'
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -599,7 +599,7 @@ function SubmitTab({ user, onSubmitSuccess }) {
             value={customTheme}
             onChange={(e) => setCustomTheme(e.target.value)}
             placeholder="Describe your theme..."
-            className="mt-2 w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+            className="mt-2 w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm focus:outline-none focus:border-primary"
           />
         )}
       </div>
@@ -607,16 +607,16 @@ function SubmitTab({ user, onSubmitSuccess }) {
       {/* Anonymous toggle */}
       <div>
         <div
-          className="flex items-center justify-between bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 cursor-pointer"
+          className="flex items-center justify-between bg-card border border-border rounded-lg px-4 py-3 cursor-pointer"
           onClick={() => setIsAnonymous(!isAnonymous)}
         >
           <div>
-            <p className="text-sm font-medium text-slate-100">Stay anonymous</p>
-            <p className="text-xs text-slate-500">Your name won't appear on the song</p>
+            <p className="text-sm font-medium text-foreground">Stay anonymous</p>
+            <p className="text-xs text-muted-foreground/70">Your name won't appear on the song</p>
           </div>
           <div
             className={`w-10 h-6 rounded-full relative transition-colors ${
-              isAnonymous ? 'bg-amber-500' : 'bg-slate-700'
+              isAnonymous ? 'bg-primary' : 'bg-surface'
             }`}
           >
             <div
@@ -627,7 +627,7 @@ function SubmitTab({ user, onSubmitSuccess }) {
           </div>
         </div>
         {isAnonymous && (
-          <p className="text-xs text-slate-500 mt-1.5 ml-1">
+          <p className="text-xs text-muted-foreground/70 mt-1.5 ml-1">
             Anonymous seeds won't appear in My Seeds after submission.
           </p>
         )}
@@ -635,37 +635,37 @@ function SubmitTab({ user, onSubmitSuccess }) {
 
       {/* Dedication */}
       <div>
-        <label className="text-sm text-slate-400 mb-1.5 block">Dedication (optional)</label>
+        <label className="text-sm text-muted-foreground mb-1.5 block">Dedication (optional)</label>
         <input
           type="text"
           value={dedication}
           onChange={(e) => setDedication(e.target.value)}
           placeholder="For my daughter, for Eugene, for anyone who's been there..."
-          className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+          className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm focus:outline-none focus:border-primary"
         />
       </div>
 
       {/* Title suggestion */}
       <div>
-        <label className="text-sm text-slate-400 mb-1.5 block">Title suggestion (optional)</label>
+        <label className="text-sm text-muted-foreground mb-1.5 block">Title suggestion (optional)</label>
         <input
           type="text"
           value={titleSuggestion}
           onChange={(e) => setTitleSuggestion(e.target.value)}
           placeholder="If you have a title in mind..."
-          className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+          className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm focus:outline-none focus:border-primary"
         />
       </div>
 
       {/* Consent + Submit */}
       <div className="space-y-3">
-        <p className="text-xs text-slate-500 text-center">
+        <p className="text-xs text-muted-foreground/70 text-center">
           Your words will be transformed into music, not published as written.
         </p>
         <Button
           type="submit"
           disabled={!rawText.trim() || submitMutation.isPending}
-          className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-lg transition-colors disabled:bg-slate-700 disabled:text-slate-500"
+          className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-bold py-3 rounded-lg transition-colors disabled:bg-surface disabled:text-muted-foreground/70"
         >
           {submitMutation.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -710,10 +710,10 @@ function EditSeedForm({ seed, onCancel, onSaved }) {
   });
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 space-y-4">
+    <div className="bg-secondary border border-border rounded-lg p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-slate-100">Edit seed</h4>
-        <button type="button" onClick={onCancel} className="text-slate-400 hover:text-white">
+        <h4 className="text-sm font-medium text-foreground">Edit seed</h4>
+        <button type="button" onClick={onCancel} className="text-muted-foreground hover:text-foreground">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -721,7 +721,7 @@ function EditSeedForm({ seed, onCancel, onSaved }) {
         value={rawText}
         onChange={(e) => setRawText(e.target.value)}
         rows={4}
-        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm resize-none focus:outline-none focus:border-amber-500"
+        className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm resize-none focus:outline-none focus:border-primary"
       />
       <div className="flex flex-wrap gap-2">
         {THEMES.map((t) => {
@@ -735,7 +735,7 @@ function EditSeedForm({ seed, onCancel, onSaved }) {
               className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs border transition-colors ${
                 selected
                   ? `${t.selectedBg} ${t.color} ${t.border}`
-                  : 'bg-slate-900 text-slate-400 border-slate-700'
+                  : 'bg-card text-muted-foreground border-border'
               }`}
             >
               <Icon className="h-3 w-3" />
@@ -750,15 +750,15 @@ function EditSeedForm({ seed, onCancel, onSaved }) {
           value={customTheme}
           onChange={(e) => setCustomTheme(e.target.value)}
           placeholder="Describe your theme..."
-          className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+          className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm focus:outline-none focus:border-primary"
         />
       )}
       <div
-        className="flex items-center justify-between bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 cursor-pointer"
+        className="flex items-center justify-between bg-card border border-border rounded-lg px-3 py-2 cursor-pointer"
         onClick={() => setIsAnonymous(!isAnonymous)}
       >
-        <span className="text-sm text-slate-300">Stay anonymous</span>
-        <div className={`w-9 h-5 rounded-full relative transition-colors ${isAnonymous ? 'bg-amber-500' : 'bg-slate-700'}`}>
+        <span className="text-sm text-foreground-soft">Stay anonymous</span>
+        <div className={`w-9 h-5 rounded-full relative transition-colors ${isAnonymous ? 'bg-primary' : 'bg-surface'}`}>
           <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-slate-100 transition-transform ${isAnonymous ? 'left-4' : 'left-0.5'}`} />
         </div>
       </div>
@@ -767,27 +767,27 @@ function EditSeedForm({ seed, onCancel, onSaved }) {
         value={dedication}
         onChange={(e) => setDedication(e.target.value)}
         placeholder="Dedication (optional)"
-        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+        className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm focus:outline-none focus:border-primary"
       />
       <input
         type="text"
         value={titleSuggestion}
         onChange={(e) => setTitleSuggestion(e.target.value)}
         placeholder="Title suggestion (optional)"
-        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+        className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm focus:outline-none focus:border-primary"
       />
       <div className="flex gap-2 justify-end">
         <Button
           variant="outline"
           onClick={onCancel}
-          className="bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
+          className="bg-transparent border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent"
         >
           Cancel
         </Button>
         <Button
           onClick={() => saveMutation.mutate()}
           disabled={!rawText.trim() || saveMutation.isPending}
-          className="bg-amber-500 hover:bg-amber-400 text-black font-bold disabled:bg-slate-700 disabled:text-slate-500"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold disabled:bg-surface disabled:text-muted-foreground/70"
         >
           {saveMutation.isPending ? 'Saving...' : 'Save'}
         </Button>
@@ -830,9 +830,9 @@ function MySeedsTab({ user }) {
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <AlertCircle className="h-8 w-8 text-amber-500 mb-4" />
-        <h3 className="text-xl font-bold text-slate-100 mb-2">Sign in to view your seeds</h3>
-        <p className="text-slate-400">You need to be a member to see your submissions.</p>
+        <AlertCircle className="h-8 w-8 text-primary mb-4" />
+        <h3 className="text-xl font-bold text-foreground mb-2">Sign in to view your seeds</h3>
+        <p className="text-muted-foreground">You need to be a member to see your submissions.</p>
       </div>
     );
   }
@@ -840,7 +840,7 @@ function MySeedsTab({ user }) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -848,9 +848,9 @@ function MySeedsTab({ user }) {
   if (seeds.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <Music className="h-8 w-8 text-slate-500 mb-4" />
-        <h3 className="text-lg font-bold text-slate-100 mb-2">No seeds yet</h3>
-        <p className="text-slate-400 max-w-sm">
+        <Music className="h-8 w-8 text-muted-foreground/70 mb-4" />
+        <h3 className="text-lg font-bold text-foreground mb-2">No seeds yet</h3>
+        <p className="text-muted-foreground max-w-sm">
           Submit a piece of writing to see it here. Anonymous seeds won't appear — they're truly private.
         </p>
       </div>
@@ -873,29 +873,29 @@ function MySeedsTab({ user }) {
           );
         }
         return (
-          <div key={seed.id} className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+          <div key={seed.id} className="bg-card border border-border rounded-lg p-4">
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
                 <StatusBadge status={seed.status} />
                 {seed.theme && <ThemePill themeId={seed.theme} />}
               </div>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-muted-foreground/70">
                 {seed.created_date ? new Date(seed.created_date).toLocaleDateString() : ''}
               </span>
             </div>
-            <p className="text-sm text-slate-300 whitespace-pre-wrap mb-3 line-clamp-4">{seed.raw_text}</p>
+            <p className="text-sm text-foreground-soft whitespace-pre-wrap mb-3 line-clamp-4">{seed.raw_text}</p>
             {seed.title_suggestion && (
-              <p className="text-xs text-slate-500 mb-2">Title idea: {seed.title_suggestion}</p>
+              <p className="text-xs text-muted-foreground/70 mb-2">Title idea: {seed.title_suggestion}</p>
             )}
             {seed.dedication && (
-              <p className="text-xs text-slate-500 italic mb-2">For: {seed.dedication}</p>
+              <p className="text-xs text-muted-foreground/70 italic mb-2">For: {seed.dedication}</p>
             )}
             {seed.status === 'submitted' && (
-              <div className="flex gap-2 pt-2 border-t border-slate-800">
+              <div className="flex gap-2 pt-2 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setEditingId(seed.id)}
-                  className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 transition-colors"
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
                 >
                   <Pencil className="h-3 w-3" />
                   Edit
@@ -903,7 +903,7 @@ function MySeedsTab({ user }) {
                 <button
                   type="button"
                   onClick={() => handleWithdraw(seed.id)}
-                  className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-400 transition-colors"
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-400 transition-colors"
                 >
                   <Trash2 className="h-3 w-3" />
                   Withdraw
@@ -1036,64 +1036,64 @@ function SongCreationForm({ submission, onClose, onPublished }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-start justify-center p-4 pt-16 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-lg p-6 space-y-5">
+      <div className="bg-card border border-border rounded-xl w-full max-w-lg p-6 space-y-5">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-slate-100">Create Song</h3>
-          <button type="button" onClick={onClose} className="text-slate-400 hover:text-white">
+          <h3 className="text-lg font-bold text-foreground">Create Song</h3>
+          <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Linked submission preview */}
         {submission && (
-          <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
-            <p className="text-xs text-slate-500 mb-1">Inspired by submission:</p>
-            <p className="text-sm text-slate-300 line-clamp-3 whitespace-pre-wrap">{submission.raw_text}</p>
+          <div className="bg-secondary border border-border rounded-lg p-3">
+            <p className="text-xs text-muted-foreground/70 mb-1">Inspired by submission:</p>
+            <p className="text-sm text-foreground-soft line-clamp-3 whitespace-pre-wrap">{submission.raw_text}</p>
           </div>
         )}
 
         {/* Title */}
         <div>
-          <label className="text-sm text-slate-400 mb-1.5 block">Song title *</label>
+          <label className="text-sm text-muted-foreground mb-1.5 block">Song title *</label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="The song title..."
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+            className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm focus:outline-none focus:border-primary"
           />
           {slug && (
-            <p className="text-xs text-slate-500 mt-1">locallane.app/frequency/{slug}</p>
+            <p className="text-xs text-muted-foreground/70 mt-1">locallane.app/frequency/{slug}</p>
           )}
         </div>
 
         {/* Lyrics */}
         <div>
-          <label className="text-sm text-slate-400 mb-1.5 block">Lyrics</label>
+          <label className="text-sm text-muted-foreground mb-1.5 block">Lyrics</label>
           <textarea
             value={lyrics}
             onChange={(e) => setLyrics(e.target.value)}
             placeholder="The transformed lyrics..."
             rows={6}
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm resize-none focus:outline-none focus:border-amber-500 font-serif"
+            className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm resize-none focus:outline-none focus:border-primary font-serif"
           />
         </div>
 
         {/* Style/Genre */}
         <div>
-          <label className="text-sm text-slate-400 mb-1.5 block">Style / Genre</label>
+          <label className="text-sm text-muted-foreground mb-1.5 block">Style / Genre</label>
           <input
             type="text"
             value={styleGenre}
             onChange={(e) => setStyleGenre(e.target.value)}
             placeholder='e.g., "trip-hop", "folk acoustic", "hip-hop"'
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+            className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm focus:outline-none focus:border-primary"
           />
         </div>
 
         {/* Mood / Theme */}
         <div>
-          <label className="text-sm text-slate-400 mb-2 block">Mood</label>
+          <label className="text-sm text-muted-foreground mb-2 block">Mood</label>
           <div className="flex flex-wrap gap-2">
             {THEMES.map((t) => {
               const Icon = t.icon;
@@ -1106,7 +1106,7 @@ function SongCreationForm({ submission, onClose, onPublished }) {
                   className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs border transition-colors ${
                     selected
                       ? `${t.selectedBg} ${t.color} ${t.border}`
-                      : 'bg-slate-800 text-slate-400 border-slate-700'
+                      : 'bg-secondary text-muted-foreground border-border'
                   }`}
                 >
                   <Icon className="h-3 w-3" />
@@ -1119,15 +1119,15 @@ function SongCreationForm({ submission, onClose, onPublished }) {
 
         {/* Audio upload */}
         <div>
-          <label className="text-sm text-slate-400 mb-1.5 block">Audio file * (MP3, WAV, M4A, AAC — max 25MB)</label>
+          <label className="text-sm text-muted-foreground mb-1.5 block">Audio file * (MP3, WAV, M4A, AAC — max 25MB)</label>
           {audioFile ? (
-            <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
-              <Volume2 className="h-4 w-4 text-amber-500 shrink-0" />
-              <span className="text-sm text-slate-300 truncate flex-1">{audioFile.name}</span>
+            <div className="flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2">
+              <Volume2 className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-sm text-foreground-soft truncate flex-1">{audioFile.name}</span>
               <button
                 type="button"
                 onClick={() => setAudioFile(null)}
-                className="text-slate-400 hover:text-red-400"
+                className="text-muted-foreground hover:text-red-400"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1136,7 +1136,7 @@ function SongCreationForm({ submission, onClose, onPublished }) {
             <button
               type="button"
               onClick={() => audioInputRef.current?.click()}
-              className="w-full flex items-center justify-center gap-2 px-3 py-3 bg-slate-800 border border-dashed border-slate-600 rounded-lg text-slate-400 hover:border-amber-500 hover:text-amber-500 transition-colors text-sm"
+              className="w-full flex items-center justify-center gap-2 px-3 py-3 bg-secondary border border-dashed border-border rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors text-sm"
             >
               <Upload className="h-4 w-4" />
               Choose audio file
@@ -1153,15 +1153,15 @@ function SongCreationForm({ submission, onClose, onPublished }) {
 
         {/* Cover image upload */}
         <div>
-          <label className="text-sm text-slate-400 mb-1.5 block">Cover image (optional)</label>
+          <label className="text-sm text-muted-foreground mb-1.5 block">Cover image (optional)</label>
           {coverFile ? (
-            <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
-              <Image className="h-4 w-4 text-amber-500 shrink-0" />
-              <span className="text-sm text-slate-300 truncate flex-1">{coverFile.name}</span>
+            <div className="flex items-center gap-2 bg-secondary border border-border rounded-lg px-3 py-2">
+              <Image className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-sm text-foreground-soft truncate flex-1">{coverFile.name}</span>
               <button
                 type="button"
                 onClick={() => setCoverFile(null)}
-                className="text-slate-400 hover:text-red-400"
+                className="text-muted-foreground hover:text-red-400"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1170,7 +1170,7 @@ function SongCreationForm({ submission, onClose, onPublished }) {
             <button
               type="button"
               onClick={() => coverInputRef.current?.click()}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-800 border border-dashed border-slate-600 rounded-lg text-slate-400 hover:border-amber-500 hover:text-amber-500 transition-colors text-sm"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-secondary border border-dashed border-border rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors text-sm"
             >
               <Image className="h-4 w-4" />
               Choose cover image
@@ -1187,12 +1187,12 @@ function SongCreationForm({ submission, onClose, onPublished }) {
 
         {/* Credit line */}
         <div>
-          <label className="text-sm text-slate-400 mb-1.5 block">Credit line</label>
+          <label className="text-sm text-muted-foreground mb-1.5 block">Credit line</label>
           <input
             type="text"
             value={creditLine}
             onChange={(e) => setCreditLine(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500"
+            className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm focus:outline-none focus:border-primary"
           />
         </div>
 
@@ -1201,14 +1201,14 @@ function SongCreationForm({ submission, onClose, onPublished }) {
           <Button
             variant="outline"
             onClick={onClose}
-            className="flex-1 bg-transparent border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
+            className="flex-1 bg-transparent border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent"
           >
             Cancel
           </Button>
           <Button
             onClick={handlePublish}
             disabled={!title.trim() || !audioFile || publishing}
-            className="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-bold disabled:bg-slate-700 disabled:text-slate-500"
+            className="flex-1 bg-primary hover:bg-primary-hover text-primary-foreground font-bold disabled:bg-surface disabled:text-muted-foreground/70"
           >
             {uploading ? (
               <><Loader2 className="h-4 w-4 animate-spin mr-2" />Uploading...</>
@@ -1289,7 +1289,7 @@ function QueueTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -1314,13 +1314,13 @@ function QueueTab() {
             onClick={() => setStatusFilter(opt.id)}
             className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
               statusFilter === opt.id
-                ? 'bg-amber-500/20 text-amber-500 border-amber-500/40'
-                : 'bg-slate-900 text-slate-400 border-slate-700 hover:border-slate-600'
+                ? 'bg-primary/20 text-primary border-primary/40'
+                : 'bg-card text-muted-foreground border-border hover:border-border'
             }`}
           >
             {opt.label}
             {opt.id !== 'all' && (
-              <span className="ml-1 text-slate-500">
+              <span className="ml-1 text-muted-foreground/70">
                 ({submissions.filter((s) => s.status === opt.id).length})
               </span>
             )}
@@ -1330,16 +1330,16 @@ function QueueTab() {
 
       {filtered.length === 0 ? (
         <div className="text-center py-12">
-          <Filter className="h-6 w-6 text-slate-500 mx-auto mb-2" />
-          <p className="text-slate-400 text-sm">No submissions match this filter</p>
+          <Filter className="h-6 w-6 text-muted-foreground/70 mx-auto mb-2" />
+          <p className="text-muted-foreground text-sm">No submissions match this filter</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filtered.map((sub) => (
             <div
               key={sub.id}
-              className={`bg-slate-900 border rounded-lg p-4 ${
-                !sub.admin_seen ? 'border-amber-500/40' : 'border-slate-800'
+              className={`bg-card border rounded-lg p-4 ${
+                !sub.admin_seen ? 'border-primary/40' : 'border-border'
               }`}
             >
               <div className="flex items-start justify-between mb-2">
@@ -1347,38 +1347,38 @@ function QueueTab() {
                   <StatusBadge status={sub.status} />
                   {sub.theme && <ThemePill themeId={sub.theme} />}
                   {!sub.admin_seen && (
-                    <span className="inline-flex items-center gap-1 rounded-full text-xs px-2 py-0.5 bg-amber-500/20 text-amber-500">
+                    <span className="inline-flex items-center gap-1 rounded-full text-xs px-2 py-0.5 bg-primary/20 text-primary">
                       New
                     </span>
                   )}
                   {sub.is_anonymous && (
-                    <span className="text-xs text-slate-500">Anonymous</span>
+                    <span className="text-xs text-muted-foreground/70">Anonymous</span>
                   )}
                 </div>
-                <span className="text-xs text-slate-500 shrink-0">
+                <span className="text-xs text-muted-foreground/70 shrink-0">
                   {sub.created_date ? new Date(sub.created_date).toLocaleDateString() : ''}
                 </span>
               </div>
 
-              <p className="text-sm text-slate-300 whitespace-pre-wrap mb-3">{sub.raw_text}</p>
+              <p className="text-sm text-foreground-soft whitespace-pre-wrap mb-3">{sub.raw_text}</p>
 
               {sub.title_suggestion && (
-                <p className="text-xs text-slate-500 mb-1">Title idea: {sub.title_suggestion}</p>
+                <p className="text-xs text-muted-foreground/70 mb-1">Title idea: {sub.title_suggestion}</p>
               )}
               {sub.dedication && (
-                <p className="text-xs text-slate-500 italic mb-1">For: {sub.dedication}</p>
+                <p className="text-xs text-muted-foreground/70 italic mb-1">For: {sub.dedication}</p>
               )}
               {sub.custom_theme && sub.theme === 'custom' && (
-                <p className="text-xs text-slate-500 mb-1">Custom theme: {sub.custom_theme}</p>
+                <p className="text-xs text-muted-foreground/70 mb-1">Custom theme: {sub.custom_theme}</p>
               )}
 
               {/* Admin actions */}
-              <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-800 mt-3">
+              <div className="flex flex-wrap gap-2 pt-3 border-t border-border mt-3">
                 {!sub.admin_seen && (
                   <button
                     type="button"
                     onClick={() => markSeen(sub.id)}
-                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 transition-colors"
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
                   >
                     <Eye className="h-3 w-3" />
                     Mark seen
@@ -1388,7 +1388,7 @@ function QueueTab() {
                   <button
                     type="button"
                     onClick={() => startProcessing(sub.id)}
-                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-blue-400 transition-colors"
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-blue-400 transition-colors"
                   >
                     <Clock className="h-3 w-3" />
                     Start processing
@@ -1398,7 +1398,7 @@ function QueueTab() {
                   <button
                     type="button"
                     onClick={() => setCreatingSongFrom(sub)}
-                    className="flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400 transition-colors font-medium"
+                    className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover transition-colors font-medium"
                   >
                     <Music className="h-3 w-3" />
                     Create Song
@@ -1408,7 +1408,7 @@ function QueueTab() {
                   <button
                     type="button"
                     onClick={() => markReleased(sub.id)}
-                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-emerald-400 transition-colors"
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-emerald-400 transition-colors"
                   >
                     <CheckCircle className="h-3 w-3" />
                     Mark released
@@ -1418,7 +1418,7 @@ function QueueTab() {
                   <button
                     type="button"
                     onClick={() => archiveSubmission(sub.id)}
-                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300 transition-colors"
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground-soft transition-colors"
                   >
                     <Archive className="h-3 w-3" />
                     Archive
@@ -1472,23 +1472,23 @@ export default function FrequencyStation() {
   // Auth gate — community spaces are discovered through the organism
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
       </div>
     );
   }
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
         <div className="max-w-md text-center space-y-4">
-          <Music className="h-10 w-10 text-amber-500/60 mx-auto" />
-          <h1 className="text-xl font-bold text-white">Sign in to hear the frequency</h1>
-          <p className="text-slate-400 text-sm">
+          <Music className="h-10 w-10 text-primary/60 mx-auto" />
+          <h1 className="text-xl font-bold text-foreground">Sign in to hear the frequency</h1>
+          <p className="text-muted-foreground text-sm">
             The community's radio station. Sign in to listen, contribute, and discover.
           </p>
           <button
             onClick={() => base44.auth.redirectToLogin()}
-            className="mt-4 bg-amber-500 hover:bg-amber-400 text-black font-bold px-6 py-3 rounded-xl transition-colors"
+            className="mt-4 bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-6 py-3 rounded-xl transition-colors"
           >
             Sign In
           </button>
@@ -1501,17 +1501,17 @@ export default function FrequencyStation() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Page header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20">
-          <Music className="h-5 w-5 text-amber-500" />
+        <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 border border-primary/20">
+          <Music className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">Frequency Station</h1>
-          <p className="text-sm text-slate-400">The community's radio station</p>
+          <h1 className="text-2xl font-bold text-foreground">Frequency Station</h1>
+          <p className="text-sm text-muted-foreground">The community's radio station</p>
         </div>
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1 mb-6 overflow-x-auto">
+      <div className="flex gap-1 bg-card border border-border rounded-lg p-1 mb-6 overflow-x-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -1522,14 +1522,14 @@ export default function FrequencyStation() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap relative ${
                 isActive
-                  ? 'bg-slate-800 text-amber-500'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-secondary text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <Icon className="h-4 w-4" />
               {tab.label}
               {tab.id === 'queue' && unseenCount > 0 && (
-                <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-black text-xs font-bold">
+                <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-xs font-bold">
                   {unseenCount}
                 </span>
               )}

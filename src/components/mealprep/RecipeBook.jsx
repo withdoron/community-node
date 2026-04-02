@@ -24,7 +24,7 @@ const DIFFICULTY_OPTIONS = ['All', 'Easy', 'Medium', 'Hard'];
 
 const DIFFICULTY_COLORS = {
   Easy: 'bg-emerald-500/20 text-emerald-400',
-  Medium: 'bg-amber-500/20 text-amber-400',
+  Medium: 'bg-primary/20 text-primary-hover',
   Hard: 'bg-red-500/20 text-red-400',
 };
 
@@ -167,7 +167,7 @@ function RecipeBook({ profile, currentUser }) {
         <div className="flex items-center justify-between">
           <button
             onClick={() => setSelectedRecipe(null)}
-            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors min-h-[44px] min-w-[44px]"
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px]"
           >
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm">Back to recipes</span>
@@ -178,14 +178,14 @@ function RecipeBook({ profile, currentUser }) {
                 setEditingRecipe(selectedRecipe);
                 setShowEditor(true);
               }}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors min-h-[44px]"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary hover:bg-surface text-foreground-soft transition-colors min-h-[44px]"
             >
               <Edit2 className="h-4 w-4" />
               <span className="text-sm">Edit</span>
             </button>
             <button
               onClick={() => setConfirmDelete(selectedRecipe)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors min-h-[44px]"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary hover:bg-red-500/20 text-muted-foreground hover:text-red-400 transition-colors min-h-[44px]"
             >
               <Trash2 className="h-4 w-4" />
               <span className="text-sm">Delete</span>
@@ -194,15 +194,15 @@ function RecipeBook({ profile, currentUser }) {
         </div>
 
         {/* Recipe detail card */}
-        <div className="bg-slate-900 rounded-xl border border-slate-800 p-6 space-y-6">
+        <div className="bg-card rounded-xl border border-border p-6 space-y-6">
           {/* Header */}
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-slate-100">
+              <h2 className="text-xl font-semibold text-foreground">
                 {selectedRecipe.name}
               </h2>
               {selectedRecipe.description && (
-                <p className="text-slate-400 text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed">
                   {selectedRecipe.description}
                 </p>
               )}
@@ -219,8 +219,8 @@ function RecipeBook({ profile, currentUser }) {
               <Heart
                 className={`h-5 w-5 transition-colors ${
                   selectedRecipe.is_favorite
-                    ? 'fill-amber-500 text-amber-500'
-                    : 'text-slate-500 hover:text-amber-500'
+                    ? 'fill-primary text-primary'
+                    : 'text-muted-foreground/70 hover:text-primary'
                 }`}
               />
             </button>
@@ -229,7 +229,7 @@ function RecipeBook({ profile, currentUser }) {
           {/* Badges + meta */}
           <div className="flex flex-wrap items-center gap-3">
             {selectedRecipe.meal_type && (
-              <span className="px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-xs font-medium">
+              <span className="px-3 py-1 rounded-full bg-secondary text-foreground-soft text-xs font-medium">
                 {selectedRecipe.meal_type}
               </span>
             )}
@@ -237,20 +237,20 @@ function RecipeBook({ profile, currentUser }) {
               <span
                 className={`px-3 py-1 rounded-full text-xs font-medium ${
                   DIFFICULTY_COLORS[selectedRecipe.difficulty] ||
-                  'bg-slate-800 text-slate-300'
+                  'bg-secondary text-foreground-soft'
                 }`}
               >
                 {selectedRecipe.difficulty}
               </span>
             )}
             {(selectedRecipe.prep_time || selectedRecipe.cook_time) && (
-              <span className="flex items-center gap-1.5 text-slate-400 text-xs">
+              <span className="flex items-center gap-1.5 text-muted-foreground text-xs">
                 <Clock className="h-3.5 w-3.5" />
                 {selectedRecipe.prep_time && (
                   <span>Prep: {selectedRecipe.prep_time} min</span>
                 )}
                 {selectedRecipe.prep_time && selectedRecipe.cook_time && (
-                  <span className="text-slate-600">|</span>
+                  <span className="text-muted-foreground/50">|</span>
                 )}
                 {selectedRecipe.cook_time && (
                   <span>Cook: {selectedRecipe.cook_time} min</span>
@@ -258,7 +258,7 @@ function RecipeBook({ profile, currentUser }) {
               </span>
             )}
             {selectedRecipe.servings && (
-              <span className="flex items-center gap-1.5 text-slate-400 text-xs">
+              <span className="flex items-center gap-1.5 text-muted-foreground text-xs">
                 <UsersIcon className="h-3.5 w-3.5" />
                 {selectedRecipe.servings} servings
               </span>
@@ -274,7 +274,7 @@ function RecipeBook({ profile, currentUser }) {
               ).map((tag, i) => (
                 <span
                   key={i}
-                  className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-xs"
+                  className="flex items-center gap-1 px-2 py-0.5 rounded bg-secondary text-muted-foreground text-xs"
                 >
                   <Tag className="h-3 w-3" />
                   {tag}
@@ -285,7 +285,7 @@ function RecipeBook({ profile, currentUser }) {
 
           {/* Ingredients */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+            <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">
               Ingredients
             </h3>
             {recipeIngredients.length > 0 ? (
@@ -293,21 +293,21 @@ function RecipeBook({ profile, currentUser }) {
                 {recipeIngredients.map((ing) => (
                   <li
                     key={ing.id}
-                    className="flex items-baseline gap-2 text-sm text-slate-300"
+                    className="flex items-baseline gap-2 text-sm text-foreground-soft"
                   >
-                    <span className="text-amber-500 text-xs">--</span>
+                    <span className="text-primary text-xs">--</span>
                     <span>
                       {ing.quantity && (
-                        <span className="text-slate-100 font-medium">
+                        <span className="text-foreground font-medium">
                           {ing.quantity}
                         </span>
                       )}{' '}
                       {ing.unit && (
-                        <span className="text-slate-400">{ing.unit}</span>
+                        <span className="text-muted-foreground">{ing.unit}</span>
                       )}{' '}
                       {ing.name}
                       {ing.notes && (
-                        <span className="text-slate-500 ml-1">
+                        <span className="text-muted-foreground/70 ml-1">
                           ({ing.notes})
                         </span>
                       )}
@@ -316,17 +316,17 @@ function RecipeBook({ profile, currentUser }) {
                 ))}
               </ul>
             ) : (
-              <p className="text-slate-500 text-sm">No ingredients listed.</p>
+              <p className="text-muted-foreground/70 text-sm">No ingredients listed.</p>
             )}
           </div>
 
           {/* Instructions */}
           {selectedRecipe.instructions && (
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+              <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">
                 Instructions
               </h3>
-              <div className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">
+              <div className="text-sm text-foreground-soft leading-relaxed whitespace-pre-line">
                 {selectedRecipe.instructions}
               </div>
             </div>
@@ -335,10 +335,10 @@ function RecipeBook({ profile, currentUser }) {
           {/* Notes */}
           {selectedRecipe.notes && (
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+              <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">
                 Notes
               </h3>
-              <div className="text-sm text-slate-400 leading-relaxed whitespace-pre-line bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+              <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line bg-secondary/50 rounded-lg p-4 border border-border/50">
                 {selectedRecipe.notes}
               </div>
             </div>
@@ -350,19 +350,19 @@ function RecipeBook({ profile, currentUser }) {
           open={!!confirmDelete}
           onOpenChange={() => setConfirmDelete(null)}
         >
-          <AlertDialogContent className="bg-slate-900 border-slate-800">
+          <AlertDialogContent className="bg-card border-border">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-slate-100 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertDialogTitle className="text-foreground flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-primary" />
                 Delete Recipe
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-slate-400">
+              <AlertDialogDescription className="text-muted-foreground">
                 Are you sure you want to delete &quot;{confirmDelete?.name}&quot;?
                 This will also remove all ingredients. This cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 hover:bg-transparent">
+              <AlertDialogCancel className="bg-secondary text-foreground-soft border-border hover:bg-surface hover:bg-transparent">
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction
@@ -400,15 +400,15 @@ function RecipeBook({ profile, currentUser }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <BookOpen className="h-5 w-5 text-amber-500" />
-          <h2 className="text-lg font-semibold text-slate-100">Recipe Book</h2>
+          <BookOpen className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-semibold text-foreground">Recipe Book</h2>
         </div>
         <button
           onClick={() => {
             setEditingRecipe(null);
             setShowEditor(true);
           }}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-medium transition-colors min-h-[44px]"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-medium transition-colors min-h-[44px]"
         >
           <Plus className="h-4 w-4" />
           <span className="text-sm">Add Recipe</span>
@@ -420,26 +420,26 @@ function RecipeBook({ profile, currentUser }) {
         {/* Search + favorites toggle */}
         <div className="flex items-center gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
             <input
               type="text"
               placeholder="Search recipes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500/50 min-h-[44px]"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-card border border-border text-foreground placeholder-muted-foreground/70 text-sm focus:outline-none focus:border-primary/50 min-h-[44px]"
             />
           </div>
           <button
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
             className={`flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg border transition-colors ${
               showFavoritesOnly
-                ? 'bg-amber-500/10 border-amber-500/50 text-amber-500'
-                : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-300'
+                ? 'bg-primary/10 border-primary/50 text-primary'
+                : 'bg-card border-border text-muted-foreground/70 hover:text-foreground-soft'
             }`}
             title="Show favorites only"
           >
             <Heart
-              className={`h-5 w-5 ${showFavoritesOnly ? 'fill-amber-500' : ''}`}
+              className={`h-5 w-5 ${showFavoritesOnly ? 'fill-primary' : ''}`}
             />
           </button>
         </div>
@@ -452,8 +452,8 @@ function RecipeBook({ profile, currentUser }) {
               onClick={() => setSelectedMealType(type)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors min-h-[36px] ${
                 selectedMealType === type
-                  ? 'bg-amber-500 text-black'
-                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-card text-muted-foreground hover:text-foreground border border-border'
               }`}
             >
               {type}
@@ -463,15 +463,15 @@ function RecipeBook({ profile, currentUser }) {
 
         {/* Difficulty pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 -mb-1">
-          <span className="text-xs text-slate-500 mr-1">Difficulty:</span>
+          <span className="text-xs text-muted-foreground/70 mr-1">Difficulty:</span>
           {DIFFICULTY_OPTIONS.map((diff) => (
             <button
               key={diff}
               onClick={() => setSelectedDifficulty(diff)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors min-h-[36px] ${
                 selectedDifficulty === diff
-                  ? 'bg-amber-500 text-black'
-                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-card text-muted-foreground hover:text-foreground border border-border'
               }`}
             >
               {diff}
@@ -483,7 +483,7 @@ function RecipeBook({ profile, currentUser }) {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
+          <Loader2 className="h-6 w-6 text-primary animate-spin" />
         </div>
       )}
 
@@ -492,7 +492,7 @@ function RecipeBook({ profile, currentUser }) {
         <div className="flex flex-col items-center justify-center py-16 space-y-4">
           <ChefHat className="h-12 w-12 text-slate-700" />
           <div className="text-center space-y-1">
-            <p className="text-slate-400 text-sm">
+            <p className="text-muted-foreground text-sm">
               {recipes.length === 0
                 ? 'No recipes yet. Start building your collection.'
                 : 'No recipes match your filters.'}
@@ -503,7 +503,7 @@ function RecipeBook({ profile, currentUser }) {
                   setEditingRecipe(null);
                   setShowEditor(true);
                 }}
-                className="text-amber-500 hover:text-amber-400 text-sm font-medium transition-colors"
+                className="text-primary hover:text-primary-hover text-sm font-medium transition-colors"
               >
                 Add your first recipe
               </button>
@@ -552,11 +552,11 @@ function RecipeCard({ recipe, onSelect, onToggleFavorite }) {
   return (
     <div
       onClick={onSelect}
-      className="bg-slate-900 rounded-xl border border-slate-800 hover:border-slate-700 p-4 cursor-pointer transition-colors space-y-3"
+      className="bg-card rounded-xl border border-border hover:border-border p-4 cursor-pointer transition-colors space-y-3"
     >
       {/* Top row: name + favorite */}
       <div className="flex items-start justify-between gap-2">
-        <h3 className="text-slate-100 font-semibold text-sm leading-snug line-clamp-2">
+        <h3 className="text-foreground font-semibold text-sm leading-snug line-clamp-2">
           {recipe.name}
         </h3>
         <button
@@ -569,8 +569,8 @@ function RecipeCard({ recipe, onSelect, onToggleFavorite }) {
           <Heart
             className={`h-4 w-4 transition-colors ${
               recipe.is_favorite
-                ? 'fill-amber-500 text-amber-500'
-                : 'text-slate-600 hover:text-amber-500'
+                ? 'fill-primary text-primary'
+                : 'text-muted-foreground/50 hover:text-primary'
             }`}
           />
         </button>
@@ -579,7 +579,7 @@ function RecipeCard({ recipe, onSelect, onToggleFavorite }) {
       {/* Badges */}
       <div className="flex flex-wrap items-center gap-2">
         {recipe.meal_type && (
-          <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs">
+          <span className="px-2 py-0.5 rounded-full bg-secondary text-foreground-soft text-xs">
             {recipe.meal_type}
           </span>
         )}
@@ -587,7 +587,7 @@ function RecipeCard({ recipe, onSelect, onToggleFavorite }) {
           <span
             className={`px-2 py-0.5 rounded-full text-xs ${
               DIFFICULTY_COLORS[recipe.difficulty] ||
-              'bg-slate-800 text-slate-300'
+              'bg-secondary text-foreground-soft'
             }`}
           >
             {recipe.difficulty}
@@ -597,7 +597,7 @@ function RecipeCard({ recipe, onSelect, onToggleFavorite }) {
 
       {/* Time */}
       {totalTime > 0 && (
-        <div className="flex items-center gap-1.5 text-slate-400 text-xs">
+        <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
           <Clock className="h-3.5 w-3.5" />
           <span>
             {recipe.prep_time ? `${recipe.prep_time}m prep` : ''}

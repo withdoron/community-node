@@ -64,12 +64,12 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-slate-950 border-t border-white/10">
+    <footer className="bg-background border-t border-foreground/10">
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Newsletter */}
         <div className="mb-6">
-          <h3 className="text-base font-semibold text-slate-100">The Good News</h3>
-          <p className="text-sm text-slate-400 mt-0.5">Community wins, new features, and local stories.</p>
+          <h3 className="text-base font-semibold text-foreground">The Good News</h3>
+          <p className="text-sm text-muted-foreground mt-0.5">Community wins, new features, and local stories.</p>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -83,12 +83,12 @@ export default function Footer() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
               disabled={isSubmitting}
-              className="flex-1 min-w-0 bg-slate-800 border border-slate-700 rounded-t-lg rounded-b-none sm:rounded-r-none sm:rounded-l-lg px-3 py-2.5 text-slate-100 placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none transition-colors disabled:opacity-50"
+              className="flex-1 min-w-0 bg-secondary border border-border rounded-t-lg rounded-b-none sm:rounded-r-none sm:rounded-l-lg px-3 py-2.5 text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none transition-colors disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2.5 rounded-b-lg rounded-t-none sm:rounded-l-none sm:rounded-r-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium px-4 py-2.5 rounded-b-lg rounded-t-none sm:rounded-l-none sm:rounded-r-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? '…' : 'Subscribe'}
             </button>
@@ -96,7 +96,7 @@ export default function Footer() {
         </div>
 
         {/* Divider */}
-        <div className="border-t border-white/10 mb-6" />
+        <div className="border-t border-foreground/10 mb-6" />
 
         {/* Top Section */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
@@ -107,7 +107,7 @@ export default function Footer() {
               alt="Local Lane"
               className="h-9 w-9 rounded-lg object-cover"
             />
-            <span className="text-white font-bold text-xl tracking-tight">Local Lane</span>
+            <span className="text-foreground font-bold text-xl tracking-tight">Local Lane</span>
           </div>
 
           {/* Navigation Links */}
@@ -117,7 +117,7 @@ export default function Footer() {
                 <a
                   key={link.label}
                   href={link.href}
-                  className="text-slate-400 hover:text-amber-500 transition-colors duration-300 text-sm"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-300 text-sm"
                 >
                   {link.label}
                 </a>
@@ -125,7 +125,7 @@ export default function Footer() {
                 <Link
                   key={link.label}
                   to={link.href}
-                  className="text-slate-400 hover:text-amber-500 transition-colors duration-300 text-sm"
+                  className="text-muted-foreground hover:text-primary transition-colors duration-300 text-sm"
                 >
                   {link.label}
                 </Link>
@@ -135,17 +135,17 @@ export default function Footer() {
         </div>
 
         {/* Divider */}
-        <div className="border-t border-white/10 mb-6" />
+        <div className="border-t border-foreground/10 mb-6" />
 
         {/* Bottom Section */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
           <div>
-            <p className="text-slate-500">
+            <p className="text-muted-foreground/70">
               © {currentYear} Local Lane. All rights reserved.
             </p>
-            <p className="text-slate-500 text-xs mt-1">Built in Eugene, Oregon</p>
+            <p className="text-muted-foreground/70 text-xs mt-1">Built in Eugene, Oregon</p>
           </div>
-          <p className="text-slate-500">
+          <p className="text-muted-foreground/70">
             Made for Community
           </p>
         </div>

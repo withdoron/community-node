@@ -49,7 +49,7 @@ export default function AdminNetworkApplicationsPanel() {
   });
 
   const statusColors = {
-    pending: 'bg-amber-500/20 text-amber-500',
+    pending: 'bg-primary/20 text-primary',
     approved: 'bg-emerald-500/20 text-emerald-500',
     declined: 'bg-red-500/20 text-red-400',
   };
@@ -57,7 +57,7 @@ export default function AdminNetworkApplicationsPanel() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -65,8 +65,8 @@ export default function AdminNetworkApplicationsPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-slate-100">Network Applications</h2>
-        <p className="text-sm text-slate-400 mt-1">Review and manage network membership applications</p>
+        <h2 className="text-lg font-semibold text-foreground">Network Applications</h2>
+        <p className="text-sm text-muted-foreground mt-1">Review and manage network membership applications</p>
       </div>
 
       {/* Filter tabs */}
@@ -78,13 +78,13 @@ export default function AdminNetworkApplicationsPanel() {
             onClick={() => setStatusFilter(s)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               statusFilter === s
-                ? 'bg-amber-500 text-black'
-                : 'bg-slate-800 text-slate-400 hover:text-white'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-muted-foreground hover:text-foreground'
             }`}
           >
             {s.charAt(0).toUpperCase() + s.slice(1)}
             {s === 'pending' && pendingCount > 0 && (
-              <span className="ml-1.5 bg-amber-600 text-white rounded-full text-xs px-1.5 py-0.5">
+              <span className="ml-1.5 bg-primary/80 text-foreground rounded-full text-xs px-1.5 py-0.5">
                 {pendingCount}
               </span>
             )}
@@ -93,40 +93,40 @@ export default function AdminNetworkApplicationsPanel() {
       </div>
 
       {/* Table */}
-      <Card className="bg-slate-900 border-slate-700 overflow-x-auto">
+      <Card className="bg-card border-border overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-slate-700">
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Business</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Network</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Applied</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Message</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Status</th>
-              <th className="text-right py-3 px-4 text-sm font-medium text-slate-400">Actions</th>
+            <tr className="border-b border-border">
+              <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Business</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Network</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Applied</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Message</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Status</th>
+              <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-slate-500">
+                <td colSpan={6} className="py-12 text-center text-muted-foreground/70">
                   No {statusFilter === 'all' ? '' : statusFilter} applications
                 </td>
               </tr>
             ) : (
               filtered.map((app) => (
-                <tr key={app.id} className="border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
-                  <td className="py-3 px-4 text-sm font-medium text-slate-100">{app.business_name || app.business_id}</td>
-                  <td className="py-3 px-4 text-sm text-slate-300">
+                <tr key={app.id} className="border-b border-border hover:bg-secondary/50 transition-colors">
+                  <td className="py-3 px-4 text-sm font-medium text-foreground">{app.business_name || app.business_id}</td>
+                  <td className="py-3 px-4 text-sm text-foreground-soft">
                     {(app.network_slug || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                   </td>
-                  <td className="py-3 px-4 text-xs text-slate-500">
+                  <td className="py-3 px-4 text-xs text-muted-foreground/70">
                     {app.applied_at ? new Date(app.applied_at).toLocaleDateString() : '—'}
                   </td>
-                  <td className="py-3 px-4 text-sm text-slate-400 max-w-[200px] truncate">
+                  <td className="py-3 px-4 text-sm text-muted-foreground max-w-[200px] truncate">
                     {app.applicant_message || '—'}
                   </td>
                   <td className="py-3 px-4">
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors[app.status] || 'bg-slate-800 text-slate-400'}`}>
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors[app.status] || 'bg-secondary text-muted-foreground'}`}>
                       {app.status}
                     </span>
                   </td>
@@ -137,7 +137,7 @@ export default function AdminNetworkApplicationsPanel() {
                           size="sm"
                           onClick={() => reviewMutation.mutate({ applicationId: app.id, decision: 'approved' })}
                           disabled={reviewMutation.isPending}
-                          className="bg-emerald-500 hover:bg-emerald-400 text-white text-xs px-3 py-1"
+                          className="bg-emerald-500 hover:bg-emerald-400 text-foreground text-xs px-3 py-1"
                         >
                           <Check className="h-3 w-3 mr-1" />
                           Approve
@@ -148,7 +148,7 @@ export default function AdminNetworkApplicationsPanel() {
                               value={declineNotes[app.id] || ''}
                               onChange={(e) => setDeclineNotes((prev) => ({ ...prev, [app.id]: e.target.value }))}
                               placeholder="Reason..."
-                              className="h-8 w-32 bg-slate-800 border-slate-600 text-white text-xs"
+                              className="h-8 w-32 bg-secondary border-border text-foreground text-xs"
                             />
                             <Button
                               size="sm"
@@ -180,7 +180,7 @@ export default function AdminNetworkApplicationsPanel() {
                       </div>
                     )}
                     {app.status !== 'pending' && app.reviewer_notes && (
-                      <span className="text-xs text-slate-500">{app.reviewer_notes}</span>
+                      <span className="text-xs text-muted-foreground/70">{app.reviewer_notes}</span>
                     )}
                   </td>
                 </tr>

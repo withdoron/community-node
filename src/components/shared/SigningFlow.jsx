@@ -43,7 +43,7 @@ export function SignatureDisplay({ signatureData, darkMode = false }) {
     : '';
 
   return (
-    <div className={`rounded-lg p-4 mt-4 ${darkMode ? 'bg-slate-800/50 border border-slate-700' : 'border border-slate-200 bg-slate-50'}`}>
+    <div className={`rounded-lg p-4 mt-4 ${darkMode ? 'bg-secondary/50 border border-border' : 'border border-border bg-slate-50'}`}>
       <div className="flex items-center gap-2 mb-3">
         <Shield className={`h-4 w-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
         <span className={`text-xs font-medium ${darkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>
@@ -55,11 +55,11 @@ export function SignatureDisplay({ signatureData, darkMode = false }) {
         alt={`Signature of ${sig.signer_name}`}
         className="max-h-20 max-w-[300px] object-contain mb-2"
       />
-      <p className={`text-sm font-medium ${darkMode ? 'text-slate-100' : 'text-slate-900'}`}>
+      <p className={`text-sm font-medium ${darkMode ? 'text-foreground' : 'text-primary-foreground'}`}>
         {sig.signer_name}
       </p>
       {signedDate && (
-        <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+        <p className={`text-xs ${darkMode ? 'text-muted-foreground' : 'text-muted-foreground/70'}`}>
           Signed on {signedDate}
         </p>
       )}
@@ -124,14 +124,14 @@ export default function SigningFlow({
 
   if (signed) {
     return (
-      <div className={`rounded-xl p-8 text-center ${darkMode ? 'bg-slate-900 border border-slate-800' : 'bg-emerald-50 border border-emerald-200'}`}>
+      <div className={`rounded-xl p-8 text-center ${darkMode ? 'bg-card border border-border' : 'bg-emerald-50 border border-emerald-200'}`}>
         <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${darkMode ? 'bg-emerald-500/20' : 'bg-emerald-100'}`}>
           <Check className={`h-6 w-6 ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
         </div>
-        <h3 className={`text-lg font-bold mb-2 ${darkMode ? 'text-slate-100' : 'text-slate-900'}`}>
+        <h3 className={`text-lg font-bold mb-2 ${darkMode ? 'text-foreground' : 'text-primary-foreground'}`}>
           Document Signed Successfully
         </h3>
-        <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+        <p className={`text-sm ${darkMode ? 'text-muted-foreground' : 'text-muted-foreground/50'}`}>
           A signed copy has been saved. You may close this page.
         </p>
       </div>
@@ -139,26 +139,26 @@ export default function SigningFlow({
   }
 
   const inputClass = darkMode
-    ? 'w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-amber-500 min-h-[44px]'
-    : 'w-full bg-white border border-slate-300 text-slate-900 placeholder:text-slate-400 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-amber-500 min-h-[44px]';
+    ? 'w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]'
+    : 'w-full bg-white border border-border text-primary-foreground placeholder:text-muted-foreground rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px]';
 
   return (
     <div className="space-y-6">
-      <div className={`rounded-xl p-5 ${darkMode ? 'bg-slate-900 border border-slate-800' : 'border border-slate-200'}`}>
-        <h3 className={`text-base font-semibold mb-4 ${darkMode ? 'text-slate-100' : 'text-slate-900'}`}>
+      <div className={`rounded-xl p-5 ${darkMode ? 'bg-card border border-border' : 'border border-border'}`}>
+        <h3 className={`text-base font-semibold mb-4 ${darkMode ? 'text-foreground' : 'text-primary-foreground'}`}>
           Sign: {documentTitle}
         </h3>
 
         {/* Signer Info */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <div>
-            <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+            <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-foreground-soft' : 'text-slate-700'}`}>
               Full Name
             </label>
             <input type="text" className={inputClass} value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" />
           </div>
           <div>
-            <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+            <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-foreground-soft' : 'text-slate-700'}`}>
               Email
             </label>
             <input type="email" className={inputClass} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" />
@@ -166,25 +166,25 @@ export default function SigningFlow({
         </div>
 
         <div className="mb-1">
-          <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+          <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-foreground-soft' : 'text-slate-700'}`}>
             Date
           </label>
-          <div className={`${inputClass} flex items-center cursor-default ${darkMode ? 'bg-slate-800/60' : 'bg-slate-50'}`}>
+          <div className={`${inputClass} flex items-center cursor-default ${darkMode ? 'bg-secondary/60' : 'bg-slate-50'}`}>
             {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           </div>
         </div>
       </div>
 
       {/* Signature Capture */}
-      <div className={`rounded-xl p-5 ${darkMode ? 'bg-slate-900 border border-slate-800' : 'border border-slate-200'}`}>
-        <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+      <div className={`rounded-xl p-5 ${darkMode ? 'bg-card border border-border' : 'border border-border'}`}>
+        <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-foreground-soft' : 'text-slate-700'}`}>
           Your Signature
         </label>
         <SignatureCanvas onChange={handleSignatureChange} signerName={name} darkMode={darkMode} />
       </div>
 
       {/* Consent */}
-      <div className={`rounded-xl p-5 ${darkMode ? 'bg-slate-900 border border-slate-800' : 'border border-slate-200'}`}>
+      <div className={`rounded-xl p-5 ${darkMode ? 'bg-card border border-border' : 'border border-border'}`}>
         <label className="flex items-start gap-3 cursor-pointer">
           <div className="pt-0.5">
             <button
@@ -192,14 +192,14 @@ export default function SigningFlow({
               onClick={() => setConsent(!consent)}
               className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                 consent
-                  ? 'bg-amber-500 border-amber-500'
-                  : darkMode ? 'border-slate-600 bg-transparent' : 'border-slate-300 bg-transparent'
+                  ? 'bg-primary border-primary'
+                  : darkMode ? 'border-border bg-transparent' : 'border-border bg-transparent'
               }`}
             >
-              {consent && <Check className="h-3 w-3 text-black" />}
+              {consent && <Check className="h-3 w-3 text-primary-foreground" />}
             </button>
           </div>
-          <span className={`text-sm ${darkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+          <span className={`text-sm ${darkMode ? 'text-foreground-soft' : 'text-slate-700'}`}>
             {CONSENT_TEXT}
           </span>
         </label>
@@ -210,7 +210,7 @@ export default function SigningFlow({
         type="button"
         onClick={handleSign}
         disabled={!canSign || isSaving}
-        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-base min-h-[52px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-base min-h-[52px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSaving ? (
           <><Loader2 className="h-5 w-5 animate-spin" /> Saving...</>
@@ -219,7 +219,7 @@ export default function SigningFlow({
         )}
       </button>
 
-      <p className={`text-xs text-center ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+      <p className={`text-xs text-center ${darkMode ? 'text-muted-foreground/70' : 'text-muted-foreground'}`}>
         By clicking "Sign Document" you are applying your electronic signature to this document.
         This action is legally binding under the ESIGN Act and Oregon UETA.
       </p>

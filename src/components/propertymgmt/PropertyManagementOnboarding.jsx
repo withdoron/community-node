@@ -20,10 +20,10 @@ function StepIndicator({ current, total }) {
           key={i}
           className={`h-2 rounded-full transition-all ${
             i + 1 === current
-              ? 'w-8 bg-amber-500'
+              ? 'w-8 bg-primary'
               : i + 1 < current
-                ? 'w-2 bg-amber-500/60'
-                : 'w-2 bg-slate-700'
+                ? 'w-2 bg-primary/60'
+                : 'w-2 bg-surface'
           }`}
         />
       ))}
@@ -189,24 +189,24 @@ export default function PropertyManagementOnboarding() {
   // ─── Loading gate ─────────────────────────────────
   if (!currentUser?.id) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-amber-500 border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
 
   // ─── Render ───────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-6 py-10">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-            <Building2 className="h-6 w-6 text-amber-500" />
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Building2 className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-100">Create a Property Management Space</h1>
-            <p className="text-sm text-slate-400">
+            <h1 className="text-xl font-bold text-foreground">Create a Property Management Space</h1>
+            <p className="text-sm text-muted-foreground">
               {step === 1 && 'Tell us about your properties'}
               {step === 2 && 'Add your first property'}
               {step === 3 && "You're all set"}
@@ -219,39 +219,39 @@ export default function PropertyManagementOnboarding() {
         {/* ═══ Step 1: Property Info ═══ */}
         {step === 1 && (
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 Property Info
               </h2>
-              <p className="text-sm text-slate-400 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 What kind of properties do you manage?
               </p>
 
               <div className="space-y-6">
                 {/* Property Type */}
                 <div className="space-y-3">
-                  <Label className="text-slate-400">Property type</Label>
+                  <Label className="text-muted-foreground">Property type</Label>
                   {PROPERTY_TYPES.map((t) => (
                     <label
                       key={t.value}
                       className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors min-h-[44px] ${
                         propertyType === t.value
-                          ? 'border-amber-500 bg-amber-500/10'
-                          : 'border-slate-700 bg-slate-800 hover:border-slate-600'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border bg-secondary hover:border-border'
                       }`}
                     >
                       <div
                         className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                           propertyType === t.value
-                            ? 'border-amber-500'
-                            : 'border-slate-500'
+                            ? 'border-primary'
+                            : 'border-muted-foreground'
                         }`}
                       >
                         {propertyType === t.value && (
-                          <div className="w-2 h-2 rounded-full bg-amber-500" />
+                          <div className="w-2 h-2 rounded-full bg-primary" />
                         )}
                       </div>
-                      <span className="text-sm text-slate-100">{t.label}</span>
+                      <span className="text-sm text-foreground">{t.label}</span>
                       <input
                         type="radio"
                         name="propertyType"
@@ -266,28 +266,28 @@ export default function PropertyManagementOnboarding() {
 
                 {/* Manager Role */}
                 <div className="space-y-3">
-                  <Label className="text-slate-400">Your role</Label>
+                  <Label className="text-muted-foreground">Your role</Label>
                   {MANAGER_ROLES.map((r) => (
                     <label
                       key={r.value}
                       className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors min-h-[44px] ${
                         managerRole === r.value
-                          ? 'border-amber-500 bg-amber-500/10'
-                          : 'border-slate-700 bg-slate-800 hover:border-slate-600'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border bg-secondary hover:border-border'
                       }`}
                     >
                       <div
                         className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                           managerRole === r.value
-                            ? 'border-amber-500'
-                            : 'border-slate-500'
+                            ? 'border-primary'
+                            : 'border-muted-foreground'
                         }`}
                       >
                         {managerRole === r.value && (
-                          <div className="w-2 h-2 rounded-full bg-amber-500" />
+                          <div className="w-2 h-2 rounded-full bg-primary" />
                         )}
                       </div>
-                      <span className="text-sm text-slate-100">{r.label}</span>
+                      <span className="text-sm text-foreground">{r.label}</span>
                       <input
                         type="radio"
                         name="managerRole"
@@ -302,14 +302,14 @@ export default function PropertyManagementOnboarding() {
 
                 {/* Business Name */}
                 <div>
-                  <Label className="text-slate-400">Business name (optional)</Label>
+                  <Label className="text-muted-foreground">Business name (optional)</Label>
                   <Input
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                     placeholder="e.g., Fletcher Properties LLC"
                   />
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-muted-foreground/70 mt-1">
                     This becomes your space name. Defaults to "My Properties" if left blank.
                   </p>
                 </div>
@@ -319,7 +319,7 @@ export default function PropertyManagementOnboarding() {
             <div className="flex justify-end">
               <Button
                 onClick={() => setStep(2)}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-6 min-h-[44px]"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 min-h-[44px]"
               >
                 Next <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
@@ -330,21 +330,21 @@ export default function PropertyManagementOnboarding() {
         {/* ═══ Step 2: First Property ═══ */}
         {step === 2 && (
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 Your First Property
               </h2>
-              <p className="text-sm text-slate-400 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 You can always add more properties later.
               </p>
 
               <div className="space-y-4">
                 <div>
-                  <Label className="text-slate-400">Property name or address *</Label>
+                  <Label className="text-muted-foreground">Property name or address *</Label>
                   <Input
                     value={propertyName}
                     onChange={(e) => setPropertyName(e.target.value)}
-                    className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                     placeholder="e.g., Oregon Duplex or 123 Main St"
                     autoFocus
                   />
@@ -352,11 +352,11 @@ export default function PropertyManagementOnboarding() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-slate-400">Structure type</Label>
+                    <Label className="text-muted-foreground">Structure type</Label>
                     <select
                       value={structureType}
                       onChange={(e) => setStructureType(e.target.value)}
-                      className="w-full mt-1 h-10 px-3 bg-slate-800 border border-slate-700 text-white rounded-md focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                      className="w-full mt-1 h-10 px-3 bg-secondary border border-border text-foreground rounded-md focus:border-primary focus:ring-1 focus:ring-ring"
                     >
                       {STRUCTURE_TYPES.map((s) => (
                         <option key={s.value} value={s.value}>{s.label}</option>
@@ -364,67 +364,67 @@ export default function PropertyManagementOnboarding() {
                     </select>
                   </div>
                   <div>
-                    <Label className="text-slate-400">Number of units</Label>
+                    <Label className="text-muted-foreground">Number of units</Label>
                     <Input
                       type="number"
                       min="1"
                       value={numUnits}
                       onChange={(e) => setNumUnits(parseInt(e.target.value) || 1)}
-                      className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                      className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                     />
                   </div>
                 </div>
 
-                <div className="border-t border-slate-800 pt-4">
-                  <p className="text-sm text-slate-300 mb-3">First unit details</p>
+                <div className="border-t border-border pt-4">
+                  <p className="text-sm text-foreground-soft mb-3">First unit details</p>
                 </div>
 
                 <div>
-                  <Label className="text-slate-400">Unit name/label</Label>
+                  <Label className="text-muted-foreground">Unit name/label</Label>
                   <Input
                     value={unitName}
                     onChange={(e) => setUnitName(e.target.value)}
-                    className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                     placeholder='e.g., "Unit A" or "Main House"'
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label className="text-slate-400">{rentLabel}</Label>
+                    <Label className="text-muted-foreground">{rentLabel}</Label>
                     <div className="relative mt-1">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                       <Input
                         type="number"
                         step="0.01"
                         min="0"
                         value={monthlyRent}
                         onChange={(e) => setMonthlyRent(e.target.value)}
-                        className="pl-7 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                        className="pl-7 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                         placeholder={isShortTerm ? '150.00' : '1,200.00'}
                       />
                     </div>
                   </div>
                   <div>
-                    <Label className="text-slate-400">Bedrooms</Label>
+                    <Label className="text-muted-foreground">Bedrooms</Label>
                     <Input
                       type="number"
                       min="0"
                       value={bedrooms}
                       onChange={(e) => setBedrooms(e.target.value)}
-                      className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                      className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                       placeholder="2"
                     />
                   </div>
                   <div>
-                    <Label className="text-slate-400">Bathrooms</Label>
+                    <Label className="text-muted-foreground">Bathrooms</Label>
                     <Input
                       type="number"
                       min="0"
                       step="0.5"
                       value={bathrooms}
                       onChange={(e) => setBathrooms(e.target.value)}
-                      className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                      className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                       placeholder="1"
                     />
                   </div>
@@ -436,14 +436,14 @@ export default function PropertyManagementOnboarding() {
               <Button
                 variant="outline"
                 onClick={() => setStep(1)}
-                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+                className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent min-h-[44px]"
               >
                 <ChevronLeft className="h-4 w-4 mr-1" /> Back
               </Button>
               <Button
                 onClick={() => setStep(3)}
                 disabled={!step2Valid}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-6 min-h-[44px] disabled:opacity-50"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 min-h-[44px] disabled:opacity-50"
               >
                 Next <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
@@ -454,60 +454,60 @@ export default function PropertyManagementOnboarding() {
         {/* ═══ Step 3: Review ═══ */}
         {step === 3 && (
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 Ready to Go
               </h2>
-              <p className="text-sm text-slate-400 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 Your property management space is ready.
               </p>
 
               {/* Summary */}
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Space</span>
-                  <span className="text-slate-100 font-medium">{businessName || 'My Properties'}</span>
+                  <span className="text-muted-foreground">Space</span>
+                  <span className="text-foreground font-medium">{businessName || 'My Properties'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Property type</span>
-                  <span className="text-slate-100">{PROPERTY_TYPES.find((t) => t.value === propertyType)?.label}</span>
+                  <span className="text-muted-foreground">Property type</span>
+                  <span className="text-foreground">{PROPERTY_TYPES.find((t) => t.value === propertyType)?.label}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Your role</span>
-                  <span className="text-slate-100">{MANAGER_ROLES.find((r) => r.value === managerRole)?.label}</span>
+                  <span className="text-muted-foreground">Your role</span>
+                  <span className="text-foreground">{MANAGER_ROLES.find((r) => r.value === managerRole)?.label}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">First property</span>
-                  <span className="text-slate-100 font-medium">{propertyName}</span>
+                  <span className="text-muted-foreground">First property</span>
+                  <span className="text-foreground font-medium">{propertyName}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Structure</span>
-                  <span className="text-slate-100">{STRUCTURE_TYPES.find((s) => s.value === structureType)?.label}</span>
+                  <span className="text-muted-foreground">Structure</span>
+                  <span className="text-foreground">{STRUCTURE_TYPES.find((s) => s.value === structureType)?.label}</span>
                 </div>
                 {monthlyRent && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">{rentLabel}</span>
-                    <span className="text-amber-500 font-medium">
+                    <span className="text-muted-foreground">{rentLabel}</span>
+                    <span className="text-primary font-medium">
                       {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(monthlyRent) || 0)}
                     </span>
                   </div>
                 )}
               </div>
 
-              <div className="border-t border-slate-800 pt-6">
-                <p className="text-sm text-slate-300 mb-3">Your space includes:</p>
+              <div className="border-t border-border pt-6">
+                <p className="text-sm text-foreground-soft mb-3">Your space includes:</p>
                 <ul className="space-y-2">
                   {WORKSPACE_FEATURES.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm text-slate-400">
-                      <Check className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                    <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Check className="h-4 w-4 text-primary flex-shrink-0" />
                       {feature}
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="bg-slate-800/50 rounded-lg p-4 mt-6">
-                <p className="text-xs text-slate-400">
+              <div className="bg-secondary/50 rounded-lg p-4 mt-6">
+                <p className="text-xs text-muted-foreground">
                   You can invite property owners and workers from the People tab after your space is created.
                 </p>
               </div>
@@ -517,13 +517,13 @@ export default function PropertyManagementOnboarding() {
               <Button
                 variant="outline"
                 onClick={() => setStep(2)}
-                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+                className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent min-h-[44px]"
               >
                 <ChevronLeft className="h-4 w-4 mr-1" /> Back
               </Button>
               <Button
                 onClick={() => createWorkspace.mutate()}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-6 min-h-[44px]"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 min-h-[44px]"
                 disabled={createWorkspace.isPending}
               >
                 {createWorkspace.isPending ? (

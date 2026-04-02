@@ -16,8 +16,8 @@ function formatSubscribedAt(val) {
 }
 
 const SOURCE_BADGE = {
-  footer: 'bg-slate-700 text-slate-300',
-  onboarding: 'bg-amber-500/20 text-amber-500',
+  footer: 'bg-surface text-foreground-soft',
+  onboarding: 'bg-primary/20 text-primary',
   post_rsvp: 'bg-emerald-500/20 text-emerald-500',
 };
 
@@ -38,49 +38,49 @@ export default function AdminNewsletterSection() {
   });
 
   return (
-    <Card className="p-6 bg-slate-900 border-slate-700">
+    <Card className="p-6 bg-card border-border">
       <div className="flex items-center gap-2 mb-4">
-        <Mail className="h-5 w-5 text-slate-400" />
-        <h2 className="text-lg font-semibold text-white">The Good News</h2>
+        <Mail className="h-5 w-5 text-muted-foreground" />
+        <h2 className="text-lg font-semibold text-foreground">The Good News</h2>
       </div>
-      <p className="text-sm text-slate-400 mb-4">
+      <p className="text-sm text-muted-foreground mb-4">
         {sorted.length} subscriber{sorted.length !== 1 ? 's' : ''}
       </p>
       {isLoading ? (
         <div className="flex justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : sorted.length === 0 ? (
-        <div className="text-center py-12 text-slate-500">No subscribers yet</div>
+        <div className="text-center py-12 text-muted-foreground/70">No subscribers yet</div>
       ) : (
-        <div className="overflow-x-auto border border-slate-800 rounded-lg">
+        <div className="overflow-x-auto border border-border rounded-lg">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-800/50">
-                <th className="text-left py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Email</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Name</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Source</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Subscribed</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Status</th>
+              <tr className="border-b border-border bg-secondary/50">
+                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Name</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Source</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Subscribed</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
               </tr>
             </thead>
             <tbody>
               {sorted.map((sub) => (
-                <tr key={sub.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                  <td className="py-3 px-4 text-slate-300">{sub.email}</td>
-                  <td className="py-3 px-4 text-slate-300">{sub.first_name ?? '—'}</td>
+                <tr key={sub.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
+                  <td className="py-3 px-4 text-foreground-soft">{sub.email}</td>
+                  <td className="py-3 px-4 text-foreground-soft">{sub.first_name ?? '—'}</td>
                   <td className="py-3 px-4">
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${SOURCE_BADGE[sub.source] ?? 'bg-slate-700 text-slate-300'}`}>
+                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${SOURCE_BADGE[sub.source] ?? 'bg-surface text-foreground-soft'}`}>
                       {sub.source ?? '—'}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-slate-300 text-sm">
+                  <td className="py-3 px-4 text-foreground-soft text-sm">
                     {formatSubscribedAt(sub.subscribed_at)}
                   </td>
                   <td className="py-3 px-4">
                     <span className="inline-flex items-center gap-1.5">
-                      <span className={`h-2 w-2 rounded-full ${sub.active !== false ? 'bg-emerald-500' : 'bg-slate-500'}`} />
-                      <span className="text-slate-400 text-sm">{sub.active !== false ? 'Active' : 'Inactive'}</span>
+                      <span className={`h-2 w-2 rounded-full ${sub.active !== false ? 'bg-emerald-500' : 'bg-muted-foreground'}`} />
+                      <span className="text-muted-foreground text-sm">{sub.active !== false ? 'Active' : 'Inactive'}</span>
                     </span>
                   </td>
                 </tr>

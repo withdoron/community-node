@@ -204,15 +204,15 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-slate-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-800">
+            <div className="bg-card rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-border">
               {/* Header with share + close buttons */}
-              <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/95 backdrop-blur-sm">
+              <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-border bg-card/95 backdrop-blur-sm">
                 <div className="flex-1 pr-4">
-                  <h1 className={`text-xl sm:text-2xl font-bold ${isCancelled ? 'text-slate-400 line-through' : 'text-white'}`}>
+                  <h1 className={`text-xl sm:text-2xl font-bold ${isCancelled ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
                     {event.title}
                   </h1>
                   {isCancelled && (
-                    <Badge className="mt-2 bg-slate-700 text-slate-300 border-0 rounded-full px-3 py-1 font-semibold">
+                    <Badge className="mt-2 bg-surface text-foreground-soft border-0 rounded-full px-3 py-1 font-semibold">
                       EVENT CANCELLED
                     </Badge>
                   )}
@@ -234,14 +234,14 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                         toast.success('Link copied to clipboard');
                       }
                     }}
-                    className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-amber-500 transition-colors"
+                    className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
                     title="Copy link to share"
                   >
                     <Share2 className="h-4 w-4" />
                   </button>
                   <button
                     onClick={onClose}
-                    className="p-3 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-slate-100"
+                    className="p-3 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-foreground"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -253,26 +253,26 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 {/* Network-only gate: sign in or follow network to see details */}
                 {showNetworkGate ? (
                   <div className="py-8 text-center space-y-4">
-                    <Lock className="h-12 w-12 text-slate-500 mx-auto" />
+                    <Lock className="h-12 w-12 text-muted-foreground/70 mx-auto" />
                     {!currentUser ? (
                       <>
-                        <p className="text-slate-300 font-medium">Sign in to view this event</p>
+                        <p className="text-foreground-soft font-medium">Sign in to view this event</p>
                         <button
                           type="button"
                           onClick={() => base44.auth.redirectToLogin()}
-                          className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-6 py-3 rounded-xl transition-colors"
+                          className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 py-3 rounded-xl transition-colors"
                         >
                           Sign In
                         </button>
                       </>
                     ) : (
                       <>
-                        <p className="text-white font-semibold">This event is for {networkDisplayName} members</p>
-                        <p className="text-slate-400 text-sm">Follow {networkDisplayName} in your network settings to see this event.</p>
+                        <p className="text-foreground font-semibold">This event is for {networkDisplayName} members</p>
+                        <p className="text-muted-foreground text-sm">Follow {networkDisplayName} in your network settings to see this event.</p>
                         <Link
                           to={createPageUrl('MyLane')}
                           onClick={onClose}
-                          className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-6 py-3 rounded-xl transition-colors"
+                          className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 py-3 rounded-xl transition-colors"
                         >
                           Go to My Networks
                         </Link>
@@ -283,7 +283,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                   <>
                 {/* Hero Image */}
                 {event.thumbnail_url && (
-                  <div className="relative rounded-xl overflow-hidden bg-slate-800 h-64">
+                  <div className="relative rounded-xl overflow-hidden bg-secondary h-64">
                     <img
                       src={event.thumbnail_url}
                       alt={event.title}
@@ -291,24 +291,24 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                     />
                     <div className="absolute top-4 right-4 flex flex-col gap-2">
                       {isCancelled ? (
-                        <Badge className="bg-slate-700 text-slate-300 border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
+                        <Badge className="bg-surface text-foreground-soft border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
                           CANCELLED
                         </Badge>
                       ) : (
                         <>
                           {isJoyCoinEvent && (
-                            <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full px-3 py-1 font-semibold shadow-lg flex items-center gap-1">
+                            <Badge className="bg-primary/20 text-primary-hover border border-primary/30 rounded-full px-3 py-1 font-semibold shadow-lg flex items-center gap-1">
                               <Coins className="h-3 w-3" />
                               {joyCoinCost === 1 ? '1 coin' : `${joyCoinCost} coins`}
                             </Badge>
                           )}
                           {acceptsJoyCoins && (
-                            <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
+                            <Badge className="bg-primary text-primary-foreground border-0 rounded-full px-3 py-1 font-semibold shadow-lg">
                               {joyCoinCost === 1 ? '1 Joy Coin' : `${joyCoinCost} Joy Coins`}
                             </Badge>
                           )}
                           {!acceptsJoyCoins && priceBadge && (
-                            <Badge className={'bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold shadow-lg'}>
+                            <Badge className={'bg-primary text-primary-foreground border-0 rounded-full px-3 py-1 font-semibold shadow-lg'}>
                               {priceBadge.text}
                             </Badge>
                           )}
@@ -322,18 +322,18 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 {!event.thumbnail_url && !isCancelled && (
                   <div className="flex flex-wrap gap-2">
                     {isJoyCoinEvent && (
-                      <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full px-3 py-1 font-semibold flex items-center gap-1">
+                      <Badge className="bg-primary/20 text-primary-hover border border-primary/30 rounded-full px-3 py-1 font-semibold flex items-center gap-1">
                         <Coins className="h-3 w-3" />
                         {joyCoinCost === 1 ? '1 coin' : `${joyCoinCost} coins`}
                       </Badge>
                     )}
                     {acceptsJoyCoins && (
-                      <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold">
+                      <Badge className="bg-primary text-primary-foreground border-0 rounded-full px-3 py-1 font-semibold">
                         {joyCoinCost === 1 ? '1 Joy Coin' : `${joyCoinCost} Joy Coins`}
                       </Badge>
                     )}
                     {!acceptsJoyCoins && priceBadge && (
-                      <Badge className="bg-amber-500 text-black border-0 rounded-full px-3 py-1 font-semibold">
+                      <Badge className="bg-primary text-primary-foreground border-0 rounded-full px-3 py-1 font-semibold">
                         {priceBadge.text}
                       </Badge>
                     )}
@@ -341,14 +341,14 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 )}
 
                 {/* Date & Time */}
-                <div className="bg-slate-800/50 rounded-xl p-5 space-y-2">
+                <div className="bg-secondary/50 rounded-xl p-5 space-y-2">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-amber-500" />
-                    <div className="text-amber-500 font-semibold text-base sm:text-lg">
+                    <Calendar className="h-5 w-5 text-primary" />
+                    <div className="text-primary font-semibold text-base sm:text-lg">
                       {format(eventDate, 'EEEE, MMMM d, yyyy')}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-slate-400 ml-7">
+                  <div className="flex items-center gap-2 text-muted-foreground ml-7">
                     <span className="text-base">{format(eventDate, 'h:mm a')}</span>
                     {event.duration_minutes && (
                       <span>· {event.duration_minutes} minutes</span>
@@ -357,13 +357,13 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 </div>
 
                 {/* Location */}
-                <div className="bg-slate-800/50 rounded-xl p-5">
+                <div className="bg-secondary/50 rounded-xl p-5">
                   <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <MapPin className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
-                      <div className="text-white font-medium text-base mb-2">{event.location}</div>
+                      <div className="text-foreground font-medium text-base mb-2">{event.location}</div>
                       {event.is_virtual && (
-                        <div className="text-slate-400 text-sm mb-2">Virtual event: {event.virtual_platform || 'TBD'}</div>
+                        <div className="text-muted-foreground text-sm mb-2">Virtual event: {event.virtual_platform || 'TBD'}</div>
                       )}
                       {!event.is_location_tbd && (() => {
                         const hasCoords = event.latitude != null && event.longitude != null && !Number.isNaN(Number(event.latitude)) && !Number.isNaN(Number(event.longitude));
@@ -379,7 +379,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                             href={mapUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-amber-500 text-sm inline-flex items-center gap-1 hover:text-amber-400 transition-colors"
+                            className="text-primary text-sm inline-flex items-center gap-1 hover:text-primary-hover transition-colors"
                           >
                             View on map <ExternalLink className="h-3 w-3" />
                           </a>
@@ -392,40 +392,40 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 {/* About */}
                 {event.description && (
                   <div className="space-y-3">
-                    <h3 className="text-xl font-bold text-white">About</h3>
-                    <p className="text-slate-300 leading-relaxed">{event.description}</p>
+                    <h3 className="text-xl font-bold text-foreground">About</h3>
+                    <p className="text-foreground-soft leading-relaxed">{event.description}</p>
                   </div>
                 )}
 
                 {/* Pricing */}
                 {(!isFree || event.first_visit_free || event.ticket_types?.length > 0) && (
-                  <div className="bg-slate-800/50 rounded-xl p-5">
+                  <div className="bg-secondary/50 rounded-xl p-5">
                     <div className="flex items-center gap-2 mb-4">
-                      <DollarSign className="h-5 w-5 text-amber-500" />
-                      <h4 className="font-semibold text-white text-lg">Pricing</h4>
+                      <DollarSign className="h-5 w-5 text-primary" />
+                      <h4 className="font-semibold text-foreground text-lg">Pricing</h4>
                     </div>
                     <div className="space-y-2">
                       {event.first_visit_free && (
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-300">First Time</span>
-                          <span className="text-white font-medium">$0</span>
+                          <span className="text-foreground-soft">First Time</span>
+                          <span className="text-foreground font-medium">$0</span>
                         </div>
                       )}
                       {event.ticket_types && event.ticket_types.length > 0 ? (
                         event.ticket_types.map((ticket, idx) => (
                           <div key={idx} className="flex justify-between items-center">
-                            <span className="text-slate-300">{ticket.name}</span>
-                            <span className="text-white font-medium">${ticket.price}</span>
+                            <span className="text-foreground-soft">{ticket.name}</span>
+                            <span className="text-foreground font-medium">${ticket.price}</span>
                           </div>
                         ))
                       ) : event.price > 0 ? (
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-300">
+                          <span className="text-foreground-soft">
                             {event.is_pay_what_you_wish ? 
                               `Pay what you wish${event.min_price ? ` (min $${event.min_price})` : ''}` : 
                               '30 Day Trial'}
                           </span>
-                          <span className="text-white font-medium">${event.price}</span>
+                          <span className="text-foreground font-medium">${event.price}</span>
                         </div>
                       ) : null}
                     </div>
@@ -436,11 +436,11 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 {event.event_type && (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Tag className="h-5 w-5 text-amber-500" />
-                      <h4 className="font-semibold text-white text-lg">Categories</h4>
+                      <Tag className="h-5 w-5 text-primary" />
+                      <h4 className="font-semibold text-foreground text-lg">Categories</h4>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Badge className="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-3 py-1">
+                      <Badge className="bg-secondary text-foreground border border-border rounded-lg px-3 py-1">
                         {event.event_type.replace(/_+/g, ' ')}
                       </Badge>
                     </div>
@@ -450,9 +450,9 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 {/* Communities/Network */}
                 {event.network && (
                   <div className="space-y-3">
-                    <h4 className="font-semibold text-white text-lg">Networks</h4>
+                    <h4 className="font-semibold text-foreground text-lg">Networks</h4>
                     <div className="flex flex-wrap gap-2">
-                      <Badge className="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-3 py-1 capitalize">
+                      <Badge className="bg-secondary text-foreground border border-border rounded-lg px-3 py-1 capitalize">
                         {event.network}
                       </Badge>
                     </div>
@@ -461,12 +461,12 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
 
                 {/* Recurring */}
                 {event.is_recurring && (
-                  <div className="bg-slate-800/50 rounded-xl p-5">
+                  <div className="bg-secondary/50 rounded-xl p-5">
                     <div className="flex items-center gap-2 mb-3">
-                      <Repeat2 className="h-5 w-5 text-amber-500" />
-                      <h4 className="font-semibold text-white text-lg">Recurring Event</h4>
+                      <Repeat2 className="h-5 w-5 text-primary" />
+                      <h4 className="font-semibold text-foreground text-lg">Recurring Event</h4>
                     </div>
-                    <div className="text-slate-300">
+                    <div className="text-foreground-soft">
                       Repeats {event.recurring_pattern || 'weekly'} on {event.recurring_days?.join(', ') || 'specific days'}
                     </div>
                   </div>
@@ -474,16 +474,16 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
 
                 {/* Accessibility & Inclusion */}
                 {event.accessibility_features && event.accessibility_features.length > 0 && (
-                  <div className="bg-slate-800/50 rounded-xl p-5">
+                  <div className="bg-secondary/50 rounded-xl p-5">
                     <div className="flex items-center gap-2 mb-3">
-                      <Users className="h-5 w-5 text-amber-500" />
-                      <h4 className="font-semibold text-white text-lg">Accessibility & Inclusion</h4>
+                      <Users className="h-5 w-5 text-primary" />
+                      <h4 className="font-semibold text-foreground text-lg">Accessibility & Inclusion</h4>
                     </div>
                     <div className="space-y-2">
                       {event.accessibility_features.map((feature) => (
                         <div key={feature} className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-amber-500" />
-                          <span className="text-slate-300 capitalize">{feature.replace(/_/g, ' ')}</span>
+                          <CheckCircle2 className="h-4 w-4 text-primary" />
+                          <span className="text-foreground-soft capitalize">{feature.replace(/_/g, ' ')}</span>
                         </div>
                       ))}
                     </div>
@@ -492,9 +492,9 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
 
                 {/* Age & Audience */}
                 {(event.audience && event.audience.length > 0) || acceptsJoyCoins && (
-                  <div className="bg-slate-800/50 rounded-xl p-5 space-y-3">
-                    <h4 className="font-semibold text-white text-lg">Age & Audience</h4>
-                    <div className="text-slate-300">
+                  <div className="bg-secondary/50 rounded-xl p-5 space-y-3">
+                    <h4 className="font-semibold text-foreground text-lg">Age & Audience</h4>
+                    <div className="text-foreground-soft">
                       {event.audience && event.audience.length > 0 ? (
                         event.audience.map(a => a.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())).join(', ')
                       ) : (
@@ -502,7 +502,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                       )}
                     </div>
                     {acceptsJoyCoins && (
-                      <Badge className="bg-amber-500/20 text-amber-500 border border-amber-500/30 rounded-lg px-3 py-1 font-medium">
+                      <Badge className="bg-primary/20 text-primary border border-primary/30 rounded-lg px-3 py-1 font-medium">
                         Accepts Joy Coins
                       </Badge>
                     )}
@@ -511,52 +511,52 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
 
                 {/* Joy Coin cost */}
                 {isJoyCoinEvent && (
-                  <div className="bg-slate-800/50 rounded-xl p-5">
+                  <div className="bg-secondary/50 rounded-xl p-5">
                     <div className="flex items-center gap-3 mb-4">
-                      <Coins className="h-5 w-5 text-amber-500 flex-shrink-0" />
+                      <Coins className="h-5 w-5 text-primary flex-shrink-0" />
                       <div>
-                        <div className="text-white font-medium">Joy Coins</div>
-                        <div className="text-sm text-slate-400">{joyCoinCost === 1 ? '1 coin per person' : `${joyCoinCost} coins per person`} — Community Pass members</div>
+                        <div className="text-foreground font-medium">Joy Coins</div>
+                        <div className="text-sm text-muted-foreground">{joyCoinCost === 1 ? '1 coin per person' : `${joyCoinCost} coins per person`} — Community Pass members</div>
                       </div>
                     </div>
                     {currentUser && !isGoing && rsvpConfirmation === null && joyCoinCost > 0 && (
-                      <div className="space-y-3 pt-2 border-t border-slate-700">
+                      <div className="space-y-3 pt-2 border-t border-border">
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-slate-400">Cost per person</span>
-                          <span className="text-slate-200">{joyCoinCost} {joyCoinCost === 1 ? 'coin' : 'coins'}</span>
+                          <span className="text-muted-foreground">Cost per person</span>
+                          <span className="text-foreground">{joyCoinCost} {joyCoinCost === 1 ? 'coin' : 'coins'}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-slate-400">How many people?</span>
+                          <span className="text-sm text-muted-foreground">How many people?</span>
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
                               onClick={() => setPartySize(Math.max(1, partySize - 1))}
                               disabled={partySize <= 1}
-                              className="w-10 h-10 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                              className="w-10 h-10 rounded-lg bg-secondary text-foreground-soft hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                             >
                               −
                             </button>
-                            <span className="w-8 text-center text-lg font-semibold text-slate-100">{partySize}</span>
+                            <span className="w-8 text-center text-lg font-semibold text-foreground">{partySize}</span>
                             <button
                               type="button"
                               onClick={() => setPartySize(partySize + 1)}
                               disabled={partySize >= maxPartySize}
-                              className="w-10 h-10 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                              className="w-10 h-10 rounded-lg bg-secondary text-foreground-soft hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                             >
                               +
                             </button>
                           </div>
                         </div>
                         {partySize > 1 && (
-                          <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-800">
-                            <span className="text-slate-300 font-medium">Total</span>
-                            <span className="text-amber-500 font-semibold">{totalCost} coins</span>
+                          <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
+                            <span className="text-foreground-soft font-medium">Total</span>
+                            <span className="text-primary font-semibold">{totalCost} coins</span>
                           </div>
                         )}
                         {hasJoyCoins && !joyCoinsLoading && (
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-slate-400">Your balance</span>
-                            <span className={hasEnoughJoyCoins ? 'text-slate-200' : 'text-amber-400'}>
+                            <span className="text-muted-foreground">Your balance</span>
+                            <span className={hasEnoughJoyCoins ? 'text-foreground' : 'text-primary-hover'}>
                               {joyCoinBalance} coins {!hasEnoughJoyCoins && totalCost > joyCoinBalance && `(need ${totalCost - joyCoinBalance} more)`}
                             </span>
                           </div>
@@ -567,14 +567,14 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                               <button
                                 type="button"
                                 onClick={() => setShowPartyPicker(true)}
-                                className="text-sm text-amber-500 hover:text-amber-400"
+                                className="text-sm text-primary hover:text-primary-hover"
                               >
                                 Select who&apos;s going (optional)
                               </button>
                             ) : (
-                              <div className="space-y-2 p-3 bg-slate-800/50 rounded-lg mt-2">
+                              <div className="space-y-2 p-3 bg-secondary/50 rounded-lg mt-2">
                                 <div className="flex items-center justify-between mb-2">
-                                  <span className="text-sm text-slate-400">Who&apos;s going?</span>
+                                  <span className="text-sm text-muted-foreground">Who&apos;s going?</span>
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -582,32 +582,32 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                                       setSelectedMembers([]);
                                       setPartySize(1);
                                     }}
-                                    className="text-xs text-slate-500 hover:text-slate-400"
+                                    className="text-xs text-muted-foreground/70 hover:text-muted-foreground"
                                   >
                                     Just use number
                                   </button>
                                 </div>
-                                <label className="flex items-center gap-2 p-2 rounded hover:bg-slate-800 cursor-default">
+                                <label className="flex items-center gap-2 p-2 rounded hover:bg-secondary cursor-default">
                                   <input
                                     type="checkbox"
                                     checked
                                     readOnly
                                     disabled
-                                    className="rounded border-slate-600 bg-slate-800"
+                                    className="rounded border-border bg-secondary"
                                   />
-                                  <span className="text-sm text-slate-200">{currentUser?.full_name || currentUser?.data?.display_name || currentUser?.email || 'Me'} (me)</span>
+                                  <span className="text-sm text-foreground">{currentUser?.full_name || currentUser?.data?.display_name || currentUser?.email || 'Me'} (me)</span>
                                 </label>
                                 {householdMembers.map((member) => (
-                                  <label key={member.id} className="flex items-center gap-2 p-2 rounded hover:bg-slate-800 cursor-pointer">
+                                  <label key={member.id} className="flex items-center gap-2 p-2 rounded hover:bg-secondary cursor-pointer">
                                     <input
                                       type="checkbox"
                                       checked={selectedMembers.some((m) => m.household_member_id === member.id)}
                                       onChange={() => toggleMember(member)}
-                                      className="rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                                      className="rounded border-border bg-secondary text-primary focus:ring-ring"
                                     />
-                                    <span className="text-sm text-slate-200">{member.name}</span>
+                                    <span className="text-sm text-foreground">{member.name}</span>
                                     {(member.category === 'child' || member.category === 'infant') && (
-                                      <span className="text-xs text-slate-500">({member.category})</span>
+                                      <span className="text-xs text-muted-foreground/70">({member.category})</span>
                                     )}
                                   </label>
                                 ))}
@@ -618,7 +618,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                       </div>
                     )}
                     {currentUser && hasJoyCoins && !joyCoinsLoading && (isGoing || rsvpConfirmation !== null) && (
-                      <span className={`text-sm font-medium ${hasEnoughJoyCoins ? 'text-amber-400' : 'text-slate-400'}`}>
+                      <span className={`text-sm font-medium ${hasEnoughJoyCoins ? 'text-primary-hover' : 'text-muted-foreground'}`}>
                         Your balance: {joyCoinBalance}
                       </span>
                     )}
@@ -627,17 +627,17 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
 
                 {/* Accept RSVPs */}
                 {event.accepts_rsvps && (
-                  <div className="bg-slate-800/50 rounded-xl p-5 flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-amber-500 flex-shrink-0" />
-                    <div className="text-white font-medium">Accept RSVPs for this event</div>
+                  <div className="bg-secondary/50 rounded-xl p-5 flex items-center gap-3">
+                    <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+                    <div className="text-foreground font-medium">Accept RSVPs for this event</div>
                   </div>
                 )}
 
                 {/* Additional Notes */}
                 {event.instructor_note && (
                   <div className="space-y-3">
-                    <h4 className="font-semibold text-white text-lg">Additional Notes</h4>
-                    <div className="bg-slate-800/50 rounded-xl p-5 text-slate-300">
+                    <h4 className="font-semibold text-foreground text-lg">Additional Notes</h4>
+                    <div className="bg-secondary/50 rounded-xl p-5 text-foreground-soft">
                       {event.instructor_note}
                     </div>
                   </div>
@@ -645,23 +645,23 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
 
                 {/* Organizer Info */}
                 {(event.organizer_name || event.organizer_email || event.organizer_phone || event.website) && (
-                  <div className="bg-slate-800/50 rounded-xl p-5 space-y-3">
-                    <h4 className="font-semibold text-white text-lg">Organizer</h4>
+                  <div className="bg-secondary/50 rounded-xl p-5 space-y-3">
+                    <h4 className="font-semibold text-foreground text-lg">Organizer</h4>
                     {event.organizer_name && (
-                      <div className="text-slate-300 font-medium">{event.organizer_name}</div>
+                      <div className="text-foreground-soft font-medium">{event.organizer_name}</div>
                     )}
                     {event.organizer_email && (
-                      <div className="text-slate-400 text-sm">{event.organizer_email}</div>
+                      <div className="text-muted-foreground text-sm">{event.organizer_email}</div>
                     )}
                     {event.organizer_phone && (
-                      <div className="text-slate-400 text-sm">{formatPhone(event.organizer_phone)}</div>
+                      <div className="text-muted-foreground text-sm">{formatPhone(event.organizer_phone)}</div>
                     )}
                     {event.website && !spokeEvent && (
                       <a
                         href={event.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-amber-500 hover:text-amber-400 text-sm flex items-center gap-1 inline-flex transition-colors"
+                        className="text-primary hover:text-primary-hover text-sm flex items-center gap-1 inline-flex transition-colors"
                       >
                         Visit Website <ExternalLink className="h-3 w-3" />
                       </a>
@@ -676,7 +676,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                       href={event.website || '#'}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block w-full bg-amber-500 hover:bg-amber-400 text-black font-bold text-center py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
+                      className="block w-full bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-center py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
                     >
                       View on {spokeEvent.spokeName || 'Partner Site'} <ExternalLink className="h-4 w-4" />
                     </a>
@@ -688,7 +688,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                   <div className="space-y-3 pt-2">
                     {rsvpConfirmation === 'going' && (
                       <div className="space-y-3">
-                        <div className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 font-semibold">
+                        <div className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-primary/10 border border-primary/30 text-primary-hover font-semibold">
                           <CheckCircle2 className="h-5 w-5" />
                           You&apos;re in! See you there.
                         </div>
@@ -696,18 +696,18 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                           <button
                             type="button"
                             onClick={() => { setRsvpConfirmation(null); setPartySize(1); onClose(); }}
-                            className="w-full py-2.5 px-4 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 font-medium transition-colors"
+                            className="w-full py-2.5 px-4 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-medium transition-colors"
                           >
                             Done
                           </button>
                         )}
                         {showNewsletterPrompt && (
-                          <div className="bg-slate-800/90 border border-amber-500/30 rounded-xl p-4">
+                          <div className="bg-secondary/90 border border-primary/30 rounded-xl p-4">
                             <div className="flex items-center gap-2 mb-3">
-                              <Mail className="h-5 w-5 text-amber-500" />
-                              <span className="font-medium text-slate-100">The Good News</span>
+                              <Mail className="h-5 w-5 text-primary" />
+                              <span className="font-medium text-foreground">The Good News</span>
                             </div>
-                            <p className="text-sm text-slate-300 mb-4">
+                            <p className="text-sm text-foreground-soft mb-4">
                               Want community wins, new features, and local stories in your inbox?
                             </p>
                             <div className="flex gap-3">
@@ -739,7 +739,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                                   }
                                   setTimeout(() => { setRsvpConfirmation(null); setPartySize(1); onClose(); }, 300);
                                 }}
-                                className="flex-1 py-2.5 px-4 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 font-medium transition-colors"
+                                className="flex-1 py-2.5 px-4 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-medium transition-colors"
                               >
                                 Join The Good News
                               </button>
@@ -752,7 +752,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                                   setShowNewsletterPrompt(false);
                                   setTimeout(() => { setRsvpConfirmation(null); setPartySize(1); onClose(); }, 300);
                                 }}
-                                className="flex-1 py-2.5 px-4 rounded-lg text-slate-400 hover:text-slate-300 hover:bg-slate-700/50 transition-colors"
+                                className="flex-1 py-2.5 px-4 rounded-lg text-muted-foreground hover:text-foreground-soft hover:bg-surface/50 transition-colors"
                               >
                                 Not now
                               </button>
@@ -763,7 +763,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                     )}
 
                     {rsvpConfirmation === 'cancelled' && (
-                      <div className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 font-semibold">
+                      <div className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-secondary border border-border text-muted-foreground font-semibold">
                         RSVP removed
                       </div>
                     )}
@@ -771,8 +771,8 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                     {rsvpConfirmation === null && (
                       <>
                         {attendeeCount > 0 && (
-                          <div className="flex items-center gap-2 text-sm text-slate-400">
-                            <Users className="h-4 w-4 text-amber-500" />
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Users className="h-4 w-4 text-primary" />
                             {isGoing ? (
                               <span>
                                 You{attendeeCount > 1 ? ` and ${attendeeCount - 1} other${attendeeCount > 2 ? 's' : ''}` : ''} attending
@@ -789,7 +789,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                           isGoing ? (
                             cancelConfirming && hasJoyCoinReservation ? (
                               <div className="space-y-3">
-                                <div className={`py-3 px-4 rounded-lg text-sm font-medium ${willRefundOnCancel ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400' : 'bg-slate-700 border border-slate-600 text-slate-300'}`}>
+                                <div className={`py-3 px-4 rounded-lg text-sm font-medium ${willRefundOnCancel ? 'bg-primary/10 border border-primary/30 text-primary-hover' : 'bg-surface border border-border text-foreground-soft'}`}>
                                   {willRefundOnCancel
                                     ? `${joyCoinCancelAmount} coin${joyCoinCancelAmount !== 1 ? 's' : ''} will be refunded`
                                     : `${joyCoinCancelAmount} coin${joyCoinCancelAmount !== 1 ? 's' : ''} will be forfeited (outside refund window)`}
@@ -797,7 +797,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                                 <div className="flex gap-3">
                                   <button
                                     onClick={() => setCancelConfirming(false)}
-                                    className="flex-1 py-3 px-6 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 font-semibold hover:bg-slate-700 transition-colors"
+                                    className="flex-1 py-3 px-6 rounded-lg bg-secondary border border-border text-foreground-soft font-semibold hover:bg-surface transition-colors"
                                   >
                                     Keep RSVP
                                   </button>
@@ -845,7 +845,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                                   }
                                 }}
                                 disabled={rsvpCancel.isPending}
-                                className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 font-semibold hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+                                className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-primary/10 border border-primary/30 text-primary font-semibold hover:bg-primary/20 transition-colors disabled:opacity-50"
                               >
                                 <UserCheck className="h-5 w-5" />
                                 {rsvpCancel.isPending ? 'Cancelling...' : "You're Going — Tap to Cancel"}
@@ -881,19 +881,19 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                                 });
                               }}
                               disabled={rsvpGoing.isPending || (isJoyCoinEvent && !hasEnoughJoyCoins)}
-                              className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-bold transition-colors disabled:bg-amber-500/50 disabled:cursor-not-allowed"
+                              className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-primary hover:bg-primary-hover active:bg-primary/80 text-primary-foreground font-bold transition-colors disabled:bg-primary/50 disabled:cursor-not-allowed"
                             >
                               <UserPlus className="h-5 w-5" />
                               {rsvpGoing.isPending ? 'Saving...' : isJoyCoinEvent && !hasEnoughJoyCoins ? `Need ${totalCost} coins` : "I'm Going"}
                             </button>
                           )
                         ) : (
-                          <div className="text-center py-3 px-6 rounded-lg bg-slate-800 border border-slate-700">
-                            <p className="text-slate-400 text-sm">
+                          <div className="text-center py-3 px-6 rounded-lg bg-secondary border border-border">
+                            <p className="text-muted-foreground text-sm">
                               <button
                                 type="button"
                                 onClick={() => base44.auth.redirectToLogin()}
-                                className="text-amber-500 hover:text-amber-400 font-semibold"
+                                className="text-primary hover:text-primary-hover font-semibold"
                               >
                                 Sign in
                               </button>
@@ -907,8 +907,8 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
                 )}
 
                 {isPast && !isCancelled && (
-                  <div className="text-center py-3 px-6 rounded-lg bg-slate-800 border border-slate-700">
-                    <p className="text-slate-400 text-sm">This event has ended</p>
+                  <div className="text-center py-3 px-6 rounded-lg bg-secondary border border-border">
+                    <p className="text-muted-foreground text-sm">This event has ended</p>
                   </div>
                 )}
                   </>

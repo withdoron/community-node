@@ -5,15 +5,15 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
-function StatCard({ icon: Icon, label, value, subValue, color = 'text-amber-500' }) {
+function StatCard({ icon: Icon, label, value, subValue, color = 'text-primary' }) {
   return (
-    <div className="p-4 bg-slate-800/50 rounded-lg">
+    <div className="p-4 bg-secondary/50 rounded-lg">
       <div className="flex items-center gap-2 mb-2">
         <Icon className={`h-4 w-4 ${color}`} />
-        <span className="text-sm text-slate-400">{label}</span>
+        <span className="text-sm text-muted-foreground">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-slate-100">{value}</p>
-      {subValue && <p className="text-xs text-slate-500 mt-1">{subValue}</p>}
+      <p className="text-2xl font-bold text-foreground">{value}</p>
+      {subValue && <p className="text-xs text-muted-foreground/70 mt-1">{subValue}</p>}
     </div>
   );
 }
@@ -22,15 +22,15 @@ function RecentRedemptionRow({ rsvp, event }) {
   const date = rsvp.checked_in_at ? new Date(rsvp.checked_in_at) : null;
 
   return (
-    <div className="flex items-center justify-between py-2 border-b border-slate-800 last:border-0">
+    <div className="flex items-center justify-between py-2 border-b border-border last:border-0">
       <div>
-        <p className="text-sm text-slate-200">{rsvp.user_name}</p>
-        <p className="text-xs text-slate-500">{event?.title || 'Event'}</p>
+        <p className="text-sm text-foreground">{rsvp.user_name}</p>
+        <p className="text-xs text-muted-foreground/70">{event?.title || 'Event'}</p>
       </div>
       <div className="text-right">
-        <p className="text-sm text-amber-500">+{rsvp.joy_coin_total || 0} coins</p>
+        <p className="text-sm text-primary">+{rsvp.joy_coin_total || 0} coins</p>
         {date && (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground/70">
             {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </p>
         )}
@@ -114,10 +114,10 @@ export function JoyCoinsAnalyticsWidget({ business }) {
 
   if (isLoading) {
     return (
-      <Card className="bg-slate-900 border-slate-800">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-slate-100">
-            <Coins className="h-5 w-5 text-amber-500" />
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Coins className="h-5 w-5 text-primary" />
             Joy Coins Analytics
           </CardTitle>
         </CardHeader>
@@ -134,18 +134,18 @@ export function JoyCoinsAnalyticsWidget({ business }) {
 
   if (events.length === 0) {
     return (
-      <Card className="bg-slate-900 border-slate-800">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-slate-100">
-            <Coins className="h-5 w-5 text-amber-500" />
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Coins className="h-5 w-5 text-primary" />
             Joy Coins Analytics
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="py-6 text-center">
-            <Coins className="h-10 w-10 text-slate-600 mx-auto mb-2" />
-            <p className="text-sm text-slate-500">No Joy Coin events yet.</p>
-            <p className="text-xs text-slate-600 mt-1">
+            <Coins className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground/70">No Joy Coin events yet.</p>
+            <p className="text-xs text-muted-foreground/50 mt-1">
               Enable Joy Coins on your events to start tracking redemptions.
             </p>
           </div>
@@ -155,10 +155,10 @@ export function JoyCoinsAnalyticsWidget({ business }) {
   }
 
   return (
-    <Card className="bg-slate-900 border-slate-800">
+    <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-slate-100">
-          <Coins className="h-5 w-5 text-amber-500" />
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <Coins className="h-5 w-5 text-primary" />
           Joy Coins Analytics
         </CardTitle>
       </CardHeader>
@@ -169,7 +169,7 @@ export function JoyCoinsAnalyticsWidget({ business }) {
             label="Coins Redeemed"
             value={stats.totalRedemptions}
             subValue={`of ${stats.totalExpected} reserved`}
-            color="text-amber-500"
+            color="text-primary"
           />
           <StatCard
             icon={Users}
@@ -196,8 +196,8 @@ export function JoyCoinsAnalyticsWidget({ business }) {
 
         {stats.recentRedemptions.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-slate-400 mb-3">Recent Redemptions</h4>
-            <div className="bg-slate-800/30 rounded-lg p-3">
+            <h4 className="text-sm font-medium text-muted-foreground mb-3">Recent Redemptions</h4>
+            <div className="bg-secondary/30 rounded-lg p-3">
               {stats.recentRedemptions.map((rsvp) => (
                 <RecentRedemptionRow
                   key={rsvp.id}
@@ -210,15 +210,15 @@ export function JoyCoinsAnalyticsWidget({ business }) {
         )}
 
         <div>
-          <h4 className="text-sm font-medium text-slate-400 mb-3">Attendance Summary</h4>
+          <h4 className="text-sm font-medium text-muted-foreground mb-3">Attendance Summary</h4>
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-emerald-500" />
-              <span className="text-sm text-slate-300">{stats.totalAttendees} checked in</span>
+              <span className="text-sm text-foreground-soft">{stats.totalAttendees} checked in</span>
             </div>
             <div className="flex items-center gap-2">
-              <XCircle className="h-4 w-4 text-slate-500" />
-              <span className="text-sm text-slate-400">
+              <XCircle className="h-4 w-4 text-muted-foreground/70" />
+              <span className="text-sm text-muted-foreground">
                 {Math.max(0, stats.totalRsvps - stats.totalAttendees)} pending/no-show
               </span>
             </div>

@@ -125,7 +125,7 @@ export default function ListingPreview({ open, onClose, listing, propertyLabel }
                   <img src={src} alt="" className="w-full h-full object-cover" />
                   {i === 3 && photos.length > 4 && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <span className="text-white text-lg font-semibold">+{photos.length - 4} more</span>
+                      <span className="text-foreground text-lg font-semibold">+{photos.length - 4} more</span>
                     </div>
                   )}
                 </div>

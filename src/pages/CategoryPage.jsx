@@ -85,12 +85,12 @@ export default function CategoryPage() {
 
   if (!category) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center">
-          <h2 className="text-xl font-bold text-white">Category not found</h2>
+          <h2 className="text-xl font-bold text-foreground">Category not found</h2>
           <Button 
             variant="outline" 
-            className="mt-4 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500"
+            className="mt-4 border-border text-foreground-soft hover:border-primary hover:text-primary"
             onClick={() => navigate(createPageUrl('Directory'))}
           >
             Back to Directory
@@ -103,14 +103,14 @@ export default function CategoryPage() {
   const CategoryIcon = (category?.icon && CATEGORY_ICONS[category.icon]) ? CATEGORY_ICONS[category.icon] : Store;
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-slate-800">
+      <div className="border-b border-border">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <Button 
             variant="ghost" 
             size="sm" 
-            className="mb-4 text-slate-300 hover:text-amber-500 hover:bg-slate-800"
+            className="mb-4 text-foreground-soft hover:text-primary hover:bg-secondary"
             onClick={() => navigate(createPageUrl('Directory'))}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
@@ -118,12 +118,12 @@ export default function CategoryPage() {
           </Button>
           
           <div className="flex items-center gap-3 mb-4">
-            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-slate-800 text-amber-500">
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-secondary text-primary">
               <CategoryIcon className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">{category.label}</h1>
-              <p className="text-slate-400">{filteredBusinesses.length} businesses found</p>
+              <h1 className="text-2xl font-bold text-foreground">{category.label}</h1>
+              <p className="text-muted-foreground">{filteredBusinesses.length} businesses found</p>
             </div>
           </div>
 
@@ -137,8 +137,8 @@ export default function CategoryPage() {
                   key={sub.id}
                   onClick={() => handleSubcategoryClick(sub.id)}
                   className={isSelected
-                    ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-amber-500 text-black cursor-default'
-                    : 'px-3 py-1.5 rounded-lg text-sm bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors cursor-pointer'
+                    ? 'px-3 py-1.5 rounded-lg text-sm font-semibold bg-primary text-primary-foreground cursor-default'
+                    : 'px-3 py-1.5 rounded-lg text-sm bg-secondary text-foreground-soft border border-border hover:border-primary hover:text-primary transition-colors cursor-pointer'
                   }
                 >
                   {sub.label}
@@ -153,17 +153,17 @@ export default function CategoryPage() {
       <div className="max-w-6xl mx-auto px-4 py-6">
         {isLoading || regionLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : filteredBusinesses.length === 0 ? (
           <div className="text-center py-20">
-            <SearchX className="h-12 w-12 text-slate-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-200">No businesses found</h3>
-            <p className="text-slate-400 mt-2">
+            <SearchX className="h-12 w-12 text-muted-foreground/70 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground">No businesses found</h3>
+            <p className="text-muted-foreground mt-2">
               No businesses are listed in this category yet.
             </p>
             <button
-              className="mt-4 px-4 py-2 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 hover:text-amber-500 transition-colors"
+              className="mt-4 px-4 py-2 rounded-lg text-sm font-medium bg-secondary text-foreground-soft border border-border hover:border-primary hover:text-primary transition-colors"
               onClick={() => handleSubcategoryClick('all')}
             >
               View all {category.label.toLowerCase()}

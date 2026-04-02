@@ -5,8 +5,8 @@ import { toast } from 'sonner';
 import { Plus, X, Loader2, User } from 'lucide-react';
 
 const INPUT_CLASS =
-  'w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent';
-const LABEL_CLASS = 'block text-slate-300 text-sm font-medium mb-1';
+  'w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent';
+const LABEL_CLASS = 'block text-foreground-soft text-sm font-medium mb-1';
 
 function formatPhone(value) {
   const digits = value.replace(/\D/g, '').slice(0, 10);
@@ -98,7 +98,7 @@ export default function ClientSelector({
       <div className="flex items-end gap-2">
         <div className="flex-1">
           <label className={LABEL_CLASS}>
-            <User className="inline h-4 w-4 text-amber-500 mr-1 -mt-0.5" />
+            <User className="inline h-4 w-4 text-primary mr-1 -mt-0.5" />
             Client
           </label>
           <select
@@ -120,7 +120,7 @@ export default function ClientSelector({
           <button
             type="button"
             onClick={() => onViewClient(selectedClientId)}
-            className="text-amber-500 hover:text-amber-400 text-sm font-medium min-h-[44px] px-2 whitespace-nowrap"
+            className="text-primary hover:text-primary-hover text-sm font-medium min-h-[44px] px-2 whitespace-nowrap"
           >
             View
           </button>
@@ -131,17 +131,17 @@ export default function ClientSelector({
       {showCreate && (
         <form
           onSubmit={handleSave}
-          className="bg-slate-900 border border-slate-700 rounded-lg p-4 space-y-4"
+          className="bg-card border border-border rounded-lg p-4 space-y-4"
         >
           <div className="flex items-center justify-between mb-1">
-            <span className="text-white text-sm font-semibold flex items-center gap-1.5">
-              <Plus className="h-4 w-4 text-amber-500" />
+            <span className="text-foreground text-sm font-semibold flex items-center gap-1.5">
+              <Plus className="h-4 w-4 text-primary" />
               New Client
             </span>
             <button
               type="button"
               onClick={handleCancel}
-              className="text-slate-400 hover:text-white p-1"
+              className="text-muted-foreground hover:text-foreground p-1"
               aria-label="Cancel"
             >
               <X className="h-4 w-4" />
@@ -204,7 +204,7 @@ export default function ClientSelector({
             <button
               type="submit"
               disabled={createMutation.isPending}
-              className="bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-semibold rounded-lg px-4 min-h-[44px] text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-primary hover:bg-primary-hover active:bg-primary/80 text-primary-foreground font-semibold rounded-lg px-4 min-h-[44px] text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {createMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -216,7 +216,7 @@ export default function ClientSelector({
             <button
               type="button"
               onClick={handleCancel}
-              className="text-slate-400 hover:text-white hover:bg-transparent text-sm font-medium min-h-[44px] px-3"
+              className="text-muted-foreground hover:text-foreground hover:bg-transparent text-sm font-medium min-h-[44px] px-3"
             >
               Cancel
             </button>

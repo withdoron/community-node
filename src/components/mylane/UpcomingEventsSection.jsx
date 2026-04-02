@@ -43,13 +43,13 @@ export default function UpcomingEventsSection({ currentUser }) {
   if (upcomingEvents.length === 0) {
     return (
       <SectionWrapper title="Your Upcoming Events" seeAllPage="Events">
-        <div className="text-center py-10 bg-slate-900 border border-slate-800 rounded-xl">
-          <Calendar className="h-12 w-12 text-slate-500 mx-auto mb-3" />
-          <p className="text-slate-300 font-medium">No upcoming events</p>
-          <p className="text-sm text-slate-500 mt-1">Browse events and RSVP to see them here.</p>
+        <div className="text-center py-10 bg-card border border-border rounded-xl">
+          <Calendar className="h-12 w-12 text-muted-foreground/70 mx-auto mb-3" />
+          <p className="text-foreground-soft font-medium">No upcoming events</p>
+          <p className="text-sm text-muted-foreground/70 mt-1">Browse events and RSVP to see them here.</p>
           <Link
             to={createPageUrl('Events')}
-            className="mt-4 inline-flex items-center gap-2 text-amber-500 hover:text-amber-400 text-sm font-medium transition-colors"
+            className="mt-4 inline-flex items-center gap-2 text-primary hover:text-primary-hover text-sm font-medium transition-colors"
           >
             Browse events
             <span aria-hidden>→</span>

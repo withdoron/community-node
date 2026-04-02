@@ -5,56 +5,56 @@ import { ThumbsUp, BookOpen, Eye, Shield } from "lucide-react";
 export default function OverviewWidget({ business }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <Card className="p-6 bg-slate-900 border-slate-800">
+      <Card className="p-6 bg-card border-border">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-slate-400">Recommendations</p>
-            <p className="text-3xl font-bold text-white mt-1">
+            <p className="text-sm text-muted-foreground">Recommendations</p>
+            <p className="text-3xl font-bold text-foreground mt-1">
               {business.recommendation_count || 0}
             </p>
           </div>
-          <div className="h-12 w-12 bg-amber-500/20 rounded-lg flex items-center justify-center">
-            <ThumbsUp className="h-6 w-6 text-amber-500" />
+          <div className="h-12 w-12 bg-primary/20 rounded-lg flex items-center justify-center">
+            <ThumbsUp className="h-6 w-6 text-primary" />
           </div>
         </div>
       </Card>
 
-      <Card className="p-6 bg-slate-900 border-slate-800">
+      <Card className="p-6 bg-card border-border">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-slate-400">Stories</p>
-            <p className="text-3xl font-bold text-white mt-1">
+            <p className="text-sm text-muted-foreground">Stories</p>
+            <p className="text-3xl font-bold text-foreground mt-1">
               {business.story_count || 0}
             </p>
           </div>
-          <div className="h-12 w-12 bg-amber-500/20 rounded-lg flex items-center justify-center">
-            <BookOpen className="h-6 w-6 text-amber-500" />
+          <div className="h-12 w-12 bg-primary/20 rounded-lg flex items-center justify-center">
+            <BookOpen className="h-6 w-6 text-primary" />
           </div>
         </div>
       </Card>
 
-      <Card className="p-6 bg-slate-900 border-slate-800">
+      <Card className="p-6 bg-card border-border">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-slate-400">Vouches</p>
-            <p className="text-3xl font-bold text-white mt-1">
+            <p className="text-sm text-muted-foreground">Vouches</p>
+            <p className="text-3xl font-bold text-foreground mt-1">
               {business.vouch_count || 0}
             </p>
           </div>
-          <div className="h-12 w-12 bg-amber-500/20 rounded-lg flex items-center justify-center">
-            <Shield className="h-6 w-6 text-amber-500" />
+          <div className="h-12 w-12 bg-primary/20 rounded-lg flex items-center justify-center">
+            <Shield className="h-6 w-6 text-primary" />
           </div>
         </div>
       </Card>
 
-      <Card className="p-6 bg-slate-900 border-slate-800">
+      <Card className="p-6 bg-card border-border">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-slate-400">Profile Views</p>
-            <p className="text-3xl font-bold text-white mt-1">—</p>
+            <p className="text-sm text-muted-foreground">Profile Views</p>
+            <p className="text-3xl font-bold text-foreground mt-1">—</p>
           </div>
-          <div className="h-12 w-12 bg-slate-800 rounded-lg flex items-center justify-center">
-            <Eye className="h-6 w-6 text-slate-400" />
+          <div className="h-12 w-12 bg-secondary rounded-lg flex items-center justify-center">
+            <Eye className="h-6 w-6 text-muted-foreground" />
           </div>
         </div>
       </Card>

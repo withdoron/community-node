@@ -286,18 +286,18 @@ export default function PlayCreateModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`bg-slate-900 border-slate-800 max-h-[90vh] overflow-y-auto ${mode === 'visual' ? 'max-w-3xl w-[95vw]' : 'max-w-lg'}`}>
+      <DialogContent className={`bg-card border-border max-h-[90vh] overflow-y-auto ${mode === 'visual' ? 'max-w-3xl w-[95vw]' : 'max-w-lg'}`}>
         <DialogHeader>
-          <DialogTitle className="text-slate-100">{editPlay ? 'Edit play' : 'New play'}</DialogTitle>
+          <DialogTitle className="text-foreground">{editPlay ? 'Edit play' : 'New play'}</DialogTitle>
         </DialogHeader>
 
         {/* Mode toggle */}
-        <div className="flex gap-2 p-1 bg-slate-800 rounded-xl">
+        <div className="flex gap-2 p-1 bg-secondary rounded-xl">
           <button
             type="button"
             onClick={() => handleModeSwitch('visual')}
             className={`flex-1 py-2.5 text-center font-medium rounded-lg transition-colors min-h-[44px] text-sm ${
-              mode === 'visual' ? 'bg-amber-500 text-black' : 'text-slate-400 bg-transparent hover:bg-slate-700'
+              mode === 'visual' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground bg-transparent hover:bg-surface'
             }`}
           >
             Visual Builder
@@ -306,7 +306,7 @@ export default function PlayCreateModal({
             type="button"
             onClick={() => handleModeSwitch('photo')}
             className={`flex-1 py-2.5 text-center font-medium rounded-lg transition-colors min-h-[44px] text-sm ${
-              mode === 'photo' ? 'bg-amber-500 text-black' : 'text-slate-400 bg-transparent hover:bg-slate-700'
+              mode === 'photo' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground bg-transparent hover:bg-surface'
             }`}
           >
             Upload Photo
@@ -333,7 +333,7 @@ export default function PlayCreateModal({
             />
           ) : (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
+              <Loader2 className="h-6 w-6 text-primary animate-spin" />
             </div>
           )
         ) : (
@@ -353,8 +353,8 @@ export default function PlayCreateModal({
                 }}
                 className={`py-2 rounded-lg text-sm font-medium transition-colors ${
                   form.side === s.value
-                    ? 'bg-amber-500 text-black'
-                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-muted-foreground hover:bg-surface'
                 }`}
               >
                 {s.label}
@@ -363,31 +363,31 @@ export default function PlayCreateModal({
           </div>
 
           <div>
-            <Label className="text-slate-400">Play name *</Label>
+            <Label className="text-muted-foreground">Play name *</Label>
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="w-full bg-slate-800 border-slate-700 text-white mt-1 min-h-[44px]"
+              className="w-full bg-secondary border-border text-foreground mt-1 min-h-[44px]"
               placeholder="e.g. Spread Slant-Flat"
               required
             />
           </div>
           <div>
-            <Label className="text-slate-400">Nickname (optional)</Label>
+            <Label className="text-muted-foreground">Nickname (optional)</Label>
             <Input
               value={form.nickname}
               onChange={(e) => setForm((f) => ({ ...f, nickname: e.target.value }))}
-              className="w-full bg-slate-800 border-slate-700 text-white mt-1 min-h-[44px]"
+              className="w-full bg-secondary border-border text-foreground mt-1 min-h-[44px]"
               placeholder="Player nickname for this play"
             />
           </div>
 
           <div>
-            <Label className="text-slate-400">Formation</Label>
+            <Label className="text-muted-foreground">Formation</Label>
             <select
               value={form.formation}
               onChange={(e) => setForm((f) => ({ ...f, formation: e.target.value }))}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1 min-h-[44px]"
+              className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-foreground mt-1 min-h-[44px]"
             >
               {(form.side === 'defense' ? DEFENSE_FORMATION_OPTIONS : FORMATION_OPTIONS).map((f) => (
                 <option key={f} value={f}>{f}</option>
@@ -397,15 +397,15 @@ export default function PlayCreateModal({
               <Input
                 value={form.formation_custom}
                 onChange={(e) => setForm((f) => ({ ...f, formation_custom: e.target.value }))}
-                className="w-full bg-slate-800 border-slate-700 text-white mt-2 min-h-[44px]"
+                className="w-full bg-secondary border-border text-foreground mt-2 min-h-[44px]"
                 placeholder="Custom formation name"
               />
             )}
           </div>
 
           <div>
-            <Label className="text-slate-400">Diagram</Label>
-            <div className="mt-1 border border-slate-700 rounded-lg p-4 border-dashed bg-slate-800/50">
+            <Label className="text-muted-foreground">Diagram</Label>
+            <div className="mt-1 border border-border rounded-lg p-4 border-dashed bg-secondary/50">
               <input
                 type="file"
                 accept="image/*"
@@ -417,12 +417,12 @@ export default function PlayCreateModal({
                 {form.diagram_image ? (
                   <>
                     <img src={form.diagram_image} alt="Diagram" className="max-h-32 rounded object-contain" />
-                    <span className="text-xs text-slate-400">Tap to change</span>
+                    <span className="text-xs text-muted-foreground">Tap to change</span>
                   </>
                 ) : (
                   <>
-                    {uploading ? <Loader2 className="h-8 w-8 text-amber-500 animate-spin" /> : <Upload className="h-8 w-8 text-slate-500" />}
-                    <span className="text-sm text-slate-400">Upload play diagram</span>
+                    {uploading ? <Loader2 className="h-8 w-8 text-primary animate-spin" /> : <Upload className="h-8 w-8 text-muted-foreground/70" />}
+                    <span className="text-sm text-muted-foreground">Upload play diagram</span>
                   </>
                 )}
               </label>
@@ -430,19 +430,19 @@ export default function PlayCreateModal({
           </div>
 
           <div className="flex items-center justify-between">
-            <Label className="text-slate-400">Mirrorable (left/right)</Label>
+            <Label className="text-muted-foreground">Mirrorable (left/right)</Label>
             <button
               type="button"
               role="switch"
               onClick={() => setForm((f) => ({ ...f, is_mirrorable: !f.is_mirrorable }))}
-              className={`relative w-11 h-6 rounded-full transition-colors ${form.is_mirrorable ? 'bg-amber-500' : 'bg-slate-700'}`}
+              className={`relative w-11 h-6 rounded-full transition-colors ${form.is_mirrorable ? 'bg-primary' : 'bg-surface'}`}
             >
               <span className={`absolute top-1 w-4 h-4 rounded-full bg-slate-100 transition-transform ${form.is_mirrorable ? 'left-6' : 'left-1'}`} />
             </button>
           </div>
 
           <div>
-            <Label className="text-slate-400">Tags</Label>
+            <Label className="text-muted-foreground">Tags</Label>
             <div className="flex flex-wrap gap-2 mt-2">
               {TAG_OPTIONS.map((t) => (
                 <button
@@ -451,8 +451,8 @@ export default function PlayCreateModal({
                   onClick={() => toggleTag(t.value)}
                   className={`text-xs px-2 py-1 rounded transition-colors ${
                     form.tag_list.includes(t.value)
-                      ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50'
-                      : 'bg-slate-800 text-slate-400 border border-slate-700 hover:border-slate-600'
+                      ? 'bg-primary/20 text-primary border border-primary/50'
+                      : 'bg-secondary text-muted-foreground border border-border hover:border-border'
                   }`}
                 >
                   {t.label}
@@ -463,12 +463,12 @@ export default function PlayCreateModal({
 
           {initialStatus !== 'experimental' && (
             <div className="flex items-center justify-between">
-              <Label className="text-slate-400">Game day</Label>
+              <Label className="text-muted-foreground">Game day</Label>
               <button
                 type="button"
                 role="switch"
                 onClick={() => setForm((f) => ({ ...f, game_day: !f.game_day }))}
-                className={`relative w-11 h-6 rounded-full transition-colors ${form.game_day ? 'bg-amber-500' : 'bg-slate-700'}`}
+                className={`relative w-11 h-6 rounded-full transition-colors ${form.game_day ? 'bg-primary' : 'bg-surface'}`}
               >
                 <span className={`absolute top-1 w-4 h-4 rounded-full bg-slate-100 transition-transform ${form.game_day ? 'left-6' : 'left-1'}`} />
               </button>
@@ -477,27 +477,27 @@ export default function PlayCreateModal({
 
           {initialStatus !== 'experimental' && (
             <div>
-              <Label className="text-slate-400">Coach notes (coaches only)</Label>
+              <Label className="text-muted-foreground">Coach notes (coaches only)</Label>
               <Textarea
                 value={form.coach_notes}
                 onChange={(e) => setForm((f) => ({ ...f, coach_notes: e.target.value }))}
-                className="w-full bg-slate-800 border-slate-700 text-white mt-1 min-h-[88px]"
+                className="w-full bg-secondary border-border text-foreground mt-1 min-h-[88px]"
                 placeholder="Strategy notes — only visible to coaches"
               />
             </div>
           )}
 
           <div>
-            <h4 className="text-sm font-semibold text-white mb-3">Position assignments</h4>
+            <h4 className="text-sm font-semibold text-foreground mb-3">Position assignments</h4>
             <div className="space-y-3">
               {positions.map((pos) => (
-                <div key={pos} className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
-                  <span className="text-amber-500 font-bold text-sm">{pos}</span>
+                <div key={pos} className="bg-secondary/50 rounded-lg p-3 border border-border">
+                  <span className="text-primary font-bold text-sm">{pos}</span>
                   <div className="mt-2 grid gap-2">
                     <select
                       value={assignments[pos]?.route ?? ''}
                       onChange={(e) => setAssignments((a) => ({ ...a, [pos]: { ...a[pos], route: e.target.value } }))}
-                      className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-white text-sm min-h-[40px]"
+                      className="w-full bg-secondary border border-border rounded px-2 py-1.5 text-foreground text-sm min-h-[40px]"
                     >
                       <option value="">{form.side === 'defense' ? '— Assignment —' : '— Route —'}</option>
                       {(form.side === 'defense' ? PHOTO_MODE_DEFENSE_ROUTES : PHOTO_MODE_ROUTES).map((r) => (
@@ -507,7 +507,7 @@ export default function PlayCreateModal({
                     <textarea
                       value={assignments[pos]?.assignment_text ?? ''}
                       onChange={(e) => setAssignments((a) => ({ ...a, [pos]: { ...a[pos], assignment_text: e.target.value } }))}
-                      className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-white text-sm placeholder-slate-500 min-h-[60px]"
+                      className="w-full bg-secondary border border-border rounded px-2 py-1.5 text-foreground text-sm placeholder-muted-foreground/70 min-h-[60px]"
                       placeholder="What does this player do?"
                     />
                   </div>
@@ -517,10 +517,10 @@ export default function PlayCreateModal({
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" className="border-slate-600 text-slate-300 hover:bg-transparent" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" className="border-border text-foreground-soft hover:bg-transparent" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-medium" disabled={createPlay.isPending}>
+            <Button type="submit" className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium" disabled={createPlay.isPending}>
               {createPlay.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : editPlay ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>

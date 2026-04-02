@@ -47,20 +47,20 @@ export default function PlayDetail({
   const canStudy = !isExperimental;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950 overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
       <div className="max-w-2xl mx-auto pb-24">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 py-3 flex items-center justify-between gap-2 min-h-[44px]">
+        <div className="sticky top-0 z-10 bg-card/95 backdrop-blur border-b border-border px-4 py-3 flex items-center justify-between gap-2 min-h-[44px]">
           <button
             type="button"
             onClick={onClose}
-            className="p-2 -ml-2 text-slate-400 hover:text-amber-500 transition-colors"
+            className="p-2 -ml-2 text-muted-foreground hover:text-primary transition-colors"
             aria-label="Back"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
-            <span className="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded capitalize">
+            <span className="bg-secondary text-foreground-soft text-xs px-2 py-0.5 rounded capitalize">
               {play?.side || 'offense'}
             </span>
             {isExperimental && (
@@ -69,7 +69,7 @@ export default function PlayDetail({
               </span>
             )}
             {play?.game_day && !isExperimental && (
-              <span className="bg-amber-500/20 text-amber-500 text-xs font-medium px-2 py-0.5 rounded-full">
+              <span className="bg-primary/20 text-primary text-xs font-medium px-2 py-0.5 rounded-full">
                 Game Day
               </span>
             )}
@@ -80,7 +80,7 @@ export default function PlayDetail({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-slate-400 hover:text-amber-500 p-2 flex items-center gap-1.5"
+                className="text-muted-foreground hover:text-primary p-2 flex items-center gap-1.5"
                 onClick={onStudyThisPlay}
               >
                 <BookOpen className="h-4 w-4" />
@@ -92,7 +92,7 @@ export default function PlayDetail({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-slate-400 hover:text-amber-500 p-2 flex items-center gap-1.5"
+                className="text-muted-foreground hover:text-primary p-2 flex items-center gap-1.5"
                 onClick={onQuizThisPlay}
               >
                 <Target className="h-4 w-4" />
@@ -104,7 +104,7 @@ export default function PlayDetail({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-slate-400 hover:text-amber-500 p-2"
+                className="text-muted-foreground hover:text-primary p-2"
                 onClick={() => onEdit?.(play)}
               >
                 <Pencil className="h-4 w-4" />
@@ -115,7 +115,7 @@ export default function PlayDetail({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-slate-400 hover:text-red-400 p-2"
+                className="text-muted-foreground hover:text-red-400 p-2"
                 onClick={() => onArchive?.(play)}
               >
                 <Archive className="h-4 w-4" />
@@ -126,14 +126,14 @@ export default function PlayDetail({
 
         <div className="px-4 py-4 space-y-4">
           <div>
-            <h1 className="text-xl font-bold text-white">{play?.name}</h1>
-            {play?.nickname && <p className="text-slate-400 text-sm mt-0.5">{play.nickname}</p>}
+            <h1 className="text-xl font-bold text-foreground">{play?.name}</h1>
+            {play?.nickname && <p className="text-muted-foreground text-sm mt-0.5">{play.nickname}</p>}
             <div className="flex items-center gap-2 mt-2 flex-wrap">
-              <span className="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded">
+              <span className="bg-secondary text-foreground-soft text-xs px-2 py-0.5 rounded">
                 {play?.formation || '—'}
               </span>
               {isExperimental && play?.created_by_name && (
-                <span className="text-slate-500 text-xs">by {play.created_by_name}</span>
+                <span className="text-muted-foreground/70 text-xs">by {play.created_by_name}</span>
               )}
             </div>
           </div>
@@ -144,7 +144,7 @@ export default function PlayDetail({
               type="button"
               onClick={() => onPromote(play)}
               disabled={isPromoting}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px]"
+              className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px]"
             >
               {isPromoting ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -157,7 +157,7 @@ export default function PlayDetail({
 
           {/* Diagram — visual renderer or photo */}
           {play?.use_renderer ? (
-            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700">
+            <div className="rounded-xl overflow-hidden bg-secondary border border-border">
               <PlayRenderer
                 play={play}
                 assignments={assignments}
@@ -166,12 +166,12 @@ export default function PlayDetail({
                 mode="view"
               />
               {play?.is_mirrorable && (
-                <div className="p-2 border-t border-slate-700">
+                <div className="p-2 border-t border-border">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="w-full border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
+                    className="w-full border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent"
                     onClick={() => setMirrored((m) => !m)}
                   >
                     {mirrored ? 'Show normal' : 'Mirror view'}
@@ -180,7 +180,7 @@ export default function PlayDetail({
               )}
             </div>
           ) : play?.diagram_image ? (
-            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700">
+            <div className="rounded-xl overflow-hidden bg-secondary border border-border">
               <div
                 className="aspect-video overflow-hidden"
                 style={{ transform: mirrored ? 'scaleX(-1)' : undefined }}
@@ -192,12 +192,12 @@ export default function PlayDetail({
                 />
               </div>
               {play?.is_mirrorable && (
-                <div className="p-2 border-t border-slate-700">
+                <div className="p-2 border-t border-border">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="w-full border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent"
+                    className="w-full border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent"
                     onClick={() => setMirrored((m) => !m)}
                   >
                     {mirrored ? 'Show normal' : 'Mirror view'}
@@ -211,7 +211,7 @@ export default function PlayDetail({
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {tags.map((tag) => (
-                <span key={tag} className="bg-slate-800 text-slate-400 text-xs px-2 py-0.5 rounded">
+                <span key={tag} className="bg-secondary text-muted-foreground text-xs px-2 py-0.5 rounded">
                   {tag.replace(/_/g, ' ')}
                 </span>
               ))}
@@ -220,17 +220,17 @@ export default function PlayDetail({
 
           {/* Coach notes — coach only */}
           {isCoach && play?.coach_notes && (
-            <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
-              <h3 className="text-xs font-semibold text-amber-500 uppercase tracking-wider mb-2">Coach notes</h3>
-              <p className="text-slate-300 text-sm whitespace-pre-wrap">{play.coach_notes}</p>
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+              <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">Coach notes</h3>
+              <p className="text-foreground-soft text-sm whitespace-pre-wrap">{play.coach_notes}</p>
             </div>
           )}
 
           {/* Position assignments */}
           <div>
-            <h3 className="text-sm font-semibold text-white mb-3">Position assignments</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">Position assignments</h3>
             {sortedAssignments.length === 0 ? (
-              <p className="text-slate-500 text-sm">No assignments for this play yet.</p>
+              <p className="text-muted-foreground/70 text-sm">No assignments for this play yet.</p>
             ) : (
               <div className="space-y-2">
                 {sortedAssignments.map((a) => {
@@ -248,25 +248,25 @@ export default function PlayDetail({
                   return (
                     <div
                       key={a.id}
-                      className={`rounded-lg border border-slate-700 p-3 ${
-                        isMyAssignment ? 'border-l-4 border-l-amber-500 bg-amber-500/5 pl-3' : ''
+                      className={`rounded-lg border border-border p-3 ${
+                        isMyAssignment ? 'border-l-4 border-l-primary bg-primary/5 pl-3' : ''
                       }`}
                     >
                       {isMyAssignment && (
-                        <p className="text-amber-500 text-xs font-semibold uppercase tracking-wider mb-1">
+                        <p className="text-primary text-xs font-semibold uppercase tracking-wider mb-1">
                           Your assignment
                         </p>
                       )}
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-amber-500 font-bold">{a.position}</span>
+                        <span className="text-primary font-bold">{a.position}</span>
                         {routeDisplay && (
-                          <span className="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded">
+                          <span className="bg-secondary text-foreground-soft text-xs px-2 py-0.5 rounded">
                             {routeDisplay}
                           </span>
                         )}
                       </div>
                       {a.assignment_text && (
-                        <p className="text-slate-300 text-sm mt-1 whitespace-pre-wrap">{a.assignment_text}</p>
+                        <p className="text-foreground-soft text-sm mt-1 whitespace-pre-wrap">{a.assignment_text}</p>
                       )}
                     </div>
                   );
@@ -277,7 +277,7 @@ export default function PlayDetail({
 
           {/* Delete play — coach or own experimental */}
           {canDelete && onDelete && (
-            <div className="pt-6 mt-6 border-t border-slate-800">
+            <div className="pt-6 mt-6 border-t border-border">
               {!confirmDelete ? (
                 <Button
                   type="button"
@@ -294,7 +294,7 @@ export default function PlayDetail({
                   <p className="text-red-400 text-sm font-medium">
                     Delete this {isExperimental ? 'idea' : 'play'}? This cannot be undone.
                   </p>
-                  <p className="text-slate-400 text-xs">
+                  <p className="text-muted-foreground text-xs">
                     The play and all {sortedAssignments.length} position assignment{sortedAssignments.length !== 1 ? 's' : ''} will be permanently removed.
                   </p>
                   <div className="flex gap-3">
@@ -303,7 +303,7 @@ export default function PlayDetail({
                       variant="outline"
                       onClick={() => setConfirmDelete(false)}
                       disabled={isDeleting}
-                      className="flex-1 border-slate-600 text-slate-300 hover:bg-transparent hover:border-slate-500 hover:text-white min-h-[44px]"
+                      className="flex-1 border-border text-foreground-soft hover:bg-transparent hover:border-muted-foreground hover:text-foreground min-h-[44px]"
                     >
                       Cancel
                     </Button>
@@ -311,7 +311,7 @@ export default function PlayDetail({
                       type="button"
                       onClick={() => onDelete(play)}
                       disabled={isDeleting}
-                      className="flex-1 bg-red-600 hover:bg-red-500 text-white font-medium min-h-[44px]"
+                      className="flex-1 bg-red-600 hover:bg-red-500 text-foreground font-medium min-h-[44px]"
                     >
                       {isDeleting ? (
                         <>

@@ -7,8 +7,8 @@ import {
 } from 'lucide-react';
 
 const INPUT_CLASS =
-  'w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent';
-const LABEL_CLASS = 'block text-slate-300 text-sm font-medium mb-1';
+  'w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent';
+const LABEL_CLASS = 'block text-foreground-soft text-sm font-medium mb-1';
 
 const fmtDate = (d) => {
   if (!d) return '';
@@ -20,16 +20,16 @@ const fmtDate = (d) => {
 };
 
 const PERMIT_STATUS = {
-  not_applied: { label: 'Not Applied', color: 'bg-slate-500/20 text-slate-400' },
-  applied:     { label: 'Applied',     color: 'bg-amber-500/20 text-amber-400' },
+  not_applied: { label: 'Not Applied', color: 'bg-muted-foreground/20 text-muted-foreground' },
+  applied:     { label: 'Applied',     color: 'bg-primary/20 text-primary-hover' },
   issued:      { label: 'Issued',      color: 'bg-emerald-500/20 text-emerald-400' },
-  expired:     { label: 'Expired',     color: 'bg-amber-500/20 text-amber-400' },
+  expired:     { label: 'Expired',     color: 'bg-primary/20 text-primary-hover' },
 };
 
 const INSPECTION_STATUS = {
-  pending: { label: 'Pending', color: 'bg-amber-500/20 text-amber-400' },
+  pending: { label: 'Pending', color: 'bg-primary/20 text-primary-hover' },
   pass:    { label: 'Pass',    color: 'bg-emerald-500/20 text-emerald-400' },
-  fail:    { label: 'Fail',    color: 'bg-slate-500/20 text-slate-400' },
+  fail:    { label: 'Fail',    color: 'bg-muted-foreground/20 text-muted-foreground' },
 };
 
 const EMPTY_PERMIT = {
@@ -118,37 +118,37 @@ function PermitCard({ permit, profileId, projectId }) {
   const setInsp = (field, value) => setInspectionData((prev) => ({ ...prev, [field]: value }));
 
   return (
-    <div className="bg-slate-800/50 rounded-lg overflow-hidden">
+    <div className="bg-secondary/50 rounded-lg overflow-hidden">
       <div className="flex items-center">
         <button type="button" onClick={() => setExpanded(!expanded)}
-          className="flex-1 flex items-center gap-3 p-3 text-left hover:bg-slate-800 transition-colors min-h-[44px]">
-          {expanded ? <ChevronDown className="h-4 w-4 text-slate-400 flex-shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400 flex-shrink-0" />}
+          className="flex-1 flex items-center gap-3 p-3 text-left hover:bg-secondary transition-colors min-h-[44px]">
+          {expanded ? <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium text-slate-100 capitalize">{permit.permit_type}</span>
+              <span className="text-sm font-medium text-foreground capitalize">{permit.permit_type}</span>
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>{sc.label}</span>
             </div>
-            {permit.permit_number && <p className="text-xs text-slate-500 mt-0.5">#{permit.permit_number}</p>}
+            {permit.permit_number && <p className="text-xs text-muted-foreground/70 mt-0.5">#{permit.permit_number}</p>}
           </div>
-          <div className="text-right text-xs text-slate-500 flex-shrink-0">
+          <div className="text-right text-xs text-muted-foreground/70 flex-shrink-0">
             {permit.issued_date ? fmtDate(permit.issued_date) : permit.applied_date ? fmtDate(permit.applied_date) : ''}
           </div>
         </button>
         <div className="flex items-center">
           <button type="button" onClick={startEdit}
-            className="p-3 text-slate-500 hover:text-amber-500 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+            className="p-3 text-muted-foreground/70 hover:text-primary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
             <Pencil className="h-4 w-4" />
           </button>
           {deleteConfirm === permit.id ? (
             <div className="flex items-center gap-1">
               <button type="button" onClick={() => deletePermit.mutate(permit.id)}
-                className="text-xs text-amber-500 hover:text-amber-400 min-h-[44px] px-2">Yes</button>
+                className="text-xs text-primary hover:text-primary-hover min-h-[44px] px-2">Yes</button>
               <button type="button" onClick={() => setDeleteConfirm(null)}
-                className="text-xs text-slate-400 hover:text-slate-300 min-h-[44px] px-2">No</button>
+                className="text-xs text-muted-foreground hover:text-foreground-soft min-h-[44px] px-2">No</button>
             </div>
           ) : (
             <button type="button" onClick={() => setDeleteConfirm(permit.id)}
-              className="p-2 text-slate-500 hover:text-amber-500 transition-colors rounded-lg min-h-[44px]">
+              className="p-2 text-muted-foreground/70 hover:text-primary transition-colors rounded-lg min-h-[44px]">
               <Trash2 className="h-4 w-4" />
             </button>
           )}
@@ -159,15 +159,15 @@ function PermitCard({ permit, profileId, projectId }) {
         <div className="px-3 pb-3 space-y-3">
           {/* Edit form */}
           {editing ? (
-            <div className="bg-slate-900/50 border border-slate-700 rounded-lg p-3 space-y-2">
+            <div className="bg-card/50 border border-border rounded-lg p-3 space-y-2">
               <div className="flex items-center justify-between mb-1">
-                <p className="text-xs font-medium text-slate-300">Edit Permit</p>
+                <p className="text-xs font-medium text-foreground-soft">Edit Permit</p>
                 <button type="button" onClick={() => setEditing(false)}
-                  className="p-1 text-slate-500 hover:text-amber-500"><X className="h-3 w-3" /></button>
+                  className="p-1 text-muted-foreground/70 hover:text-primary"><X className="h-3 w-3" /></button>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-xs text-slate-500">Permit Type</label>
+                  <label className="text-xs text-muted-foreground/70">Permit Type</label>
                   <select className={INPUT_CLASS} value={editData.permit_type}
                     onChange={(e) => setEdit('permit_type', e.target.value)}>
                     <option value="building">Building</option>
@@ -178,7 +178,7 @@ function PermitCard({ permit, profileId, projectId }) {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-slate-500">Status</label>
+                  <label className="text-xs text-muted-foreground/70">Status</label>
                   <select className={INPUT_CLASS} value={editData.status}
                     onChange={(e) => setEdit('status', e.target.value)}>
                     <option value="not_applied">Not Applied</option>
@@ -189,40 +189,40 @@ function PermitCard({ permit, profileId, projectId }) {
                 </div>
               </div>
               <div>
-                <label className="text-xs text-slate-500">Permit Number</label>
+                <label className="text-xs text-muted-foreground/70">Permit Number</label>
                 <input type="text" className={INPUT_CLASS} value={editData.permit_number}
                   onChange={(e) => setEdit('permit_number', e.target.value)} placeholder="e.g., BLD-2026-001" />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {(editData.status === 'applied' || editData.status === 'issued' || editData.status === 'expired') && (
                   <div>
-                    <label className="text-xs text-slate-500">Applied Date</label>
+                    <label className="text-xs text-muted-foreground/70">Applied Date</label>
                     <input type="date" className={INPUT_CLASS} value={editData.applied_date}
                       onChange={(e) => setEdit('applied_date', e.target.value)} />
                   </div>
                 )}
                 {(editData.status === 'issued' || editData.status === 'expired') && (
                   <div>
-                    <label className="text-xs text-slate-500">Issued Date</label>
+                    <label className="text-xs text-muted-foreground/70">Issued Date</label>
                     <input type="date" className={INPUT_CLASS} value={editData.issued_date}
                       onChange={(e) => setEdit('issued_date', e.target.value)} />
                   </div>
                 )}
                 {editData.status === 'expired' && (
                   <div>
-                    <label className="text-xs text-slate-500">Expiry Date</label>
+                    <label className="text-xs text-muted-foreground/70">Expiry Date</label>
                     <input type="date" className={INPUT_CLASS} value={editData.expiry_date}
                       onChange={(e) => setEdit('expiry_date', e.target.value)} />
                   </div>
                 )}
               </div>
               <div>
-                <label className="text-xs text-slate-500">Notes</label>
+                <label className="text-xs text-muted-foreground/70">Notes</label>
                 <input type="text" className={INPUT_CLASS} value={editData.notes}
                   onChange={(e) => setEdit('notes', e.target.value)} placeholder="Optional notes" />
               </div>
               <div>
-                <label className="text-xs text-slate-500">Apply Link / URL</label>
+                <label className="text-xs text-muted-foreground/70">Apply Link / URL</label>
                 <input type="url" className={INPUT_CLASS} value={editData.apply_url}
                   onChange={(e) => setEdit('apply_url', e.target.value)} placeholder="https://permits.example.gov/apply" />
               </div>
@@ -238,19 +238,19 @@ function PermitCard({ permit, profileId, projectId }) {
                   notes: editData.notes,
                   apply_url: editData.apply_url || null,
                 })}
-                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm min-h-[44px] disabled:opacity-50">
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] disabled:opacity-50">
                 {updatePermit.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Update Permit</>}
               </button>
             </div>
           ) : (
             <>
               {/* Dates */}
-              <div className="flex flex-wrap gap-3 text-xs text-slate-500">
+              <div className="flex flex-wrap gap-3 text-xs text-muted-foreground/70">
                 {permit.applied_date && <span>Applied: {fmtDate(permit.applied_date)}</span>}
                 {permit.issued_date && <span>Issued: {fmtDate(permit.issued_date)}</span>}
                 {permit.expiry_date && <span>Expires: {fmtDate(permit.expiry_date)}</span>}
               </div>
-              {permit.notes && <p className="text-sm text-slate-400">{permit.notes}</p>}
+              {permit.notes && <p className="text-sm text-muted-foreground">{permit.notes}</p>}
             </>
           )}
 
@@ -259,37 +259,37 @@ function PermitCard({ permit, profileId, projectId }) {
             {permit.apply_url ? (
               <a href={permit.apply_url}
                 target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400">
+                className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary-hover">
                 Apply for Permit <ExternalLink className="h-3 w-3" />
               </a>
             ) : (
               <a href="https://pdd.eugene-or.gov/ebuild"
                 target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400">
+                className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary-hover">
                 Apply on eBuild <ExternalLink className="h-3 w-3" />
               </a>
             )}
             {permit.permit_number && (
               <a href="https://pdd.eugene-or.gov/buildingpermits/permitsearch"
                 target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400">
+                className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary-hover">
                 Look Up Permit <ExternalLink className="h-3 w-3" />
               </a>
             )}
           </div>
 
           {/* Inspections */}
-          <div className="border-t border-slate-700 pt-3">
+          <div className="border-t border-border pt-3">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Inspections</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Inspections</p>
               <button type="button" onClick={() => setShowInspectionForm(true)}
-                className="flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400 min-h-[44px]">
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover min-h-[44px]">
                 <Plus className="h-3 w-3" /> Log Inspection
               </button>
             </div>
 
             {inspections.length === 0 && !showInspectionForm && (
-              <p className="text-xs text-slate-600">No inspections logged yet.</p>
+              <p className="text-xs text-muted-foreground/50">No inspections logged yet.</p>
             )}
 
             {inspections.length > 0 && (
@@ -297,17 +297,17 @@ function PermitCard({ permit, profileId, projectId }) {
                 {inspections.map((insp, i) => {
                   const isc = INSPECTION_STATUS[insp.status] || INSPECTION_STATUS.pending;
                   return (
-                    <div key={insp.id || i} className="bg-slate-900/50 rounded-lg p-2 flex items-center gap-2">
+                    <div key={insp.id || i} className="bg-card/50 rounded-lg p-2 flex items-center gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-slate-200">{insp.type || 'Inspection'}</span>
+                          <span className="text-xs font-medium text-foreground">{insp.type || 'Inspection'}</span>
                           <span className={`px-1.5 py-0.5 rounded text-xs ${isc.color}`}>{isc.label}</span>
                         </div>
-                        <div className="flex gap-2 text-xs text-slate-500 mt-0.5">
+                        <div className="flex gap-2 text-xs text-muted-foreground/70 mt-0.5">
                           {insp.date && <span>{fmtDate(insp.date)}</span>}
                           {insp.inspector && <span>By: {insp.inspector}</span>}
                         </div>
-                        {insp.notes && <p className="text-xs text-slate-500 mt-0.5">{insp.notes}</p>}
+                        {insp.notes && <p className="text-xs text-muted-foreground/70 mt-0.5">{insp.notes}</p>}
                       </div>
                     </div>
                   );
@@ -317,27 +317,27 @@ function PermitCard({ permit, profileId, projectId }) {
 
             {/* Inspection form */}
             {showInspectionForm && (
-              <div className="bg-slate-900/50 border border-slate-700 rounded-lg p-3 mt-2 space-y-2">
+              <div className="bg-card/50 border border-border rounded-lg p-3 mt-2 space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-slate-300">Log Inspection</p>
+                  <p className="text-xs font-medium text-foreground-soft">Log Inspection</p>
                   <button type="button" onClick={() => setShowInspectionForm(false)}
-                    className="p-1 text-slate-500 hover:text-amber-500"><X className="h-3 w-3" /></button>
+                    className="p-1 text-muted-foreground/70 hover:text-primary"><X className="h-3 w-3" /></button>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs text-slate-500">Type</label>
+                    <label className="text-xs text-muted-foreground/70">Type</label>
                     <input type="text" className={INPUT_CLASS} value={inspectionData.type}
                       onChange={(e) => setInsp('type', e.target.value)} placeholder="e.g., Framing" />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-500">Date</label>
+                    <label className="text-xs text-muted-foreground/70">Date</label>
                     <input type="date" className={INPUT_CLASS} value={inspectionData.date}
                       onChange={(e) => setInsp('date', e.target.value)} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs text-slate-500">Status</label>
+                    <label className="text-xs text-muted-foreground/70">Status</label>
                     <select className={INPUT_CLASS} value={inspectionData.status}
                       onChange={(e) => setInsp('status', e.target.value)}>
                       <option value="pending">Pending</option>
@@ -346,20 +346,20 @@ function PermitCard({ permit, profileId, projectId }) {
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-slate-500">Inspector</label>
+                    <label className="text-xs text-muted-foreground/70">Inspector</label>
                     <input type="text" className={INPUT_CLASS} value={inspectionData.inspector}
                       onChange={(e) => setInsp('inspector', e.target.value)} placeholder="Name" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-slate-500">Notes</label>
+                  <label className="text-xs text-muted-foreground/70">Notes</label>
                   <input type="text" className={INPUT_CLASS} value={inspectionData.notes}
                     onChange={(e) => setInsp('notes', e.target.value)} placeholder="Optional" />
                 </div>
                 <button type="button"
                   disabled={!inspectionData.type.trim() || addInspection.isLoading}
                   onClick={() => addInspection.mutate()}
-                  className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm min-h-[44px] disabled:opacity-50">
+                  className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] disabled:opacity-50">
                   {addInspection.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Inspection'}
                 </button>
               </div>
@@ -416,25 +416,25 @@ export default function FieldServicePermits({ projectId, profileId, currentUser 
   const set = (field, value) => setFormData((prev) => ({ ...prev, [field]: value }));
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+    <div className="bg-card border border-border rounded-xl p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-amber-500" />
-          <h3 className="text-lg font-bold text-slate-100">Permits & Inspections</h3>
+          <Shield className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-bold text-foreground">Permits & Inspections</h3>
         </div>
         <button type="button" onClick={() => { setFormData(EMPTY_PERMIT); setShowForm(true); }}
-          className="flex items-center gap-1.5 text-sm text-amber-500 hover:text-amber-400 min-h-[44px]">
+          className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover min-h-[44px]">
           <Plus className="h-4 w-4" /> Add Permit
         </button>
       </div>
 
       {/* Add permit form */}
       {showForm && (
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 space-y-3">
+        <div className="bg-secondary/50 border border-border rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-slate-300">New Permit</p>
+            <p className="text-sm font-medium text-foreground-soft">New Permit</p>
             <button type="button" onClick={() => setShowForm(false)}
-              className="p-1 text-slate-500 hover:text-amber-500"><X className="h-4 w-4" /></button>
+              className="p-1 text-muted-foreground/70 hover:text-primary"><X className="h-4 w-4" /></button>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -501,13 +501,13 @@ export default function FieldServicePermits({ projectId, profileId, currentUser 
             <label className={LABEL_CLASS}>Apply Link / URL</label>
             <input type="url" className={INPUT_CLASS} value={formData.apply_url}
               onChange={(e) => set('apply_url', e.target.value)} placeholder="https://permits.example.gov/apply" />
-            <p className="text-xs text-slate-500 mt-1">Link to the permit application portal (optional)</p>
+            <p className="text-xs text-muted-foreground/70 mt-1">Link to the permit application portal (optional)</p>
           </div>
 
           <button type="button"
             disabled={saveMutation.isLoading}
             onClick={() => saveMutation.mutate()}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm min-h-[44px] disabled:opacity-50">
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] disabled:opacity-50">
             {saveMutation.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Save Permit</>}
           </button>
         </div>
@@ -516,12 +516,12 @@ export default function FieldServicePermits({ projectId, profileId, currentUser 
       {/* Permit list */}
       {isLoading && (
         <div className="flex justify-center py-4">
-          <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
+          <Loader2 className="h-5 w-5 text-primary animate-spin" />
         </div>
       )}
 
       {!isLoading && permits.length === 0 && (
-        <p className="text-sm text-slate-500 text-center py-2">No permits tracked yet.</p>
+        <p className="text-sm text-muted-foreground/70 text-center py-2">No permits tracked yet.</p>
       )}
 
       {!isLoading && permits.length > 0 && (

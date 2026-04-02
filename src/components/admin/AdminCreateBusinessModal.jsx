@@ -154,10 +154,10 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-900 border-slate-700 text-slate-100 max-w-lg">
+      <DialogContent className="bg-card border-border text-foreground max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">Create Business Listing</DialogTitle>
-          <DialogDescription className="text-slate-400">
+          <DialogTitle className="text-foreground">Create Business Listing</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Seed a new business in the directory. The owner can claim it later.
           </DialogDescription>
         </DialogHeader>
@@ -165,13 +165,13 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           {/* Business Name */}
           <div>
-            <Label className="text-xs text-slate-400 uppercase tracking-wider">
-              Business Name <span className="text-amber-500">*</span>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+              Business Name <span className="text-primary">*</span>
             </Label>
             <Input
               value={formData.name}
               onChange={(e) => updateField('name', e.target.value)}
-              className="bg-slate-800 border-slate-700 text-slate-100 mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+              className="bg-secondary border-border text-foreground mt-1 focus:border-primary focus:ring-ring/20"
               placeholder="Business name"
               autoFocus
             />
@@ -179,10 +179,10 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
 
           {/* Categories (Multi-select) */}
           <div>
-            <Label className="text-xs text-slate-400 uppercase tracking-wider">
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider">
               Categories
               {formData.subcategories?.length > 0 && (
-                <span className="ml-2 text-amber-500 normal-case">
+                <span className="ml-2 text-primary normal-case">
                   ({formData.subcategories.length} selected)
                 </span>
               )}
@@ -194,7 +194,7 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
                 {formData.subcategories.map((subId) => (
                   <span
                     key={subId}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-xs border border-amber-500/30 cursor-pointer hover:bg-amber-500/30"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/20 text-primary-hover text-xs border border-primary/30 cursor-pointer hover:bg-primary/30"
                     onClick={() => toggleSubcategory(subId)}
                   >
                     {getSubcategoryLabel(subId)}
@@ -208,27 +208,27 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
             )}
 
             {/* Grouped checkboxes */}
-            <div className="mt-1 border border-slate-700 rounded-lg bg-slate-800 max-h-52 overflow-y-auto">
+            <div className="mt-1 border border-border rounded-lg bg-secondary max-h-52 overflow-y-auto">
               {mainCategories.map((main) => (
                 <div key={main.id} className="px-2 py-1.5">
-                  <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">{main.label}</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">{main.label}</p>
                   <div className="space-y-0.5">
                     {main.subcategories.map((sub) => {
                       const isSelected = formData.subcategories?.includes(sub.id);
                       return (
                         <div
                           key={sub.id}
-                          className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-slate-700/50 ${isSelected ? 'bg-slate-700/30' : ''}`}
+                          className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-surface/50 ${isSelected ? 'bg-surface/30' : ''}`}
                           onClick={() => toggleSubcategory(sub.id)}
                         >
-                          <div className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-amber-500 border-amber-500' : 'border-slate-600 bg-transparent'}`}>
+                          <div className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary border-primary' : 'border-border bg-transparent'}`}>
                             {isSelected && (
-                              <svg className="h-3 w-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <polyline points="20 6 9 17 4 12" />
                               </svg>
                             )}
                           </div>
-                          <span className="text-sm text-slate-300">{sub.label}</span>
+                          <span className="text-sm text-foreground-soft">{sub.label}</span>
                         </div>
                       );
                     })}
@@ -240,12 +240,12 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
 
           {/* Description */}
           <div>
-            <Label className="text-xs text-slate-400 uppercase tracking-wider">Description</Label>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider">Description</Label>
             <Textarea
               value={formData.description}
               onChange={(e) => updateField('description', e.target.value)}
               rows={3}
-              className="bg-slate-800 border-slate-700 text-slate-100 mt-1 focus:border-amber-500 focus:ring-amber-500/20 resize-none"
+              className="bg-secondary border-border text-foreground mt-1 focus:border-primary focus:ring-ring/20 resize-none"
               placeholder="Brief description of the business"
             />
           </div>
@@ -253,22 +253,22 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
           {/* Contact Info */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs text-slate-400 uppercase tracking-wider">Contact Email</Label>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider">Contact Email</Label>
               <Input
                 type="email"
                 value={formData.email}
                 onChange={(e) => updateField('email', e.target.value)}
-                className="bg-slate-800 border-slate-700 text-slate-100 mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                className="bg-secondary border-border text-foreground mt-1 focus:border-primary focus:ring-ring/20"
                 placeholder="owner@example.com"
               />
             </div>
             <div>
-              <Label className="text-xs text-slate-400 uppercase tracking-wider">Phone</Label>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider">Phone</Label>
               <Input
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => updateField('phone', formatPhone(e.target.value))}
-                className="bg-slate-800 border-slate-700 text-slate-100 mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                className="bg-secondary border-border text-foreground mt-1 focus:border-primary focus:ring-ring/20"
                 placeholder="(541) 555-1234"
               />
             </div>
@@ -276,33 +276,33 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
 
           {/* Address */}
           <div>
-            <Label className="text-xs text-slate-400 uppercase tracking-wider">Street Address</Label>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider">Street Address</Label>
             <Input
               value={formData.address}
               onChange={(e) => updateField('address', e.target.value)}
-              className="bg-slate-800 border-slate-700 text-slate-100 mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+              className="bg-secondary border-border text-foreground mt-1 focus:border-primary focus:ring-ring/20"
               placeholder="123 Main Street"
             />
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <Label className="text-xs text-slate-400 uppercase tracking-wider">City</Label>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider">City</Label>
               <Input
                 value={formData.city}
                 onChange={(e) => updateField('city', e.target.value)}
-                className="bg-slate-800 border-slate-700 text-slate-100 mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                className="bg-secondary border-border text-foreground mt-1 focus:border-primary focus:ring-ring/20"
                 placeholder="Eugene"
               />
             </div>
             <div>
-              <Label className="text-xs text-slate-400 uppercase tracking-wider">State</Label>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider">State</Label>
               <Select value={formData.state} onValueChange={(val) => updateField('state', val)}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 mt-1 focus:border-amber-500 focus:ring-amber-500/20">
+                <SelectTrigger className="bg-secondary border-border text-foreground mt-1 focus:border-primary focus:ring-ring/20">
                   <SelectValue placeholder="State" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800">
+                <SelectContent className="bg-card border-border">
                   {US_STATES.map((s) => (
-                    <SelectItem key={s.code} value={s.code} className="text-slate-300 focus:bg-slate-800">
+                    <SelectItem key={s.code} value={s.code} className="text-foreground-soft focus:bg-secondary">
                       {s.name}
                     </SelectItem>
                   ))}
@@ -310,11 +310,11 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
               </Select>
             </div>
             <div>
-              <Label className="text-xs text-slate-400 uppercase tracking-wider">Zip</Label>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider">Zip</Label>
               <Input
                 value={formData.zip_code}
                 onChange={(e) => updateField('zip_code', e.target.value)}
-                className="bg-slate-800 border-slate-700 text-slate-100 mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                className="bg-secondary border-border text-foreground mt-1 focus:border-primary focus:ring-ring/20"
                 placeholder="97401"
                 maxLength={10}
               />
@@ -324,7 +324,7 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
           {/* Networks */}
           {networks.length > 0 && (
             <div>
-              <Label className="text-xs text-slate-400 uppercase tracking-wider mb-2 block">Networks</Label>
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">Networks</Label>
               <div className="space-y-2">
                 {networks.map((network) => {
                   const networkId = network.value ?? network.slug ?? network.id;
@@ -332,15 +332,15 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
                   const currentIds = Array.isArray(formData.network_ids) ? formData.network_ids : [];
                   const isChecked = currentIds.includes(networkId);
                   return (
-                    <div key={networkId} className="flex items-center justify-between p-2 bg-slate-800 rounded-lg border border-slate-700">
+                    <div key={networkId} className="flex items-center justify-between p-2 bg-secondary rounded-lg border border-border">
                       <div className="flex items-center gap-2">
-                        <Globe className="h-4 w-4 text-amber-500" />
-                        <span className="text-sm text-slate-200">{displayName}</span>
+                        <Globe className="h-4 w-4 text-primary" />
+                        <span className="text-sm text-foreground">{displayName}</span>
                       </div>
                       <Switch
                         checked={isChecked}
                         onCheckedChange={(checked) => toggleNetwork(networkId, checked)}
-                        className="data-[state=checked]:bg-amber-500"
+                        className="data-[state=checked]:bg-primary"
                       />
                     </div>
                   );
@@ -358,14 +358,14 @@ export default function AdminCreateBusinessModal({ open, onOpenChange }) {
                 setFormData(initialFormData);
                 onOpenChange(false);
               }}
-              className="bg-transparent border-slate-600 text-slate-300 hover:bg-transparent hover:border-slate-500"
+              className="bg-transparent border-border text-foreground-soft hover:bg-transparent hover:border-muted-foreground"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={createMutation.isPending || !formData.name.trim()}
-              className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold"
             >
               {createMutation.isPending ? (
                 <>

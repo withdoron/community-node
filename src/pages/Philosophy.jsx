@@ -6,20 +6,20 @@ import { ArrowLeft } from 'lucide-react';
 export default function Philosophy() {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       <div className="max-w-3xl mx-auto px-6 py-12">
         {/* Back — goes to where the user came from, falls back to Home */}
         <button
           onClick={() => window.history.length > 1 ? navigate(-1) : navigate(createPageUrl('Home'))}
-          className="inline-flex items-center gap-2 text-slate-400 hover:text-amber-500 transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </button>
 
-        <h1 className="text-3xl font-bold text-white mb-10">Why LocalLane exists</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-10">Why LocalLane exists</h1>
 
-        <div className="space-y-8 text-slate-300 leading-relaxed">
+        <div className="space-y-8 text-foreground-soft leading-relaxed">
           <section>
             <p className="text-lg">How much is an hour of your time worth?</p>
           </section>
@@ -54,7 +54,7 @@ export default function Philosophy() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">How we sustain this</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-3">How we sustain this</h2>
             <p className="mb-4">
               The platform is free to explore. When you want Mylane, our AI companion, to do
               real work for you — schedule your team's season, import your finances, manage
@@ -70,7 +70,7 @@ export default function Philosophy() {
 
           <section className="pt-4">
             <p
-              className="text-amber-400 text-lg font-medium"
+              className="text-primary-hover text-lg font-medium"
               style={{ fontFamily: 'Georgia, serif' }}
             >
               Built by your community. Built for your community.

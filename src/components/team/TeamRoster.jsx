@@ -26,9 +26,9 @@ const ROLE_ORDER = ['coach', 'player', 'parent'];
 
 function roleBadgeClass(role) {
   // Backward compat: treat existing 'assistant_coach' records as 'coach'
-  if (role === 'coach' || role === 'assistant_coach') return 'bg-amber-500 text-black text-xs font-semibold px-2 py-0.5 rounded';
-  if (role === 'player') return 'bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded';
-  return 'border border-slate-600 text-slate-400 text-xs px-2 py-0.5 rounded';
+  if (role === 'coach' || role === 'assistant_coach') return 'bg-primary text-primary-foreground text-xs font-semibold px-2 py-0.5 rounded';
+  if (role === 'player') return 'bg-surface text-foreground-soft text-xs px-2 py-0.5 rounded';
+  return 'border border-border text-muted-foreground text-xs px-2 py-0.5 rounded';
 }
 
 function roleLabel(role) {
@@ -176,7 +176,7 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
               type="button"
               variant="outline"
               size="sm"
-              className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+              className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent min-h-[44px]"
               onClick={() => {
                 const code = team?.invite_code;
                 if (code) {
@@ -193,7 +193,7 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
               type="button"
               variant="outline"
               size="sm"
-              className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+              className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent min-h-[44px]"
               onClick={() => {
                 const code = team?.coach_invite_code;
                 if (code) {
@@ -210,7 +210,7 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
               type="button"
               variant="outline"
               size="sm"
-              className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+              className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent min-h-[44px]"
               onClick={() => {
                 const name = team?.name;
                 if (name) {
@@ -227,7 +227,7 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
           </div>
           <Button
             type="button"
-            className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
             onClick={openAdd}
           >
             <UserPlus className="h-4 w-4 mr-2" />
@@ -236,10 +236,10 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
         </div>
       )}
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
         <table className="w-full text-left">
           <thead>
-            <tr className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800">
+            <tr className="text-xs text-muted-foreground uppercase tracking-wider border-b border-border">
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">#</th>
               <th className="px-4 py-3">Position</th>
@@ -250,7 +250,7 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
           <tbody>
             {sortedMembers.length === 0 ? (
               <tr>
-                <td colSpan={isCoach ? 5 : 4} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={isCoach ? 5 : 4} className="px-4 py-8 text-center text-muted-foreground/70">
                   No one on the roster yet. {isCoach && 'Add players or coaches above.'}
                 </td>
               </tr>
@@ -262,25 +262,25 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
                 const parentIds = Array.isArray(m.parent_user_ids) ? m.parent_user_ids : m.parent_user_id ? [m.parent_user_id] : [];
                 const isMyChild = m.role === 'player' && parentIds.includes(currentUserId);
                 return (
-                  <tr key={m.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
+                  <tr key={m.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
                     <td className="px-4 py-3">
-                      <div className="font-medium text-slate-100">{m.jersey_name || '—'}</div>
+                      <div className="font-medium text-foreground">{m.jersey_name || '—'}</div>
                       {isUnclaimedPlayer && (
-                        <span className="inline-block mt-1 text-xs bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded">Pending</span>
+                        <span className="inline-block mt-1 text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">Pending</span>
                       )}
                       {m.role === 'parent' && linkedPlayer && (
-                        <span className="inline-block mt-1 text-xs text-slate-400">Linked: {linkedPlayer.jersey_name || '—'}</span>
+                        <span className="inline-block mt-1 text-xs text-muted-foreground">Linked: {linkedPlayer.jersey_name || '—'}</span>
                       )}
                       {m.role === 'player' && linkedParents.length > 0 && (
-                        <span className="inline-block mt-1 text-xs text-slate-400">Parent: {linkedParents.map((p) => p.jersey_name).filter(Boolean).join(', ') || '—'}</span>
+                        <span className="inline-block mt-1 text-xs text-muted-foreground">Parent: {linkedParents.map((p) => p.jersey_name).filter(Boolean).join(', ') || '—'}</span>
                       )}
                       {isMyChild && (
-                        <span className="inline-block mt-1 text-xs text-amber-500">Your child</span>
+                        <span className="inline-block mt-1 text-xs text-primary">Your child</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-400">{m.jersey_number || '—'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{m.jersey_number || '—'}</td>
                     <td className="px-4 py-3">
-                      {m.position ? <span className="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded">{m.position}</span> : '—'}
+                      {m.position ? <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded">{m.position}</span> : '—'}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
@@ -294,18 +294,18 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
                             <button
                               type="button"
                               onClick={() => toggleParentLink.mutate({ member: m, isLinked: isMyChild })}
-                              className={`p-1.5 transition-colors ${isMyChild ? 'text-amber-500' : 'text-slate-400 hover:text-amber-500'}`}
+                              className={`p-1.5 transition-colors ${isMyChild ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
                               aria-label={isMyChild ? `Unlink ${m.jersey_name} as your child` : `Link ${m.jersey_name} as your child`}
                               title={isMyChild ? 'Your child — click to unlink' : 'Mark as my child'}
                             >
-                              <Heart className={`h-4 w-4 ${isMyChild ? 'fill-amber-500' : ''}`} />
+                              <Heart className={`h-4 w-4 ${isMyChild ? 'fill-primary' : ''}`} />
                             </button>
                           )}
                           {m.role === 'parent' && (
                             <button
                               type="button"
                               onClick={() => setPromoteConfirmMember(m)}
-                              className="p-1.5 text-slate-400 hover:text-amber-500 transition-colors"
+                              className="p-1.5 text-muted-foreground hover:text-primary transition-colors"
                               aria-label={`Promote ${m.jersey_name} to coach`}
                               title="Promote to coach"
                             >
@@ -315,7 +315,7 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
                           <button
                             type="button"
                             onClick={() => openEdit(m)}
-                            className="p-1.5 text-slate-400 hover:text-amber-500 transition-colors"
+                            className="p-1.5 text-muted-foreground hover:text-primary transition-colors"
                             aria-label={`Edit ${m.jersey_name}`}
                           >
                             <Pencil className="h-4 w-4" />
@@ -323,7 +323,7 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
                           <button
                             type="button"
                             onClick={() => setDeleteConfirmMember(m)}
-                            className="p-1.5 text-slate-400 hover:text-red-400 transition-colors"
+                            className="p-1.5 text-muted-foreground hover:text-red-400 transition-colors"
                             aria-label={`Remove ${m.jersey_name}`}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -341,27 +341,27 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
 
       {/* Add / Edit modal */}
       <Dialog open={modalOpen} onOpenChange={(open) => { if (!open) closeModal(); else setModalOpen(open); }}>
-        <DialogContent className="bg-slate-900 border-slate-800 max-w-md">
+        <DialogContent className="bg-card border-border max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-slate-100">{editingMember ? 'Edit member' : 'Add to roster'}</DialogTitle>
+            <DialogTitle className="text-foreground">{editingMember ? 'Edit member' : 'Add to roster'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label className="text-slate-400">Name *</Label>
+              <Label className="text-muted-foreground">Name *</Label>
               <Input
                 value={form.jersey_name}
                 onChange={(e) => setForm((f) => ({ ...f, jersey_name: e.target.value }))}
-                className="w-full bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 mt-1 min-h-[44px]"
+                className="w-full bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring mt-1 min-h-[44px]"
                 placeholder="Display name"
                 required
               />
             </div>
             <div>
-              <Label className="text-slate-400">Role</Label>
+              <Label className="text-muted-foreground">Role</Label>
               <select
                 value={form.role}
                 onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 mt-1 min-h-[44px]"
+                className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring mt-1 min-h-[44px]"
               >
                 {ROLES.map((r) => (
                   <option key={r.value} value={r.value}>{r.label}</option>
@@ -370,11 +370,11 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
             </div>
             {form.role === 'player' && (
               <div>
-                <Label className="text-slate-400">Position</Label>
+                <Label className="text-muted-foreground">Position</Label>
                 <select
                   value={form.position}
                   onChange={(e) => setForm((f) => ({ ...f, position: e.target.value }))}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 mt-1 min-h-[44px]"
+                  className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring mt-1 min-h-[44px]"
                 >
                   <option value="">—</option>
                   {positions.map((p) => (
@@ -384,21 +384,21 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
               </div>
             )}
             <div>
-              <Label className="text-slate-400">Jersey number (optional)</Label>
+              <Label className="text-muted-foreground">Jersey number (optional)</Label>
               <Input
                 value={form.jersey_number}
                 onChange={(e) => setForm((f) => ({ ...f, jersey_number: e.target.value }))}
-                className="w-full bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 mt-1 min-h-[44px]"
+                className="w-full bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring mt-1 min-h-[44px]"
                 placeholder="e.g. 12"
               />
             </div>
             {form.role === 'parent' && players.length > 0 && (
               <div>
-                <Label className="text-slate-400">Link to player (optional)</Label>
+                <Label className="text-muted-foreground">Link to player (optional)</Label>
                 <select
                   value={form.linked_player_id}
                   onChange={(e) => setForm((f) => ({ ...f, linked_player_id: e.target.value }))}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500 mt-1 min-h-[44px]"
+                  className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring mt-1 min-h-[44px]"
                 >
                   <option value="">—</option>
                   {players.map((p) => (
@@ -408,10 +408,10 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
               </div>
             )}
             <DialogFooter className="gap-2 sm:gap-0">
-              <Button type="button" variant="outline" className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent" onClick={closeModal}>
+              <Button type="button" variant="outline" className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent" onClick={closeModal}>
                 Cancel
               </Button>
-              <Button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px]" disabled={saveMember.isPending}>
+              <Button type="submit" className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px]" disabled={saveMember.isPending}>
                 {saveMember.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : editingMember ? 'Save' : 'Add'}
               </Button>
             </DialogFooter>

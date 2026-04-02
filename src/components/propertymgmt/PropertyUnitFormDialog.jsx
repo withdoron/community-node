@@ -9,8 +9,8 @@ import {
 import { Button } from '@/components/ui/button';
 
 const inputClass =
-  'w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 px-3 py-2 text-sm';
-const labelClass = 'text-slate-300 text-sm font-medium block mb-1';
+  'w-full rounded-md bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring px-3 py-2 text-sm';
+const labelClass = 'text-foreground-soft text-sm font-medium block mb-1';
 
 const PROPERTY_TYPE_OPTIONS = [
   { value: 'single_family', label: 'Single Family' },
@@ -153,9 +153,9 @@ export default function PropertyUnitFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-slate-900 border border-slate-800 text-slate-100 max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-card border border-border text-foreground max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">{unit ? 'Edit Unit' : 'Add Unit'}</DialogTitle>
+          <DialogTitle className="text-foreground">{unit ? 'Edit Unit' : 'Add Unit'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -202,8 +202,8 @@ export default function PropertyUnitFormDialog({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <input type="checkbox" id="has_garage_unit" checked={form.has_garage} onChange={(e) => set('has_garage', e.target.checked)} className="rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500" />
-            <label htmlFor="has_garage_unit" className="text-slate-300 text-sm">Has garage</label>
+            <input type="checkbox" id="has_garage_unit" checked={form.has_garage} onChange={(e) => set('has_garage', e.target.checked)} className="rounded border-border bg-secondary text-primary focus:ring-ring" />
+            <label htmlFor="has_garage_unit" className="text-foreground-soft text-sm">Has garage</label>
           </div>
           <div>
             <label className={labelClass}>Status *</label>
@@ -222,7 +222,7 @@ export default function PropertyUnitFormDialog({
                     key={a.value}
                     type="button"
                     onClick={() => toggleAmenity(a.value)}
-                    className={`px-3 py-1 text-xs rounded-full border transition-colors min-h-[28px] ${form.amenities.includes(a.value) ? 'bg-amber-500/20 border-amber-500 text-amber-400' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'}`}
+                    className={`px-3 py-1 text-xs rounded-full border transition-colors min-h-[28px] ${form.amenities.includes(a.value) ? 'bg-primary/20 border-primary text-primary-hover' : 'bg-secondary border-border text-muted-foreground hover:border-border'}`}
                   >
                     {a.label}
                   </button>
@@ -231,8 +231,8 @@ export default function PropertyUnitFormDialog({
             </div>
           )}
           {!isShortTerm && (
-            <div className="border-t border-slate-800 pt-3">
-              <p className="text-slate-400 text-sm font-medium mb-2">Tenant</p>
+            <div className="border-t border-border pt-3">
+              <p className="text-muted-foreground text-sm font-medium mb-2">Tenant</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <label className={labelClass}>Tenant name</label>
@@ -264,8 +264,8 @@ export default function PropertyUnitFormDialog({
             <textarea className={inputClass + ' min-h-[80px]'} value={form.notes} onChange={(e) => set('notes', e.target.value)} rows={3} />
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="ghost" onClick={onClose} className="text-slate-400 hover:text-slate-200 hover:bg-transparent">Cancel</Button>
-            <Button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-bold">{unit ? 'Update' : 'Create'}</Button>
+            <Button type="button" variant="ghost" onClick={onClose} className="text-muted-foreground hover:text-foreground hover:bg-transparent">Cancel</Button>
+            <Button type="submit" className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold">{unit ? 'Update' : 'Create'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

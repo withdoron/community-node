@@ -8,25 +8,25 @@ export default function TrustSignal({ business }) {
 
   if (count === 0) {
     return (
-      <span className="text-sm text-slate-500 italic">New to LocalLane</span>
+      <span className="text-sm text-muted-foreground/70 italic">New to LocalLane</span>
     );
   }
 
   return (
     <div className="flex items-center gap-1.5 text-sm flex-wrap">
-      <ThumbsUp className="h-4 w-4 text-amber-500" />
-      <span className="text-slate-300 font-medium">{count} recommended</span>
+      <ThumbsUp className="h-4 w-4 text-primary" />
+      <span className="text-foreground-soft font-medium">{count} recommended</span>
       {stories > 0 && (
         <>
-          <span className="text-slate-500">·</span>
-          <span className="text-slate-400">{stories} {stories === 1 ? 'story' : 'stories'}</span>
+          <span className="text-muted-foreground/70">·</span>
+          <span className="text-muted-foreground">{stories} {stories === 1 ? 'story' : 'stories'}</span>
         </>
       )}
       {vouches > 0 && (
         <>
-          <span className="text-slate-500">·</span>
-          <Shield className="h-4 w-4 text-amber-500" />
-          <span className="text-amber-400 font-medium">{vouches} {vouches === 1 ? 'vouch' : 'vouches'}</span>
+          <span className="text-muted-foreground/70">·</span>
+          <Shield className="h-4 w-4 text-primary" />
+          <span className="text-primary-hover font-medium">{vouches} {vouches === 1 ? 'vouch' : 'vouches'}</span>
         </>
       )}
     </div>

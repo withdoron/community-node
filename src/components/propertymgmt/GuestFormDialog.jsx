@@ -114,21 +114,21 @@ export default function GuestFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-slate-900 border border-slate-800 text-slate-100 max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-card border border-border text-foreground max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">
+          <DialogTitle className="text-foreground">
             {isEdit ? 'Edit Guest' : 'Add Guest'}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Guest name */}
           <div>
-            <Label className="text-slate-400">Guest Name *</Label>
+            <Label className="text-muted-foreground">Guest Name *</Label>
             <Input
               value={form.guest_name}
               onChange={(e) => set('guest_name', e.target.value)}
               required
-              className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
               placeholder="Full name"
             />
           </div>
@@ -136,31 +136,31 @@ export default function GuestFormDialog({
           {/* Contact */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-slate-400">Email</Label>
+              <Label className="text-muted-foreground">Email</Label>
               <Input
                 type="email"
                 value={form.guest_email}
                 onChange={(e) => set('guest_email', e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
               />
             </div>
             <div>
-              <Label className="text-slate-400">Phone</Label>
+              <Label className="text-muted-foreground">Phone</Label>
               <Input
                 value={form.guest_phone}
                 onChange={(e) => set('guest_phone', e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
               />
             </div>
           </div>
 
           {/* Property */}
           <div>
-            <Label className="text-slate-400">Property</Label>
+            <Label className="text-muted-foreground">Property</Label>
             <select
               value={form.property_id}
               onChange={(e) => handlePropertyChange(e.target.value)}
-              className="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="w-full mt-1 bg-secondary border border-border text-foreground rounded-md px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-ring"
             >
               <option value="">— Select property —</option>
               {(properties || []).map((p) => (
@@ -174,21 +174,21 @@ export default function GuestFormDialog({
           {/* Dates */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-slate-400">Check In</Label>
+              <Label className="text-muted-foreground">Check In</Label>
               <Input
                 type="date"
                 value={form.check_in}
                 onChange={(e) => set('check_in', e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="mt-1 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
               />
             </div>
             <div>
-              <Label className="text-slate-400">Check Out</Label>
+              <Label className="text-muted-foreground">Check Out</Label>
               <Input
                 type="date"
                 value={form.check_out}
                 onChange={(e) => set('check_out', e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="mt-1 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
               />
             </div>
           </div>
@@ -196,32 +196,32 @@ export default function GuestFormDialog({
           {/* Rate + Guests + Source */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <Label className="text-slate-400">Nightly Rate ($)</Label>
+              <Label className="text-muted-foreground">Nightly Rate ($)</Label>
               <Input
                 type="number"
                 min="0"
                 step="1"
                 value={form.nightly_rate}
                 onChange={(e) => set('nightly_rate', e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="mt-1 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
               />
             </div>
             <div>
-              <Label className="text-slate-400"># Guests</Label>
+              <Label className="text-muted-foreground"># Guests</Label>
               <Input
                 type="number"
                 min="1"
                 value={form.num_guests}
                 onChange={(e) => set('num_guests', e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="mt-1 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
               />
             </div>
             <div>
-              <Label className="text-slate-400">Source</Label>
+              <Label className="text-muted-foreground">Source</Label>
               <select
                 value={form.booking_source}
                 onChange={(e) => set('booking_source', e.target.value)}
-                className="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="w-full mt-1 bg-secondary border border-border text-foreground rounded-md px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-ring"
               >
                 <option value="direct">Direct</option>
                 <option value="airbnb">Airbnb</option>
@@ -233,10 +233,10 @@ export default function GuestFormDialog({
 
           {/* Auto total */}
           {nights > 0 && form.nightly_rate && (
-            <div className="bg-slate-800/50 rounded-lg p-3 text-sm">
-              <div className="flex justify-between text-slate-400">
+            <div className="bg-secondary/50 rounded-lg p-3 text-sm">
+              <div className="flex justify-between text-muted-foreground">
                 <span>{nights} night{nights !== 1 ? 's' : ''} × {fmt(parseFloat(form.nightly_rate) || 0)}</span>
-                <span className="text-amber-500 font-bold">{fmt(calculatedTotal)}</span>
+                <span className="text-primary font-bold">{fmt(calculatedTotal)}</span>
               </div>
             </div>
           )}
@@ -244,11 +244,11 @@ export default function GuestFormDialog({
           {/* Status */}
           {isEdit && (
             <div>
-              <Label className="text-slate-400">Status</Label>
+              <Label className="text-muted-foreground">Status</Label>
               <select
                 value={form.status}
                 onChange={(e) => set('status', e.target.value)}
-                className="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="w-full mt-1 bg-secondary border border-border text-foreground rounded-md px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-ring"
               >
                 <option value="confirmed">Confirmed</option>
                 <option value="checked_in">Checked In</option>
@@ -260,12 +260,12 @@ export default function GuestFormDialog({
 
           {/* Notes */}
           <div>
-            <Label className="text-slate-400">Notes</Label>
+            <Label className="text-muted-foreground">Notes</Label>
             <textarea
               value={form.notes}
               onChange={(e) => set('notes', e.target.value)}
               rows={2}
-              className="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-md px-3 py-2 text-sm placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 resize-none"
+              className="w-full mt-1 bg-secondary border border-border text-foreground rounded-md px-3 py-2 text-sm placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring resize-none"
               placeholder="Additional notes..."
             />
           </div>
@@ -275,13 +275,13 @@ export default function GuestFormDialog({
               type="button"
               variant="ghost"
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-200 hover:bg-transparent"
+              className="text-muted-foreground hover:text-foreground hover:bg-transparent"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
             >
               {isEdit ? 'Save Changes' : 'Add Guest'}
             </Button>

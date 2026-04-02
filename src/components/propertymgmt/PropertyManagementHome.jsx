@@ -20,7 +20,7 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
   // ─── Role guard ───────────────────────────────────
   if (!memberRole) {
     return (
-      <div className="text-center py-12 text-slate-400">
+      <div className="text-center py-12 text-muted-foreground">
         <p>You don't have access to this workspace.</p>
       </div>
     );
@@ -250,22 +250,22 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
 
       {/* ─── Portfolio Stats Bar ──────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="h-4 w-4 text-amber-500" />
-            <span className="text-xs text-slate-400">Total Monthly Rent</span>
+            <DollarSign className="h-4 w-4 text-primary" />
+            <span className="text-xs text-muted-foreground">Total Monthly Rent</span>
           </div>
-          <p className="text-2xl font-bold text-amber-500">{fmt(totalMonthlyRent)}</p>
+          <p className="text-2xl font-bold text-primary">{fmt(totalMonthlyRent)}</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Building className="h-4 w-4 text-amber-500" />
-            <span className="text-xs text-slate-400">Properties</span>
+            <Building className="h-4 w-4 text-primary" />
+            <span className="text-xs text-muted-foreground">Properties</span>
           </div>
-          <p className="text-2xl font-bold text-slate-100">
+          <p className="text-2xl font-bold text-foreground">
             {properties.length}
-            <span className="text-sm font-normal text-slate-400 ml-1">
+            <span className="text-sm font-normal text-muted-foreground ml-1">
               in {groups.length} {groups.length === 1 ? 'group' : 'groups'}
             </span>
           </p>
@@ -274,21 +274,21 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
         <button
           type="button"
           onClick={() => onNavigateTab?.('maintenance')}
-          className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-left hover:border-amber-500/50 transition-colors"
+          className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors"
         >
           <div className="flex items-center gap-2 mb-2">
-            <Wrench className="h-4 w-4 text-amber-500" />
-            <span className="text-xs text-slate-400">Open Requests</span>
+            <Wrench className="h-4 w-4 text-primary" />
+            <span className="text-xs text-muted-foreground">Open Requests</span>
           </div>
-          <p className="text-2xl font-bold text-slate-100">{openMaintenance.length}</p>
+          <p className="text-2xl font-bold text-foreground">{openMaintenance.length}</p>
         </button>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="h-4 w-4 text-amber-500" />
-            <span className="text-xs text-slate-400">Mgmt Fee (est.)</span>
+            <TrendingUp className="h-4 w-4 text-primary" />
+            <span className="text-xs text-muted-foreground">Mgmt Fee (est.)</span>
           </div>
-          <p className="text-2xl font-bold text-slate-100">{fmt(monthlyMgmtFee)}</p>
+          <p className="text-2xl font-bold text-foreground">{fmt(monthlyMgmtFee)}</p>
         </div>
       </div>
 
@@ -297,28 +297,28 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
         <button
           type="button"
           onClick={() => onNavigateTab?.('finances')}
-          className="flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px]"
+          className="flex items-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors text-sm min-h-[44px]"
         >
           <Plus className="h-4 w-4" /> Add Expense
         </button>
         <button
           type="button"
           onClick={() => onNavigateTab?.('finances')}
-          className="flex items-center gap-2 px-4 py-3 rounded-xl border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm font-medium min-h-[44px]"
+          className="flex items-center gap-2 px-4 py-3 rounded-xl border border-primary text-primary hover:bg-primary/10 transition-colors text-sm font-medium min-h-[44px]"
         >
           <ClipboardList className="h-4 w-4" /> Log Labor
         </button>
         <button
           type="button"
           onClick={() => onNavigateTab?.('settlements')}
-          className="flex items-center gap-2 px-4 py-3 rounded-xl border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent transition-colors text-sm font-medium min-h-[44px]"
+          className="flex items-center gap-2 px-4 py-3 rounded-xl border border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent transition-colors text-sm font-medium min-h-[44px]"
         >
           <DollarSign className="h-4 w-4" /> New Settlement
         </button>
         <button
           type="button"
           onClick={() => onNavigateTab?.('listings')}
-          className="flex items-center gap-2 px-4 py-3 rounded-xl border border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent transition-colors text-sm font-medium min-h-[44px]"
+          className="flex items-center gap-2 px-4 py-3 rounded-xl border border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent transition-colors text-sm font-medium min-h-[44px]"
         >
           <Megaphone className="h-4 w-4" /> Create Listing
         </button>
@@ -326,16 +326,16 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
 
       {/* ─── Property Group Summaries ─────────────── */}
       {groupSummaries.length > 0 && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-amber-500" />
-              <h2 className="text-lg font-bold text-slate-100">Property Groups</h2>
+              <Building2 className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-bold text-foreground">Property Groups</h2>
             </div>
             <button
               type="button"
               onClick={() => onNavigateTab?.('properties')}
-              className="text-xs text-amber-500 hover:text-amber-400"
+              className="text-xs text-primary hover:text-primary-hover"
             >
               View all
             </button>
@@ -343,15 +343,15 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
 
           <div className="space-y-4">
             {groupSummaries.map((gs) => (
-              <div key={gs.id} className="bg-slate-800/50 rounded-lg p-4">
+              <div key={gs.id} className="bg-secondary/50 rounded-lg p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <p className="text-sm font-medium text-slate-100">{gs.name}</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-sm font-medium text-foreground">{gs.name}</p>
+                    <p className="text-xs text-muted-foreground">
                       {gs.occupiedCount}/{gs.totalUnits} occupied · {gs.structure_type?.replace(/_/g, ' ') || '—'}
                     </p>
                   </div>
-                  <span className="text-sm font-semibold text-amber-500">{fmt(gs.grossRent)}/mo</span>
+                  <span className="text-sm font-semibold text-primary">{fmt(gs.grossRent)}/mo</span>
                 </div>
 
                 {/* Unit list */}
@@ -359,31 +359,31 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
                   {gs.properties.map((prop) => (
                     <div key={prop.id} className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-slate-300 truncate">{prop.name}</span>
+                        <span className="text-foreground-soft truncate">{prop.name}</span>
                         <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
                           prop.status === 'occupied'
-                            ? 'bg-amber-500/20 text-amber-500'
+                            ? 'bg-primary/20 text-primary'
                             : prop.status === 'maintenance'
                               ? 'bg-orange-500/20 text-orange-400'
-                              : 'bg-slate-700 text-slate-400'
+                              : 'bg-surface text-muted-foreground'
                         }`}>
                           {prop.status}
                         </span>
                       </div>
-                      <span className="text-slate-400 flex-shrink-0 ml-2">{fmt(prop.monthly_rent)}</span>
+                      <span className="text-muted-foreground flex-shrink-0 ml-2">{fmt(prop.monthly_rent)}</span>
                     </div>
                   ))}
                 </div>
 
                 {/* Reserve percentages */}
-                <div className="flex gap-4 mt-3 pt-2 border-t border-slate-700/50">
-                  <span className="text-[10px] text-slate-500">
+                <div className="flex gap-4 mt-3 pt-2 border-t border-border/50">
+                  <span className="text-[10px] text-muted-foreground/70">
                     Mgmt: {gs.management_fee_pct || 0}%
                   </span>
-                  <span className="text-[10px] text-slate-500">
+                  <span className="text-[10px] text-muted-foreground/70">
                     Maint: {gs.maintenance_reserve_pct || 0}%
                   </span>
-                  <span className="text-[10px] text-slate-500">
+                  <span className="text-[10px] text-muted-foreground/70">
                     Emerg: {gs.emergency_reserve_pct || 0}%
                   </span>
                 </div>
@@ -394,13 +394,13 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
       )}
 
       {groupSummaries.length === 0 && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-          <Building2 className="h-8 w-8 text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-400 text-sm mb-4">No property groups yet</p>
+        <div className="bg-card border border-border rounded-xl p-8 text-center">
+          <Building2 className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
+          <p className="text-muted-foreground text-sm mb-4">No property groups yet</p>
           <button
             type="button"
             onClick={() => onNavigateTab?.('properties')}
-            className="text-sm text-amber-500 hover:text-amber-400 font-medium"
+            className="text-sm text-primary hover:text-primary-hover font-medium"
           >
             Add your first property group
           </button>
@@ -409,24 +409,24 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
 
       {/* ─── Reserve Health ───────────────────────── */}
       {reserveHealth.some((r) => r.target > 0) && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle className="h-5 w-5 text-amber-500" />
-            <h2 className="text-lg font-bold text-slate-100">Reserve Health</h2>
+            <AlertTriangle className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-bold text-foreground">Reserve Health</h2>
           </div>
 
           <div className="space-y-4">
             {reserveHealth.filter((r) => r.target > 0).map((r, i) => (
               <div key={i}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-slate-300">{r.groupName}</span>
-                  <span className="text-xs text-slate-400">
+                  <span className="text-sm text-foreground-soft">{r.groupName}</span>
+                  <span className="text-xs text-muted-foreground">
                     {fmt(r.emergencyReserve)} / {fmt(r.target)}
                   </span>
                 </div>
-                <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                <div className="h-2 bg-surface rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-amber-500 rounded-full transition-all"
+                    className="h-full bg-primary rounded-full transition-all"
                     style={{ width: `${r.pct}%` }}
                   />
                 </div>
@@ -437,48 +437,48 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
       )}
 
       {/* ─── Recent Activity ──────────────────────── */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <div className="bg-card border border-border rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Clock className="h-5 w-5 text-amber-500" />
-          <h2 className="text-lg font-bold text-slate-100">Recent Activity</h2>
+          <Clock className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold text-foreground">Recent Activity</h2>
         </div>
 
         {recentActivity.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground/70">
             No activity yet. Record an expense or log labor to see it here.
           </p>
         ) : (
           <div className="space-y-3">
             {recentActivity.map((item, i) => (
-              <div key={i} className="bg-slate-800/50 rounded-lg p-3">
+              <div key={i} className="bg-secondary/50 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-slate-500">{fmtShortDate(item.date)}</span>
+                  <span className="text-xs text-muted-foreground/70">{fmtShortDate(item.date)}</span>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
                     item.type === 'expense'
-                      ? 'bg-amber-500/20 text-amber-500'
+                      ? 'bg-primary/20 text-primary'
                       : item.type === 'labor'
                         ? 'bg-blue-500/20 text-blue-400'
                         : item.type === 'guest'
                           ? 'bg-green-500/20 text-green-400'
-                          : 'bg-slate-700 text-slate-400'
+                          : 'bg-surface text-muted-foreground'
                   }`}>
                     {item.type}
                   </span>
                 </div>
-                <p className="text-sm text-slate-300 truncate">
+                <p className="text-sm text-foreground-soft truncate">
                   {item.type === 'expense' && `${item.data.category || 'Expense'}: ${item.data.description || ''}`}
                   {item.type === 'labor' && `${item.data.worker_name || 'Labor'}: ${item.data.description || `${item.data.hours || 0}h`}`}
                   {item.type === 'maintenance' && `${item.data.title || 'Maintenance request'}`}
                   {item.type === 'guest' && `${item.data.guest_name || 'Guest'}: ${item.data.booking_source || 'direct'}`}
                 </p>
                 {item.type === 'expense' && (
-                  <span className="text-xs text-amber-500 font-medium">{fmt(item.data.amount)}</span>
+                  <span className="text-xs text-primary font-medium">{fmt(item.data.amount)}</span>
                 )}
                 {item.type === 'labor' && (
-                  <span className="text-xs text-amber-500 font-medium">{fmt(item.data.total)}</span>
+                  <span className="text-xs text-primary font-medium">{fmt(item.data.total)}</span>
                 )}
                 {item.type === 'guest' && item.data.total_amount > 0 && (
-                  <span className="text-xs text-amber-500 font-medium">{fmt(item.data.total_amount)}</span>
+                  <span className="text-xs text-primary font-medium">{fmt(item.data.total_amount)}</span>
                 )}
               </div>
             ))}
@@ -488,8 +488,8 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
 
       {/* ─── Finance Link Hook (future) ──────────── */}
       {profile?.linked_finance_workspace_id && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <p className="text-sm text-slate-400 text-center">Financial summary coming soon</p>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <p className="text-sm text-muted-foreground text-center">Financial summary coming soon</p>
         </div>
       )}
     </div>

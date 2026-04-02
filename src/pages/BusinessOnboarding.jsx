@@ -214,9 +214,9 @@ export default function BusinessOnboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-slate-900 border-b border-slate-800">
+      <div className="bg-card border-b border-border">
         <div className="max-w-3xl mx-auto px-4 py-4">
           <Button 
             variant="outline" 
@@ -231,7 +231,7 @@ export default function BusinessOnboarding() {
                 }
               }
             }}
-            className="px-6 py-2 rounded-lg border border-slate-600 text-slate-300 bg-transparent hover:border-amber-500 hover:text-amber-500 hover:bg-slate-800/50 transition-all duration-200"
+            className="px-6 py-2 rounded-lg border border-border text-foreground-soft bg-transparent hover:border-primary hover:text-primary hover:bg-secondary/50 transition-all duration-200"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back
@@ -247,37 +247,37 @@ export default function BusinessOnboarding() {
               <div key={step.id} className={`flex items-center ${idx < activeSteps.length - 1 ? 'flex-1' : ''}`}>
                 <div className={`
                   h-6 w-6 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium
-                  ${idx <= currentStepIndex ? 'bg-amber-500 text-black' : 'bg-slate-800 text-slate-500'}
+                  ${idx <= currentStepIndex ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground/70'}
                 `}>
                   {idx < currentStepIndex ? <Check className="h-4 w-4" /> : idx + 1}
                 </div>
                 {idx < activeSteps.length - 1 && (
-                  <div className={`flex-1 h-0.5 mx-2 ${idx < currentStepIndex ? 'bg-amber-500' : 'bg-slate-800'}`} />
+                  <div className={`flex-1 h-0.5 mx-2 ${idx < currentStepIndex ? 'bg-primary' : 'bg-secondary'}`} />
                 )}
               </div>
             ))}
           </div>
           <div className="hidden sm:flex justify-between text-xs">
             {activeSteps.map((step, idx) => (
-              <span key={step.id} className={idx <= currentStepIndex ? 'text-slate-100 font-medium' : 'text-slate-500'}>
+              <span key={step.id} className={idx <= currentStepIndex ? 'text-foreground font-medium' : 'text-muted-foreground/70'}>
                 {step.label}
               </span>
             ))}
           </div>
         </div>
 
-        <Card className="p-6 sm:p-8 bg-slate-900 border-slate-800">
+        <Card className="p-6 sm:p-8 bg-card border-border">
           {/* Step: Archetype (Type) */}
           {currentStepId === 'archetype' && (
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-3xl font-bold text-slate-100">How do you serve the community?</h2>
-                <p className="text-slate-400 mt-2">Choose the option that best fits your business or group.</p>
+                <h2 className="text-3xl font-bold text-foreground">How do you serve the community?</h2>
+                <p className="text-muted-foreground mt-2">Choose the option that best fits your business or group.</p>
               </div>
               {visibleArchetypes.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-slate-400 mb-4">No archetypes configured. Please contact an administrator.</p>
-                  <Button onClick={() => navigate(createPageUrl('Admin'))} variant="outline" className="border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500">
+                  <p className="text-muted-foreground mb-4">No archetypes configured. Please contact an administrator.</p>
+                  <Button onClick={() => navigate(createPageUrl('Admin'))} variant="outline" className="border-border text-foreground-soft hover:border-primary hover:text-primary">
                     Go to Admin
                   </Button>
                 </div>
@@ -299,14 +299,14 @@ export default function BusinessOnboarding() {
                           setFormData({ ...formData, archetype: arch.value, archetype_id: dbArch?.id || '' });
                           setTimeout(() => setCurrentStepIndex(1), 500);
                         }}
-                        className={`group p-6 rounded-xl border-2 cursor-pointer transition-all ${isSelected ? 'border-amber-500 bg-amber-500/10' : 'border-slate-700 bg-slate-800/50 hover:border-amber-500/50 hover:bg-slate-800'}`}
+                        className={`group p-6 rounded-xl border-2 cursor-pointer transition-all ${isSelected ? 'border-primary bg-primary/10' : 'border-border bg-secondary/50 hover:border-primary/50 hover:bg-secondary'}`}
                       >
                         <div className="flex flex-col items-center text-center">
-                          <div className={`h-20 w-20 rounded-xl flex items-center justify-center mb-4 ${isSelected ? 'bg-amber-500/20' : 'bg-slate-700/50'}`}>
-                            <Icon className="h-10 w-10 text-amber-500" />
+                          <div className={`h-20 w-20 rounded-xl flex items-center justify-center mb-4 ${isSelected ? 'bg-primary/20' : 'bg-surface/50'}`}>
+                            <Icon className="h-10 w-10 text-primary" />
                           </div>
-                          <h3 className={`font-bold text-xl mb-2 transition-colors ${isSelected ? 'text-amber-500' : 'text-slate-100 group-hover:text-amber-500'}`}>{arch.label}</h3>
-                          <p className="text-sm text-slate-400 mb-3 max-w-md">{arch.description}</p>
+                          <h3 className={`font-bold text-xl mb-2 transition-colors ${isSelected ? 'text-primary' : 'text-foreground group-hover:text-primary'}`}>{arch.label}</h3>
+                          <p className="text-sm text-muted-foreground mb-3 max-w-md">{arch.description}</p>
                         </div>
                       </div>
                     );
@@ -328,8 +328,8 @@ export default function BusinessOnboarding() {
             return (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-100">What are your goals?</h2>
-                  <p className="text-slate-400 mt-1">Select all that apply (choose at least one)</p>
+                  <h2 className="text-2xl font-bold text-foreground">What are your goals?</h2>
+                  <p className="text-muted-foreground mt-1">Select all that apply (choose at least one)</p>
                 </div>
                 <div className="flex flex-col gap-3">
                   {visibleGoals.map((goal) => {
@@ -341,16 +341,16 @@ export default function BusinessOnboarding() {
                           const next = selected ? (formData.goals || []).filter(g => g !== goal.value) : [...(formData.goals || []), goal.value];
                           setFormData({ ...formData, goals: next });
                         }}
-                        className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${selected ? 'border-amber-500 bg-amber-500/10' : 'border-slate-700 bg-slate-800 hover:border-slate-600'}`}
+                        className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${selected ? 'border-primary bg-primary/10' : 'border-border bg-secondary hover:border-border'}`}
                       >
-                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${selected ? 'bg-amber-500/20' : 'bg-slate-700'}`}>
-                          <Check className={`h-5 w-5 ${selected ? 'text-amber-500' : 'text-slate-400'}`} />
+                        <div className={`h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${selected ? 'bg-primary/20' : 'bg-surface'}`}>
+                          <Check className={`h-5 w-5 ${selected ? 'text-primary' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-slate-100">{goal.label}</h3>
-                          <p className="text-sm text-slate-400">{goal.description}</p>
+                          <h3 className="font-semibold text-foreground">{goal.label}</h3>
+                          <p className="text-sm text-muted-foreground">{goal.description}</p>
                         </div>
-                        {selected && <Check className="h-6 w-6 text-amber-500 flex-shrink-0" />}
+                        {selected && <Check className="h-6 w-6 text-primary flex-shrink-0" />}
                       </div>
                     );
                   })}
@@ -365,25 +365,25 @@ export default function BusinessOnboarding() {
             return (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-100">How would you like to grow?</h2>
-                  <p className="text-slate-400 mt-1">You can always change this later</p>
+                  <h2 className="text-2xl font-bold text-foreground">How would you like to grow?</h2>
+                  <p className="text-muted-foreground mt-1">You can always change this later</p>
                 </div>
                 <RadioGroup value={formData.subscription_tier} onValueChange={(v) => setFormData({ ...formData, subscription_tier: v })} className="grid gap-4">
                   {visibleTiers.map((tier) => (
-                    <label key={tier.value} className={`relative flex cursor-pointer rounded-xl border-2 p-5 transition-all ${formData.subscription_tier === tier.value ? 'border-amber-500 bg-amber-500/10' : 'border-slate-700 hover:border-slate-600'}`}>
+                    <label key={tier.value} className={`relative flex cursor-pointer rounded-xl border-2 p-5 transition-all ${formData.subscription_tier === tier.value ? 'border-primary bg-primary/10' : 'border-border hover:border-border'}`}>
                       <RadioGroupItem value={tier.value} className="sr-only" />
                       <div className="flex-1 flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-slate-800">
-                          <Star className="h-5 w-5 text-amber-500" />
+                        <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-secondary">
+                          <Star className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-slate-100">{tier.label}</h3>
-                          <p className="text-slate-400">{tier.price}</p>
+                          <h3 className="font-semibold text-foreground">{tier.label}</h3>
+                          <p className="text-muted-foreground">{tier.price}</p>
                         </div>
                       </div>
                       {formData.subscription_tier === tier.value && (
-                        <div className="absolute top-4 right-4 h-6 w-6 bg-amber-500 rounded-full flex items-center justify-center">
-                          <Check className="h-4 w-4 text-black" />
+                        <div className="absolute top-4 right-4 h-6 w-6 bg-primary rounded-full flex items-center justify-center">
+                          <Check className="h-4 w-4 text-primary-foreground" />
                         </div>
                       )}
                     </label>
@@ -400,13 +400,13 @@ export default function BusinessOnboarding() {
             return (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-100">You're almost there</h2>
-                  <p className="text-slate-400 mt-1">Here's what your listing will look like</p>
+                  <h2 className="text-2xl font-bold text-foreground">You're almost there</h2>
+                  <p className="text-muted-foreground mt-1">Here's what your listing will look like</p>
                 </div>
                 <div className="space-y-4">
-                  <div className="p-4 bg-slate-800 rounded-lg border border-slate-700">
-                    <h3 className="font-semibold text-slate-100">{formData.name}</h3>
-                    <p className="text-sm text-slate-400 mt-1">{formData.description || 'No description'}</p>
+                  <div className="p-4 bg-secondary rounded-lg border border-border">
+                    <h3 className="font-semibold text-foreground">{formData.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{formData.description || 'No description'}</p>
                     <div className="flex flex-wrap gap-2 mt-3">
                       <Badge variant="secondary">{ONBOARDING_CONFIG.archetypes.find(a => a.value === formData.archetype)?.label || formData.archetype}</Badge>
                       <Badge variant="secondary">{formData.primary_category}</Badge>
@@ -417,8 +417,8 @@ export default function BusinessOnboarding() {
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-slate-500">Location:</span>
-                      <p className="font-medium text-slate-200">
+                      <span className="text-muted-foreground/70">Location:</span>
+                      <p className="font-medium text-foreground">
                         {formData.address && `${formData.address}, `}
                         {formData.city}
                         {formData.state && `, ${formData.state}`}
@@ -426,23 +426,23 @@ export default function BusinessOnboarding() {
                       </p>
                     </div>
                     <div>
-                      <span className="text-slate-500">Phone:</span>
-                      <p className="font-medium text-slate-200">{formatPhone(formData.phone)}</p>
+                      <span className="text-muted-foreground/70">Phone:</span>
+                      <p className="font-medium text-foreground">{formatPhone(formData.phone)}</p>
                     </div>
                     <div>
-                      <span className="text-slate-500">Email:</span>
-                      <p className="font-medium text-slate-200">{formData.email}</p>
+                      <span className="text-muted-foreground/70">Email:</span>
+                      <p className="font-medium text-foreground">{formData.email}</p>
                     </div>
                     {formData.website && (
                       <div>
-                        <span className="text-slate-500">Website:</span>
-                        <p className="font-medium text-slate-200">{formData.website}</p>
+                        <span className="text-muted-foreground/70">Website:</span>
+                        <p className="font-medium text-foreground">{formData.website}</p>
                       </div>
                     )}
                   </div>
                   {activeStepIds.includes('goals') && Array.isArray(formData.goals) && formData.goals.length > 0 && (
                     <div>
-                      <span className="text-sm text-slate-500">Goals:</span>
+                      <span className="text-sm text-muted-foreground/70">Goals:</span>
                       <div className="flex flex-wrap gap-2 mt-2">
                         {(formData.goals || []).map((g) => (
                           <Badge key={g} variant="outline">{ONBOARDING_CONFIG.goals.find(go => go.value === g)?.label || g}</Badge>
@@ -452,17 +452,17 @@ export default function BusinessOnboarding() {
                   )}
                   {activeStepIds.includes('plan') && (
                     <div>
-                      <span className="text-sm text-slate-500">Plan:</span>
-                      <p className="font-medium text-slate-200 mt-1">{tierLabel}</p>
+                      <span className="text-sm text-muted-foreground/70">Plan:</span>
+                      <p className="font-medium text-foreground mt-1">{tierLabel}</p>
                     </div>
                   )}
                   {(formData.services || []).filter(s => s.name).length > 0 && (
                     <div>
-                      <span className="text-sm text-slate-500">Services:</span>
+                      <span className="text-sm text-muted-foreground/70">Services:</span>
                       <div className="mt-2 space-y-2">
                         {formData.services.filter(s => s.name).map((service, idx) => (
                           <div key={idx} className="flex justify-between text-sm">
-                            <span className="text-slate-200">{service.name}</span>
+                            <span className="text-foreground">{service.name}</span>
                             {service.starting_price && <span className="font-medium">From ${service.starting_price}</span>}
                           </div>
                         ))}
@@ -471,7 +471,7 @@ export default function BusinessOnboarding() {
                   )}
                   {(formData.photos || []).length > 0 && (
                     <div>
-                      <span className="text-sm text-slate-500">Photos:</span>
+                      <span className="text-sm text-muted-foreground/70">Photos:</span>
                       <div className="flex gap-2 mt-2">
                         {formData.photos.map((photo, idx) => (
                           <img key={idx} src={photo} alt="" className="h-16 w-16 rounded-lg object-cover" />
@@ -486,25 +486,25 @@ export default function BusinessOnboarding() {
 
           {/* Navigation — only show when not on first step (archetype can auto-advance) */}
           {currentStepIndex > 0 && (
-            <div className="flex justify-between mt-8 pt-6 border-t border-slate-700">
+            <div className="flex justify-between mt-8 pt-6 border-t border-border">
               <Button
                 variant="outline"
                 onClick={() => {
                   setCurrentStepIndex(currentStepIndex - 1);
                   if (currentStepIndex === 1) setFormData(prev => ({ ...prev, archetype: '', archetype_id: '' }));
                 }}
-                className="px-6 py-2 rounded-lg border border-slate-600 text-slate-300 bg-transparent hover:border-amber-500 hover:text-amber-500 hover:bg-slate-800/50 transition-all duration-200"
+                className="px-6 py-2 rounded-lg border border-border text-foreground-soft bg-transparent hover:border-primary hover:text-primary hover:bg-secondary/50 transition-all duration-200"
               >
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Back
               </Button>
               {currentStepIndex < activeSteps.length - 1 ? (
-                <Button onClick={() => setCurrentStepIndex(currentStepIndex + 1)} disabled={!canProceed()} className="bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5">
+                <Button onClick={() => setCurrentStepIndex(currentStepIndex + 1)} disabled={!canProceed()} className="bg-primary hover:bg-primary-hover active:bg-primary/80 text-primary-foreground font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5">
                   Continue
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               ) : (
-                <Button onClick={handleSubmit} disabled={createBusiness.isPending} className="bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5">
+                <Button onClick={handleSubmit} disabled={createBusiness.isPending} className="bg-primary hover:bg-primary-hover active:bg-primary/80 text-primary-foreground font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5">
                   {createBusiness.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />

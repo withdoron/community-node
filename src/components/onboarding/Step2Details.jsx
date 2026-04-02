@@ -169,27 +169,27 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
         }
       `}</style>
       <div>
-        <h2 className="text-2xl font-bold text-slate-100">Tell us about your organization</h2>
-        <p className="text-slate-400 mt-1">Professional information customers will see</p>
+        <h2 className="text-2xl font-bold text-foreground">Tell us about your organization</h2>
+        <p className="text-muted-foreground mt-1">Professional information customers will see</p>
       </div>
 
       <div className="grid gap-6">
         {/* Basics */}
         <div className="space-y-4">
-          <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Basics</h3>
+          <h3 className="text-xs text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Basics</h3>
           <div>
-            <Label htmlFor="name" className="text-slate-200">Organization Name <span className="text-amber-500">*</span></Label>
+            <Label htmlFor="name" className="text-foreground">Organization Name <span className="text-primary">*</span></Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Your organization name"
-              className="mt-1.5 bg-slate-800/50 border-slate-700 text-white placeholder-slate-500"
+              className="mt-1.5 bg-secondary/50 border-border text-foreground placeholder-muted-foreground/70"
             />
           </div>
 
           <div className="relative" ref={dropdownRef}>
-            <Label htmlFor="category_search" className="text-slate-200">
+            <Label htmlFor="category_search" className="text-foreground">
               Category
             </Label>
             <div className="relative">
@@ -215,8 +215,8 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 name="category_search_custom"
                 className={`mt-1.5 pr-10 ${
                   (formData.primary_category && (formData.sub_category || formData.sub_category_id)) && !isDropdownOpen
-                    ? 'bg-slate-800/50 border-indigo-500/50 text-emerald-400 font-bold'
-                    : 'bg-slate-800/50 border-slate-700 text-slate-300 placeholder-slate-500'
+                    ? 'bg-secondary/50 border-indigo-500/50 text-emerald-400 font-bold'
+                    : 'bg-secondary/50 border-border text-foreground-soft placeholder-muted-foreground/70'
                 }`}
               />
               {formData.primary_category && (formData.sub_category || formData.sub_category_id) && !isDropdownOpen && (
@@ -226,16 +226,16 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                     setFormData({ ...formData, primary_category: '', sub_category: '', sub_category_id: '' });
                     setSearchTerm('');
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-400 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-red-400 transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
               )}
             </div>
-            <p className="text-xs text-slate-400 mt-1">Choose your primary category now. You can add more categories later in your dashboard.</p>
+            <p className="text-xs text-muted-foreground mt-1">Choose your primary category now. You can add more categories later in your dashboard.</p>
             
             {isDropdownOpen && (
-              <div className="absolute z-50 w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-xl max-h-80 overflow-y-auto">
                 {!searchTerm ? (
                   /* Browse Mode - Accordion Style */
                   currentArchetypeCategories.length > 0 ? (
@@ -258,21 +258,21 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                                 setExpandedCategory(expandedCategory === cat.id ? null : cat.id);
                               }
                             }}
-                            className="w-full flex justify-between items-center p-3 hover:bg-slate-800 cursor-pointer transition-colors border-b border-slate-800"
+                            className="w-full flex justify-between items-center p-3 hover:bg-secondary cursor-pointer transition-colors border-b border-border"
                           >
-                            <span className="text-sm font-semibold text-slate-200">{cat.label}</span>
+                            <span className="text-sm font-semibold text-foreground">{cat.label}</span>
                             {subs.length === 0 ? (
-                              isSelected ? <Check className="h-4 w-4 text-amber-500" /> : null
+                              isSelected ? <Check className="h-4 w-4 text-primary" /> : null
                             ) : (
                               <ChevronDown 
-                                className={`h-4 w-4 text-slate-400 transition-transform ${
+                                className={`h-4 w-4 text-muted-foreground transition-transform ${
                                   expandedCategory === cat.id ? 'rotate-180' : ''
                                 }`}
                               />
                             )}
                           </button>
                           {expandedCategory === cat.id && subs.length > 0 && (
-                            <div className="bg-slate-800/30">
+                            <div className="bg-secondary/30">
                               {cat.subCategories.map((sub) => {
                                 const subName = typeof sub === 'string' ? sub : sub.name;
                                 const subId = typeof sub === 'object' && sub?.id != null ? sub.id : '';
@@ -292,7 +292,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                                       setIsDropdownOpen(false);
                                       setExpandedCategory(null);
                                     }}
-                                    className="w-full text-left px-6 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-emerald-400 transition-colors"
+                                    className="w-full text-left px-6 py-2 text-sm text-foreground-soft hover:bg-secondary hover:text-emerald-400 transition-colors"
                                   >
                                     {subName}
                                   </button>
@@ -309,7 +309,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                   filteredCategories.length > 0 ? (
                     filteredCategories.map((cat) => (
                       <div key={cat.id ?? cat.label} className="py-2">
-                        <div className="px-3 py-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        <div className="px-3 py-1 text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">
                           {cat.label}
                         </div>
                         {cat.subCategories.map((sub) => {
@@ -330,7 +330,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                                 setIsEditing(false);
                                 setIsDropdownOpen(false);
                               }}
-                              className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 hover:text-emerald-400 transition-colors"
+                              className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-secondary hover:text-emerald-400 transition-colors"
                             >
                               {subName}
                             </button>
@@ -339,7 +339,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                       </div>
                     ))
                   ) : (
-                    <div className="px-3 py-4 text-sm text-slate-500 text-center">
+                    <div className="px-3 py-4 text-sm text-muted-foreground/70 text-center">
                       No categories found
                     </div>
                   )
@@ -349,13 +349,13 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
           </div>
 
           <div>
-            <Label htmlFor="description" className="text-slate-200">Description</Label>
+            <Label htmlFor="description" className="text-foreground">Description</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Tell customers about your organization..."
-              className="mt-1.5 min-h-[100px] bg-slate-800 border-slate-700 text-slate-100"
+              className="mt-1.5 min-h-[100px] bg-secondary border-border text-foreground"
             />
           </div>
         </div>
@@ -363,19 +363,19 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
         {/* Category — subcategory by archetype */}
         {subcategoryOptions.length > 0 && (
           <div className="space-y-4">
-            <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Category</h3>
+            <h3 className="text-xs text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Category</h3>
             <div>
-              <Label htmlFor="subcategory" className="text-slate-200">What best describes your business?</Label>
+              <Label htmlFor="subcategory" className="text-foreground">What best describes your business?</Label>
               <Select
                 value={formData.subcategory || ''}
                 onValueChange={(val) => setFormData({ ...formData, subcategory: val })}
               >
-                <SelectTrigger className="mt-1.5 bg-slate-800/50 border-slate-700 text-white">
+                <SelectTrigger className="mt-1.5 bg-secondary/50 border-border text-foreground">
                   <SelectValue placeholder="Select one" />
                 </SelectTrigger>
                 <SelectContent>
                   {subcategoryOptions.map((opt) => (
-                    <SelectItem key={opt} value={opt} className="text-slate-300 focus:bg-slate-800 focus:text-amber-500">
+                    <SelectItem key={opt} value={opt} className="text-foreground-soft focus:bg-secondary focus:text-primary">
                       {opt}
                     </SelectItem>
                   ))}
@@ -387,60 +387,60 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
 
         {/* Contact */}
         <div className="space-y-4">
-          <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Contact</h3>
+          <h3 className="text-xs text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Contact</h3>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="phone" className="text-slate-200">Phone <span className="text-amber-500">*</span></Label>
+              <Label htmlFor="phone" className="text-foreground">Phone <span className="text-primary">*</span></Label>
               <Input
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
                 placeholder="(555) 123-4567"
-                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
               />
             </div>
             <div>
-              <Label htmlFor="email" className="text-slate-200">Email <span className="text-amber-500">*</span></Label>
+              <Label htmlFor="email" className="text-foreground">Email <span className="text-primary">*</span></Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="contact@organization.com"
-                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
               />
-              <p className="text-xs text-slate-500 mt-1">This will be visible to customers</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">This will be visible to customers</p>
             </div>
           </div>
           <div>
-            <Label htmlFor="website" className="text-slate-200">Website</Label>
+            <Label htmlFor="website" className="text-foreground">Website</Label>
             <Input
               id="website"
               value={formData.website}
               onChange={(e) => setFormData({ ...formData, website: e.target.value })}
               placeholder="https://yourwebsite.com"
-              className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+              className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
             />
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="instagram" className="text-slate-200">Instagram</Label>
+              <Label htmlFor="instagram" className="text-foreground">Instagram</Label>
               <Input
                 id="instagram"
                 value={formData.instagram}
                 onChange={(e) => setFormData({ ...formData, instagram: (e.target.value || '').replace(/^@/, '') })}
                 placeholder="@yourbusiness"
-                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
               />
             </div>
             <div>
-              <Label htmlFor="facebook" className="text-slate-200">Facebook Page</Label>
+              <Label htmlFor="facebook" className="text-foreground">Facebook Page</Label>
               <Input
                 id="facebook"
                 value={formData.facebook}
                 onChange={(e) => setFormData({ ...formData, facebook: e.target.value })}
                 placeholder="facebook.com/yourbusiness"
-                className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
               />
             </div>
           </div>
@@ -448,16 +448,16 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
 
         {/* Hours */}
         <div className="space-y-4">
-          <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Hours</h3>
+          <h3 className="text-xs text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Hours</h3>
           <div>
-            <Label htmlFor="business_hours" className="text-slate-200">Business Hours</Label>
+            <Label htmlFor="business_hours" className="text-foreground">Business Hours</Label>
             <Textarea
               id="business_hours"
               value={formData.business_hours}
               onChange={(e) => setFormData({ ...formData, business_hours: e.target.value })}
               placeholder="e.g., Mon-Fri 9am-5pm, Sat 10am-2pm"
               rows={2}
-              className="mt-1.5 bg-slate-800 border-slate-700 text-slate-100 placeholder-slate-500"
+              className="mt-1.5 bg-secondary border-border text-foreground placeholder-muted-foreground/70"
             />
           </div>
         </div>
@@ -465,36 +465,36 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
         {/* Archetype-specific: Location (location_venue) */}
         {isLocationVenue && (
           <div className="space-y-4">
-            <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Location</h3>
-            <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
+            <h3 className="text-xs text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Location</h3>
+            <div className="p-4 bg-secondary/50 rounded-lg border border-border space-y-4">
               <div>
-                <Label htmlFor="address" className="text-slate-200">Street Address <span className="text-amber-500">*</span></Label>
+                <Label htmlFor="address" className="text-foreground">Street Address <span className="text-primary">*</span></Label>
                 <Input
                   id="address"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   placeholder="123 Main Street"
-                  className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                  className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
                 />
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="city" className="text-slate-200">City <span className="text-amber-500">*</span></Label>
+                  <Label htmlFor="city" className="text-foreground">City <span className="text-primary">*</span></Label>
                   <Input
                     id="city"
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                     placeholder="Eugene"
-                    className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                    className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="state" className="text-slate-200">State <span className="text-amber-500">*</span></Label>
+                  <Label htmlFor="state" className="text-foreground">State <span className="text-primary">*</span></Label>
                   <Select
                     value={formData.state}
                     onValueChange={(value) => setFormData({ ...formData, state: value })}
                   >
-                    <SelectTrigger className="mt-1.5 bg-slate-900 border-slate-700 text-white">
+                    <SelectTrigger className="mt-1.5 bg-card border-border text-foreground">
                       <SelectValue placeholder="State" />
                     </SelectTrigger>
                     <SelectContent>
@@ -505,7 +505,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="zip_code" className="text-slate-200">Zip Code <span className="text-amber-500">*</span></Label>
+                  <Label htmlFor="zip_code" className="text-foreground">Zip Code <span className="text-primary">*</span></Label>
                   <Input
                     id="zip_code"
                     type="tel"
@@ -513,7 +513,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                     onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
                     placeholder="97401"
                     maxLength={10}
-                    className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                    className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
                   />
                 </div>
               </div>
@@ -524,27 +524,27 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
         {/* Archetype-specific: Your Services (service_provider) */}
         {isServiceProvider && (
           <div className="space-y-4">
-            <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Your Services</h3>
-            <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
+            <h3 className="text-xs text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Your Services</h3>
+            <div className="p-4 bg-secondary/50 rounded-lg border border-border space-y-4">
               <div>
-                <Label htmlFor="service_area" className="text-slate-200">Service Area</Label>
+                <Label htmlFor="service_area" className="text-foreground">Service Area</Label>
                 <Input
                   id="service_area"
                   value={formData.service_area}
                   onChange={(e) => setFormData({ ...formData, service_area: e.target.value })}
                   placeholder="e.g., Eugene/Springfield area, 25 mile radius"
-                  className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                  className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
                 />
               </div>
               <div>
-                <Label htmlFor="services_offered" className="text-slate-200">What services do you offer?</Label>
+                <Label htmlFor="services_offered" className="text-foreground">What services do you offer?</Label>
                 <Textarea
                   id="services_offered"
                   value={formData.services_offered}
                   onChange={(e) => setFormData({ ...formData, services_offered: e.target.value })}
                   placeholder="Describe the services you provide"
                   rows={3}
-                  className="mt-1.5 bg-slate-900 border-slate-700 text-slate-100 placeholder-slate-500"
+                  className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
                 />
               </div>
             </div>
@@ -554,16 +554,16 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
         {/* Archetype-specific: Your Shop (product_seller / micro_business) */}
         {isProductOrMicro && (
           <div className="space-y-4">
-            <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Your Shop</h3>
-            <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+            <h3 className="text-xs text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Your Shop</h3>
+            <div className="p-4 bg-secondary/50 rounded-lg border border-border">
               <div>
-                <Label htmlFor="shop_url" className="text-slate-200">Where can people buy from you online?</Label>
+                <Label htmlFor="shop_url" className="text-foreground">Where can people buy from you online?</Label>
                 <Input
                   id="shop_url"
                   value={formData.shop_url}
                   onChange={(e) => setFormData({ ...formData, shop_url: e.target.value })}
                   placeholder="e.g., etsy.com/shop/yourshop or your website"
-                  className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                  className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
                 />
               </div>
             </div>
@@ -573,14 +573,14 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
         {/* What I Offer — product tags */}
         {(isProductOrMicro || (formData.archetype === 'location_venue' && formData.primary_category === 'food_farm')) && (
           <div className="space-y-4">
-            <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">What I Offer</h3>
-            <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-3">
-              <Label className="text-slate-200">Products / Items</Label>
+            <h3 className="text-xs text-muted-foreground uppercase tracking-wider border-b border-border pb-2">What I Offer</h3>
+            <div className="p-4 bg-secondary/50 rounded-lg border border-border space-y-3">
+              <Label className="text-foreground">Products / Items</Label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {(formData.product_tags || []).map((tag, idx) => (
                   <span
                     key={idx}
-                    className="bg-amber-500/20 text-amber-500 rounded-full px-3 py-1 text-sm flex items-center gap-1.5"
+                    className="bg-primary/20 text-primary rounded-full px-3 py-1 text-sm flex items-center gap-1.5"
                   >
                     {tag}
                     <button
@@ -598,7 +598,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
               </div>
               <Input
                 placeholder="Type a product and press Enter (e.g., eggs, honey, bread)"
-                className="bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                className="bg-card border-border text-foreground placeholder-muted-foreground/70"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ',') {
                     e.preventDefault();
@@ -617,10 +617,10 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
         {/* How to Purchase — payment methods */}
         {(isProductOrMicro || (formData.archetype === 'location_venue' && formData.primary_category === 'food_farm')) && (
           <div className="space-y-4">
-            <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">How to Purchase</h3>
-            <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
+            <h3 className="text-xs text-muted-foreground uppercase tracking-wider border-b border-border pb-2">How to Purchase</h3>
+            <div className="p-4 bg-secondary/50 rounded-lg border border-border space-y-4">
               <div className="space-y-2">
-                <Label className="text-slate-200">Payment Methods</Label>
+                <Label className="text-foreground">Payment Methods</Label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {[
                     { value: 'cash', label: 'Cash' },
@@ -636,8 +636,8 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                         key={method.value}
                         className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors ${
                           checked
-                            ? 'border-amber-500/50 bg-amber-500/10 text-amber-500'
-                            : 'border-slate-700 bg-slate-800/50 text-slate-300 hover:border-slate-600'
+                            ? 'border-primary/50 bg-primary/10 text-primary'
+                            : 'border-border bg-secondary/50 text-foreground-soft hover:border-border'
                         }`}
                       >
                         <input
@@ -653,9 +653,9 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                           }}
                         />
                         <div className={`h-4 w-4 rounded border flex items-center justify-center ${
-                          checked ? 'bg-amber-500 border-amber-500' : 'border-slate-600'
+                          checked ? 'bg-primary border-primary' : 'border-border'
                         }`}>
-                          {checked && <Check className="h-3 w-3 text-black" />}
+                          {checked && <Check className="h-3 w-3 text-primary-foreground" />}
                         </div>
                         <span className="text-sm">{method.label}</span>
                       </label>
@@ -664,13 +664,13 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                 </div>
               </div>
               <div>
-                <Label htmlFor="payment-notes" className="text-slate-200">How should people reach you to buy?</Label>
+                <Label htmlFor="payment-notes" className="text-foreground">How should people reach you to buy?</Label>
                 <Input
                   id="payment-notes"
                   value={formData.payment_notes || ''}
                   onChange={(e) => setFormData({ ...formData, payment_notes: e.target.value })}
                   placeholder="e.g., Text me at 541-555-1234, DM on Instagram, just stop by!"
-                  className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                  className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
                 />
               </div>
             </div>
@@ -679,49 +679,49 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
 
         {/* Location — for non-venue archetypes (optional address) */}
         {!isLocationVenue && (
-          <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 space-y-4">
-            <h3 className="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-2">Location</h3>
-            <label className="flex items-center gap-3 p-3 bg-slate-900 rounded-lg cursor-pointer">
+          <div className="p-4 bg-secondary/50 rounded-lg border border-border space-y-4">
+            <h3 className="text-xs text-muted-foreground uppercase tracking-wider border-b border-border pb-2">Location</h3>
+            <label className="flex items-center gap-3 p-3 bg-card rounded-lg cursor-pointer">
               <Switch
                 checked={formData.display_full_address}
                 onCheckedChange={(checked) => setFormData({ ...formData, display_full_address: checked })}
-                className="data-[state=checked]:bg-amber-500"
+                className="data-[state=checked]:bg-primary"
               />
               <div className="flex-1">
-                <p className="text-sm font-medium text-slate-200">Display full address on map?</p>
-                <p className="text-xs text-slate-500">Off by default to protect privacy</p>
+                <p className="text-sm font-medium text-foreground">Display full address on map?</p>
+                <p className="text-xs text-muted-foreground/70">Off by default to protect privacy</p>
               </div>
             </label>
             {formData.display_full_address && (
               <>
                 <div>
-                  <Label htmlFor="address_opt" className="text-slate-200">Street Address</Label>
+                  <Label htmlFor="address_opt" className="text-foreground">Street Address</Label>
                   <Input
                     id="address_opt"
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     placeholder="123 Main Street"
-                    className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                    className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
                   />
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="city_nv" className="text-slate-200">City <span className="text-amber-500">*</span></Label>
+                    <Label htmlFor="city_nv" className="text-foreground">City <span className="text-primary">*</span></Label>
                     <Input
                       id="city_nv"
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                       placeholder="Eugene"
-                      className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                      className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="state_nv" className="text-slate-200">State <span className="text-amber-500">*</span></Label>
+                    <Label htmlFor="state_nv" className="text-foreground">State <span className="text-primary">*</span></Label>
                     <Select
                       value={formData.state}
                       onValueChange={(value) => setFormData({ ...formData, state: value })}
                     >
-                      <SelectTrigger className="mt-1.5 bg-slate-900 border-slate-700 text-white">
+                      <SelectTrigger className="mt-1.5 bg-card border-border text-foreground">
                         <SelectValue placeholder="State" />
                       </SelectTrigger>
                       <SelectContent>
@@ -732,7 +732,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="zip_code_nv" className="text-slate-200">Zip Code <span className="text-amber-500">*</span></Label>
+                    <Label htmlFor="zip_code_nv" className="text-foreground">Zip Code <span className="text-primary">*</span></Label>
                     <Input
                       id="zip_code_nv"
                       type="tel"
@@ -740,7 +740,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                       onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
                       placeholder="97401"
                       maxLength={10}
-                      className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                      className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
                     />
                   </div>
                 </div>
@@ -749,17 +749,17 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
             {!formData.display_full_address && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="city_nv2" className="text-slate-200">City <span className="text-amber-500">*</span></Label>
+                  <Label htmlFor="city_nv2" className="text-foreground">City <span className="text-primary">*</span></Label>
                   <Input
                     id="city_nv2"
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                     placeholder="Eugene"
-                    className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                    className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="zip_code_nv2" className="text-slate-200">Zip Code <span className="text-amber-500">*</span></Label>
+                  <Label htmlFor="zip_code_nv2" className="text-foreground">Zip Code <span className="text-primary">*</span></Label>
                   <Input
                     id="zip_code_nv2"
                     type="tel"
@@ -767,7 +767,7 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                     onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
                     placeholder="97401"
                     maxLength={10}
-                    className="mt-1.5 bg-slate-900 border-slate-700 text-white placeholder-slate-500"
+                    className="mt-1.5 bg-card border-border text-foreground placeholder-muted-foreground/70"
                   />
                 </div>
               </div>
@@ -777,13 +777,13 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
 
         {/* Brand/Profile Image */}
         <div>
-          <Label className="text-slate-200">Brand/Profile Image</Label>
-          <p className="text-xs text-slate-500 mt-1 mb-2">Drag & drop or click to upload</p>
+          <Label className="text-foreground">Brand/Profile Image</Label>
+          <p className="text-xs text-muted-foreground/70 mt-1 mb-2">Drag & drop or click to upload</p>
           <div 
             className={`p-4 rounded-lg border-2 border-dashed transition-all ${
               isDragging 
-                ? 'border-amber-500 bg-amber-500/10' 
-                : 'border-slate-700 bg-slate-800/50'
+                ? 'border-primary bg-primary/10' 
+                : 'border-border bg-secondary/50'
             }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -795,22 +795,22 @@ export default function Step2Details({ formData, setFormData, uploading, setUplo
                   <img
                     src={photo}
                     alt={`Upload ${idx + 1}`}
-                    className="h-24 w-24 rounded-lg object-cover border-2 border-slate-700"
+                    className="h-24 w-24 rounded-lg object-cover border-2 border-border"
                   />
                   <button
                     type="button"
                     onClick={() => removePhoto(idx)}
-                    className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                    className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-foreground rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </div>
               ))}
-              <label className="h-24 w-24 rounded-lg border-2 border-dashed border-slate-600 flex items-center justify-center cursor-pointer hover:border-amber-500 hover:bg-amber-500/10 transition-all">
+              <label className="h-24 w-24 rounded-lg border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/10 transition-all">
                 {uploading ? (
-                  <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 ) : (
-                  <Upload className="h-5 w-5 text-slate-400" />
+                  <Upload className="h-5 w-5 text-muted-foreground" />
                 )}
                 <input
                   type="file"

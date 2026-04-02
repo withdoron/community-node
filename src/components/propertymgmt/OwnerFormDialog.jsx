@@ -9,8 +9,8 @@ import {
 import { Button } from '@/components/ui/button';
 
 const inputClass =
-  'w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 px-3 py-2 text-sm';
-const labelClass = 'text-slate-300 text-sm font-medium block mb-1';
+  'w-full rounded-md bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring px-3 py-2 text-sm';
+const labelClass = 'text-foreground-soft text-sm font-medium block mb-1';
 
 const ROLE_OPTIONS = [
   { value: 'owner', label: 'Owner' },
@@ -67,9 +67,9 @@ export default function OwnerFormDialog({ open, onClose, owner, onSave }) {
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-slate-900 border border-slate-800 text-slate-100 max-w-lg">
+      <DialogContent className="bg-card border border-border text-foreground max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">{owner ? 'Edit Owner' : 'Add Owner'}</DialogTitle>
+          <DialogTitle className="text-foreground">{owner ? 'Edit Owner' : 'Add Owner'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -95,8 +95,8 @@ export default function OwnerFormDialog({ open, onClose, owner, onSave }) {
             </select>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="ghost" onClick={onClose} className="text-slate-400 hover:text-slate-200 hover:bg-transparent">Cancel</Button>
-            <Button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-bold">{owner ? 'Update' : 'Create'}</Button>
+            <Button type="button" variant="ghost" onClick={onClose} className="text-muted-foreground hover:text-foreground hover:bg-transparent">Cancel</Button>
+            <Button type="submit" className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold">{owner ? 'Update' : 'Create'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

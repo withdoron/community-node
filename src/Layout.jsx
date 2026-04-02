@@ -88,12 +88,12 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
   };
 
   const navLinkClass = (page) =>
-    currentPageName === page ? 'px-3 py-2 text-amber-500' : 'px-3 py-2 text-slate-300 hover:text-amber-500';
+    currentPageName === page ? 'px-3 py-2 text-primary' : 'px-3 py-2 text-foreground-soft hover:text-primary';
 
   const sheetLinkClass = (page) =>
     currentPageName === page
-      ? 'py-3 px-4 rounded-lg bg-amber-500/10 text-amber-500'
-      : 'py-3 px-4 rounded-lg text-slate-300 hover:text-amber-500 hover:bg-slate-800';
+      ? 'py-3 px-4 rounded-lg bg-primary/10 text-primary'
+      : 'py-3 px-4 rounded-lg text-foreground-soft hover:text-primary hover:bg-secondary';
 
   const displayName = currentUser?.data?.display_name || currentUser?.full_name || currentUser?.email?.split('@')[0];
 
@@ -112,10 +112,10 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
   const hideNavHeader = (currentPageName === 'Home' && currentUser === null) || currentPageName === 'MyLane';
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       <style dangerouslySetInnerHTML={{ __html: `@keyframes breathe { 0%, 100% { box-shadow: 0 0 0px rgba(212, 160, 70, 0); } 50% { box-shadow: 0 0 10px rgba(212, 160, 70, 0.25); } }` }} />
       {!hideNavHeader && (
-      <header className="sticky top-0 z-50 bg-slate-900 border-b border-slate-800">
+      <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           {/* Left: Logo */}
           <Link
@@ -127,7 +127,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
               alt="Local Lane"
               className="h-9 w-9 rounded-lg object-cover transition-opacity group-hover:opacity-80"
             />
-            <span className="font-bold text-slate-100 text-lg transition-colors group-hover:text-amber-500">
+            <span className="font-bold text-foreground text-lg transition-colors group-hover:text-primary">
               Local Lane
             </span>
           </Link>
@@ -142,13 +142,13 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
             </Link>
 
             {/* Separator */}
-            <div className="w-px h-5 bg-slate-700 mx-1" />
+            <div className="w-px h-5 bg-surface mx-1" />
 
             {/* Far right: User area */}
             {!currentUser ? (
               <button
                 onClick={() => base44.auth.redirectToLogin()}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-5 py-2 rounded-lg transition-colors"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-5 py-2 rounded-lg transition-colors"
                 style={{
                   fontFamily: 'Georgia, serif',
                   letterSpacing: '0.02em',
@@ -160,42 +160,42 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="h-9 w-9 rounded-full bg-amber-500/10 border-2 border-amber-500/30 hover:border-amber-500/60 flex items-center justify-center transition-colors cursor-pointer">
+                  <button className="h-9 w-9 rounded-full bg-primary/10 border-2 border-primary/30 hover:border-primary/60 flex items-center justify-center transition-colors cursor-pointer">
                     {userInitials ? (
-                      <span className="text-xs font-bold text-amber-500">{userInitials}</span>
+                      <span className="text-xs font-bold text-primary">{userInitials}</span>
                     ) : (
-                      <User className="h-4 w-4 text-amber-500" />
+                      <User className="h-4 w-4 text-primary" />
                     )}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-60 bg-slate-900 border border-slate-700 shadow-xl shadow-black/20 [&>*]:bg-transparent">
+                <DropdownMenuContent align="end" className="w-60 bg-card border border-border shadow-xl shadow-black/20 [&>*]:bg-transparent">
                   <div className="px-2 py-2">
-                    <p className="text-sm font-medium text-slate-100">{displayName}</p>
-                    <p className="text-xs text-slate-500">{currentUser.email}</p>
+                    <p className="text-sm font-medium text-foreground">{displayName}</p>
+                    <p className="text-xs text-muted-foreground/70">{currentUser.email}</p>
                   </div>
-                  <DropdownMenuSeparator className="bg-slate-800" />
-                  <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
+                  <DropdownMenuSeparator className="bg-secondary" />
+                  <DropdownMenuItem asChild className="text-foreground-soft hover:text-primary !bg-transparent hover:!bg-secondary focus:text-primary focus:!bg-secondary cursor-pointer">
                     <Link to={createPageUrl('MyLane')} className="flex items-center">
                       <Sparkles className="h-4 w-4 mr-2" />
                       My Lane
                     </Link>
                   </DropdownMenuItem>
                   {currentUser.role === 'admin' && (
-                    <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
+                    <DropdownMenuItem asChild className="text-foreground-soft hover:text-primary !bg-transparent hover:!bg-secondary focus:text-primary focus:!bg-secondary cursor-pointer">
                       <Link to={createPageUrl('Admin')} className="flex items-center">
                         <Shield className="h-4 w-4 mr-2" />
                         Admin Panel
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem asChild className="text-slate-300 hover:text-amber-500 !bg-transparent hover:!bg-slate-800 focus:text-amber-500 focus:!bg-slate-800 cursor-pointer">
+                  <DropdownMenuItem asChild className="text-foreground-soft hover:text-primary !bg-transparent hover:!bg-secondary focus:text-primary focus:!bg-secondary cursor-pointer">
                     <Link to={createPageUrl('Settings')} className="flex items-center">
                       <Settings className="h-4 w-4 mr-2" />
                       Settings
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-slate-800" />
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-400 hover:text-red-300 !bg-transparent hover:!bg-slate-800 focus:text-red-300 focus:!bg-slate-800 cursor-pointer">
+                  <DropdownMenuSeparator className="bg-secondary" />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-400 hover:text-red-300 !bg-transparent hover:!bg-secondary focus:text-red-300 focus:!bg-secondary cursor-pointer">
                     <LogOut className="h-4 w-4 mr-2" />
                     Log Out
                   </DropdownMenuItem>
@@ -209,7 +209,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
             {!currentUser ? (
               <button
                 onClick={() => base44.auth.redirectToLogin()}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-4 py-1.5 rounded-lg text-sm transition-colors"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-4 py-1.5 rounded-lg text-sm transition-colors"
                 style={{
                   fontFamily: 'Georgia, serif',
                   letterSpacing: '0.02em',
@@ -221,13 +221,13 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
             ) : null}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-100 hover:bg-slate-800">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-secondary">
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="bg-slate-900 border-l border-slate-800 p-0 flex flex-col w-full max-w-[280px]">
+              <SheetContent side="right" className="bg-card border-l border-border p-0 flex flex-col w-full max-w-[280px]">
                 <div className="flex flex-col flex-1 overflow-y-auto">
-                  <div className="p-4 border-b border-slate-800">
+                  <div className="p-4 border-b border-border">
                     <SheetClose asChild>
                       <Link to={createPageUrl(currentUser ? 'MyLane' : 'Home')} className="group flex items-center gap-2">
                         <img
@@ -235,7 +235,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                           alt="Local Lane"
                           className="h-9 w-9 rounded-lg object-cover"
                         />
-                        <span className="font-bold text-amber-500 text-lg">Local Lane</span>
+                        <span className="font-bold text-primary text-lg">Local Lane</span>
                       </Link>
                     </SheetClose>
                   </div>
@@ -259,7 +259,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                   {/* Authenticated: My Lane + admin */}
                   {currentUser && (
                     <>
-                      <div className="border-t border-slate-800 my-2" />
+                      <div className="border-t border-border my-2" />
                       <div className="flex flex-col gap-1 px-4 py-2">
                         <SheetClose asChild>
                           <Link to={createPageUrl('MyLane')} className={`flex items-center gap-3 ${sheetLinkClass('MyLane')}`}>
@@ -287,14 +287,14 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                 </div>
 
                 {/* Bottom: User info or Become CTA */}
-                <div className="mt-auto p-4 border-t border-slate-800">
+                <div className="mt-auto p-4 border-t border-border">
                   {currentUser ? (
-                    <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-800">
-                      <p className="text-sm font-medium text-slate-100">{displayName}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">{currentUser.email}</p>
+                    <div className="bg-secondary/50 rounded-xl p-4 border border-border">
+                      <p className="text-sm font-medium text-foreground">{displayName}</p>
+                      <p className="text-xs text-muted-foreground/70 mt-0.5">{currentUser.email}</p>
                       <button
                         onClick={handleLogout}
-                        className="mt-3 flex items-center gap-2 text-sm text-slate-400 hover:text-red-400 transition-colors"
+                        className="mt-3 flex items-center gap-2 text-sm text-muted-foreground hover:text-red-400 transition-colors"
                       >
                         <LogOut className="h-4 w-4" />
                         Log Out
@@ -302,11 +302,11 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-muted-foreground">
                         Join the community. Support your neighbors.
                       </p>
                       <Button
-                        className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold"
+                        className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
                         onClick={() => base44.auth.redirectToLogin()}
                         style={{ fontFamily: 'Georgia, serif', letterSpacing: '0.02em' }}
                       >
@@ -333,7 +333,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
           {!feedbackOpen && (
             <button
               onClick={() => setFeedbackOpen(true)}
-              className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold rounded-full shadow-lg transition-all hover:shadow-xl print:hidden"
+              className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-full shadow-lg transition-all hover:shadow-xl print:hidden"
             >
               <MessageSquarePlus className="w-5 h-5" />
               <span className="hidden sm:inline">Feedback</span>
@@ -341,9 +341,9 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
           )}
 
           {feedbackOpen && (
-            <div className="fixed bottom-6 right-6 z-50 w-80 sm:w-96 bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl print:hidden">
-              <div className="flex items-center justify-between p-4 border-b border-slate-700">
-                <h3 className="text-white font-semibold">Send Feedback</h3>
+            <div className="fixed bottom-6 right-6 z-50 w-80 sm:w-96 bg-secondary border border-border rounded-2xl shadow-2xl print:hidden">
+              <div className="flex items-center justify-between p-4 border-b border-border">
+                <h3 className="text-foreground font-semibold">Send Feedback</h3>
                 <button
                   type="button"
                   onClick={() => {
@@ -353,7 +353,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                     setWhatExpected('');
                     setScreenshotFile(null);
                   }}
-                  className="text-slate-400 hover:text-white transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -366,8 +366,8 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                   onClick={() => setFeedbackType('feedback')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     feedbackType === 'feedback'
-                      ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
-                      : 'bg-slate-900 text-slate-400 border border-slate-700 hover:text-slate-300'
+                      ? 'bg-primary/20 text-primary border border-primary/30'
+                      : 'bg-card text-muted-foreground border border-border hover:text-foreground-soft'
                   }`}
                 >
                   <Lightbulb className="w-4 h-4" />
@@ -378,8 +378,8 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                   onClick={() => setFeedbackType('bug')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     feedbackType === 'bug'
-                      ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
-                      : 'bg-slate-900 text-slate-400 border border-slate-700 hover:text-slate-300'
+                      ? 'bg-primary/20 text-primary border border-primary/30'
+                      : 'bg-card text-muted-foreground border border-border hover:text-foreground-soft'
                   }`}
                 >
                   <Bug className="w-4 h-4" />
@@ -389,31 +389,31 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
 
               <form onSubmit={handleFeedbackSubmit} className="p-4 space-y-3">
                 <div>
-                  <label className="text-sm text-slate-400 mb-1 block">{feedbackType === 'bug' ? 'Describe the bug *' : 'What happened? *'}</label>
+                  <label className="text-sm text-muted-foreground mb-1 block">{feedbackType === 'bug' ? 'Describe the bug *' : 'What happened? *'}</label>
                   <textarea
                     value={whatHappened}
                     onChange={(e) => setWhatHappened(e.target.value)}
                     placeholder={feedbackType === 'bug' ? 'What went wrong...' : 'Share your idea or suggestion...'}
                     rows={3}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm resize-none focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm resize-none focus:outline-none focus:border-primary"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm text-slate-400 mb-1 block">{feedbackType === 'bug' ? 'What should have happened? (optional)' : 'What did you expect? (optional)'}</label>
+                  <label className="text-sm text-muted-foreground mb-1 block">{feedbackType === 'bug' ? 'What should have happened? (optional)' : 'What did you expect? (optional)'}</label>
                   <textarea
                     value={whatExpected}
                     onChange={(e) => setWhatExpected(e.target.value)}
                     placeholder={feedbackType === 'bug' ? 'What should have happened instead...' : 'Any additional context...'}
                     rows={2}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 text-sm resize-none focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm resize-none focus:outline-none focus:border-primary"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm text-slate-400 mb-1 block">Screenshot (optional)</label>
-                  <label className="flex items-center gap-2 px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-400 text-sm cursor-pointer hover:border-slate-600 transition-colors">
+                  <label className="text-sm text-muted-foreground mb-1 block">Screenshot (optional)</label>
+                  <label className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-lg text-muted-foreground text-sm cursor-pointer hover:border-border transition-colors">
                     <Camera className="w-4 h-4" />
                     <span>{screenshotFile ? screenshotFile.name || 'Image selected' : 'Attach image'}</span>
                     <input
@@ -425,14 +425,14 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
                   </label>
                 </div>
 
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground/70">
                   Page and account info are captured automatically.
                 </p>
 
                 <button
                   type="submit"
                   disabled={!whatHappened?.trim() || feedbackSubmitting}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:bg-slate-700 disabled:text-slate-500 text-slate-900 font-semibold rounded-lg transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-surface disabled:text-muted-foreground/70 text-primary-foreground font-semibold rounded-lg transition-colors"
                 >
                   <Send className="w-4 h-4" />
                   {feedbackSubmitting ? 'Sending...' : 'Send Feedback'}

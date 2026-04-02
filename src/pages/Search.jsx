@@ -123,14 +123,14 @@ export default function Search() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       {/* Search Header */}
-      <div className="bg-slate-950/90 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-10">
+      <div className="bg-background/90 backdrop-blur-sm border-b border-border sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3 mb-3">
             <button
               onClick={() => window.history.length > 1 ? navigate(-1) : navigate(createPageUrl('Directory'))}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-slate-800 transition-colors"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-secondary transition-colors"
               aria-label="Go back"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -148,9 +148,9 @@ export default function Search() {
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Region indicator */}
         {region && (
-          <div className="flex items-center gap-2 mb-4 text-sm text-slate-500">
+          <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground/70">
             <MapPin className="h-4 w-4" />
-            <span>Searching in <span className="font-medium text-slate-300">{region.display_name}</span></span>
+            <span>Searching in <span className="font-medium text-foreground-soft">{region.display_name}</span></span>
             <Badge variant="outline" className="text-xs">{region.default_radius_miles} mi radius</Badge>
           </div>
         )}
@@ -165,18 +165,18 @@ export default function Search() {
 
         {isLoading || regionLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : filteredBusinesses.length === 0 ? (
           <div className="text-center py-20">
-            <SearchX className="h-12 w-12 text-slate-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-200">No businesses found</h3>
-            <p className="text-slate-400 mt-2">
+            <SearchX className="h-12 w-12 text-muted-foreground/70 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground">No businesses found</h3>
+            <p className="text-muted-foreground mt-2">
               Try adjusting your search or filters, or check back soon — we&apos;re growing.
             </p>
             <Button 
               variant="outline" 
-              className="mt-4 border-slate-700 text-slate-300 hover:border-amber-500 hover:text-amber-500"
+              className="mt-4 border-border text-foreground-soft hover:border-primary hover:text-primary"
               onClick={() => {
                 setSearchParams({ query: '', location: '' });
                 setFilters({ category: 'all', acceptsSilver: false });

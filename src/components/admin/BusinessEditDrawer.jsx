@@ -152,15 +152,15 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   const getRoleBadge = (role) => {
     switch (role) {
       case 'co-owner':
-        return <Badge className="border-amber-500 text-amber-500 text-xs" variant="outline">Co-Owner</Badge>;
+        return <Badge className="border-primary text-primary text-xs" variant="outline">Co-Owner</Badge>;
       case 'manager':
         return <Badge className="bg-purple-500 text-white text-xs">Manager</Badge>;
       case 'instructor':
         return <Badge className="bg-blue-500 text-white text-xs">Instructor</Badge>;
       case 'staff':
-        return <Badge variant="outline" className="border-slate-500 text-slate-300 text-xs">Staff</Badge>;
+        return <Badge variant="outline" className="border-muted-foreground text-foreground-soft text-xs">Staff</Badge>;
       default:
-        return <Badge variant="outline" className="border-slate-600 text-slate-400 text-xs">Staff</Badge>;
+        return <Badge variant="outline" className="border-border text-muted-foreground text-xs">Staff</Badge>;
     }
   };
 
@@ -714,9 +714,9 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
   if (!business || !formState) return null;
 
   const tierLabels = {
-    basic: { label: 'Basic', icon: Star, color: 'bg-slate-700 text-slate-300' },
-    standard: { label: 'Standard', icon: Zap, color: 'bg-slate-700 text-slate-300' },
-    partner: { label: 'Partner', icon: Crown, color: 'bg-amber-500 text-black' },
+    basic: { label: 'Basic', icon: Star, color: 'bg-surface text-foreground-soft' },
+    standard: { label: 'Standard', icon: Zap, color: 'bg-surface text-foreground-soft' },
+    partner: { label: 'Partner', icon: Crown, color: 'bg-primary text-primary-foreground' },
   };
 
   return (
@@ -731,59 +731,59 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
           onClose();
         }}
       >
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto bg-slate-900 border-slate-800 flex flex-col">
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto bg-card border-border flex flex-col">
           <SheetHeader>
-            <SheetTitle className="text-xl text-slate-100">{business.name}</SheetTitle>
+            <SheetTitle className="text-xl text-foreground">{business.name}</SheetTitle>
           </SheetHeader>
 
           <div className="mt-6 space-y-6 flex-1 min-h-0 overflow-y-auto pb-28">
             {/* Read-only Info */}
-            <div className="space-y-3 p-4 bg-slate-800 rounded-lg border border-slate-700">
-              <h3 className="font-medium text-slate-100 flex items-center gap-2">
-                <Shield className="h-4 w-4 text-amber-500" />
+            <div className="space-y-3 p-4 bg-secondary rounded-lg border border-border">
+              <h3 className="font-medium text-foreground flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" />
                 Business Info
               </h3>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <span className="text-slate-400">ID:</span>
-                  <p className="font-mono text-xs text-slate-300 truncate">{business.id}</p>
+                  <span className="text-muted-foreground">ID:</span>
+                  <p className="font-mono text-xs text-foreground-soft truncate">{business.id}</p>
                 </div>
                 <div>
-                  <span className="text-slate-400">Owner email:</span>
-                  <p className="text-slate-300 truncate">{business.owner_email || '—'}</p>
+                  <span className="text-muted-foreground">Owner email:</span>
+                  <p className="text-foreground-soft truncate">{business.owner_email || '—'}</p>
                 </div>
                 <div className="col-span-2">
-                  <span className="text-slate-400">Owner user ID:</span>
-                  <p className="font-mono text-xs text-slate-300 truncate">
+                  <span className="text-muted-foreground">Owner user ID:</span>
+                  <p className="font-mono text-xs text-foreground-soft truncate">
                     {business.owner_user_id ?? 'Not set'}
                   </p>
                 </div>
                 <div>
-                  <span className="text-slate-400">Created:</span>
-                  <p className="text-slate-300">{format(new Date(business.created_date), 'MMM d, yyyy')}</p>
+                  <span className="text-muted-foreground">Created:</span>
+                  <p className="text-foreground-soft">{format(new Date(business.created_date), 'MMM d, yyyy')}</p>
                 </div>
                 <div>
-                  <span className="text-slate-400">Updated:</span>
-                  <p className="text-slate-300">{format(new Date(business.updated_date), 'MMM d, yyyy')}</p>
+                  <span className="text-muted-foreground">Updated:</span>
+                  <p className="text-foreground-soft">{format(new Date(business.updated_date), 'MMM d, yyyy')}</p>
                 </div>
                 <div>
-                  <span className="text-slate-400">Recommendations:</span>
-                  <p className="text-slate-300">
+                  <span className="text-muted-foreground">Recommendations:</span>
+                  <p className="text-foreground-soft">
                     {business.recommendation_count || 0}
                   </p>
                 </div>
                 <div>
-                  <span className="text-slate-400">City:</span>
-                  <p className="text-slate-300">{business.city || '—'}</p>
+                  <span className="text-muted-foreground">City:</span>
+                  <p className="text-foreground-soft">{business.city || '—'}</p>
                 </div>
               </div>
               {/* Link owner by email: set owner_user_id from user lookup */}
-              <div className="mt-4 pt-3 border-t border-slate-700">
+              <div className="mt-4 pt-3 border-t border-border">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+                  className="border-primary/50 text-primary-hover hover:bg-primary/10"
                   onClick={() => linkOwnerMutation.mutate()}
                   disabled={linkOwnerMutation.isPending || !business.owner_email?.trim()}
                 >
@@ -795,20 +795,20 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   Link Owner by Email
                 </Button>
                 {!business.owner_email?.trim() && (
-                  <p className="text-xs text-slate-500 mt-2">Set owner email first to link.</p>
+                  <p className="text-xs text-muted-foreground/70 mt-2">Set owner email first to link.</p>
                 )}
               </div>
 
               {/* Claim Invite — only for unclaimed businesses */}
               {!business.owner_user_id && (
-                <div className="mt-3 pt-3 border-t border-slate-700">
+                <div className="mt-3 pt-3 border-t border-border">
                   {!claimInviteOpen ? (
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+                        className="border-primary/50 text-primary-hover hover:bg-primary/10"
                         onClick={() => {
                           setClaimEmail(business.email || business.contact_email || '');
                           setClaimInviteOpen(true);
@@ -822,7 +822,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                           type="button"
                           variant="outline"
                           size="sm"
-                          className="border-slate-600 text-slate-300 hover:bg-slate-800"
+                          className="border-border text-foreground-soft hover:bg-secondary"
                           onClick={() => {
                             const url = `${window.location.origin}/claim-business?token=${business.claim_token}`;
                             navigator.clipboard.writeText(url);
@@ -842,19 +842,19 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <Label className="text-xs text-slate-400">Send claim invite to:</Label>
+                      <Label className="text-xs text-muted-foreground">Send claim invite to:</Label>
                       <div className="flex gap-2">
                         <Input
                           type="email"
                           value={claimEmail}
                           onChange={(e) => setClaimEmail(e.target.value)}
-                          className="bg-slate-800 border-slate-700 text-slate-100 text-sm focus:border-amber-500 focus:ring-amber-500/20"
+                          className="bg-secondary border-border text-foreground text-sm focus:border-primary focus:ring-ring/20"
                           placeholder="owner@example.com"
                         />
                         <Button
                           type="button"
                           size="sm"
-                          className="bg-amber-500 hover:bg-amber-400 text-black font-semibold shrink-0"
+                          className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold shrink-0"
                           onClick={() => generateClaimInviteMutation.mutate(claimEmail)}
                           disabled={generateClaimInviteMutation.isPending}
                         >
@@ -868,19 +868,19 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="text-slate-400 hover:text-slate-200 shrink-0"
+                          className="text-muted-foreground hover:text-foreground shrink-0"
                           onClick={() => setClaimInviteOpen(false)}
                         >
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-muted-foreground/70">
                         Generates a claim link you can copy and send manually.
                       </p>
                     </div>
                   )}
                   {business.claim_token && business.claim_sent_at && (
-                    <p className="text-xs text-slate-500 mt-2">
+                    <p className="text-xs text-muted-foreground/70 mt-2">
                       Invite sent {format(new Date(business.claim_sent_at), 'MMM d, yyyy')}
                       {business.claim_email && ` to ${business.claim_email}`}
                     </p>
@@ -893,35 +893,35 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
             {/* Profile (editable) */}
             <div className="space-y-4">
-              <h3 className="font-medium text-slate-100 flex items-center gap-2">
-                <Store className="h-4 w-4 text-amber-500" />
+              <h3 className="font-medium text-foreground flex items-center gap-2">
+                <Store className="h-4 w-4 text-primary" />
                 Profile
               </h3>
               <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Business name</Label>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider">Business name</Label>
                   <Input
                     value={formState.name ?? ''}
                     onChange={(e) => handleFieldChange('name', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20"
                     placeholder="Business name"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Description</Label>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider">Description</Label>
                   <Textarea
                     value={formState.description ?? ''}
                     onChange={(e) => handleFieldChange('description', e.target.value)}
                     rows={3}
-                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20 resize-none"
+                    className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20 resize-none"
                     placeholder="Description / bio"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider">
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider">
                     Categories
                     {formState.subcategories?.length > 0 && (
-                      <span className="ml-2 text-amber-500 normal-case">
+                      <span className="ml-2 text-primary normal-case">
                         ({formState.subcategories.length} selected)
                       </span>
                     )}
@@ -933,7 +933,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                       {formState.subcategories.map((subId) => (
                         <span
                           key={subId}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-xs border border-amber-500/30 cursor-pointer hover:bg-amber-500/30"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/20 text-primary-hover text-xs border border-primary/30 cursor-pointer hover:bg-primary/30"
                           onClick={() => toggleSubcategory(subId)}
                         >
                           {getSubcategoryLabel(subId)}
@@ -947,27 +947,27 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   )}
 
                   {/* Grouped checkboxes */}
-                  <div className="mt-1 border border-slate-700 rounded-lg bg-slate-800 max-h-52 overflow-y-auto">
+                  <div className="mt-1 border border-border rounded-lg bg-secondary max-h-52 overflow-y-auto">
                     {mainCategories.map((main) => (
                       <div key={main.id} className="px-2 py-1.5">
-                        <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">{main.label}</p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">{main.label}</p>
                         <div className="space-y-0.5">
                           {main.subcategories.map((sub) => {
                             const isSelected = formState.subcategories?.includes(sub.id);
                             return (
                               <div
                                 key={sub.id}
-                                className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-slate-700/50 ${isSelected ? 'bg-slate-700/30' : ''}`}
+                                className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-surface/50 ${isSelected ? 'bg-surface/30' : ''}`}
                                 onClick={() => toggleSubcategory(sub.id)}
                               >
-                                <div className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-amber-500 border-amber-500' : 'border-slate-600 bg-transparent'}`}>
+                                <div className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary border-primary' : 'border-border bg-transparent'}`}>
                                   {isSelected && (
-                                    <svg className="h-3 w-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                       <polyline points="20 6 9 17 4 12" />
                                     </svg>
                                   )}
                                 </div>
-                                <span className="text-sm text-slate-300">{sub.label}</span>
+                                <span className="text-sm text-foreground-soft">{sub.label}</span>
                               </div>
                             );
                           })}
@@ -977,12 +977,12 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Archetype</Label>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider">Archetype</Label>
                   <Select
                     value={formState.archetype ?? ''}
                     onValueChange={(val) => handleFieldChange('archetype', val)}
                   >
-                    <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20">
+                    <SelectTrigger className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20">
                       <SelectValue placeholder="Select archetype" />
                     </SelectTrigger>
                     <SelectContent>
@@ -990,7 +990,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                         <SelectItem
                           key={arch.value}
                           value={arch.value}
-                          className="text-slate-300 focus:bg-slate-800 focus:text-amber-500"
+                          className="text-foreground-soft focus:bg-secondary focus:text-primary"
                         >
                           {arch.label}
                         </SelectItem>
@@ -1000,12 +1000,12 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 </div>
                 {subcategoryOptions.length > 0 && (
                   <div>
-                    <Label className="text-xs text-slate-400 uppercase tracking-wider">Subcategory</Label>
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider">Subcategory</Label>
                     <Select
                       value={formState.subcategory ?? ''}
                       onValueChange={(val) => handleFieldChange('subcategory', val)}
                     >
-                      <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20">
+                      <SelectTrigger className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20">
                         <SelectValue placeholder="Select subcategory" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1013,7 +1013,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                           <SelectItem
                             key={opt}
                             value={opt}
-                            className="text-slate-300 focus:bg-slate-800 focus:text-amber-500"
+                            className="text-foreground-soft focus:bg-secondary focus:text-primary"
                           >
                             {opt}
                           </SelectItem>
@@ -1023,81 +1023,81 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   </div>
                 )}
                 <div>
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Contact email</Label>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider">Contact email</Label>
                   <Input
                     type="email"
                     value={formState.email ?? ''}
                     onChange={(e) => handleFieldChange('email', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20"
                     placeholder="contact@example.com"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Contact phone</Label>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider">Contact phone</Label>
                   <Input
                     type="tel"
                     value={formState.phone ?? ''}
                     onChange={(e) => handleFieldChange('phone', formatPhone(e.target.value))}
-                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20"
                     placeholder="(541) 555-1234"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Website</Label>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider">Website</Label>
                   <Input
                     type="url"
                     value={formState.website ?? ''}
                     onChange={(e) => handleFieldChange('website', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20"
                     placeholder="https://example.com"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Business Hours</Label>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider">Business Hours</Label>
                   <Textarea
                     value={formState.business_hours ?? ''}
                     onChange={(e) => handleFieldChange('business_hours', e.target.value)}
                     rows={2}
-                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20 resize-none"
+                    className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20 resize-none"
                     placeholder="e.g., Mon-Fri 9am-5pm, Sat 10am-2pm"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Instagram</Label>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider">Instagram</Label>
                   <Input
                     value={formState.instagram ?? ''}
                     onChange={(e) => handleFieldChange('instagram', (e.target.value || '').replace(/^@/, ''))}
-                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20"
                     placeholder="@yourbusiness"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Facebook Page</Label>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider">Facebook Page</Label>
                   <Input
                     value={formState.facebook ?? ''}
                     onChange={(e) => handleFieldChange('facebook', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20"
                     placeholder="facebook.com/yourbusiness"
                   />
                 </div>
                 {resolvedArchetype === 'service_provider' && (
                   <>
                     <div>
-                      <Label className="text-xs text-slate-400 uppercase tracking-wider">Service Area</Label>
+                      <Label className="text-xs text-muted-foreground uppercase tracking-wider">Service Area</Label>
                       <Input
                         value={formState.service_area ?? ''}
                         onChange={(e) => handleFieldChange('service_area', e.target.value)}
-                        className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                        className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20"
                         placeholder="e.g., Eugene/Springfield area"
                       />
                     </div>
                     <div>
-                      <Label className="text-xs text-slate-400 uppercase tracking-wider">Services Offered</Label>
+                      <Label className="text-xs text-muted-foreground uppercase tracking-wider">Services Offered</Label>
                       <Textarea
                         value={formState.services_offered ?? ''}
                         onChange={(e) => handleFieldChange('services_offered', e.target.value)}
                         rows={3}
-                        className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20 resize-none"
+                        className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20 resize-none"
                         placeholder="Describe the services you provide"
                       />
                     </div>
@@ -1105,57 +1105,57 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 )}
                 {(resolvedArchetype === 'product_seller' || resolvedArchetype === 'micro_business') && (
                   <div>
-                    <Label className="text-xs text-slate-400 uppercase tracking-wider">Shop URL</Label>
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider">Shop URL</Label>
                     <Input
                       value={formState.shop_url ?? ''}
                       onChange={(e) => handleFieldChange('shop_url', e.target.value)}
-                      className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                      className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20"
                       placeholder="e.g., etsy.com/shop/yourshop"
                     />
                   </div>
                 )}
-                <label className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700 cursor-pointer">
+                <label className="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg border border-border cursor-pointer">
                   <Switch
                     checked={formState.display_full_address === true}
                     onCheckedChange={(checked) => handleFieldChange('display_full_address', checked)}
-                    className="data-[state=checked]:bg-amber-500"
+                    className="data-[state=checked]:bg-primary"
                   />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-200">Display full address on map?</p>
-                    <p className="text-xs text-slate-500">Off by default to protect privacy</p>
+                    <p className="text-sm font-medium text-foreground">Display full address on map?</p>
+                    <p className="text-xs text-muted-foreground/70">Off by default to protect privacy</p>
                   </div>
                 </label>
                 <div>
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider">Street address <span className="text-amber-500">*</span></Label>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider">Street address <span className="text-primary">*</span></Label>
                   <Input
                     value={formState.address ?? ''}
                     onChange={(e) => handleFieldChange('address', e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                    className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20"
                     placeholder="123 Main Street"
                   />
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <Label className="text-xs text-slate-400 uppercase tracking-wider">City <span className="text-amber-500">*</span></Label>
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider">City <span className="text-primary">*</span></Label>
                     <Input
                       value={formState.city ?? ''}
                       onChange={(e) => handleFieldChange('city', e.target.value)}
-                      className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                      className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20"
                       placeholder="City"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs text-slate-400 uppercase tracking-wider">State <span className="text-amber-500">*</span></Label>
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider">State <span className="text-primary">*</span></Label>
                     <Select
                       value={formState.state ?? ''}
                       onValueChange={(val) => handleFieldChange('state', val)}
                     >
-                      <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20">
+                      <SelectTrigger className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20">
                         <SelectValue placeholder="State" />
                       </SelectTrigger>
                       <SelectContent>
                         {US_STATES.map((s) => (
-                          <SelectItem key={s.code} value={s.code} className="text-slate-100 focus:bg-slate-800 focus:text-amber-500">
+                          <SelectItem key={s.code} value={s.code} className="text-foreground focus:bg-secondary focus:text-primary">
                             {s.name}
                           </SelectItem>
                         ))}
@@ -1163,11 +1163,11 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-xs text-slate-400 uppercase tracking-wider">Zip <span className="text-amber-500">*</span></Label>
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider">Zip <span className="text-primary">*</span></Label>
                     <Input
                       value={formState.zip_code ?? ''}
                       onChange={(e) => handleFieldChange('zip_code', e.target.value)}
-                      className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg mt-1 focus:border-amber-500 focus:ring-amber-500/20"
+                      className="bg-secondary border-border text-foreground rounded-lg mt-1 focus:border-primary focus:ring-ring/20"
                       placeholder="97401"
                       maxLength={10}
                     />
@@ -1175,10 +1175,10 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 </div>
                 <div className="flex items-center gap-3 pt-2">
                   {(uploadedLogoUrl || formState.logo_url || business?.logo_url) ? (
-                    <img src={uploadedLogoUrl || formState.logo_url || business?.logo_url} alt={business.name} className="h-20 w-20 rounded-lg object-cover border border-slate-700" />
+                    <img src={uploadedLogoUrl || formState.logo_url || business?.logo_url} alt={business.name} className="h-20 w-20 rounded-lg object-cover border border-border" />
                   ) : (
-                    <div className="h-20 w-20 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
-                      <Store className="h-8 w-8 text-slate-500" />
+                    <div className="h-20 w-20 rounded-lg bg-secondary border border-border flex items-center justify-center">
+                      <Store className="h-8 w-8 text-muted-foreground/70" />
                     </div>
                   )}
                   <div>
@@ -1193,14 +1193,14 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
+                      className="border-primary text-primary hover:bg-primary/10"
                       onClick={() => logoInputRef.current?.click()}
                       disabled={logoUploadMutation.isPending}
                     >
                       {logoUploadMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
                       Upload New
                     </Button>
-                    <p className="text-xs text-slate-500 mt-1">Recommended: 200x200px, PNG or JPG</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">Recommended: 200x200px, PNG or JPG</p>
                   </div>
                 </div>
               </div>
@@ -1208,12 +1208,12 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
             {/* Banner */}
             <div className="space-y-3">
-              <h3 className="font-medium text-slate-100 flex items-center gap-2">
-                <ImageIcon className="h-4 w-4 text-amber-500" />
+              <h3 className="font-medium text-foreground flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-primary" />
                 Banner
               </h3>
               {formState.banner_url ? (
-                <div className="relative rounded-lg overflow-hidden border border-slate-700 bg-slate-900">
+                <div className="relative rounded-lg overflow-hidden border border-border bg-card">
                   <img
                     src={formState.banner_url}
                     alt="Banner"
@@ -1222,14 +1222,14 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   <button
                     type="button"
                     onClick={() => updateField('banner_url', '')}
-                    className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-slate-800/90 border border-slate-600 flex items-center justify-center text-slate-400 hover:text-red-400 hover:border-red-400 transition-colors"
+                    className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-secondary/90 border border-border flex items-center justify-center text-muted-foreground hover:text-red-400 hover:border-red-400 transition-colors"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-20 rounded-lg bg-slate-800 border border-dashed border-slate-600">
-                  <p className="text-xs text-slate-500">No banner image</p>
+                <div className="flex items-center justify-center h-20 rounded-lg bg-secondary border border-dashed border-border">
+                  <p className="text-xs text-muted-foreground/70">No banner image</p>
                 </div>
               )}
               <div>
@@ -1244,7 +1244,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
+                  className="border-primary text-primary hover:bg-primary/10"
                   onClick={() => bannerInputRef.current?.click()}
                   disabled={bannerUploadMutation.isPending}
                 >
@@ -1255,17 +1255,17 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   )}
                   {formState.banner_url ? 'Change Banner' : 'Upload Banner'}
                 </Button>
-                <p className="text-xs text-slate-500 mt-1">Recommended: 1200 x 400px, JPG or PNG. This appears at the top of the business profile.</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Recommended: 1200 x 400px, JPG or PNG. This appears at the top of the business profile.</p>
               </div>
             </div>
 
             {/* Photos */}
             <div className="space-y-3">
-              <h3 className="font-medium text-slate-100 flex items-center gap-2">
-                <ImageIcon className="h-4 w-4 text-amber-500" />
+              <h3 className="font-medium text-foreground flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-primary" />
                 Photos
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 Gallery photos shown on the public profile. Also used as a banner fallback if no banner is set.
               </p>
 
@@ -1277,7 +1277,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                       <img
                         src={photoUrl}
                         alt={`Photo ${idx + 1}`}
-                        className="h-20 w-20 rounded-lg object-cover border border-slate-700"
+                        className="h-20 w-20 rounded-lg object-cover border border-border"
                       />
                       <button
                         type="button"
@@ -1285,7 +1285,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                           const updated = formState.photos.filter((_, i) => i !== idx);
                           updateField('photos', updated);
                         }}
-                        className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-slate-400 hover:text-red-400 hover:border-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-secondary border border-border flex items-center justify-center text-muted-foreground hover:text-red-400 hover:border-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -1307,7 +1307,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
+                  className="border-primary text-primary hover:bg-primary/10"
                   onClick={() => photoInputRef.current?.click()}
                   disabled={photoUploadMutation.isPending}
                 >
@@ -1318,15 +1318,15 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   )}
                   Add Photo
                 </Button>
-                <p className="text-xs text-slate-500 mt-1">PNG or JPG. These appear in the photo gallery.</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">PNG or JPG. These appear in the photo gallery.</p>
               </div>
             </div>
 
-            <Separator className="bg-slate-700" />
+            <Separator className="bg-surface" />
 
             {/* Tier Selection */}
             <div className="space-y-3">
-              <Label className="text-base font-medium text-slate-100">Subscription Tier</Label>
+              <Label className="text-base font-medium text-foreground">Subscription Tier</Label>
               <Select
                 value={formState.subscription_tier}
                 onValueChange={(value) => handleFieldChange(
@@ -1337,25 +1337,25 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                 )}
                 disabled={saveMutation.isPending}
               >
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-300">
+                <SelectTrigger className="bg-secondary border-border text-foreground-soft">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800">
-                  <SelectItem value="basic" className="text-slate-300 focus:bg-slate-800">
+                <SelectContent className="bg-card border-border">
+                  <SelectItem value="basic" className="text-foreground-soft focus:bg-secondary">
                     <div className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-slate-400" />
+                      <Star className="h-4 w-4 text-muted-foreground" />
                       Basic
                     </div>
                   </SelectItem>
-                  <SelectItem value="standard" className="text-slate-300 focus:bg-slate-800">
+                  <SelectItem value="standard" className="text-foreground-soft focus:bg-secondary">
                     <div className="flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-amber-500" />
+                      <Zap className="h-4 w-4 text-primary" />
                       Standard
                     </div>
                   </SelectItem>
-                  <SelectItem value="partner" className="text-slate-300 focus:bg-slate-800">
+                  <SelectItem value="partner" className="text-foreground-soft focus:bg-secondary">
                     <div className="flex items-center gap-2">
-                      <Crown className="h-4 w-4 text-amber-500" />
+                      <Crown className="h-4 w-4 text-primary" />
                       Partner
                     </div>
                   </SelectItem>
@@ -1363,19 +1363,19 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
               </Select>
             </div>
 
-            <Separator className="bg-slate-700" />
+            <Separator className="bg-surface" />
 
             {/* Badges/Flags Section */}
             <div className="space-y-4">
-              <h3 className="font-medium text-slate-100">Badges & Flags</h3>
+              <h3 className="font-medium text-foreground">Badges & Flags</h3>
               
               {/* Accepts Silver */}
-              <div className="flex items-center justify-between p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+              <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
                 <div className="flex items-center gap-3">
-                  <Coins className="h-5 w-5 text-amber-500" />
+                  <Coins className="h-5 w-5 text-primary" />
                   <div>
-                    <Label className="font-medium text-slate-100">Accepts Silver</Label>
-                    <p className="text-xs text-slate-400">Business accepts silver/precious metals</p>
+                    <Label className="font-medium text-foreground">Accepts Silver</Label>
+                    <p className="text-xs text-muted-foreground">Business accepts silver/precious metals</p>
                   </div>
                 </div>
                 <Switch
@@ -1386,17 +1386,17 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     'accepts_silver_toggle'
                   )}
                   disabled={saveMutation.isPending}
-                  className="data-[state=checked]:bg-amber-500"
+                  className="data-[state=checked]:bg-primary"
                 />
               </div>
 
               {/* Locally Owned Franchise */}
-              <div className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-700">
+              <div className="flex items-center justify-between p-3 bg-secondary rounded-lg border border-border">
                 <div className="flex items-center gap-3">
-                  <Store className="h-5 w-5 text-amber-500" />
+                  <Store className="h-5 w-5 text-primary" />
                   <div>
-                    <Label className="font-medium text-slate-100">Locally Owned Franchise</Label>
-                    <p className="text-xs text-slate-400">Part of a franchise but majority-owned and operated locally</p>
+                    <Label className="font-medium text-foreground">Locally Owned Franchise</Label>
+                    <p className="text-xs text-muted-foreground">Part of a franchise but majority-owned and operated locally</p>
                   </div>
                 </div>
                 <Switch
@@ -1408,18 +1408,18 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                     checked ? 'Mark this as a Locally Owned Franchise?' : 'Remove Locally Owned Franchise status?'
                   )}
                   disabled={saveMutation.isPending}
-                  className="data-[state=checked]:bg-amber-500"
+                  className="data-[state=checked]:bg-primary"
                 />
               </div>
             </div>
 
-            <Separator className="bg-slate-700" />
+            <Separator className="bg-surface" />
 
             {/* Networks */}
             <div className="space-y-4">
-              <h3 className="font-medium text-slate-100">Networks</h3>
+              <h3 className="font-medium text-foreground">Networks</h3>
               {networks.length === 0 ? (
-                <p className="text-xs text-slate-500">No networks configured. Add networks in Admin → Networks.</p>
+                <p className="text-xs text-muted-foreground/70">No networks configured. Add networks in Admin → Networks.</p>
               ) : (
                 networks.map((network) => {
                   const networkId = network.value ?? network.slug ?? network.id;
@@ -1427,12 +1427,12 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   const currentIds = Array.isArray(formState.network_ids) ? formState.network_ids : [];
                   const isChecked = currentIds.includes(networkId);
                   return (
-                    <div key={networkId} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-700">
+                    <div key={networkId} className="flex items-center justify-between p-3 bg-secondary rounded-lg border border-border">
                       <div className="flex items-center gap-3">
-                        <Globe className="h-5 w-5 text-amber-500" />
+                        <Globe className="h-5 w-5 text-primary" />
                         <div>
-                          <Label className="font-medium text-slate-100">{displayName}</Label>
-                          <p className="text-xs text-slate-400">Assign this business to {displayName}</p>
+                          <Label className="font-medium text-foreground">{displayName}</Label>
+                          <p className="text-xs text-muted-foreground">Assign this business to {displayName}</p>
                         </div>
                       </div>
                       <Switch
@@ -1444,7 +1444,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                           handleFieldChange('network_ids', next, 'network_toggle');
                         }}
                         disabled={saveMutation.isPending}
-                        className="data-[state=checked]:bg-amber-500"
+                        className="data-[state=checked]:bg-primary"
                       />
                     </div>
                   );
@@ -1452,13 +1452,13 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
               )}
             </div>
 
-            <Separator className="bg-slate-700" />
+            <Separator className="bg-surface" />
 
             {/* Visibility */}
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-base font-medium text-slate-100">Active / Visible</Label>
-                <p className="text-sm text-slate-400">Listing is visible to the public</p>
+                <Label className="text-base font-medium text-foreground">Active / Visible</Label>
+                <p className="text-sm text-muted-foreground">Listing is visible to the public</p>
               </div>
               <Switch
                 checked={formState.is_active}
@@ -1469,29 +1469,29 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   checked ? 'Make this listing visible?' : 'Hide this listing from the public?'
                 )}
                 disabled={saveMutation.isPending}
-                className="data-[state=checked]:bg-amber-500"
+                className="data-[state=checked]:bg-primary"
               />
             </div>
 
-            <Separator className="bg-slate-700" />
+            <Separator className="bg-surface" />
 
             {/* Staff Management */}
             <div className="space-y-4">
-              <h3 className="text-white font-semibold">Staff & Instructors</h3>
+              <h3 className="text-foreground font-semibold">Staff & Instructors</h3>
 
-              <div className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                 <div>
-                  <p className="text-white text-sm">{business.owner_email}</p>
-                  <p className="text-slate-400 text-xs">Owner</p>
+                  <p className="text-foreground text-sm">{business.owner_email}</p>
+                  <p className="text-muted-foreground text-xs">Owner</p>
                 </div>
-                <Badge className="bg-amber-500 text-black">Owner</Badge>
+                <Badge className="bg-primary text-primary-foreground">Owner</Badge>
               </div>
 
               {staffUsers.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+                <div key={user.id} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
                   <div>
-                    <p className="text-white text-sm">{user.full_name || user.email}</p>
-                    <p className="text-slate-400 text-xs">{user.email}</p>
+                    <p className="text-foreground text-sm">{user.full_name || user.email}</p>
+                    <p className="text-muted-foreground text-xs">{user.email}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     {getRoleBadge(getRoleForUser(user.id))}
@@ -1501,7 +1501,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                       onClick={() => {
                         removeStaffMutation.mutate(user.id);
                       }}
-                      className="h-8 w-8 text-slate-400 hover:text-red-400"
+                      className="h-8 w-8 text-muted-foreground hover:text-red-400"
                     >
                       <X className="w-3 h-3" />
                     </Button>
@@ -1511,22 +1511,22 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
               {/* Pending Invites */}
               {pendingInvites.length > 0 && (
-                <div className="space-y-2 pt-3 mt-3 border-t border-slate-700">
-                  <p className="text-slate-400 text-xs uppercase tracking-wide">Pending Invites</p>
+                <div className="space-y-2 pt-3 mt-3 border-t border-border">
+                  <p className="text-muted-foreground text-xs uppercase tracking-wide">Pending Invites</p>
                   {pendingInvites.map((invite, idx) => (
-                    <div key={invite.email + idx} className="flex items-center justify-between p-2 bg-slate-800/50 rounded">
+                    <div key={invite.email + idx} className="flex items-center justify-between p-2 bg-secondary/50 rounded">
                       <div>
-                        <p className="text-slate-300 text-sm">{invite.email}</p>
-                        <p className="text-slate-500 text-xs">Invited as {invite.role}</p>
+                        <p className="text-foreground-soft text-sm">{invite.email}</p>
+                        <p className="text-muted-foreground/70 text-xs">Invited as {invite.role}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="border-amber-500/50 text-amber-500 text-xs">Pending</Badge>
+                        <Badge variant="outline" className="border-primary/50 text-primary text-xs">Pending</Badge>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => removeInviteMutation.mutate(invite.email)}
                           disabled={removeInviteMutation.isPending}
-                          className="h-8 w-8 text-slate-400 hover:text-red-400"
+                          className="h-8 w-8 text-muted-foreground hover:text-red-400"
                         >
                           <X className="w-3 h-3" />
                         </Button>
@@ -1559,13 +1559,13 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                       handleSearchStaff();
                     }
                   }}
-                  className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white placeholder:text-slate-500 resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  className="flex h-10 w-full rounded-md border border-border bg-secondary px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                 />
                 <Button
                   type="submit"
                   disabled={isSearchingStaff || !addStaffEmail.trim()}
                   size="sm"
-                  className="bg-amber-500 hover:bg-amber-600 text-black"
+                  className="bg-primary hover:bg-primary/80 text-primary-foreground"
                 >
                   Search
                 </Button>
@@ -1576,35 +1576,35 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
               )}
 
               {staffSearchResult && !staffSearchResult.notFound && (
-                <div className="space-y-3 p-3 bg-slate-700 rounded-lg">
+                <div className="space-y-3 p-3 bg-surface rounded-lg">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-white text-sm">{staffSearchResult.full_name || staffSearchResult.email}</p>
-                      <p className="text-slate-400 text-xs">{staffSearchResult.email}</p>
+                      <p className="text-foreground text-sm">{staffSearchResult.full_name || staffSearchResult.email}</p>
+                      <p className="text-muted-foreground text-xs">{staffSearchResult.email}</p>
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Label className="text-slate-400 text-xs shrink-0">Role:</Label>
+                    <Label className="text-muted-foreground text-xs shrink-0">Role:</Label>
                     <Select
                       value={selectedRole}
                       onValueChange={setSelectedRole}
                       disabled={addStaffMutation.isPending}
                     >
-                      <SelectTrigger className="h-8 bg-slate-800 border-slate-600 text-slate-300 text-sm w-[140px]">
+                      <SelectTrigger className="h-8 bg-secondary border-border text-foreground-soft text-sm w-[140px]">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-800">
-                        <SelectItem value="co-owner" className="text-slate-300 focus:bg-slate-800">Co-Owner</SelectItem>
-                        <SelectItem value="manager" className="text-slate-300 focus:bg-slate-800">Manager</SelectItem>
-                        <SelectItem value="instructor" className="text-slate-300 focus:bg-slate-800">Instructor</SelectItem>
-                        <SelectItem value="staff" className="text-slate-300 focus:bg-slate-800">Staff</SelectItem>
+                      <SelectContent className="bg-card border-border">
+                        <SelectItem value="co-owner" className="text-foreground-soft focus:bg-secondary">Co-Owner</SelectItem>
+                        <SelectItem value="manager" className="text-foreground-soft focus:bg-secondary">Manager</SelectItem>
+                        <SelectItem value="instructor" className="text-foreground-soft focus:bg-secondary">Instructor</SelectItem>
+                        <SelectItem value="staff" className="text-foreground-soft focus:bg-secondary">Staff</SelectItem>
                       </SelectContent>
                     </Select>
                     <Button
                       onClick={() => addStaffMutation.mutate({ userId: staffSearchResult.id, role: selectedRole })}
                       disabled={addStaffMutation.isPending}
                       size="sm"
-                      className="bg-amber-500 hover:bg-amber-600 text-black"
+                      className="bg-primary hover:bg-primary/80 text-primary-foreground"
                     >
                       {addStaffMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : `Add as ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)}`}
                     </Button>
@@ -1613,31 +1613,31 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
               )}
 
               {staffSearchResult?.notFound && (
-                <div className="space-y-3 p-3 bg-slate-700 rounded-lg">
-                  <p className="text-white text-sm">{staffSearchResult.email}</p>
-                  <p className="text-amber-500 text-xs">No account found — send invite</p>
+                <div className="space-y-3 p-3 bg-surface rounded-lg">
+                  <p className="text-foreground text-sm">{staffSearchResult.email}</p>
+                  <p className="text-primary text-xs">No account found — send invite</p>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Label className="text-slate-400 text-xs shrink-0">Role:</Label>
+                    <Label className="text-muted-foreground text-xs shrink-0">Role:</Label>
                     <Select
                       value={selectedRole}
                       onValueChange={setSelectedRole}
                       disabled={inviteStaffMutation.isPending}
                     >
-                      <SelectTrigger className="h-8 bg-slate-800 border-slate-600 text-slate-300 text-sm w-[140px]">
+                      <SelectTrigger className="h-8 bg-secondary border-border text-foreground-soft text-sm w-[140px]">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-800">
-                        <SelectItem value="co-owner" className="text-slate-300 focus:bg-slate-800">Co-Owner</SelectItem>
-                        <SelectItem value="manager" className="text-slate-300 focus:bg-slate-800">Manager</SelectItem>
-                        <SelectItem value="instructor" className="text-slate-300 focus:bg-slate-800">Instructor</SelectItem>
-                        <SelectItem value="staff" className="text-slate-300 focus:bg-slate-800">Staff</SelectItem>
+                      <SelectContent className="bg-card border-border">
+                        <SelectItem value="co-owner" className="text-foreground-soft focus:bg-secondary">Co-Owner</SelectItem>
+                        <SelectItem value="manager" className="text-foreground-soft focus:bg-secondary">Manager</SelectItem>
+                        <SelectItem value="instructor" className="text-foreground-soft focus:bg-secondary">Instructor</SelectItem>
+                        <SelectItem value="staff" className="text-foreground-soft focus:bg-secondary">Staff</SelectItem>
                       </SelectContent>
                     </Select>
                     <Button
                       onClick={() => inviteStaffMutation.mutate({ email: staffSearchResult.email, role: selectedRole })}
                       disabled={inviteStaffMutation.isPending}
                       size="sm"
-                      className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-black"
+                      className="w-full sm:w-auto bg-primary hover:bg-primary/80 text-primary-foreground"
                     >
                       {inviteStaffMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send Invite'}
                     </Button>
@@ -1646,11 +1646,11 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
               )}
             </div>
 
-            <Separator className="bg-slate-700" />
+            <Separator className="bg-surface" />
 
             {/* Delete Business */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-slate-400">Danger zone</h3>
+              <h3 className="text-sm font-medium text-muted-foreground">Danger zone</h3>
               <Button
                 variant="outline"
                 size="sm"
@@ -1665,7 +1665,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
           </div>
 
           {hasChanges && (
-            <div className="sticky bottom-0 bg-slate-900 border-t border-slate-700 p-4 flex flex-col gap-3 shrink-0">
+            <div className="sticky bottom-0 bg-card border-t border-border p-4 flex flex-col gap-3 shrink-0">
               {saveMutation.isError && (
                 <p className="text-red-400 text-sm">Save failed. Please try again.</p>
               )}
@@ -1675,7 +1675,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   variant="ghost"
                   onClick={handleDiscardChanges}
                   disabled={saveMutation.isPending}
-                  className="text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                  className="text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                 >
                   Discard
                 </Button>
@@ -1683,7 +1683,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
                   type="button"
                   onClick={handleSaveChanges}
                   disabled={saveMutation.isPending}
-                  className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold rounded-lg transition-colors"
+                  className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-lg transition-colors"
                 >
                   {saveMutation.isPending ? (
                     <>
@@ -1702,18 +1702,18 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
       {/* Delete confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-slate-900 border-slate-800">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">Delete Business?</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogTitle className="text-foreground">Delete Business?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               Are you sure? This will remove all events and data associated with this business.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-transparent border-border text-foreground-soft hover:bg-secondary">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteMutation.mutate()}
-              className="bg-red-600 hover:bg-red-500 text-white"
+              className="bg-red-600 hover:bg-red-500 text-foreground"
               disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Delete'}
@@ -1724,32 +1724,32 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
 
       {/* Confirmation Dialog */}
       <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ ...confirmDialog, open: false })}>
-        <AlertDialogContent className="bg-slate-900 border-slate-800">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">Confirm Change</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">{confirmDialog.message}</AlertDialogDescription>
+            <AlertDialogTitle className="text-foreground">Confirm Change</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">{confirmDialog.message}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmChange} className="bg-amber-500 hover:bg-amber-400 text-black font-bold">Confirm</AlertDialogAction>
+            <AlertDialogCancel className="bg-transparent border-border text-foreground-soft hover:bg-secondary">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmChange} className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold">Confirm</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Unsaved changes on close */}
       <AlertDialog open={unsavedCloseDialogOpen} onOpenChange={setUnsavedCloseDialogOpen}>
-        <AlertDialogContent className="bg-slate-900 border-slate-800">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">Unsaved changes</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogTitle className="text-foreground">Unsaved changes</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               You have unsaved changes. Discard them?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800">Keep Editing</AlertDialogCancel>
+            <AlertDialogCancel className="bg-transparent border-border text-foreground-soft hover:bg-secondary">Keep Editing</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCloseWithDiscard}
-              className="bg-slate-600 hover:bg-slate-500 text-white"
+              className="bg-surface hover:bg-surface text-foreground"
             >
               Discard
             </AlertDialogAction>

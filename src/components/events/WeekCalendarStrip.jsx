@@ -67,30 +67,30 @@ export default function WeekCalendarStrip({ events = [], onEventClick, emptyMess
   }, [comingUp]);
 
   if (events.length === 0) {
-    return <p className="text-slate-500 text-sm py-4">{emptyMessage}</p>;
+    return <p className="text-muted-foreground/70 text-sm py-4">{emptyMessage}</p>;
   }
 
   return (
     <div className="space-y-6">
       {/* Week strip */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
+      <div className="bg-card/50 border border-border rounded-xl p-4">
         <div className="flex items-center justify-between gap-2 mb-4">
           <button
             type="button"
             onClick={() => setCurrentWeekStart((w) => addDays(w, -7))}
             disabled={isViewingCurrentWeek}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-slate-400 hover:text-amber-500 hover:bg-slate-800/50 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-muted-foreground hover:text-primary hover:bg-secondary/50 disabled:opacity-30 disabled:pointer-events-none transition-colors"
             aria-label="Previous week"
           >
             <ChevronLeft className="h-6 w-6" />
           </button>
-          <span className="text-slate-300 text-sm font-medium">
+          <span className="text-foreground-soft text-sm font-medium">
             {isViewingCurrentWeek ? 'This Week' : formatDateRange(currentWeekStart, weekEnd)}
           </span>
           <button
             type="button"
             onClick={() => setCurrentWeekStart((w) => addDays(w, 7))}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-slate-400 hover:text-amber-500 hover:bg-slate-800/50 transition-colors"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors"
             aria-label="Next week"
           >
             <ChevronRight className="h-6 w-6" />
@@ -103,9 +103,9 @@ export default function WeekCalendarStrip({ events = [], onEventClick, emptyMess
             const more = dayEvents.length - 2;
             return (
               <div key={day.getTime()} className="min-w-0 flex flex-col items-center">
-                <span className="text-slate-400 text-xs">{DAY_LABELS[(day.getDay() + 6) % 7]}</span>
+                <span className="text-muted-foreground text-xs">{DAY_LABELS[(day.getDay() + 6) % 7]}</span>
                 <span
-                  className={`text-slate-200 text-sm font-medium mt-0.5 flex items-center justify-center w-8 h-8 rounded-full ${isToday(day) ? 'bg-amber-500 text-black' : ''}`}
+                  className={`text-foreground text-sm font-medium mt-0.5 flex items-center justify-center w-8 h-8 rounded-full ${isToday(day) ? 'bg-primary text-primary-foreground' : ''}`}
                 >
                   {format(day, 'd')}
                 </span>
@@ -115,14 +115,14 @@ export default function WeekCalendarStrip({ events = [], onEventClick, emptyMess
                       key={ev.id}
                       type="button"
                       onClick={() => onEventClick(ev)}
-                      className="w-full text-left text-xs truncate max-w-[20ch] bg-slate-800 border border-slate-700 rounded px-2 py-1.5 min-h-[44px] flex items-center cursor-pointer hover:border-amber-500/50 transition-colors text-slate-200"
+                      className="w-full text-left text-xs truncate max-w-[20ch] bg-secondary border border-border rounded px-2 py-1.5 min-h-[44px] flex items-center cursor-pointer hover:border-primary/50 transition-colors text-foreground"
                       title={ev.title}
                     >
                       {ev.title ? (ev.title.length > 20 ? `${ev.title.slice(0, 20)}…` : ev.title) : 'Event'}
                     </button>
                   ))}
                   {more > 0 && (
-                    <span className="text-slate-500 text-xs block px-1">+{more} more</span>
+                    <span className="text-muted-foreground/70 text-xs block px-1">+{more} more</span>
                   )}
                 </div>
               </div>
@@ -133,8 +133,8 @@ export default function WeekCalendarStrip({ events = [], onEventClick, emptyMess
 
       {/* Coming Up */}
       {comingUpGroups.length > 0 && (
-        <div className="divide-y divide-slate-800">
-          <h3 className="text-slate-300 text-sm font-semibold mb-2">Coming Up</h3>
+        <div className="divide-y divide-border">
+          <h3 className="text-foreground-soft text-sm font-semibold mb-2">Coming Up</h3>
           {comingUpGroups.map((group) => {
             const nextEvent = group.events[0];
             const dates = group.events.map((e) => format(new Date(e.date), 'MMM d')).join(', ');
@@ -143,10 +143,10 @@ export default function WeekCalendarStrip({ events = [], onEventClick, emptyMess
                 key={group.title + nextEvent.id}
                 type="button"
                 onClick={() => onEventClick(nextEvent)}
-                className="w-full text-left py-3 block hover:bg-slate-800/30 rounded-lg px-1 -mx-1 transition-colors min-h-[44px] flex flex-col justify-center"
+                className="w-full text-left py-3 block hover:bg-secondary/30 rounded-lg px-1 -mx-1 transition-colors min-h-[44px] flex flex-col justify-center"
               >
-                <span className="text-slate-200 text-sm font-medium">{group.title}</span>
-                <span className="text-slate-400 text-xs mt-0.5">{dates}</span>
+                <span className="text-foreground text-sm font-medium">{group.title}</span>
+                <span className="text-muted-foreground text-xs mt-0.5">{dates}</span>
               </button>
             );
           })}
@@ -154,7 +154,7 @@ export default function WeekCalendarStrip({ events = [], onEventClick, emptyMess
             <div className="pt-2">
               <Link
                 to="/events"
-                className="text-amber-500 hover:text-amber-400 text-sm font-medium transition-colors"
+                className="text-primary hover:text-primary-hover text-sm font-medium transition-colors"
               >
                 View all events →
               </Link>

@@ -15,22 +15,22 @@ function StepRow({ stepNum, label, amount, isNegative, isHighlight, hideConnecto
   return (
     <div className="flex items-start gap-4 py-2">
       <div className="flex flex-col items-center shrink-0">
-        <div className="w-8 h-8 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-sm font-medium">
+        <div className="w-8 h-8 rounded-full bg-surface text-foreground-soft flex items-center justify-center text-sm font-medium">
           {stepNum}
         </div>
         {!hideConnector && (
-          <div className="w-0.5 flex-1 min-h-[8px] border-l-2 border-slate-700 my-0.5" />
+          <div className="w-0.5 flex-1 min-h-[8px] border-l-2 border-border my-0.5" />
         )}
       </div>
       <div className="flex-1 flex items-center justify-between min-h-8">
-        <span className="text-sm font-semibold text-slate-300">{label}</span>
+        <span className="text-sm font-semibold text-foreground-soft">{label}</span>
         <span
           className={
             isHighlight
-              ? 'text-xl font-bold text-amber-500'
+              ? 'text-xl font-bold text-primary'
               : isNegative
                 ? 'text-red-400 font-medium'
-                : 'text-slate-100 font-medium'
+                : 'text-foreground font-medium'
           }
         >
           {isNegative && amount > 0 ? '-' : ''}
@@ -81,9 +81,9 @@ export default function SettlementDetail({
   const emergPct = groupData ? Number(groupData.emergency_reserve_pct) || 5 : 5;
 
   return (
-    <div className="bg-slate-800/50 rounded-b-lg border border-t-0 border-slate-800 p-4 pl-6">
+    <div className="bg-secondary/50 rounded-b-lg border border-t-0 border-border p-4 pl-6">
       <div className="mb-2">
-        <p className="text-xs text-slate-500 uppercase tracking-wider">
+        <p className="text-xs text-muted-foreground/70 uppercase tracking-wider">
           {groupName} · {formatMonthDisplay(settlement.month)}
         </p>
       </div>
@@ -91,15 +91,15 @@ export default function SettlementDetail({
         {/* Step 1: Gross Rent */}
         <div className="flex items-start gap-4 py-2">
           <div className="flex flex-col items-center shrink-0">
-            <div className="w-8 h-8 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-sm font-medium">
+            <div className="w-8 h-8 rounded-full bg-surface text-foreground-soft flex items-center justify-center text-sm font-medium">
               1
             </div>
-            <div className="w-0.5 flex-1 min-h-[8px] border-l-2 border-slate-700 my-0.5" />
+            <div className="w-0.5 flex-1 min-h-[8px] border-l-2 border-border my-0.5" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-300">Gross Rent</span>
-              <span className="text-slate-100 font-medium">
+              <span className="text-sm font-semibold text-foreground-soft">Gross Rent</span>
+              <span className="text-foreground font-medium">
                 {formatCurrency(gross_rent)}
               </span>
             </div>
@@ -110,8 +110,8 @@ export default function SettlementDetail({
                     key={u.id}
                     className="flex items-center justify-between text-sm gap-2"
                   >
-                    <span className="text-slate-400 truncate">{u.name}</span>
-                    <span className="text-slate-100 shrink-0">
+                    <span className="text-muted-foreground truncate">{u.name}</span>
+                    <span className="text-foreground shrink-0">
                       {formatCurrency(Number(u.monthly_rent) || 0)}
                     </span>
                   </div>
@@ -124,14 +124,14 @@ export default function SettlementDetail({
         {/* Step 2: Fixed Expenses */}
         <div className="flex items-start gap-4 py-2">
           <div className="flex flex-col items-center shrink-0">
-            <div className="w-8 h-8 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-sm font-medium">
+            <div className="w-8 h-8 rounded-full bg-surface text-foreground-soft flex items-center justify-center text-sm font-medium">
               2
             </div>
-            <div className="w-0.5 flex-1 min-h-[8px] border-l-2 border-slate-700 my-0.5" />
+            <div className="w-0.5 flex-1 min-h-[8px] border-l-2 border-border my-0.5" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-300">
+              <span className="text-sm font-semibold text-foreground-soft">
                 Fixed Expenses
               </span>
               <span className="text-red-400 font-medium">
@@ -152,7 +152,7 @@ export default function SettlementDetail({
                           <button
                             type="button"
                             onClick={() => onExpenseReconcileToggle(e)}
-                            className="p-0.5 rounded hover:bg-slate-700 shrink-0"
+                            className="p-0.5 rounded hover:bg-surface shrink-0"
                             aria-label={
                               reconciled ? 'Un-reconcile' : 'Mark reconciled'
                             }
@@ -160,19 +160,19 @@ export default function SettlementDetail({
                             {reconciled ? (
                               <CheckCircle className="w-4 h-4 text-emerald-400" />
                             ) : (
-                              <Circle className="w-4 h-4 text-slate-600" />
+                              <Circle className="w-4 h-4 text-muted-foreground/50" />
                             )}
                           </button>
                         ) : reconciled ? (
                           <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
                         ) : (
-                          <Circle className="w-4 h-4 text-slate-600 shrink-0" />
+                          <Circle className="w-4 h-4 text-muted-foreground/50 shrink-0" />
                         )}
-                        <span className="text-slate-400 truncate">
+                        <span className="text-muted-foreground truncate">
                           {e.description || '—'}
                         </span>
                       </div>
-                      <span className="text-slate-100 shrink-0">
+                      <span className="text-foreground shrink-0">
                         {formatCurrency(Number(e.amount) || 0)}
                       </span>
                     </div>
@@ -205,14 +205,14 @@ export default function SettlementDetail({
         {/* Step 6: Labor */}
         <div className="flex items-start gap-4 py-2">
           <div className="flex flex-col items-center shrink-0">
-            <div className="w-8 h-8 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-sm font-medium">
+            <div className="w-8 h-8 rounded-full bg-surface text-foreground-soft flex items-center justify-center text-sm font-medium">
               6
             </div>
-            <div className="w-0.5 flex-1 min-h-[8px] border-l-2 border-slate-700 my-0.5" />
+            <div className="w-0.5 flex-1 min-h-[8px] border-l-2 border-border my-0.5" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-300">
+              <span className="text-sm font-semibold text-foreground-soft">
                 Labor Costs
               </span>
               <span className="text-red-400 font-medium">
@@ -230,10 +230,10 @@ export default function SettlementDetail({
                       key={l.id}
                       className="flex items-center justify-between text-sm gap-2"
                     >
-                      <span className="text-slate-400 truncate">
+                      <span className="text-muted-foreground truncate">
                         {l.worker_name || l.description || '—'}
                       </span>
-                      <span className="text-slate-100 shrink-0">
+                      <span className="text-foreground shrink-0">
                         {formatCurrency(amount)}
                       </span>
                     </div>
@@ -248,14 +248,14 @@ export default function SettlementDetail({
         {(total_reimbursements > 0 || reimbursable_expenses.length > 0) && (
           <div className="flex items-start gap-4 py-2">
             <div className="flex flex-col items-center shrink-0">
-              <div className="w-8 h-8 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-xs font-medium">
+              <div className="w-8 h-8 rounded-full bg-surface text-foreground-soft flex items-center justify-center text-xs font-medium">
                 6.5
               </div>
-              <div className="w-0.5 flex-1 min-h-[8px] border-l-2 border-slate-700 my-0.5" />
+              <div className="w-0.5 flex-1 min-h-[8px] border-l-2 border-border my-0.5" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-300">
+                <span className="text-sm font-semibold text-foreground-soft">
                   Manager Reimbursements
                 </span>
                 <span className="text-red-400 font-medium">
@@ -269,10 +269,10 @@ export default function SettlementDetail({
                       key={e.id}
                       className="flex items-center justify-between text-sm"
                     >
-                      <span className="text-slate-400 truncate">
+                      <span className="text-muted-foreground truncate">
                         {e.description || '—'}
                       </span>
-                      <span className="text-slate-100 shrink-0">
+                      <span className="text-foreground shrink-0">
                         {formatCurrency(Number(e.amount) || 0)}
                       </span>
                     </div>

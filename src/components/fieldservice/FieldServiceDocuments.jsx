@@ -28,8 +28,8 @@ import {
 // ═══════════════════════════════════════════════════
 
 const INPUT_CLASS =
-  'w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent min-h-[44px]';
-const LABEL_CLASS = 'block text-slate-300 text-sm font-medium mb-1';
+  'w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent min-h-[44px]';
+const LABEL_CLASS = 'block text-foreground-soft text-sm font-medium mb-1';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -50,19 +50,19 @@ function normalizeStatus(status) {
 }
 
 const DOC_STATUS_CONFIG = {
-  draft:              { label: 'Draft',              color: 'bg-slate-500/20 text-slate-400', priority: 1 },
-  awaiting_signature: { label: 'Awaiting Signature', color: 'bg-amber-500/20 text-amber-400', priority: 0, pulse: true },
+  draft:              { label: 'Draft',              color: 'bg-muted-foreground/20 text-muted-foreground', priority: 1 },
+  awaiting_signature: { label: 'Awaiting Signature', color: 'bg-primary/20 text-primary-hover', priority: 0, pulse: true },
   signed:             { label: 'Signed',             color: 'bg-emerald-500/20 text-emerald-400', priority: 2 },
-  archived:           { label: 'Archived',           color: 'bg-slate-800/50 text-slate-600', priority: 3 },
+  archived:           { label: 'Archived',           color: 'bg-secondary/50 text-muted-foreground/50', priority: 3 },
 };
 
 const TEMPLATE_TYPE_BADGES = {
-  lien_notice:    { label: 'Lien Notice',   color: 'bg-amber-500/20 text-amber-400' },
+  lien_notice:    { label: 'Lien Notice',   color: 'bg-primary/20 text-primary-hover' },
   sub_agreement:  { label: 'Sub Agreement', color: 'bg-sky-500/20 text-sky-400' },
   contract:       { label: 'Contract',      color: 'bg-violet-500/20 text-violet-400' },
   change_order:   { label: 'Change Order',  color: 'bg-rose-500/20 text-rose-400' },
   waiver:         { label: 'Waiver',        color: 'bg-emerald-500/20 text-emerald-400' },
-  custom:         { label: 'Custom',        color: 'bg-slate-500/20 text-slate-400' },
+  custom:         { label: 'Custom',        color: 'bg-muted-foreground/20 text-muted-foreground' },
 };
 
 // ═══════════════════════════════════════════════════
@@ -133,8 +133,8 @@ function StatusBadge({ status, signedAt }) {
     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium ${cfg.color}`}>
       {cfg.pulse && (
         <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-hover opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
         </span>
       )}
       {cfg.label}
@@ -154,15 +154,15 @@ function DocumentRow({ doc, onView, onEdit, onSendForSignature, onCopyLink, onRe
   const isSigned = normalized === 'signed';
 
   return (
-    <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-slate-800/50 transition-colors group">
+    <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-secondary/50 transition-colors group">
       {/* Icon */}
       <FileText className={`h-4 w-4 flex-shrink-0 ${
-        isSigned ? 'text-emerald-500' : isAwaiting ? 'text-amber-500' : 'text-slate-500'
+        isSigned ? 'text-emerald-500' : isAwaiting ? 'text-primary' : 'text-muted-foreground/70'
       }`} />
 
       {/* Title + status */}
       <button type="button" onClick={() => onView(doc)} className="flex-1 min-w-0 text-left">
-        <span className="text-sm font-medium text-slate-100 truncate block">{doc.title}</span>
+        <span className="text-sm font-medium text-foreground truncate block">{doc.title}</span>
       </button>
 
       <StatusBadge status={doc.status} signedAt={doc.signed_at || doc.signature_data?.signed_at} />
@@ -172,11 +172,11 @@ function DocumentRow({ doc, onView, onEdit, onSendForSignature, onCopyLink, onRe
         {isDraft && (
           <>
             <button type="button" onClick={() => onEdit(doc)} title="Edit"
-              className="p-2.5 text-slate-400 hover:text-amber-500 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
+              className="p-2.5 text-muted-foreground hover:text-primary transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
               <Pencil className="h-4 w-4" />
             </button>
             <button type="button" onClick={() => onSendForSignature(doc)} title="Send for Signature"
-              className="p-2.5 text-amber-500 hover:text-amber-400 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
+              className="p-2.5 text-primary hover:text-primary-hover transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
               <Send className="h-4 w-4" />
             </button>
             <button type="button"
@@ -189,7 +189,7 @@ function DocumentRow({ doc, onView, onEdit, onSendForSignature, onCopyLink, onRe
                 }
               }}
               title="Delete"
-              className="p-2.5 text-slate-500 hover:text-red-400 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
+              className="p-2.5 text-muted-foreground/70 hover:text-red-400 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
               <Trash2 className="h-4 w-4" />
             </button>
           </>
@@ -197,11 +197,11 @@ function DocumentRow({ doc, onView, onEdit, onSendForSignature, onCopyLink, onRe
         {isAwaiting && (
           <>
             <button type="button" onClick={() => onCopyLink(doc)} title="Copy Signing Link"
-              className="p-2.5 text-slate-400 hover:text-amber-500 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
+              className="p-2.5 text-muted-foreground hover:text-primary transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
               <Copy className="h-4 w-4" />
             </button>
             <button type="button" onClick={() => onRecall(doc)} title="Recall"
-              className="p-2.5 text-slate-400 hover:text-orange-400 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
+              className="p-2.5 text-muted-foreground hover:text-orange-400 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
               <RotateCcw className="h-4 w-4" />
             </button>
           </>
@@ -209,11 +209,11 @@ function DocumentRow({ doc, onView, onEdit, onSendForSignature, onCopyLink, onRe
         {isSigned && (
           <>
             <button type="button" onClick={() => onView(doc)} title="View"
-              className="p-2.5 text-slate-400 hover:text-amber-500 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
+              className="p-2.5 text-muted-foreground hover:text-primary transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
               <Eye className="h-4 w-4" />
             </button>
             <button type="button" onClick={() => onPrint(doc)} title="Print"
-              className="p-2.5 text-slate-400 hover:text-slate-200 transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
+              className="p-2.5 text-muted-foreground hover:text-foreground transition-colors rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
               <Printer className="h-4 w-4" />
             </button>
           </>
@@ -230,11 +230,11 @@ function DocumentRow({ doc, onView, onEdit, onSendForSignature, onCopyLink, onRe
 function ClientSectionHeader({ name, count }) {
   return (
     <div className="flex items-center gap-2 pt-4 pb-1 first:pt-0">
-      <div className="h-px flex-1 bg-slate-800" />
-      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">
-        {name} <span className="text-slate-600">({count})</span>
+      <div className="h-px flex-1 bg-secondary" />
+      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
+        {name} <span className="text-muted-foreground/50">({count})</span>
       </span>
-      <div className="h-px flex-1 bg-slate-800" />
+      <div className="h-px flex-1 bg-secondary" />
     </div>
   );
 }
@@ -246,23 +246,23 @@ function ClientSectionHeader({ name, count }) {
 function RecallDialog({ doc, onConfirm, onCancel, isRecalling }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={onCancel}>
-      <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-sm w-full space-y-4" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-card border border-border rounded-xl p-6 max-w-sm w-full space-y-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
             <AlertTriangle className="h-5 w-5 text-orange-400" />
           </div>
-          <h3 className="text-base font-semibold text-slate-100">Recall Document?</h3>
+          <h3 className="text-base font-semibold text-foreground">Recall Document?</h3>
         </div>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-muted-foreground">
           This will invalidate the signing link. Your client won't be able to sign until you send again.
         </p>
         <div className="flex gap-2 justify-end">
           <button type="button" onClick={onCancel}
-            className="px-4 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-slate-100 hover:bg-transparent text-sm min-h-[44px] transition-colors">
+            className="px-4 py-2 rounded-lg border border-border text-foreground-soft hover:text-foreground hover:bg-transparent text-sm min-h-[44px] transition-colors">
             Cancel
           </button>
           <button type="button" onClick={onConfirm} disabled={isRecalling}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-black font-semibold text-sm min-h-[44px] transition-colors disabled:opacity-50">
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-400 text-primary-foreground font-semibold text-sm min-h-[44px] transition-colors disabled:opacity-50">
             {isRecalling ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
             Recall
           </button>
@@ -316,27 +316,27 @@ function DocumentDetail({
   return (
     <div className="space-y-4 pb-8">
       <button type="button" onClick={onBack}
-        className="flex items-center gap-2 text-slate-400 hover:text-amber-500 text-sm min-h-[44px] print:hidden">
+        className="flex items-center gap-2 text-muted-foreground hover:text-primary text-sm min-h-[44px] print:hidden">
         <ArrowLeft className="h-4 w-4" /> Back to Documents
       </button>
 
       {/* Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 print:hidden">
+      <div className="bg-card border border-border rounded-xl p-4 print:hidden">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <h2 className="text-lg font-bold text-slate-100">{doc.title}</h2>
-            {client && <p className="text-sm text-slate-400 mt-0.5">{client.name}</p>}
-            {client?.email && <p className="text-xs text-slate-500">{client.email}</p>}
-            {doc.project_name && <p className="text-xs text-slate-500 mt-0.5">{doc.project_name}</p>}
+            <h2 className="text-lg font-bold text-foreground">{doc.title}</h2>
+            {client && <p className="text-sm text-muted-foreground mt-0.5">{client.name}</p>}
+            {client?.email && <p className="text-xs text-muted-foreground/70">{client.email}</p>}
+            {doc.project_name && <p className="text-xs text-muted-foreground/70 mt-0.5">{doc.project_name}</p>}
             {doc.amendment_of && (
-              <p className="text-xs text-amber-500/70 mt-1">Amendment of a previous document</p>
+              <p className="text-xs text-primary/70 mt-1">Amendment of a previous document</p>
             )}
           </div>
           <StatusBadge status={doc.status} signedAt={doc.signed_at} />
         </div>
 
         {/* Metadata */}
-        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs text-slate-500">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs text-muted-foreground/70">
           {doc.created_at && (
             <span>Created: {new Date(doc.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
           )}
@@ -349,23 +349,23 @@ function DocumentDetail({
         </div>
 
         {/* Actions */}
-        <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-800">
+        <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-border">
           {isDraft && !editing && (
             <button type="button" onClick={() => setEditing(true)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent text-xs min-h-[44px] transition-colors">
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-foreground-soft hover:text-primary hover:border-primary hover:bg-transparent text-xs min-h-[44px] transition-colors">
               <Pencil className="h-3.5 w-3.5" /> Edit
             </button>
           )}
           {isDraft && (
             <button type="button" onClick={() => onSendForSignature(doc)} disabled={isUpdating}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs min-h-[44px] transition-colors disabled:opacity-50">
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-xs min-h-[44px] transition-colors disabled:opacity-50">
               <Send className="h-3.5 w-3.5" /> Send for Signature
             </button>
           )}
           {isAwaiting && (
             <>
               <button type="button" onClick={() => onCopyLink(doc)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent text-xs min-h-[44px] transition-colors">
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-foreground-soft hover:text-primary hover:border-primary hover:bg-transparent text-xs min-h-[44px] transition-colors">
                 <Copy className="h-3.5 w-3.5" /> Copy Signing Link
               </button>
               <button type="button" onClick={() => onRecall(doc)}
@@ -377,18 +377,18 @@ function DocumentDetail({
           {isSigned && (
             <>
               <button type="button" onClick={() => onCreateAmendment(doc)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent text-xs min-h-[44px] transition-colors">
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-foreground-soft hover:text-primary hover:border-primary hover:bg-transparent text-xs min-h-[44px] transition-colors">
                 <FilePlus className="h-3.5 w-3.5" /> Create Amendment
               </button>
               <button type="button" onClick={() => onUpdate(doc.id, { status: 'archived' })} disabled={isUpdating}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-300 hover:bg-transparent text-xs min-h-[44px] transition-colors disabled:opacity-50">
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground-soft hover:bg-transparent text-xs min-h-[44px] transition-colors disabled:opacity-50">
                 <Archive className="h-3.5 w-3.5" /> Archive
               </button>
             </>
           )}
           {isArchived && (
             <button type="button" onClick={() => onUpdate(doc.id, { status: 'signed' })} disabled={isUpdating}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent text-xs min-h-[44px] transition-colors disabled:opacity-50">
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-foreground-soft hover:text-primary hover:border-primary hover:bg-transparent text-xs min-h-[44px] transition-colors disabled:opacity-50">
               <Archive className="h-3.5 w-3.5" /> Unarchive
             </button>
           )}
@@ -404,7 +404,7 @@ function DocumentDetail({
             </span>
           )}
           <button type="button" onClick={() => window.print()}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-300 hover:bg-transparent text-xs min-h-[44px] transition-colors">
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground-soft hover:bg-transparent text-xs min-h-[44px] transition-colors">
             <Printer className="h-3.5 w-3.5" /> Print
           </button>
           {isDraft && (
@@ -432,21 +432,21 @@ function DocumentDetail({
             <textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
-              className="w-full min-h-[500px] bg-slate-50 border border-slate-300 text-slate-900 rounded-lg px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"
+              className="w-full min-h-[500px] bg-slate-50 border border-border text-primary-foreground rounded-lg px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring resize-y"
             />
             <div className="flex gap-2">
               <button type="button" onClick={handleSave} disabled={isUpdating}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm min-h-[44px] transition-colors disabled:opacity-50">
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] transition-colors disabled:opacity-50">
                 <Save className="h-4 w-4" /> Save
               </button>
               <button type="button" onClick={() => { setEditContent(doc.content); setEditing(false); }}
-                className="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 text-sm min-h-[44px] transition-colors">
+                className="px-4 py-2 rounded-lg border border-border text-muted-foreground/50 text-sm min-h-[44px] transition-colors">
                 Cancel
               </button>
             </div>
           </div>
         ) : (
-          <pre className="whitespace-pre-wrap text-sm text-slate-900 font-sans leading-relaxed print:text-black">
+          <pre className="whitespace-pre-wrap text-sm text-primary-foreground font-sans leading-relaxed print:text-primary-foreground">
             {doc.content}
           </pre>
         )}
@@ -454,7 +454,7 @@ function DocumentDetail({
         {/* Owner Signature */}
         {doc.owner_signature_data && (
           <div className="mt-6">
-            <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-medium">Owner Signature</p>
+            <p className="text-xs text-muted-foreground/70 uppercase tracking-wider mb-1 font-medium">Owner Signature</p>
             <SignatureDisplay signatureData={doc.owner_signature_data} darkMode={false} />
           </div>
         )}
@@ -462,7 +462,7 @@ function DocumentDetail({
         {/* Client Signature */}
         {doc.signature_data && (
           <div className="mt-4">
-            <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-medium">Client Signature</p>
+            <p className="text-xs text-muted-foreground/70 uppercase tracking-wider mb-1 font-medium">Client Signature</p>
             <SignatureDisplay signatureData={doc.signature_data} darkMode={false} />
           </div>
         )}
@@ -471,7 +471,7 @@ function DocumentDetail({
         {isSigned && doc.signature_data && (() => {
           const sig = typeof doc.signature_data === 'string' ? JSON.parse(doc.signature_data) : doc.signature_data;
           return sig?.document_hash ? (
-            <p className="text-xs text-slate-400 mt-4 font-mono break-all print:hidden">
+            <p className="text-xs text-muted-foreground mt-4 font-mono break-all print:hidden">
               Integrity: {sig.document_hash}
             </p>
           ) : null;
@@ -480,11 +480,11 @@ function DocumentDetail({
 
       {/* Inline Owner Signing Flow */}
       {showOwnerSign && !hasOwnerSig && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 print:hidden">
+        <div className="bg-card border border-border rounded-xl p-4 print:hidden">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-slate-100">Sign as Owner</h3>
+            <h3 className="text-sm font-bold text-foreground">Sign as Owner</h3>
             <button type="button" onClick={() => setShowOwnerSign(false)}
-              className="p-1 text-slate-500 hover:text-slate-300">
+              className="p-1 text-muted-foreground/70 hover:text-foreground-soft">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -606,32 +606,32 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
   return (
     <div className="space-y-4 pb-8">
       <button type="button" onClick={onCancel}
-        className="flex items-center gap-2 text-slate-400 hover:text-amber-500 text-sm min-h-[44px]">
+        className="flex items-center gap-2 text-muted-foreground hover:text-primary text-sm min-h-[44px]">
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
 
       {/* Step indicator */}
-      <div className="flex items-center gap-2 text-xs text-slate-500">
-        <span className={step === 'client' ? 'text-amber-500 font-semibold' : clientId ? 'text-emerald-500' : ''}>
+      <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
+        <span className={step === 'client' ? 'text-primary font-semibold' : clientId ? 'text-emerald-500' : ''}>
           1. Client {clientId && <Check className="inline h-3 w-3" />}
         </span>
         <span className="text-slate-700">→</span>
-        <span className={step === 'template' ? 'text-amber-500 font-semibold' : selectedTemplate ? 'text-emerald-500' : ''}>
+        <span className={step === 'template' ? 'text-primary font-semibold' : selectedTemplate ? 'text-emerald-500' : ''}>
           2. Template {selectedTemplate && <Check className="inline h-3 w-3" />}
         </span>
         <span className="text-slate-700">→</span>
-        <span className={step === 'content' ? 'text-amber-500 font-semibold' : ''}>3. Content</span>
+        <span className={step === 'content' ? 'text-primary font-semibold' : ''}>3. Content</span>
       </div>
 
       {/* Step 1: Select Client */}
       {step === 'client' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
-          <h3 className="text-base font-semibold text-slate-100">Select Client</h3>
-          <p className="text-xs text-slate-500">A client is required for every document.</p>
+        <div className="bg-card border border-border rounded-xl p-4 space-y-4">
+          <h3 className="text-base font-semibold text-foreground">Select Client</h3>
+          <p className="text-xs text-muted-foreground/70">A client is required for every document.</p>
 
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
             <input
               type="text"
               value={clientSearch}
@@ -650,28 +650,28 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
                 onClick={() => setClientId(c.id)}
                 className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors min-h-[44px] ${
                   clientId === c.id
-                    ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
-                    : 'hover:bg-slate-800 text-slate-300'
+                    ? 'bg-primary/10 border border-primary/30 text-primary-hover'
+                    : 'hover:bg-secondary text-foreground-soft'
                 }`}
               >
                 <span className="font-medium">{c.name}</span>
-                {c.email && <span className="text-xs text-slate-500 ml-2">{c.email}</span>}
+                {c.email && <span className="text-xs text-muted-foreground/70 ml-2">{c.email}</span>}
               </button>
             ))}
             {filteredClients.length === 0 && !showAddClient && (
-              <p className="text-sm text-slate-500 py-4 text-center">No clients found.</p>
+              <p className="text-sm text-muted-foreground/70 py-4 text-center">No clients found.</p>
             )}
           </div>
 
           {/* Add new client */}
           {!showAddClient ? (
             <button type="button" onClick={() => setShowAddClient(true)}
-              className="flex items-center gap-1.5 text-sm text-amber-500 hover:text-amber-400 min-h-[44px]">
+              className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover min-h-[44px]">
               <UserPlus className="h-4 w-4" /> Add New Client
             </button>
           ) : (
-            <div className="bg-slate-800 rounded-lg p-4 space-y-3 border border-slate-700">
-              <h4 className="text-sm font-medium text-slate-200">Quick Add Client</h4>
+            <div className="bg-secondary rounded-lg p-4 space-y-3 border border-border">
+              <h4 className="text-sm font-medium text-foreground">Quick Add Client</h4>
               {/* Name + Email (required) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -723,12 +723,12 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
               </div>
               <div className="flex gap-2">
                 <button type="button" onClick={handleAddClient} disabled={creatingClient || !newClient.name.trim() || !newClient.email.trim()}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs min-h-[44px] transition-colors disabled:opacity-50">
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-xs min-h-[44px] transition-colors disabled:opacity-50">
                   {creatingClient ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserPlus className="h-3.5 w-3.5" />}
                   Add Client
                 </button>
                 <button type="button" onClick={() => setShowAddClient(false)}
-                  className="px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 hover:bg-transparent text-xs min-h-[44px] transition-colors">
+                  className="px-3 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-transparent text-xs min-h-[44px] transition-colors">
                   Cancel
                 </button>
               </div>
@@ -737,7 +737,7 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
 
           <div className="pt-2">
             <button type="button" onClick={() => setStep('template')} disabled={!clientId}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm min-h-[44px] transition-colors disabled:opacity-50">
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] transition-colors disabled:opacity-50">
               Continue
             </button>
           </div>
@@ -746,10 +746,10 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
 
       {/* Step 2: Choose Template */}
       {step === 'template' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
-          <h3 className="text-base font-semibold text-slate-100">Choose Template</h3>
-          <p className="text-xs text-slate-500">
-            For: <span className="text-slate-300">{selectedClient?.name}</span>
+        <div className="bg-card border border-border rounded-xl p-4 space-y-4">
+          <h3 className="text-base font-semibold text-foreground">Choose Template</h3>
+          <p className="text-xs text-muted-foreground/70">
+            For: <span className="text-foreground-soft">{selectedClient?.name}</span>
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -760,13 +760,13 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
                   key={tpl.id}
                   type="button"
                   onClick={() => { setSelectedTemplate(tpl); setStep('content'); }}
-                  className="text-left bg-slate-800 border border-slate-700 rounded-lg p-3 hover:border-amber-500/50 transition-colors"
+                  className="text-left bg-secondary border border-border rounded-lg p-3 hover:border-primary/50 transition-colors"
                 >
-                  <p className="text-sm font-medium text-slate-100 truncate">{tpl.title}</p>
+                  <p className="text-sm font-medium text-foreground truncate">{tpl.title}</p>
                   <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${typeBadge.color} mt-1`}>
                     {typeBadge.label}
                   </span>
-                  {tpl.description && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{tpl.description}</p>}
+                  {tpl.description && <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2">{tpl.description}</p>}
                 </button>
               );
             })}
@@ -778,15 +778,15 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
                 setSelectedTemplate({ id: null, title: 'Untitled Document', content: '', template_type: 'custom' });
                 setStep('content');
               }}
-              className="text-left bg-slate-800 border border-dashed border-slate-600 rounded-lg p-3 hover:border-amber-500/50 transition-colors"
+              className="text-left bg-secondary border border-dashed border-border rounded-lg p-3 hover:border-primary/50 transition-colors"
             >
-              <p className="text-sm font-medium text-slate-400">Start from Blank</p>
-              <p className="text-xs text-slate-600 mt-1">Create a custom document</p>
+              <p className="text-sm font-medium text-muted-foreground">Start from Blank</p>
+              <p className="text-xs text-muted-foreground/50 mt-1">Create a custom document</p>
             </button>
           </div>
 
           <button type="button" onClick={() => setStep('client')}
-            className="text-sm text-slate-400 hover:text-amber-500 min-h-[44px]">
+            className="text-sm text-muted-foreground hover:text-primary min-h-[44px]">
             ← Back to Client
           </button>
         </div>
@@ -795,11 +795,11 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
       {/* Step 3: Content + Project + Save */}
       {step === 'content' && (
         <div className="space-y-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
+          <div className="bg-card border border-border rounded-xl p-4 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-slate-100">Document Details</h3>
+              <h3 className="text-base font-semibold text-foreground">Document Details</h3>
               <button type="button" onClick={() => setStep('template')}
-                className="text-xs text-slate-400 hover:text-amber-500">
+                className="text-xs text-muted-foreground hover:text-primary">
                 ← Change Template
               </button>
             </div>
@@ -821,27 +821,27 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
           </div>
 
           {/* Content */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Document Content</h3>
-            <p className="text-xs text-slate-500">
+          <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+            <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">Document Content</h3>
+            <p className="text-xs text-muted-foreground/70">
               Fields have been auto-filled from the selected client and project. Edit below before saving.
             </p>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full min-h-[400px] bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"
+              className="w-full min-h-[400px] bg-secondary border border-border text-foreground rounded-lg px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring resize-y"
             />
           </div>
 
           {/* Actions */}
           <div className="flex gap-2 flex-wrap">
             <button type="button" onClick={handleSave} disabled={isSaving || !title.trim()}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm min-h-[44px] transition-colors disabled:opacity-50">
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] transition-colors disabled:opacity-50">
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Save as Draft
             </button>
             <button type="button" onClick={onCancel}
-              className="px-4 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-slate-100 hover:bg-transparent text-sm min-h-[44px] transition-colors">
+              className="px-4 py-2 rounded-lg border border-border text-foreground-soft hover:text-foreground hover:bg-transparent text-sm min-h-[44px] transition-colors">
               Cancel
             </button>
           </div>
@@ -879,12 +879,12 @@ function TemplateEditor({ template, onSave, onCancel, isSaving }) {
   return (
     <div className="space-y-4 pb-8">
       <button type="button" onClick={onCancel}
-        className="flex items-center gap-2 text-slate-400 hover:text-amber-500 text-sm min-h-[44px]">
+        className="flex items-center gap-2 text-muted-foreground hover:text-primary text-sm min-h-[44px]">
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
-        <h3 className="text-base font-semibold text-slate-100">{isNew ? 'Create Custom Template' : 'Edit Template'}</h3>
+      <div className="bg-card border border-border rounded-xl p-4 space-y-4">
+        <h3 className="text-base font-semibold text-foreground">{isNew ? 'Create Custom Template' : 'Edit Template'}</h3>
         <div>
           <label className={LABEL_CLASS}>Title</label>
           <input type="text" className={INPUT_CLASS} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Final Lien Waiver" />
@@ -903,13 +903,13 @@ function TemplateEditor({ template, onSave, onCancel, isSaving }) {
         </div>
         <div>
           <label className={LABEL_CLASS}>Content</label>
-          <p className="text-xs text-slate-500 mb-1">
+          <p className="text-xs text-muted-foreground/70 mb-1">
             Use {'{{field_name}}'} for merge fields. Available: client_name, client_address, project_name, project_address, company_name, license_number, date, estimate_total, etc.
           </p>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full min-h-[300px] bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"
+            className="w-full min-h-[300px] bg-secondary border border-border text-foreground rounded-lg px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring resize-y"
             placeholder="Type your template content here..."
           />
         </div>
@@ -917,12 +917,12 @@ function TemplateEditor({ template, onSave, onCancel, isSaving }) {
 
       <div className="flex gap-2">
         <button type="button" onClick={handleSave} disabled={isSaving || !title.trim() || !content.trim()}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm min-h-[44px] transition-colors disabled:opacity-50">
+          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] transition-colors disabled:opacity-50">
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           {isNew ? 'Create Template' : 'Save Changes'}
         </button>
         <button type="button" onClick={onCancel}
-          className="px-4 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-slate-100 hover:bg-transparent text-sm min-h-[44px] transition-colors">
+          className="px-4 py-2 rounded-lg border border-border text-foreground-soft hover:text-foreground hover:bg-transparent text-sm min-h-[44px] transition-colors">
           Cancel
         </button>
       </div>
@@ -1264,7 +1264,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20 text-slate-500">
+      <div className="flex items-center justify-center py-20 text-muted-foreground/70">
         <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading documents...
       </div>
     );
@@ -1343,15 +1343,15 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
 
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-lg font-bold text-slate-100">
+        <h2 className="text-lg font-bold text-foreground">
           Documents
           {totalDocCount > 0 && (
-            <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-slate-800 text-slate-400 font-normal">
+            <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground font-normal">
               {totalDocCount}
             </span>
           )}
           {awaitingCount > 0 && (
-            <span className="ml-1 px-2 py-0.5 rounded-full text-xs bg-amber-500/20 text-amber-400 font-normal">
+            <span className="ml-1 px-2 py-0.5 rounded-full text-xs bg-primary/20 text-primary-hover font-normal">
               {awaitingCount} awaiting
             </span>
           )}
@@ -1359,7 +1359,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
         <button
           type="button"
           onClick={() => setView('create')}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm min-h-[44px] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] transition-colors"
         >
           <Plus className="h-4 w-4" /> New Document
         </button>
@@ -1380,17 +1380,17 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
         </select>
 
         {/* Show archived toggle */}
-        <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer min-h-[44px] px-2">
+        <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer min-h-[44px] px-2">
           <button
             type="button"
             onClick={() => setShowArchived(!showArchived)}
             className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
               showArchived
-                ? 'bg-amber-500 border-amber-500'
-                : 'border-slate-600 bg-transparent'
+                ? 'bg-primary border-primary'
+                : 'border-border bg-transparent'
             }`}
           >
-            {showArchived && <Check className="h-3 w-3 text-black" />}
+            {showArchived && <Check className="h-3 w-3 text-primary-foreground" />}
           </button>
           Show Archived
         </label>
@@ -1400,7 +1400,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
           type="button"
           onClick={() => setShowTemplates(!showTemplates)}
           className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium min-h-[44px] transition-colors ml-auto ${
-            showTemplates ? 'bg-slate-800 text-amber-400 border border-amber-500/30' : 'text-slate-500 hover:text-slate-300'
+            showTemplates ? 'bg-secondary text-primary-hover border border-primary/30' : 'text-muted-foreground/70 hover:text-foreground-soft'
           }`}
         >
           <FolderOpen className="h-3.5 w-3.5" /> Templates
@@ -1409,11 +1409,11 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
 
       {/* Templates section (collapsible) */}
       {showTemplates && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+        <div className="bg-card border border-border rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Document Templates</h3>
+            <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">Document Templates</h3>
             <button type="button" onClick={() => setView('newTemplate')}
-              className="flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400">
+              className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover">
               <Plus className="h-3 w-3" /> Custom
             </button>
           </div>
@@ -1421,15 +1421,15 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
             {templates.map((tpl) => {
               const typeBadge = TEMPLATE_TYPE_BADGES[tpl.template_type] || TEMPLATE_TYPE_BADGES.custom;
               return (
-                <div key={tpl.id} className="flex items-center justify-between gap-2 bg-slate-800 rounded-lg px-3 py-2">
+                <div key={tpl.id} className="flex items-center justify-between gap-2 bg-secondary rounded-lg px-3 py-2">
                   <div className="min-w-0">
-                    <p className="text-sm text-slate-200 truncate">{tpl.title}</p>
+                    <p className="text-sm text-foreground truncate">{tpl.title}</p>
                     <span className={`inline-block px-1 py-0.5 rounded text-xs ${typeBadge.color}`}>{typeBadge.label}</span>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
                     {!tpl.is_system && (
                       <button type="button" onClick={() => { setEditingTemplate(tpl); setView('editTemplate'); }}
-                        className="p-1.5 text-slate-500 hover:text-amber-500 transition-colors">
+                        className="p-1.5 text-muted-foreground/70 hover:text-primary transition-colors">
                         <Pencil className="h-3 w-3" />
                       </button>
                     )}
@@ -1445,14 +1445,14 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
       {clients.length === 0 ? (
         <div className="text-center py-12">
           <FileText className="h-10 w-10 text-slate-700 mx-auto mb-3" />
-          <p className="text-slate-400 text-sm mb-1">Add a client first to create documents.</p>
-          <p className="text-slate-600 text-xs">Go to the People tab to add your first client.</p>
+          <p className="text-muted-foreground text-sm mb-1">Add a client first to create documents.</p>
+          <p className="text-muted-foreground/50 text-xs">Go to the People tab to add your first client.</p>
         </div>
       ) : groupedDocs.length === 0 ? (
         /* No documents state */
         <div className="text-center py-12">
           <FileText className="h-10 w-10 text-slate-700 mx-auto mb-3" />
-          <p className="text-slate-400 text-sm">
+          <p className="text-muted-foreground text-sm">
             {documents.length === 0
               ? 'No documents yet. Create your first document from a template.'
               : 'No documents match your current filters.'}

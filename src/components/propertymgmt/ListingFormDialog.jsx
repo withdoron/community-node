@@ -245,20 +245,20 @@ export default function ListingFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-slate-900 border border-slate-800 text-slate-100 max-w-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-card border border-border text-foreground max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">
+          <DialogTitle className="text-foreground">
             {isEdit ? 'Edit Listing' : 'Create Listing'}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Property selection */}
           <div>
-            <Label className="text-slate-400">Property</Label>
+            <Label className="text-muted-foreground">Property</Label>
             <select
               value={form.property_id}
               onChange={(e) => handlePropertyChange(e.target.value)}
-              className="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="w-full mt-1 bg-secondary border border-border text-foreground rounded-md px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-ring"
             >
               <option value="">— Select property —</option>
               {(properties || []).map((p) => (
@@ -271,12 +271,12 @@ export default function ListingFormDialog({
 
           {/* Title */}
           <div>
-            <Label className="text-slate-400">Title *</Label>
+            <Label className="text-muted-foreground">Title *</Label>
             <Input
               value={form.title}
               onChange={(e) => set('title', e.target.value)}
               required
-              className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
               placeholder="e.g. Cozy 2BR near campus"
             />
             {errors.title && <p className="text-red-400 text-xs mt-1">{errors.title}</p>}
@@ -284,12 +284,12 @@ export default function ListingFormDialog({
 
           {/* Description */}
           <div>
-            <Label className="text-slate-400">Description</Label>
+            <Label className="text-muted-foreground">Description</Label>
             <textarea
               value={form.description}
               onChange={(e) => set('description', e.target.value)}
               rows={3}
-              className="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-md px-3 py-2 text-sm placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 resize-none"
+              className="w-full mt-1 bg-secondary border border-border text-foreground rounded-md px-3 py-2 text-sm placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring resize-none"
               placeholder="Describe the property..."
             />
           </div>
@@ -297,22 +297,22 @@ export default function ListingFormDialog({
           {/* Type + Status */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-slate-400">Type</Label>
+              <Label className="text-muted-foreground">Type</Label>
               <select
                 value={form.listing_type}
                 onChange={(e) => set('listing_type', e.target.value)}
-                className="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="w-full mt-1 bg-secondary border border-border text-foreground rounded-md px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-ring"
               >
                 <option value="long_term">Long-Term Rental</option>
                 <option value="short_term">Short-Term Rental</option>
               </select>
             </div>
             <div>
-              <Label className="text-slate-400">Status</Label>
+              <Label className="text-muted-foreground">Status</Label>
               <select
                 value={form.status}
                 onChange={(e) => set('status', e.target.value)}
-                className="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="w-full mt-1 bg-secondary border border-border text-foreground rounded-md px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-ring"
               >
                 <option value="active">Active</option>
                 <option value="pending">Pending</option>
@@ -325,40 +325,40 @@ export default function ListingFormDialog({
           <div className="grid grid-cols-2 gap-4">
             {isLongTerm ? (
               <div>
-                <Label className="text-slate-400">Monthly Rent ($)</Label>
+                <Label className="text-muted-foreground">Monthly Rent ($)</Label>
                 <Input
                   type="number"
                   min="0"
                   step="1"
                   value={form.monthly_rent}
                   onChange={(e) => set('monthly_rent', e.target.value)}
-                  className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  className="mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                   placeholder="0"
                 />
               </div>
             ) : (
               <div>
-                <Label className="text-slate-400">Nightly Rate ($)</Label>
+                <Label className="text-muted-foreground">Nightly Rate ($)</Label>
                 <Input
                   type="number"
                   min="0"
                   step="1"
                   value={form.nightly_rate}
                   onChange={(e) => set('nightly_rate', e.target.value)}
-                  className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  className="mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                   placeholder="0"
                 />
               </div>
             )}
             <div>
-              <Label className="text-slate-400">Security Deposit ($)</Label>
+              <Label className="text-muted-foreground">Security Deposit ($)</Label>
               <Input
                 type="number"
                 min="0"
                 step="1"
                 value={form.security_deposit}
                 onChange={(e) => set('security_deposit', e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                 placeholder="0"
               />
             </div>
@@ -367,57 +367,57 @@ export default function ListingFormDialog({
           {/* Bed/Bath/Sqft */}
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <Label className="text-slate-400">Bedrooms</Label>
+              <Label className="text-muted-foreground">Bedrooms</Label>
               <Input
                 type="number"
                 min="0"
                 value={form.bedrooms}
                 onChange={(e) => set('bedrooms', e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="mt-1 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
               />
             </div>
             <div>
-              <Label className="text-slate-400">Bathrooms</Label>
+              <Label className="text-muted-foreground">Bathrooms</Label>
               <Input
                 type="number"
                 min="0"
                 step="0.5"
                 value={form.bathrooms}
                 onChange={(e) => set('bathrooms', e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="mt-1 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
               />
             </div>
             <div>
-              <Label className="text-slate-400">Sq Ft</Label>
+              <Label className="text-muted-foreground">Sq Ft</Label>
               <Input
                 type="number"
                 min="0"
                 value={form.sqft}
                 onChange={(e) => set('sqft', e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="mt-1 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
               />
             </div>
           </div>
 
           {/* Available date */}
           <div>
-            <Label className="text-slate-400">Available Date</Label>
+            <Label className="text-muted-foreground">Available Date</Label>
             <Input
               type="date"
               value={form.available_date}
               onChange={(e) => set('available_date', e.target.value)}
-              className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="mt-1 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring"
             />
           </div>
 
           {/* Pet / Parking */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-slate-400">Pet Policy</Label>
+              <Label className="text-muted-foreground">Pet Policy</Label>
               <select
                 value={form.pet_policy}
                 onChange={(e) => set('pet_policy', e.target.value)}
-                className="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="w-full mt-1 bg-secondary border border-border text-foreground rounded-md px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-ring"
               >
                 <option value="none">No Pets</option>
                 <option value="cats">Cats Only</option>
@@ -426,11 +426,11 @@ export default function ListingFormDialog({
               </select>
             </div>
             <div>
-              <Label className="text-slate-400">Parking</Label>
+              <Label className="text-muted-foreground">Parking</Label>
               <select
                 value={form.parking}
                 onChange={(e) => set('parking', e.target.value)}
-                className="w-full mt-1 bg-slate-800 border border-slate-700 text-white rounded-md px-3 py-2 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="w-full mt-1 bg-secondary border border-border text-foreground rounded-md px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-ring"
               >
                 <option value="none">None</option>
                 <option value="street">Street</option>
@@ -442,18 +442,18 @@ export default function ListingFormDialog({
 
           {/* Amenities checkboxes — uses pure CSS checkbox (DEC-018) */}
           <div>
-            <Label className="text-slate-400 mb-2 block">Amenities</Label>
+            <Label className="text-muted-foreground mb-2 block">Amenities</Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {AMENITY_OPTIONS.map((a) => (
                 <label
                   key={a.key}
-                  className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer hover:text-slate-100 min-h-[32px]"
+                  className="flex items-center gap-2 text-sm text-foreground-soft cursor-pointer hover:text-foreground min-h-[32px]"
                 >
                   <input
                     type="checkbox"
                     checked={form.amenities.includes(a.key)}
                     onChange={() => toggleAmenity(a.key)}
-                    className="rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                    className="rounded border-border bg-secondary text-primary focus:ring-ring"
                   />
                   {a.label}
                 </label>
@@ -463,18 +463,18 @@ export default function ListingFormDialog({
 
           {/* Utilities included */}
           <div>
-            <Label className="text-slate-400 mb-2 block">Utilities Included</Label>
+            <Label className="text-muted-foreground mb-2 block">Utilities Included</Label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {UTILITY_OPTIONS.map((u) => (
                 <label
                   key={u}
-                  className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer hover:text-slate-100 min-h-[32px]"
+                  className="flex items-center gap-2 text-sm text-foreground-soft cursor-pointer hover:text-foreground min-h-[32px]"
                 >
                   <input
                     type="checkbox"
                     checked={form.utilities_included.includes(u)}
                     onChange={() => toggleUtility(u)}
-                    className="rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+                    className="rounded border-border bg-secondary text-primary focus:ring-ring"
                   />
                   {u.charAt(0).toUpperCase() + u.slice(1)}
                 </label>
@@ -484,24 +484,24 @@ export default function ListingFormDialog({
 
           {/* Photos */}
           <div>
-            <Label className="text-slate-400 mb-2 block">Photos (max 10)</Label>
+            <Label className="text-muted-foreground mb-2 block">Photos (max 10)</Label>
             {form.photos.length > 0 && (
               <div className="grid grid-cols-4 gap-2 mb-3">
                 {form.photos.map((photo, i) => {
                   const src = resolveUrl(photo);
                   return (
-                    <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-slate-800">
+                    <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-secondary">
                       {src ? (
                         <img src={src} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <ImageIcon className="w-6 h-6 text-slate-600" />
+                          <ImageIcon className="w-6 h-6 text-muted-foreground/50" />
                         </div>
                       )}
                       <button
                         type="button"
                         onClick={() => removePhoto(i)}
-                        className="absolute top-1 right-1 p-0.5 bg-black/60 rounded-full text-white hover:bg-red-600"
+                        className="absolute top-1 right-1 p-0.5 bg-black/60 rounded-full text-foreground hover:bg-red-600"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -516,7 +516,7 @@ export default function ListingFormDialog({
                 variant="outline"
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
-                className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-slate-100 hover:bg-transparent"
+                className="border-border text-foreground-soft hover:bg-secondary hover:text-foreground hover:bg-transparent"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 {uploading ? 'Uploading...' : 'Upload Photos'}
@@ -533,32 +533,32 @@ export default function ListingFormDialog({
           </div>
 
           {/* Contact info */}
-          <div className="border-t border-slate-800 pt-4">
-            <Label className="text-slate-400 mb-2 block text-sm font-medium">Contact Information</Label>
+          <div className="border-t border-border pt-4">
+            <Label className="text-muted-foreground mb-2 block text-sm font-medium">Contact Information</Label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <Label className="text-slate-500 text-xs">Name</Label>
+                <Label className="text-muted-foreground/70 text-xs">Name</Label>
                 <Input
                   value={form.contact_name}
                   onChange={(e) => set('contact_name', e.target.value)}
-                  className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  className="mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                 />
               </div>
               <div>
-                <Label className="text-slate-500 text-xs">Phone</Label>
+                <Label className="text-muted-foreground/70 text-xs">Phone</Label>
                 <Input
                   value={form.contact_phone}
                   onChange={(e) => set('contact_phone', e.target.value)}
-                  className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  className="mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                 />
               </div>
               <div>
-                <Label className="text-slate-500 text-xs">Email</Label>
+                <Label className="text-muted-foreground/70 text-xs">Email</Label>
                 <Input
                   type="email"
                   value={form.contact_email}
                   onChange={(e) => set('contact_email', e.target.value)}
-                  className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  className="mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                 />
               </div>
             </div>
@@ -569,13 +569,13 @@ export default function ListingFormDialog({
               type="button"
               variant="ghost"
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-200 hover:bg-transparent"
+              className="text-muted-foreground hover:text-foreground hover:bg-transparent"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
             >
               {isEdit ? 'Save Changes' : 'Create Listing'}
             </Button>

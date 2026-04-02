@@ -102,8 +102,8 @@ export default function JoinFieldService() {
   // ─── Loading ───────────────────────────
   if (isLoading || !inviteCode) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
-        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -111,14 +111,14 @@ export default function JoinFieldService() {
   // ─── Invalid invite ────────────────────
   if (error || !workspace) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 max-w-md mx-auto">
-        <h1 className="text-xl font-bold text-white mb-2">Invalid or expired invite</h1>
-        <p className="text-slate-400 text-center mb-6">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 max-w-md mx-auto">
+        <h1 className="text-xl font-bold text-foreground mb-2">Invalid or expired invite</h1>
+        <p className="text-muted-foreground text-center mb-6">
           This invite code is not valid or the space may no longer be active.
         </p>
         <Button
           onClick={() => navigate(createPageUrl('MyLane'))}
-          className="bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px] px-6"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px] px-6"
         >
           Go to My Lane
         </Button>
@@ -129,29 +129,29 @@ export default function JoinFieldService() {
   // ─── Not signed in ────────────────────
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 max-w-md mx-auto">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 w-full space-y-4">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 max-w-md mx-auto">
+        <div className="bg-card border border-border rounded-xl p-6 w-full space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-              <HardHat className="h-5 w-5 text-amber-500" />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <HardHat className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">
+              <h1 className="text-lg font-bold text-foreground">
                 {workspace.workspace_name || workspace.business_name || 'Field Service'}
               </h1>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-muted-foreground">
                 {workspace.business_name && workspace.workspace_name !== workspace.business_name
                   ? workspace.business_name
                   : 'Field Service'}
               </p>
             </div>
           </div>
-          <p className="text-slate-300 text-sm">
+          <p className="text-foreground-soft text-sm">
             Sign in to join this space and claim your spot on the crew.
           </p>
           <Button
             onClick={handleSignIn}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px] flex items-center justify-center gap-2"
+            className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px] flex items-center justify-center gap-2"
           >
             <LogIn className="h-5 w-5" />
             Sign in to join
@@ -164,17 +164,17 @@ export default function JoinFieldService() {
   // ─── Successfully claimed ─────────────
   if (claimedResult) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 max-w-md mx-auto">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 w-full text-center space-y-4">
-          <CheckCircle className="h-12 w-12 text-amber-500 mx-auto" />
-          <h1 className="text-xl font-bold text-white">You're in!</h1>
-          <p className="text-slate-400 text-sm">
-            You've joined <span className="text-slate-200 font-medium">{claimedResult.workspace_name}</span> as a{' '}
-            <span className="text-amber-400 font-medium">{claimedResult.role === 'subcontractor' ? 'subcontractor' : 'worker'}</span>.
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 max-w-md mx-auto">
+        <div className="bg-card border border-border rounded-xl p-6 w-full text-center space-y-4">
+          <CheckCircle className="h-12 w-12 text-primary mx-auto" />
+          <h1 className="text-xl font-bold text-foreground">You're in!</h1>
+          <p className="text-muted-foreground text-sm">
+            You've joined <span className="text-foreground font-medium">{claimedResult.workspace_name}</span> as a{' '}
+            <span className="text-primary-hover font-medium">{claimedResult.role === 'subcontractor' ? 'subcontractor' : 'worker'}</span>.
           </p>
           <Button
             onClick={() => navigate(createPageUrl('MyLane'), { replace: true })}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
+            className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold min-h-[44px]"
           >
             Open Space
           </Button>
@@ -185,31 +185,31 @@ export default function JoinFieldService() {
 
   // ─── Claim a spot ─────────────────────
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col p-6 max-w-md mx-auto">
+    <div className="min-h-screen bg-background flex flex-col p-6 max-w-md mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-          <HardHat className="h-5 w-5 text-amber-500" />
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+          <HardHat className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <h1 className="text-lg font-bold text-white">
+          <h1 className="text-lg font-bold text-foreground">
             {workspace.workspace_name || workspace.business_name || 'Field Service'}
           </h1>
-          <p className="text-sm text-slate-400">Join this space</p>
+          <p className="text-sm text-muted-foreground">Join this space</p>
         </div>
       </div>
 
-      <p className="text-slate-300 text-sm mb-4">
+      <p className="text-foreground-soft text-sm mb-4">
         Select your name to claim your spot. If you don't see your name, ask the owner to add you first.
       </p>
 
       {unclaimedSpots.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center">
-          <p className="text-slate-400">
+        <div className="bg-card border border-border rounded-xl p-6 text-center">
+          <p className="text-muted-foreground">
             No unclaimed spots available. Ask the owner to add you to the roster.
           </p>
           <Button
             onClick={() => navigate(createPageUrl('MyLane'))}
-            className="mt-4 bg-amber-500 hover:bg-amber-400 text-black font-medium min-h-[44px]"
+            className="mt-4 bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px]"
           >
             Go to My Lane
           </Button>
@@ -218,25 +218,25 @@ export default function JoinFieldService() {
         <div className="space-y-2">
           {unclaimedSpots.map((w, idx) => {
             const roleLabel = w.role === 'subcontractor' ? 'Sub' : 'Worker';
-            const roleBg = w.role === 'subcontractor' ? 'bg-sky-500/20 text-sky-400' : 'bg-amber-500/20 text-amber-400';
+            const roleBg = w.role === 'subcontractor' ? 'bg-sky-500/20 text-sky-400' : 'bg-primary/20 text-primary-hover';
             return (
               <button
                 key={idx}
                 type="button"
                 onClick={() => handleClaimSpot(w.name)}
                 disabled={claiming}
-                className="w-full flex items-center justify-between p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-colors min-h-[56px] disabled:opacity-60"
+                className="w-full flex items-center justify-between p-4 rounded-xl bg-card border border-border hover:border-primary/50 transition-colors min-h-[56px] disabled:opacity-60"
               >
                 <div className="flex items-center gap-3">
-                  <span className="font-medium text-white">{w.name}</span>
+                  <span className="font-medium text-foreground">{w.name}</span>
                   <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${roleBg}`}>
                     {roleLabel}
                   </span>
                 </div>
                 {claiming ? (
-                  <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
+                  <Loader2 className="h-5 w-5 text-primary animate-spin" />
                 ) : (
-                  <span className="text-amber-500 text-sm font-medium">That's me</span>
+                  <span className="text-primary text-sm font-medium">That's me</span>
                 )}
               </button>
             );

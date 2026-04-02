@@ -48,13 +48,13 @@ export default function FieldServicePhotoGallery({ projectId, phases }) {
 
   if (isLoading) {
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+      <div className="bg-card border border-border rounded-xl p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Camera className="h-5 w-5 text-amber-500" />
-          <h3 className="text-lg font-bold text-slate-100">Photos</h3>
+          <Camera className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-bold text-foreground">Photos</h3>
         </div>
         <div className="flex justify-center py-4">
-          <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
+          <Loader2 className="h-5 w-5 text-primary animate-spin" />
         </div>
       </div>
     );
@@ -66,11 +66,11 @@ export default function FieldServicePhotoGallery({ projectId, phases }) {
   if ((photosByPhase['Untagged'] || []).length > 0) allChips.push('Untagged');
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+    <div className="bg-card border border-border rounded-xl p-5 space-y-4">
       <div className="flex items-center gap-2">
-        <Camera className="h-5 w-5 text-amber-500" />
-        <h3 className="text-lg font-bold text-slate-100">Photos</h3>
-        <span className="text-xs text-slate-500 ml-auto">{photos.length} total</span>
+        <Camera className="h-5 w-5 text-primary" />
+        <h3 className="text-lg font-bold text-foreground">Photos</h3>
+        <span className="text-xs text-muted-foreground/70 ml-auto">{photos.length} total</span>
       </div>
 
       {/* Phase filter chips */}
@@ -81,8 +81,8 @@ export default function FieldServicePhotoGallery({ projectId, phases }) {
               onClick={() => { setActivePhase(phase); setShowAll(false); }}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-colors min-h-[32px] ${
                 activePhase === phase
-                  ? 'bg-amber-500 text-black'
-                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-muted-foreground hover:text-foreground'
               }`}>
               {phase === 'all' ? 'All' : phase}
               <span className="ml-1 opacity-70">
@@ -101,19 +101,19 @@ export default function FieldServicePhotoGallery({ projectId, phases }) {
           return (
             <button key={p.id || i} type="button"
               onClick={() => setLightboxPhoto(p)}
-              className="aspect-square rounded-lg overflow-hidden border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500 relative group">
+              className="aspect-square rounded-lg overflow-hidden border border-border focus:outline-none focus:ring-2 focus:ring-ring relative group">
               <img src={url} alt={p.caption || ''} className="w-full h-full object-cover" />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                 {p.phase && (
-                  <span className="text-xs bg-amber-500/80 text-black px-1.5 py-0.5 rounded font-medium">
+                  <span className="text-xs bg-primary/80 text-primary-foreground px-1.5 py-0.5 rounded font-medium">
                     {p.phase}
                   </span>
                 )}
-                {p.caption && <p className="text-xs text-white truncate mt-0.5">{p.caption}</p>}
+                {p.caption && <p className="text-xs text-foreground truncate mt-0.5">{p.caption}</p>}
               </div>
               {/* Always show phase badge on mobile */}
               {p.phase && (
-                <span className="absolute top-1.5 left-1.5 text-xs bg-black/60 text-white px-1.5 py-0.5 rounded sm:hidden">
+                <span className="absolute top-1.5 left-1.5 text-xs bg-black/60 text-foreground px-1.5 py-0.5 rounded sm:hidden">
                   {p.phase}
                 </span>
               )}
@@ -125,7 +125,7 @@ export default function FieldServicePhotoGallery({ projectId, phases }) {
       {/* Show more / less */}
       {filteredPhotos.length > 6 && (
         <button type="button" onClick={() => setShowAll(!showAll)}
-          className="w-full text-center text-sm text-amber-500 hover:text-amber-400 min-h-[44px]">
+          className="w-full text-center text-sm text-primary hover:text-primary-hover min-h-[44px]">
           {showAll ? 'Show fewer' : `View all ${filteredPhotos.length} photos`}
         </button>
       )}
@@ -135,7 +135,7 @@ export default function FieldServicePhotoGallery({ projectId, phases }) {
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
           onClick={() => setLightboxPhoto(null)} role="dialog" aria-modal="true" aria-label="Photo full size">
           <button type="button" onClick={() => setLightboxPhoto(null)}
-            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-amber-500 rounded-lg bg-slate-800/80 transition-colors"
+            className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-primary rounded-lg bg-secondary/80 transition-colors"
             aria-label="Close">
             <X className="h-6 w-6" />
           </button>
@@ -147,14 +147,14 @@ export default function FieldServicePhotoGallery({ projectId, phases }) {
             />
             <div className="mt-3 text-center">
               {lightboxPhoto.phase && (
-                <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full mr-2">
+                <span className="text-xs bg-primary/20 text-primary-hover px-2 py-1 rounded-full mr-2">
                   {lightboxPhoto.phase}
                 </span>
               )}
               {lightboxPhoto.caption && (
-                <span className="text-sm text-slate-300">{lightboxPhoto.caption}</span>
+                <span className="text-sm text-foreground-soft">{lightboxPhoto.caption}</span>
               )}
-              <p className="text-xs text-slate-500 mt-1">{fmtDate(lightboxPhoto.created_date)}</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">{fmtDate(lightboxPhoto.created_date)}</p>
             </div>
           </div>
         </div>

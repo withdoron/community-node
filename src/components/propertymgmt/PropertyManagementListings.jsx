@@ -23,7 +23,7 @@ export default function PropertyManagementListings({ profile, currentUser, membe
   // Role guard
   if (!memberRole) {
     return (
-      <div className="text-center py-12 text-slate-400">
+      <div className="text-center py-12 text-muted-foreground">
         <p>You don't have access to this workspace.</p>
       </div>
     );
@@ -185,14 +185,14 @@ export default function PropertyManagementListings({ profile, currentUser, membe
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-10 w-48 bg-slate-900 border border-slate-800 rounded-lg animate-pulse" />
+        <div className="h-10 w-48 bg-card border border-border rounded-lg animate-pulse" />
         {[1, 2].map((i) => (
           <div
             key={i}
-            className="bg-slate-900 border border-slate-800 rounded-lg p-4 animate-pulse"
+            className="bg-card border border-border rounded-lg p-4 animate-pulse"
           >
-            <div className="h-6 w-40 bg-slate-700 rounded mb-2" />
-            <div className="h-4 w-24 bg-slate-700 rounded" />
+            <div className="h-6 w-40 bg-surface rounded mb-2" />
+            <div className="h-4 w-24 bg-surface rounded" />
           </div>
         ))}
       </div>
@@ -204,8 +204,8 @@ export default function PropertyManagementListings({ profile, currentUser, membe
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-slate-100">Listings</h2>
-          <p className="text-sm text-slate-400">
+          <h2 className="text-lg font-bold text-foreground">Listings</h2>
+          <p className="text-sm text-muted-foreground">
             {listings.length === 0
               ? 'No listings yet'
               : `${listings.length} listing${listings.length !== 1 ? 's' : ''}`}
@@ -216,7 +216,7 @@ export default function PropertyManagementListings({ profile, currentUser, membe
             setEditingListing(null);
             setFormOpen(true);
           }}
-          className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
         >
           <Plus className="w-4 h-4 mr-1.5" />
           New Listing
@@ -237,16 +237,16 @@ export default function PropertyManagementListings({ profile, currentUser, membe
       {/* Empty state */}
       {listings.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-4">
-            <Megaphone className="h-7 w-7 text-amber-500" />
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+            <Megaphone className="h-7 w-7 text-primary" />
           </div>
-          <h3 className="text-xl font-semibold text-slate-300 mb-1">No listings yet</h3>
-          <p className="text-slate-400 mb-6 text-center max-w-sm">
+          <h3 className="text-xl font-semibold text-foreground-soft mb-1">No listings yet</h3>
+          <p className="text-muted-foreground mb-6 text-center max-w-sm">
             Create your first listing to advertise vacancies and attract tenants or guests
           </p>
           <Button
             onClick={() => setFormOpen(true)}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
           >
             <Plus className="w-4 h-4 mr-1.5" /> Create Listing
           </Button>
@@ -256,7 +256,7 @@ export default function PropertyManagementListings({ profile, currentUser, membe
       {/* Filtered empty */}
       {listings.length > 0 && filtered.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12">
-          <p className="text-slate-400 text-sm">No listings match your filters</p>
+          <p className="text-muted-foreground text-sm">No listings match your filters</p>
         </div>
       )}
 
@@ -308,23 +308,23 @@ export default function PropertyManagementListings({ profile, currentUser, membe
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
       >
-        <AlertDialogContent className="bg-slate-900 border border-slate-800">
+        <AlertDialogContent className="bg-card border border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">
+            <AlertDialogTitle className="text-foreground">
               Delete this listing?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogDescription className="text-muted-foreground">
               This will permanently remove &ldquo;{deleteTarget?.title}&rdquo;. This action
               cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-slate-100">
+            <AlertDialogCancel className="bg-secondary border-border text-foreground-soft hover:bg-surface hover:text-foreground">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-500 text-white"
+              className="bg-red-600 hover:bg-red-500 text-foreground"
             >
               Delete
             </AlertDialogAction>

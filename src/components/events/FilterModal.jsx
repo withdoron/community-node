@@ -76,14 +76,14 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-[calc(100vw-32px)] sm:max-w-md p-0 [&>button]:hidden">
+      <DialogContent className="bg-secondary border-border text-foreground max-w-[calc(100vw-32px)] sm:max-w-md p-0 [&>button]:hidden">
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-slate-700">
-          <h2 className="text-xl font-bold text-white">Filters</h2>
+        <div className="flex justify-between items-center p-6 border-b border-border">
+          <h2 className="text-xl font-bold text-foreground">Filters</h2>
           <div className="min-h-[44px] min-w-[44px] flex items-center justify-center">
             <button
               onClick={() => onOpenChange(false)}
-              className="text-slate-400 hover:text-white transition-colors p-2"
+              className="text-muted-foreground hover:text-foreground transition-colors p-2"
             >
               <X className="h-5 w-5" />
               <span className="sr-only">Close</span>
@@ -95,7 +95,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
         <div className="p-6 overflow-y-auto max-h-[70vh] space-y-6">
           {/* Price Range */}
           <div>
-            <Label className="text-white font-bold mb-3 block">Price</Label>
+            <Label className="text-foreground font-bold mb-3 block">Price</Label>
             <div className="px-2">
               <Slider
                 value={localFilters.priceRange || [0, 100]}
@@ -104,7 +104,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
                 step={5}
                 className="mb-2"
               />
-              <div className="flex justify-between text-sm text-slate-400">
+              <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Free</span>
                 <span>${localFilters.priceRange?.[1] || 100}+</span>
               </div>
@@ -113,7 +113,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
 
           {/* Event Type */}
           <div>
-            <Label className="text-white font-bold mb-3 block">Event Type</Label>
+            <Label className="text-foreground font-bold mb-3 block">Event Type</Label>
             <div className="space-y-2">
               {[
                 { id: 'markets_fairs', label: 'Markets & Fairs' },
@@ -127,9 +127,9 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
                   <Checkbox
                     checked={localFilters.eventType?.includes(type.id)}
                     onCheckedChange={() => toggleEventType(type.id)}
-                    className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                    className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                   />
-                  <span className="text-sm text-slate-300">{type.label}</span>
+                  <span className="text-sm text-foreground-soft">{type.label}</span>
                 </label>
               ))}
             </div>
@@ -138,7 +138,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
           {/* Networks */}
           {activeNetworks.length > 0 && (
             <div>
-              <Label className="text-white font-bold mb-3 block">Networks</Label>
+              <Label className="text-foreground font-bold mb-3 block">Networks</Label>
               <div className="space-y-2">
                 {activeNetworks.map((network) => {
                   const value = network.value ?? network.slug ?? network.id;
@@ -148,9 +148,9 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
                       <Checkbox
                         checked={localFilters.networks?.includes(value)}
                         onCheckedChange={() => toggleNetwork(value)}
-                        className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                        className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
-                      <span className="text-sm text-slate-300">{label}</span>
+                      <span className="text-sm text-foreground-soft">{label}</span>
                     </label>
                   );
                 })}
@@ -160,7 +160,7 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
 
           {/* Audience */}
           <div>
-            <Label className="text-white font-bold mb-3 block">Audience</Label>
+            <Label className="text-foreground font-bold mb-3 block">Audience</Label>
             <div className="space-y-2">
               {[
                 { id: 'family_friendly', label: 'Family Friendly' },
@@ -172,9 +172,9 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
                   <Checkbox
                     checked={localFilters.audience?.includes(aud.id)}
                     onCheckedChange={() => toggleAudience(aud.id)}
-                    className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                    className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                   />
-                  <span className="text-sm text-slate-300">{aud.label}</span>
+                  <span className="text-sm text-foreground-soft">{aud.label}</span>
                 </label>
               ))}
             </div>
@@ -182,16 +182,16 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
 
           {/* Setting */}
           <div>
-            <Label className="text-white font-bold mb-3 block">Setting</Label>
+            <Label className="text-foreground font-bold mb-3 block">Setting</Label>
             <div className="space-y-2">
               {['indoor', 'outdoor'].map((set) => (
                 <label key={set} className="flex items-center gap-2 cursor-pointer py-2">
                   <Checkbox
                     checked={localFilters.setting?.includes(set)}
                     onCheckedChange={() => toggleSetting(set)}
-                    className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                    className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                   />
-                  <span className="text-sm text-slate-300 capitalize">{set}</span>
+                  <span className="text-sm text-foreground-soft capitalize">{set}</span>
                 </label>
               ))}
             </div>
@@ -199,31 +199,31 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
 
           {/* Amenities */}
           <div>
-            <Label className="text-white font-bold mb-3 block">Amenities</Label>
+            <Label className="text-foreground font-bold mb-3 block">Amenities</Label>
             <div className="space-y-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox
                   checked={localFilters.wheelchairAccessible}
                   onCheckedChange={(checked) => setLocalFilters({ ...localFilters, wheelchairAccessible: checked })}
-                  className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                  className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                 />
-                <span className="text-sm text-slate-300">♿ Wheelchair Accessible</span>
+                <span className="text-sm text-foreground-soft">♿ Wheelchair Accessible</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer py-2">
                 <Checkbox
                   checked={localFilters.freeParking}
                   onCheckedChange={(checked) => setLocalFilters({ ...localFilters, freeParking: checked })}
-                  className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                  className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                 />
-                <span className="text-sm text-slate-300">🅿️ Free Parking</span>
+                <span className="text-sm text-foreground-soft">🅿️ Free Parking</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer py-2">
                 <Checkbox
                   checked={localFilters.acceptsJoyCoins}
                   onCheckedChange={(checked) => setLocalFilters({ ...localFilters, acceptsJoyCoins: checked })}
-                  className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                  className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                 />
-                <span className="text-sm text-slate-300 flex items-center gap-1.5">
+                <span className="text-sm text-foreground-soft flex items-center gap-1.5">
                   <Coins className="h-4 w-4" />
                   Joy Coins
                 </span>
@@ -233,17 +233,17 @@ export default function FilterModal({ open, onOpenChange, filters, onFiltersChan
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-slate-700 bg-slate-900 flex gap-2">
+        <div className="p-6 border-t border-border bg-card flex gap-2">
           <Button
             variant="outline"
             onClick={handleClear}
-            className="flex-1 h-11 bg-transparent border-slate-600 text-slate-300 hover:bg-slate-700"
+            className="flex-1 h-11 bg-transparent border-border text-foreground-soft hover:bg-surface"
           >
             Clear All
           </Button>
           <Button
             onClick={handleApply}
-            className="flex-1 h-11 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold"
+            className="flex-1 h-11 bg-primary hover:bg-primary/80 text-primary-foreground font-semibold"
           >
             Show Results
           </Button>

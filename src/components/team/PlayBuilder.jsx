@@ -500,7 +500,7 @@ export default function PlayBuilder({
   return (
     <div className="space-y-4 pb-4">
       {/* Side toggle */}
-      <div className="flex gap-2 p-1 bg-slate-800 rounded-xl">
+      <div className="flex gap-2 p-1 bg-secondary rounded-xl">
         {['offense', 'defense'].map((s) => (
           <button
             key={s}
@@ -518,7 +518,7 @@ export default function PlayBuilder({
               setIsDrawingRoute(false);
             }}
             className={`flex-1 py-2.5 text-center font-bold rounded-lg transition-colors min-h-[44px] text-sm ${
-              side === s ? 'bg-amber-500 text-black' : 'text-slate-400 bg-transparent hover:bg-slate-700'
+              side === s ? 'bg-primary text-primary-foreground' : 'text-muted-foreground bg-transparent hover:bg-surface'
             }`}
           >
             {s === 'offense' ? 'Offense' : 'Defense'}
@@ -531,14 +531,14 @@ export default function PlayBuilder({
         <Input
           value={playName}
           onChange={(e) => setPlayName(e.target.value)}
-          className="w-full bg-slate-800 border-slate-700 text-white text-lg font-semibold placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 min-h-[44px]"
+          className="w-full bg-secondary border-border text-foreground text-lg font-semibold placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring min-h-[44px]"
           placeholder="Play name *"
         />
       </div>
 
       {/* Formation picker */}
       <div>
-        <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">
+        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
           Formation
         </p>
         <div className="flex gap-2 overflow-x-auto pb-1">
@@ -549,8 +549,8 @@ export default function PlayBuilder({
               onClick={() => handleFormationChange(fId)}
               className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors min-h-[44px] ${
                 formation === fId
-                  ? 'bg-amber-500 text-black'
-                  : 'bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-600'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-foreground-soft border border-border hover:border-border'
               }`}
             >
               {f.label}
@@ -561,7 +561,7 @@ export default function PlayBuilder({
 
       {/* SVG Field */}
       <div
-        className="relative rounded-xl overflow-hidden border border-slate-700 min-h-[250px] md:min-h-[350px]"
+        className="relative rounded-xl overflow-hidden border border-border min-h-[250px] md:min-h-[350px]"
         style={{ touchAction: isDrawingRoute ? 'none' : 'auto' }}
       >
         <FlagFootballField viewBox={viewBox} showScrimmage scrimmageY={55}>
@@ -615,13 +615,13 @@ export default function PlayBuilder({
         {/* Drawing mode indicator */}
         {isDrawingRoute && (
           <div className="absolute top-2 left-2 right-2 flex items-center justify-between">
-            <span className="bg-amber-500/90 text-black text-xs font-semibold px-3 py-1.5 rounded-lg">
+            <span className="bg-primary/90 text-primary-foreground text-xs font-semibold px-3 py-1.5 rounded-lg">
               Draw route on the field
             </span>
             <button
               type="button"
               onClick={() => setIsDrawingRoute(false)}
-              className="bg-slate-800/90 text-slate-300 text-xs px-3 py-1.5 rounded-lg border border-slate-700"
+              className="bg-secondary/90 text-foreground-soft text-xs px-3 py-1.5 rounded-lg border border-border"
             >
               Cancel
             </button>
@@ -634,7 +634,7 @@ export default function PlayBuilder({
         <button
           type="button"
           onClick={() => setAddPositionOpen(!addPositionOpen)}
-          className="flex items-center gap-2 text-sm text-slate-400 hover:text-amber-500 transition-colors"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
         >
           <Plus className="h-4 w-4" />
           Add Custom Position
@@ -646,34 +646,34 @@ export default function PlayBuilder({
         </button>
 
         {addPositionOpen && (
-          <div className="mt-3 bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+          <div className="mt-3 bg-card border border-border rounded-xl p-4 space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">
+                <label className="text-xs text-muted-foreground block mb-1">
                   Label
                 </label>
                 <Input
                   value={newPosLabel}
                   onChange={(e) => setNewPosLabel(e.target.value)}
-                  className="bg-slate-800 border-slate-700 text-white text-sm min-h-[40px]"
+                  className="bg-secondary border-border text-foreground text-sm min-h-[40px]"
                   placeholder="e.g. Slot"
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-400 block mb-1">
+                <label className="text-xs text-muted-foreground block mb-1">
                   Short (2-3 chars) *
                 </label>
                 <Input
                   value={newPosShort}
                   onChange={(e) => setNewPosShort(e.target.value.slice(0, 3))}
-                  className="bg-slate-800 border-slate-700 text-white text-sm min-h-[40px]"
+                  className="bg-secondary border-border text-foreground text-sm min-h-[40px]"
                   placeholder="e.g. SL"
                   maxLength={3}
                 />
               </div>
             </div>
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Color</label>
+              <label className="text-xs text-muted-foreground block mb-1">Color</label>
               <div className="flex gap-2">
                 {CUSTOM_POSITION_COLORS.map((c) => (
                   <button
@@ -682,8 +682,8 @@ export default function PlayBuilder({
                     onClick={() => setNewPosColor(c)}
                     className={`w-8 h-8 rounded-full border-2 transition-colors ${
                       newPosColor === c
-                        ? 'border-amber-500 scale-110'
-                        : 'border-slate-700'
+                        ? 'border-primary scale-110'
+                        : 'border-border'
                     }`}
                     style={{ backgroundColor: c }}
                   />
@@ -693,7 +693,7 @@ export default function PlayBuilder({
             <Button
               type="button"
               onClick={handleAddCustomPosition}
-              className="bg-amber-500 hover:bg-amber-400 text-black font-medium text-sm min-h-[40px]"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium text-sm min-h-[40px]"
               size="sm"
             >
               Add Position
@@ -708,7 +708,7 @@ export default function PlayBuilder({
           <button
             type="button"
             onClick={() => setRoutePanelOpen(!routePanelOpen)}
-            className="flex items-center gap-2 mb-2 text-sm text-slate-300 hover:text-white transition-colors"
+            className="flex items-center gap-2 mb-2 text-sm text-foreground-soft hover:text-foreground transition-colors"
           >
             Route Assignment
             {routePanelOpen ? (
@@ -738,12 +738,12 @@ export default function PlayBuilder({
       <div className="grid grid-cols-2 gap-3">
         <div
           onClick={() => setIsMirrorable(!isMirrorable)}
-          className="flex items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-xl cursor-pointer"
+          className="flex items-center justify-between p-3 bg-card border border-border rounded-xl cursor-pointer"
         >
-          <span className="text-slate-300 text-sm">Mirror</span>
+          <span className="text-foreground-soft text-sm">Mirror</span>
           <div
             className={`relative w-10 h-5 rounded-full transition-colors ${
-              isMirrorable ? 'bg-amber-500' : 'bg-slate-700'
+              isMirrorable ? 'bg-primary' : 'bg-surface'
             }`}
           >
             <span
@@ -756,12 +756,12 @@ export default function PlayBuilder({
         {initialStatus !== 'experimental' && (
           <div
             onClick={() => setGameDayFlag(!gameDayFlag)}
-            className="flex items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-xl cursor-pointer"
+            className="flex items-center justify-between p-3 bg-card border border-border rounded-xl cursor-pointer"
           >
-            <span className="text-slate-300 text-sm">Game Day</span>
+            <span className="text-foreground-soft text-sm">Game Day</span>
             <div
               className={`relative w-10 h-5 rounded-full transition-colors ${
-                gameDayFlag ? 'bg-amber-500' : 'bg-slate-700'
+                gameDayFlag ? 'bg-primary' : 'bg-surface'
               }`}
             >
               <span
@@ -776,7 +776,7 @@ export default function PlayBuilder({
 
       {/* Tags */}
       <div>
-        <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">
+        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
           Tags
         </p>
         <div className="flex flex-wrap gap-2">
@@ -787,8 +787,8 @@ export default function PlayBuilder({
               onClick={() => toggleTag(t.value)}
               className={`text-xs px-2.5 py-1.5 rounded transition-colors ${
                 tags.includes(t.value)
-                  ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50'
-                  : 'bg-slate-800 text-slate-400 border border-slate-700 hover:border-slate-600'
+                  ? 'bg-primary/20 text-primary border border-primary/50'
+                  : 'bg-secondary text-muted-foreground border border-border hover:border-border'
               }`}
             >
               {t.label}
@@ -800,7 +800,7 @@ export default function PlayBuilder({
       {/* Coach notes — hidden for experimental plays */}
       {initialStatus !== 'experimental' && (
         <div>
-          <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
             Coach Notes
           </p>
           <textarea
@@ -808,7 +808,7 @@ export default function PlayBuilder({
             onChange={(e) => setCoachNotes(e.target.value)}
             placeholder="Strategy notes — only visible to coaches"
             rows={2}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none resize-none min-h-[60px]"
+            className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-foreground text-sm placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none resize-none min-h-[60px]"
           />
         </div>
       )}
@@ -819,7 +819,7 @@ export default function PlayBuilder({
           type="button"
           variant="outline"
           onClick={onCancel}
-          className="flex-1 border-slate-600 text-slate-300 hover:bg-transparent hover:border-amber-500 hover:text-amber-500 min-h-[44px]"
+          className="flex-1 border-border text-foreground-soft hover:bg-transparent hover:border-primary hover:text-primary min-h-[44px]"
         >
           Cancel
         </Button>
@@ -827,7 +827,7 @@ export default function PlayBuilder({
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
+          className="flex-1 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold min-h-[44px]"
         >
           {saving ? (
             <Loader2 className="h-4 w-4 animate-spin" />

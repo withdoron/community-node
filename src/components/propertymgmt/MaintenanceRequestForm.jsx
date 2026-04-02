@@ -12,8 +12,8 @@ import { Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 const inputClass =
-  'w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 px-3 py-2 text-sm';
-const labelClass = 'text-slate-300 text-sm font-medium block mb-1';
+  'w-full rounded-md bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring px-3 py-2 text-sm';
+const labelClass = 'text-foreground-soft text-sm font-medium block mb-1';
 
 const PRIORITIES = [
   { value: 'low', label: 'Low' },
@@ -213,9 +213,9 @@ export default function MaintenanceRequestForm({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-slate-900 border border-slate-800 text-slate-100 max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-card border border-border text-foreground max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">
+          <DialogTitle className="text-foreground">
             {isEdit ? 'Edit Maintenance Request' : 'New Maintenance Request'}
           </DialogTitle>
         </DialogHeader>
@@ -392,7 +392,7 @@ export default function MaintenanceRequestForm({
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100"
+                className="border-border text-foreground-soft hover:bg-secondary hover:text-foreground"
               >
                 <Upload className="w-3.5 h-3.5 mr-1.5" />
                 Add Photos
@@ -413,14 +413,14 @@ export default function MaintenanceRequestForm({
                     <img
                       src={resolveUrl(url)}
                       alt={`Photo ${i + 1}`}
-                      className="h-12 w-12 rounded border border-slate-700 object-cover"
+                      className="h-12 w-12 rounded border border-border object-cover"
                     />
                     <button
                       type="button"
                       onClick={() => removePhoto('photos', i)}
                       className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full flex items-center justify-center"
                     >
-                      <X className="w-2.5 h-2.5 text-white" />
+                      <X className="w-2.5 h-2.5 text-foreground" />
                     </button>
                   </div>
                 ))}
@@ -439,7 +439,7 @@ export default function MaintenanceRequestForm({
                   size="sm"
                   onClick={() => completionFileInputRef.current?.click()}
                   disabled={uploading}
-                  className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100"
+                  className="border-border text-foreground-soft hover:bg-secondary hover:text-foreground"
                 >
                   <Upload className="w-3.5 h-3.5 mr-1.5" />
                   Add After Photos
@@ -460,14 +460,14 @@ export default function MaintenanceRequestForm({
                       <img
                         src={resolveUrl(url)}
                         alt={`After ${i + 1}`}
-                        className="h-12 w-12 rounded border border-slate-700 object-cover"
+                        className="h-12 w-12 rounded border border-border object-cover"
                       />
                       <button
                         type="button"
                         onClick={() => removePhoto('completion', i)}
                         className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full flex items-center justify-center"
                       >
-                        <X className="w-2.5 h-2.5 text-white" />
+                        <X className="w-2.5 h-2.5 text-foreground" />
                       </button>
                     </div>
                   ))}
@@ -495,13 +495,13 @@ export default function MaintenanceRequestForm({
               type="button"
               variant="ghost"
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-200 hover:bg-transparent"
+              className="text-muted-foreground hover:text-foreground hover:bg-transparent"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
             >
               {isEdit ? 'Update' : 'Create'}
             </Button>

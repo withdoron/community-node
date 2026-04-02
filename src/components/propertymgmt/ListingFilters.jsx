@@ -34,16 +34,16 @@ export default function ListingFilters({
               onClick={() => onStatusChange(tab.key)}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg whitespace-nowrap transition-colors min-h-[36px] ${
                 isActive
-                  ? 'bg-amber-500 text-black font-bold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                  ? 'bg-primary text-primary-foreground font-bold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
               }`}
             >
               {tab.label}
               <span
                 className={`text-xs px-1.5 py-0.5 rounded-full ${
                   isActive
-                    ? 'bg-black/20 text-black'
-                    : 'bg-slate-800 text-slate-500'
+                    ? 'bg-black/20 text-primary-foreground'
+                    : 'bg-secondary text-muted-foreground/70'
                 }`}
               >
                 {count}
@@ -64,8 +64,8 @@ export default function ListingFilters({
               onClick={() => onTypeChange(pill.key)}
               className={`px-3 py-1 text-xs rounded-full transition-colors min-h-[28px] ${
                 isActive
-                  ? 'bg-slate-700 text-slate-100 font-medium'
-                  : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
+                  ? 'bg-surface text-foreground font-medium'
+                  : 'text-muted-foreground/70 hover:text-foreground-soft hover:bg-secondary/50'
               }`}
             >
               {pill.label}

@@ -50,8 +50,8 @@ export default function PropertyOverviewCard({ profile, onClick, onUrgency }) {
     onUrgency?.('property-overview', hasLongVacancy);
   }, [hasLongVacancy, onUrgency]);
 
-  const borderColor = hasLongVacancy ? 'border-amber-500/40' : 'border-slate-800';
-  const vacantColor = hasLongVacancy ? 'text-amber-400' : 'text-slate-400';
+  const borderColor = hasLongVacancy ? 'border-primary/40' : 'border-border';
+  const vacantColor = hasLongVacancy ? 'text-primary-hover' : 'text-muted-foreground';
 
   return (
     <div
@@ -59,13 +59,13 @@ export default function PropertyOverviewCard({ profile, onClick, onUrgency }) {
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(); }}
-      className={`bg-slate-900 border ${borderColor} rounded-xl p-4 cursor-pointer hover:border-amber-500/30 transition-colors`}
+      className={`bg-card border ${borderColor} rounded-xl p-4 cursor-pointer hover:border-primary/30 transition-colors`}
     >
       <div className="flex items-center gap-2 mb-2">
-        <Building2 className="h-4 w-4 text-amber-500" />
-        <span className="text-xs font-medium text-amber-500">Properties</span>
+        <Building2 className="h-4 w-4 text-primary" />
+        <span className="text-xs font-medium text-primary">Properties</span>
       </div>
-      <div className="text-2xl font-bold text-white">{total} <span className="text-sm font-normal text-slate-400">units</span></div>
+      <div className="text-2xl font-bold text-foreground">{total} <span className="text-sm font-normal text-muted-foreground">units</span></div>
       <div className={`text-xs mt-1 ${vacantColor}`}>
         {occupancyPct}% occupied{openRequests > 0 ? ` · ${openRequests} open request${openRequests > 1 ? 's' : ''}` : ''}
         {vacant.length > 0 && ` · ${vacant.length} vacant`}

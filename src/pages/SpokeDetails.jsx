@@ -144,32 +144,32 @@ export default function SpokeDetails() {
 
   if (userLoading || spokeLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-950">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (currentUser?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Card className="p-8 bg-slate-900 border-slate-800 max-w-md text-center">
-          <h1 className="text-2xl font-bold text-slate-100 mb-2">Access Denied</h1>
-          <p className="text-slate-400">This page is only accessible to administrators.</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="p-8 bg-card border-border max-w-md text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-2">Access Denied</h1>
+          <p className="text-muted-foreground">This page is only accessible to administrators.</p>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-slate-900 border-b border-slate-800">
+      <div className="bg-card border-b border-border">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <Button
             variant="ghost"
             onClick={() => navigate(createPageUrl('Admin'))}
-            className="text-slate-400 hover:text-slate-100"
+            className="text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Admin
@@ -179,13 +179,13 @@ export default function SpokeDetails() {
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-6 py-8">
-        <Card className="p-8 bg-slate-900 border-slate-800">
+        <Card className="p-8 bg-card border-border">
           <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-3 mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-slate-100">
+              <h1 className="text-2xl font-bold text-foreground">
                 {spokeId ? 'Edit Spoke' : 'Create New Spoke'}
               </h1>
-              <p className="text-slate-400 text-sm mt-1">
+              <p className="text-muted-foreground text-sm mt-1">
                 Manage spoke app integration settings
               </p>
             </div>
@@ -193,7 +193,7 @@ export default function SpokeDetails() {
               <Button
                 variant="outline"
                 onClick={() => setShowDeleteDialog(true)}
-                className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                className="border-red-600 text-red-600 hover:bg-red-600 hover:text-foreground"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
@@ -204,7 +204,7 @@ export default function SpokeDetails() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Spoke ID */}
             <div>
-              <Label htmlFor="spoke_id" className="text-slate-200">
+              <Label htmlFor="spoke_id" className="text-foreground">
                 Spoke ID <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -212,17 +212,17 @@ export default function SpokeDetails() {
                 value={formData.spoke_id}
                 onChange={(e) => setFormData({ ...formData, spoke_id: e.target.value })}
                 placeholder="e.g., austin-creative-collective"
-                className="mt-1 bg-slate-800 border-slate-700 text-slate-100"
+                className="mt-1 bg-secondary border-border text-foreground"
                 disabled={!!spokeId}
               />
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-muted-foreground/70 mt-1">
                 Unique identifier (lowercase with hyphens). Cannot be changed after creation.
               </p>
             </div>
 
             {/* Organization Name */}
             <div>
-              <Label htmlFor="organization_name" className="text-slate-200">
+              <Label htmlFor="organization_name" className="text-foreground">
                 Organization Name <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -230,13 +230,13 @@ export default function SpokeDetails() {
                 value={formData.organization_name}
                 onChange={(e) => setFormData({ ...formData, organization_name: e.target.value })}
                 placeholder="e.g., Austin Creative Collective"
-                className="mt-1 bg-slate-800 border-slate-700 text-slate-100"
+                className="mt-1 bg-secondary border-border text-foreground"
               />
             </div>
 
             {/* Description */}
             <div>
-              <Label htmlFor="description" className="text-slate-200">
+              <Label htmlFor="description" className="text-foreground">
                 Description
               </Label>
               <Input
@@ -244,13 +244,13 @@ export default function SpokeDetails() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Brief description of the spoke app"
-                className="mt-1 bg-slate-800 border-slate-700 text-slate-100"
+                className="mt-1 bg-secondary border-border text-foreground"
               />
             </div>
 
             {/* API Key */}
             <div>
-              <Label htmlFor="api_key" className="text-slate-200">
+              <Label htmlFor="api_key" className="text-foreground">
                 API Key <span className="text-red-500">*</span>
               </Label>
               <div className="flex flex-col sm:flex-row gap-2 mt-1">
@@ -259,13 +259,13 @@ export default function SpokeDetails() {
                   value={formData.api_key}
                   onChange={(e) => setFormData({ ...formData, api_key: e.target.value })}
                   placeholder="Generate or enter API key"
-                  className="w-full sm:flex-1 bg-slate-800 border-slate-700 text-slate-100 font-mono text-sm"
+                  className="w-full sm:flex-1 bg-secondary border-border text-foreground font-mono text-sm"
                 />
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleGenerateApiKey}
-                  className="border-slate-700"
+                  className="border-border"
                 >
                   <RefreshCw className="h-4 w-4" />
                 </Button>
@@ -274,7 +274,7 @@ export default function SpokeDetails() {
                     type="button"
                     variant="outline"
                     onClick={() => handleCopy('api_key', formData.api_key)}
-                    className="border-slate-700"
+                    className="border-border"
                   >
                     {copiedField === 'api_key' ? (
                       <Check className="h-4 w-4 text-green-500" />
@@ -284,14 +284,14 @@ export default function SpokeDetails() {
                   </Button>
                 )}
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-muted-foreground/70 mt-1">
                 Used by the spoke to authenticate API calls to Local Lane
               </p>
             </div>
 
             {/* Webhook URL */}
             <div>
-              <Label htmlFor="webhook_url" className="text-slate-200">
+              <Label htmlFor="webhook_url" className="text-foreground">
                 Webhook URL
               </Label>
               <Input
@@ -299,16 +299,16 @@ export default function SpokeDetails() {
                 value={formData.webhook_url}
                 onChange={(e) => setFormData({ ...formData, webhook_url: e.target.value })}
                 placeholder="https://spoke-app.com/api/handleLocalLaneWebhook"
-                className="mt-1 bg-slate-800 border-slate-700 text-slate-100"
+                className="mt-1 bg-secondary border-border text-foreground"
               />
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-muted-foreground/70 mt-1">
                 URL where Local Lane will send webhook notifications (RSVP updates, etc.)
               </p>
             </div>
 
             {/* Webhook Secret */}
             <div>
-              <Label htmlFor="webhook_secret" className="text-slate-200">
+              <Label htmlFor="webhook_secret" className="text-foreground">
                 Webhook Secret
               </Label>
               <div className="flex gap-2 mt-1">
@@ -317,13 +317,13 @@ export default function SpokeDetails() {
                   value={formData.webhook_secret}
                   onChange={(e) => setFormData({ ...formData, webhook_secret: e.target.value })}
                   placeholder="Generate or enter webhook secret"
-                  className="bg-slate-800 border-slate-700 text-slate-100 font-mono text-sm"
+                  className="bg-secondary border-border text-foreground font-mono text-sm"
                 />
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleGenerateWebhookSecret}
-                  className="border-slate-700"
+                  className="border-border"
                 >
                   <RefreshCw className="h-4 w-4" />
                 </Button>
@@ -332,7 +332,7 @@ export default function SpokeDetails() {
                     type="button"
                     variant="outline"
                     onClick={() => handleCopy('webhook_secret', formData.webhook_secret)}
-                    className="border-slate-700"
+                    className="border-border"
                   >
                     {copiedField === 'webhook_secret' ? (
                       <Check className="h-4 w-4 text-green-500" />
@@ -342,18 +342,18 @@ export default function SpokeDetails() {
                   </Button>
                 )}
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-muted-foreground/70 mt-1">
                 Used by Local Lane to sign webhook requests sent to the spoke
               </p>
             </div>
 
             {/* Is Active */}
-            <div className="flex items-center justify-between p-4 bg-slate-800 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-secondary rounded-lg">
               <div>
-                <Label htmlFor="is_active" className="text-slate-200">
+                <Label htmlFor="is_active" className="text-foreground">
                   Active Status
                 </Label>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-muted-foreground/70 mt-1">
                   Enable or disable this spoke integration
                 </p>
               </div>
@@ -367,25 +367,25 @@ export default function SpokeDetails() {
             {/* Environment Variables Instructions */}
             {formData.spoke_id && formData.api_key && (
               <div className="space-y-6">
-                <div className="p-6 bg-slate-800 rounded-lg border-2 border-amber-500/20">
-                  <h3 className="text-lg font-semibold text-slate-100 mb-3">
+                <div className="p-6 bg-secondary rounded-lg border-2 border-primary/20">
+                  <h3 className="text-lg font-semibold text-foreground mb-3">
                     Environment Variables for Spoke App
                   </h3>
-                  <p className="text-sm text-slate-400 mb-4">
+                  <p className="text-sm text-muted-foreground mb-4">
                     Add these three keys as environment variables in your Base44 dashboard:
                   </p>
                   <div className="space-y-3 font-mono text-sm">
-                    <div className="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
+                    <div className="flex items-center justify-between p-3 bg-card rounded border border-border">
                       <div className="min-w-0 flex-1">
-                        <div className="text-amber-500 font-semibold">1. LOCAL_LANE_API_KEY</div>
-                        <div className="text-slate-500 text-xs mt-1 break-all">{formData.api_key}</div>
+                        <div className="text-primary font-semibold">1. LOCAL_LANE_API_KEY</div>
+                        <div className="text-muted-foreground/70 text-xs mt-1 break-all">{formData.api_key}</div>
                       </div>
                       <Button
                         type="button"
                         size="sm"
                         variant="outline"
                         onClick={() => handleCopy('env_api_key', formData.api_key)}
-                        className="border-slate-700 ml-3"
+                        className="border-border ml-3"
                       >
                         {copiedField === 'env_api_key' ? (
                           <Check className="h-3 w-3 text-green-500" />
@@ -394,17 +394,17 @@ export default function SpokeDetails() {
                         )}
                       </Button>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
+                    <div className="flex items-center justify-between p-3 bg-card rounded border border-border">
                       <div>
-                        <div className="text-amber-500 font-semibold">2. SPOKE_ID</div>
-                        <div className="text-slate-500 text-xs mt-1">{formData.spoke_id}</div>
+                        <div className="text-primary font-semibold">2. SPOKE_ID</div>
+                        <div className="text-muted-foreground/70 text-xs mt-1">{formData.spoke_id}</div>
                       </div>
                       <Button
                         type="button"
                         size="sm"
                         variant="outline"
                         onClick={() => handleCopy('env_spoke_id', formData.spoke_id)}
-                        className="border-slate-700 ml-3"
+                        className="border-border ml-3"
                       >
                         {copiedField === 'env_spoke_id' ? (
                           <Check className="h-3 w-3 text-green-500" />
@@ -413,10 +413,10 @@ export default function SpokeDetails() {
                         )}
                       </Button>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-slate-900 rounded border border-slate-700">
+                    <div className="flex items-center justify-between p-3 bg-card rounded border border-border">
                       <div className="min-w-0 flex-1">
-                        <div className="text-amber-500 font-semibold">3. SPOKE_WEBHOOK_SECRET</div>
-                        <div className="text-slate-500 text-xs mt-1 break-all">{formData.webhook_secret || '(generate one above)'}</div>
+                        <div className="text-primary font-semibold">3. SPOKE_WEBHOOK_SECRET</div>
+                        <div className="text-muted-foreground/70 text-xs mt-1 break-all">{formData.webhook_secret || '(generate one above)'}</div>
                       </div>
                       {formData.webhook_secret && (
                         <Button
@@ -424,7 +424,7 @@ export default function SpokeDetails() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleCopy('env_webhook_secret', formData.webhook_secret)}
-                          className="border-slate-700 ml-3"
+                          className="border-border ml-3"
                         >
                           {copiedField === 'env_webhook_secret' ? (
                             <Check className="h-3 w-3 text-green-500" />
@@ -438,66 +438,66 @@ export default function SpokeDetails() {
                 </div>
 
                 {/* API Documentation */}
-                <div className="p-6 bg-slate-800 rounded-lg border-2 border-blue-500/20">
-                  <h3 className="text-lg font-semibold text-slate-100 mb-3">
+                <div className="p-6 bg-secondary rounded-lg border-2 border-blue-500/20">
+                  <h3 className="text-lg font-semibold text-foreground mb-3">
                     Local Lane Hub API Endpoints
                   </h3>
-                  <p className="text-sm text-slate-400 mb-4">
+                  <p className="text-sm text-muted-foreground mb-4">
                     Use these endpoints to send events to the Local Lane Hub:
                   </p>
                   <div className="space-y-4">
                     {/* Create Event */}
-                    <div className="border border-slate-700 rounded-lg overflow-hidden">
-                      <div className="bg-slate-900 px-4 py-2 border-b border-slate-700">
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <div className="bg-card px-4 py-2 border-b border-border">
                         <div className="flex items-center gap-3">
-                          <span className="px-2 py-1 bg-green-600 text-white text-xs font-bold rounded">POST</span>
-                          <code className="text-sm text-slate-300 break-all">https://preview--local-connect-c9b011d3.base44.app/functions/receiveEvent</code>
+                          <span className="px-2 py-1 bg-green-600 text-foreground text-xs font-bold rounded">POST</span>
+                          <code className="text-sm text-foreground-soft break-all">https://preview--local-connect-c9b011d3.base44.app/functions/receiveEvent</code>
                         </div>
                       </div>
                       <div className="p-4 space-y-2 text-sm">
-                        <div className="text-slate-400">Create a new event in Local Lane Hub</div>
-                        <div className="text-slate-500 text-xs">
+                        <div className="text-muted-foreground">Create a new event in Local Lane Hub</div>
+                        <div className="text-muted-foreground/70 text-xs">
                           <strong>Headers:</strong> Authorization: Bearer {'{LOCAL_LANE_API_KEY}'}
                         </div>
-                        <div className="text-slate-500 text-xs">
+                        <div className="text-muted-foreground/70 text-xs">
                           <strong>Required:</strong> spoke_event_id, title, start_date, location
                         </div>
                       </div>
                     </div>
 
                     {/* Update Event */}
-                    <div className="border border-slate-700 rounded-lg overflow-hidden">
-                      <div className="bg-slate-900 px-4 py-2 border-b border-slate-700">
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <div className="bg-card px-4 py-2 border-b border-border">
                         <div className="flex items-center gap-3">
-                          <span className="px-2 py-1 bg-blue-600 text-white text-xs font-bold rounded">PATCH</span>
-                          <code className="text-sm text-slate-300 break-all">https://preview--local-connect-c9b011d3.base44.app/functions/updateEvent</code>
+                          <span className="px-2 py-1 bg-blue-600 text-foreground text-xs font-bold rounded">PATCH</span>
+                          <code className="text-sm text-foreground-soft break-all">https://preview--local-connect-c9b011d3.base44.app/functions/updateEvent</code>
                         </div>
                       </div>
                       <div className="p-4 space-y-2 text-sm">
-                        <div className="text-slate-400">Update an existing event</div>
-                        <div className="text-slate-500 text-xs">
+                        <div className="text-muted-foreground">Update an existing event</div>
+                        <div className="text-muted-foreground/70 text-xs">
                           <strong>Headers:</strong> Authorization: Bearer {'{LOCAL_LANE_API_KEY}'}
                         </div>
-                        <div className="text-slate-500 text-xs">
+                        <div className="text-muted-foreground/70 text-xs">
                           <strong>Required:</strong> spoke_event_id
                         </div>
                       </div>
                     </div>
 
                     {/* Delete Event */}
-                    <div className="border border-slate-700 rounded-lg overflow-hidden">
-                      <div className="bg-slate-900 px-4 py-2 border-b border-slate-700">
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <div className="bg-card px-4 py-2 border-b border-border">
                         <div className="flex items-center gap-3">
-                          <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded">DELETE</span>
-                          <code className="text-sm text-slate-300 break-all">https://preview--local-connect-c9b011d3.base44.app/functions/deleteEvent</code>
+                          <span className="px-2 py-1 bg-red-600 text-foreground text-xs font-bold rounded">DELETE</span>
+                          <code className="text-sm text-foreground-soft break-all">https://preview--local-connect-c9b011d3.base44.app/functions/deleteEvent</code>
                         </div>
                       </div>
                       <div className="p-4 space-y-2 text-sm">
-                        <div className="text-slate-400">Delete an event from Local Lane Hub</div>
-                        <div className="text-slate-500 text-xs">
+                        <div className="text-muted-foreground">Delete an event from Local Lane Hub</div>
+                        <div className="text-muted-foreground/70 text-xs">
                           <strong>Headers:</strong> Authorization: Bearer {'{LOCAL_LANE_API_KEY}'}
                         </div>
-                        <div className="text-slate-500 text-xs">
+                        <div className="text-muted-foreground/70 text-xs">
                           <strong>Required:</strong> spoke_event_id
                         </div>
                       </div>
@@ -512,7 +512,7 @@ export default function SpokeDetails() {
               <Button
                 type="submit"
                 disabled={saveMutation.isPending}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
               >
                 {saveMutation.isPending ? (
                   <>
@@ -527,7 +527,7 @@ export default function SpokeDetails() {
                 type="button"
                 variant="outline"
                 onClick={() => navigate(createPageUrl('Admin'))}
-                className="border-slate-700"
+                className="border-border"
               >
                 Cancel
               </Button>
@@ -538,16 +538,16 @@ export default function SpokeDetails() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-slate-900 border-slate-800">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">Delete Spoke</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogTitle className="text-foreground">Delete Spoke</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               Are you sure you want to delete this spoke? This will also remove all associated
               event mappings. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300">
+            <AlertDialogCancel className="bg-secondary border-border text-foreground-soft">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -555,7 +555,7 @@ export default function SpokeDetails() {
                 deleteMutation.mutate();
                 setShowDeleteDialog(false);
               }}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-red-600 hover:bg-red-700 text-foreground"
             >
               {deleteMutation.isPending ? (
                 <>

@@ -70,12 +70,12 @@ export default function WorkspaceGuide({
   // Collapsed "all done" state
   if (allComplete && collapsed) {
     return (
-      <div className="bg-slate-900 border border-slate-800 border-l-4 border-l-amber-500 rounded-xl p-4 flex items-center justify-between">
+      <div className="bg-card border border-border border-l-4 border-l-primary rounded-xl p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-            <Check className="h-4 w-4 text-amber-500" />
+          <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+            <Check className="h-4 w-4 text-primary" />
           </div>
-          <p className="text-sm text-slate-300">
+          <p className="text-sm text-foreground-soft">
             You're all set! Dismiss this guide or keep it for reference.
           </p>
         </div>
@@ -83,14 +83,14 @@ export default function WorkspaceGuide({
           <button
             type="button"
             onClick={() => setCollapsed(false)}
-            className="text-xs text-amber-500 hover:text-amber-400"
+            className="text-xs text-primary hover:text-primary-hover"
           >
             Expand
           </button>
           <button
             type="button"
             onClick={onDismiss}
-            className="text-xs text-slate-500 hover:text-slate-400"
+            className="text-xs text-muted-foreground/70 hover:text-muted-foreground"
           >
             Dismiss
           </button>
@@ -100,28 +100,28 @@ export default function WorkspaceGuide({
   }
 
   return (
-    <div className="bg-slate-900 border border-slate-800 border-l-4 border-l-amber-500 rounded-xl overflow-hidden">
+    <div className="bg-card border border-border border-l-4 border-l-primary rounded-xl overflow-hidden">
       {/* Welcome header */}
       <div className="px-5 pt-5 pb-3 flex items-start justify-between">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="h-9 w-9 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <Sparkles className="h-4 w-4 text-amber-500" />
+          <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <Sparkles className="h-4 w-4 text-primary" />
           </div>
           <div className="min-w-0">
             <h2
-              className="text-lg text-slate-100 leading-snug"
+              className="text-lg text-foreground leading-snug"
               style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
             >
               Getting Started
             </h2>
-            <p className="text-sm text-slate-400 mt-1">{guide.welcome}</p>
+            <p className="text-sm text-muted-foreground mt-1">{guide.welcome}</p>
           </div>
         </div>
         {allComplete && (
           <button
             type="button"
             onClick={() => setCollapsed(true)}
-            className="text-slate-500 hover:text-slate-400 flex-shrink-0 ml-2 mt-1"
+            className="text-muted-foreground/70 hover:text-muted-foreground flex-shrink-0 ml-2 mt-1"
           >
             <ChevronUp className="h-4 w-4" />
           </button>
@@ -139,16 +139,16 @@ export default function WorkspaceGuide({
               key={step.id}
               className={`flex items-start gap-4 rounded-lg p-4 transition-colors ${
                 isDone
-                  ? 'bg-slate-800/30'
-                  : 'bg-slate-800/50 hover:bg-slate-800/70'
+                  ? 'bg-secondary/30'
+                  : 'bg-secondary/50 hover:bg-secondary/70'
               }`}
             >
               {/* Step number / check */}
               <div
                 className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold ${
                   isDone
-                    ? 'bg-amber-500/20 text-amber-500'
-                    : 'bg-slate-700 text-slate-300'
+                    ? 'bg-primary/20 text-primary'
+                    : 'bg-surface text-foreground-soft'
                 }`}
               >
                 {isDone ? (
@@ -161,10 +161,10 @@ export default function WorkspaceGuide({
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <Icon className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                  <Icon className="h-4 w-4 text-primary flex-shrink-0" />
                   <h3
                     className={`text-sm font-semibold ${
-                      isDone ? 'text-slate-400' : 'text-slate-100'
+                      isDone ? 'text-muted-foreground' : 'text-foreground'
                     }`}
                   >
                     {step.title}
@@ -172,7 +172,7 @@ export default function WorkspaceGuide({
                 </div>
                 <p
                   className={`text-sm leading-relaxed ${
-                    isDone ? 'text-slate-500' : 'text-slate-400'
+                    isDone ? 'text-muted-foreground/70' : 'text-muted-foreground'
                   }`}
                 >
                   {step.description}
@@ -185,8 +185,8 @@ export default function WorkspaceGuide({
                 onClick={() => onStepClick?.(step.targetTab)}
                 className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors min-h-[32px] ${
                   isDone
-                    ? 'border border-slate-700 text-slate-400 hover:border-slate-600 hover:bg-transparent'
-                    : 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20'
+                    ? 'border border-border text-muted-foreground hover:border-border hover:bg-transparent'
+                    : 'bg-primary/10 text-primary hover:bg-primary/20'
                 }`}
               >
                 {step.actionLabel}
@@ -197,14 +197,14 @@ export default function WorkspaceGuide({
       </div>
 
       {/* Dismiss footer */}
-      <div className="px-5 py-3 border-t border-slate-800/50 flex items-center justify-between">
-        <p className="text-xs text-slate-600">
+      <div className="px-5 py-3 border-t border-border/50 flex items-center justify-between">
+        <p className="text-xs text-muted-foreground/50">
           You can bring this back from Settings
         </p>
         <button
           type="button"
           onClick={onDismiss}
-          className="text-xs text-slate-500 hover:text-slate-400 transition-colors"
+          className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
         >
           Dismiss guide
         </button>

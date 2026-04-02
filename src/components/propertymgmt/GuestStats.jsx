@@ -47,15 +47,15 @@ export default function GuestStats({ guests }) {
         return (
           <div
             key={s.label}
-            className="bg-slate-900 border border-slate-800 rounded-xl p-3"
+            className="bg-card border border-border rounded-xl p-3"
           >
             <div className="flex items-center gap-1.5 mb-1">
-              <Icon className="h-3.5 w-3.5 text-amber-500" />
-              <span className="text-[10px] text-slate-500 uppercase tracking-wider">
+              <Icon className="h-3.5 w-3.5 text-primary" />
+              <span className="text-[10px] text-muted-foreground/70 uppercase tracking-wider">
                 {s.label}
               </span>
             </div>
-            <p className="text-lg font-bold text-slate-100">{s.value}</p>
+            <p className="text-lg font-bold text-foreground">{s.value}</p>
           </div>
         );
       })}

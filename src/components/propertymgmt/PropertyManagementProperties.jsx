@@ -35,7 +35,7 @@ export default function PropertyManagementProperties({ profile, currentUser, mem
   // Role guard
   if (!memberRole) {
     return (
-      <div className="text-center py-12 text-slate-400">
+      <div className="text-center py-12 text-muted-foreground">
         <p>You don't have access to this workspace.</p>
       </div>
     );
@@ -257,7 +257,7 @@ export default function PropertyManagementProperties({ profile, currentUser, mem
     return (
       <div className="space-y-4">
         {[...Array(2)].map((_, i) => (
-          <div key={i} className="h-40 bg-slate-800 rounded-lg animate-pulse" />
+          <div key={i} className="h-40 bg-secondary rounded-lg animate-pulse" />
         ))}
       </div>
     );
@@ -268,8 +268,8 @@ export default function PropertyManagementProperties({ profile, currentUser, mem
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-100">Properties</h2>
-          <p className="text-sm text-slate-400 mt-1">
+          <h2 className="text-2xl font-bold text-foreground">Properties</h2>
+          <p className="text-sm text-muted-foreground mt-1">
             {sortedGroups.length === 0
               ? 'No property groups yet'
               : `${sortedGroups.length} group${sortedGroups.length !== 1 ? 's' : ''}, ${properties.length} unit${properties.length !== 1 ? 's' : ''}`}
@@ -281,14 +281,14 @@ export default function PropertyManagementProperties({ profile, currentUser, mem
               setEditingGroup(null);
               setGroupDialogOpen(true);
             }}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-bold gap-2"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold gap-2"
           >
             <Plus className="w-4 h-4" /> Add Property Group
           </Button>
           <Button
             variant="outline"
             onClick={() => setStandaloneDialogOpen(true)}
-            className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100 gap-2"
+            className="border-border text-foreground-soft hover:bg-secondary hover:text-foreground gap-2"
           >
             <Home className="w-4 h-4" /> Add Standalone
           </Button>
@@ -298,22 +298,22 @@ export default function PropertyManagementProperties({ profile, currentUser, mem
       {/* Content */}
       {sortedGroups.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-4">
-          <Building2 className="w-12 h-12 text-slate-600 mb-4" />
-          <h3 className="text-xl font-semibold text-slate-300 mb-1">No properties yet</h3>
-          <p className="text-slate-400 mb-6 text-center max-w-sm">
+          <Building2 className="w-12 h-12 text-muted-foreground/50 mb-4" />
+          <h3 className="text-xl font-semibold text-foreground-soft mb-1">No properties yet</h3>
+          <p className="text-muted-foreground mb-6 text-center max-w-sm">
             Add a property group or standalone property to get started
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Button
               onClick={() => setGroupDialogOpen(true)}
-              className="bg-amber-500 hover:bg-amber-400 text-black font-bold gap-2"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold gap-2"
             >
               <Plus className="w-4 h-4" /> Add Property Group
             </Button>
             <Button
               variant="outline"
               onClick={() => setStandaloneDialogOpen(true)}
-              className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100 gap-2"
+              className="border-border text-foreground-soft hover:bg-secondary hover:text-foreground gap-2"
             >
               <Home className="w-4 h-4" /> Add Standalone
             </Button>
@@ -367,12 +367,12 @@ export default function PropertyManagementProperties({ profile, currentUser, mem
       />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="bg-slate-900 border border-slate-800">
+        <AlertDialogContent className="bg-card border border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">
+            <AlertDialogTitle className="text-foreground">
               {deleteType === 'group' ? 'Delete property group?' : 'Delete unit?'}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogDescription className="text-muted-foreground">
               {deleteType === 'group' ? (
                 <>
                   This will permanently delete &quot;{deleteTarget?.name}&quot; and all units within
@@ -387,12 +387,12 @@ export default function PropertyManagementProperties({ profile, currentUser, mem
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-slate-600 text-slate-300 hover:bg-slate-800">
+            <AlertDialogCancel className="border-border text-foreground-soft hover:bg-secondary">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-500 text-white"
+              className="bg-red-600 hover:bg-red-500 text-foreground"
               disabled={saving}
             >
               Delete

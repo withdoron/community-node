@@ -22,26 +22,26 @@ export default function CheckInWidget({ business, onEnterCheckIn }) {
     .slice(0, 5);
 
   return (
-    <Card className="p-6 bg-slate-900 border-slate-800">
+    <Card className="p-6 bg-card border-border">
       <div className="flex items-center gap-3 mb-4">
-        <UserCheck className="h-5 w-5 text-amber-500" />
-        <h2 className="text-xl font-bold text-slate-100">Check-In</h2>
+        <UserCheck className="h-5 w-5 text-primary" />
+        <h2 className="text-xl font-bold text-foreground">Check-In</h2>
       </div>
       {isLoading ? (
-        <p className="text-sm text-slate-500 py-4">Loading events...</p>
+        <p className="text-sm text-muted-foreground/70 py-4">Loading events...</p>
       ) : upcomingEvents.length === 0 ? (
-        <div className="border-2 border-dashed border-slate-700 rounded-lg p-8 text-center">
+        <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
           <div className="flex flex-col items-center">
-            <div className="h-14 w-14 bg-slate-800 rounded-full flex items-center justify-center mb-4">
-              <Calendar className="h-7 w-7 text-slate-500" />
+            <div className="h-14 w-14 bg-secondary rounded-full flex items-center justify-center mb-4">
+              <Calendar className="h-7 w-7 text-muted-foreground/70" />
             </div>
-            <h3 className="text-base font-semibold text-slate-100 mb-1">No upcoming events</h3>
-            <p className="text-sm text-slate-400">Create an event to enable check-in.</p>
+            <h3 className="text-base font-semibold text-foreground mb-1">No upcoming events</h3>
+            <p className="text-sm text-muted-foreground">Create an event to enable check-in.</p>
           </div>
         </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-sm text-slate-400 mb-3">Select an event to check in attendees:</p>
+          <p className="text-sm text-muted-foreground mb-3">Select an event to check in attendees:</p>
           {upcomingEvents.map((event) => {
             const eventDate = new Date(event.date || event.start_date);
             const dateLabel = isToday(eventDate)
@@ -52,18 +52,18 @@ export default function CheckInWidget({ business, onEnterCheckIn }) {
             return (
               <div
                 key={event.id}
-                className="flex items-center justify-between py-3 px-4 bg-slate-800 rounded-lg border border-slate-700"
+                className="flex items-center justify-between py-3 px-4 bg-secondary rounded-lg border border-border"
               >
                 <div>
-                  <p className="font-medium text-slate-100">{event.title}</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="font-medium text-foreground">{event.title}</p>
+                  <p className="text-sm text-muted-foreground/70">
                     {dateLabel} · {format(eventDate, 'h:mm a')}
                   </p>
                 </div>
                 <Button
                   size="sm"
                   onClick={() => onEnterCheckIn(event)}
-                  className="bg-amber-500 hover:bg-amber-400 text-black font-semibold shrink-0 whitespace-nowrap"
+                  className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold shrink-0 whitespace-nowrap"
                 >
                   <UserCheck className="h-4 w-4 mr-2" />
                   Check-In Mode

@@ -124,24 +124,24 @@ const STATUS_COLORS = {
   occupied: 'bg-emerald-400/10 text-emerald-400',
   resolved: 'bg-emerald-400/10 text-emerald-400',
   accepted: 'bg-emerald-400/10 text-emerald-400',
-  pending: 'bg-amber-500/10 text-amber-500',
-  draft: 'bg-amber-500/10 text-amber-500',
-  awaiting_signature: 'bg-amber-500/10 text-amber-500',
-  sent: 'bg-amber-500/10 text-amber-500',
-  vacant: 'bg-amber-500/10 text-amber-500',
-  open: 'bg-amber-500/10 text-amber-500',
-  in_progress: 'bg-amber-500/10 text-amber-500',
-  new: 'bg-amber-500/10 text-amber-500',
+  pending: 'bg-primary/10 text-primary',
+  draft: 'bg-primary/10 text-primary',
+  awaiting_signature: 'bg-primary/10 text-primary',
+  sent: 'bg-primary/10 text-primary',
+  vacant: 'bg-primary/10 text-primary',
+  open: 'bg-primary/10 text-primary',
+  in_progress: 'bg-primary/10 text-primary',
+  new: 'bg-primary/10 text-primary',
   inactive: 'bg-red-400/10 text-red-400',
   cancelled: 'bg-red-400/10 text-red-400',
   overdue: 'bg-red-400/10 text-red-400',
   declined: 'bg-red-400/10 text-red-400',
   approved: 'bg-emerald-400/10 text-emerald-400',
-  closed: 'bg-slate-700/50 text-slate-500',
-  expired: 'bg-slate-700/50 text-slate-500',
-  paused: 'bg-slate-700/50 text-slate-500',
-  archived: 'bg-slate-700/50 text-slate-500',
-  on_hold: 'bg-amber-500/10 text-amber-500',
+  closed: 'bg-surface/50 text-muted-foreground/70',
+  expired: 'bg-surface/50 text-muted-foreground/70',
+  paused: 'bg-surface/50 text-muted-foreground/70',
+  archived: 'bg-surface/50 text-muted-foreground/70',
+  on_hold: 'bg-primary/10 text-primary',
   rejected: 'bg-red-400/10 text-red-400',
 };
 
@@ -155,21 +155,21 @@ const fmtUsd = (n) =>
 function renderField(key, value, type) {
   const label = key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
-  const labelEl = <span className="text-amber-500/80 text-xs w-24 shrink-0 truncate">{label}</span>;
+  const labelEl = <span className="text-primary/80 text-xs w-24 shrink-0 truncate">{label}</span>;
 
   switch (type) {
     case 'phone':
       return (
         <div className="flex items-center gap-2">
           {labelEl}
-          <a href={`tel:${value}`} className="text-slate-300 hover:text-amber-400 transition-colors text-sm">{value}</a>
+          <a href={`tel:${value}`} className="text-foreground-soft hover:text-primary-hover transition-colors text-sm">{value}</a>
         </div>
       );
     case 'email':
       return (
         <div className="flex items-center gap-2">
           {labelEl}
-          <a href={`mailto:${value}`} className="text-slate-300 hover:text-amber-400 transition-colors text-sm truncate">{value}</a>
+          <a href={`mailto:${value}`} className="text-foreground-soft hover:text-primary-hover transition-colors text-sm truncate">{value}</a>
         </div>
       );
     case 'currency': {
@@ -188,12 +188,12 @@ function renderField(key, value, type) {
       return (
         <div className="flex items-center gap-2">
           {labelEl}
-          <span className="text-slate-400 text-sm">{getRelativeTime(d)}</span>
+          <span className="text-muted-foreground text-sm">{getRelativeTime(d)}</span>
         </div>
       );
     }
     case 'status': {
-      const color = STATUS_COLORS[String(value).toLowerCase()] || 'bg-slate-700 text-slate-300';
+      const color = STATUS_COLORS[String(value).toLowerCase()] || 'bg-surface text-foreground-soft';
       return (
         <div className="flex items-center gap-2">
           {labelEl}
@@ -205,14 +205,14 @@ function renderField(key, value, type) {
       return (
         <div className="flex items-center gap-2">
           {labelEl}
-          <span className={`text-sm ${value ? 'text-emerald-400' : 'text-slate-500'}`}>{value ? 'Yes' : 'No'}</span>
+          <span className={`text-sm ${value ? 'text-emerald-400' : 'text-muted-foreground/70'}`}>{value ? 'Yes' : 'No'}</span>
         </div>
       );
     case 'url':
       return (
         <div className="flex items-center gap-2">
           {labelEl}
-          <a href={value} target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300 text-sm truncate underline">{String(value).replace(/^https?:\/\//, '')}</a>
+          <a href={value} target="_blank" rel="noopener noreferrer" className="text-primary-hover hover:text-primary-hover text-sm truncate underline">{String(value).replace(/^https?:\/\//, '')}</a>
         </div>
       );
     case 'address':
@@ -220,7 +220,7 @@ function renderField(key, value, type) {
       return (
         <div className="flex items-start gap-2">
           {labelEl}
-          <span className="text-slate-300 text-sm">{String(value)}</span>
+          <span className="text-foreground-soft text-sm">{String(value)}</span>
         </div>
       );
     case 'id':
@@ -246,8 +246,8 @@ function renderSummaryHeader(entity, count) {
   const friendlyName = entity.replace(/^(FS|PM)/, '').replace(/([A-Z])/g, ' $1').trim();
   return (
     <div className="flex items-center justify-between mb-4">
-      <h3 className="text-lg font-semibold text-white">{friendlyName}s</h3>
-      <span className="text-amber-500 text-sm font-medium">{count} record{count !== 1 ? 's' : ''}</span>
+      <h3 className="text-lg font-semibold text-foreground">{friendlyName}s</h3>
+      <span className="text-primary text-sm font-medium">{count} record{count !== 1 ? 's' : ''}</span>
     </div>
   );
 }
@@ -273,16 +273,16 @@ function renderCardList(data, entity, onRecordTap) {
               tabIndex={onRecordTap ? 0 : undefined}
               onClick={() => onRecordTap?.(record)}
               onKeyDown={onRecordTap ? (e) => { if (e.key === 'Enter' || e.key === ' ') onRecordTap(record); } : undefined}
-              className={`bg-slate-900 border border-slate-800 rounded-xl p-4 transition-colors ${onRecordTap ? 'cursor-pointer hover:border-amber-500/30' : ''}`}
+              className={`bg-card border border-border rounded-xl p-4 transition-colors ${onRecordTap ? 'cursor-pointer hover:border-primary/30' : ''}`}
             >
-              <h3 className="text-white font-semibold text-base truncate">{title}</h3>
+              <h3 className="text-foreground font-semibold text-base truncate">{title}</h3>
               <div className="mt-2 space-y-1.5">
                 {fields.slice(0, 6).map((f) => {
                   const rendered = renderField(f.key, f.value, f.type);
                   return rendered ? <div key={f.key}>{rendered}</div> : null;
                 })}
                 {fields.length > 6 && (
-                  <p className="text-slate-500 text-xs mt-2">+ {fields.length - 6} more fields</p>
+                  <p className="text-muted-foreground/70 text-xs mt-2">+ {fields.length - 6} more fields</p>
                 )}
               </div>
             </div>
@@ -302,8 +302,8 @@ function renderDetail(record, entity) {
     .filter((f) => f.type !== 'id' && f.type !== 'json' && f.type !== 'empty');
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-      <h2 className="text-white font-bold text-2xl mb-4">{title}</h2>
+    <div className="bg-card border border-border rounded-xl p-6">
+      <h2 className="text-foreground font-bold text-2xl mb-4">{title}</h2>
       <div className="space-y-2">
         {fields.map((f) => {
           const rendered = renderField(f.key, f.value, f.type);
@@ -320,7 +320,7 @@ function renderEmpty(entity) {
   const friendlyName = entity.replace(/^(FS|PM)/, '').replace(/([A-Z])/g, ' $1').trim();
   return (
     <div className="text-center py-12">
-      <p className="text-slate-500 text-lg">No {friendlyName.toLowerCase()} records yet.</p>
+      <p className="text-muted-foreground/70 text-lg">No {friendlyName.toLowerCase()} records yet.</p>
     </div>
   );
 }

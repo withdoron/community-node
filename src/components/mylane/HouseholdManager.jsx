@@ -9,9 +9,9 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
 const CATEGORY_CONFIG = {
-  adult: { label: 'Adult', icon: User, color: 'text-slate-400' },
-  child: { label: 'Child', icon: UserCircle, color: 'text-amber-500' },
-  infant: { label: 'Infant', icon: Baby, color: 'text-slate-300' },
+  adult: { label: 'Adult', icon: User, color: 'text-muted-foreground' },
+  child: { label: 'Child', icon: UserCircle, color: 'text-primary' },
+  infant: { label: 'Infant', icon: Baby, color: 'text-foreground-soft' },
 };
 
 function MemberRow({ member, onEdit, onDelete }) {
@@ -19,14 +19,14 @@ function MemberRow({ member, onEdit, onDelete }) {
   const Icon = config.icon;
 
   return (
-    <div className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0">
+    <div className="flex items-center justify-between py-3 border-b border-border last:border-0">
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-slate-800 rounded-lg">
+        <div className="p-2 bg-secondary rounded-lg">
           <Icon className={`h-4 w-4 ${config.color}`} />
         </div>
         <div>
-          <p className="text-sm font-medium text-slate-100">{member.name}</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-sm font-medium text-foreground">{member.name}</p>
+          <p className="text-xs text-muted-foreground/70">
             {config.label}
             {member.age != null && ` · ${member.age} years old`}
           </p>
@@ -35,13 +35,13 @@ function MemberRow({ member, onEdit, onDelete }) {
       <div className="flex items-center gap-1">
         <button
           onClick={() => onEdit(member)}
-          className="p-2.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
+          className="p-2.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
           >
           <Pencil className="h-4 w-4" />
         </button>
         <button
           onClick={() => onDelete(member)}
-          className="p-2.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors"
+          className="p-2.5 text-muted-foreground hover:text-red-400 hover:bg-secondary rounded-lg transition-colors"
           >
           <Trash2 className="h-4 w-4" />
         </button>
@@ -69,20 +69,20 @@ function MemberForm({ member, onSave, onCancel, isLoading }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-slate-800/50 rounded-lg">
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-secondary/50 rounded-lg">
       <div>
-        <label className="block text-sm text-slate-400 mb-1">Name</label>
+        <label className="block text-sm text-muted-foreground mb-1">Name</label>
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter name"
-          className="bg-slate-800 border-slate-700 text-slate-100"
+          className="bg-secondary border-border text-foreground"
           autoFocus
         />
       </div>
 
       <div>
-        <label className="block text-sm text-slate-400 mb-2">Category</label>
+        <label className="block text-sm text-muted-foreground mb-2">Category</label>
         <div className="flex flex-wrap gap-2">
           {Object.entries(CATEGORY_CONFIG).map(([key, config]) => {
             const Icon = config.icon;
@@ -93,8 +93,8 @@ function MemberForm({ member, onSave, onCancel, isLoading }) {
                 onClick={() => setCategory(key)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
                   category === key
-                    ? 'border-amber-500 bg-amber-500/10 text-amber-500'
-                    : 'border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-600'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border bg-secondary text-muted-foreground hover:border-border'
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -106,7 +106,7 @@ function MemberForm({ member, onSave, onCancel, isLoading }) {
       </div>
 
       <div>
-        <label className="block text-sm text-slate-400 mb-1">Age (optional)</label>
+        <label className="block text-sm text-muted-foreground mb-1">Age (optional)</label>
         <Input
           type="number"
           value={age}
@@ -114,7 +114,7 @@ function MemberForm({ member, onSave, onCancel, isLoading }) {
           placeholder="Enter age"
           min="0"
           max="120"
-          className="bg-slate-800 border-slate-700 text-slate-100 w-24"
+          className="bg-secondary border-border text-foreground w-24"
         />
       </div>
 
@@ -124,14 +124,14 @@ function MemberForm({ member, onSave, onCancel, isLoading }) {
           variant="ghost"
           onClick={onCancel}
           disabled={isLoading}
-          className="text-slate-400 hover:text-slate-200"
+          className="text-muted-foreground hover:text-foreground"
         >
           Cancel
         </Button>
         <Button
           type="submit"
           disabled={isLoading || !name.trim()}
-          className="bg-amber-500 hover:bg-amber-400 text-black"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground"
         >
           {isLoading ? 'Saving...' : member ? 'Save Changes' : 'Add Member'}
         </Button>
@@ -231,11 +231,11 @@ export function HouseholdManager() {
     : members;
 
   return (
-    <Card className="bg-slate-900 border-slate-800">
+    <Card className="bg-card border-border">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-amber-500" />
-          <CardTitle className="text-lg font-semibold text-slate-100">
+          <Users className="h-5 w-5 text-primary" />
+          <CardTitle className="text-lg font-semibold text-foreground">
             My Household
           </CardTitle>
         </div>
@@ -243,7 +243,7 @@ export function HouseholdManager() {
           <Button
             size="sm"
             onClick={() => setShowForm(true)}
-            className="bg-amber-500 hover:bg-amber-400 text-black"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground"
           >
             <Plus className="h-4 w-4 mr-1" />
             Add
@@ -273,12 +273,12 @@ export function HouseholdManager() {
         )}
 
         {isLoading ? (
-          <p className="text-sm text-slate-500 py-4 text-center">Loading...</p>
+          <p className="text-sm text-muted-foreground/70 py-4 text-center">Loading...</p>
         ) : displayMembers.length === 0 && !showForm ? (
           <div className="py-6 text-center">
-            <Users className="h-10 w-10 text-slate-600 mx-auto mb-2" />
-            <p className="text-sm text-slate-500">No household members yet.</p>
-            <p className="text-xs text-slate-600 mt-1">
+            <Users className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground/70">No household members yet.</p>
+            <p className="text-xs text-muted-foreground/50 mt-1">
               Add family members to quickly select them when RSVPing.
             </p>
           </div>

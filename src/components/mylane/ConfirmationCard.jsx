@@ -75,9 +75,9 @@ export default function ConfirmationCard({ entity, action = 'create', data = {},
   };
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 max-w-[85%]">
+    <div className="bg-secondary border border-border rounded-xl p-4 max-w-[85%]">
       {/* Badge */}
-      <span className="inline-block bg-amber-500/20 text-amber-500 text-xs font-semibold rounded-full px-3 py-1 mb-3">
+      <span className="inline-block bg-primary/20 text-primary text-xs font-semibold rounded-full px-3 py-1 mb-3">
         {badgeText}
       </span>
 
@@ -86,13 +86,13 @@ export default function ConfirmationCard({ entity, action = 'create', data = {},
         <div className="space-y-2 mb-4">
           {visibleFields.map(([key, value]) => (
             <div key={key} className="flex gap-3">
-              <span className="text-sm text-slate-400 min-w-[80px] flex-shrink-0">{formatFieldName(key)}</span>
-              <span className="text-sm text-slate-100 font-medium">{formatFieldValue(value)}</span>
+              <span className="text-sm text-muted-foreground min-w-[80px] flex-shrink-0">{formatFieldName(key)}</span>
+              <span className="text-sm text-foreground font-medium">{formatFieldValue(value)}</span>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-sm text-slate-500 mb-4">No details provided.</p>
+        <p className="text-sm text-muted-foreground/70 mb-4">No details provided.</p>
       )}
 
       {/* Actions */}
@@ -105,8 +105,8 @@ export default function ConfirmationCard({ entity, action = 'create', data = {},
             acted === 'confirm'
               ? 'bg-green-500/20 text-green-400 cursor-default'
               : acted
-              ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
-              : 'bg-amber-500 hover:bg-amber-400 text-black'
+              ? 'bg-surface text-muted-foreground/70 cursor-not-allowed'
+              : 'bg-primary hover:bg-primary-hover text-primary-foreground'
           }`}
         >
           <Check className="h-4 w-4" />
@@ -118,10 +118,10 @@ export default function ConfirmationCard({ entity, action = 'create', data = {},
           disabled={!!acted}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm min-h-[44px] transition-colors ${
             acted === 'edit'
-              ? 'bg-amber-500/20 text-amber-400 cursor-default'
+              ? 'bg-primary/20 text-primary-hover cursor-default'
               : acted
-              ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
-              : 'bg-slate-700 hover:bg-slate-600 text-slate-200'
+              ? 'bg-surface text-muted-foreground/70 cursor-not-allowed'
+              : 'bg-surface hover:bg-surface text-foreground'
           }`}
         >
           <Pencil className="h-3.5 w-3.5" />
@@ -135,8 +135,8 @@ export default function ConfirmationCard({ entity, action = 'create', data = {},
             acted === 'cancel'
               ? 'text-red-400 cursor-default'
               : acted
-              ? 'text-slate-600 cursor-not-allowed'
-              : 'text-slate-400 hover:text-slate-300'
+              ? 'text-muted-foreground/50 cursor-not-allowed'
+              : 'text-muted-foreground hover:text-foreground-soft'
           }`}
         >
           Cancel

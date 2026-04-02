@@ -32,21 +32,21 @@ export default function SettlementCard({
       : Number(settlement.net_distributable) || 0;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+    <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div
         className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer"
         onClick={onToggleExpand}
       >
         <div className="flex-1 min-w-0">
-          <h3 className="text-xl font-bold text-slate-100">
+          <h3 className="text-xl font-bold text-foreground">
             {formatMonthDisplay(settlement.month)}
           </h3>
-          <p className="text-sm text-slate-400 mt-0.5">{groupName}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{groupName}</p>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <span
               className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full ${
                 isDraft
-                  ? 'bg-amber-500/20 text-amber-400'
+                  ? 'bg-primary/20 text-primary-hover'
                   : 'bg-emerald-500/20 text-emerald-400'
               }`}
             >
@@ -58,7 +58,7 @@ export default function SettlementCard({
               {isDraft ? 'Draft' : 'Finalized'}
             </span>
             {!isDraft && settlement.finalized_at && (
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-muted-foreground/70">
                 Finalized {String(settlement.finalized_at).slice(0, 10)}
               </span>
             )}
@@ -68,7 +68,7 @@ export default function SettlementCard({
           className="flex items-center gap-3 shrink-0"
           onClick={(e) => e.stopPropagation()}
         >
-          <p className="text-2xl font-bold text-amber-500">
+          <p className="text-2xl font-bold text-primary">
             {formatCurrency(netDist)}
           </p>
           {!isDraft && onUnfinalize && (
@@ -79,7 +79,7 @@ export default function SettlementCard({
                 e.stopPropagation();
                 onUnfinalize(settlement);
               }}
-              className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100"
+              className="border-border text-foreground-soft hover:bg-secondary hover:text-foreground"
             >
               Reopen
             </Button>
@@ -91,7 +91,7 @@ export default function SettlementCard({
                 e.stopPropagation();
                 onFinalize(settlement);
               }}
-              className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+              className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
             >
               Finalize
             </Button>
@@ -111,7 +111,7 @@ export default function SettlementCard({
           )}
           <button
             type="button"
-            className="p-2 text-slate-400 hover:text-slate-200"
+            className="p-2 text-muted-foreground hover:text-foreground"
             aria-expanded={isExpanded}
             onClick={(e) => {
               e.stopPropagation();

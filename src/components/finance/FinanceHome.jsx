@@ -30,7 +30,7 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
   // Ownership guard
   if (profile && currentUser && profile.user_id !== currentUser.id) {
     return (
-      <div className="text-center py-12 text-slate-400">
+      <div className="text-center py-12 text-muted-foreground">
         <p>You don't have access to this workspace.</p>
       </div>
     );
@@ -161,9 +161,9 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
   const hasEnoughNumber = enoughNumber > 0;
 
   const getEnoughColor = () => {
-    if (!hasEnoughNumber) return 'text-amber-500';
+    if (!hasEnoughNumber) return 'text-primary';
     if (effectiveIncome >= enoughNumber) return 'text-emerald-400';
-    if (effectiveIncome >= enoughNumber * 0.9) return 'text-amber-500';
+    if (effectiveIncome >= enoughNumber * 0.9) return 'text-primary';
     return 'text-red-400';
   };
 
@@ -172,7 +172,7 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
 
   const getLeftToSpendColor = () => {
     if (leftToSpend < 0) return 'text-red-400';
-    if (hasEnoughNumber && leftToSpend < enoughNumber * 0.1) return 'text-amber-500';
+    if (hasEnoughNumber && leftToSpend < enoughNumber * 0.1) return 'text-primary';
     return 'text-emerald-400';
   };
 
@@ -309,16 +309,16 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
 
       {/* First-view Explanation (dismissible) */}
       {showExplanation && (
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 relative">
+        <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 relative">
           <button
             type="button"
             onClick={handleDismissExplanation}
-            className="absolute top-3 right-3 text-slate-400 hover:text-amber-500 transition-colors"
+            className="absolute top-3 right-3 text-muted-foreground hover:text-primary transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
-          <p className="text-sm text-slate-200 pr-6">
-            <span className="font-semibold text-amber-500">Your Monthly Target</span> is the monthly
+          <p className="text-sm text-foreground pr-6">
+            <span className="font-semibold text-primary">Your Monthly Target</span> is the monthly
             amount that covers your essentials. Above it, you're building. Below it, you know exactly
             where to focus.
           </p>
@@ -326,21 +326,21 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
       )}
 
       {/* Card 1: The Enough Number — hero */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <div className="bg-card border border-border rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
-          <DollarSign className="h-5 w-5 text-amber-500" />
-          <h2 className="text-lg font-bold text-slate-100">Monthly Target</h2>
+          <DollarSign className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold text-foreground">Monthly Target</h2>
         </div>
         <p className={`text-4xl font-bold mb-2 ${getEnoughColor()}`}>
           {fmt(enoughNumber)}
         </p>
         <div className="flex items-center gap-2">
-          <p className="text-sm text-slate-400">Your monthly essentials</p>
+          <p className="text-sm text-muted-foreground">Your monthly essentials</p>
           {hasEnoughNumber && (
             <button
               type="button"
               onClick={() => setShowBreakdown((prev) => !prev)}
-              className="text-slate-500 hover:text-amber-500 transition-colors"
+              className="text-muted-foreground/70 hover:text-primary transition-colors"
             >
               <Info className="h-3.5 w-3.5" />
             </button>
@@ -349,38 +349,38 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
 
         {/* Breakdown (toggle on info click) */}
         {showBreakdown && hasEnoughNumber && enoughMode === 'auto' && (
-          <div className="mt-3 bg-slate-800/50 rounded-lg p-3 space-y-1.5">
+          <div className="mt-3 bg-secondary/50 rounded-lg p-3 space-y-1.5">
             <div className="flex justify-between text-xs">
-              <span className="text-slate-400">Recurring expenses</span>
-              <span className="text-slate-300">{fmt(recurringExpenseMonthly)}</span>
+              <span className="text-muted-foreground">Recurring expenses</span>
+              <span className="text-foreground-soft">{fmt(recurringExpenseMonthly)}</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-slate-400">Debt minimums</span>
-              <span className="text-slate-300">{fmt(monthlyDebtMins)}</span>
+              <span className="text-muted-foreground">Debt minimums</span>
+              <span className="text-foreground-soft">{fmt(monthlyDebtMins)}</span>
             </div>
           </div>
         )}
 
-        <p className="text-xs text-slate-500 mt-2">
+        <p className="text-xs text-muted-foreground/70 mt-2">
           {usingProjected
             ? `Expected: ${fmt(projectedIncome)}/month from recurring income`
             : `This month: ${fmt(monthIncome)} income`}
         </p>
         {hasEnoughNumber && (
           <div className="mt-3 space-y-1">
-            <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-2 bg-secondary rounded-full overflow-hidden">
               <div
-                className="h-full bg-amber-500 rounded-full transition-all"
+                className="h-full bg-primary rounded-full transition-all"
                 style={{ width: `${Math.min(100, (effectiveIncome / enoughNumber) * 100)}%` }}
               />
             </div>
-            <p className="text-xs text-slate-500 text-right">
+            <p className="text-xs text-muted-foreground/70 text-right">
               {((effectiveIncome / enoughNumber) * 100).toFixed(0)}% covered
             </p>
           </div>
         )}
         {!hasEnoughNumber && (
-          <p className="text-xs text-slate-500 mt-2">
+          <p className="text-xs text-muted-foreground/70 mt-2">
             Add recurring expenses and debts to calculate your Monthly Target
           </p>
         )}
@@ -388,62 +388,62 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
 
       {/* Card 1b: Left to Spend — companion metric */}
       {hasEnoughNumber && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-6">
           <p className={`text-2xl font-semibold ${getLeftToSpendColor()}`}>
             {getLeftToSpendText()}
           </p>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-muted-foreground/70 mt-1">
             {fmt(effectiveIncome)} income − {fmt(enoughNumber)} essentials
           </p>
           {usingProjected && (
-            <p className="text-xs text-slate-500 mt-0.5">Based on your recurring income</p>
+            <p className="text-xs text-muted-foreground/70 mt-0.5">Based on your recurring income</p>
           )}
         </div>
       )}
 
       {/* Card 2: Monthly Cash Flow */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <div className="bg-card border border-border rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="h-5 w-5 text-amber-500" />
-          <h2 className="text-lg font-bold text-slate-100">Cash Flow — {monthName} {year}</h2>
+          <TrendingUp className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold text-foreground">Cash Flow — {monthName} {year}</h2>
         </div>
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-slate-400">Income</span>
+            <span className="text-muted-foreground">Income</span>
             <span className="text-emerald-400">{fmt(monthIncome)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-slate-400">Expenses</span>
+            <span className="text-muted-foreground">Expenses</span>
             <span className="text-red-400">{fmt(monthExpenses)}</span>
           </div>
-          <div className="border-t border-slate-800 pt-2 mt-2 flex justify-between text-sm font-medium">
-            <span className="text-slate-300">Net</span>
+          <div className="border-t border-border pt-2 mt-2 flex justify-between text-sm font-medium">
+            <span className="text-foreground-soft">Net</span>
             <span className={monthNet >= 0 ? 'text-emerald-400' : 'text-red-400'}>
               {fmt(monthNet)}
             </span>
           </div>
         </div>
         {monthTransactions.length === 0 && (
-          <p className="text-xs text-slate-500 mt-4">Add transactions to see your monthly summary</p>
+          <p className="text-xs text-muted-foreground/70 mt-4">Add transactions to see your monthly summary</p>
         )}
       </div>
 
       {/* Card 3: Upcoming Bills */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <div className="bg-card border border-border rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <CalendarClock className="h-5 w-5 text-amber-500" />
-            <h2 className="text-lg font-bold text-slate-100">Upcoming Bills</h2>
+            <CalendarClock className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-bold text-foreground">Upcoming Bills</h2>
           </div>
           {upcomingBills.length > 0 && (
             <button type="button" onClick={() => onNavigateTab?.('bills')}
-              className="text-xs text-amber-500 hover:text-amber-400">
+              className="text-xs text-primary hover:text-primary-hover">
               View all
             </button>
           )}
         </div>
         {upcomingBills.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground/70">
             {activeRecurring.filter((r) => r.type === 'expense').length > 0
               ? 'Set next dates on recurring expenses to see upcoming bills'
               : 'No recurring expenses set up yet'}
@@ -453,10 +453,10 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
             {upcomingBills.map((bill) => (
               <div key={bill.id} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-xs text-slate-500 w-16 flex-shrink-0">
+                  <span className="text-xs text-muted-foreground/70 w-16 flex-shrink-0">
                     {fmtShortDate(bill.next_date)}
                   </span>
-                  <span className="text-slate-300 truncate">{bill.description}</span>
+                  <span className="text-foreground-soft truncate">{bill.description}</span>
                 </div>
                 <span className="text-red-400 flex-shrink-0 ml-2">{fmt(bill.amount)}</span>
               </div>
@@ -466,37 +466,37 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
       </div>
 
       {/* Card 4: Debt Snapshot */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <div className="bg-card border border-border rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Landmark className="h-5 w-5 text-amber-500" />
-            <h2 className="text-lg font-bold text-slate-100">Debt Overview</h2>
+            <Landmark className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-bold text-foreground">Debt Overview</h2>
           </div>
           {activeDebts.length > 0 && (
             <button type="button" onClick={() => onNavigateTab?.('debts')}
-              className="text-xs text-amber-500 hover:text-amber-400">
+              className="text-xs text-primary hover:text-primary-hover">
               View all
             </button>
           )}
         </div>
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-slate-400">Total Debt</span>
-            <span className={totalDebt > 0 ? 'text-red-400' : 'text-slate-100'}>{fmt(totalDebt)}</span>
+            <span className="text-muted-foreground">Total Debt</span>
+            <span className={totalDebt > 0 ? 'text-red-400' : 'text-foreground'}>{fmt(totalDebt)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-slate-400">Monthly Minimums</span>
-            <span className="text-slate-100">{fmt(monthlyDebtMins)}</span>
+            <span className="text-muted-foreground">Monthly Minimums</span>
+            <span className="text-foreground">{fmt(monthlyDebtMins)}</span>
           </div>
           {activeDebts.length > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-slate-400">Active Debts</span>
-              <span className="text-slate-100">{activeDebts.length}</span>
+              <span className="text-muted-foreground">Active Debts</span>
+              <span className="text-foreground">{activeDebts.length}</span>
             </div>
           )}
         </div>
         {activeDebts.length === 0 && (
-          <p className="text-xs text-slate-500 mt-4">
+          <p className="text-xs text-muted-foreground/70 mt-4">
             No debts tracked yet — that's great, or add them to start tracking
           </p>
         )}
@@ -504,25 +504,25 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
 
       {/* Card 5: Profit First Allocation (only when enabled + business context) */}
       {pfData && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <PieChart className="h-5 w-5 text-amber-500" />
-              <h2 className="text-lg font-bold text-slate-100">Profit First — {pfData.label}</h2>
+              <PieChart className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-bold text-foreground">Profit First — {pfData.label}</h2>
             </div>
             <button type="button" onClick={() => onNavigateTab?.('settings')}
-              className="text-xs text-amber-500 hover:text-amber-400">
+              className="text-xs text-primary hover:text-primary-hover">
               Targets
             </button>
           </div>
 
           {!pfData.hasTxns ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted-foreground/70">
               No business transactions this month. Add income and expenses to see your allocation.
             </p>
           ) : (
             <>
-              <p className="text-xs text-slate-400 mb-4">
+              <p className="text-xs text-muted-foreground mb-4">
                 {monthName} revenue: <span className="text-emerald-400 font-medium">{fmt(pfData.revenue)}</span>
               </p>
               <div className="space-y-3">
@@ -531,25 +531,25 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
                     row.actual >= row.target
                       ? 'bg-emerald-500'
                       : row.actual >= row.target - 5
-                        ? 'bg-amber-500'
+                        ? 'bg-primary'
                         : 'bg-red-500';
                   const textColor =
                     row.actual >= row.target
                       ? 'text-emerald-400'
                       : row.actual >= row.target - 5
-                        ? 'text-amber-500'
+                        ? 'text-primary'
                         : 'text-red-400';
                   return (
                     <div key={row.key}>
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-slate-300">{row.label}</span>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-foreground-soft">{row.label}</span>
+                        <span className="text-xs text-muted-foreground">
                           <span className={textColor}>{row.actual.toFixed(0)}%</span>
                           {' / '}
-                          <span className="text-slate-500">{row.target}%</span>
+                          <span className="text-muted-foreground/70">{row.target}%</span>
                         </span>
                       </div>
-                      <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="h-2 bg-secondary rounded-full overflow-hidden">
                         <div
                           className={`h-full ${barColor} rounded-full transition-all`}
                           style={{ width: `${Math.min(100, row.actual)}%` }}
@@ -569,14 +569,14 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
         <button
           type="button"
           onClick={() => openForm('expense')}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px]"
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors text-sm min-h-[44px]"
         >
           + Add Expense
         </button>
         <button
           type="button"
           onClick={() => openForm('income')}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm font-medium min-h-[44px]"
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-primary text-primary hover:bg-primary/10 transition-colors text-sm font-medium min-h-[44px]"
         >
           + Add Income
         </button>

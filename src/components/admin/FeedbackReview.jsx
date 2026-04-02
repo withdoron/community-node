@@ -43,7 +43,7 @@ export default function FeedbackReview() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="w-6 h-6 border-2 border-slate-600 border-t-amber-500 rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-border border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
@@ -52,7 +52,7 @@ export default function FeedbackReview() {
     <div className="space-y-4">
       {/* Header with filter */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white">Pilot Feedback</h2>
+        <h2 className="text-lg font-semibold text-foreground">Pilot Feedback</h2>
         <div className="flex items-center gap-2 flex-wrap">
           {['all', 'feedback', 'bug'].map(type => (
             <button
@@ -61,8 +61,8 @@ export default function FeedbackReview() {
               onClick={() => setFilter(type)}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                 filter === type
-                  ? 'bg-amber-500/20 text-amber-500'
-                  : 'text-slate-400 hover:text-slate-300'
+                  ? 'bg-primary/20 text-primary'
+                  : 'text-muted-foreground hover:text-foreground-soft'
               }`}
             >
               {type === 'all' ? `All (${feedback.length})` :
@@ -76,18 +76,18 @@ export default function FeedbackReview() {
       {/* Empty state */}
       {filtered.length === 0 && (
         <div className="text-center py-12">
-          <MessageSquarePlus className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-          <h3 className="text-slate-400 font-medium">
+          <MessageSquarePlus className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+          <h3 className="text-muted-foreground font-medium">
             {filter === 'all' ? 'No feedback yet' : `No ${filter === 'bug' ? 'bug reports' : 'feedback'} yet`}
           </h3>
-          <p className="text-slate-500 text-sm mt-1">Feedback from pilot users will appear here.</p>
+          <p className="text-muted-foreground/70 text-sm mt-1">Feedback from pilot users will appear here.</p>
         </div>
       )}
 
       {/* Feedback entries */}
       <div className="space-y-3">
         {filtered.map((item) => (
-          <div key={item.id} className="bg-slate-900 border border-slate-700 rounded-xl p-4">
+          <div key={item.id} className="bg-card border border-border rounded-xl p-4">
             {/* Header: type badge + user info + date + delete */}
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2 text-sm flex-wrap">
@@ -98,15 +98,15 @@ export default function FeedbackReview() {
                     Bug
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-xs font-medium">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
                     <Lightbulb className="w-3 h-3" />
                     Idea
                   </span>
                 )}
-                <User className="w-4 h-4 text-slate-500" />
-                <span className="text-slate-300">{item.user_email || 'Unknown user'}</span>
+                <User className="w-4 h-4 text-muted-foreground/70" />
+                <span className="text-foreground-soft">{item.user_email || 'Unknown user'}</span>
                 {item.user_role && (
-                  <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 text-xs">
+                  <span className="px-2 py-0.5 rounded-full bg-secondary text-muted-foreground text-xs">
                     {item.user_role}
                   </span>
                 )}
@@ -114,7 +114,7 @@ export default function FeedbackReview() {
               <button
                 type="button"
                 onClick={() => handleDelete(item.id)}
-                className="text-slate-500 hover:text-red-400 transition-colors p-2 flex-shrink-0"
+                className="text-muted-foreground/70 hover:text-red-400 transition-colors p-2 flex-shrink-0"
                 title="Delete feedback"
               >
                 <Trash2 className="w-4 h-4" />
@@ -123,14 +123,14 @@ export default function FeedbackReview() {
 
             {/* What happened */}
             <div className="mb-2">
-              <p className="text-white text-sm whitespace-pre-wrap">{item.what_happened}</p>
+              <p className="text-foreground text-sm whitespace-pre-wrap">{item.what_happened}</p>
             </div>
 
             {/* What expected (if present) */}
             {item.what_expected && (
-              <div className="mb-2 pl-3 border-l-2 border-slate-700">
-                <p className="text-slate-400 text-sm">
-                  <span className="text-slate-500 font-medium">Expected: </span>
+              <div className="mb-2 pl-3 border-l-2 border-border">
+                <p className="text-muted-foreground text-sm">
+                  <span className="text-muted-foreground/70 font-medium">Expected: </span>
                   {item.what_expected}
                 </p>
               </div>
@@ -143,7 +143,7 @@ export default function FeedbackReview() {
                   href={typeof item.screenshot === 'string' ? item.screenshot : item.screenshot?.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-amber-500 hover:text-amber-400 text-sm"
+                  className="inline-flex items-center gap-1.5 text-primary hover:text-primary-hover text-sm"
                 >
                   <Image className="w-4 h-4" />
                   View screenshot
@@ -153,7 +153,7 @@ export default function FeedbackReview() {
             )}
 
             {/* Footer: page + timestamp */}
-            <div className="flex items-center gap-4 text-xs text-slate-500 mt-3 pt-2 border-t border-slate-800">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground/70 mt-3 pt-2 border-t border-border">
               {item.page_url && (
                 <span className="flex items-center gap-1 min-w-0">
                   <MapPin className="w-3 h-3 shrink-0" />

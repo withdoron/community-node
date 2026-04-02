@@ -88,12 +88,12 @@ export default function WhatsChangedBar({
     + ' since your last visit';
 
   return (
-    <div className="bg-slate-900/50 border-b border-slate-800 px-4 py-2.5 mb-4 rounded-lg flex items-center justify-between">
-      <p className="text-sm text-slate-400">
+    <div className="bg-card/50 border-b border-border px-4 py-2.5 mb-4 rounded-lg flex items-center justify-between">
+      <p className="text-sm text-muted-foreground">
         {changes.map((c, i) => (
           <span key={i}>
             {i > 0 && ', '}
-            <span className="text-amber-500 font-medium">{c.count}</span>{' '}
+            <span className="text-primary font-medium">{c.count}</span>{' '}
             {c.label}
           </span>
         ))}
@@ -102,7 +102,7 @@ export default function WhatsChangedBar({
       <button
         type="button"
         onClick={() => setDismissed(true)}
-        className="p-1 text-slate-500 hover:text-slate-300 transition-colors flex-shrink-0 ml-3"
+        className="p-1 text-muted-foreground/70 hover:text-foreground-soft transition-colors flex-shrink-0 ml-3"
       >
         <X className="h-3.5 w-3.5" />
       </button>

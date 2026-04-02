@@ -213,12 +213,12 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
   return (
     <div className="space-y-4 pb-24 md:pb-8">
       {/* Offense / Defense toggle */}
-      <div className="flex gap-2 p-1 bg-slate-800 rounded-xl">
+      <div className="flex gap-2 p-1 bg-secondary rounded-xl">
         <button
           type="button"
           onClick={() => setSide('offense')}
           className={`flex-1 py-3 text-center font-bold rounded-lg transition-colors min-h-[44px] ${
-            side === 'offense' ? 'bg-amber-500 text-black' : 'text-slate-400 bg-transparent hover:bg-slate-700'
+            side === 'offense' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground bg-transparent hover:bg-surface'
           }`}
         >
           Offense
@@ -227,7 +227,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           type="button"
           onClick={() => setSide('defense')}
           className={`flex-1 py-3 text-center font-bold rounded-lg transition-colors min-h-[44px] ${
-            side === 'defense' ? 'bg-amber-500 text-black' : 'text-slate-400 bg-transparent hover:bg-slate-700'
+            side === 'defense' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground bg-transparent hover:bg-surface'
           }`}
         >
           Defense
@@ -241,7 +241,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
             <button
               type="button"
               onClick={() => { setStudyModeInitialPlayId(null); setStudyModeOpen(true); }}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary border border-border text-foreground-soft hover:border-primary/50 hover:text-primary transition-colors min-h-[44px]"
             >
               <BookOpen className="h-4 w-4" />
               Study
@@ -250,7 +250,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
               type="button"
               title="Playbook Pro"
               onClick={() => { setQuizPlayFilter(null); setQuizModeOpen(true); }}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary border border-border text-foreground-soft hover:border-primary/50 hover:text-primary transition-colors min-h-[44px]"
             >
               <Zap className="h-4 w-4" />
               <span className="hidden sm:inline">Playbook Pro</span>
@@ -262,7 +262,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           <button
             type="button"
             onClick={() => setSidelineModeOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary border border-border text-foreground-soft hover:border-primary/50 hover:text-primary transition-colors min-h-[44px]"
           >
             <Monitor className="h-4 w-4" />
             <span className="hidden sm:inline">Sideline</span>
@@ -272,7 +272,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           <button
             type="button"
             onClick={() => setPrintModalOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary border border-border text-foreground-soft hover:border-primary/50 hover:text-primary transition-colors min-h-[44px]"
           >
             <Printer className="h-4 w-4" />
             <span className="hidden sm:inline">Print</span>
@@ -281,7 +281,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
         <button
           type="button"
           onClick={() => setRulesOpen(true)}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-amber-500/50 hover:text-amber-500 transition-colors min-h-[44px]"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary border border-border text-foreground-soft hover:border-primary/50 hover:text-primary transition-colors min-h-[44px]"
         >
           <Scale className="h-4 w-4" />
           <span className="hidden sm:inline">Rules</span>
@@ -290,16 +290,16 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
 
       {/* ═══ SECTION 1: Game Day ═══ */}
       {gameDayForSide.length > 0 && (
-        <section className="border-l-4 border-l-amber-500 pl-4">
+        <section className="border-l-4 border-l-primary pl-4">
           <div className="flex items-center gap-2 mb-3">
-            <Star className="h-5 w-5 text-amber-500" />
-            <h2 className="text-lg font-bold text-white">Game Day</h2>
-            <span className="text-xs bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded-full">{gameDayForSide.length}</span>
+            <Star className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-bold text-foreground">Game Day</h2>
+            <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">{gameDayForSide.length}</span>
           </div>
           <div className="space-y-4">
             {Object.entries(gameDayByFormation).map(([formation, formationPlays]) => (
               <div key={formation}>
-                <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">{formation}</h3>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{formation}</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {formationPlays.map((play) => (
                     <PlayCard
@@ -319,14 +319,14 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
       {/* ═══ SECTION 2: Playbook ═══ */}
       <section>
         <div className="flex items-center gap-2 mb-3">
-          <BookOpen className="h-5 w-5 text-amber-500" />
-          <h2 className="text-lg font-bold text-white">Playbook</h2>
-          <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">{playbookForSide.length}</span>
+          <BookOpen className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold text-foreground">Playbook</h2>
+          <span className="text-xs bg-surface text-foreground-soft px-2 py-0.5 rounded-full">{playbookForSide.length}</span>
         </div>
         <div className="space-y-6">
           {playbookForSide.length === 0 ? (
             <div className="text-center py-12 space-y-4">
-              <p className="text-slate-500">
+              <p className="text-muted-foreground/70">
                 {side === 'defense'
                   ? 'No defensive plays yet.'
                   : 'No offense plays yet.'}
@@ -345,7 +345,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
                       toast.error('Seed failed: ' + (err?.message || 'Unknown error'));
                     }
                   }}
-                  className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black rounded-lg font-semibold min-h-[44px] transition-colors"
+                  className="px-6 py-3 bg-primary hover:bg-primary-hover text-primary-foreground rounded-lg font-semibold min-h-[44px] transition-colors"
                 >
                   Seed Basic Defenses
                 </button>
@@ -354,7 +354,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
                 <button
                   type="button"
                   onClick={openPlaybookCreate}
-                  className="block mx-auto text-sm text-slate-400 hover:text-amber-400"
+                  className="block mx-auto text-sm text-muted-foreground hover:text-primary-hover"
                 >
                   or create from scratch
                 </button>
@@ -363,7 +363,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           ) : (
             Object.entries(playbookByFormation).map(([formation, formationPlays]) => (
               <div key={formation}>
-                <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">{formation}</h3>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{formation}</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {formationPlays.map((play) => (
                     <PlayCard
@@ -383,7 +383,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           <button
             type="button"
             onClick={openPlaybookCreate}
-            className="fixed bottom-20 right-4 md:static md:mt-4 bg-amber-500 hover:bg-amber-400 text-black p-3 rounded-full shadow-lg md:rounded-lg md:px-4 md:py-2 font-medium transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center z-10"
+            className="fixed bottom-20 right-4 md:static md:mt-4 bg-primary hover:bg-primary-hover text-primary-foreground p-3 rounded-full shadow-lg md:rounded-lg md:px-4 md:py-2 font-medium transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center z-10"
             aria-label="Add play"
           >
             <Plus className="h-5 w-5 md:mr-2" />
@@ -396,21 +396,21 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
       <section className="border-l-4 border-l-teal-500 pl-4">
         <div className="flex items-center gap-2 mb-1">
           <Lightbulb className="h-5 w-5 text-teal-400" />
-          <h2 className="text-lg font-bold text-white">Creation Station</h2>
+          <h2 className="text-lg font-bold text-foreground">Creation Station</h2>
           {experimentalForSide.length > 0 && (
             <span className="text-xs bg-teal-500/20 text-teal-400 px-2 py-0.5 rounded-full">{experimentalForSide.length}</span>
           )}
         </div>
-        <p className="text-slate-500 text-sm mb-4">Design your own plays. Coaches promote the best ones to the Playbook.</p>
+        <p className="text-muted-foreground/70 text-sm mb-4">Design your own plays. Coaches promote the best ones to the Playbook.</p>
         <div className="space-y-6">
           {experimentalForSide.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-slate-500">Got a play idea? Design it here.</p>
+              <p className="text-muted-foreground/70">Got a play idea? Design it here.</p>
             </div>
           ) : (
             Object.entries(experimentalByFormation).map(([formation, formationPlays]) => (
               <div key={formation}>
-                <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">{formation}</h3>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{formation}</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {formationPlays.map((play) => (
                     <PlayCard

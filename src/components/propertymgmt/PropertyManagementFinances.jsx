@@ -33,7 +33,7 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
   // Role guard
   if (!memberRole) {
     return (
-      <div className="text-center py-12 text-slate-400">
+      <div className="text-center py-12 text-muted-foreground">
         <p>You don't have access to this workspace.</p>
       </div>
     );
@@ -208,16 +208,16 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-slate-900 border border-slate-800 rounded-lg p-4 animate-pulse">
-              <div className="h-4 w-20 bg-slate-700 rounded mb-2" />
-              <div className="h-6 w-24 bg-slate-700 rounded" />
+            <div key={i} className="bg-card border border-border rounded-lg p-4 animate-pulse">
+              <div className="h-4 w-20 bg-surface rounded mb-2" />
+              <div className="h-6 w-24 bg-surface rounded" />
             </div>
           ))}
         </div>
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-slate-900 border border-slate-800 rounded-lg p-4 animate-pulse">
-            <div className="h-4 w-full bg-slate-700 rounded mb-2" />
-            <div className="h-4 w-2/3 bg-slate-700 rounded" />
+          <div key={i} className="bg-card border border-border rounded-lg p-4 animate-pulse">
+            <div className="h-4 w-full bg-surface rounded mb-2" />
+            <div className="h-4 w-2/3 bg-surface rounded" />
           </div>
         ))}
       </div>
@@ -228,7 +228,7 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
     <div className="space-y-6">
       {/* Sub-tab toggle */}
       <div className="flex items-center justify-between gap-3">
-        <div className="flex gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1">
+        <div className="flex gap-1 bg-card border border-border rounded-lg p-1">
           {SUB_TABS.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -238,8 +238,8 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
                 onClick={() => setSubTab(tab.key)}
                 className={`flex items-center gap-1.5 px-4 py-2 text-sm rounded-md transition-colors min-h-[40px] ${
                   subTab === tab.key
-                    ? 'bg-amber-500 text-black font-bold'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                    ? 'bg-primary text-primary-foreground font-bold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -256,7 +256,7 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
               setEditingExpense(null);
               setExpenseFormOpen(true);
             }}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
           >
             <Plus className="w-4 h-4 mr-1.5" />
             Transaction
@@ -268,7 +268,7 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
               setEditingLabor(null);
               setLaborFormOpen(true);
             }}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
           >
             <Plus className="w-4 h-4 mr-1.5" />
             Labor Entry
@@ -370,24 +370,24 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
       >
-        <AlertDialogContent className="bg-slate-900 border border-slate-800">
+        <AlertDialogContent className="bg-card border border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">
+            <AlertDialogTitle className="text-foreground">
               Delete {deleteTarget?.type === 'expense' ? 'Transaction' : 'Labor Entry'}?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogDescription className="text-muted-foreground">
               This action cannot be undone. The{' '}
               {deleteTarget?.type === 'expense' ? 'transaction' : 'labor entry'} will be
               permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-slate-100">
+            <AlertDialogCancel className="bg-secondary border-border text-foreground-soft hover:bg-surface hover:text-foreground">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-500 text-white"
+              className="bg-red-600 hover:bg-red-500 text-foreground"
             >
               Delete
             </AlertDialogAction>

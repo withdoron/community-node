@@ -68,16 +68,16 @@ function InlineWelcome({ currentUser, onComplete }) {
   // Greeting step — warm transition before Mylane opens
   if (step === 'greeting') {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-6">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
         <div className="text-center max-w-sm space-y-4 animate-in fade-in duration-500">
           <h1
-            className="text-3xl md:text-4xl font-bold text-amber-400"
+            className="text-3xl md:text-4xl font-bold text-primary-hover"
             style={{ fontFamily: 'Georgia, serif' }}
           >
             Welcome, {name.trim()}.
           </h1>
-          <p className="text-slate-400 text-sm">Your space is ready.</p>
-          <Loader2 className="h-5 w-5 text-amber-500/50 animate-spin mx-auto mt-4" />
+          <p className="text-muted-foreground text-sm">Your space is ready.</p>
+          <Loader2 className="h-5 w-5 text-primary/50 animate-spin mx-auto mt-4" />
         </div>
       </div>
     );
@@ -85,17 +85,17 @@ function InlineWelcome({ currentUser, onComplete }) {
 
   // Name capture step
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm space-y-8">
         {/* Heading */}
         <div className="text-center">
           <h1
-            className="text-3xl md:text-4xl font-bold text-white mb-3"
+            className="text-3xl md:text-4xl font-bold text-foreground mb-3"
             style={{ fontFamily: 'Georgia, serif' }}
           >
             Welcome
           </h1>
-          <p className="text-slate-400 text-sm">What should we call you?</p>
+          <p className="text-muted-foreground text-sm">What should we call you?</p>
         </div>
 
         {/* Name input */}
@@ -107,14 +107,14 @@ function InlineWelcome({ currentUser, onComplete }) {
             onKeyDown={handleKeyDown}
             placeholder="Your name"
             autoFocus
-            className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 min-h-[48px] text-base"
+            className="flex-1 bg-card border border-border rounded-xl px-4 text-foreground placeholder-muted-foreground/70 focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring min-h-[48px] text-base"
             disabled={completeMutation.isPending}
           />
           <button
             type="button"
             onClick={handleSubmitName}
             disabled={!name.trim() || completeMutation.isPending}
-            className="bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:hover:bg-amber-500 text-black rounded-xl px-4 min-h-[48px] min-w-[48px] flex items-center justify-center transition-colors"
+            className="bg-primary hover:bg-primary-hover disabled:opacity-40 disabled:hover:bg-primary text-primary-foreground rounded-xl px-4 min-h-[48px] min-w-[48px] flex items-center justify-center transition-colors"
           >
             {completeMutation.isPending ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -129,7 +129,7 @@ function InlineWelcome({ currentUser, onComplete }) {
           type="button"
           onClick={handleSkip}
           disabled={completeMutation.isPending}
-          className="block mx-auto text-slate-600 hover:text-slate-400 text-xs transition-colors"
+          className="block mx-auto text-muted-foreground/50 hover:text-muted-foreground text-xs transition-colors"
         >
           skip for now
         </button>
@@ -325,8 +325,8 @@ function MyLaneInner() {
   // ── Loading ──
   if (userLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -334,13 +334,13 @@ function MyLaneInner() {
   // ── Not authenticated ──
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold text-slate-100 mb-3">Welcome to LocalLane</h1>
-          <p className="text-slate-400 mb-6">Sign in to see your spaces.</p>
+          <h1 className="text-2xl font-bold text-foreground mb-3">Welcome to LocalLane</h1>
+          <p className="text-muted-foreground mb-6">Sign in to see your spaces.</p>
           <button
             onClick={() => base44.auth.redirectToLogin()}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-bold px-6 py-3 rounded-xl transition-colors"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-6 py-3 rounded-xl transition-colors"
           >
             Sign In
           </button>

@@ -20,18 +20,18 @@ export default function SettlementDistributions({
   const dists = distributions || [];
 
   return (
-    <div className="border-t border-slate-700 my-4 pt-4">
-      <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-3">
+    <div className="border-t border-border my-4 pt-4">
+      <h4 className="text-sm font-semibold text-foreground-soft uppercase tracking-wide mb-3">
         Distribution Breakdown
       </h4>
 
       {/* Manager fee line */}
       {managerName && managementFee > 0 && (
-        <div className="flex items-center justify-between py-2 border-b border-slate-700/50 mb-2">
-          <span className="text-slate-300">
+        <div className="flex items-center justify-between py-2 border-b border-border/50 mb-2">
+          <span className="text-foreground-soft">
             {managerName} (Management Fee)
           </span>
-          <span className="font-bold text-amber-500">
+          <span className="font-bold text-primary">
             {formatCurrency(managementFee)}
           </span>
         </div>
@@ -41,17 +41,17 @@ export default function SettlementDistributions({
       {dists.map((dist, i) => (
         <div
           key={i}
-          className="py-2 border-b border-slate-700/50 last:border-0 space-y-1"
+          className="py-2 border-b border-border/50 last:border-0 space-y-1"
         >
           <div className="flex items-center justify-between">
-            <span className="text-slate-100 font-medium">
+            <span className="text-foreground font-medium">
               {dist.owner_name}
             </span>
-            <span className="text-amber-500 font-bold">
+            <span className="text-primary font-bold">
               {formatCurrency(dist.net_amount)}
             </span>
           </div>
-          <div className="text-xs text-slate-400 pl-0">
+          <div className="text-xs text-muted-foreground pl-0">
             {dist.ownership_pct > 0 && (
               <span>
                 {dist.ownership_pct}% ownership →{' '}
@@ -75,7 +75,7 @@ export default function SettlementDistributions({
                 </div>
               ))}
             {dist.reimbursement > 0 && (
-              <p className="text-sm text-slate-400 mt-0.5">
+              <p className="text-sm text-muted-foreground mt-0.5">
                 Reimbursement: +{formatCurrency(dist.reimbursement)}
               </p>
             )}
@@ -84,7 +84,7 @@ export default function SettlementDistributions({
       ))}
 
       {dists.length === 0 && (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted-foreground/70">
           No ownership stakes configured for this group.
         </p>
       )}

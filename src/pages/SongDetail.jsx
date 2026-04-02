@@ -29,10 +29,10 @@ import {
 const THEMES = [
   { id: 'fire', label: 'Fire', icon: Flame, color: 'text-red-400', bg: 'bg-red-500/20' },
   { id: 'water', label: 'Water', icon: Droplets, color: 'text-blue-400', bg: 'bg-blue-500/20' },
-  { id: 'earth', label: 'Earth', icon: Mountain, color: 'text-amber-400', bg: 'bg-amber-500/20' },
+  { id: 'earth', label: 'Earth', icon: Mountain, color: 'text-primary-hover', bg: 'bg-primary/20' },
   { id: 'air', label: 'Air', icon: Wind, color: 'text-cyan-400', bg: 'bg-cyan-500/20' },
   { id: 'storm', label: 'Storm', icon: CloudLightning, color: 'text-purple-400', bg: 'bg-purple-500/20' },
-  { id: 'custom', label: 'Custom', icon: Sparkles, color: 'text-slate-400', bg: 'bg-slate-500/20' },
+  { id: 'custom', label: 'Custom', icon: Sparkles, color: 'text-muted-foreground', bg: 'bg-muted-foreground/20' },
 ];
 const THEME_MAP = Object.fromEntries(THEMES.map((t) => [t.id, t]));
 
@@ -129,7 +129,7 @@ function FullAudioPlayer({ audioUrl, onPlay }) {
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 text-sm text-slate-500 py-4">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground/70 py-4">
         <AlertCircle className="h-4 w-4" />
         Audio unavailable
       </div>
@@ -144,7 +144,7 @@ function FullAudioPlayer({ audioUrl, onPlay }) {
           type="button"
           onClick={togglePlay}
           disabled={isLoading}
-          className="shrink-0 flex items-center justify-center w-14 h-14 rounded-full bg-amber-500 hover:bg-amber-400 text-black transition-colors disabled:bg-slate-700 disabled:text-slate-500"
+          className="shrink-0 flex items-center justify-center w-14 h-14 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground transition-colors disabled:bg-surface disabled:text-muted-foreground/70"
         >
           {isLoading ? (
             <Loader2 className="h-6 w-6 animate-spin" />
@@ -158,16 +158,16 @@ function FullAudioPlayer({ audioUrl, onPlay }) {
           <div
             ref={progressRef}
             onClick={handleProgressClick}
-            className="w-full h-2 bg-slate-700 rounded-full cursor-pointer"
+            className="w-full h-2 bg-surface rounded-full cursor-pointer"
           >
             <div
-              className="bg-amber-500 rounded-full h-full transition-[width] duration-100"
+              className="bg-primary rounded-full h-full transition-[width] duration-100"
               style={{ width: `${progress}%` }}
             />
           </div>
           <div className="flex justify-between mt-1.5">
-            <span className="text-xs text-slate-400 tabular-nums">{formatTime(currentTime)}</span>
-            <span className="text-xs text-slate-400 tabular-nums">{formatTime(duration)}</span>
+            <span className="text-xs text-muted-foreground tabular-nums">{formatTime(currentTime)}</span>
+            <span className="text-xs text-muted-foreground tabular-nums">{formatTime(duration)}</span>
           </div>
         </div>
       </div>
@@ -218,7 +218,7 @@ export default function SongDetail() {
   if (isLoading) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -227,12 +227,12 @@ export default function SongDetail() {
   if (!song) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-        <Music className="h-12 w-12 text-slate-500 mx-auto mb-4" />
-        <h1 className="text-xl font-bold text-slate-100 mb-2">Song not found</h1>
-        <p className="text-slate-400 mb-6">This song may have been removed or the link is incorrect.</p>
+        <Music className="h-12 w-12 text-muted-foreground/70 mx-auto mb-4" />
+        <h1 className="text-xl font-bold text-foreground mb-2">Song not found</h1>
+        <p className="text-muted-foreground mb-6">This song may have been removed or the link is incorrect.</p>
         <Link
           to="/frequency"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-lg transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-lg transition-colors"
         >
           <Music className="h-4 w-4" />
           Browse all songs
@@ -250,48 +250,48 @@ export default function SongDetail() {
       {/* Back link */}
       <Link
         to="/frequency"
-        className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-amber-500 transition-colors mb-6"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Frequency Station
       </Link>
 
       {/* Cover image */}
-      <div className="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl overflow-hidden mb-6 flex items-center justify-center">
+      <div className="aspect-video bg-gradient-to-br from-secondary to-card rounded-xl overflow-hidden mb-6 flex items-center justify-center">
         {song.cover_image_url ? (
           <img src={song.cover_image_url} alt={song.title} className="w-full h-full object-cover" />
         ) : (
-          <Music className="h-16 w-16 text-amber-500/20" />
+          <Music className="h-16 w-16 text-primary/20" />
         )}
       </div>
 
       {/* Title + meta */}
       <div className="space-y-3 mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-100">{song.title}</h1>
-        <p className="text-slate-400">{song.credit_line}</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{song.title}</h1>
+        <p className="text-muted-foreground">{song.credit_line}</p>
         <div className="flex items-center gap-3 flex-wrap">
           {song.mood_tag && <ThemePill themeId={song.mood_tag} />}
           {song.style_genre && (
-            <span className="text-sm text-slate-500">{song.style_genre}</span>
+            <span className="text-sm text-muted-foreground/70">{song.style_genre}</span>
           )}
         </div>
       </div>
 
       {/* Audio player */}
       {song.audio_url && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 mb-6">
+        <div className="bg-card border border-border rounded-xl p-5 mb-6">
           <FullAudioPlayer audioUrl={song.audio_url} onPlay={handlePlay} />
         </div>
       )}
 
       {/* Stats + Share */}
       <div className="flex items-center gap-4 mb-8">
-        <span className="flex items-center gap-1.5 text-sm text-slate-500">
+        <span className="flex items-center gap-1.5 text-sm text-muted-foreground/70">
           <Headphones className="h-4 w-4" />
           {song.listen_count || 0} listens
         </span>
         {publishedDate && (
-          <span className="flex items-center gap-1.5 text-sm text-slate-500">
+          <span className="flex items-center gap-1.5 text-sm text-muted-foreground/70">
             <Calendar className="h-4 w-4" />
             {publishedDate}
           </span>
@@ -299,7 +299,7 @@ export default function SongDetail() {
         <button
           type="button"
           onClick={handleShare}
-          className="flex items-center gap-1.5 text-sm text-amber-500 hover:text-amber-400 transition-colors ml-auto"
+          className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover transition-colors ml-auto"
         >
           <Link2 className="h-4 w-4" />
           Share
@@ -309,9 +309,9 @@ export default function SongDetail() {
       {/* Lyrics */}
       {song.lyrics && (
         <div className="mb-8">
-          <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wide mb-3">Lyrics</h2>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-            <p className="text-slate-200 whitespace-pre-wrap leading-relaxed font-serif text-base">
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">Lyrics</h2>
+          <div className="bg-card border border-border rounded-xl p-6">
+            <p className="text-foreground whitespace-pre-wrap leading-relaxed font-serif text-base">
               {song.lyrics}
             </p>
           </div>
@@ -319,12 +319,12 @@ export default function SongDetail() {
       )}
 
       {/* CTA */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center">
-        <p className="text-slate-400 mb-3">Have something on your heart?</p>
+      <div className="bg-card border border-border rounded-xl p-6 text-center">
+        <p className="text-muted-foreground mb-3">Have something on your heart?</p>
         <Link
           to="/frequency"
           state={{ tab: 'submit' }}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-lg transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-lg transition-colors"
         >
           <Send className="h-4 w-4" />
           Submit your own seed

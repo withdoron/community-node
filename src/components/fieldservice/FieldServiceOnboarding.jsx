@@ -19,10 +19,10 @@ function StepIndicator({ current, total }) {
           key={i}
           className={`h-2 rounded-full transition-all ${
             i + 1 === current
-              ? 'w-8 bg-amber-500'
+              ? 'w-8 bg-primary'
               : i + 1 < current
-                ? 'w-2 bg-amber-500/60'
-                : 'w-2 bg-slate-700'
+                ? 'w-2 bg-primary/60'
+                : 'w-2 bg-surface'
           }`}
         />
       ))}
@@ -132,24 +132,24 @@ export default function FieldServiceOnboarding() {
   // ─── Loading gate ─────────────────────────────────
   if (!currentUser?.id) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-amber-500 border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
 
   // ─── Render ───────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-6 py-10">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-            <HardHat className="h-6 w-6 text-amber-500" />
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+            <HardHat className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-100">Create a Field Service Space</h1>
-            <p className="text-sm text-slate-400">
+            <h1 className="text-xl font-bold text-foreground">Create a Field Service Space</h1>
+            <p className="text-sm text-muted-foreground">
               {step === 1 && 'Tell us about your business'}
               {step === 2 && 'Set your rates and service area'}
               {step === 3 && "You're all set"}
@@ -162,64 +162,64 @@ export default function FieldServiceOnboarding() {
         {/* ═══ Step 1: Your Business ═══ */}
         {step === 1 && (
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 Your Business
               </h2>
-              <p className="text-sm text-slate-400 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 This information appears on your estimates and client portal.
               </p>
 
               <div className="space-y-4">
                 <div>
-                  <Label className="text-slate-400">Business name *</Label>
+                  <Label className="text-muted-foreground">Business name *</Label>
                   <Input
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                     placeholder="What's your business name?"
                     autoFocus
                   />
                 </div>
 
                 <div>
-                  <Label className="text-slate-400">Your name *</Label>
+                  <Label className="text-muted-foreground">Your name *</Label>
                   <Input
                     value={ownerName}
                     onChange={(e) => setOwnerName(e.target.value)}
-                    className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                     placeholder="Your name"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-slate-400">License/CCB number (optional)</Label>
+                  <Label className="text-muted-foreground">License/CCB number (optional)</Label>
                   <Input
                     value={licenseNumber}
                     onChange={(e) => setLicenseNumber(e.target.value)}
-                    className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                     placeholder="License/CCB number"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-slate-400">Business phone</Label>
+                    <Label className="text-muted-foreground">Business phone</Label>
                     <Input
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(formatPhone(e.target.value))}
-                      className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                      className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                       placeholder="(541) 555-0100"
                     />
                   </div>
                   <div>
-                    <Label className="text-slate-400">Business email</Label>
+                    <Label className="text-muted-foreground">Business email</Label>
                     <Input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                      className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                       placeholder="you@company.com"
                     />
                   </div>
@@ -231,7 +231,7 @@ export default function FieldServiceOnboarding() {
               <Button
                 onClick={() => setStep(2)}
                 disabled={!step1Valid}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-6 min-h-[44px] disabled:opacity-50"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 min-h-[44px] disabled:opacity-50"
               >
                 Next <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
@@ -242,51 +242,51 @@ export default function FieldServiceOnboarding() {
         {/* ═══ Step 2: Your Rates ═══ */}
         {step === 2 && (
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 Your Rates
               </h2>
-              <p className="text-sm text-slate-400 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 You can always change these in Settings.
               </p>
 
               <div className="space-y-4">
                 <div>
-                  <Label className="text-slate-400">Default hourly labor rate</Label>
+                  <Label className="text-muted-foreground">Default hourly labor rate</Label>
                   <div className="relative mt-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                     <Input
                       type="number"
                       step="0.01"
                       min="0"
                       value={hourlyRate}
                       onChange={(e) => setHourlyRate(e.target.value)}
-                      className="pl-7 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                      className="pl-7 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                       placeholder="65.00"
                       autoFocus
                     />
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-muted-foreground/70 mt-1">
                     This is your standard hourly labor rate. Workers can have individual rates.
                   </p>
                 </div>
 
                 <div>
-                  <Label className="text-slate-400">Service area</Label>
+                  <Label className="text-muted-foreground">Service area</Label>
                   <Input
                     value={serviceArea}
                     onChange={(e) => setServiceArea(e.target.value)}
-                    className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                     placeholder="e.g., Eugene-Springfield area"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-slate-400">Tagline (optional)</Label>
+                  <Label className="text-muted-foreground">Tagline (optional)</Label>
                   <Input
                     value={tagline}
                     onChange={(e) => setTagline(e.target.value)}
-                    className="w-full mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    className="w-full mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                     placeholder="A short description of your business"
                   />
                 </div>
@@ -297,13 +297,13 @@ export default function FieldServiceOnboarding() {
               <Button
                 variant="outline"
                 onClick={() => setStep(1)}
-                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+                className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent min-h-[44px]"
               >
                 <ChevronLeft className="h-4 w-4 mr-1" /> Back
               </Button>
               <Button
                 onClick={() => setStep(3)}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-6 min-h-[44px]"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 min-h-[44px]"
               >
                 Next <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
@@ -314,52 +314,52 @@ export default function FieldServiceOnboarding() {
         {/* ═══ Step 3: Ready to Go ═══ */}
         {step === 3 && (
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
                 Ready to Go
               </h2>
-              <p className="text-sm text-slate-400 mb-6">
+              <p className="text-sm text-muted-foreground mb-6">
                 Here's what you've set up.
               </p>
 
               {/* Summary */}
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Business</span>
-                  <span className="text-slate-100 font-medium">{businessName || '—'}</span>
+                  <span className="text-muted-foreground">Business</span>
+                  <span className="text-foreground font-medium">{businessName || '—'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">Owner</span>
-                  <span className="text-slate-100">{ownerName || '—'}</span>
+                  <span className="text-muted-foreground">Owner</span>
+                  <span className="text-foreground">{ownerName || '—'}</span>
                 </div>
                 {licenseNumber && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">License</span>
-                    <span className="text-slate-100">{licenseNumber}</span>
+                    <span className="text-muted-foreground">License</span>
+                    <span className="text-foreground">{licenseNumber}</span>
                   </div>
                 )}
                 {hourlyRate && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">Hourly rate</span>
-                    <span className="text-amber-500 font-medium">
+                    <span className="text-muted-foreground">Hourly rate</span>
+                    <span className="text-primary font-medium">
                       {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(hourlyRate) || 0)}
                     </span>
                   </div>
                 )}
                 {serviceArea && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">Service area</span>
-                    <span className="text-slate-100">{serviceArea}</span>
+                    <span className="text-muted-foreground">Service area</span>
+                    <span className="text-foreground">{serviceArea}</span>
                   </div>
                 )}
               </div>
 
-              <div className="border-t border-slate-800 pt-6">
-                <p className="text-sm text-slate-300 mb-3">Your space includes:</p>
+              <div className="border-t border-border pt-6">
+                <p className="text-sm text-foreground-soft mb-3">Your space includes:</p>
                 <ul className="space-y-2">
                   {WORKSPACE_FEATURES.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm text-slate-400">
-                      <Check className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                    <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Check className="h-4 w-4 text-primary flex-shrink-0" />
                       {feature}
                     </li>
                   ))}
@@ -371,13 +371,13 @@ export default function FieldServiceOnboarding() {
               <Button
                 variant="outline"
                 onClick={() => setStep(2)}
-                className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 hover:bg-transparent min-h-[44px]"
+                className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent min-h-[44px]"
               >
                 <ChevronLeft className="h-4 w-4 mr-1" /> Back
               </Button>
               <Button
                 onClick={() => createWorkspace.mutate()}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-6 min-h-[44px]"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 min-h-[44px]"
                 disabled={createWorkspace.isPending}
               >
                 {createWorkspace.isPending ? (

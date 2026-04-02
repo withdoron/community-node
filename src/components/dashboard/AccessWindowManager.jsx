@@ -60,12 +60,12 @@ function CommunityPassInterestToggle({ business, currentUserId }) {
   if (isYes && !showChange) {
     return (
       <div className="space-y-2 text-center">
-        <p className="text-sm text-amber-400">Great! We&apos;ll reach out when Community Pass is ready.</p>
-        <p className="text-xs text-slate-400">
+        <p className="text-sm text-primary-hover">Great! We&apos;ll reach out when Community Pass is ready.</p>
+        <p className="text-xs text-muted-foreground">
           <button
             type="button"
             onClick={() => setShowChange(true)}
-            className="text-amber-500 hover:text-amber-400 transition-colors underline"
+            className="text-primary hover:text-primary-hover transition-colors underline"
           >
             Change
           </button>
@@ -82,8 +82,8 @@ function CommunityPassInterestToggle({ business, currentUserId }) {
         disabled={updateMutation.isPending}
         className={`transition-colors rounded-lg px-4 py-2.5 text-sm ${
           isYes
-            ? 'bg-amber-500 text-white border border-amber-500'
-            : 'border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-400'
+            ? 'bg-primary text-foreground border border-primary'
+            : 'border border-border text-foreground-soft hover:border-primary hover:text-primary-hover'
         }`}
       >
         Yes, I&apos;m interested
@@ -166,18 +166,18 @@ export default function AccessWindowManager({ business, currentUserId }) {
   if (isBasicTier) {
     return (
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="bg-slate-900 border border-slate-700 rounded-xl p-8 text-center">
-          <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Coins className="w-8 h-8 text-amber-500" />
+        <div className="bg-card border border-border rounded-xl p-8 text-center">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Coins className="w-8 h-8 text-primary" />
           </div>
-          <h2 className="text-xl font-bold text-white mb-3">Joy Coins — Coming Soon</h2>
-          <p className="text-slate-400 leading-relaxed mb-5">
+          <h2 className="text-xl font-bold text-foreground mb-3">Joy Coins — Coming Soon</h2>
+          <p className="text-muted-foreground leading-relaxed mb-5">
             Joy Coins let Community Pass members support local businesses like yours.
             Members visit participating businesses as part of their subscription, and
             you earn revenue from the community pool based on check-ins.
           </p>
-          <div className="border-t border-slate-700 pt-4">
-            <p className="text-slate-300 text-sm font-medium mb-3">Interested in participating?</p>
+          <div className="border-t border-border pt-4">
+            <p className="text-foreground-soft text-sm font-medium mb-3">Interested in participating?</p>
             <CommunityPassInterestToggle business={business} currentUserId={currentUserId} />
           </div>
         </div>
@@ -190,17 +190,17 @@ export default function AccessWindowManager({ business, currentUserId }) {
       {/* Joy Coins Toggle Info */}
       <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-            <Coins className="h-5 w-5 text-amber-500" />
+          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+            <Coins className="h-5 w-5 text-primary" />
             Joy Coin Access Hours
           </h2>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Set when Community Pass families can visit. You get paid from the monthly pool based on check-ins.
           </p>
         </div>
         <Button
           onClick={handleCreate}
-          className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Window
@@ -209,21 +209,21 @@ export default function AccessWindowManager({ business, currentUserId }) {
 
       {/* Windows List */}
       {isLoading ? (
-        <Card className="bg-slate-900 border-slate-800 rounded-xl p-8 text-center">
-          <p className="text-slate-400">Loading access windows...</p>
+        <Card className="bg-card border-border rounded-xl p-8 text-center">
+          <p className="text-muted-foreground">Loading access windows...</p>
         </Card>
       ) : windows.length === 0 ? (
-        <Card className="bg-slate-900 border-slate-800 rounded-xl p-8 text-center">
-          <div className="p-4 bg-slate-800 rounded-full inline-block mb-4">
-            <Clock className="h-8 w-8 text-slate-500" />
+        <Card className="bg-card border-border rounded-xl p-8 text-center">
+          <div className="p-4 bg-secondary rounded-full inline-block mb-4">
+            <Clock className="h-8 w-8 text-muted-foreground/70" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-100 mb-2">No access windows yet</h3>
-          <p className="text-slate-400 mb-4 max-w-sm mx-auto">
+          <h3 className="text-lg font-semibold text-foreground mb-2">No access windows yet</h3>
+          <p className="text-muted-foreground mb-4 max-w-sm mx-auto">
             Add your first window to let Community Pass families know when they can visit.
           </p>
           <Button
             onClick={handleCreate}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-bold"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-bold"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Your First Window
@@ -234,33 +234,33 @@ export default function AccessWindowManager({ business, currentUserId }) {
           {windows.map((win) => (
             <Card
               key={win.id}
-              className={`bg-slate-900 border rounded-xl p-4 ${
-                win.is_active ? 'border-slate-800' : 'border-slate-800/50 opacity-60'
+              className={`bg-card border rounded-xl p-4 ${
+                win.is_active ? 'border-border' : 'border-border/50 opacity-60'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   {/* Status indicator */}
-                  <div className={`h-2.5 w-2.5 rounded-full ${win.is_active ? 'bg-emerald-500' : 'bg-slate-600'}`} />
+                  <div className={`h-2.5 w-2.5 rounded-full ${win.is_active ? 'bg-emerald-500' : 'bg-surface'}`} />
 
                   <div>
                     {/* Label + paused badge */}
                     <div className="flex items-center gap-2">
-                      <h3 className="text-slate-100 font-semibold">
+                      <h3 className="text-foreground font-semibold">
                         {win.label || `${DAY_LABELS[win.day_of_week] || ''} Window`}
                       </h3>
                       {!win.is_active && (
-                        <Badge className="bg-slate-700 text-slate-400 text-xs">Paused</Badge>
+                        <Badge className="bg-surface text-muted-foreground text-xs">Paused</Badge>
                       )}
                     </div>
 
                     {/* Details line */}
-                    <p className="text-slate-400 text-sm mt-0.5">
+                    <p className="text-muted-foreground text-sm mt-0.5">
                       {DAY_LABELS[win.day_of_week] || win.day_of_week}
                       {' · '}
                       {formatTime(win.start_time)} – {formatTime(win.end_time)}
                       {' · '}
-                      <span className="text-amber-500">{win.coin_cost} {win.coin_cost === 1 ? 'coin' : 'coins'}</span>
+                      <span className="text-primary">{win.coin_cost} {win.coin_cost === 1 ? 'coin' : 'coins'}</span>
                       {win.capacity > 0 && (
                         <>
                           {' · '}
@@ -277,21 +277,21 @@ export default function AccessWindowManager({ business, currentUserId }) {
                     variant="ghost"
                     size="default"
                     onClick={() => handleEdit(win)}
-                    className="text-slate-400 hover:text-slate-100"
+                    className="text-muted-foreground hover:text-foreground"
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="default" className="text-slate-400 hover:text-slate-100">
+                      <Button variant="ghost" size="default" className="text-muted-foreground hover:text-foreground">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-slate-900 border-slate-700">
+                    <DropdownMenuContent className="bg-card border-border">
                       <DropdownMenuItem
                         onClick={() => handleToggle(win)}
-                        className="text-slate-300 focus:bg-slate-700 cursor-pointer"
+                        className="text-foreground-soft focus:bg-surface cursor-pointer"
                       >
                         {win.is_active ? (
                           <><Pause className="h-4 w-4 mr-2" /> Pause Window</>
@@ -301,7 +301,7 @@ export default function AccessWindowManager({ business, currentUserId }) {
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => { setWindowToDelete(win); setDeleteConfirmOpen(true); }}
-                        className="text-red-500 focus:bg-slate-700 focus:text-red-400 cursor-pointer"
+                        className="text-red-500 focus:bg-surface focus:text-red-400 cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete Window
@@ -317,12 +317,12 @@ export default function AccessWindowManager({ business, currentUserId }) {
 
       {/* Pricing Insight */}
       {windows.length > 0 && (
-        <Card className="bg-slate-900 border-slate-800 rounded-xl p-5">
+        <Card className="bg-card border-border rounded-xl p-5">
           <div className="flex items-start gap-3">
             <span className="text-lg">💡</span>
             <div>
-              <h3 className="text-slate-100 font-semibold text-sm">Pricing Tip</h3>
-              <p className="text-slate-400 text-sm mt-1">
+              <h3 className="text-foreground font-semibold text-sm">Pricing Tip</h3>
+              <p className="text-muted-foreground text-sm mt-1">
                 Off-peak hours (1 coin) fill more slots. Peak hours (2-3 coins) earn more per visit.
                 Find your sweet spot — you can adjust anytime.
               </p>
@@ -341,20 +341,20 @@ export default function AccessWindowManager({ business, currentUserId }) {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <AlertDialogContent className="bg-slate-900 border-slate-800">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">Delete Access Window</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogTitle className="text-foreground">Delete Access Window</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               Are you sure you want to delete &quot;{windowToDelete?.label || 'this window'}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800 hover:bg-transparent">
+            <AlertDialogCancel className="bg-transparent border-border text-foreground-soft hover:bg-secondary hover:bg-transparent">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-500 text-white"
+              className="bg-red-600 hover:bg-red-500 text-foreground"
             >
               Delete
             </AlertDialogAction>

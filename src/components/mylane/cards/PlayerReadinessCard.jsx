@@ -51,8 +51,8 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
     onUrgency?.('player-readiness', gameImminent);
   }, [gameImminent, onUrgency]);
 
-  const borderColor = gameImminent ? 'border-amber-500/40' : 'border-slate-800';
-  const eventColor = gameImminent ? 'text-amber-400' : 'text-slate-400';
+  const borderColor = gameImminent ? 'border-primary/40' : 'border-border';
+  const eventColor = gameImminent ? 'text-primary-hover' : 'text-muted-foreground';
 
   return (
     <div
@@ -60,13 +60,13 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(); }}
-      className={`bg-slate-900 border ${borderColor} rounded-xl p-4 cursor-pointer hover:border-amber-500/30 transition-colors`}
+      className={`bg-card border ${borderColor} rounded-xl p-4 cursor-pointer hover:border-primary/30 transition-colors`}
     >
       <div className="flex items-center gap-2 mb-2">
-        <Users className="h-4 w-4 text-amber-500" />
-        <span className="text-xs font-medium text-amber-500">Roster</span>
+        <Users className="h-4 w-4 text-primary" />
+        <span className="text-xs font-medium text-primary">Roster</span>
       </div>
-      <div className="text-2xl font-bold text-white">{total} <span className="text-sm font-normal text-slate-400">players</span></div>
+      <div className="text-2xl font-bold text-foreground">{total} <span className="text-sm font-normal text-muted-foreground">players</span></div>
       <div className={`text-xs mt-1 ${eventColor}`}>
         {nextEvent
           ? `${gameImminent ? 'Game' : 'Next'}: ${nextEvent.title || 'Event'} — ${daysUntilEvent === 0 ? 'Today' : daysUntilEvent === 1 ? 'Tomorrow' : new Date(nextEvent.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`

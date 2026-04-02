@@ -12,24 +12,24 @@ import {
 import { Star, Zap, Crown, Store, Coins, ChevronDown, ShieldAlert } from "lucide-react";
 
 const tierConfig = {
-  basic: { label: 'Basic', icon: Star, className: 'bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600' },
-  standard: { label: 'Standard', icon: Zap, className: 'bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600' },
-  partner: { label: 'Partner', icon: Crown, className: 'bg-amber-500 text-black border-amber-500 hover:bg-amber-400' },
+  basic: { label: 'Basic', icon: Star, className: 'bg-surface text-foreground-soft border-border hover:bg-surface' },
+  standard: { label: 'Standard', icon: Zap, className: 'bg-surface text-foreground-soft border-border hover:bg-surface' },
+  partner: { label: 'Partner', icon: Crown, className: 'bg-primary text-primary-foreground border-primary hover:bg-primary-hover' },
 };
 
 export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpdateBusiness, updatingId }) {
   return (
-    <div className="border border-slate-800 rounded-xl overflow-x-auto bg-slate-900">
+    <div className="border border-border rounded-xl overflow-x-auto bg-card">
       <Table>
         <TableHeader>
-          <TableRow className="bg-slate-800/50 border-b border-slate-700">
-            <TableHead className="font-semibold text-slate-400">Business</TableHead>
-            <TableHead className="font-semibold text-slate-400">Owner</TableHead>
-            <TableHead className="font-semibold text-slate-400">City</TableHead>
-            <TableHead className="font-semibold text-slate-400">Tier</TableHead>
-            <TableHead className="font-semibold text-center text-slate-400">Silver</TableHead>
-            <TableHead className="font-semibold text-center text-slate-400">Local Franchise</TableHead>
-            <TableHead className="font-semibold text-center text-slate-400">Status</TableHead>
+          <TableRow className="bg-secondary/50 border-b border-border">
+            <TableHead className="font-semibold text-muted-foreground">Business</TableHead>
+            <TableHead className="font-semibold text-muted-foreground">Owner</TableHead>
+            <TableHead className="font-semibold text-muted-foreground">City</TableHead>
+            <TableHead className="font-semibold text-muted-foreground">Tier</TableHead>
+            <TableHead className="font-semibold text-center text-muted-foreground">Silver</TableHead>
+            <TableHead className="font-semibold text-center text-muted-foreground">Local Franchise</TableHead>
+            <TableHead className="font-semibold text-center text-muted-foreground">Status</TableHead>
             <TableHead className="w-24"></TableHead>
           </TableRow>
         </TableHeader>
@@ -41,19 +41,19 @@ export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpd
             const isUpdating = updatingId === business.id;
 
             return (
-              <TableRow key={business.id} className={`border-b border-slate-800 hover:bg-slate-800/50 transition-colors ${isUpdating ? 'opacity-70' : ''}`}>
+              <TableRow key={business.id} className={`border-b border-border hover:bg-secondary/50 transition-colors ${isUpdating ? 'opacity-70' : ''}`}>
                 <TableCell>
                   <div>
-                    <p className="font-medium text-slate-100">
+                    <p className="font-medium text-foreground">
                       {business.name}
                       {business.concern_count > 0 && (
-                        <span className="ml-2 inline-flex items-center gap-1 text-xs text-slate-500">
+                        <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted-foreground/70">
                           <ShieldAlert className="h-3 w-3" />
                           {business.concern_count}
                         </span>
                       )}
                     </p>
-                    <p className="text-xs text-slate-500 truncate max-w-[200px]">{business.owner_email}</p>
+                    <p className="text-xs text-muted-foreground/70 truncate max-w-[200px]">{business.owner_email}</p>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -62,12 +62,12 @@ export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpd
                       Claimed
                     </span>
                   ) : (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary-hover border border-primary/30">
                       Unclaimed
                     </span>
                   )}
                 </TableCell>
-                <TableCell className="text-slate-300">{business.city || '—'}</TableCell>
+                <TableCell className="text-foreground-soft">{business.city || '—'}</TableCell>
                 
                 {/* Tier Dropdown */}
                 <TableCell>
@@ -79,14 +79,14 @@ export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpd
                         <ChevronDown className="h-3 w-3 ml-1 opacity-50" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="bg-slate-900 border-slate-800">
+                    <DropdownMenuContent align="start" className="bg-card border-border">
                       {Object.entries(tierConfig).map(([tierId, config]) => {
                         const ItemIcon = config.icon;
                         return (
                           <DropdownMenuItem
                             key={tierId}
                             onClick={() => onUpdateBusiness(business.id, { subscription_tier: tierId })}
-                            className={`${business.subscription_tier === tierId ? 'bg-slate-800' : ''} text-slate-300 hover:bg-slate-800 hover:text-white`}
+                            className={`${business.subscription_tier === tierId ? 'bg-secondary' : ''} text-foreground-soft hover:bg-secondary hover:text-foreground`}
                           >
                             <ItemIcon className="h-4 w-4 mr-2" />
                             {config.label}
@@ -103,9 +103,9 @@ export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpd
                     <Switch
                       checked={!!business.accepts_silver}
                       onCheckedChange={(checked) => onUpdateBusiness(business.id, { accepts_silver: checked })}
-                      className="data-[state=checked]:bg-amber-500"
+                      className="data-[state=checked]:bg-primary"
                     />
-                    {business.accepts_silver && <Coins className="h-3 w-3 text-amber-500" />}
+                    {business.accepts_silver && <Coins className="h-3 w-3 text-primary" />}
                   </div>
                 </TableCell>
                 
@@ -115,9 +115,9 @@ export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpd
                     <Switch
                       checked={!!business.is_locally_owned_franchise}
                       onCheckedChange={(checked) => onUpdateBusiness(business.id, { is_locally_owned_franchise: checked })}
-                      className="data-[state=checked]:bg-amber-500"
+                      className="data-[state=checked]:bg-primary"
                     />
-                    {business.is_locally_owned_franchise && <Store className="h-3 w-3 text-amber-500" />}
+                    {business.is_locally_owned_franchise && <Store className="h-3 w-3 text-primary" />}
                   </div>
                 </TableCell>
                 
@@ -133,7 +133,7 @@ export default function AdminBusinessTable({ businesses, onSelectBusiness, onUpd
                     variant="outline" 
                     size="sm"
                     onClick={() => onSelectBusiness(business)}
-                    className="bg-transparent border-slate-600 text-slate-300 hover:bg-transparent hover:border-amber-500 hover:text-amber-500"
+                    className="bg-transparent border-border text-foreground-soft hover:bg-transparent hover:border-primary hover:text-primary"
                   >
                     Edit
                   </Button>

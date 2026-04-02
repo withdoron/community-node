@@ -21,7 +21,7 @@ export default function FinanceReceiptPreview({ url, onClose }) {
       <button
         type="button"
         onClick={onClose}
-        className="absolute top-4 right-4 p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors z-10"
+        className="absolute top-4 right-4 p-2 rounded-lg text-foreground-soft hover:text-foreground hover:bg-secondary transition-colors z-10"
         aria-label="Close"
       >
         <X className="w-6 h-6" />
@@ -35,7 +35,7 @@ export default function FinanceReceiptPreview({ url, onClose }) {
             href={receiptUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-amber-500 hover:text-amber-400 underline text-lg"
+            className="text-primary hover:text-primary-hover underline text-lg"
           >
             Open PDF Receipt
           </a>

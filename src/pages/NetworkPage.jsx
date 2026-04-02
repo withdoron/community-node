@@ -45,23 +45,23 @@ export default function NetworkPage() {
   // Auth gate — networks are private gardens (DEC-121)
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
       </div>
     );
   }
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
         <div className="max-w-md text-center space-y-4">
-          <Sprout className="h-10 w-10 text-amber-500/60 mx-auto" />
-          <h1 className="text-xl font-bold text-white">Sign in to discover networks</h1>
-          <p className="text-slate-400 text-sm">
+          <Sprout className="h-10 w-10 text-primary/60 mx-auto" />
+          <h1 className="text-xl font-bold text-foreground">Sign in to discover networks</h1>
+          <p className="text-muted-foreground text-sm">
             Networks grow from connections. Sign in and they'll find you.
           </p>
           <button
             onClick={() => base44.auth.redirectToLogin()}
-            className="mt-4 bg-amber-500 hover:bg-amber-400 text-black font-bold px-6 py-3 rounded-xl transition-colors"
+            className="mt-4 bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-6 py-3 rounded-xl transition-colors"
           >
             Sign In
           </button>
@@ -158,21 +158,21 @@ export default function NetworkPage() {
 
   if (networksLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
       </div>
     );
   }
 
   if (!network || network.active === false) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <h1 className="text-xl font-bold text-slate-100 mb-2">Network not found</h1>
-          <p className="text-slate-400 mb-6">This network doesn&apos;t exist or is no longer active.</p>
+          <h1 className="text-xl font-bold text-foreground mb-2">Network not found</h1>
+          <p className="text-muted-foreground mb-6">This network doesn&apos;t exist or is no longer active.</p>
           <Link
             to="/networks"
-            className="inline-block bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-6 py-3 rounded-xl transition-colors"
+            className="inline-block bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-6 py-3 rounded-xl transition-colors"
           >
             Browse networks
           </Link>
@@ -186,13 +186,13 @@ export default function NetworkPage() {
   const description = network.description;
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         {/* Back button */}
         <button
           type="button"
           onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/MyLane')}
-          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-amber-500 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -211,13 +211,13 @@ export default function NetworkPage() {
 
         {/* Header */}
         <div className="space-y-4">
-          <h1 className="font-serif text-3xl font-bold text-white">{displayName}</h1>
-          {tagline && <p className="text-slate-400 text-lg">{tagline}</p>}
+          <h1 className="font-serif text-3xl font-bold text-foreground">{displayName}</h1>
+          {tagline && <p className="text-muted-foreground text-lg">{tagline}</p>}
           <div className="flex flex-wrap items-center gap-3">
             {!currentUser ? (
               <Button
                 onClick={() => base44.auth.redirectToLogin()}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-6 py-2 rounded-lg transition-colors"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium px-6 py-2 rounded-lg transition-colors"
               >
                 Sign in to follow
               </Button>
@@ -228,8 +228,8 @@ export default function NetworkPage() {
                 onMouseLeave={() => setFollowHover(false)}
                 className={
                   followHover
-                    ? 'bg-slate-800 border border-red-500/50 text-red-400 hover:bg-red-500/10 px-6 py-2 rounded-lg transition-colors'
-                    : 'bg-slate-800 border border-amber-500/30 text-amber-500 px-6 py-2 rounded-lg transition-colors'
+                    ? 'bg-secondary border border-red-500/50 text-red-400 hover:bg-red-500/10 px-6 py-2 rounded-lg transition-colors'
+                    : 'bg-secondary border border-primary/30 text-primary px-6 py-2 rounded-lg transition-colors'
                 }
               >
                 {followHover ? 'Unfollow' : 'Following ✓'}
@@ -237,7 +237,7 @@ export default function NetworkPage() {
             ) : (
               <Button
                 onClick={handleFollow}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-6 py-2 rounded-lg transition-colors"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium px-6 py-2 rounded-lg transition-colors"
               >
                 Follow {displayName}
               </Button>
@@ -247,15 +247,15 @@ export default function NetworkPage() {
 
         {/* Description */}
         {description && (
-          <div className="bg-gradient-to-br from-slate-800 to-slate-800/90 border border-slate-700 rounded-lg p-6">
-            <p className="text-slate-300 whitespace-pre-line">{description}</p>
+          <div className="bg-gradient-to-br from-secondary to-secondary/90 border border-border rounded-lg p-6">
+            <p className="text-foreground-soft whitespace-pre-line">{description}</p>
           </div>
         )}
 
         {/* How it works */}
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
-          <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-2">How it works</h3>
-          <p className="text-slate-400 text-sm leading-relaxed">
+        <div className="bg-card border border-border rounded-lg p-5">
+          <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider mb-2">How it works</h3>
+          <p className="text-muted-foreground text-sm leading-relaxed">
             {displayName} connects local producers and businesses with the community. Businesses apply to join
             and are reviewed by our team. Once accepted, they appear here with their products and contact info
             so you can shop local and support your neighbors.
@@ -264,12 +264,12 @@ export default function NetworkPage() {
 
         {/* Construction Gate — remove when network application flow passes walkthrough */}
         {false && currentUser && (
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-5 text-center">
-            <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-3">
-              <Store className="w-6 h-6 text-slate-500" />
+          <div className="bg-card border border-border rounded-lg p-5 text-center">
+            <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center mx-auto mb-3">
+              <Store className="w-6 h-6 text-muted-foreground/70" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-200">Apply to Join {displayName} — Coming Soon</h3>
-            <p className="text-slate-400 mt-2 max-w-md mx-auto text-sm">
+            <h3 className="text-lg font-semibold text-foreground">Apply to Join {displayName} — Coming Soon</h3>
+            <p className="text-muted-foreground mt-2 max-w-md mx-auto text-sm">
               Business owners will be able to apply to join this network directly from here.
             </p>
           </div>
@@ -283,7 +283,7 @@ export default function NetworkPage() {
                 key={url}
                 type="button"
                 onClick={() => setLightboxImage(url)}
-                className="aspect-square w-full rounded-lg overflow-hidden bg-slate-800 border border-slate-700 hover:border-amber-500/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)] transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="aspect-square w-full rounded-lg overflow-hidden bg-secondary border border-border hover:border-primary/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)] transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <img src={url} alt="" className="w-full h-full object-cover" />
               </button>
@@ -293,14 +293,14 @@ export default function NetworkPage() {
 
         {/* Upcoming Events */}
         <section className="space-y-4">
-          <h2 className="font-serif text-xl font-bold text-white flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-amber-500" />
+          <h2 className="font-serif text-xl font-bold text-foreground flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
             Upcoming Events
-            <span className="text-slate-400 font-normal text-base">({upcomingEvents.length})</span>
+            <span className="text-muted-foreground font-normal text-base">({upcomingEvents.length})</span>
           </h2>
           {eventsLoading ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
+              <Loader2 className="h-6 w-6 text-primary animate-spin" />
             </div>
           ) : (
             <WeekCalendarStrip
@@ -314,19 +314,19 @@ export default function NetworkPage() {
         {/* Network Businesses */}
         <section className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h2 className="font-serif text-xl font-bold text-white flex items-center gap-2">
-              <Store className="h-5 w-5 text-amber-500" />
+            <h2 className="font-serif text-xl font-bold text-foreground flex items-center gap-2">
+              <Store className="h-5 w-5 text-primary" />
               Businesses in {displayName}
-              <span className="text-slate-400 font-normal text-base">({filteredBusinesses.length})</span>
+              <span className="text-muted-foreground font-normal text-base">({filteredBusinesses.length})</span>
             </h2>
             <div className="flex items-center gap-2">
               {/* Construction Gate — remove when map view passes walkthrough */}
               {false && (
-                <div className="flex bg-slate-800 rounded-lg p-0.5">
-                  <button type="button" className="p-1.5 rounded bg-amber-500 text-slate-900">
+                <div className="flex bg-secondary rounded-lg p-0.5">
+                  <button type="button" className="p-1.5 rounded bg-primary text-primary-foreground">
                     <LayoutGrid className="h-4 w-4" />
                   </button>
-                  <button type="button" className="p-1.5 rounded text-slate-400 hover:text-white">
+                  <button type="button" className="p-1.5 rounded text-muted-foreground hover:text-foreground">
                     <MapIcon className="h-4 w-4" />
                   </button>
                 </div>
@@ -338,23 +338,23 @@ export default function NetworkPage() {
           {businesses.length > 0 && (
             <div className="space-y-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
                 <Input
                   value={productFilter}
                   onChange={(e) => setProductFilter(e.target.value)}
                   placeholder="Filter by product (e.g., eggs)"
-                  className="pl-9 bg-slate-800 border-slate-700 text-white placeholder-slate-500"
+                  className="pl-9 bg-secondary border-border text-foreground placeholder-muted-foreground/70"
                 />
               </div>
               {productFilter.trim() && (
                 <div className="flex items-center gap-2">
-                  <span className="bg-amber-500/20 text-amber-500 rounded-full px-3 py-1 text-sm flex items-center gap-1.5">
+                  <span className="bg-primary/20 text-primary rounded-full px-3 py-1 text-sm flex items-center gap-1.5">
                     {productFilter.trim()}
                     <button type="button" onClick={() => setProductFilter('')} className="hover:text-red-400">
                       <X className="h-3 w-3" />
                     </button>
                   </span>
-                  <span className="text-sm text-slate-500">
+                  <span className="text-sm text-muted-foreground/70">
                     Showing {filteredBusinesses.length} of {businesses.length} businesses
                   </span>
                 </div>
@@ -364,10 +364,10 @@ export default function NetworkPage() {
 
           {businessesLoading ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
+              <Loader2 className="h-6 w-6 text-primary animate-spin" />
             </div>
           ) : filteredBusinesses.length === 0 ? (
-            <p className="text-slate-500 py-8">
+            <p className="text-muted-foreground/70 py-8">
               {productFilter.trim()
                 ? `No businesses match "${productFilter}" in ${displayName}.`
                 : `No businesses in ${displayName} yet.`}
@@ -384,12 +384,12 @@ export default function NetworkPage() {
 
           {/* Construction Gate — remove when map view passes walkthrough */}
           {false && (
-            <div className="rounded-lg bg-slate-900 border border-slate-800 p-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4">
-                <MapIcon className="w-8 h-8 text-slate-500" />
+            <div className="rounded-lg bg-card border border-border p-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
+                <MapIcon className="w-8 h-8 text-muted-foreground/70" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-200">Map View — Coming Soon</h3>
-              <p className="text-slate-400 mt-2 max-w-md mx-auto">
+              <h3 className="text-lg font-semibold text-foreground">Map View — Coming Soon</h3>
+              <p className="text-muted-foreground mt-2 max-w-md mx-auto">
                 See where businesses are located on an interactive map.
               </p>
             </div>
@@ -409,7 +409,7 @@ export default function NetworkPage() {
           <button
             type="button"
             onClick={() => setLightboxImage(null)}
-            className="absolute top-4 right-4 p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors z-10"
+            className="absolute top-4 right-4 p-2 rounded-lg text-foreground-soft hover:text-foreground hover:bg-surface transition-colors z-10"
             aria-label="Close"
           >
             <X className="h-6 w-6" />

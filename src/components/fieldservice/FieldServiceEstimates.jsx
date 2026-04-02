@@ -12,18 +12,18 @@ import {
 } from 'lucide-react';
 
 const INPUT_CLASS =
-  'w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent';
-const LABEL_CLASS = 'block text-slate-300 text-sm font-medium mb-1';
+  'w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent';
+const LABEL_CLASS = 'block text-foreground-soft text-sm font-medium mb-1';
 
 const STATUS_CONFIG = {
-  draft:               { label: 'Draft',               color: 'bg-slate-500/20 text-slate-400' },
-  sent:                { label: 'Sent',                 color: 'bg-amber-500/20 text-amber-400' },
-  awaiting_signature:  { label: 'Awaiting Signature',   color: 'bg-amber-500/20 text-amber-400', pulse: true },
+  draft:               { label: 'Draft',               color: 'bg-muted-foreground/20 text-muted-foreground' },
+  sent:                { label: 'Sent',                 color: 'bg-primary/20 text-primary-hover' },
+  awaiting_signature:  { label: 'Awaiting Signature',   color: 'bg-primary/20 text-primary-hover', pulse: true },
   viewed:              { label: 'Viewed',               color: 'bg-blue-500/20 text-blue-400' },
   accepted:            { label: 'Accepted',             color: 'bg-emerald-500/20 text-emerald-400' },
   signed:              { label: 'Signed',               color: 'bg-emerald-500/20 text-emerald-400' },
   declined:            { label: 'Declined',             color: 'bg-rose-700/20 text-rose-400' },
-  expired:             { label: 'Expired',              color: 'bg-slate-800/50 text-slate-600' },
+  expired:             { label: 'Expired',              color: 'bg-secondary/50 text-muted-foreground/50' },
 };
 
 const FILTER_CHIPS = [
@@ -51,11 +51,11 @@ const fmtDate = (d) => {
 // ═══ Unified line item model ═══════════════════════
 
 const CATEGORIES = [
-  { value: 'materials',      label: 'Materials',      badge: 'bg-amber-500/20 text-amber-400' },
+  { value: 'materials',      label: 'Materials',      badge: 'bg-primary/20 text-primary-hover' },
   { value: 'labor',          label: 'Labor',          badge: 'bg-sky-500/20 text-sky-400' },
   { value: 'subcontractor',  label: 'Subcontractor',  badge: 'bg-violet-500/20 text-violet-400' },
-  { value: 'fee',            label: 'Fee',            badge: 'bg-slate-500/20 text-slate-400' },
-  { value: 'other',          label: 'Other',          badge: 'bg-slate-600/20 text-slate-500' },
+  { value: 'fee',            label: 'Fee',            badge: 'bg-muted-foreground/20 text-muted-foreground' },
+  { value: 'other',          label: 'Other',          badge: 'bg-surface/20 text-muted-foreground/70' },
 ];
 const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.value, c]));
 
@@ -255,17 +255,17 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-2 flex-wrap print:hidden">
         <button type="button" onClick={onBack}
-          className="flex items-center gap-2 text-slate-400 hover:text-amber-500 text-sm min-h-[44px]">
+          className="flex items-center gap-2 text-muted-foreground hover:text-primary text-sm min-h-[44px]">
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
         <div className="flex gap-2 flex-wrap">
           <button type="button" onClick={() => window.print()}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 transition-colors text-sm min-h-[44px]">
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-foreground-soft hover:text-primary hover:border-primary transition-colors text-sm min-h-[44px]">
             <Printer className="h-4 w-4" /> Print / PDF
           </button>
           {(estimate.status === 'draft' || estimate.status === 'sent') && !estimate.project_id && (
             <button type="button" onClick={() => onConvert(estimate)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px]">
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors text-sm min-h-[44px]">
               <FolderOpen className="h-4 w-4" /> Accept & Create Project
             </button>
           )}
@@ -281,7 +281,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
                 : `${window.location.origin}/client-portal?estimate=${estimate.id}`;
               window.open(url, '_blank');
             }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent transition-colors text-sm min-h-[44px]">
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-foreground-soft hover:text-primary hover:border-primary hover:bg-transparent transition-colors text-sm min-h-[44px]">
             <Eye className="h-4 w-4" /> Preview as Client
           </button>
           {(estimate.status === 'sent' || estimate.status === 'awaiting_signature') && (
@@ -293,13 +293,13 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
                   () => toast.error('Failed to copy link')
                 );
               }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-amber-500 hover:border-amber-500 hover:bg-transparent transition-colors text-sm min-h-[44px]">
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-foreground-soft hover:text-primary hover:border-primary hover:bg-transparent transition-colors text-sm min-h-[44px]">
               <Link2 className="h-4 w-4" /> Copy Link
             </button>
           )}
           {estimate.status === 'sent' && !estimate.signature_data && onSendForSignature && (
             <button type="button" onClick={() => onSendForSignature(estimate)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-colors text-sm min-h-[44px]">
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-foreground font-semibold transition-colors text-sm min-h-[44px]">
               <Shield className="h-4 w-4" /> Request Signature
             </button>
           )}
@@ -322,7 +322,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
           )}
           {estimate.status !== 'accepted' && estimate.status !== 'signed' && estimate.status !== 'awaiting_signature' && (
             <button type="button" onClick={() => onEdit(estimate)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm min-h-[44px]">
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 transition-colors text-sm min-h-[44px]">
               <Pencil className="h-4 w-4" /> Edit
             </button>
           )}
@@ -330,7 +330,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
       </div>
 
       {/* Printable estimate */}
-      <div className="estimate-print-area bg-white text-slate-900 rounded-xl border border-slate-200 shadow-sm p-6 sm:p-8 print:p-6 print:shadow-none print:rounded-none print:border-none">
+      <div className="estimate-print-area bg-white text-primary-foreground rounded-xl border border-border shadow-sm p-6 sm:p-8 print:p-6 print:shadow-none print:rounded-none print:border-none">
         <style>{`@media print {
           body * { visibility: hidden !important; }
           .estimate-print-area, .estimate-print-area * { visibility: visible !important; }
@@ -351,11 +351,11 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
               <h1 className="text-2xl font-bold" style={{ color: brandColor }}>
                 {profile?.business_name || 'Business Name'}
               </h1>
-              {profile?.license_number && <p className="text-sm text-slate-500">Lic# {profile.license_number}</p>}
-              {profile?.service_area && <p className="text-sm text-slate-500">{profile.service_area}</p>}
+              {profile?.license_number && <p className="text-sm text-muted-foreground/70">Lic# {profile.license_number}</p>}
+              {profile?.service_area && <p className="text-sm text-muted-foreground/70">{profile.service_area}</p>}
             </div>
           </div>
-          <div className="text-right text-sm text-slate-600">
+          <div className="text-right text-sm text-muted-foreground/50">
             {profile?.phone && <p>{formatPhone(profile.phone)}</p>}
             {profile?.email && <p>{profile.email}</p>}
           </div>
@@ -366,28 +366,28 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
           <div>
             <h2 className="text-xl font-bold mb-1" style={{ color: brandColor }}>{isInsurance ? 'INSURANCE ESTIMATE' : 'ESTIMATE'}</h2>
             <div className="text-sm space-y-0.5">
-              <p><span className="text-slate-500">No:</span> {estimate.estimate_number}</p>
-              <p><span className="text-slate-500">Date:</span> {fmtDate(estimate.date)}</p>
+              <p><span className="text-muted-foreground/70">No:</span> {estimate.estimate_number}</p>
+              <p><span className="text-muted-foreground/70">Date:</span> {fmtDate(estimate.date)}</p>
               {estimate.payment_terms && (
-                <p><span className="text-slate-500">Terms:</span> {(PAYMENT_TERMS_OPTIONS.find((o) => o.value === estimate.payment_terms) || {}).label || estimate.payment_terms}</p>
+                <p><span className="text-muted-foreground/70">Terms:</span> {(PAYMENT_TERMS_OPTIONS.find((o) => o.value === estimate.payment_terms) || {}).label || estimate.payment_terms}</p>
               )}
-              {estimate.valid_until && <p><span className="text-slate-500">Due Date:</span> {fmtDate(estimate.valid_until)}</p>}
-              {linkedProject && <p><span className="text-slate-500">Project:</span> {linkedProject.name}</p>}
-              <p><span className="text-slate-500">Prepared By:</span> {estimate.prepared_by || profile?.owner_name || '—'}</p>
+              {estimate.valid_until && <p><span className="text-muted-foreground/70">Due Date:</span> {fmtDate(estimate.valid_until)}</p>}
+              {linkedProject && <p><span className="text-muted-foreground/70">Project:</span> {linkedProject.name}</p>}
+              <p><span className="text-muted-foreground/70">Prepared By:</span> {estimate.prepared_by || profile?.owner_name || '—'}</p>
             </div>
           </div>
           {clientName && (
-            <div className="bg-slate-50 rounded-lg p-4 print:bg-white print:border print:border-slate-200">
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Customer</p>
+            <div className="bg-slate-50 rounded-lg p-4 print:bg-white print:border print:border-border">
+              <p className="text-xs text-muted-foreground/70 uppercase tracking-wider mb-1">Customer</p>
               <p className="font-semibold">{clientName}</p>
-              {clientAddress && <p className="text-sm text-slate-600">{clientAddress}</p>}
-              {clientPhone && <p className="text-sm text-slate-600">{formatPhone(clientPhone)}</p>}
-              {clientEmail && <p className="text-sm text-slate-600">{clientEmail}</p>}
+              {clientAddress && <p className="text-sm text-muted-foreground/50">{clientAddress}</p>}
+              {clientPhone && <p className="text-sm text-muted-foreground/50">{formatPhone(clientPhone)}</p>}
+              {clientEmail && <p className="text-sm text-muted-foreground/50">{clientEmail}</p>}
             </div>
           )}
         </div>
 
-        {estimate.title && <h3 className="text-lg font-bold text-slate-900 mb-4">{estimate.title}</h3>}
+        {estimate.title && <h3 className="text-lg font-bold text-primary-foreground mb-4">{estimate.title}</h3>}
 
         {/* Line items table — only when breakdown visible */}
         {showBreakdown && items.length > 0 && (
@@ -417,7 +417,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
                                       {cat.label}
                                     </span>
                                   )}
-                                  {item.sub_name && <p className="text-xs text-slate-500 italic mt-0.5">{item.sub_name}</p>}
+                                  {item.sub_name && <p className="text-xs text-muted-foreground/70 italic mt-0.5">{item.sub_name}</p>}
                                 </td>
                                 <td className="text-right py-1.5 w-28">{parseFloat(item.unit_price) ? fmt(item.unit_price) : ''}</td>
                                 <td className="text-right py-1.5 w-28 font-medium">{fmt(amt)}</td>
@@ -426,8 +426,8 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
                           })}
                         </tbody>
                         <tfoot>
-                          <tr className="border-t border-slate-200">
-                            <td colSpan={3} className="text-right py-1.5 text-xs text-slate-500 font-medium pr-2">Subtotal:</td>
+                          <tr className="border-t border-border">
+                            <td colSpan={3} className="text-right py-1.5 text-xs text-muted-foreground/70 font-medium pr-2">Subtotal:</td>
                             <td className="text-right py-1.5 w-28 text-xs font-semibold">{fmt(catSubtotal)}</td>
                           </tr>
                         </tfoot>
@@ -442,10 +442,10 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b-2" style={{ borderColor: brandColor }}>
-                      <th className="text-center py-2 text-slate-500 font-medium w-14">QTY</th>
-                      <th className="text-left py-2 text-slate-500 font-medium">DESCRIPTION</th>
-                      <th className="text-right py-2 text-slate-500 font-medium w-28">UNIT PRICE</th>
-                      <th className="text-right py-2 text-slate-500 font-medium w-28">AMOUNT</th>
+                      <th className="text-center py-2 text-muted-foreground/70 font-medium w-14">QTY</th>
+                      <th className="text-left py-2 text-muted-foreground/70 font-medium">DESCRIPTION</th>
+                      <th className="text-right py-2 text-muted-foreground/70 font-medium w-28">UNIT PRICE</th>
+                      <th className="text-right py-2 text-muted-foreground/70 font-medium w-28">AMOUNT</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -462,7 +462,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
                                 {cat.label}
                               </span>
                             )}
-                            {item.sub_name && <p className="text-xs text-slate-500 italic mt-0.5">{item.sub_name}</p>}
+                            {item.sub_name && <p className="text-xs text-muted-foreground/70 italic mt-0.5">{item.sub_name}</p>}
                           </td>
                           <td className="text-right py-2">{parseFloat(item.unit_price) ? fmt(item.unit_price) : ''}</td>
                           <td className="text-right py-2 font-medium">{fmt(amt)}</td>
@@ -477,24 +477,24 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
         )}
 
         {/* Summary */}
-        <div className="print-avoid-break border-t-2 border-slate-200 pt-4 mb-6">
+        <div className="print-avoid-break border-t-2 border-border pt-4 mb-6">
           <div className="flex justify-end">
             <div className="w-full sm:w-72 space-y-1 text-sm">
               {showBreakdown && (
                 <>
-                  <div className="flex justify-between"><span className="text-slate-500">Subtotal</span><span>{fmt(totals.subtotal)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground/70">Subtotal</span><span>{fmt(totals.subtotal)}</span></div>
                   {(parseFloat(estimate.overhead_profit_pct) || 0) > 0 && (
-                    <div className="flex justify-between"><span className="text-slate-500">O&P ({estimate.overhead_profit_pct}%)</span><span>{fmt(totals.opAmount)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground/70">O&P ({estimate.overhead_profit_pct}%)</span><span>{fmt(totals.opAmount)}</span></div>
                   )}
                   {(parseFloat(estimate.other_amount) || 0) > 0 && (
-                    <div className="flex justify-between"><span className="text-slate-500">Other</span><span>{fmt(estimate.other_amount)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground/70">Other</span><span>{fmt(estimate.other_amount)}</span></div>
                   )}
                   {(parseFloat(estimate.tax_rate) || 0) > 0 && (
-                    <div className="flex justify-between"><span className="text-slate-500">Tax ({estimate.tax_rate}%)</span><span>{fmt(totals.taxAmount)}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground/70">Tax ({estimate.tax_rate}%)</span><span>{fmt(totals.taxAmount)}</span></div>
                   )}
                 </>
               )}
-              <div className={`flex justify-between text-lg font-bold ${showBreakdown ? 'border-t border-slate-200 pt-2 mt-2' : ''}`} style={{ color: brandColor }}>
+              <div className={`flex justify-between text-lg font-bold ${showBreakdown ? 'border-t border-border pt-2 mt-2' : ''}`} style={{ color: brandColor }}>
                 <span>Total</span><span>{fmt(totals.total)}</span>
               </div>
             </div>
@@ -505,7 +505,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
         {estimate.terms && (
           <div className="print-avoid-break mb-6">
             <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-2">This Proposal Includes the Conditions Noted</h4>
-            <p className="text-sm text-slate-600 whitespace-pre-line">{estimate.terms}</p>
+            <p className="text-sm text-muted-foreground/50 whitespace-pre-line">{estimate.terms}</p>
           </div>
         )}
 
@@ -514,17 +514,17 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
           {/* Owner Signature */}
           {estimate.owner_signature_data ? (
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-medium">Owner Signature</p>
+              <p className="text-xs text-muted-foreground/70 uppercase tracking-wider mb-1 font-medium">Owner Signature</p>
               <SignatureDisplay signatureData={estimate.owner_signature_data} darkMode={false} />
             </div>
           ) : (
-            <div className="border border-slate-200 rounded-lg p-5">
+            <div className="border border-border rounded-lg p-5">
               <div className="space-y-4">
-                <div className="border-b border-slate-300 pb-1">
-                  <p className="text-xs text-slate-400 uppercase">Owner / Contractor Signature</p>
+                <div className="border-b border-border pb-1">
+                  <p className="text-xs text-muted-foreground uppercase">Owner / Contractor Signature</p>
                 </div>
-                <div className="border-b border-slate-300 pb-1">
-                  <p className="text-xs text-slate-400 uppercase">Date</p>
+                <div className="border-b border-border pb-1">
+                  <p className="text-xs text-muted-foreground uppercase">Date</p>
                 </div>
               </div>
             </div>
@@ -533,22 +533,22 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
           {/* Client Signature */}
           {estimate.signature_data ? (
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 font-medium">Client Signature</p>
+              <p className="text-xs text-muted-foreground/70 uppercase tracking-wider mb-1 font-medium">Client Signature</p>
               <SignatureDisplay signatureData={estimate.signature_data} darkMode={false} />
             </div>
           ) : (
-            <div className="border border-slate-200 rounded-lg p-5">
+            <div className="border border-border rounded-lg p-5">
               <p className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Client Approval</p>
               <div className="flex justify-between items-end mb-6">
-                <span className="text-sm text-slate-500">Total:</span>
+                <span className="text-sm text-muted-foreground/70">Total:</span>
                 <span className="text-lg font-bold" style={{ color: brandColor }}>{fmt(totals.total)}</span>
               </div>
               <div className="space-y-4">
-                <div className="border-b border-slate-300 pb-1">
-                  <p className="text-xs text-slate-400 uppercase">Authorized Representative</p>
+                <div className="border-b border-border pb-1">
+                  <p className="text-xs text-muted-foreground uppercase">Authorized Representative</p>
                 </div>
-                <div className="border-b border-slate-300 pb-1">
-                  <p className="text-xs text-slate-400 uppercase">Date</p>
+                <div className="border-b border-border pb-1">
+                  <p className="text-xs text-muted-foreground uppercase">Date</p>
                 </div>
               </div>
             </div>
@@ -559,31 +559,31 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
         {estimate.notes && (
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-2">Notes</h4>
-            <p className="text-sm text-slate-600 whitespace-pre-line">{estimate.notes}</p>
+            <p className="text-sm text-muted-foreground/50 whitespace-pre-line">{estimate.notes}</p>
           </div>
         )}
 
         {/* Footer */}
-        <div className="border-t border-slate-200 pt-6 mt-8 text-center space-y-2">
-          <p className="text-sm text-slate-500">Thank you for your business</p>
+        <div className="border-t border-border pt-6 mt-8 text-center space-y-2">
+          <p className="text-sm text-muted-foreground/70">Thank you for your business</p>
           {(profile?.phone || profile?.email) && (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               {profile?.phone && <span>{formatPhone(profile.phone)}</span>}
               {profile?.phone && profile?.email && <span className="mx-2">&middot;</span>}
               {profile?.email && <span>{profile.email}</span>}
             </p>
           )}
-          <p className="text-xs text-slate-300 mt-1">Powered by LocalLane</p>
+          <p className="text-xs text-foreground-soft mt-1">Powered by LocalLane</p>
         </div>
       </div>
 
       {/* Inline Owner Signing Flow */}
       {showOwnerSign && !hasOwnerSig && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 print:hidden">
+        <div className="bg-card border border-border rounded-xl p-4 print:hidden">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-slate-100">Sign as Owner</h3>
+            <h3 className="text-sm font-bold text-foreground">Sign as Owner</h3>
             <button type="button" onClick={() => setShowOwnerSign(false)}
-              className="p-1 text-slate-500 hover:text-slate-300">
+              className="p-1 text-muted-foreground/70 hover:text-foreground-soft">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -757,16 +757,16 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
   return (
     <div className="space-y-4 pb-8">
       <button type="button" onClick={onDone}
-        className="flex items-center gap-2 text-slate-400 hover:text-amber-500 text-sm min-h-[44px]">
+        className="flex items-center gap-2 text-muted-foreground hover:text-primary text-sm min-h-[44px]">
         <ArrowLeft className="h-4 w-4" /> Back to Estimates
       </button>
 
-      <h2 className="text-xl font-bold text-slate-100">
+      <h2 className="text-xl font-bold text-foreground">
         {editingId ? 'Edit Estimate' : 'New Estimate'}
       </h2>
 
       {/* Title & Date */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
+      <div className="bg-card border border-border rounded-xl p-4 space-y-4">
         <div>
           <label className={LABEL_CLASS}>Title *</label>
           <input type="text" className={INPUT_CLASS} value={formData.title}
@@ -818,8 +818,8 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
       </div>
 
       {/* Client Info */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Client Information</h3>
+      <div className="bg-card border border-border rounded-xl p-4 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">Client Information</h3>
         <ClientSelector
           clients={clients}
           selectedClientId={formData.client_id}
@@ -849,13 +849,13 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         />
         {/* Client view indicator */}
         <div className="flex items-center gap-2 py-2 px-1">
-          <Eye className="h-3.5 w-3.5 text-slate-400" />
-          <span className="text-xs text-slate-400">
+          <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">
             Client sees: {formData.client_show_breakdown ? 'Full breakdown' : 'Total only'}
           </span>
           <button type="button"
             onClick={() => set('client_show_breakdown', !formData.client_show_breakdown)}
-            className="text-xs text-amber-500 hover:text-amber-400 ml-1">
+            className="text-xs text-primary hover:text-primary-hover ml-1">
             Change
           </button>
         </div>
@@ -885,17 +885,17 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
 
       {/* ═══ Insurance Estimate Toggle — before line items so user sees trade dropdown ═══ */}
       {features?.xactimate_enabled === true && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm text-white">Insurance Estimate (Xactimate format)</p>
-              <p className="text-xs text-slate-400 mt-0.5">Groups line items by trade category for adjusters</p>
+              <p className="text-sm text-foreground">Insurance Estimate (Xactimate format)</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Groups line items by trade category for adjusters</p>
             </div>
             <button
               type="button"
               onClick={() => set('is_insurance_estimate', !formData.is_insurance_estimate)}
               className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
-                formData.is_insurance_estimate ? 'bg-amber-500' : 'bg-slate-700'
+                formData.is_insurance_estimate ? 'bg-primary' : 'bg-surface'
               }`}
             >
               <span className={`inline-block h-4 w-4 rounded-full bg-slate-100 transition-transform ${
@@ -907,21 +907,21 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
       )}
 
       {/* ═══ Unified Line Items ═══ */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Line Items</h3>
+      <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">Line Items</h3>
 
         {formData.line_items.map((item, idx) => {
           const cat = CATEGORY_MAP[item.category] || CATEGORY_MAP.materials;
           const computedAmt = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
           return (
             <React.Fragment key={item.id || idx}>
-              <div className="bg-slate-800/50 rounded-lg p-3 space-y-2">
+              <div className="bg-secondary/50 rounded-lg p-3 space-y-2">
                 {/* Row 1: category + description + voice + reorder + remove */}
                 <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
                   <select
                     value={item.category || 'materials'}
                     onChange={(e) => updateItem(idx, 'category', e.target.value)}
-                    className="bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[90px] min-h-[44px]"
+                    className="bg-secondary border border-border text-foreground rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-w-[90px] min-h-[44px]"
                   >
                     {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
@@ -929,7 +929,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
                     <select
                       value={item.trade_category_id || ''}
                       onChange={(e) => updateItem(idx, 'trade_category_id', e.target.value)}
-                      className="bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 min-w-[80px] max-w-[120px]"
+                      className="bg-secondary border border-border text-foreground rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-ring min-w-[80px] max-w-[120px]"
                     >
                       <option value="">Trade</option>
                       {tradeCategories.map((tc) => <option key={tc.id} value={tc.id}>{tc.name}</option>)}
@@ -943,13 +943,13 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
                   <VoiceInput onTranscript={(t) => updateItem(idx, 'description', (item.description ? item.description + ' ' : '') + t)} />
                   <div className="flex flex-col gap-0.5">
                     <button type="button" onClick={() => moveItem(idx, -1)} disabled={idx === 0}
-                      className="text-slate-500 hover:text-amber-500 disabled:opacity-30 p-0.5"><ChevronUp className="h-3.5 w-3.5" /></button>
+                      className="text-muted-foreground/70 hover:text-primary disabled:opacity-30 p-0.5"><ChevronUp className="h-3.5 w-3.5" /></button>
                     <button type="button" onClick={() => moveItem(idx, 1)} disabled={idx === formData.line_items.length - 1}
-                      className="text-slate-500 hover:text-amber-500 disabled:opacity-30 p-0.5"><ChevronDown className="h-3.5 w-3.5" /></button>
+                      className="text-muted-foreground/70 hover:text-primary disabled:opacity-30 p-0.5"><ChevronDown className="h-3.5 w-3.5" /></button>
                   </div>
                   {formData.line_items.length > 1 && (
                     <button type="button" onClick={() => removeItem(idx)}
-                      className="p-2 text-slate-500 hover:text-amber-500 min-h-[44px]">
+                      className="p-2 text-muted-foreground/70 hover:text-primary min-h-[44px]">
                       <X className="h-4 w-4" />
                     </button>
                   )}
@@ -958,7 +958,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
                 {/* Sub name (only for subcontractor category) */}
                 {item.category === 'subcontractor' && (
                   <div>
-                    <label className="text-xs text-slate-500">Sub Name</label>
+                    <label className="text-xs text-muted-foreground/70">Sub Name</label>
                     <input type="text" className={INPUT_CLASS} value={item.sub_name || ''}
                       onChange={(e) => updateItem(idx, 'sub_name', e.target.value)}
                       placeholder="e.g., Gastlin Gutters" />
@@ -968,7 +968,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
                 {/* Row 2: qty, unit price, amount */}
                 <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   <div>
-                    <label className="text-xs text-slate-500">Qty</label>
+                    <label className="text-xs text-muted-foreground/70">Qty</label>
                     <input type="number" className={INPUT_CLASS} value={item.quantity}
                       onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
                       onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateItem(idx, 'quantity', ''); }}
@@ -976,7 +976,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
                       min="0" step="any" />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-500">Unit Price</label>
+                    <label className="text-xs text-muted-foreground/70">Unit Price</label>
                     <input type="number" className={INPUT_CLASS} value={item.unit_price}
                       onChange={(e) => updateItem(idx, 'unit_price', e.target.value)}
                       onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateItem(idx, 'unit_price', ''); }}
@@ -984,8 +984,8 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
                       min="0" step="0.01" />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-500">Amount</label>
-                    <div className={`${INPUT_CLASS} flex items-center justify-end bg-slate-800/60 cursor-default`}>
+                    <label className="text-xs text-muted-foreground/70">Amount</label>
+                    <div className={`${INPUT_CLASS} flex items-center justify-end bg-secondary/60 cursor-default`}>
                       {fmt(computedAmt)}
                     </div>
                   </div>
@@ -999,11 +999,11 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
                 className="group flex items-center justify-center w-full py-1 -my-1"
                 title="Insert line item here"
               >
-                <span className="flex-1 h-px bg-slate-800 group-hover:bg-amber-500/40 transition-colors" />
-                <span className="flex items-center justify-center h-6 w-6 rounded-full border border-slate-700 text-slate-600 group-hover:border-amber-500 group-hover:text-amber-500 transition-colors">
+                <span className="flex-1 h-px bg-secondary group-hover:bg-primary/40 transition-colors" />
+                <span className="flex items-center justify-center h-6 w-6 rounded-full border border-border text-muted-foreground/50 group-hover:border-primary group-hover:text-primary transition-colors">
                   <Plus className="h-3 w-3" />
                 </span>
-                <span className="flex-1 h-px bg-slate-800 group-hover:bg-amber-500/40 transition-colors" />
+                <span className="flex-1 h-px bg-secondary group-hover:bg-primary/40 transition-colors" />
               </button>
             </React.Fragment>
           );
@@ -1012,7 +1012,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         {/* Add buttons */}
         <div className="flex gap-2 flex-wrap">
           <button type="button" onClick={() => addItem('materials')}
-            className="flex items-center gap-1.5 text-sm text-amber-500 hover:text-amber-400 min-h-[44px]">
+            className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover min-h-[44px]">
             <Plus className="h-4 w-4" /> Add Line Item
           </button>
           <button type="button" onClick={() => addItem('labor')}
@@ -1024,65 +1024,65 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
             <Plus className="h-4 w-4" /> Subcontractor
           </button>
           <button type="button" onClick={() => addItem('fee')}
-            className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-300 min-h-[44px]">
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground-soft min-h-[44px]">
             <Plus className="h-4 w-4" /> Fee
           </button>
         </div>
       </div>
 
       {/* ═══ Summary ═══ */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Summary</h3>
+      <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">Summary</h3>
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between text-slate-300">
+          <div className="flex justify-between text-foreground-soft">
             <span>Subtotal</span><span className="font-medium">{fmt(formTotals.subtotal)}</span>
           </div>
 
           {/* O&P — always visible (important for insurance work) */}
           <div className="flex items-center justify-between gap-4">
-            <span className="text-slate-300">O&P (Overhead & Profit)</span>
+            <span className="text-foreground-soft">O&P (Overhead & Profit)</span>
             <div className="flex items-center gap-1">
               <input type="number"
-                className="w-20 bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-20 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
                 value={formData.overhead_profit_pct} onChange={(e) => set('overhead_profit_pct', e.target.value)}
                 onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('overhead_profit_pct', ''); }}
                 onBlur={(e) => { if (e.target.value === '') set('overhead_profit_pct', 0); }}
                 min="0" max="100" step="0.5" />
-              <span className="text-slate-400">%</span>
+              <span className="text-muted-foreground">%</span>
             </div>
           </div>
           {formTotals.opAmount > 0 && (
-            <div className="flex justify-between text-slate-400 pl-4">
+            <div className="flex justify-between text-muted-foreground pl-4">
               <span>O&P Amount</span><span>{fmt(formTotals.opAmount)}</span>
             </div>
           )}
 
           {/* Tax */}
           <div className="flex items-center justify-between gap-4">
-            <span className="text-slate-300">Tax Rate</span>
+            <span className="text-foreground-soft">Tax Rate</span>
             <div className="flex items-center gap-1">
               <input type="number"
-                className="w-20 bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-20 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
                 value={formData.tax_rate} onChange={(e) => set('tax_rate', e.target.value)}
                 onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('tax_rate', ''); }}
                 onBlur={(e) => { if (e.target.value === '') set('tax_rate', 0); }}
                 min="0" max="100" step="0.1" />
-              <span className="text-slate-400">%</span>
+              <span className="text-muted-foreground">%</span>
             </div>
           </div>
           {formTotals.taxAmount > 0 && (
-            <div className="flex justify-between text-slate-400 pl-4">
+            <div className="flex justify-between text-muted-foreground pl-4">
               <span>Tax Amount</span><span>{fmt(formTotals.taxAmount)}</span>
             </div>
           )}
 
           {/* Other */}
           <div className="flex items-center justify-between gap-4">
-            <span className="text-slate-300">Other</span>
+            <span className="text-foreground-soft">Other</span>
             <div className="flex items-center gap-1">
-              <span className="text-slate-400">$</span>
+              <span className="text-muted-foreground">$</span>
               <input type="number"
-                className="w-24 bg-slate-800 border border-slate-700 text-slate-100 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-24 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
                 value={formData.other_amount} onChange={(e) => set('other_amount', e.target.value)}
                 onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('other_amount', ''); }}
                 onBlur={(e) => { if (e.target.value === '') set('other_amount', 0); }}
@@ -1090,14 +1090,14 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
             </div>
           </div>
 
-          <div className="flex justify-between text-lg font-bold text-amber-500 border-t border-slate-700 pt-2">
+          <div className="flex justify-between text-lg font-bold text-primary border-t border-border pt-2">
             <span>Total</span><span>{fmt(formTotals.total)}</span>
           </div>
         </div>
       </div>
 
       {/* Terms & Notes */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
+      <div className="bg-card border border-border rounded-xl p-4 space-y-4">
         <div>
           <label className={LABEL_CLASS}>Terms & Conditions</label>
           <textarea className={`${INPUT_CLASS} min-h-[80px]`} rows="3" value={formData.terms}
@@ -1113,17 +1113,17 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
       </div>
 
       {/* Client Visibility Toggle */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+      <div className="bg-card border border-border rounded-xl p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-white">Show cost breakdown to client</p>
-            <p className="text-xs text-slate-400 mt-0.5">When off, clients see total only on the estimate</p>
+            <p className="text-sm text-foreground">Show cost breakdown to client</p>
+            <p className="text-xs text-muted-foreground mt-0.5">When off, clients see total only on the estimate</p>
           </div>
           <button
             type="button"
             onClick={() => set('client_show_breakdown', !formData.client_show_breakdown)}
             className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
-              formData.client_show_breakdown ? 'bg-amber-500' : 'bg-slate-700'
+              formData.client_show_breakdown ? 'bg-primary' : 'bg-surface'
             }`}
           >
             <span className={`inline-block h-4 w-4 rounded-full bg-slate-100 transition-transform ${
@@ -1134,18 +1134,18 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 sticky bottom-0 bg-slate-950 py-3 -mx-1 px-1">
+      <div className="flex gap-3 sticky bottom-0 bg-background py-3 -mx-1 px-1">
         <button type="button"
           disabled={!formData.title.trim() || saveMutation.isPending}
           onClick={() => saveMutation.mutate({ status: 'draft' })}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-amber-500 text-amber-500 hover:bg-amber-500/10 transition-colors text-sm font-medium min-h-[44px] disabled:opacity-50 disabled:pointer-events-none">
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-primary text-primary hover:bg-primary/10 transition-colors text-sm font-medium min-h-[44px] disabled:opacity-50 disabled:pointer-events-none">
           {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save Draft
         </button>
         <button type="button"
           disabled={!formData.title.trim() || saveMutation.isPending}
           onClick={() => saveMutation.mutate({ status: 'sent', _copyLink: true })}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px] disabled:opacity-50 disabled:pointer-events-none">
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors text-sm min-h-[44px] disabled:opacity-50 disabled:pointer-events-none">
           {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
           Save & Copy Link
         </button>
@@ -1469,16 +1469,16 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
     <div className="space-y-4 pb-8">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-xl font-bold text-slate-100">Estimates</h2>
+        <h2 className="text-xl font-bold text-foreground">Estimates</h2>
         <button type="button" onClick={openNewEstimate}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px]">
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors text-sm min-h-[44px]">
           <Plus className="h-4 w-4" /> New Estimate
         </button>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
         <input type="text" className={`${INPUT_CLASS} pl-9`} value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search estimates..." />
       </div>
@@ -1490,8 +1490,8 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
             onClick={() => setFilter(chip.value)}
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors min-h-[44px] ${
               filter === chip.value
-                ? 'bg-amber-500 text-black'
-                : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-muted-foreground hover:text-foreground'
             }`}>
             {chip.label}
             {chip.value !== 'all' && (
@@ -1506,18 +1506,18 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       {/* Loading */}
       {isLoading && (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
+          <Loader2 className="h-6 w-6 text-primary animate-spin" />
         </div>
       )}
 
       {/* Empty state */}
       {!isLoading && filtered.length === 0 && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-          <FileText className="h-8 w-8 text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-400">
+        <div className="bg-card border border-border rounded-xl p-8 text-center">
+          <FileText className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
+          <p className="text-muted-foreground">
             {searchTerm || filter !== 'all' ? 'No estimates match your filters.' : 'No estimates yet.'}
           </p>
-          <p className="text-slate-500 text-sm mt-1">Create your first estimate to get started.</p>
+          <p className="text-muted-foreground/70 text-sm mt-1">Create your first estimate to get started.</p>
         </div>
       )}
 
@@ -1528,53 +1528,53 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
             const sc = STATUS_CONFIG[est.status] || STATUS_CONFIG.draft;
             return (
               <article key={est.id}
-                className="bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 transition-colors">
+                className="bg-card border border-border hover:border-primary/50 rounded-xl p-4 transition-colors">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-100 truncate">{est.title || 'Untitled Estimate'}</p>
-                    <p className="text-xs text-slate-500">{est.estimate_number}</p>
+                    <p className="text-sm font-medium text-foreground truncate">{est.title || 'Untitled Estimate'}</p>
+                    <p className="text-xs text-muted-foreground/70">{est.estimate_number}</p>
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 flex items-center gap-1 ${sc.color} ${est.status === 'declined' ? 'line-through' : ''}`}>
-                    {sc.pulse && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />}
+                    {sc.pulse && <span className="w-1.5 h-1.5 rounded-full bg-primary-hover animate-pulse" />}
                     {(est.status === 'accepted' || est.status === 'signed') && <Lock className="h-3 w-3" />}
                     {sc.label}
                     {est.status === 'signed' && est.signed_at && <span className="ml-1 text-xs opacity-70">{fmtDate(est.signed_at)}</span>}
                   </span>
                 </div>
 
-                {est.client_name && <p className="text-sm text-slate-400 mb-1">{est.client_name}</p>}
+                {est.client_name && <p className="text-sm text-muted-foreground mb-1">{est.client_name}</p>}
 
                 <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="text-xs text-slate-500">{fmtDate(est.date)}</span>
-                  <span className="text-amber-500 font-bold text-sm">{fmt(est.total)}</span>
+                  <span className="text-xs text-muted-foreground/70">{fmtDate(est.date)}</span>
+                  <span className="text-primary font-bold text-sm">{fmt(est.total)}</span>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 pt-2 border-t border-slate-800 flex-wrap">
+                <div className="flex items-center gap-2 pt-2 border-t border-border flex-wrap">
                   <button type="button" onClick={() => { setPreviewEstimate(est); setView('preview'); }}
-                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[44px] transition-colors">
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary min-h-[44px] transition-colors">
                     <Eye className="h-3.5 w-3.5" /> Preview
                   </button>
                   {est.status !== 'accepted' && est.status !== 'signed' && est.status !== 'awaiting_signature' && (
                     <button type="button" onClick={() => openEditEstimate(est)}
-                      className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[44px] transition-colors">
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary min-h-[44px] transition-colors">
                       <Pencil className="h-3.5 w-3.5" /> Edit
                     </button>
                   )}
                   <button type="button" onClick={() => duplicateEstimate(est)}
-                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[44px] transition-colors">
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary min-h-[44px] transition-colors">
                     <Copy className="h-3.5 w-3.5" /> Duplicate
                   </button>
                   {est.status === 'draft' && (
                     <button type="button" onClick={() => markAsSent(est)}
-                      className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 min-h-[44px] transition-colors">
+                      className="flex items-center gap-1 text-xs text-primary-hover hover:text-primary-hover min-h-[44px] transition-colors">
                       <Send className="h-3.5 w-3.5" /> Send to Client
                     </button>
                   )}
                   {est.status === 'sent' && (
                     <>
                       <button type="button" onClick={() => copyPortalLink(est)}
-                        className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[44px] transition-colors">
+                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary min-h-[44px] transition-colors">
                         <Link2 className="h-3.5 w-3.5" /> Copy Link
                       </button>
                       <button type="button" onClick={() => sendForSignature(est)}
@@ -1586,7 +1586,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                   {est.status === 'awaiting_signature' && (
                     <>
                       <button type="button" onClick={() => copyPortalLink(est, true)}
-                        className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-500 min-h-[44px] transition-colors">
+                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary min-h-[44px] transition-colors">
                         <Link2 className="h-3.5 w-3.5" /> Copy Link
                       </button>
                       <button type="button" onClick={() => recallEstimate(est)}
@@ -1608,27 +1608,27 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                   )}
                   {(est.status === 'accepted' || est.status === 'signed') && (
                     <button type="button" onClick={() => reopenEstimate(est)}
-                      className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-400 min-h-[44px] transition-colors">
+                      className="flex items-center gap-1 text-xs text-muted-foreground/70 hover:text-muted-foreground min-h-[44px] transition-colors">
                       Reopen
                     </button>
                   )}
                   {est.project_id && (
-                    <span className="flex items-center gap-1 text-xs text-slate-500">
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground/70">
                       <FolderOpen className="h-3.5 w-3.5" /> Linked to project
                     </span>
                   )}
                   <div className="flex-1" />
                   {deleteConfirm === est.id ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500">Delete?</span>
+                      <span className="text-xs text-muted-foreground/70">Delete?</span>
                       <button type="button" onClick={() => deleteMutation.mutate(est.id)}
-                        className="text-xs text-amber-500 hover:text-amber-400 min-h-[44px]">Yes</button>
+                        className="text-xs text-primary hover:text-primary-hover min-h-[44px]">Yes</button>
                       <button type="button" onClick={() => setDeleteConfirm(null)}
-                        className="text-xs text-slate-400 hover:text-slate-300 min-h-[44px]">No</button>
+                        className="text-xs text-muted-foreground hover:text-foreground-soft min-h-[44px]">No</button>
                     </div>
                   ) : (
                     <button type="button" onClick={() => setDeleteConfirm(est.id)}
-                      className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-400 min-h-[44px] transition-colors">
+                      className="flex items-center gap-1 text-xs text-muted-foreground/70 hover:text-muted-foreground min-h-[44px] transition-colors">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   )}
@@ -1643,22 +1643,22 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       {convertConfirm && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
           onClick={() => setConvertConfirm(null)}>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-sm w-full"
+          <div className="bg-card border border-border rounded-xl p-6 max-w-sm w-full"
             onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-slate-100 mb-2">Accept Estimate & Create Project</h3>
-            <p className="text-sm text-slate-400 mb-4">
-              Accept <span className="text-amber-500">{convertConfirm.title}</span> and create a project with
+            <h3 className="text-lg font-bold text-foreground mb-2">Accept Estimate & Create Project</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Accept <span className="text-primary">{convertConfirm.title}</span> and create a project with
               a budget of {fmt(convertConfirm.total)}? The estimate will be locked.
             </p>
             <div className="flex gap-3">
               <button type="button" onClick={() => setConvertConfirm(null)}
-                className="flex-1 px-4 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-slate-100 transition-colors text-sm min-h-[44px]">
+                className="flex-1 px-4 py-2 rounded-lg border border-border text-foreground-soft hover:text-foreground transition-colors text-sm min-h-[44px]">
                 Cancel
               </button>
               <button type="button"
                 disabled={convertMutation.isPending}
                 onClick={() => convertMutation.mutate(convertConfirm)}
-                className="flex-1 flex items-center justify-center px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px] disabled:opacity-50">
+                className="flex-1 flex items-center justify-center px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors text-sm min-h-[44px] disabled:opacity-50">
                 {convertMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Accept & Create Project'}
               </button>
             </div>

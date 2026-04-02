@@ -23,8 +23,8 @@ export default function Networks() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -32,16 +32,16 @@ export default function Networks() {
   // Not authenticated — redirect to sign in
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
         <div className="max-w-md text-center space-y-4">
-          <Sprout className="h-10 w-10 text-amber-500/60 mx-auto" />
-          <h1 className="text-xl font-bold text-white">Sign in to discover networks</h1>
-          <p className="text-slate-400 text-sm">
+          <Sprout className="h-10 w-10 text-primary/60 mx-auto" />
+          <h1 className="text-xl font-bold text-foreground">Sign in to discover networks</h1>
+          <p className="text-muted-foreground text-sm">
             Networks grow from connections. Sign in and they'll find you.
           </p>
           <button
             onClick={() => base44.auth.redirectToLogin()}
-            className="mt-4 bg-amber-500 hover:bg-amber-400 text-black font-bold px-6 py-3 rounded-xl transition-colors"
+            className="mt-4 bg-primary hover:bg-primary-hover text-primary-foreground font-bold px-6 py-3 rounded-xl transition-colors"
           >
             Sign In
           </button>
@@ -53,26 +53,26 @@ export default function Networks() {
   // Authenticated — show warm discovery message instead of network tiles.
   // Full relationship-based gating comes later when network membership entity exists.
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-8">
         <button
           type="button"
           onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/MyLane')}
-          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-amber-500 transition-colors mb-8"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </button>
 
         <div className="text-center py-16 space-y-4">
-          <Sprout className="h-12 w-12 text-amber-500/40 mx-auto" />
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Georgia, serif' }}>
+          <Sprout className="h-12 w-12 text-primary/40 mx-auto" />
+          <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: 'Georgia, serif' }}>
             Networks
           </h1>
-          <p className="text-slate-400 max-w-sm mx-auto leading-relaxed">
+          <p className="text-muted-foreground max-w-sm mx-auto leading-relaxed">
             Networks are discovered through connections. As you grow in the community, you'll find them — through teammates, neighbors, and the people you already know.
           </p>
-          <p className="text-slate-500 text-sm mt-6">
+          <p className="text-muted-foreground/70 text-sm mt-6">
             They're not hidden. They're just quiet until you're ready.
           </p>
         </div>

@@ -28,24 +28,24 @@ function Leaderboard({ teamStats, members }) {
   if (ranked.length === 0) return null;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+    <div className="bg-card border border-border rounded-xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <Trophy className="h-5 w-5 text-amber-500" />
-        <span className="font-semibold text-slate-100">Leaderboard</span>
+        <Trophy className="h-5 w-5 text-primary" />
+        <span className="font-semibold text-foreground">Leaderboard</span>
       </div>
       <div className="space-y-2">
         {ranked.map((s, i) => (
           <div
             key={s.user_id || i}
-            className="flex items-center gap-3 p-2 rounded-lg bg-slate-800/50"
+            className="flex items-center gap-3 p-2 rounded-lg bg-secondary/50"
           >
             <span className="w-6 text-center text-sm">
-              {i < 3 ? MEDALS[i] : <span className="text-slate-500">{i + 1}</span>}
+              {i < 3 ? MEDALS[i] : <span className="text-muted-foreground/70">{i + 1}</span>}
             </span>
-            <span className="flex-1 text-sm text-slate-200 font-medium truncate">
+            <span className="flex-1 text-sm text-foreground font-medium truncate">
               {memberMap[s.user_id] || 'Player'}
             </span>
-            <span className="text-amber-500 text-sm font-bold tabular-nums">
+            <span className="text-primary text-sm font-bold tabular-nums">
               {(s.high_score || 0).toLocaleString()}
             </span>
           </div>
@@ -209,51 +209,51 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
 
   const sharedTopSection = (
     <>
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+      <div className="bg-card border border-border rounded-xl p-4">
         <div className="flex items-center gap-2 mb-2">
-          <Calendar className="h-5 w-5 text-amber-500" />
-          <span className="font-semibold text-slate-100">Next event</span>
+          <Calendar className="h-5 w-5 text-primary" />
+          <span className="font-semibold text-foreground">Next event</span>
         </div>
         {nextEvent ? (
           <>
-            <p className="text-slate-200 font-medium">{nextEvent.title || 'Event'}</p>
-            <p className="text-slate-400 text-sm flex items-center gap-1 mt-1">
+            <p className="text-foreground font-medium">{nextEvent.title || 'Event'}</p>
+            <p className="text-muted-foreground text-sm flex items-center gap-1 mt-1">
               <Clock className="h-3.5 w-3.5" />
               {nextEventWhen || nextEventTime}
             </p>
             {nextEvent.location && (
-              <p className="text-slate-400 text-sm flex items-center gap-1 mt-0.5">
+              <p className="text-muted-foreground text-sm flex items-center gap-1 mt-0.5">
                 <MapPin className="h-3.5 w-3.5" />
                 {nextEvent.location}
               </p>
             )}
           </>
         ) : (
-          <p className="text-slate-500 text-sm">No upcoming events. Schedule a practice!</p>
+          <p className="text-muted-foreground/70 text-sm">No upcoming events. Schedule a practice!</p>
         )}
       </div>
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+      <div className="bg-card border border-border rounded-xl p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="font-semibold text-slate-100 flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-amber-500" />
+          <span className="font-semibold text-foreground flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-primary" />
             Recent messages
           </span>
           <button
             type="button"
             onClick={() => onNavigateTab?.('messages')}
-            className="text-amber-500 hover:text-amber-400 text-sm font-medium transition-colors"
+            className="text-primary hover:text-primary-hover text-sm font-medium transition-colors"
           >
             View all
           </button>
         </div>
         {recentMessages.length === 0 ? (
-          <p className="text-slate-500 text-sm">No messages yet</p>
+          <p className="text-muted-foreground/70 text-sm">No messages yet</p>
         ) : (
           <ul className="space-y-2">
             {recentMessages.map((msg) => (
               <li key={msg.id} className="text-sm">
-                <span className="text-slate-400">{msg.message?.slice(0, 60)}{(msg.message?.length || 0) > 60 ? '…' : ''}</span>
-                <span className="text-slate-500 text-xs block mt-0.5">
+                <span className="text-muted-foreground">{msg.message?.slice(0, 60)}{(msg.message?.length || 0) > 60 ? '…' : ''}</span>
+                <span className="text-muted-foreground/70 text-xs block mt-0.5">
                   {msg.created_at ? new Date(msg.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''}
                 </span>
               </li>
@@ -271,20 +271,20 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
       <div className="space-y-6">
         {/* Stats grid — player sees their stats first */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <BookOpen className="h-5 w-5 text-amber-500 mb-2" />
-            <div className="text-2xl font-bold text-slate-100">{playCount}</div>
-            <div className="text-sm text-slate-400">Plays in playbook</div>
+          <div className="bg-card border border-border rounded-xl p-4">
+            <BookOpen className="h-5 w-5 text-primary mb-2" />
+            <div className="text-2xl font-bold text-foreground">{playCount}</div>
+            <div className="text-sm text-muted-foreground">Plays in playbook</div>
           </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <Calendar className="h-5 w-5 text-amber-500 mb-2" />
-            <div className="text-2xl font-bold text-slate-100">—</div>
-            <div className="text-sm text-slate-400">Schedule</div>
+          <div className="bg-card border border-border rounded-xl p-4">
+            <Calendar className="h-5 w-5 text-primary mb-2" />
+            <div className="text-2xl font-bold text-foreground">—</div>
+            <div className="text-sm text-muted-foreground">Schedule</div>
           </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <Users className="h-5 w-5 text-amber-500 mb-2" />
-            <div className="text-2xl font-bold text-slate-100">{playerCount}</div>
-            <div className="text-sm text-slate-400">Teammates</div>
+          <div className="bg-card border border-border rounded-xl p-4">
+            <Users className="h-5 w-5 text-primary mb-2" />
+            <div className="text-2xl font-bold text-foreground">{playerCount}</div>
+            <div className="text-sm text-muted-foreground">Teammates</div>
           </div>
         </div>
 
@@ -293,16 +293,16 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
 
         {/* Playbook Pro — below stats */}
         {playCount > 0 && (
-          <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-5">
+          <div className="bg-card border border-primary/30 rounded-xl p-5">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-amber-500 font-bold tracking-wide" style={{ fontFamily: 'Georgia, serif' }}>PLAYBOOK PRO</h3>
+              <h3 className="text-primary font-bold tracking-wide" style={{ fontFamily: 'Georgia, serif' }}>PLAYBOOK PRO</h3>
               <div className="flex items-center gap-3">
                 {(playerStats.high_score || 0) > 0 && (
-                  <div className="flex items-center gap-1"><Trophy className="h-3.5 w-3.5 text-amber-500" /><span className="text-slate-400 text-xs">{(playerStats.high_score || 0).toLocaleString()}</span></div>
+                  <div className="flex items-center gap-1"><Trophy className="h-3.5 w-3.5 text-primary" /><span className="text-muted-foreground text-xs">{(playerStats.high_score || 0).toLocaleString()}</span></div>
                 )}
               </div>
             </div>
-            <Button type="button" onClick={() => setQuizModeOpen(true)} className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold min-h-[44px]">
+            <Button type="button" onClick={() => setQuizModeOpen(true)} className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-bold min-h-[44px]">
               <Zap className="h-4 w-4 mr-2" />Practice Mode
             </Button>
           </div>
@@ -310,14 +310,14 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
         <Leaderboard teamStats={teamPlayerStats} members={members} />
 
         {/* Viewing-as context (coach preview) */}
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3">
-          <p className="text-xs text-slate-400 uppercase tracking-wider">Viewing as</p>
-          <p className="text-lg font-bold text-amber-500">{name} — {position}</p>
+        <div className="bg-secondary/50 border border-border rounded-xl px-4 py-3">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider">Viewing as</p>
+          <p className="text-lg font-bold text-primary">{name} — {position}</p>
         </div>
 
         <Button
           type="button"
-          className="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-amber-500 font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors border border-slate-700"
+          className="bg-secondary hover:bg-surface text-foreground-soft hover:text-primary font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors border border-border"
           onClick={() => onNavigateTab?.('playbook')}
         >
           <BookOpen className="h-4 w-4 mr-2" />
@@ -353,38 +353,38 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
 
       {/* Team header — lead with the team, not the game */}
       <div>
-        <h2 className="text-xl font-bold text-slate-100">{team?.name}</h2>
-        {season && season !== '—' && <p className="text-sm text-slate-400">{season}</p>}
+        <h2 className="text-xl font-bold text-foreground">{team?.name}</h2>
+        {season && season !== '—' && <p className="text-sm text-muted-foreground">{season}</p>}
       </div>
 
       {isCoach ? (
-        <p className="text-slate-400">
+        <p className="text-muted-foreground">
           Welcome to your team! Start by adding your players to the roster.
         </p>
       ) : (
-        <p className="text-slate-400">
+        <p className="text-muted-foreground">
           Your team
         </p>
       )}
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <Users className="h-5 w-5 text-amber-500 mb-2" />
-          <div className="text-2xl font-bold text-slate-100">{playerCount}</div>
-          <div className="text-sm text-slate-400">Roster</div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <Users className="h-5 w-5 text-primary mb-2" />
+          <div className="text-2xl font-bold text-foreground">{playerCount}</div>
+          <div className="text-sm text-muted-foreground">Roster</div>
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <BookOpen className="h-5 w-5 text-amber-500 mb-2" />
-          <div className="text-2xl font-bold text-slate-100">{playCount}</div>
-          <div className="text-sm text-slate-400">Playbook</div>
+        <div className="bg-card border border-border rounded-xl p-4">
+          <BookOpen className="h-5 w-5 text-primary mb-2" />
+          <div className="text-2xl font-bold text-foreground">{playCount}</div>
+          <div className="text-sm text-muted-foreground">Playbook</div>
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <Calendar className="h-5 w-5 text-amber-500 mb-2" />
-          <div className="text-2xl font-bold text-slate-100">
+        <div className="bg-card border border-border rounded-xl p-4">
+          <Calendar className="h-5 w-5 text-primary mb-2" />
+          <div className="text-2xl font-bold text-foreground">
             {teamEvents.filter((e) => e.start_date && new Date(e.start_date + (e.start_time ? `T${e.start_time}` : '')).getTime() >= Date.now()).length}
           </div>
-          <div className="text-sm text-slate-400">Schedule</div>
+          <div className="text-sm text-muted-foreground">Schedule</div>
         </div>
       </div>
 
@@ -393,22 +393,22 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
 
       {/* Playbook Pro — below stats, not the first thing you see */}
       {playCount > 0 && (
-        <div className="bg-slate-900 border border-amber-500/30 rounded-xl p-5">
+        <div className="bg-card border border-primary/30 rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-amber-500 font-bold tracking-wide" style={{ fontFamily: 'Georgia, serif' }}>
+            <h3 className="text-primary font-bold tracking-wide" style={{ fontFamily: 'Georgia, serif' }}>
               PLAYBOOK PRO
             </h3>
             <div className="flex items-center gap-3">
               {(playerStats.high_score || 0) > 0 && (
                 <div className="flex items-center gap-1">
-                  <Trophy className="h-3.5 w-3.5 text-amber-500" />
-                  <span className="text-slate-400 text-xs">{(playerStats.high_score || 0).toLocaleString()}</span>
+                  <Trophy className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-muted-foreground text-xs">{(playerStats.high_score || 0).toLocaleString()}</span>
                 </div>
               )}
               {(playerStats.best_streak || 0) > 0 && (
                 <div className="flex items-center gap-1">
-                  <Flame className="h-3.5 w-3.5 text-amber-500" />
-                  <span className="text-slate-400 text-xs">{playerStats.best_streak}</span>
+                  <Flame className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-muted-foreground text-xs">{playerStats.best_streak}</span>
                 </div>
               )}
             </div>
@@ -416,7 +416,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
           <Button
             type="button"
             onClick={() => setQuizModeOpen(true)}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold min-h-[44px]"
+            className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-bold min-h-[44px]"
           >
             <Zap className="h-4 w-4 mr-2" />
             Practice Mode
@@ -432,7 +432,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
         <div className="flex flex-wrap gap-3">
           <Button
             type="button"
-            className="bg-amber-500 hover:bg-amber-400 text-black font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
+            className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium px-4 py-2 rounded-lg min-h-[44px] transition-colors"
             onClick={() => onNavigateTab?.('roster')}
           >
             <UserPlus className="h-4 w-4 mr-2" />
@@ -441,7 +441,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
           <Button
             type="button"
             variant="outline"
-            className="border border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px] transition-colors"
+            className="border border-border text-foreground-soft hover:border-primary hover:text-primary min-h-[44px] transition-colors"
             onClick={() => onCopyInviteLink?.()}
           >
             <Share2 className="h-4 w-4 mr-2" />

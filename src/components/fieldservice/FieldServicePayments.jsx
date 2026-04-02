@@ -6,8 +6,8 @@ import VoiceInput from './VoiceInput';
 import { DollarSign, Plus, X, Loader2, Save } from 'lucide-react';
 
 const INPUT_CLASS =
-  'w-full bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent';
-const LABEL_CLASS = 'block text-slate-300 text-sm font-medium mb-1';
+  'w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent';
+const LABEL_CLASS = 'block text-foreground-soft text-sm font-medium mb-1';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -22,14 +22,14 @@ const fmtDate = (d) => {
 
 const TYPE_CONFIG = {
   deposit:      { label: 'Deposit',        color: 'bg-blue-500/20 text-blue-400' },
-  progress:     { label: 'Progress',       color: 'bg-amber-500/20 text-amber-400' },
+  progress:     { label: 'Progress',       color: 'bg-primary/20 text-primary-hover' },
   final:        { label: 'Final',          color: 'bg-emerald-500/20 text-emerald-400' },
   change_order: { label: 'Change Order',   color: 'bg-purple-500/20 text-purple-400' },
-  refund:       { label: 'Refund',         color: 'bg-slate-500/20 text-slate-400' },
+  refund:       { label: 'Refund',         color: 'bg-muted-foreground/20 text-muted-foreground' },
 };
 
 const STATUS_CONFIG = {
-  pending:  { label: 'Pending',  color: 'bg-amber-500/20 text-amber-400' },
+  pending:  { label: 'Pending',  color: 'bg-primary/20 text-primary-hover' },
   received: { label: 'Received', color: 'bg-emerald-500/20 text-emerald-400' },
   cleared:  { label: 'Cleared',  color: 'bg-emerald-500/20 text-emerald-400' },
 };
@@ -108,17 +108,17 @@ export default function FieldServicePayments({ projectId, profileId, currentUser
   }, [payments, referenceTotal]);
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+    <div className="bg-card border border-border rounded-xl p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5 text-amber-500" />
-          <h3 className="text-lg font-bold text-slate-100">Payments</h3>
+          <DollarSign className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-bold text-foreground">Payments</h3>
         </div>
         <button type="button" onClick={() => {
           setFormData({ ...EMPTY_PAYMENT, date: new Date().toISOString().split('T')[0] });
           setShowForm(true);
         }}
-          className="flex items-center gap-1.5 text-sm text-amber-500 hover:text-amber-400 min-h-[44px]">
+          className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover min-h-[44px]">
           <Plus className="h-4 w-4" /> Log Payment
         </button>
       </div>
@@ -126,34 +126,34 @@ export default function FieldServicePayments({ projectId, profileId, currentUser
       {/* Summary */}
       {referenceTotal > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-slate-800/50 rounded-lg p-3">
-            <p className="text-xs text-slate-500">Total</p>
-            <p className="text-sm font-bold text-slate-100">{fmt(referenceTotal)}</p>
+          <div className="bg-secondary/50 rounded-lg p-3">
+            <p className="text-xs text-muted-foreground/70">Total</p>
+            <p className="text-sm font-bold text-foreground">{fmt(referenceTotal)}</p>
           </div>
-          <div className="bg-slate-800/50 rounded-lg p-3">
-            <p className="text-xs text-slate-500">Paid</p>
+          <div className="bg-secondary/50 rounded-lg p-3">
+            <p className="text-xs text-muted-foreground/70">Paid</p>
             <p className="text-sm font-bold text-emerald-400">{fmt(totalPaid)}</p>
           </div>
-          <div className="bg-slate-800/50 rounded-lg p-3">
-            <p className="text-xs text-slate-500">Balance</p>
-            <p className="text-sm font-bold text-amber-500">{fmt(balance)}</p>
+          <div className="bg-secondary/50 rounded-lg p-3">
+            <p className="text-xs text-muted-foreground/70">Balance</p>
+            <p className="text-sm font-bold text-primary">{fmt(balance)}</p>
           </div>
         </div>
       )}
 
       {referenceTotal > 0 && (
-        <div className="w-full bg-slate-800 rounded-full h-2">
+        <div className="w-full bg-secondary rounded-full h-2">
           <div className="h-2 rounded-full bg-emerald-500 transition-all" style={{ width: `${paidPct}%` }} />
         </div>
       )}
 
       {/* Payment form */}
       {showForm && (
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 space-y-3">
+        <div className="bg-secondary/50 border border-border rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-slate-300">Log Payment</p>
+            <p className="text-sm font-medium text-foreground-soft">Log Payment</p>
             <button type="button" onClick={() => setShowForm(false)}
-              className="p-1 text-slate-500 hover:text-amber-500"><X className="h-4 w-4" /></button>
+              className="p-1 text-muted-foreground/70 hover:text-primary"><X className="h-4 w-4" /></button>
           </div>
 
           <div>
@@ -227,7 +227,7 @@ export default function FieldServicePayments({ projectId, profileId, currentUser
           <button type="button"
             disabled={!formData.amount || saveMutation.isLoading}
             onClick={() => saveMutation.mutate()}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors text-sm min-h-[44px] disabled:opacity-50">
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors text-sm min-h-[44px] disabled:opacity-50">
             {saveMutation.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Save Payment</>}
           </button>
         </div>
@@ -236,12 +236,12 @@ export default function FieldServicePayments({ projectId, profileId, currentUser
       {/* Payment list */}
       {isLoading && (
         <div className="flex justify-center py-4">
-          <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
+          <Loader2 className="h-5 w-5 text-primary animate-spin" />
         </div>
       )}
 
       {!isLoading && payments.length === 0 && (
-        <p className="text-sm text-slate-500 text-center py-2">No payments recorded yet.</p>
+        <p className="text-sm text-muted-foreground/70 text-center py-2">No payments recorded yet.</p>
       )}
 
       {!isLoading && paymentsWithBalance.length > 0 && (
@@ -250,23 +250,23 @@ export default function FieldServicePayments({ projectId, profileId, currentUser
             const tc = TYPE_CONFIG[p.type] || TYPE_CONFIG.progress;
             const sc = STATUS_CONFIG[p.status] || STATUS_CONFIG.pending;
             return (
-              <div key={p.id} className="bg-slate-800/50 rounded-lg p-3 flex items-center gap-3">
+              <div key={p.id} className="bg-secondary/50 rounded-lg p-3 flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${tc.color}`}>{tc.label}</span>
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sc.color}`}>{sc.label}</span>
-                    {p.method && <span className="text-xs text-slate-500 capitalize">{p.method}</span>}
-                    {p.check_number && <span className="text-xs text-slate-500">#{p.check_number}</span>}
+                    {p.method && <span className="text-xs text-muted-foreground/70 capitalize">{p.method}</span>}
+                    {p.check_number && <span className="text-xs text-muted-foreground/70">#{p.check_number}</span>}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-slate-500">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground/70">
                     <span>{fmtDate(p.date)}</span>
                     {p.notes && <span className="truncate">{p.notes}</span>}
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="text-sm font-bold text-slate-100">{fmt(p.amount)}</p>
+                  <p className="text-sm font-bold text-foreground">{fmt(p.amount)}</p>
                   {referenceTotal > 0 && (
-                    <p className="text-xs text-slate-500">Bal: {fmt(p.runningBalance)}</p>
+                    <p className="text-xs text-muted-foreground/70">Bal: {fmt(p.runningBalance)}</p>
                   )}
                 </div>
               </div>

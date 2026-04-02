@@ -135,9 +135,9 @@ function RecurringForm({ open, onOpenChange, profile, currentUser, recurring }) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-slate-900 border-slate-800 max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">
+          <DialogTitle className="text-foreground">
             {isEdit ? 'Edit Recurring Item' : 'Add Recurring Item'}
           </DialogTitle>
         </DialogHeader>
@@ -148,42 +148,42 @@ function RecurringForm({ open, onOpenChange, profile, currentUser, recurring }) 
             <button type="button" onClick={() => { setType('income'); setCategory(''); }}
               className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-colors min-h-[44px] ${
                 type === 'income' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                  : 'bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-300'}`}>
+                  : 'bg-secondary text-muted-foreground border border-border hover:text-foreground-soft'}`}>
               Income
             </button>
             <button type="button" onClick={() => { setType('expense'); setCategory(''); }}
               className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-colors min-h-[44px] ${
                 type === 'expense' ? 'bg-red-500/20 text-red-400 border border-red-500/50'
-                  : 'bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-300'}`}>
+                  : 'bg-secondary text-muted-foreground border border-border hover:text-foreground-soft'}`}>
               Expense
             </button>
           </div>
 
           {/* Amount */}
           <div>
-            <Label className="text-slate-400">Amount *</Label>
+            <Label className="text-muted-foreground">Amount *</Label>
             <div className="relative mt-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">$</span>
               <Input type="number" step="0.01" min="0" value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="pl-8 text-xl bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="pl-8 text-xl bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
                 placeholder="0.00" autoFocus required />
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <Label className="text-slate-400">Description *</Label>
+            <Label className="text-muted-foreground">Description *</Label>
             <Input value={description} onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="mt-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
               placeholder="e.g. Rent, Spotify, Paycheck" required />
           </div>
 
           {/* Frequency */}
           <div>
-            <Label className="text-slate-400">Frequency</Label>
+            <Label className="text-muted-foreground">Frequency</Label>
             <select value={frequency} onChange={(e) => setFrequency(e.target.value)}
-              className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+              className="w-full mt-1 bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring">
               {FREQUENCIES.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
             </select>
           </div>
@@ -191,26 +191,26 @@ function RecurringForm({ open, onOpenChange, profile, currentUser, recurring }) 
           {/* Day of month (only for monthly/quarterly/annual) */}
           {['monthly', 'quarterly', 'annual'].includes(frequency) && (
             <div>
-              <Label className="text-slate-400">Day of month</Label>
+              <Label className="text-muted-foreground">Day of month</Label>
               <Input type="number" min="1" max="31" value={dayOfMonth}
                 onChange={(e) => setDayOfMonth(e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500" />
+                className="mt-1 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring" />
             </div>
           )}
 
           {/* Next date */}
           <div>
-            <Label className="text-slate-400">Next occurrence</Label>
+            <Label className="text-muted-foreground">Next occurrence</Label>
             <Input type="date" value={nextDate} onChange={(e) => setNextDate(e.target.value)}
-              className="mt-1 bg-slate-800 border-slate-700 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500" />
+              className="mt-1 bg-secondary border-border text-foreground focus:border-primary focus:ring-1 focus:ring-ring" />
           </div>
 
           {/* Context — hidden when single context */}
           {!singleContext && (
             <div>
-              <Label className="text-slate-400">Context</Label>
+              <Label className="text-muted-foreground">Context</Label>
               <select value={context} onChange={(e) => { setContext(e.target.value); setCategory(''); }}
-                className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+                className="w-full mt-1 bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring">
                 {activeContexts.map((ctx) => <option key={ctx.id} value={ctx.id}>{ctx.label}</option>)}
               </select>
             </div>
@@ -218,9 +218,9 @@ function RecurringForm({ open, onOpenChange, profile, currentUser, recurring }) 
 
           {/* Category */}
           <div>
-            <Label className="text-slate-400">Category</Label>
+            <Label className="text-muted-foreground">Category</Label>
             <select value={category} onChange={(e) => setCategory(e.target.value)}
-              className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+              className="w-full mt-1 bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring">
               <option value="">Select category</option>
               {availableCategories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
             </select>
@@ -236,16 +236,16 @@ function RecurringForm({ open, onOpenChange, profile, currentUser, recurring }) 
             )}
             {isEdit && confirmDelete && (
               <Button type="button" onClick={() => deleteMutation.mutate()}
-                className="bg-red-600 hover:bg-red-500 text-white min-h-[44px]" disabled={deleteMutation.isPending}>
+                className="bg-red-600 hover:bg-red-500 text-foreground min-h-[44px]" disabled={deleteMutation.isPending}>
                 {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm Delete'}
               </Button>
             )}
             <div className="flex-1" />
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}
-              className="border-slate-600 text-slate-300 hover:border-amber-500 hover:text-amber-500 min-h-[44px]">
+              className="border-border text-foreground-soft hover:border-primary hover:text-primary min-h-[44px]">
               Cancel
             </Button>
-            <Button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-semibold min-h-[44px]"
+            <Button type="submit" className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold min-h-[44px]"
               disabled={saveMutation.isPending}>
               {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (isEdit ? 'Update' : 'Save')}
             </Button>
@@ -261,7 +261,7 @@ export default function FinanceBills({ profile, currentUser }) {
   // Ownership guard
   if (profile && currentUser && profile.user_id !== currentUser.id) {
     return (
-      <div className="text-center py-12 text-slate-400">
+      <div className="text-center py-12 text-muted-foreground">
         <p>You don't have access to this workspace.</p>
       </div>
     );
@@ -318,7 +318,7 @@ export default function FinanceBills({ profile, currentUser }) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="animate-spin h-8 w-8 border-4 border-amber-500 border-t-transparent rounded-full" />
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -330,25 +330,25 @@ export default function FinanceBills({ profile, currentUser }) {
     <div className="space-y-6">
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
-          <p className="text-xs text-slate-400 mb-1">Monthly Recurring Expenses</p>
+        <div className="bg-card border border-border rounded-xl p-4 text-center">
+          <p className="text-xs text-muted-foreground mb-1">Monthly Recurring Expenses</p>
           <p className="text-lg font-bold text-red-400">{fmt(summary.monthlyExpenses)}</p>
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
-          <p className="text-xs text-slate-400 mb-1">Monthly Recurring Income</p>
+        <div className="bg-card border border-border rounded-xl p-4 text-center">
+          <p className="text-xs text-muted-foreground mb-1">Monthly Recurring Income</p>
           <p className="text-lg font-bold text-emerald-400">{fmt(summary.monthlyIncome)}</p>
         </div>
       </div>
 
       {/* Active items */}
       {activeItems.length === 0 && inactiveItems.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-          <Repeat className="h-8 w-8 text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-400 mb-4">
+        <div className="bg-card border border-border rounded-xl p-8 text-center">
+          <Repeat className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
+          <p className="text-muted-foreground mb-4">
             No recurring items yet. Add bills, subscriptions, or regular income to start tracking.
           </p>
           <button type="button" onClick={openAdd}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors min-h-[44px]">
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors min-h-[44px]">
             <Plus className="h-4 w-4" /> Add Recurring Item
           </button>
         </div>
@@ -360,24 +360,24 @@ export default function FinanceBills({ profile, currentUser }) {
                 <div key={item.id} className="flex items-center gap-3">
                   {/* Toggle button */}
                   <button type="button" onClick={() => toggleMutation.mutate(item)}
-                    className="flex-shrink-0 h-5 w-5 rounded border border-amber-500 bg-amber-500 flex items-center justify-center"
+                    className="flex-shrink-0 h-5 w-5 rounded border border-primary bg-primary flex items-center justify-center"
                     title="Pause this item">
-                    <svg className="h-3 w-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </button>
                   {/* Card */}
                   <button type="button" onClick={() => openEdit(item)}
-                    className="flex-1 bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 text-left transition-colors">
+                    className="flex-1 bg-card border border-border hover:border-primary/50 rounded-xl p-4 text-left transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm text-slate-100 truncate">{item.description}</p>
+                        <p className="text-sm text-foreground truncate">{item.description}</p>
                         <div className="flex gap-2 mt-1 flex-wrap">
-                          <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">
+                          <span className="text-xs bg-secondary text-muted-foreground px-2 py-0.5 rounded-full">
                             {getFrequencyLabel(item.frequency)}
                           </span>
                           {item.category && (
-                            <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">
+                            <span className="text-xs bg-secondary text-muted-foreground px-2 py-0.5 rounded-full">
                               {item.category}
                             </span>
                           )}
@@ -386,7 +386,7 @@ export default function FinanceBills({ profile, currentUser }) {
                       <div className={`text-sm font-semibold flex-shrink-0 ml-3 ${
                         item.type === 'income' ? 'text-emerald-400' : 'text-red-400'}`}>
                         {item.type === 'income' ? '+' : '-'}{fmt(item.amount)}
-                        <span className="text-xs text-slate-500 block text-right">
+                        <span className="text-xs text-muted-foreground/70 block text-right">
                           {fmt(toMonthly(item.amount || 0, item.frequency || 'monthly'))}/mo
                         </span>
                       </div>
@@ -400,22 +400,22 @@ export default function FinanceBills({ profile, currentUser }) {
           {/* Inactive (paused) items */}
           {inactiveItems.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs text-slate-500 uppercase tracking-wider">Paused</p>
+              <p className="text-xs text-muted-foreground/70 uppercase tracking-wider">Paused</p>
               {inactiveItems.map((item) => (
                 <div key={item.id} className="flex items-center gap-3 opacity-50">
                   <button type="button" onClick={() => toggleMutation.mutate(item)}
-                    className="flex-shrink-0 h-5 w-5 rounded border border-slate-600 bg-transparent"
+                    className="flex-shrink-0 h-5 w-5 rounded border border-border bg-transparent"
                     title="Resume this item" />
                   <button type="button" onClick={() => openEdit(item)}
-                    className="flex-1 bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-xl p-4 text-left transition-colors">
+                    className="flex-1 bg-card border border-border hover:border-primary/50 rounded-xl p-4 text-left transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm text-slate-400 truncate">{item.description}</p>
-                        <span className="text-xs bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full">
+                        <p className="text-sm text-muted-foreground truncate">{item.description}</p>
+                        <span className="text-xs bg-secondary text-muted-foreground/70 px-2 py-0.5 rounded-full">
                           {getFrequencyLabel(item.frequency)}
                         </span>
                       </div>
-                      <div className="text-sm text-slate-500 flex-shrink-0 ml-3">
+                      <div className="text-sm text-muted-foreground/70 flex-shrink-0 ml-3">
                         {fmt(item.amount)}
                       </div>
                     </div>
@@ -428,7 +428,7 @@ export default function FinanceBills({ profile, currentUser }) {
           {/* Add button */}
           <div className="flex justify-center pt-2">
             <button type="button" onClick={openAdd}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-colors min-h-[44px]">
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors min-h-[44px]">
               <Plus className="h-4 w-4" /> Add Recurring Item
             </button>
           </div>

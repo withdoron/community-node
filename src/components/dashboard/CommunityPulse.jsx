@@ -90,32 +90,32 @@ export default function CommunityPulse() {
   ];
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+    <div className="bg-card border border-border rounded-xl p-6">
       <style dangerouslySetInnerHTML={{ __html: PULSE_STYLES }} />
 
       {/* Heading with pulse dot */}
       <div className="flex items-center gap-2 mb-5">
         <div
-          className="w-2 h-2 rounded-full bg-amber-500"
+          className="w-2 h-2 rounded-full bg-primary"
           style={{ animation: 'communityPulse 3s ease-in-out infinite' }}
         />
-        <h3 className="text-sm font-semibold text-slate-300 tracking-wide">Community Pulse</h3>
+        <h3 className="text-sm font-semibold text-foreground-soft tracking-wide">Community Pulse</h3>
       </div>
 
       {/* Stats row */}
       <div className="flex flex-wrap gap-x-8 gap-y-4">
         {stats.map((stat) => (
           <div key={stat.label}>
-            <p className="text-2xl font-bold text-slate-100">
+            <p className="text-2xl font-bold text-foreground">
               {stat.value != null ? stat.value : '—'}
             </p>
-            <p className="text-xs text-slate-500 mt-0.5">{stat.label}</p>
+            <p className="text-xs text-muted-foreground/70 mt-0.5">{stat.label}</p>
           </div>
         ))}
       </div>
 
       {/* Tagline */}
-      <p className="text-sm text-slate-500 italic mt-5">
+      <p className="text-sm text-muted-foreground/70 italic mt-5">
         LocalLane is built by the community that uses it. Your ideas shape what comes next.
       </p>
     </div>

@@ -15,16 +15,16 @@ function formatDate(d) {
 }
 
 const WORKER_TYPE_STYLES = {
-  handyman: 'bg-amber-500/20 text-amber-400',
+  handyman: 'bg-primary/20 text-primary-hover',
   manager: 'bg-purple-500/20 text-purple-400',
-  owner: 'bg-slate-600/20 text-slate-300',
+  owner: 'bg-surface/20 text-foreground-soft',
   cleaner: 'bg-blue-500/20 text-blue-400',
   landscaper: 'bg-emerald-500/20 text-emerald-400',
-  other: 'bg-slate-600/20 text-slate-400',
+  other: 'bg-surface/20 text-muted-foreground',
 };
 
 const inputClass =
-  'rounded-md bg-slate-800 border border-slate-700 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 px-3 py-2 text-sm';
+  'rounded-md bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-ring px-3 py-2 text-sm';
 
 export default function FinanceLaborList({
   entries,
@@ -135,15 +135,15 @@ export default function FinanceLaborList({
         />
       </div>
 
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-muted-foreground/70">
         {filtered.length} of {(entries || []).length} entries
       </p>
 
       {/* List */}
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
-          <Hammer className="w-10 h-10 text-slate-600 mb-3" />
-          <p className="text-slate-400 text-sm">No labor entries match your filters</p>
+          <Hammer className="w-10 h-10 text-muted-foreground/50 mb-3" />
+          <p className="text-muted-foreground text-sm">No labor entries match your filters</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -152,12 +152,12 @@ export default function FinanceLaborList({
             return (
               <div
                 key={entry.id}
-                className="bg-slate-900 border border-slate-800 rounded-lg p-4 flex items-start gap-3"
+                className="bg-card border border-border rounded-lg p-4 flex items-start gap-3"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-slate-500">{formatDate(entry.date)}</span>
-                    <span className="font-semibold text-slate-100">{entry.worker_name}</span>
+                    <span className="text-xs text-muted-foreground/70">{formatDate(entry.date)}</span>
+                    <span className="font-semibold text-foreground">{entry.worker_name}</span>
                     <span
                       className={`px-2 py-0.5 text-[10px] rounded-full font-medium capitalize ${typeStyle}`}
                     >
@@ -165,18 +165,18 @@ export default function FinanceLaborList({
                     </span>
                   </div>
                   <div className="flex items-center gap-4 mt-1 text-sm">
-                    <span className="text-slate-300">
+                    <span className="text-foreground-soft">
                       {new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(entry.hours || 0)}h
-                      <span className="text-slate-500 mx-1">×</span>
+                      <span className="text-muted-foreground/70 mx-1">×</span>
                       {formatCurrency(entry.hourly_rate)}
                     </span>
-                    <span className="font-bold text-amber-400">{formatCurrency(entry.total)}</span>
+                    <span className="font-bold text-primary-hover">{formatCurrency(entry.total)}</span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-muted-foreground/70 mt-1">
                     {getPropertyLabel(entry.property_id)}
                   </p>
                   {entry.description && (
-                    <p className="text-xs text-slate-400 mt-1">{entry.description}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{entry.description}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
@@ -184,7 +184,7 @@ export default function FinanceLaborList({
                     variant="ghost"
                     size="icon"
                     onClick={() => onEdit(entry)}
-                    className="h-8 w-8 text-slate-400 hover:text-amber-500 hover:bg-slate-800"
+                    className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-secondary"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                   </Button>
@@ -192,7 +192,7 @@ export default function FinanceLaborList({
                     variant="ghost"
                     size="icon"
                     onClick={() => onDelete(entry)}
-                    className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-slate-800"
+                    className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-secondary"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>

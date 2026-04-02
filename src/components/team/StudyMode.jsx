@@ -120,9 +120,9 @@ export default function StudyMode({
 
   if (filteredPlays.length === 0) {
     return (
-      <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6">
-        <p className="text-slate-500 mb-4">No plays to study.</p>
-        <button type="button" onClick={onClose} className="text-amber-500 font-medium">
+      <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center p-6">
+        <p className="text-muted-foreground/70 mb-4">No plays to study.</p>
+        <button type="button" onClick={onClose} className="text-primary font-medium">
           Close
         </button>
       </div>
@@ -130,32 +130,32 @@ export default function StudyMode({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-800 flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 bg-card border-b border-border flex-shrink-0">
         <button
           type="button"
           onClick={onClose}
-          className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+          className="p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label="Close"
         >
           <X className="h-6 w-6" />
         </button>
-        <span className="text-white font-medium">
+        <span className="text-foreground font-medium">
           {currentIndex + 1} / {filteredPlays.length}
         </span>
         <div className="flex gap-2 min-w-[44px]">
           <button
             type="button"
             onClick={() => setGameDayOnly(false)}
-            className={`px-2 py-1 rounded text-xs font-medium min-h-[36px] ${!gameDayOnly ? 'bg-slate-700 text-white' : 'text-slate-400'}`}
+            className={`px-2 py-1 rounded text-xs font-medium min-h-[36px] ${!gameDayOnly ? 'bg-surface text-foreground' : 'text-muted-foreground'}`}
           >
             All
           </button>
           <button
             type="button"
             onClick={() => setGameDayOnly(true)}
-            className={`px-2 py-1 rounded text-xs font-medium min-h-[36px] ${gameDayOnly ? 'bg-amber-500/20 text-amber-500' : 'text-slate-400'}`}
+            className={`px-2 py-1 rounded text-xs font-medium min-h-[36px] ${gameDayOnly ? 'bg-primary/20 text-primary' : 'text-muted-foreground'}`}
           >
             Game Day
           </button>
@@ -163,18 +163,18 @@ export default function StudyMode({
       </div>
 
       {/* My Assignment / Full Play toggle */}
-      <div className="flex gap-2 p-1 bg-slate-800 rounded-xl mx-4 mt-3 flex-shrink-0">
+      <div className="flex gap-2 p-1 bg-secondary rounded-xl mx-4 mt-3 flex-shrink-0">
         <button
           type="button"
           onClick={() => setViewMode('my')}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium min-h-[44px] transition-colors ${viewMode === 'my' ? 'bg-amber-500 text-black' : 'text-slate-400'}`}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium min-h-[44px] transition-colors ${viewMode === 'my' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
         >
           My Assignment
         </button>
         <button
           type="button"
           onClick={() => setViewMode('full')}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium min-h-[44px] transition-colors ${viewMode === 'full' ? 'bg-amber-500 text-black' : 'text-slate-400'}`}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium min-h-[44px] transition-colors ${viewMode === 'full' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
         >
           Full Play
         </button>
@@ -183,7 +183,7 @@ export default function StudyMode({
       {/* View as position selector — coaches only, My Assignment view */}
       {isCoach && viewMode === 'my' && (
         <div className="mx-4 mt-3 flex-shrink-0">
-          <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">View as</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">View as</p>
           <div className="flex justify-center gap-2">
             {positionOrder.map((pos) => (
               <button
@@ -192,8 +192,8 @@ export default function StudyMode({
                 onClick={() => setViewAsPosition((prev) => (prev === pos ? null : pos))}
                 className={`min-w-[44px] min-h-[44px] rounded-lg border text-sm font-bold transition-colors ${
                   viewAsPosition === pos
-                    ? 'bg-slate-800 border-amber-500 text-amber-500'
-                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-amber-500/50 hover:text-amber-500'
+                    ? 'bg-secondary border-primary text-primary'
+                    : 'bg-secondary border-border text-muted-foreground hover:border-primary/50 hover:text-primary'
                 }`}
               >
                 {pos}
@@ -213,7 +213,7 @@ export default function StudyMode({
           <div className="p-4 pb-2 flex-1 flex flex-col">
             {/* Diagram — visual renderer or photo */}
             {play.use_renderer ? (
-              <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 flex-shrink-0" style={{ minHeight: '40vh' }}>
+              <div className="rounded-xl overflow-hidden bg-secondary border border-border mb-4 flex-shrink-0" style={{ minHeight: '40vh' }}>
                 <PlayRenderer
                   play={play}
                   assignments={currentAssignments}
@@ -222,11 +222,11 @@ export default function StudyMode({
                   mode="study"
                 />
                 {play.is_mirrorable && (
-                  <div className="p-2 border-t border-slate-700">
+                  <div className="p-2 border-t border-border">
                     <button
                       type="button"
                       onClick={() => setMirrored((m) => !m)}
-                      className="w-full py-2 text-sm text-slate-300 border border-slate-600 rounded-lg hover:border-amber-500/50"
+                      className="w-full py-2 text-sm text-foreground-soft border border-border rounded-lg hover:border-primary/50"
                     >
                       {mirrored ? 'Show normal' : 'Mirror view'}
                     </button>
@@ -234,7 +234,7 @@ export default function StudyMode({
                 )}
               </div>
             ) : play.diagram_image ? (
-              <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 mb-4 flex-shrink-0">
+              <div className="rounded-xl overflow-hidden bg-secondary border border-border mb-4 flex-shrink-0">
                 <div
                   className="w-full aspect-video overflow-hidden"
                   style={{ transform: play.is_mirrorable && mirrored ? 'scaleX(-1)' : undefined }}
@@ -242,11 +242,11 @@ export default function StudyMode({
                   <img src={play.diagram_image} alt="" className="w-full h-full object-contain" />
                 </div>
                 {play.is_mirrorable && (
-                  <div className="p-2 border-t border-slate-700">
+                  <div className="p-2 border-t border-border">
                     <button
                       type="button"
                       onClick={() => setMirrored((m) => !m)}
-                      className="w-full py-2 text-sm text-slate-300 border border-slate-600 rounded-lg hover:border-amber-500/50"
+                      className="w-full py-2 text-sm text-foreground-soft border border-border rounded-lg hover:border-primary/50"
                     >
                       {mirrored ? 'Show normal' : 'Mirror view'}
                     </button>
@@ -256,52 +256,52 @@ export default function StudyMode({
             ) : null}
 
             <div className="flex items-center gap-2 flex-wrap mb-3">
-              <h2 className="text-lg font-bold text-white">{play.name}</h2>
-              <span className="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded">{play.formation || '—'}</span>
+              <h2 className="text-lg font-bold text-foreground">{play.name}</h2>
+              <span className="bg-secondary text-foreground-soft text-xs px-2 py-0.5 rounded">{play.formation || '—'}</span>
             </div>
 
             {viewMode === 'my' ? (
               <>
                 {isCoach && !viewAsPosition ? (
-                  <div className="bg-slate-800/50 rounded-xl p-4 mb-4 border border-slate-700">
-                    <p className="text-slate-400">Select a position to preview</p>
+                  <div className="bg-secondary/50 rounded-xl p-4 mb-4 border border-border">
+                    <p className="text-muted-foreground">Select a position to preview</p>
                   </div>
                 ) : myAssignment ? (
-                  <div className="bg-slate-900 border-l-4 border-amber-500 rounded-r-xl p-4 mb-4">
+                  <div className="bg-card border-l-4 border-primary rounded-r-xl p-4 mb-4">
                     {isCoach && viewAsPosition && (
-                      <p className="text-amber-500 text-xs font-semibold uppercase tracking-wider mb-2">Your assignment</p>
+                      <p className="text-primary text-xs font-semibold uppercase tracking-wider mb-2">Your assignment</p>
                     )}
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-amber-500 text-2xl font-bold">{myAssignment.position}</span>
+                      <span className="text-primary text-2xl font-bold">{myAssignment.position}</span>
                       {getRouteDisplay(myAssignment) && (
-                        <span className="bg-slate-800 text-amber-400 text-sm font-semibold px-2 py-0.5 rounded">
+                        <span className="bg-secondary text-primary-hover text-sm font-semibold px-2 py-0.5 rounded">
                           {getRouteDisplay(myAssignment)}
                         </span>
                       )}
                     </div>
                     {myAssignment.assignment_text ? (
-                      <p className="text-white text-lg min-h-[18px]">{myAssignment.assignment_text}</p>
+                      <p className="text-foreground text-lg min-h-[18px]">{myAssignment.assignment_text}</p>
                     ) : getRouteDisplay(myAssignment) ? null : (
-                      <p className="text-slate-400 text-lg min-h-[18px]">No assignment</p>
+                      <p className="text-muted-foreground text-lg min-h-[18px]">No assignment</p>
                     )}
                   </div>
                 ) : displayPosition ? (
-                  <div className="bg-slate-800/50 rounded-xl p-4 mb-4 border border-slate-700">
-                    <p className="text-slate-400">No assignment for {displayPosition} on this play.</p>
+                  <div className="bg-secondary/50 rounded-xl p-4 mb-4 border border-border">
+                    <p className="text-muted-foreground">No assignment for {displayPosition} on this play.</p>
                   </div>
                 ) : null}
 
                 {otherAssignments.length > 0 && (
                   <div className="space-y-1">
-                    <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">Other positions</p>
+                    <p className="text-xs text-muted-foreground/70 uppercase tracking-wider mb-2">Other positions</p>
                     {otherAssignments.map((a) => {
                       const routeLabel = getRouteDisplay(a);
                       return (
-                        <div key={a.id} className="flex items-start gap-2 text-slate-500 text-sm py-0.5">
+                        <div key={a.id} className="flex items-start gap-2 text-muted-foreground/70 text-sm py-0.5">
                           <span className="font-medium w-8 flex-shrink-0">{a.position}</span>
                           <div className="flex flex-col gap-0.5">
-                            {routeLabel && <span className="text-slate-400 font-medium">{routeLabel}</span>}
-                            {a.assignment_text && <span className="text-slate-500">{a.assignment_text}</span>}
+                            {routeLabel && <span className="text-muted-foreground font-medium">{routeLabel}</span>}
+                            {a.assignment_text && <span className="text-muted-foreground/70">{a.assignment_text}</span>}
                             {!routeLabel && !a.assignment_text && <span>—</span>}
                           </div>
                         </div>
@@ -311,9 +311,9 @@ export default function StudyMode({
                 )}
 
                 {isCoach && play.coach_notes && (
-                  <div className="mt-4 bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
-                    <p className="text-xs font-semibold text-amber-500 uppercase tracking-wider mb-2">Coach notes</p>
-                    <p className="text-slate-300 text-sm whitespace-pre-wrap">{play.coach_notes}</p>
+                  <div className="mt-4 bg-primary/5 border border-primary/20 rounded-lg p-4">
+                    <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">Coach notes</p>
+                    <p className="text-foreground-soft text-sm whitespace-pre-wrap">{play.coach_notes}</p>
                   </div>
                 )}
               </>
@@ -325,26 +325,26 @@ export default function StudyMode({
                     return (
                       <div
                         key={a.id}
-                        className={`rounded-lg border p-3 ${isMyPos ? 'border-l-4 border-l-amber-500 bg-amber-500/5' : 'border-slate-700 bg-slate-800/50'}`}
+                        className={`rounded-lg border p-3 ${isMyPos ? 'border-l-4 border-l-primary bg-primary/5' : 'border-border bg-secondary/50'}`}
                       >
-                        {isMyPos && <p className="text-amber-500 text-xs font-semibold uppercase tracking-wider mb-1">Your assignment</p>}
+                        {isMyPos && <p className="text-primary text-xs font-semibold uppercase tracking-wider mb-1">Your assignment</p>}
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-amber-500 font-bold">{a.position}</span>
+                          <span className="text-primary font-bold">{a.position}</span>
                           {getRouteDisplay(a) && (
-                            <span className="bg-slate-800 text-amber-400 text-xs font-semibold px-2 py-0.5 rounded">
+                            <span className="bg-secondary text-primary-hover text-xs font-semibold px-2 py-0.5 rounded">
                               {getRouteDisplay(a)}
                             </span>
                           )}
                         </div>
-                        {a.assignment_text && <p className="text-slate-300 text-sm mt-1">{a.assignment_text}</p>}
+                        {a.assignment_text && <p className="text-foreground-soft text-sm mt-1">{a.assignment_text}</p>}
                       </div>
                     );
                   })}
                 </div>
                 {isCoach && play.coach_notes && (
-                  <div className="mt-4 bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
-                    <p className="text-xs font-semibold text-amber-500 uppercase tracking-wider mb-2">Coach notes</p>
-                    <p className="text-slate-300 text-sm whitespace-pre-wrap">{play.coach_notes}</p>
+                  <div className="mt-4 bg-primary/5 border border-primary/20 rounded-lg p-4">
+                    <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">Coach notes</p>
+                    <p className="text-foreground-soft text-sm whitespace-pre-wrap">{play.coach_notes}</p>
                   </div>
                 )}
               </>
@@ -354,13 +354,13 @@ export default function StudyMode({
       </div>
 
       {/* Bottom: arrows + progress dots */}
-      <div className="flex-shrink-0 border-t border-slate-800 bg-slate-900 px-4 py-3">
+      <div className="flex-shrink-0 border-t border-border bg-card px-4 py-3">
         <div className="flex items-center justify-center gap-4 mb-3">
           <button
             type="button"
             onClick={goPrev}
             disabled={currentIndex === 0}
-            className="p-2 rounded-lg bg-slate-800 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="p-2 rounded-lg bg-secondary text-foreground-soft disabled:opacity-40 disabled:cursor-not-allowed min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Previous"
           >
             <ChevronLeft className="h-6 w-6" />
@@ -372,7 +372,7 @@ export default function StudyMode({
                 type="button"
                 onClick={() => { setCurrentIndex(i); setMirrored(false); }}
                 className={`w-2.5 h-2.5 rounded-full transition-colors flex-shrink-0 ${
-                  i === currentIndex ? 'bg-amber-500' : viewedPlays.has(p.id) ? 'bg-slate-400' : 'bg-slate-700'
+                  i === currentIndex ? 'bg-primary' : viewedPlays.has(p.id) ? 'bg-slate-400' : 'bg-surface'
                 }`}
                 aria-label={`Play ${i + 1}`}
               />
@@ -382,7 +382,7 @@ export default function StudyMode({
             type="button"
             onClick={goNext}
             disabled={currentIndex === filteredPlays.length - 1}
-            className="p-2 rounded-lg bg-slate-800 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="p-2 rounded-lg bg-secondary text-foreground-soft disabled:opacity-40 disabled:cursor-not-allowed min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Next"
           >
             <ChevronRight className="h-6 w-6" />

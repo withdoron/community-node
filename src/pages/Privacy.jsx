@@ -6,24 +6,24 @@ import { ArrowLeft } from 'lucide-react';
 export default function Privacy() {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-background">
       <div className="max-w-3xl mx-auto px-6 py-12">
         {/* Back — goes to where the user came from, falls back to Home */}
         <button
           onClick={() => window.history.length > 1 ? navigate(-1) : navigate(createPageUrl('Home'))}
-          className="inline-flex items-center gap-2 text-slate-400 hover:text-amber-500 transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </button>
 
-        <h1 className="text-3xl font-bold text-white mb-2">Privacy Policy</h1>
-        <p className="text-slate-400 text-sm mb-10">Last updated: March 2026</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Privacy Policy</h1>
+        <p className="text-muted-foreground text-sm mb-10">Last updated: March 2026</p>
 
-        <div className="space-y-8 text-slate-300 leading-relaxed">
+        <div className="space-y-8 text-foreground-soft leading-relaxed">
           {/* 1. Overview */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">1. Overview</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-3">1. Overview</h2>
             <p>
               LocalLane is built for community, not for ads. We collect only what we need to
               operate the platform and we never sell your data to third parties. LocalLane
@@ -35,46 +35,46 @@ export default function Privacy() {
 
           {/* 2. What We Collect */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">2. What We Collect</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-3">2. What We Collect</h2>
             <p className="mb-3">
-              <span className="text-white font-medium">Account information:</span> Name, email
+              <span className="text-foreground font-medium">Account information:</span> Name, email
               address, and optionally phone number and home community preference. This is provided
               by you during registration and in your account settings.
             </p>
             <p className="mb-3">
-              <span className="text-white font-medium">Activity data:</span> Events you RSVP to,
+              <span className="text-foreground font-medium">Activity data:</span> Events you RSVP to,
               businesses you recommend, and your interactions with the platform. This powers your
               personalized experience and community recommendations.
             </p>
             <p className="mb-3">
-              <span className="text-white font-medium">Conversation data:</span> When you talk to
+              <span className="text-foreground font-medium">Conversation data:</span> When you talk to
               Mylane, your conversations are stored in your account to provide personalized
               assistance. Mylane remembers what you've discussed to serve you better across
               sessions.
             </p>
             <p className="mb-3">
-              <span className="text-white font-medium">Interaction patterns:</span> How you navigate
+              <span className="text-foreground font-medium">Interaction patterns:</span> How you navigate
               the app — which spaces you visit, how often, what you tap — helps the platform adapt
               to your preferences. This powers features like card dimming, discovery suggestions, and
               how Mylane adjusts to your style.
             </p>
             <p className="mb-3">
-              <span className="text-white font-medium">Team and family data:</span> If you join a
+              <span className="text-foreground font-medium">Team and family data:</span> If you join a
               team workspace, your role (coach, parent, player), roster information, and parent-player
               links are stored. Parents may create and manage accounts on behalf of minor children.
             </p>
             <p className="mb-3">
-              <span className="text-white font-medium">Financial data:</span> If you use the finance
+              <span className="text-foreground font-medium">Financial data:</span> If you use the finance
               workspace, personal transaction records (amounts, vendors, categories, dates) are stored
               in your account. This data is never shared with other users or third parties.
             </p>
             <p className="mb-3">
-              <span className="text-white font-medium">Business information:</span> If you register
+              <span className="text-foreground font-medium">Business information:</span> If you register
               a business, we collect your business name, description, category, contact details, and
               location. Business profiles are publicly visible on the platform.
             </p>
             <p>
-              <span className="text-white font-medium">Payment data:</span> When payment features
+              <span className="text-foreground font-medium">Payment data:</span> When payment features
               are active, payment processing is handled entirely by Stripe. LocalLane does not
               store credit card numbers, bank account details, or other sensitive financial
               information on our servers. See{' '}
@@ -82,7 +82,7 @@ export default function Privacy() {
                 href="https://stripe.com/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-amber-500 hover:text-amber-400 transition-colors"
+                className="text-primary hover:text-primary-hover transition-colors"
               >
                 Stripe's Privacy Policy
               </a>{' '}
@@ -92,7 +92,7 @@ export default function Privacy() {
 
           {/* 3. How We Use Your Data */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">3. How We Use Your Data</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-3">3. How We Use Your Data</h2>
             <p className="mb-3">
               We use your information to operate the platform: showing you relevant events,
               powering recommendations, connecting you with local businesses, and managing your
@@ -108,7 +108,7 @@ export default function Privacy() {
 
           {/* 4. What We Don't Do */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">4. What We Don't Do</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-3">4. What We Don't Do</h2>
             <p>
               We do not sell, rent, or share your personal information with advertisers or data
               brokers. We do not serve ads. We do not track you across other websites. We do not
@@ -120,7 +120,7 @@ export default function Privacy() {
 
           {/* 5. AI Companion (Mylane) */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">5. AI Companion (Mylane)</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-3">5. AI Companion (Mylane)</h2>
             <p className="mb-3">
               Mylane is an AI assistant powered by artificial intelligence. She is not a human.
               Mylane clearly identifies herself as AI in all interactions.
@@ -139,7 +139,7 @@ export default function Privacy() {
 
           {/* 6. Children's Privacy */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">6. Children's Privacy</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-3">6. Children's Privacy</h2>
             <p className="mb-3">
               LocalLane serves families, including children as young as 10 through team
               workspaces. Children's accounts are created and managed by their parents. Parents
@@ -153,7 +153,7 @@ export default function Privacy() {
             <p>
               We do not serve ads to minors, track minors across other sites, or sell their data.
               Parents can request deletion of their child's data at any time by contacting{' '}
-              <a href="mailto:support@locallane.app" className="text-amber-500 hover:text-amber-400 transition-colors">
+              <a href="mailto:support@locallane.app" className="text-primary hover:text-primary-hover transition-colors">
                 support@locallane.app
               </a>.
             </p>
@@ -161,7 +161,7 @@ export default function Privacy() {
 
           {/* 7. Data Storage */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">7. Data Storage and Security</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-3">7. Data Storage and Security</h2>
             <p>
               Your data is stored securely through our infrastructure provider. We use
               authentication, access controls, and encryption to protect your information.
@@ -173,12 +173,12 @@ export default function Privacy() {
 
           {/* 8. Your Rights */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">8. Your Rights</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-3">8. Your Rights</h2>
             <p>
               You can view and update your personal information through your account settings at
               any time. You can delete your Mylane conversation history through the chat interface.
               If you'd like to delete your account and all associated data, contact us at{' '}
-              <a href="mailto:support@locallane.app" className="text-amber-500 hover:text-amber-400 transition-colors">
+              <a href="mailto:support@locallane.app" className="text-primary hover:text-primary-hover transition-colors">
                 support@locallane.app
               </a>{' '}
               and we'll process your request promptly.
@@ -187,7 +187,7 @@ export default function Privacy() {
 
           {/* 9. Third-Party Services */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">9. Third-Party Services</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-3">9. Third-Party Services</h2>
             <p>
               LocalLane uses third-party services to operate. These include our hosting and
               authentication provider (Base44), payment processor (Stripe), and AI provider
@@ -199,7 +199,7 @@ export default function Privacy() {
 
           {/* 10. Changes */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">10. Changes to This Policy</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-3">10. Changes to This Policy</h2>
             <p>
               We may update this policy as the platform evolves. Material changes will be
               communicated through the platform or via email. Continued use of LocalLane
@@ -209,10 +209,10 @@ export default function Privacy() {
 
           {/* 11. Contact */}
           <section>
-            <h2 className="text-xl font-semibold text-white mb-3">11. Contact</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-3">11. Contact</h2>
             <p>
               Privacy questions? Reach us at{' '}
-              <a href="mailto:support@locallane.app" className="text-amber-500 hover:text-amber-400 transition-colors">
+              <a href="mailto:support@locallane.app" className="text-primary hover:text-primary-hover transition-colors">
                 support@locallane.app
               </a>
             </p>

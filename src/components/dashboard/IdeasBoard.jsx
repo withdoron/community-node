@@ -23,11 +23,11 @@ import { toast } from 'sonner';
 // ─── Constants ──────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
-  proposed:  { label: 'Planted',    className: 'bg-slate-700 text-slate-300' },
-  reviewing: { label: 'Sprouting',  className: 'bg-amber-500/20 text-amber-500' },
+  proposed:  { label: 'Planted',    className: 'bg-surface text-foreground-soft' },
+  reviewing: { label: 'Sprouting',  className: 'bg-primary/20 text-primary' },
   building:  { label: 'Growing',    className: 'bg-blue-500/20 text-blue-400' },
   shipped:   { label: 'Bloomed',    className: 'bg-green-500/20 text-green-400' },
-  deferred:  { label: 'Composted',  className: 'bg-slate-700 text-slate-500' },
+  deferred:  { label: 'Composted',  className: 'bg-surface text-muted-foreground/70' },
 };
 
 const STATUSES = Object.keys(STATUS_CONFIG);
@@ -87,8 +87,8 @@ function VoteButton({ count, voted, onToggle, disabled }) {
       disabled={disabled}
       className={`flex flex-col items-center justify-center w-12 min-h-[56px] rounded-lg transition-colors shrink-0 ${
         voted
-          ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500'
-          : 'bg-slate-900 border border-slate-700 text-slate-400 hover:border-slate-600'
+          ? 'bg-primary/10 border border-primary/30 text-primary'
+          : 'bg-card border border-border text-muted-foreground hover:border-border'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
     >
       <span className="text-sm font-bold leading-none">{count}</span>
@@ -137,7 +137,7 @@ function IdeaSubmitForm({ currentUser }) {
       <button
         type="button"
         onClick={() => setExpanded(true)}
-        className="w-full text-left px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-500 hover:border-slate-600 transition-colors"
+        className="w-full text-left px-4 py-3 bg-secondary border border-border rounded-lg text-muted-foreground/70 hover:border-border transition-colors"
       >
         Plant a seed — what should we grow next?
       </button>
@@ -145,13 +145,13 @@ function IdeaSubmitForm({ currentUser }) {
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 space-y-3">
+    <div className="bg-secondary border border-border rounded-lg p-4 space-y-3">
       <input
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value.slice(0, 100))}
         placeholder="What's the seed?"
-        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-amber-500 transition-colors"
+        className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm focus:outline-none focus:border-primary transition-colors"
         autoFocus
         maxLength={100}
       />
@@ -161,10 +161,10 @@ function IdeaSubmitForm({ currentUser }) {
           onChange={(e) => setDescription(e.target.value.slice(0, 500))}
           placeholder="Why should this grow?"
           rows={3}
-          className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 text-sm resize-none focus:outline-none focus:border-amber-500 transition-colors"
+          className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm resize-none focus:outline-none focus:border-primary transition-colors"
           maxLength={500}
         />
-        <span className="absolute bottom-2 right-3 text-xs text-slate-600">
+        <span className="absolute bottom-2 right-3 text-xs text-muted-foreground/50">
           {description.length}/500
         </span>
       </div>
@@ -172,7 +172,7 @@ function IdeaSubmitForm({ currentUser }) {
         <Button
           onClick={() => submitMutation.mutate()}
           disabled={!title.trim() || submitMutation.isPending}
-          className="bg-amber-500 hover:bg-amber-400 text-black font-medium text-sm px-4 py-2 min-h-[36px]"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium text-sm px-4 py-2 min-h-[36px]"
         >
           {submitMutation.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -187,7 +187,7 @@ function IdeaSubmitForm({ currentUser }) {
             setTitle('');
             setDescription('');
           }}
-          className="text-sm text-slate-500 hover:text-slate-400 transition-colors px-2"
+          className="text-sm text-muted-foreground/70 hover:text-muted-foreground transition-colors px-2"
         >
           Cancel
         </button>
@@ -220,13 +220,13 @@ function AdminPanel({ idea, onSave, onClose }) {
   };
 
   return (
-    <div className="mt-3 pt-3 border-t border-slate-700 space-y-3">
+    <div className="mt-3 pt-3 border-t border-border space-y-3">
       <div className="flex items-center gap-2">
-        <label className="text-xs text-slate-500 shrink-0">Status</label>
+        <label className="text-xs text-muted-foreground/70 shrink-0">Status</label>
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="flex-1 px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm text-slate-200 focus:outline-none focus:border-amber-500"
+          className="flex-1 px-2 py-1.5 bg-card border border-border rounded text-sm text-foreground focus:outline-none focus:border-primary"
         >
           {STATUSES.map((s) => (
             <option key={s} value={s}>
@@ -236,20 +236,20 @@ function AdminPanel({ idea, onSave, onClose }) {
         </select>
       </div>
       <div>
-        <label className="text-xs text-slate-500 block mb-1">Steward note</label>
+        <label className="text-xs text-muted-foreground/70 block mb-1">Steward note</label>
         <input
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Add a note visible to everyone"
-          className="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500"
+          className="w-full px-2 py-1.5 bg-card border border-border rounded text-sm text-foreground placeholder-slate-600 focus:outline-none focus:border-primary"
         />
       </div>
       <div className="flex items-center gap-2">
         <Button
           onClick={handleSave}
           disabled={saving}
-          className="bg-amber-500 hover:bg-amber-400 text-black font-medium text-xs px-3 py-1.5 min-h-[32px]"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium text-xs px-3 py-1.5 min-h-[32px]"
           size="sm"
         >
           {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Save'}
@@ -257,7 +257,7 @@ function AdminPanel({ idea, onSave, onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="text-xs text-slate-500 hover:text-slate-400"
+          className="text-xs text-muted-foreground/70 hover:text-muted-foreground"
         >
           Cancel
         </button>
@@ -290,26 +290,26 @@ function AuthorEditPanel({ idea, onSave, onClose }) {
   };
 
   return (
-    <div className="mt-3 pt-3 border-t border-slate-700 space-y-3">
+    <div className="mt-3 pt-3 border-t border-border space-y-3">
       <input
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value.slice(0, 100))}
-        className="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm text-slate-100 focus:outline-none focus:border-amber-500"
+        className="w-full px-2 py-1.5 bg-card border border-border rounded text-sm text-foreground focus:outline-none focus:border-primary"
         maxLength={100}
       />
       <textarea
         value={description}
         onChange={(e) => setDescription(e.target.value.slice(0, 500))}
         rows={2}
-        className="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm text-slate-100 resize-none focus:outline-none focus:border-amber-500"
+        className="w-full px-2 py-1.5 bg-card border border-border rounded text-sm text-foreground resize-none focus:outline-none focus:border-primary"
         maxLength={500}
       />
       <div className="flex items-center gap-2">
         <Button
           onClick={handleSave}
           disabled={saving || !title.trim()}
-          className="bg-amber-500 hover:bg-amber-400 text-black font-medium text-xs px-3 py-1.5 min-h-[32px]"
+          className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium text-xs px-3 py-1.5 min-h-[32px]"
           size="sm"
         >
           {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Save'}
@@ -317,7 +317,7 @@ function AuthorEditPanel({ idea, onSave, onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="text-xs text-slate-500 hover:text-slate-400"
+          className="text-xs text-muted-foreground/70 hover:text-muted-foreground"
         >
           Cancel
         </button>
@@ -528,8 +528,8 @@ export default function IdeasBoard({ currentUser }) {
     <div className="space-y-4">
       {/* Section heading */}
       <div>
-        <h2 className="text-xl font-bold text-slate-100">Shaping the Garden</h2>
-        <p className="text-slate-400 text-sm mt-1">
+        <h2 className="text-xl font-bold text-foreground">Shaping the Garden</h2>
+        <p className="text-muted-foreground text-sm mt-1">
           Plant seeds for what LocalLane becomes. Vote on what should grow.
         </p>
       </div>
@@ -546,8 +546,8 @@ export default function IdeasBoard({ currentUser }) {
             onClick={() => setActiveFilter(opt.value)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium border whitespace-nowrap transition-colors ${
               activeFilter === opt.value
-                ? 'bg-amber-500/20 text-amber-500 border-amber-500/30'
-                : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-300'
+                ? 'bg-primary/20 text-primary border-primary/30'
+                : 'bg-secondary text-muted-foreground border-border hover:text-foreground-soft'
             }`}
           >
             {opt.label}
@@ -558,11 +558,11 @@ export default function IdeasBoard({ currentUser }) {
       {/* Ideas list */}
       {ideasLoading ? (
         <div className="flex justify-center py-8">
-          <Loader2 className="h-6 w-6 text-amber-500 animate-spin" />
+          <Loader2 className="h-6 w-6 text-primary animate-spin" />
         </div>
       ) : filteredIdeas.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-slate-500 text-sm">
+          <p className="text-muted-foreground/70 text-sm">
             {ideas.length === 0
               ? 'No seeds planted yet. Be the first to shape what grows.'
               : 'No seeds match this filter.'}
@@ -578,7 +578,7 @@ export default function IdeasBoard({ currentUser }) {
             return (
               <div
                 key={idea.id}
-                className="bg-slate-800 border border-slate-700 rounded-lg p-4"
+                className="bg-secondary border border-border rounded-lg p-4"
               >
                 <div className="flex gap-3">
                   {/* Vote button */}
@@ -592,7 +592,7 @@ export default function IdeasBoard({ currentUser }) {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-slate-100 text-sm">
+                      <h3 className="font-semibold text-foreground text-sm">
                         {idea.title}
                       </h3>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -605,7 +605,7 @@ export default function IdeasBoard({ currentUser }) {
                                 adminEditId === idea.id ? null : idea.id
                               )
                             }
-                            className="p-1 text-slate-500 hover:text-amber-500 transition-colors"
+                            className="p-1 text-muted-foreground/70 hover:text-primary transition-colors"
                             title="Manage idea"
                           >
                             <Settings2 className="h-3.5 w-3.5" />
@@ -619,7 +619,7 @@ export default function IdeasBoard({ currentUser }) {
                                 authorEditId === idea.id ? null : idea.id
                               )
                             }
-                            className="p-1 text-slate-500 hover:text-amber-500 transition-colors"
+                            className="p-1 text-muted-foreground/70 hover:text-primary transition-colors"
                             title="Edit idea"
                           >
                             <Pencil className="h-3.5 w-3.5" />
@@ -629,18 +629,18 @@ export default function IdeasBoard({ currentUser }) {
                     </div>
 
                     {idea.description && (
-                      <p className="text-slate-400 text-sm mt-1 line-clamp-2">
+                      <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
                         {idea.description}
                       </p>
                     )}
 
                     {idea.admin_note && (
-                      <p className="text-amber-500/80 text-sm italic mt-1.5">
+                      <p className="text-primary/80 text-sm italic mt-1.5">
                         {idea.admin_note}
                       </p>
                     )}
 
-                    <p className="text-slate-500 text-xs mt-2">
+                    <p className="text-muted-foreground/70 text-xs mt-2">
                       {idea.author_name || 'Someone'} ·{' '}
                       {relativeTime(idea.created_at)}
                     </p>

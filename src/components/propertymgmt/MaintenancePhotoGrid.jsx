@@ -36,7 +36,7 @@ export default function MaintenancePhotoGrid({ photos, completionPhotos, compact
         <img
           src={resolved}
           alt={label || 'Photo'}
-          className={`rounded border border-slate-700 object-cover ${
+          className={`rounded border border-border object-cover ${
             compact ? 'h-10 w-10' : 'h-16 w-16'
           }`}
         />
@@ -50,14 +50,14 @@ export default function MaintenancePhotoGrid({ photos, completionPhotos, compact
         {beforePhotos.length > 0 && (
           <div>
             {!compact && afterPhotos.length > 0 && (
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">Before</p>
+              <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wide mb-1">Before</p>
             )}
             <div className="flex gap-2 overflow-x-auto">
               {beforePhotos.map((url, i) => (
                 <PhotoThumbnail key={`b-${i}`} url={url} label="Before" />
               ))}
               {compact && beforePhotos.length > 0 && (
-                <div className="flex items-center gap-1 text-slate-500">
+                <div className="flex items-center gap-1 text-muted-foreground/70">
                   <Camera className="w-3 h-3" />
                   <span className="text-xs">{beforePhotos.length}</span>
                 </div>
@@ -68,7 +68,7 @@ export default function MaintenancePhotoGrid({ photos, completionPhotos, compact
         {afterPhotos.length > 0 && (
           <div>
             {!compact && (
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">After</p>
+              <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wide mb-1">After</p>
             )}
             <div className="flex gap-2 overflow-x-auto">
               {afterPhotos.map((url, i) => (
@@ -91,7 +91,7 @@ export default function MaintenancePhotoGrid({ photos, completionPhotos, compact
           <button
             type="button"
             onClick={() => setLightboxUrl(null)}
-            className="absolute top-4 right-4 p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors z-10"
+            className="absolute top-4 right-4 p-2 rounded-lg text-foreground-soft hover:text-foreground hover:bg-secondary transition-colors z-10"
             aria-label="Close"
           >
             <X className="w-6 h-6" />

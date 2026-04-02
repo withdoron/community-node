@@ -33,30 +33,30 @@ const TIER_CONFIG = {
     label: 'Basic',
     sublabel: 'Free',
     icon: Star,
-    color: 'text-slate-300',
-    bg: 'bg-slate-700',
+    color: 'text-foreground-soft',
+    bg: 'bg-surface',
     description: 'List your business, create events (pending review), appear in directory.'
   },
   standard: {
     label: 'Standard',
     sublabel: '',
     icon: Zap,
-    color: 'text-amber-500',
-    bg: 'bg-amber-500/20',
+    color: 'text-primary',
+    bg: 'bg-primary/20',
     description: 'Accept Joy Coins, auto-publish events, revenue analytics, priority in directory.'
   },
   partner: {
     label: 'Partner',
     sublabel: '',
     icon: Crown,
-    color: 'text-amber-500',
-    bg: 'bg-amber-500/20',
+    color: 'text-primary',
+    bg: 'bg-primary/20',
     description: 'Everything in Standard plus dedicated partner node, custom branding, priority support.'
   }
 };
 
 const INPUT_CLASS =
-  'bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none transition-colors';
+  'bg-secondary border border-border rounded-lg px-3 py-2 text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none transition-colors';
 
 function getInitialFormData(business) {
   if (!business) return null;
@@ -281,26 +281,26 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
     <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
       {/* Section Header */}
       <div>
-        <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-          <Settings className="h-5 w-5 text-amber-500" />
+        <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+          <Settings className="h-5 w-5 text-primary" />
           Business Settings
         </h2>
-        <p className="text-slate-400 text-sm mt-1">
+        <p className="text-muted-foreground text-sm mt-1">
           Manage your profile, team, and subscription.
         </p>
       </div>
 
       {/* Business Profile Card */}
-      <Card className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:border-amber-500/50 transition-colors">
+      <Card className="bg-secondary border border-border rounded-lg p-4 hover:border-primary/50 transition-colors">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-slate-100 uppercase tracking-wider">Business Profile</h3>
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">Business Profile</h3>
           <div className="flex items-center gap-2">
             {!isEditing ? (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-slate-400 hover:text-amber-500 hover:bg-slate-800 px-3 py-2 rounded-lg transition-colors"
+                className="text-muted-foreground hover:text-primary hover:bg-secondary px-3 py-2 rounded-lg transition-colors"
                 onClick={() => setIsEditing(true)}
               >
                 <Pencil className="h-3.5 w-3.5 mr-1.5" />
@@ -311,7 +311,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
               <Button
                 variant="outline"
                 size="sm"
-                className="border border-amber-500 text-amber-500 hover:bg-amber-500/10 px-4 py-2 rounded-lg transition-colors"
+                className="border border-primary text-primary hover:bg-primary/10 px-4 py-2 rounded-lg transition-colors"
               >
                 <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
                 View Public Profile
@@ -324,11 +324,11 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
           <div className="space-y-6">
             {/* Basic Info */}
             <div className="space-y-4">
-              <div className="border-b border-slate-700 pb-2">
-                <h4 className="text-xs text-slate-400 uppercase tracking-wider">Basic Info</h4>
+              <div className="border-b border-border pb-2">
+                <h4 className="text-xs text-muted-foreground uppercase tracking-wider">Basic Info</h4>
               </div>
               <div>
-                <Label htmlFor="business-name" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                <Label htmlFor="business-name" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                   Business name *
                 </Label>
                 <Input
@@ -340,7 +340,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                 />
               </div>
               <div>
-                <Label htmlFor="business-description" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                <Label htmlFor="business-description" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                   Description / bio
                 </Label>
                 <Textarea
@@ -353,7 +353,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                 />
               </div>
               <div>
-                <Label htmlFor="business-category" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                <Label htmlFor="business-category" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                   Category
                 </Label>
                 <Select
@@ -375,20 +375,20 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                     handleChange('sub_category_id', subId || '');
                   }}
                 >
-                  <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg focus:border-amber-500 focus:ring-amber-500/20">
+                  <SelectTrigger className="bg-secondary border-border text-foreground rounded-lg focus:border-primary focus:ring-ring/20">
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
                     {mainCategories.map((main) => (
                       <SelectGroup key={main.id}>
-                        <SelectLabel className="text-slate-400 text-xs uppercase tracking-wide px-2 py-1">
+                        <SelectLabel className="text-muted-foreground text-xs uppercase tracking-wide px-2 py-1">
                           {main.label}
                         </SelectLabel>
                         {main.subcategories.map((sub) => (
                           <SelectItem
                             key={`${main.id}|${sub.id}`}
                             value={`${main.id}|${sub.id}`}
-                            className="text-slate-300 focus:bg-slate-800 pl-4"
+                            className="text-foreground-soft focus:bg-secondary pl-4"
                           >
                             {sub.label}
                           </SelectItem>
@@ -400,14 +400,14 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
               </div>
               {subcategoryOptions.length > 0 && (
                 <div>
-                  <Label htmlFor="business-subcategory" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                  <Label htmlFor="business-subcategory" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                     What best describes your business?
                   </Label>
                   <Select
                     value={formData.subcategory || ''}
                     onValueChange={(val) => handleChange('subcategory', val)}
                   >
-                    <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg focus:border-amber-500 focus:ring-amber-500/20">
+                    <SelectTrigger className="bg-secondary border-border text-foreground rounded-lg focus:border-primary focus:ring-ring/20">
                       <SelectValue placeholder="Select one" />
                     </SelectTrigger>
                     <SelectContent>
@@ -415,7 +415,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                         <SelectItem
                           key={opt}
                           value={opt}
-                          className="text-slate-300 focus:bg-slate-800 focus:text-amber-500"
+                          className="text-foreground-soft focus:bg-secondary focus:text-primary"
                         >
                           {opt}
                         </SelectItem>
@@ -425,7 +425,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                 </div>
               )}
               <div>
-                <Label htmlFor="business-hours" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                <Label htmlFor="business-hours" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                   Business Hours
                 </Label>
                 <Textarea
@@ -441,11 +441,11 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
 
             {/* Contact */}
             <div className="space-y-4">
-              <div className="border-b border-slate-700 pb-2">
-                <h4 className="text-xs text-slate-400 uppercase tracking-wider">Contact</h4>
+              <div className="border-b border-border pb-2">
+                <h4 className="text-xs text-muted-foreground uppercase tracking-wider">Contact</h4>
               </div>
               <div>
-                <Label htmlFor="business-email" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                <Label htmlFor="business-email" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                   Contact email
                 </Label>
                 <Input
@@ -458,7 +458,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                 />
               </div>
               <div>
-                <Label htmlFor="business-phone" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                <Label htmlFor="business-phone" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                   Contact phone
                 </Label>
                 <Input
@@ -471,7 +471,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                 />
               </div>
               <div>
-                <Label htmlFor="business-website" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                <Label htmlFor="business-website" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                   Website URL
                 </Label>
                 <Input
@@ -484,7 +484,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                 />
               </div>
               <div>
-                <Label htmlFor="business-instagram" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                <Label htmlFor="business-instagram" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                   Instagram
                 </Label>
                 <Input
@@ -496,7 +496,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                 />
               </div>
               <div>
-                <Label htmlFor="business-facebook" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                <Label htmlFor="business-facebook" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                   Facebook Page
                 </Label>
                 <Input
@@ -512,11 +512,11 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
             {/* Archetype-specific: Your Services (service_provider) */}
             {resolvedArchetype === 'service_provider' && (
               <div className="space-y-4">
-                <div className="border-b border-slate-700 pb-2">
-                  <h4 className="text-xs text-slate-400 uppercase tracking-wider">Your Services</h4>
+                <div className="border-b border-border pb-2">
+                  <h4 className="text-xs text-muted-foreground uppercase tracking-wider">Your Services</h4>
                 </div>
                 <div>
-                  <Label htmlFor="business-service-area" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                  <Label htmlFor="business-service-area" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                     Service Area
                   </Label>
                   <Input
@@ -528,7 +528,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                   />
                 </div>
                 <div>
-                  <Label htmlFor="business-services-offered" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                  <Label htmlFor="business-services-offered" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                     What services do you offer?
                   </Label>
                   <Textarea
@@ -546,11 +546,11 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
             {/* Archetype-specific: Your Shop (product_seller / micro_business) */}
             {(resolvedArchetype === 'product_seller' || resolvedArchetype === 'micro_business') && (
               <div className="space-y-4">
-                <div className="border-b border-slate-700 pb-2">
-                  <h4 className="text-xs text-slate-400 uppercase tracking-wider">Your Shop</h4>
+                <div className="border-b border-border pb-2">
+                  <h4 className="text-xs text-muted-foreground uppercase tracking-wider">Your Shop</h4>
                 </div>
                 <div>
-                  <Label htmlFor="business-shop-url" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                  <Label htmlFor="business-shop-url" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                     Where can people buy from you online?
                   </Label>
                   <Input
@@ -567,18 +567,18 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
             {/* What I Offer — product tags (product_seller, micro_business, or food_farm) */}
             {(resolvedArchetype === 'product_seller' || resolvedArchetype === 'micro_business' || business?.main_category === 'food_farm') && (
               <div className="space-y-4">
-                <div className="border-b border-slate-700 pb-2">
-                  <h4 className="text-xs text-slate-400 uppercase tracking-wider">What I Offer</h4>
+                <div className="border-b border-border pb-2">
+                  <h4 className="text-xs text-muted-foreground uppercase tracking-wider">What I Offer</h4>
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                     Products / Items
                   </Label>
                   <div className="flex flex-wrap gap-2 mb-2">
                     {(formData.product_tags || []).map((tag, idx) => (
                       <span
                         key={idx}
-                        className="bg-amber-500/20 text-amber-500 rounded-full px-3 py-1 text-sm flex items-center gap-1.5"
+                        className="bg-primary/20 text-primary rounded-full px-3 py-1 text-sm flex items-center gap-1.5"
                       >
                         {tag}
                         <button
@@ -615,11 +615,11 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
             {/* How to Purchase — payment methods (product_seller, micro_business, or food_farm) */}
             {(resolvedArchetype === 'product_seller' || resolvedArchetype === 'micro_business' || business?.main_category === 'food_farm') && (
               <div className="space-y-4">
-                <div className="border-b border-slate-700 pb-2">
-                  <h4 className="text-xs text-slate-400 uppercase tracking-wider">How to Purchase</h4>
+                <div className="border-b border-border pb-2">
+                  <h4 className="text-xs text-muted-foreground uppercase tracking-wider">How to Purchase</h4>
                 </div>
                 <div className="space-y-3">
-                  <Label className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                     Payment Methods
                   </Label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -637,8 +637,8 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                           key={method.value}
                           className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors ${
                             checked
-                              ? 'border-amber-500/50 bg-amber-500/10 text-amber-500'
-                              : 'border-slate-700 bg-slate-800/50 text-slate-300 hover:border-slate-600'
+                              ? 'border-primary/50 bg-primary/10 text-primary'
+                              : 'border-border bg-secondary/50 text-foreground-soft hover:border-border'
                           }`}
                         >
                           <input
@@ -654,9 +654,9 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                             }}
                           />
                           <div className={`h-4 w-4 rounded border flex items-center justify-center ${
-                            checked ? 'bg-amber-500 border-amber-500' : 'border-slate-600'
+                            checked ? 'bg-primary border-primary' : 'border-border'
                           }`}>
-                            {checked && <Check className="h-3 w-3 text-black" />}
+                            {checked && <Check className="h-3 w-3 text-primary-foreground" />}
                           </div>
                           <span className="text-sm">{method.label}</span>
                         </label>
@@ -665,7 +665,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="business-payment-notes" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
+                  <Label htmlFor="business-payment-notes" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
                     How should people reach you to buy?
                   </Label>
                   <Input
@@ -681,23 +681,23 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
 
             {/* Location */}
             <div className="space-y-4">
-              <div className="border-b border-slate-700 pb-2">
-                <h4 className="text-xs text-slate-400 uppercase tracking-wider">Location</h4>
+              <div className="border-b border-border pb-2">
+                <h4 className="text-xs text-muted-foreground uppercase tracking-wider">Location</h4>
               </div>
-              <label className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700 cursor-pointer">
+              <label className="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg border border-border cursor-pointer">
                 <Switch
                   checked={formData.display_full_address}
                   onCheckedChange={(checked) => handleChange('display_full_address', checked)}
-                  className="data-[state=checked]:bg-amber-500"
+                  className="data-[state=checked]:bg-primary"
                 />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-200">Display full address on map?</p>
-                  <p className="text-xs text-slate-500">Off by default to protect privacy</p>
+                  <p className="text-sm font-medium text-foreground">Display full address on map?</p>
+                  <p className="text-xs text-muted-foreground/70">Off by default to protect privacy</p>
                 </div>
               </label>
               <div>
-                <Label htmlFor="business-address" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
-                  Street address <span className="text-amber-500">*</span>
+                <Label htmlFor="business-address" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
+                  Street address <span className="text-primary">*</span>
                 </Label>
                 <Input
                   id="business-address"
@@ -709,8 +709,8 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <Label htmlFor="business-city" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
-                    City <span className="text-amber-500">*</span>
+                  <Label htmlFor="business-city" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
+                    City <span className="text-primary">*</span>
                   </Label>
                   <Input
                     id="business-city"
@@ -721,19 +721,19 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                   />
                 </div>
                 <div>
-                  <Label htmlFor="business-state" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
-                    State <span className="text-amber-500">*</span>
+                  <Label htmlFor="business-state" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
+                    State <span className="text-primary">*</span>
                   </Label>
                   <Select
                     value={formData.state || ''}
                     onValueChange={(val) => handleChange('state', val)}
                   >
-                    <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg focus:border-amber-500 focus:ring-amber-500/20">
+                    <SelectTrigger className="bg-secondary border-border text-foreground rounded-lg focus:border-primary focus:ring-ring/20">
                       <SelectValue placeholder="State" />
                     </SelectTrigger>
                     <SelectContent>
                       {US_STATES.map((s) => (
-                        <SelectItem key={s.code} value={s.code} className="text-slate-100 focus:bg-slate-800 focus:text-amber-500">
+                        <SelectItem key={s.code} value={s.code} className="text-foreground focus:bg-secondary focus:text-primary">
                           {s.name}
                         </SelectItem>
                       ))}
@@ -741,8 +741,8 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="business-zip" className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">
-                    Zip code <span className="text-amber-500">*</span>
+                  <Label htmlFor="business-zip" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
+                    Zip code <span className="text-primary">*</span>
                   </Label>
                   <Input
                     id="business-zip"
@@ -762,11 +762,11 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                 <img
                   src={business.logo_url}
                   alt={business.name}
-                  className="h-20 w-20 rounded-lg object-cover border border-slate-700"
+                  className="h-20 w-20 rounded-lg object-cover border border-border"
                 />
               ) : (
-                <div className="h-20 w-20 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
-                  <Store className="h-8 w-8 text-slate-500" />
+                <div className="h-20 w-20 rounded-lg bg-secondary border border-border flex items-center justify-center">
+                  <Store className="h-8 w-8 text-muted-foreground/70" />
                 </div>
               )}
               <div>
@@ -781,7 +781,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
+                  className="border-primary text-primary hover:bg-primary/10"
                   onClick={() => logoInputRef.current?.click()}
                   disabled={logoUploadMutation.isPending}
                 >
@@ -792,17 +792,17 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                   )}
                   Upload New
                 </Button>
-                <p className="text-xs text-slate-500 mt-1">Recommended: 200x200px, PNG or JPG</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Recommended: 200x200px, PNG or JPG</p>
               </div>
             </div>
 
             {/* Banner Image */}
             <div className="space-y-3 pt-2">
-              <div className="border-b border-slate-700 pb-2">
-                <h4 className="text-xs text-slate-400 uppercase tracking-wider">Banner Image</h4>
+              <div className="border-b border-border pb-2">
+                <h4 className="text-xs text-muted-foreground uppercase tracking-wider">Banner Image</h4>
               </div>
               {business?.banner_url ? (
-                <div className="relative rounded-lg overflow-hidden border border-slate-700 bg-slate-900">
+                <div className="relative rounded-lg overflow-hidden border border-border bg-card">
                   <img
                     src={business.banner_url}
                     alt="Banner"
@@ -812,16 +812,16 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                     type="button"
                     onClick={() => removeBannerMutation.mutate()}
                     disabled={removeBannerMutation.isPending}
-                    className="absolute top-2 right-2 h-7 w-7 rounded-full bg-slate-800/90 border border-slate-600 flex items-center justify-center text-slate-400 hover:text-red-400 hover:border-red-400 transition-colors"
+                    className="absolute top-2 right-2 h-7 w-7 rounded-full bg-secondary/90 border border-border flex items-center justify-center text-muted-foreground hover:text-red-400 hover:border-red-400 transition-colors"
                   >
                     {removeBannerMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-24 rounded-lg bg-slate-800 border border-dashed border-slate-600">
+                <div className="flex items-center justify-center h-24 rounded-lg bg-secondary border border-dashed border-border">
                   <div className="text-center">
-                    <ImageIcon className="h-8 w-8 text-slate-500 mx-auto mb-1" />
-                    <p className="text-xs text-slate-500">No banner image</p>
+                    <ImageIcon className="h-8 w-8 text-muted-foreground/70 mx-auto mb-1" />
+                    <p className="text-xs text-muted-foreground/70">No banner image</p>
                   </div>
                 </div>
               )}
@@ -837,7 +837,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="border-amber-500 text-amber-500 hover:bg-amber-500/10"
+                  className="border-primary text-primary hover:bg-primary/10"
                   onClick={() => bannerInputRef.current?.click()}
                   disabled={bannerUploadMutation.isPending}
                 >
@@ -848,7 +848,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                   )}
                   {business?.banner_url ? 'Change Banner' : 'Upload Banner Image'}
                 </Button>
-                <p className="text-xs text-slate-500 mt-1">Recommended: 1200 x 400px, JPG or PNG. This appears at the top of your business profile.</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Recommended: 1200 x 400px, JPG or PNG. This appears at the top of your business profile.</p>
               </div>
             </div>
 
@@ -856,7 +856,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
               <Button
                 onClick={handleSave}
                 disabled={updateMutation.isPending}
-                className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-medium px-4 py-2 rounded-lg transition-colors"
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium px-4 py-2 rounded-lg transition-colors"
               >
                 {updateMutation.isPending ? (
                   <>
@@ -872,7 +872,7 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                 variant="outline"
                 onClick={handleCancel}
                 disabled={updateMutation.isPending}
-                className="border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-slate-300 px-4 py-2 rounded-lg transition-colors"
+                className="border border-border text-muted-foreground hover:bg-secondary hover:text-foreground-soft px-4 py-2 rounded-lg transition-colors"
               >
                 Cancel
               </Button>
@@ -886,16 +886,16 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                   <img
                     src={business.logo_url}
                     alt={business.name}
-                    className="h-12 w-12 rounded-lg object-cover border border-slate-700"
+                    className="h-12 w-12 rounded-lg object-cover border border-border"
                   />
                 ) : (
-                  <div className="h-12 w-12 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
-                    <Store className="h-6 w-6 text-slate-500" />
+                  <div className="h-12 w-12 rounded-lg bg-secondary border border-border flex items-center justify-center">
+                    <Store className="h-6 w-6 text-muted-foreground/70" />
                   </div>
                 )}
                 <div>
-                  <p className="text-slate-100 font-semibold">{business?.name || 'Unnamed Business'}</p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-foreground font-semibold">{business?.name || 'Unnamed Business'}</p>
+                  <p className="text-xs text-muted-foreground">
                     {(() => {
                       const mainId = business?.main_category || business?.primary_category;
                       const subId = business?.sub_category_id;
@@ -914,14 +914,14 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
               </div>
 
               {business?.description && (
-                <p className="text-sm text-slate-400 line-clamp-2">{business.description}</p>
+                <p className="text-sm text-muted-foreground line-clamp-2">{business.description}</p>
               )}
             </div>
 
             <div className="space-y-2 text-sm">
               {(business?.address || business?.city || business?.state) && (
-                <div className="flex items-center gap-2 text-slate-400">
-                  <MapPin className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
                   <span>
                     {[business.address, business.city, business.state].filter(Boolean).join(', ')}
                     {business?.zip_code ? ` ${business.zip_code}` : ''}
@@ -929,25 +929,25 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                 </div>
               )}
               {(business?.email || business?.contact_email) && (
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Mail className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Mail className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
                   <span>{business.email || business.contact_email}</span>
                 </div>
               )}
               {business?.phone && (
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Phone className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Phone className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
                   <span>{formatPhone(business.phone)}</span>
                 </div>
               )}
               {business?.website && (
-                <div className="flex items-center gap-2 text-slate-400">
-                  <Globe className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Globe className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
                   <a
                     href={business.website.startsWith('http') ? business.website : `https://${business.website}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-amber-500 hover:text-amber-400 truncate transition-colors"
+                    className="text-primary hover:text-primary-hover truncate transition-colors"
                   >
                     {business.website}
                   </a>
@@ -959,8 +959,8 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
       </Card>
 
       {/* Subscription Status */}
-      <Card className="bg-slate-900 border-slate-800 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-slate-100 mb-4">Subscription</h3>
+      <Card className="bg-card border-border rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-foreground mb-4">Subscription</h3>
         <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-3">
           <div className="flex items-center gap-3">
             <div className={`p-2.5 rounded-lg ${tierConfig.bg}`}>
@@ -968,34 +968,34 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <p className="text-slate-100 font-semibold">{tierConfig.label}</p>
+                <p className="text-foreground font-semibold">{tierConfig.label}</p>
                 {tierConfig.sublabel && (
                   <Badge className={`${tierConfig.bg} ${tierConfig.color} text-xs border-0`}>
                     {tierConfig.sublabel}
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">{tierConfig.description}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{tierConfig.description}</p>
             </div>
           </div>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-slate-800">
-          <p className="text-sm text-slate-300">
-            <span className="text-amber-500 font-medium">Founding Member.</span> You believed in LocalLane before there was proof. Thank you for being part of building this community.
+        <div className="mt-4 pt-4 border-t border-border">
+          <p className="text-sm text-foreground-soft">
+            <span className="text-primary font-medium">Founding Member.</span> You believed in LocalLane before there was proof. Thank you for being part of building this community.
           </p>
         </div>
       </Card>
 
       {/* Team Management — feature guarded with Coming Soon (re-enable: render StaffWidget below) */}
-      <Card className="bg-slate-900 border-slate-800 rounded-xl p-5">
-        <h3 className="text-sm font-semibold text-slate-100 uppercase tracking-wider mb-4">Team</h3>
+      <Card className="bg-card border-border rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">Team</h3>
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4">
-            <Users className="w-8 h-8 text-slate-500" />
+          <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mb-4">
+            <Users className="w-8 h-8 text-muted-foreground/70" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-200">Team Management — Coming Soon</h3>
-          <p className="text-slate-400 mt-2 max-w-md">
+          <h3 className="text-lg font-semibold text-foreground">Team Management — Coming Soon</h3>
+          <p className="text-muted-foreground mt-2 max-w-md">
             Soon you&apos;ll be able to invite co-owners, managers, and staff to help run your business on LocalLane. We&apos;re building this for you.
           </p>
         </div>
