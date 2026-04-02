@@ -10,8 +10,18 @@
  */
 import React, { useRef, useCallback } from 'react';
 
-// Audio tick — sine oscillator, 40ms, gain 0.012, freq 440 + index*60
+// Sound + haptic preference — default on
+function isSoundEnabled() {
+  try { return localStorage.getItem('mylane_sound') !== '0'; } catch { return true; }
+}
+
+// Audio tick — sine oscillator, 40ms, gain 0.05, freq 440 + index*60
+// Haptic: 8ms subtle buzz
 function playTick(index) {
+  if (!isSoundEnabled()) return;
+  try {
+    if (navigator.vibrate) navigator.vibrate(8);
+  } catch {}
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = ctx.createOscillator();
@@ -20,7 +30,7 @@ function playTick(index) {
     gain.connect(ctx.destination);
     osc.frequency.value = 440 + index * 60;
     osc.type = 'sine';
-    gain.gain.value = 0.012;
+    gain.gain.value = 0.05;
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
     osc.start();
     osc.stop(ctx.currentTime + 0.04);
