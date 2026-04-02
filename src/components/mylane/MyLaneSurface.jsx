@@ -524,6 +524,18 @@ export default function MyLaneSurface({
           .mylane-surface { --ll-content-max: 960px; }
           .overlay-panel { width: 720px; }
         }
+
+        /* ─── Command bar / panel responsive switch ─── */
+        /* Mobile default: show bar, hide panel */
+        .mylane-bar-mobile { display: block; margin-top: auto; }
+        .mylane-panel-desktop { display: none !important; }
+
+        /* Desktop (container >= 1024px): hide bar, show panel */
+        @container (min-width: 1024px) {
+          .mylane-bar-mobile { display: none !important; }
+          .mylane-panel-desktop { display: flex !important; }
+          .mylane-main-area { flex-direction: row; }
+        }
       ` }} />
 
       {/* ─── Header ─── */}
@@ -676,7 +688,7 @@ export default function MyLaneSurface({
         <AccountOverlay currentUser={currentUser} onClose={closeOverlay} />
       </OverlayContainer>
 
-      {/* ─── Body (spinner + content) ─── */}
+      {/* ─── Body (spinner + content + command panel) ─── */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Horizontal Space Spinner — ALWAYS VISIBLE */}
         <SpaceSpinner
@@ -685,60 +697,75 @@ export default function MyLaneSurface({
           onSelect={handleSpinnerSelect}
         />
 
-        {/* Content area — width responds to container queries */}
-        <div className="flex-1 overflow-y-auto" style={{ padding: '8px var(--ll-content-pad, 24px)', paddingBottom: 60 }}>
-          <div style={{ maxWidth: 'var(--ll-content-max, 768px)' }}>
+        {/* Main area: on desktop (container >= 1024px), flex row with panel on right */}
+        <div className="mylane-main-area flex flex-1 overflow-hidden">
+          {/* Content column */}
+          <div className="flex-1 overflow-y-auto flex flex-col" style={{ padding: '8px var(--ll-content-pad, 24px)', paddingBottom: 60 }}>
+            <div style={{ maxWidth: 'var(--ll-content-max, 768px)' }}>
 
-            {/* Command result card — renders above content when present */}
-            {commandResult && (
-              <div style={{
-                marginBottom: 12, padding: '14px 16px',
-                background: 'var(--ll-bg-elevated)',
-                border: '1px solid var(--ll-border)',
-                borderRadius: 10, position: 'relative',
-              }}>
-                <button
-                  type="button"
-                  onClick={() => setCommandResult(null)}
-                  style={{
-                    position: 'absolute', top: 8, right: 8,
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--ll-text-dim)', padding: 4,
-                  }}
-                >
-                  <X style={{ width: 14, height: 14 }} strokeWidth={2} />
-                </button>
+              {/* Command result card */}
+              {commandResult && (
+                <div style={{
+                  marginBottom: 12, padding: '14px 16px',
+                  background: 'var(--ll-bg-elevated)',
+                  border: '1px solid var(--ll-border)',
+                  borderRadius: 10, position: 'relative',
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => setCommandResult(null)}
+                    style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ll-text-dim)', padding: 4 }}
+                  >
+                    <X style={{ width: 14, height: 14 }} strokeWidth={2} />
+                  </button>
+                  {commandResult.type === 'text' && (
+                    <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)', lineHeight: 1.5, paddingRight: 24 }}>
+                      {commandResult.text}
+                    </div>
+                  )}
+                  {commandResult.type === 'data' && renderEntityView({
+                    data: commandResult.data, entity: commandResult.entity,
+                    workspace: commandResult.workspace, displayHint: commandResult.displayHint,
+                  })}
+                </div>
+              )}
 
-                {commandResult.type === 'text' && (
-                  <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)', lineHeight: 1.5, paddingRight: 24 }}>
-                    {commandResult.text}
-                  </div>
-                )}
+              {renderContent()}
+            </div>
 
-                {commandResult.type === 'data' && renderEntityView({
-                  data: commandResult.data,
-                  entity: commandResult.entity,
-                  workspace: commandResult.workspace,
-                  displayHint: commandResult.displayHint,
-                })}
-              </div>
-            )}
+            {/* Mobile: command bar bottom-docked */}
+            <div className="mylane-bar-mobile">
+              <CommandBar
+                mode="bar"
+                agentName="MyLane"
+                userId={currentUser?.id}
+                onRenderResult={setCommandResult}
+                onNavigate={(nav) => {
+                  const idx = spaceItems.findIndex((s) => s.id === nav.workspace);
+                  if (idx >= 0) handleSpinnerSelect(idx);
+                }}
+                activeSpace={currentSpace?.id || 'home'}
+                lastResponse={commandResult?.type === 'text' ? commandResult.text : null}
+              />
+            </div>
+          </div>
 
-            {renderContent()}
+          {/* Desktop: command panel right-docked */}
+          <div className="mylane-panel-desktop" style={{ display: 'none' }}>
+            <CommandBar
+              mode="panel"
+              agentName="MyLane"
+              userId={currentUser?.id}
+              onRenderResult={setCommandResult}
+              onNavigate={(nav) => {
+                const idx = spaceItems.findIndex((s) => s.id === nav.workspace);
+                if (idx >= 0) handleSpinnerSelect(idx);
+              }}
+              activeSpace={currentSpace?.id || 'home'}
+              lastResponse={commandResult?.type === 'text' ? commandResult.text : null}
+            />
           </div>
         </div>
-
-        {/* ─── Command Bar (bottom-docked) ─── */}
-        <CommandBar
-          agentName="MyLane"
-          userId={currentUser?.id}
-          onRenderResult={setCommandResult}
-          onNavigate={(nav) => {
-            const idx = spaceItems.findIndex((s) => s.id === nav.workspace);
-            if (idx >= 0) handleSpinnerSelect(idx);
-          }}
-          mylane_tier="basic"
-        />
       </div>
     </div>
   );
