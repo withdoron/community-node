@@ -11,8 +11,9 @@ import { base44 } from '@/api/base44Client';
 import {
   Home, UtensilsCrossed, HardHat, DollarSign, Users,
   Store, Search, Music, Settings, LogOut, FileText,
-  Lock, Mail, Volume2, VolumeX, Building2, X,
+  Lock, Mail, Volume2, VolumeX, Building2, X, PanelRightOpen,
 } from 'lucide-react';
+import ConfirmationCard from './ConfirmationCard';
 import MY_LANE_REGISTRY from '@/config/myLaneRegistry';
 import MyLaneDrillView from './MyLaneDrillView';
 import useMyLaneState from './useMyLaneState';
@@ -289,7 +290,8 @@ export default function MyLaneSurface({
 
   const [spinnerIndex, setSpinnerIndex] = useState(0);
   const [renderedData, setRenderedData] = useState(null);
-  const [commandResult, setCommandResult] = useState(null); // { type: 'text'|'data', text?, entity?, data?, ... }
+  const [commandResult, setCommandResult] = useState(null); // { type: 'text'|'data'|'confirm', text?, entity?, data?, ... }
+  const [panelOpen, setPanelOpen] = useState(true);
   const [activeOverlay, setActiveOverlay] = useState(null); // 'freq' | 'dir' | 'evt' | 'acct' | null
   const [welcomeData, setWelcomeData] = useState(() => {
     try {
@@ -534,8 +536,10 @@ export default function MyLaneSurface({
         @container (min-width: 1024px) {
           .mylane-bar-mobile { display: none !important; }
           .mylane-panel-desktop { display: flex !important; }
+          .mylane-panel-desktop.panel-closed { display: none !important; }
           .mylane-main-area { flex-direction: row; }
           .mylane-spinner-wrap { padding-right: 300px; }
+          .mylane-spinner-wrap.panel-closed { padding-right: 0; }
         }
       ` }} />
 
@@ -692,7 +696,7 @@ export default function MyLaneSurface({
       {/* ─── Body (spinner + content + command panel) ─── */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Horizontal Space Spinner — ALWAYS VISIBLE */}
-        <div className="mylane-spinner-wrap">
+        <div className={`mylane-spinner-wrap${panelOpen ? '' : ' panel-closed'}`}>
           <SpaceSpinner
             items={spaceItems}
             currentIndex={spinnerIndex}
@@ -717,19 +721,32 @@ export default function MyLaneSurface({
                   <button
                     type="button"
                     onClick={() => setCommandResult(null)}
-                    style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ll-text-dim)', padding: 4 }}
+                    style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ll-text-dim)', padding: 4, zIndex: 1 }}
                   >
                     <X style={{ width: 14, height: 14 }} strokeWidth={2} />
                   </button>
-                  {commandResult.type === 'text' && (
-                    <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)', lineHeight: 1.5, paddingRight: 24 }}>
+                  {/* Text portion (present in all types that include agent text) */}
+                  {commandResult.text && (
+                    <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)', lineHeight: 1.5, paddingRight: 24, marginBottom: (commandResult.type !== 'text') ? 12 : 0 }}>
                       {commandResult.text}
                     </div>
                   )}
+                  {/* Data render — entity cards via universal renderer */}
                   {commandResult.type === 'data' && renderEntityView({
                     data: commandResult.data, entity: commandResult.entity,
                     workspace: commandResult.workspace, displayHint: commandResult.displayHint,
                   })}
+                  {/* Confirm render — action approval card */}
+                  {commandResult.type === 'confirm' && (
+                    <ConfirmationCard
+                      entity={commandResult.entity}
+                      action={commandResult.action}
+                      data={commandResult.data}
+                      onConfirm={() => setCommandResult(null)}
+                      onEdit={() => setCommandResult(null)}
+                      onCancel={() => setCommandResult(null)}
+                    />
+                  )}
                 </div>
               )}
 
@@ -754,7 +771,7 @@ export default function MyLaneSurface({
           </div>
 
           {/* Desktop: command panel right-docked */}
-          <div className="mylane-panel-desktop" style={{ display: 'none' }}>
+          <div className={`mylane-panel-desktop${panelOpen ? '' : ' panel-closed'}`} style={{ display: 'none' }}>
             <CommandBar
               mode="panel"
               agentName="MyLane"
@@ -764,10 +781,30 @@ export default function MyLaneSurface({
                 const idx = spaceItems.findIndex((s) => s.id === nav.workspace);
                 if (idx >= 0) handleSpinnerSelect(idx);
               }}
+              onClose={() => setPanelOpen(false)}
               activeSpace={currentSpace?.id || 'home'}
-              lastResponse={commandResult?.type === 'text' ? commandResult.text : null}
+              lastResponse={commandResult?.text || null}
             />
           </div>
+
+          {/* Desktop: re-open tab when panel is closed */}
+          {!panelOpen && (
+            <div className="mylane-panel-desktop" style={{ display: 'none', width: 'auto' }}>
+              <button
+                type="button"
+                onClick={() => setPanelOpen(true)}
+                style={{
+                  width: 36, height: 36, borderRadius: '8px 0 0 8px',
+                  background: 'var(--ll-bg-elevated)', border: '1px solid var(--ll-border)',
+                  borderRight: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', alignSelf: 'center',
+                }}
+                title="Open Mylane panel"
+              >
+                <PanelRightOpen style={{ width: 16, height: 16, color: 'var(--ll-accent)' }} strokeWidth={1.5} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

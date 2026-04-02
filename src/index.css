@@ -331,6 +331,32 @@ button:focus-visible {
   animation: crt-flicker 5s ease-in-out infinite;
 }
 
+/* CRT horizontal sync bar — sweeps top to bottom, periodic not constant */
+@keyframes crt-sync {
+  0%, 25% { transform: translateY(-5vh); }
+  35% { transform: translateY(105vh); }
+  100% { transform: translateY(105vh); }
+}
+
+[data-theme="fallout"] body::before {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 4vh;
+  z-index: 9999;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 255, 65, 0.06) 40%,
+    rgba(0, 255, 65, 0.06) 60%,
+    transparent 100%
+  );
+  animation: crt-sync 40s linear infinite;
+}
+
 /* ─── THEME SYSTEM ──────────────────────────────────────────────────────────
  *
  * HOW TO ADD A NEW THEME:

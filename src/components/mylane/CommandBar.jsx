@@ -9,13 +9,14 @@
  *   userId         — current user ID
  *   onRenderResult — ({ type, text?, entity?, workspace?, data?, displayHint? }) => void
  *   onNavigate     — ({ workspace, view, tab }) => void
+ *   onClose        — () => void (panel mode: close/minimize the panel)
  *   activeSpace    — current spinner space ID (for chip context)
  *   mylane_tier    — tier level for future gating
  *   lastResponse   — brief text from last agent response (shown in panel mode)
  */
 import { useState, useRef, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Send, Loader2, Mic, MicOff } from 'lucide-react';
+import { Send, Loader2, Mic, MicOff, PanelRightClose } from 'lucide-react';
 import { parseRenderInstruction } from './parseRenderInstruction';
 
 const SpeechRecognition = typeof window !== 'undefined'
@@ -40,6 +41,7 @@ export default function CommandBar({
   userId,
   onRenderResult,
   onNavigate,
+  onClose,
   activeSpace = 'home',
   mylane_tier = 'basic',
   lastResponse = null,
@@ -85,16 +87,17 @@ export default function CommandBar({
       }
 
       const parsed = parseRenderInstruction(agentResponse);
+      const textPart = agentResponse.replace(/<!-- RENDER[_A-Z]*:\{.*?\} -->/gs, '').trim();
+
       if (parsed.hasRender) {
         if (parsed.type === 'workspace') {
           onNavigate?.({ workspace: parsed.workspace, view: parsed.view, tab: parsed.tab });
+          if (textPart) onRenderResult?.({ type: 'text', text: textPart });
         } else if (parsed.type === 'data') {
-          onRenderResult?.({ type: 'data', entity: parsed.entity, workspace: parsed.workspace, data: parsed.data, displayHint: parsed.displayHint });
+          onRenderResult?.({ type: 'data', text: textPart || null, entity: parsed.entity, workspace: parsed.workspace, data: parsed.data, displayHint: parsed.displayHint });
         } else if (parsed.type === 'confirm') {
-          onRenderResult?.({ type: 'confirm', entity: parsed.entity, workspace: parsed.workspace, action: parsed.action, data: parsed.data });
+          onRenderResult?.({ type: 'confirm', text: textPart || null, entity: parsed.entity, workspace: parsed.workspace, action: parsed.action, data: parsed.data });
         }
-        const textPart = agentResponse.replace(/<!-- RENDER[_A-Z]*:\{.*?\} -->/gs, '').trim();
-        if (textPart) onRenderResult?.({ type: 'text', text: textPart });
       } else {
         onRenderResult?.({ type: 'text', text: agentResponse });
       }
@@ -221,10 +224,18 @@ export default function CommandBar({
         <div style={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid var(--ll-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           {mushroomIcon}
         </div>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--ll-text-primary)' }}>Mylane</div>
           <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>Your lane</div>
         </div>
+        {onClose && (
+          <button type="button" onClick={onClose}
+            style={{ width: 28, height: 28, borderRadius: 6, border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+            title="Close panel"
+          >
+            <PanelRightClose style={{ width: 14, height: 14, color: 'var(--ll-text-dim)' }} strokeWidth={1.5} />
+          </button>
+        )}
       </div>
 
       {/* Panel body — chips + last response */}
