@@ -54,16 +54,18 @@ function buildSpinnerItems(profiles, businessProfiles = []) {
 // Every header icon is a toggle. Only one overlay open at a time.
 const OVERLAYS = ['freq', 'dir', 'evt', 'acct'];
 
-function OverlayContainer({ isOpen, children }) {
-  if (!isOpen) return null;
+function OverlayContainer({ isOpen, keepMounted = false, children }) {
+  // keepMounted: render but hide (preserves internal state, e.g. Frequency Station)
+  if (!isOpen && !keepMounted) return null;
   return (
     <div
       className="absolute left-0 right-0 bottom-0 z-40 flex flex-col overflow-y-auto"
       style={{
-        top: 45, // below header
+        top: 45,
         background: '#030810f2',
         backdropFilter: 'blur(12px)',
-        animation: 'overlaySlideDown 0.35s ease',
+        animation: isOpen ? 'overlaySlideDown 0.35s ease' : undefined,
+        display: isOpen ? 'flex' : 'none',
       }}
     >
       {children}
@@ -74,6 +76,14 @@ function OverlayContainer({ isOpen, children }) {
 // Account overlay — replaces gear icon. Same toggle pattern as everything else.
 function AccountOverlay({ currentUser, onClose }) {
   const navigate = useNavigate();
+  const [soundOn, setSoundOn] = React.useState(() => {
+    try { return localStorage.getItem('mylane_sound') !== '0'; } catch { return true; }
+  });
+  const toggleSound = () => {
+    const next = !soundOn;
+    setSoundOn(next);
+    try { localStorage.setItem('mylane_sound', next ? '1' : '0'); } catch {}
+  };
 
   const handleLogout = async () => {
     try {
@@ -118,6 +128,22 @@ function AccountOverlay({ currentUser, onClose }) {
           <div>
             <div style={{ fontSize: 13, color: '#e2e8f0' }}>Newsletter</div>
             <div style={{ fontSize: 10, color: '#475569' }}>The Good News</div>
+          </div>
+        </div>
+        <div
+          className="flex items-center gap-2.5 cursor-pointer rounded-lg"
+          style={{ padding: '10px 12px', transition: 'background 0.15s' }}
+          onClick={toggleSound}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        >
+          {soundOn
+            ? <Volume2 style={{ width: 16, height: 16, color: '#64748b', flexShrink: 0 }} strokeWidth={1.5} />
+            : <VolumeX style={{ width: 16, height: 16, color: '#64748b', flexShrink: 0 }} strokeWidth={1.5} />
+          }
+          <div>
+            <div style={{ fontSize: 13, color: '#e2e8f0' }}>Sound &amp; haptics</div>
+            <div style={{ fontSize: 10, color: '#475569' }}>{soundOn ? 'On' : 'Off'}</div>
           </div>
         </div>
       </div>
@@ -405,11 +431,11 @@ export default function MyLaneSurface({
         >
           <span style={{ color: '#f59e0b', fontWeight: 700 }}>Local</span> Lane
         </div>
-        <div className="flex items-center" style={{ gap: 16 }}>
-          {/* Music icon with pulse dot when playing */}
+        <div className="flex items-center" style={{ gap: 4 }}>
+          {/* Music icon — 44px tap zone */}
           <div
-            className="cursor-pointer relative"
-            style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            className="cursor-pointer relative flex items-center justify-center"
+            style={{ minWidth: 44, minHeight: 44 }}
             onClick={() => toggleOverlay('freq')}
           >
             <Music
@@ -420,48 +446,57 @@ export default function MyLaneSurface({
             {frequencyPlaying && (
               <div style={{
                 position: 'absolute', width: 6, height: 6, borderRadius: '50%',
-                background: '#f59e0b', top: -2, right: -2,
+                background: '#f59e0b', top: 6, right: 6,
                 animation: 'fpulse 2s infinite',
               }} />
             )}
           </div>
 
-          {/* Directory link-as-toggle */}
-          <span
-            className="cursor-pointer"
-            style={{
-              fontSize: 12, padding: '4px 0', transition: 'color 0.2s',
-              color: activeOverlay === 'dir' ? '#f59e0b' : '#64748b',
-            }}
+          {/* Directory — 44px tap zone */}
+          <div
+            className="cursor-pointer flex items-center justify-center"
+            style={{ minWidth: 44, minHeight: 44 }}
             onClick={() => toggleOverlay('dir')}
           >
-            Directory
-          </span>
+            <span style={{
+              fontSize: 12, transition: 'color 0.2s',
+              color: activeOverlay === 'dir' ? '#f59e0b' : '#64748b',
+            }}>
+              Directory
+            </span>
+          </div>
 
-          {/* Events link-as-toggle */}
-          <span
-            className="cursor-pointer"
-            style={{
-              fontSize: 12, padding: '4px 0', transition: 'color 0.2s',
-              color: activeOverlay === 'evt' ? '#f59e0b' : '#64748b',
-            }}
+          {/* Events — 44px tap zone */}
+          <div
+            className="cursor-pointer flex items-center justify-center"
+            style={{ minWidth: 44, minHeight: 44 }}
             onClick={() => toggleOverlay('evt')}
           >
-            Events
-          </span>
+            <span style={{
+              fontSize: 12, transition: 'color 0.2s',
+              color: activeOverlay === 'evt' ? '#f59e0b' : '#64748b',
+            }}>
+              Events
+            </span>
+          </div>
 
-          {/* Avatar — same toggle pattern */}
+          {/* Avatar — 44px tap zone, 36px visual circle */}
           <div
-            className="flex items-center justify-center cursor-pointer select-none"
-            style={{
-              width: 28, height: 28, borderRadius: '50%',
-              border: `1.5px solid ${activeOverlay === 'acct' ? '#f59e0b' : '#334155'}`,
-              fontSize: 11, transition: 'border-color 0.2s, color 0.2s',
-              color: activeOverlay === 'acct' ? '#f59e0b' : '#94a3b8',
-            }}
+            className="cursor-pointer flex items-center justify-center"
+            style={{ minWidth: 44, minHeight: 44 }}
             onClick={() => toggleOverlay('acct')}
           >
-            {userInitial.toUpperCase()}
+            <div
+              className="flex items-center justify-center select-none"
+              style={{
+                width: 36, height: 36, borderRadius: '50%',
+                border: `1.5px solid ${activeOverlay === 'acct' ? '#f59e0b' : '#334155'}`,
+                fontSize: 12, transition: 'border-color 0.2s, color 0.2s',
+                color: activeOverlay === 'acct' ? '#f59e0b' : '#94a3b8',
+              }}
+            >
+              {userInitial.toUpperCase()}
+            </div>
           </div>
         </div>
       </div>
@@ -469,8 +504,8 @@ export default function MyLaneSurface({
       {/* ─── Overlay system ─── */}
       {/* Page headers are suppressed inside overlays via [data-overlay] > div > .mb-6:first-child CSS */}
 
-      {/* Frequency Station overlay */}
-      <OverlayContainer isOpen={activeOverlay === 'freq'}>
+      {/* Frequency Station overlay — keepMounted so audio state persists */}
+      <OverlayContainer isOpen={activeOverlay === 'freq'} keepMounted>
         <div style={{ padding: 24, maxWidth: 640 }}>
           {/* Title row with on/off toggle */}
           <div className="flex justify-between items-center" style={{ marginBottom: 24 }}>
