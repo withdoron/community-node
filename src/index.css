@@ -216,6 +216,152 @@ button:focus-visible {
   --ll-bar-life: #00ff41;
 }
 
+/* ─── THEME PROPAGATION SYSTEM ───────────────────────────────────────────────
+ *
+ * HOW TO ADD A NEW THEME:
+ * 1. Copy a [data-theme="..."] block below
+ * 2. Change the Tailwind utility overrides to your palette
+ * 3. Add the theme name to the THEMES array in AccountOverlay (MyLaneSurface.jsx)
+ * 4. Done. No component changes. No new files. Just CSS.
+ *
+ * This overrides Tailwind's compiled utility classes so workspace components
+ * (which use bg-slate-*, text-white, text-amber-*, etc.) respond to themes
+ * without any JSX changes. The selectors use [data-theme] on <html> for
+ * specificity, ensuring they win over Tailwind's default single-class selectors.
+ *
+ * Semantic colors (green/red/blue for status) are NOT overridden — they stay
+ * consistent across all themes because success/danger/info are universal.
+ */
+
+/* ─── Cloud (Light Theme) — Tailwind Utility Overrides ─── */
+[data-theme="light"] {
+  /* Backgrounds: slate → warm paper */
+  .bg-slate-950 { background-color: #F0EDE6 !important; }
+  .bg-slate-900 { background-color: #F7F5F0 !important; }
+  .bg-slate-800 { background-color: #EDE9E0 !important; }
+  .bg-slate-700 { background-color: #E5E0D6 !important; }
+
+  /* Text: light on dark → dark on light */
+  .text-white { color: #3d3629 !important; }
+  .text-slate-100 { color: #3d3629 !important; }
+  .text-slate-200 { color: #4a4235 !important; }
+  .text-slate-300 { color: #6d6355 !important; }
+  .text-slate-400 { color: #8a7e6e !important; }
+  .text-slate-500 { color: #a09484 !important; }
+  .text-slate-600 { color: #c4baa8 !important; }
+
+  /* Amber accent → deepened for contrast on light bg */
+  .text-amber-500 { color: #b45309 !important; }
+  .text-amber-400 { color: #92400e !important; }
+  .bg-amber-500 { background-color: #b45309 !important; }
+  .bg-amber-400 { background-color: #92400e !important; }
+  .bg-amber-500\/10, .bg-amber-500\/20 { background-color: rgba(180, 83, 9, 0.1) !important; }
+  .border-amber-500 { border-color: #b45309 !important; }
+  .border-amber-500\/30, .border-amber-500\/50 { border-color: rgba(180, 83, 9, 0.3) !important; }
+
+  /* Borders: slate → warm gray */
+  .border-slate-800 { border-color: #DDD8CE !important; }
+  .border-slate-700 { border-color: #CCC5B8 !important; }
+  .border-slate-600 { border-color: #BEB7AA !important; }
+
+  /* Text on amber buttons stays dark */
+  .text-black { color: #3d3629 !important; }
+
+  /* Hover states */
+  .hover\:bg-slate-800:hover { background-color: #EDE9E0 !important; }
+  .hover\:bg-slate-700:hover { background-color: #E5E0D6 !important; }
+  .hover\:text-white:hover { color: #3d3629 !important; }
+  .hover\:text-slate-300:hover { color: #6d6355 !important; }
+  .hover\:text-amber-500:hover { color: #b45309 !important; }
+  .hover\:text-amber-400:hover { color: #92400e !important; }
+  .hover\:bg-amber-400:hover { background-color: #92400e !important; }
+  .hover\:border-amber-500:hover { border-color: #b45309 !important; }
+  .hover\:border-amber-500\/50:hover { border-color: rgba(180, 83, 9, 0.5) !important; }
+  .hover\:border-amber-500\/30:hover { border-color: rgba(180, 83, 9, 0.3) !important; }
+
+  /* Shadcn/UI primitives — override their CSS variables */
+  --background: 40 23% 93%;
+  --foreground: 30 17% 19%;
+  --card: 40 28% 95%;
+  --card-foreground: 30 17% 19%;
+  --popover: 40 28% 95%;
+  --popover-foreground: 30 17% 19%;
+  --primary: 28 91% 37%;
+  --primary-foreground: 40 28% 95%;
+  --secondary: 35 15% 89%;
+  --secondary-foreground: 30 17% 19%;
+  --muted: 35 15% 89%;
+  --muted-foreground: 30 12% 48%;
+  --accent: 35 15% 89%;
+  --accent-foreground: 30 17% 19%;
+  --border: 33 14% 83%;
+  --input: 33 14% 83%;
+  --ring: 28 91% 37%;
+}
+
+/* ─── Fallout Theme — Tailwind Utility Overrides ─── */
+[data-theme="fallout"] {
+  /* Backgrounds: slate → near-black with green tint */
+  .bg-slate-950 { background-color: #0a0a0a !important; }
+  .bg-slate-900 { background-color: #111111 !important; }
+  .bg-slate-800 { background-color: #1a1a1a !important; }
+  .bg-slate-700 { background-color: #222222 !important; }
+
+  /* Text: Pip-Boy phosphor green */
+  .text-white { color: #00ff41 !important; }
+  .text-slate-100 { color: #00ff41 !important; }
+  .text-slate-200 { color: #00dd38 !important; }
+  .text-slate-300 { color: #00cc33 !important; }
+  .text-slate-400 { color: #009926 !important; }
+  .text-slate-500 { color: #006619 !important; }
+  .text-slate-600 { color: #00440d !important; }
+
+  /* Amber → Pip-Boy green */
+  .text-amber-500 { color: #00ff41 !important; }
+  .text-amber-400 { color: #00cc33 !important; }
+  .bg-amber-500 { background-color: #00cc33 !important; }
+  .bg-amber-400 { background-color: #009926 !important; }
+  .bg-amber-500\/10, .bg-amber-500\/20 { background-color: rgba(0, 255, 65, 0.1) !important; }
+  .border-amber-500 { border-color: #00ff41 !important; }
+  .border-amber-500\/30, .border-amber-500\/50 { border-color: rgba(0, 255, 65, 0.3) !important; }
+
+  /* Borders: green-tinted dark */
+  .border-slate-800 { border-color: #1a2a1a !important; }
+  .border-slate-700 { border-color: #2a3a2a !important; }
+  .border-slate-600 { border-color: #3a4a3a !important; }
+
+  .text-black { color: #0a0a0a !important; }
+
+  /* Hover states */
+  .hover\:bg-slate-800:hover { background-color: #1a1a1a !important; }
+  .hover\:bg-slate-700:hover { background-color: #222222 !important; }
+  .hover\:text-white:hover { color: #00ff41 !important; }
+  .hover\:text-slate-300:hover { color: #00cc33 !important; }
+  .hover\:text-amber-500:hover { color: #00ff41 !important; }
+  .hover\:text-amber-400:hover { color: #00cc33 !important; }
+  .hover\:bg-amber-400:hover { background-color: #009926 !important; }
+  .hover\:border-amber-500:hover { border-color: #00ff41 !important; }
+
+  /* Shadcn/UI primitives */
+  --background: 0 0% 4%;
+  --foreground: 120 100% 50%;
+  --card: 0 0% 7%;
+  --card-foreground: 120 100% 50%;
+  --popover: 0 0% 7%;
+  --popover-foreground: 120 100% 50%;
+  --primary: 133 100% 50%;
+  --primary-foreground: 0 0% 4%;
+  --secondary: 120 10% 10%;
+  --secondary-foreground: 120 100% 50%;
+  --muted: 120 10% 10%;
+  --muted-foreground: 120 100% 30%;
+  --accent: 120 10% 10%;
+  --accent-foreground: 120 100% 50%;
+  --border: 120 20% 12%;
+  --input: 120 20% 12%;
+  --ring: 133 100% 50%;
+}
+
 /* Autofill dark theme overrides */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
