@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useFrequency } from '@/contexts/FrequencyContext';
 import {
   Music,
   Play,
@@ -57,6 +58,18 @@ function FullAudioPlayer({ audioUrl, onPlay }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  // Master power switch — when OFF, no audio plays
+  const freq = useFrequency();
+  const masterEnabled = freq?.isEnabled ?? true;
+
+  // Kill audio when master switch turns OFF
+  useEffect(() => {
+    if (!masterEnabled && isPlaying && audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+  }, [masterEnabled, isPlaying]);
+
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -82,6 +95,10 @@ function FullAudioPlayer({ audioUrl, onPlay }) {
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
     if (!audio || error) return;
+    if (!masterEnabled) {
+      toast('Frequency Station is off', { description: 'Turn it on from the header toggle.' });
+      return;
+    }
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
@@ -90,7 +107,7 @@ function FullAudioPlayer({ audioUrl, onPlay }) {
       setIsPlaying(true);
       onPlay?.();
     }
-  }, [isPlaying, error, onPlay]);
+  }, [isPlaying, error, onPlay, masterEnabled]);
 
   const handleProgressClick = useCallback((e) => {
     const audio = audioRef.current;

@@ -1,5 +1,5 @@
 // Frequency Station — Phase 2 live. Base44 connection restored 2026-03-25.
-import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect, useContext } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
@@ -8,6 +8,7 @@ import { validateFile, MAX_PHOTO_SIZE, ACCEPTED_IMAGE_TYPES } from '@/utils/file
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useFrequency } from '@/contexts/FrequencyContext';
 import {
   Music,
   Send,
@@ -99,6 +100,7 @@ function StatusBadge({ status }) {
 }
 
 // ─── Audio Player ────────────────────────────────────────────────────────────
+// Respects FrequencyContext master switch. When OFF, refuses to play and pauses active audio.
 function AudioPlayer({ audioUrl, variant = 'compact', onPlay }) {
   const audioRef = useRef(null);
   const progressRef = useRef(null);
@@ -107,6 +109,18 @@ function AudioPlayer({ audioUrl, variant = 'compact', onPlay }) {
   const [duration, setDuration] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  // Master power switch — when OFF, no audio plays anywhere
+  const freq = useFrequency();
+  const masterEnabled = freq?.isEnabled ?? true; // fallback true if context unavailable (standalone page)
+
+  // Kill audio immediately when master switch turns OFF
+  useEffect(() => {
+    if (!masterEnabled && isPlaying && audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+  }, [masterEnabled, isPlaying]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -144,6 +158,11 @@ function AudioPlayer({ audioUrl, variant = 'compact', onPlay }) {
       e?.stopPropagation?.();
       const audio = audioRef.current;
       if (!audio || error) return;
+      // Master switch OFF → refuse to play
+      if (!masterEnabled) {
+        toast('Frequency Station is off', { description: 'Turn it on from the header toggle.' });
+        return;
+      }
       if (isPlaying) {
         audio.pause();
         setIsPlaying(false);
@@ -153,7 +172,7 @@ function AudioPlayer({ audioUrl, variant = 'compact', onPlay }) {
         onPlay?.();
       }
     },
-    [isPlaying, error, onPlay]
+    [isPlaying, error, onPlay, masterEnabled]
   );
 
   const handleProgressClick = useCallback((e) => {
