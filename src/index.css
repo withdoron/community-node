@@ -123,6 +123,100 @@ button:focus-visible {
   }
 }
 
+/* ─── LocalLane Theme Variables (DEC-131 responsive refactor) ─── */
+/* These drive the MyLane surface. Components use var(--ll-*) instead of hardcoded hex. */
+/* Dark theme (Gold Standard) is the default. Light + Fallout are stubs for future design. */
+
+:root, [data-theme="dark"] {
+  /* Backgrounds */
+  --ll-bg-base: #020617;         /* slate-950 — page/surface */
+  --ll-bg-elevated: #0a0f1a;     /* slightly raised cards/inputs */
+  --ll-bg-surface: #0f172a;      /* slate-900 equivalent for panels */
+  --ll-bg-overlay: rgba(3, 8, 16, 0.95); /* overlay backdrop */
+  --ll-bg-active: #120e04;       /* active/selected item bg (warm dark amber) */
+
+  /* Borders */
+  --ll-border: #111827;          /* default border */
+  --ll-border-hover: #1e293b;    /* hover/interactive border */
+  --ll-border-active: #334155;   /* active state border */
+
+  /* Text */
+  --ll-text-primary: #f8fafc;    /* brightest text */
+  --ll-text-secondary: #e2e8f0;  /* card titles, readable body */
+  --ll-text-muted: #94a3b8;      /* secondary info */
+  --ll-text-dim: #64748b;        /* icons, subtle labels */
+  --ll-text-ghost: #475569;      /* faintest text, timestamps */
+  --ll-text-faint: #334155;      /* section labels, barely visible */
+
+  /* Accent (amber) */
+  --ll-accent: #f59e0b;          /* primary accent — amber-500 */
+  --ll-accent-hover: #d97706;    /* accent hover — amber-600 */
+  --ll-accent-bg: rgba(245, 158, 11, 0.13); /* accent background tint */
+  --ll-accent-glow: rgba(245, 158, 11, 0.15); /* glow/shadow */
+
+  /* Semantic */
+  --ll-danger: #ef4444;          /* red — destructive/urgent */
+  --ll-bar-urgent: #ef4444;      /* priority: urgent */
+  --ll-bar-action: #f59e0b;      /* priority: action needed */
+  --ll-bar-event: #3b82f6;       /* priority: scheduled */
+  --ll-bar-life: #22c55e;        /* priority: life activity */
+}
+
+/* Light theme — STUB. Placeholder values clearly different from dark. */
+/* Real palette will be designed with mockups. */
+[data-theme="light"] {
+  --ll-bg-base: #f8fafc;
+  --ll-bg-elevated: #ffffff;
+  --ll-bg-surface: #f1f5f9;
+  --ll-bg-overlay: rgba(248, 250, 252, 0.95);
+  --ll-bg-active: #fffbeb;
+  --ll-border: #e2e8f0;
+  --ll-border-hover: #cbd5e1;
+  --ll-border-active: #94a3b8;
+  --ll-text-primary: #0f172a;
+  --ll-text-secondary: #1e293b;
+  --ll-text-muted: #475569;
+  --ll-text-dim: #64748b;
+  --ll-text-ghost: #94a3b8;
+  --ll-text-faint: #cbd5e1;
+  --ll-accent: #d97706;
+  --ll-accent-hover: #b45309;
+  --ll-accent-bg: rgba(217, 119, 6, 0.1);
+  --ll-accent-glow: rgba(217, 119, 6, 0.12);
+  --ll-danger: #dc2626;
+  --ll-bar-urgent: #dc2626;
+  --ll-bar-action: #d97706;
+  --ll-bar-event: #2563eb;
+  --ll-bar-life: #16a34a;
+}
+
+/* Fallout theme — STUB. Pip-Boy green on black. */
+[data-theme="fallout"] {
+  --ll-bg-base: #0a0a0a;
+  --ll-bg-elevated: #111111;
+  --ll-bg-surface: #1a1a1a;
+  --ll-bg-overlay: rgba(10, 10, 10, 0.95);
+  --ll-bg-active: #0a1a0a;
+  --ll-border: #1a2a1a;
+  --ll-border-hover: #2a3a2a;
+  --ll-border-active: #3a4a3a;
+  --ll-text-primary: #00ff41;
+  --ll-text-secondary: #00cc33;
+  --ll-text-muted: #009926;
+  --ll-text-dim: #006619;
+  --ll-text-ghost: #00440d;
+  --ll-text-faint: #003308;
+  --ll-accent: #00ff41;
+  --ll-accent-hover: #00cc33;
+  --ll-accent-bg: rgba(0, 255, 65, 0.1);
+  --ll-accent-glow: rgba(0, 255, 65, 0.15);
+  --ll-danger: #ff3333;
+  --ll-bar-urgent: #ff3333;
+  --ll-bar-action: #00ff41;
+  --ll-bar-event: #33ccff;
+  --ll-bar-life: #00ff41;
+}
+
 /* Autofill dark theme overrides */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,

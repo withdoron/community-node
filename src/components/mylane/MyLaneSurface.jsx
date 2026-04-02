@@ -64,7 +64,7 @@ function OverlayContainer({ isOpen, keepMounted = false, children }) {
       className="absolute left-0 right-0 bottom-0 z-40 flex flex-col overflow-y-auto"
       style={{
         top: 45,
-        background: '#030810f2',
+        background: 'var(--ll-bg-overlay)',
         backdropFilter: 'blur(12px)',
         animation: isOpen ? 'overlaySlideDown 0.35s ease' : undefined,
         display: isOpen ? 'flex' : 'none',
@@ -101,17 +101,17 @@ function AccountOverlay({ currentUser, onClose }) {
   if (showSettings) {
     return (
       <div style={{ padding: '0' }}>
-        <div className="flex items-center gap-2" style={{ padding: '16px 24px', borderBottom: '1px solid #111827' }}>
+        <div className="flex items-center gap-2" style={{ padding: '16px 24px', borderBottom: '1px solid var(--ll-border)' }}>
           <button
             type="button"
             onClick={() => setShowSettings(false)}
-            style={{ fontSize: 12, color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}
+            style={{ fontSize: 12, color: 'var(--ll-text-dim)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}
           >
             ← Account
           </button>
         </div>
         <div className="overlay-page-content">
-          <React.Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#475569', fontSize: 12 }}>Loading...</div>}>
+          <React.Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>}>
             <SettingsPage />
           </React.Suspense>
         </div>
@@ -126,99 +126,121 @@ function AccountOverlay({ currentUser, onClose }) {
 
   return (
     <div style={{ padding: 24, maxWidth: 480 }}>
-      <div style={{ fontSize: 18, fontWeight: 500, color: '#f8fafc', marginBottom: 20 }}>
+      <div style={{ fontSize: 18, fontWeight: 500, color: 'var(--ll-text-primary)', marginBottom: 20 }}>
         Account
       </div>
 
       {/* Preferences */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 10, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, fontWeight: 500 }}>
+        <div style={{ fontSize: 10, color: 'var(--ll-text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, fontWeight: 500 }}>
           Preferences
         </div>
         <div
           className="flex items-center gap-2.5 cursor-pointer rounded-lg"
           style={{ padding: '10px 12px', transition: 'background 0.15s' }}
           onClick={() => setShowSettings(true)}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ll-bg-elevated)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
         >
-          <Settings style={{ width: 16, height: 16, color: '#64748b', flexShrink: 0 }} strokeWidth={1.5} />
+          <Settings style={{ width: 16, height: 16, color: 'var(--ll-text-dim)', flexShrink: 0 }} strokeWidth={1.5} />
           <div>
-            <div style={{ fontSize: 13, color: '#e2e8f0' }}>Settings</div>
-            <div style={{ fontSize: 10, color: '#475569' }}>Profile, notifications, billing</div>
+            <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)' }}>Settings</div>
+            <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>Profile, notifications, billing</div>
           </div>
         </div>
         <div
           className="flex items-center gap-2.5 cursor-pointer rounded-lg"
           style={{ padding: '10px 12px', transition: 'background 0.15s' }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ll-bg-elevated)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
         >
-          <Mail style={{ width: 16, height: 16, color: '#64748b', flexShrink: 0 }} strokeWidth={1.5} />
+          <Mail style={{ width: 16, height: 16, color: 'var(--ll-text-dim)', flexShrink: 0 }} strokeWidth={1.5} />
           <div>
-            <div style={{ fontSize: 13, color: '#e2e8f0' }}>Newsletter</div>
-            <div style={{ fontSize: 10, color: '#475569' }}>The Good News</div>
+            <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)' }}>Newsletter</div>
+            <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>The Good News</div>
           </div>
         </div>
         <div
           className="flex items-center gap-2.5 cursor-pointer rounded-lg"
           style={{ padding: '10px 12px', transition: 'background 0.15s' }}
           onClick={toggleSound}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ll-bg-elevated)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
         >
           {soundOn
-            ? <Volume2 style={{ width: 16, height: 16, color: '#64748b', flexShrink: 0 }} strokeWidth={1.5} />
-            : <VolumeX style={{ width: 16, height: 16, color: '#64748b', flexShrink: 0 }} strokeWidth={1.5} />
+            ? <Volume2 style={{ width: 16, height: 16, color: 'var(--ll-text-dim)', flexShrink: 0 }} strokeWidth={1.5} />
+            : <VolumeX style={{ width: 16, height: 16, color: 'var(--ll-text-dim)', flexShrink: 0 }} strokeWidth={1.5} />
           }
           <div>
-            <div style={{ fontSize: 13, color: '#e2e8f0' }}>Sound &amp; haptics</div>
-            <div style={{ fontSize: 10, color: '#475569' }}>{soundOn ? 'On' : 'Off'}</div>
+            <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)' }}>Sound &amp; haptics</div>
+            <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>{soundOn ? 'On' : 'Off'}</div>
           </div>
         </div>
       </div>
 
-      <div style={{ height: 1, background: '#111827', margin: '8px 0' }} />
+        <div
+          className="flex items-center gap-2.5 cursor-pointer rounded-lg"
+          style={{ padding: '10px 12px', transition: 'background 0.15s' }}
+          onClick={() => {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const themes = ['dark', 'light', 'fallout'];
+            const nextIdx = (themes.indexOf(current) + 1) % themes.length;
+            const next = themes[nextIdx];
+            document.documentElement.setAttribute('data-theme', next);
+            try { localStorage.setItem('ll_theme', next); } catch {}
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ll-bg-elevated)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        >
+          <span style={{ fontSize: 16, flexShrink: 0, width: 16, textAlign: 'center' }}>🎨</span>
+          <div>
+            <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)' }}>Theme</div>
+            <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>Tap to cycle</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ height: 1, background: 'var(--ll-border)', margin: '8px 0' }} />
 
       {/* Legal — opens in new tab (acceptable for legal pages) */}
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 10, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, fontWeight: 500 }}>
+        <div style={{ fontSize: 10, color: 'var(--ll-text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, fontWeight: 500 }}>
           Legal
         </div>
         <div
           className="flex items-center gap-2.5 cursor-pointer rounded-lg"
           style={{ padding: '10px 12px', transition: 'background 0.15s' }}
           onClick={() => openNewTab('Terms')}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ll-bg-elevated)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
         >
-          <FileText style={{ width: 16, height: 16, color: '#64748b', flexShrink: 0 }} strokeWidth={1.5} />
-          <div style={{ fontSize: 13, color: '#e2e8f0' }}>Terms of service</div>
+          <FileText style={{ width: 16, height: 16, color: 'var(--ll-text-dim)', flexShrink: 0 }} strokeWidth={1.5} />
+          <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)' }}>Terms of service</div>
         </div>
         <div
           className="flex items-center gap-2.5 cursor-pointer rounded-lg"
           style={{ padding: '10px 12px', transition: 'background 0.15s' }}
           onClick={() => openNewTab('Privacy')}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ll-bg-elevated)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
         >
-          <Lock style={{ width: 16, height: 16, color: '#64748b', flexShrink: 0 }} strokeWidth={1.5} />
-          <div style={{ fontSize: 13, color: '#e2e8f0' }}>Privacy</div>
+          <Lock style={{ width: 16, height: 16, color: 'var(--ll-text-dim)', flexShrink: 0 }} strokeWidth={1.5} />
+          <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)' }}>Privacy</div>
         </div>
       </div>
 
-      <div style={{ height: 1, background: '#111827', margin: '8px 0' }} />
+      <div style={{ height: 1, background: 'var(--ll-border)', margin: '8px 0' }} />
 
       {/* Logout */}
       <div
         className="flex items-center gap-2.5 cursor-pointer rounded-lg"
         style={{ padding: '10px 12px', transition: 'background 0.15s' }}
         onClick={handleLogout}
-        onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ll-bg-elevated)'; }}
         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
       >
-        <LogOut style={{ width: 16, height: 16, color: '#ef4444', flexShrink: 0 }} strokeWidth={1.5} />
-        <div style={{ fontSize: 13, color: '#ef4444' }}>Log out</div>
+        <LogOut style={{ width: 16, height: 16, color: 'var(--ll-danger)', flexShrink: 0 }} strokeWidth={1.5} />
+        <div style={{ fontSize: 13, color: 'var(--ll-danger)' }}>Log out</div>
       </div>
     </div>
   );
@@ -377,23 +399,23 @@ export default function MyLaneSurface({
             <div
               style={{
                 margin: '0 20px 12px', padding: '14px 16px',
-                background: '#0f172a', border: '1px solid #1e293b',
+                background: 'var(--ll-bg-surface)', border: '1px solid var(--ll-border-hover)',
                 borderRadius: 10,
               }}
             >
               <div className="flex items-start justify-between">
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: '#f8fafc' }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ll-text-primary)' }}>
                     Welcome to {welcomeData.name}!
                   </div>
-                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: 'var(--ll-text-dim)', marginTop: 2 }}>
                     Swipe the spinner to find your {WELCOME_LABELS[welcomeData.space] || 'space'}.
                   </div>
                   <button
                     type="button"
                     onClick={() => goToSpace(welcomeData.space)}
                     style={{
-                      marginTop: 8, fontSize: 12, fontWeight: 500, color: '#f59e0b',
+                      marginTop: 8, fontSize: 12, fontWeight: 500, color: 'var(--ll-accent)',
                       background: 'none', border: 'none', padding: 0, cursor: 'pointer',
                     }}
                   >
@@ -405,7 +427,7 @@ export default function MyLaneSurface({
                   onClick={() => setWelcomeData(null)}
                   style={{
                     background: 'none', border: 'none', padding: '2px 4px',
-                    cursor: 'pointer', color: '#475569', fontSize: 14,
+                    cursor: 'pointer', color: 'var(--ll-text-ghost)', fontSize: 14,
                   }}
                 >
                   <X style={{ width: 14, height: 14 }} strokeWidth={2} />
@@ -438,8 +460,8 @@ export default function MyLaneSurface({
   };
 
   return (
-    <div className="flex flex-col relative" style={{ background: '#020617', minHeight: '100vh', overflow: 'hidden' }}>
-      {/* Keyframe for overlay slide animation */}
+    <div className="mylane-surface flex flex-col relative" style={{ background: 'var(--ll-bg-base, #020617)', minHeight: '100vh', overflow: 'hidden', containerType: 'inline-size' }}>
+      {/* Keyframes + container queries + theme variables */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes overlaySlideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
@@ -448,19 +470,41 @@ export default function MyLaneSurface({
         .overlay-page-content > div > .flex.items-center.gap-3.mb-6:first-child { display: none; }
         /* Suppress auth gates and min-h-screen in overlay context */
         .overlay-page-content > div { min-height: auto !important; background: transparent !important; }
+
+        /* ─── Container queries ─── */
+        /* Content area adapts to available space, not viewport */
+        .mylane-surface { container-type: inline-size; }
+
+        /* Default: phone-size */
+        .mylane-surface { --ll-content-max: 100%; --ll-content-pad: 16px; --ll-overlay-mode: fullscreen; }
+
+        /* Tablet+ (container >= 640px) */
+        @container (min-width: 640px) {
+          .mylane-surface { --ll-content-max: 640px; --ll-content-pad: 24px; }
+        }
+
+        /* Desktop (container >= 1024px) */
+        @container (min-width: 1024px) {
+          .mylane-surface { --ll-content-max: 768px; --ll-content-pad: 32px; --ll-overlay-mode: panel; }
+        }
+
+        /* Wide (container >= 1280px) */
+        @container (min-width: 1280px) {
+          .mylane-surface { --ll-content-max: 960px; }
+        }
       ` }} />
 
       {/* ─── Header ─── */}
       <div
         className="flex justify-between items-center relative z-50"
-        style={{ padding: '10px 24px', borderBottom: '1px solid #111827', background: '#020617' }}
+        style={{ padding: '10px 24px', borderBottom: '1px solid var(--ll-border)', background: 'var(--ll-bg-base)' }}
       >
         <div
           className="cursor-pointer select-none active:opacity-60"
           onClick={handleLogoClick}
-          style={{ fontSize: 15, fontWeight: 500, color: '#f8fafc' }}
+          style={{ fontSize: 15, fontWeight: 500, color: 'var(--ll-text-primary)' }}
         >
-          <span style={{ color: '#f59e0b', fontWeight: 700 }}>Local</span> Lane
+          <span style={{ color: 'var(--ll-accent)', fontWeight: 700 }}>Local</span> Lane
         </div>
         <div className="flex items-center" style={{ gap: 4 }}>
           {/* Music icon — 44px tap zone */}
@@ -472,12 +516,12 @@ export default function MyLaneSurface({
             <Music
               style={{ width: 14, height: 14, transition: 'color 0.2s' }}
               strokeWidth={1.5}
-              color={activeOverlay === 'freq' ? '#f59e0b' : '#64748b'}
+              color={activeOverlay === 'freq' ? 'var(--ll-accent)' : 'var(--ll-text-dim)'}
             />
             {frequencyPlaying && (
               <div style={{
                 position: 'absolute', width: 6, height: 6, borderRadius: '50%',
-                background: '#f59e0b', top: 6, right: 6,
+                background: 'var(--ll-accent)', top: 6, right: 6,
                 animation: 'fpulse 2s infinite',
               }} />
             )}
@@ -491,7 +535,7 @@ export default function MyLaneSurface({
           >
             <span style={{
               fontSize: 12, transition: 'color 0.2s',
-              color: activeOverlay === 'dir' ? '#f59e0b' : '#64748b',
+              color: activeOverlay === 'dir' ? 'var(--ll-accent)' : 'var(--ll-text-dim)',
             }}>
               Directory
             </span>
@@ -505,7 +549,7 @@ export default function MyLaneSurface({
           >
             <span style={{
               fontSize: 12, transition: 'color 0.2s',
-              color: activeOverlay === 'evt' ? '#f59e0b' : '#64748b',
+              color: activeOverlay === 'evt' ? 'var(--ll-accent)' : 'var(--ll-text-dim)',
             }}>
               Events
             </span>
@@ -521,9 +565,9 @@ export default function MyLaneSurface({
               className="flex items-center justify-center select-none"
               style={{
                 width: 36, height: 36, borderRadius: '50%',
-                border: `1.5px solid ${activeOverlay === 'acct' ? '#f59e0b' : '#334155'}`,
+                border: `1.5px solid ${activeOverlay === 'acct' ? 'var(--ll-accent)' : 'var(--ll-border-active)'}`,
                 fontSize: 12, transition: 'border-color 0.2s, color 0.2s',
-                color: activeOverlay === 'acct' ? '#f59e0b' : '#94a3b8',
+                color: activeOverlay === 'acct' ? 'var(--ll-accent)' : 'var(--ll-text-muted)',
               }}
             >
               {userInitial.toUpperCase()}
@@ -540,14 +584,14 @@ export default function MyLaneSurface({
         <div style={{ padding: 24, maxWidth: 640 }}>
           {/* Title row with on/off toggle */}
           <div className="flex justify-between items-center" style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: 18, fontWeight: 500, color: '#f8fafc' }}>Frequency station</div>
+            <div style={{ fontSize: 18, fontWeight: 500, color: 'var(--ll-text-primary)' }}>Frequency station</div>
             <div className="flex items-center gap-2">
-              <span style={{ fontSize: 11, color: '#64748b' }}>{frequencyPlaying ? 'On' : 'Off'}</span>
+              <span style={{ fontSize: 11, color: 'var(--ll-text-dim)' }}>{frequencyPlaying ? 'On' : 'Off'}</span>
               <div
                 className="cursor-pointer relative"
                 style={{
                   width: 40, height: 22, borderRadius: 11,
-                  background: frequencyPlaying ? '#f59e0b33' : '#1e293b',
+                  background: frequencyPlaying ? 'var(--ll-accent-bg)' : 'var(--ll-border-hover)',
                   transition: 'background 0.2s',
                 }}
                 onClick={() => freq?.toggle()}
@@ -555,7 +599,7 @@ export default function MyLaneSurface({
                 <div style={{
                   width: 18, height: 18, borderRadius: '50%', position: 'absolute', top: 2,
                   left: frequencyPlaying ? 20 : 2,
-                  background: frequencyPlaying ? '#f59e0b' : '#475569',
+                  background: frequencyPlaying ? 'var(--ll-accent)' : 'var(--ll-text-ghost)',
                   transition: 'all 0.2s',
                 }} />
               </div>
@@ -564,7 +608,7 @@ export default function MyLaneSurface({
 
           {/* Phase 2 page inline — suppress its own header + auth gate via overlay-page-content class */}
           <React.Suspense fallback={
-            <div style={{ textAlign: 'center', padding: 40, color: '#475569', fontSize: 12 }}>Loading...</div>
+            <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
           }>
             <div className="overlay-page-content">
               <FrequencyStationPage />
@@ -576,7 +620,7 @@ export default function MyLaneSurface({
       {/* Directory overlay */}
       <OverlayContainer isOpen={activeOverlay === 'dir'}>
         <React.Suspense fallback={
-          <div style={{ textAlign: 'center', padding: 40, color: '#475569', fontSize: 12 }}>Loading...</div>
+          <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
         }>
           <div className="overlay-page-content">
             <DirectoryPage />
@@ -587,7 +631,7 @@ export default function MyLaneSurface({
       {/* Events overlay */}
       <OverlayContainer isOpen={activeOverlay === 'evt'}>
         <React.Suspense fallback={
-          <div style={{ textAlign: 'center', padding: 40, color: '#475569', fontSize: 12 }}>Loading...</div>
+          <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
         }>
           <div className="overlay-page-content">
             <EventsPage />
@@ -609,9 +653,9 @@ export default function MyLaneSurface({
           onSelect={handleSpinnerSelect}
         />
 
-        {/* Content area */}
-        <div className="flex-1 overflow-y-auto" style={{ padding: '8px 24px' }}>
-          <div style={{ maxWidth: 768 }}>
+        {/* Content area — width responds to container queries */}
+        <div className="flex-1 overflow-y-auto" style={{ padding: '8px var(--ll-content-pad, 24px)' }}>
+          <div style={{ maxWidth: 'var(--ll-content-max, 768px)' }}>
             {renderContent()}
           </div>
         </div>

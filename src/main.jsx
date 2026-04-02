@@ -3,6 +3,14 @@ import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
 
+// Apply persisted theme before first paint (prevents flash)
+try {
+  const theme = localStorage.getItem('ll_theme');
+  if (theme && theme !== 'dark') {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+} catch {}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   // <React.StrictMode>
   <App />
