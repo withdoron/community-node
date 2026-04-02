@@ -4,7 +4,7 @@
  * Tap = overlay renders below. Tap again = rolls up. One surface, two axes.
  * Nothing navigates away from MyLane. Everything renders in place.
  */
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -24,10 +24,10 @@ import { renderEntityView } from './renderEntityView';
 import { useFrequency } from '@/contexts/FrequencyContext';
 
 // Lazy-load overlay content — these are full page components rendered inline
-const DirectoryPage = React.lazy(() => import('@/pages/Directory'));
-const EventsPage = React.lazy(() => import('@/pages/Events'));
-const FrequencyStationPage = React.lazy(() => import('@/pages/FrequencyStation'));
-const SettingsPage = React.lazy(() => import('@/pages/Settings'));
+const DirectoryPage = lazy(() => import('@/pages/Directory'));
+const EventsPage = lazy(() => import('@/pages/Events'));
+const FrequencyStationPage = lazy(() => import('@/pages/FrequencyStation'));
+const SettingsPage = lazy(() => import('@/pages/Settings'));
 
 // Map workspace type IDs to spinner item config
 const SPACE_CONFIG = {
@@ -95,8 +95,8 @@ function OverlayContainer({ isOpen, keepMounted = false, children }) {
 // Account overlay — replaces gear icon. Same toggle pattern as everything else.
 // Settings renders inline. Legal pages open in new tab. Nothing navigates away.
 function AccountOverlay({ currentUser, onClose }) {
-  const [showSettings, setShowSettings] = React.useState(false);
-  const [soundOn, setSoundOn] = React.useState(() => {
+  const [showSettings, setShowSettings] = useState(false);
+  const [soundOn, setSoundOn] = useState(() => {
     try { return localStorage.getItem('mylane_sound') !== '0'; } catch { return true; }
   });
   const toggleSound = () => {
@@ -128,9 +128,9 @@ function AccountOverlay({ currentUser, onClose }) {
           </button>
         </div>
         <div className="overlay-page-content">
-          <React.Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>}>
+          <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>}>
             <SettingsPage />
-          </React.Suspense>
+          </Suspense>
         </div>
       </div>
     );
@@ -633,36 +633,36 @@ export default function MyLaneSurface({
           </div>
 
           {/* Phase 2 page inline — suppress its own header + auth gate via overlay-page-content class */}
-          <React.Suspense fallback={
+          <Suspense fallback={
             <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
           }>
             <div className="overlay-page-content">
               <FrequencyStationPage />
             </div>
-          </React.Suspense>
+          </Suspense>
         </div>
       </OverlayContainer>
 
       {/* Directory overlay */}
       <OverlayContainer isOpen={activeOverlay === 'dir'}>
-        <React.Suspense fallback={
+        <Suspense fallback={
           <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
         }>
           <div className="overlay-page-content">
             <DirectoryPage />
           </div>
-        </React.Suspense>
+        </Suspense>
       </OverlayContainer>
 
       {/* Events overlay */}
       <OverlayContainer isOpen={activeOverlay === 'evt'}>
-        <React.Suspense fallback={
+        <Suspense fallback={
           <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
         }>
           <div className="overlay-page-content">
             <EventsPage />
           </div>
-        </React.Suspense>
+        </Suspense>
       </OverlayContainer>
 
       {/* Account overlay */}
