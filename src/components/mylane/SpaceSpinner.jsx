@@ -1,5 +1,5 @@
 /**
- * SpaceSpinner — horizontal gallery-style space picker.
+ * SpaceSpinner — horizontal gallery-style space picker with momentum swipe.
  * Always visible, even when drilled into a space.
  * CSS values from MOCKUP-SPINNER-V6-FINAL.html — these are the spec.
  *
@@ -8,22 +8,33 @@
  *   currentIndex — active position
  *   onSelect(index) — callback when user taps or swipes to a position
  */
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 
-// Sound + haptic preference — default on
+const ITEM_WIDTH = 74;
+
+// ─── Shared AudioContext (iOS Safari requires user-gesture init) ───
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx) {
+    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
+  }
+  // Resume if suspended (iOS Safari suspends until user gesture)
+  if (_audioCtx?.state === 'suspended') {
+    _audioCtx.resume().catch(() => {});
+  }
+  return _audioCtx;
+}
+
 function isSoundEnabled() {
   try { return localStorage.getItem('mylane_sound') !== '0'; } catch { return true; }
 }
 
-// Audio tick — sine oscillator, 40ms, gain 0.05, freq 440 + index*60
-// Haptic: 8ms subtle buzz
 function playTick(index) {
   if (!isSoundEnabled()) return;
+  try { if (navigator.vibrate) navigator.vibrate(8); } catch {}
   try {
-    if (navigator.vibrate) navigator.vibrate(8);
-  } catch {}
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioCtx();
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -34,11 +45,55 @@ function playTick(index) {
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
     osc.start();
     osc.stop(ctx.currentTime + 0.04);
-  } catch { /* audio not available */ }
+  } catch {}
+}
+
+// Initialize AudioContext on first user gesture (iOS Safari requirement)
+function initAudioOnGesture() {
+  getAudioCtx();
+  document.removeEventListener('pointerdown', initAudioOnGesture);
+}
+if (typeof document !== 'undefined') {
+  document.addEventListener('pointerdown', initAudioOnGesture, { once: true });
 }
 
 export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect }) {
-  const pointerRef = useRef({ x: 0, active: false });
+  const containerRef = useRef(null);
+  const beltRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  // Measure container width on mount and resize
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const measure = () => setContainerWidth(el.offsetWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // ─── Momentum swipe state ───
+  const dragRef = useRef({
+    active: false,
+    startX: 0,
+    startOffset: 0,
+    currentOffset: 0,
+    lastX: 0,
+    lastTime: 0,
+    velocity: 0,
+  });
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const animFrameRef = useRef(null);
+
+  // Calculate the translateX for a given index — centers active item in container
+  const getOffsetForIndex = useCallback((idx) => {
+    const center = containerWidth / 2 - ITEM_WIDTH / 2;
+    return -(idx * ITEM_WIDTH) + center;
+  }, [containerWidth]);
+
+  const baseOffset = getOffsetForIndex(currentIndex);
 
   const handleSelect = useCallback((idx) => {
     if (idx < 0 || idx >= items.length) return;
@@ -46,39 +101,122 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect })
     onSelect?.(idx);
   }, [items.length, onSelect]);
 
+  // ─── Pointer handlers for momentum swipe ───
   const handlePointerDown = useCallback((e) => {
-    pointerRef.current = { x: e.clientX, active: true };
-  }, []);
+    // Cancel any running momentum animation
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+    const d = dragRef.current;
+    d.active = true;
+    d.startX = e.clientX;
+    d.startOffset = baseOffset;
+    d.currentOffset = 0;
+    d.lastX = e.clientX;
+    d.lastTime = Date.now();
+    d.velocity = 0;
+    setIsDragging(true);
+    setDragOffset(0);
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  }, [baseOffset]);
+
+  const handlePointerMove = useCallback((e) => {
+    const d = dragRef.current;
+    if (!d.active) return;
+    const dx = e.clientX - d.startX;
+    d.currentOffset = dx;
+
+    // Track velocity from last few frames
+    const now = Date.now();
+    const dt = now - d.lastTime;
+    if (dt > 0) {
+      d.velocity = (e.clientX - d.lastX) / dt; // px/ms
+    }
+    d.lastX = e.clientX;
+    d.lastTime = now;
+
+    setDragOffset(dx);
+
+    // Play tick sound when crossing item boundaries
+    const rawIdx = -(d.startOffset + dx - containerWidth / 2 + ITEM_WIDTH / 2) / ITEM_WIDTH;
+    const nearestIdx = Math.round(Math.max(0, Math.min(items.length - 1, rawIdx)));
+    if (nearestIdx !== currentIndex) {
+      playTick(nearestIdx);
+    }
+  }, [containerWidth, items.length, currentIndex]);
 
   const handlePointerUp = useCallback((e) => {
-    if (!pointerRef.current.active) return;
-    pointerRef.current.active = false;
-    const delta = e.clientX - pointerRef.current.x;
-    if (Math.abs(delta) > 20) {
-      // Swipe left (negative delta) = next, swipe right = prev
-      if (delta < 0 && currentIndex < items.length - 1) handleSelect(currentIndex + 1);
-      else if (delta > 0 && currentIndex > 0) handleSelect(currentIndex - 1);
+    const d = dragRef.current;
+    if (!d.active) return;
+    d.active = false;
+    setIsDragging(false);
+
+    const dx = d.currentOffset;
+    const velocity = d.velocity; // px/ms
+
+    // If barely moved, treat as tap (no swipe)
+    if (Math.abs(dx) < 5) {
+      setDragOffset(0);
+      return;
+    }
+
+    // Calculate how many positions to move based on drag + velocity
+    const momentumPx = velocity * 120; // project forward ~120ms of momentum
+    const totalDelta = dx + momentumPx;
+    const positionsDelta = Math.round(-totalDelta / ITEM_WIDTH);
+    const targetIdx = Math.max(0, Math.min(items.length - 1, currentIndex + positionsDelta));
+
+    setDragOffset(0);
+
+    if (targetIdx !== currentIndex) {
+      // Play ticks for intermediate positions
+      const step = targetIdx > currentIndex ? 1 : -1;
+      let tickIdx = currentIndex;
+      const tickInterval = setInterval(() => {
+        tickIdx += step;
+        if ((step > 0 && tickIdx > targetIdx) || (step < 0 && tickIdx < targetIdx)) {
+          clearInterval(tickInterval);
+          return;
+        }
+        playTick(tickIdx);
+      }, 50);
+
+      handleSelect(targetIdx);
     }
   }, [currentIndex, items.length, handleSelect]);
 
-  // Position offset: each node is 74px wide, center of container
-  const containerCenter = 260 - 37; // from mockup: translateX(-(ci*74)+(260-37))
-  const translateX = -(currentIndex * 74) + containerCenter;
+  // Final translateX: base offset + drag delta (during drag) or just base offset (at rest)
+  const translateX = isDragging ? baseOffset + dragOffset : baseOffset;
+
+  if (containerWidth === 0) {
+    // Render hidden to measure, then show
+    return (
+      <div ref={containerRef} style={{ padding: '14px 0 6px', height: 68 + 14 + 6 }} />
+    );
+  }
 
   return (
     <div
-      className="select-none touch-pan-y cursor-grab active:cursor-grabbing relative"
+      className="select-none touch-none cursor-grab active:cursor-grabbing relative"
       style={{ padding: '14px 0 6px' }}
       onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
       {/* Spinner track */}
-      <div className="flex items-center justify-center relative overflow-hidden" style={{ height: 68 }}>
+      <div
+        ref={containerRef}
+        className="flex items-center justify-center relative overflow-hidden"
+        style={{ height: 68 }}
+      >
         <div
+          ref={beltRef}
           className="flex items-center will-change-transform"
           style={{
             transform: `translateX(${translateX}px)`,
-            transition: 'transform 0.32s cubic-bezier(0.22, 0.68, 0, 1)',
+            transition: isDragging ? 'none' : 'transform 0.32s cubic-bezier(0.22, 0.68, 0, 1)',
           }}
         >
           {items.map((item, i) => {
@@ -88,7 +226,6 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect })
             const isFar = Math.abs(d) >= 2;
             const isDimmed = item.dim && !isCenter;
 
-            // Sizes from mockup spec
             const boxSize = isCenter ? 42 : isAdjacent ? 30 : 22;
             const iconSize = isCenter ? 17 : isAdjacent ? 12 : 11;
             const borderColor = isCenter ? '#f59e0b' : '#1e293b';
@@ -108,42 +245,34 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect })
                 key={item.id}
                 className="flex flex-col items-center justify-center flex-shrink-0 cursor-pointer"
                 style={{
-                  width: 74,
+                  width: ITEM_WIDTH,
                   opacity,
-                  transition: 'all 0.32s cubic-bezier(0.22, 0.68, 0, 1)',
+                  transition: isDragging ? 'opacity 0.1s' : 'all 0.32s cubic-bezier(0.22, 0.68, 0, 1)',
                 }}
-                onClick={() => handleSelect(i)}
+                onClick={(e) => {
+                  // Only handle click if not dragging
+                  if (Math.abs(dragRef.current.currentOffset) < 5) handleSelect(i);
+                }}
               >
                 <div
                   className="flex items-center justify-center"
                   style={{
-                    width: boxSize,
-                    height: boxSize,
+                    width: boxSize, height: boxSize,
                     border: `1.5px solid ${borderColor}`,
-                    borderRadius,
-                    background: bgColor,
-                    transition: 'all 0.32s',
+                    borderRadius, background: bgColor,
+                    transition: isDragging ? 'none' : 'all 0.32s',
                   }}
                 >
                   <Icon
-                    style={{
-                      width: iconSize,
-                      height: iconSize,
-                      color: iconColor,
-                      transition: 'all 0.32s',
-                    }}
+                    style={{ width: iconSize, height: iconSize, color: iconColor, transition: isDragging ? 'none' : 'all 0.32s' }}
                     strokeWidth={1.5}
                   />
                 </div>
                 <span
                   style={{
-                    fontSize: labelSize,
-                    color: labelColor,
-                    fontWeight: labelWeight,
-                    marginTop: labelMargin,
-                    whiteSpace: 'nowrap',
-                    letterSpacing: '0.3px',
-                    transition: 'all 0.32s',
+                    fontSize: labelSize, color: labelColor, fontWeight: labelWeight,
+                    marginTop: labelMargin, whiteSpace: 'nowrap', letterSpacing: '0.3px',
+                    transition: isDragging ? 'none' : 'all 0.32s',
                   }}
                 >
                   {item.label}
@@ -164,14 +293,7 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect })
 
       {/* Amber dot indicator */}
       <div className="flex justify-center" style={{ marginTop: 5 }}>
-        <div
-          style={{
-            width: 3,
-            height: 3,
-            borderRadius: '50%',
-            background: '#f59e0b',
-          }}
-        />
+        <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#f59e0b' }} />
       </div>
     </div>
   );
