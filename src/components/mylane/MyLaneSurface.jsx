@@ -492,6 +492,7 @@ export default function MyLaneSurface({
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes overlaySlideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes pulse { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
         /* Suppress page headers when rendered inside overlays */
         .overlay-page-content > div > .mb-6:first-child { display: none; }
         .overlay-page-content > div > .flex.items-center.gap-3.mb-6:first-child { display: none; }
@@ -722,14 +723,33 @@ export default function MyLaneSurface({
                   border: '1px solid var(--ll-border)',
                   borderRadius: 10, position: 'relative',
                 }}>
-                  <button
-                    type="button"
-                    onClick={() => setCommandResult(null)}
-                    style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ll-text-dim)', padding: 4, zIndex: 1 }}
-                  >
-                    <X style={{ width: 14, height: 14 }} strokeWidth={2} />
-                  </button>
-                  {commandResult.text && (
+                  {commandResult.type !== 'loading' && (
+                    <button
+                      type="button"
+                      onClick={() => setCommandResult(null)}
+                      style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ll-text-dim)', padding: 4, zIndex: 1 }}
+                    >
+                      <X style={{ width: 14, height: 14 }} strokeWidth={2} />
+                    </button>
+                  )}
+                  {/* Loading state — three pulsing dots */}
+                  {commandResult.type === 'loading' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {[0, 1, 2].map((i) => (
+                          <div key={i} style={{
+                            width: 6, height: 6, borderRadius: '50%',
+                            background: 'var(--ll-accent)',
+                            animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite`,
+                          }} />
+                        ))}
+                      </div>
+                      <span style={{ fontSize: 12, color: 'var(--ll-text-ghost)' }}>
+                        {commandResult.text}
+                      </span>
+                    </div>
+                  )}
+                  {commandResult.type !== 'loading' && commandResult.text && (
                     <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)', lineHeight: 1.5, paddingRight: 24, marginBottom: (commandResult.type !== 'text') ? 12 : 0 }}>
                       {commandResult.text}
                     </div>

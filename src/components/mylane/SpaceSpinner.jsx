@@ -101,8 +101,14 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect })
     onSelect?.(idx);
   }, [items.length, onSelect]);
 
+  // Track recent wheel activity to suppress pointer drag on trackpads
+  const wheelActiveRef = useRef(false);
+  const wheelCooldownRef = useRef(null);
+
   // ─── Pointer handlers for momentum swipe ───
   const handlePointerDown = useCallback((e) => {
+    // If a wheel/trackpad scroll just happened, ignore pointer to prevent conflict
+    if (wheelActiveRef.current) return;
     // Cancel any running momentum animation
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
@@ -186,10 +192,16 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect })
     }
   }, [currentIndex, items.length, handleSelect]);
 
-  // Mouse wheel handler — scroll through spinner positions on desktop
+  // Mouse wheel / trackpad handler — scroll through spinner positions on desktop
   const wheelTimerRef = useRef(null);
   const handleWheel = useCallback((e) => {
     e.preventDefault();
+
+    // Mark wheel as active — suppresses pointer drag on trackpads
+    wheelActiveRef.current = true;
+    clearTimeout(wheelCooldownRef.current);
+    wheelCooldownRef.current = setTimeout(() => { wheelActiveRef.current = false; }, 300);
+
     // Debounce wheel events (fire max once per 120ms)
     if (wheelTimerRef.current) return;
     wheelTimerRef.current = setTimeout(() => { wheelTimerRef.current = null; }, 120);

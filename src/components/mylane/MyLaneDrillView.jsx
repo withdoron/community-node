@@ -57,7 +57,7 @@ export default function MyLaneDrillView({
       const list = await base44.entities.TeamMember.filter({ team_id: teamId, status: 'active' });
       return Array.isArray(list) ? list : list ? [list] : [];
     },
-    enabled: !!teamId,
+    enabled: !!teamId, staleTime: 5 * 60 * 1000,
   });
 
   // Determine FS worker role when drilling into field service
@@ -93,7 +93,7 @@ export default function MyLaneDrillView({
       const events = await base44.entities.Event.filter({ business_id: businessId, is_active: true });
       return Array.isArray(events) ? events : events ? [events] : [];
     },
-    enabled: !!businessId,
+    enabled: !!businessId, staleTime: 5 * 60 * 1000,
   });
 
   const { data: eventRsvpCounts = {} } = useQuery({
@@ -109,7 +109,7 @@ export default function MyLaneDrillView({
       }
       return counts;
     },
-    enabled: businessEvents.length > 0,
+    enabled: businessEvents.length > 0, staleTime: 5 * 60 * 1000,
   });
 
   const businessIsOwner = profile && drilledView.workspace === 'business'

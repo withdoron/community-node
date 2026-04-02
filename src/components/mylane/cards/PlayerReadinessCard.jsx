@@ -17,7 +17,7 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
         return Array.isArray(list) ? list : list ? [list] : [];
       } catch { return []; }
     },
-    enabled: !!team.id,
+    enabled: !!team.id, staleTime: 5 * 60 * 1000,
   });
 
   const { data: nextEvent } = useQuery({
@@ -34,7 +34,7 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
         return upcoming[0] || null;
       } catch { return null; }
     },
-    enabled: !!team.id,
+    enabled: !!team.id, staleTime: 5 * 60 * 1000,
   });
 
   const total = members.length;

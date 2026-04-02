@@ -17,7 +17,7 @@ export default function PropertyOverviewCard({ profile, onClick, onUrgency }) {
         return Array.isArray(list) ? list : list ? [list] : [];
       } catch { return []; }
     },
-    enabled: !!profile.id,
+    enabled: !!profile.id, staleTime: 5 * 60 * 1000,
   });
 
   const { data: maintenanceRequests = [] } = useQuery({
@@ -29,7 +29,7 @@ export default function PropertyOverviewCard({ profile, onClick, onUrgency }) {
         return Array.isArray(list) ? list : list ? [list] : [];
       } catch { return []; }
     },
-    enabled: !!profile.id,
+    enabled: !!profile.id, staleTime: 5 * 60 * 1000,
   });
 
   const total = properties.length;

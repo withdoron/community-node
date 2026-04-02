@@ -158,7 +158,8 @@ function MyLaneInner() {
       const isAuth = await base44.auth.isAuthenticated();
       if (!isAuth) return null;
       return base44.auth.me();
-    }
+    },
+    staleTime: 10 * 60 * 1000, // auth data rarely changes mid-session
   });
 
   const { isAppAdmin } = useRole();

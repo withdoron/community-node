@@ -49,6 +49,7 @@ export default function CommandBar({
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [pendingQuery, setPendingQuery] = useState(null); // query text shown while waiting
   const recognitionRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -60,6 +61,8 @@ export default function CommandBar({
     if (!query || isSending) return;
     setInput('');
     setIsSending(true);
+    setPendingQuery(query);
+    onRenderResult?.({ type: 'loading', text: query });
 
     try {
       const conversation = await base44.agents.createConversation({
@@ -105,6 +108,7 @@ export default function CommandBar({
       onRenderResult?.({ type: 'text', text: 'Something went wrong. Try again.' });
     } finally {
       setIsSending(false);
+      setPendingQuery(null);
     }
   }, [input, isSending, agentName, userId, onRenderResult, onNavigate]);
 
@@ -145,21 +149,34 @@ export default function CommandBar({
 
   // ─── Input row (shared between bar and panel modes) ───
   const inputRow = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: mode === 'panel' ? '10px 14px' : '8px 12px' }}>
-      <input
-        ref={inputRef}
-        type="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Ask Mylane..."
-        disabled={isSending}
+    <div
+      style={{ display: 'flex', alignItems: 'center', gap: 8, padding: mode === 'panel' ? '10px 14px' : '8px 12px' }}
+      onClick={() => inputRef.current?.focus()}
+    >
+      <div
         style={{
-          flex: 1, background: 'var(--ll-bg-surface)', border: '1px solid var(--ll-border-hover)',
-          borderRadius: 20, padding: '8px 14px', fontSize: 13,
-          color: 'var(--ll-text-primary)', outline: 'none', minHeight: 36,
+          flex: 1, display: 'flex', alignItems: 'center',
+          background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))',
+          borderRadius: 20, minHeight: 44, cursor: 'text',
         }}
-      />
+        onClick={() => inputRef.current?.focus()}
+      >
+        <input
+          ref={inputRef}
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask Mylane..."
+          disabled={isSending}
+          className="placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
+          style={{
+            flex: 1, background: 'transparent', border: 'none',
+            borderRadius: 20, padding: '8px 14px', fontSize: 13,
+            color: 'hsl(var(--foreground))', outline: 'none', minHeight: 44,
+          }}
+        />
+      </div>
       {!input && SpeechRecognition && !isSending && (
         <button type="button" onClick={isListening ? stopListening : startListening}
           style={{ width: 36, height: 36, borderRadius: '50%', border: `1.5px solid ${isListening ? 'var(--ll-danger)' : 'var(--ll-border-hover)'}`, background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}

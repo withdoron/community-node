@@ -155,7 +155,7 @@ export function HouseholdManager() {
       const records = await base44.entities.HouseholdMembers.filter({ user_id: userId });
       return records.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     },
-    enabled: !!userId,
+    enabled: !!userId, staleTime: 5 * 60 * 1000,
   });
 
   const createMutation = useMutation({
