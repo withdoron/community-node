@@ -229,17 +229,17 @@ export default function HomeFeed({ profiles = {}, spaceItems = [], onOpenSpace, 
   return (
     <div className="flex flex-col" style={{ flex: 1, overflow: 'hidden' }}>
       {/* Date header */}
-      <div style={{ fontSize: 15, fontWeight: 500, color: '#f8fafc', padding: '6px 20px 0' }}>
+      <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--ll-text-primary)', padding: '6px 20px 0' }}>
         {today}
       </div>
-      <div style={{ fontSize: 10, color: '#475569', padding: '0 20px 8px' }}>
+      <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)', padding: '0 20px 8px' }}>
         {neighborCount > 0 ? `${neighborCount} neighbors connected` : 'Your spaces'}
       </div>
 
       {/* Tab selector */}
       <div
         className="flex"
-        style={{ padding: '0 20px', borderBottom: '1px solid #111827', gap: 0 }}
+        style={{ padding: '0 20px', borderBottom: '1px solid var(--ll-border)', gap: 0 }}
       >
         {TABS.map((tab) => (
           <button
@@ -250,15 +250,15 @@ export default function HomeFeed({ profiles = {}, spaceItems = [], onOpenSpace, 
             style={{
               padding: '6px 14px',
               fontSize: 11,
-              color: activeTab === tab.id ? '#f59e0b' : '#475569',
-              borderBottom: `2px solid ${activeTab === tab.id ? '#f59e0b' : 'transparent'}`,
+              color: activeTab === tab.id ? 'var(--ll-accent)' : 'var(--ll-text-ghost)',
+              borderBottom: `2px solid ${activeTab === tab.id ? 'var(--ll-accent)' : 'transparent'}`,
               fontWeight: activeTab === tab.id ? 500 : 400,
               transition: 'all 0.2s',
               background: 'none',
               border: 'none',
               borderBottomWidth: 2,
               borderBottomStyle: 'solid',
-              borderBottomColor: activeTab === tab.id ? '#f59e0b' : 'transparent',
+              borderBottomColor: activeTab === tab.id ? 'var(--ll-accent)' : 'transparent',
             }}
           >
             {tab.label}

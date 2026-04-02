@@ -41,7 +41,7 @@ function playVerticalTick(index) {
 }
 
 const BAR_COLORS = {
-  ur: '#ef4444', ac: '#f59e0b', ev: '#3b82f6', lf: '#22c55e',
+  ur: 'var(--ll-bar-urgent, #ef4444)', ac: 'var(--ll-bar-action, #f59e0b)', ev: 'var(--ll-bar-event, #3b82f6)', lf: 'var(--ll-bar-life, #22c55e)',
 };
 
 export default function PrioritySpinner({ items = [], currentIndex = 0, onSelect, onOpenSpace }) {
@@ -125,7 +125,7 @@ export default function PrioritySpinner({ items = [], currentIndex = 0, onSelect
           const isAdjacent = Math.abs(d) === 1;
           const scale = isCenter ? 1 : isAdjacent ? 0.93 : 0.86;
           const opacity = isCenter ? 1 : isAdjacent ? 0.45 : 0.12;
-          const barColor = BAR_COLORS[item.barColor] || '#475569';
+          const barColor = BAR_COLORS[item.barColor] || 'var(--ll-text-ghost, #475569)';
 
           return (
             <div
@@ -133,7 +133,7 @@ export default function PrioritySpinner({ items = [], currentIndex = 0, onSelect
               className="flex items-start gap-2.5 cursor-pointer"
               style={{
                 padding: '10px 12px', marginBottom: 5, borderRadius: 8,
-                background: '#0a0f1a', border: '1px solid #111827',
+                background: 'var(--ll-bg-elevated, #0a0f1a)', border: '1px solid var(--ll-border, #111827)',
                 transform: `scale(${scale})`, opacity,
                 transition: isDragging ? 'opacity 0.1s' : 'all 0.32s cubic-bezier(0.22, 0.68, 0, 1)',
                 transformOrigin: 'center',
@@ -142,13 +142,13 @@ export default function PrioritySpinner({ items = [], currentIndex = 0, onSelect
             >
               <div style={{ width: 3, minHeight: 28, borderRadius: 2, flexShrink: 0, marginTop: 2, background: barColor }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 12, color: '#e2e8f0', lineHeight: 1.3 }}>{item.title}</div>
-                <div style={{ fontSize: 10, color: '#475569', marginTop: 1 }}>{item.subtitle}</div>
+                <div style={{ fontSize: 12, color: 'var(--ll-text-secondary, #e2e8f0)', lineHeight: 1.3 }}>{item.title}</div>
+                <div style={{ fontSize: 10, color: 'var(--ll-text-ghost, #475569)', marginTop: 1 }}>{item.subtitle}</div>
                 {item.spaceIndex != null && item.spaceName && (
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); onOpenSpace?.(item.spaceIndex); }}
-                    style={{ fontSize: 10, color: '#f59e0b', marginTop: 3, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                    style={{ fontSize: 10, color: 'var(--ll-bar-action, #f59e0b)', marginTop: 3, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                   >
                     Open {item.spaceName.toLowerCase()}
                   </button>

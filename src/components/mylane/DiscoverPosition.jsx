@@ -53,10 +53,10 @@ export default function DiscoverPosition({ activeSpaceIds = [] }) {
 
   return (
     <div style={{ flex: 1, padding: '8px 20px 0', overflowY: 'auto' }}>
-      <div style={{ fontSize: 16, fontWeight: 500, color: '#f8fafc', marginBottom: 1 }}>
+      <div style={{ fontSize: 16, fontWeight: 500, color: 'var(--ll-text-primary)', marginBottom: 1 }}>
         Discover
       </div>
-      <div style={{ fontSize: 10, color: '#475569', marginBottom: 10 }}>
+      <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)', marginBottom: 10 }}>
         Grow your organism
       </div>
 
@@ -64,7 +64,7 @@ export default function DiscoverPosition({ activeSpaceIds = [] }) {
       <div
         style={{
           fontSize: 9,
-          color: '#334155',
+          color: 'var(--ll-text-faint)',
           textTransform: 'uppercase',
           letterSpacing: '0.6px',
           margin: '10px 0 6px',
@@ -87,17 +87,17 @@ export default function DiscoverPosition({ activeSpaceIds = [] }) {
           }}
           className="cursor-pointer"
           style={{
-            background: '#0a0f1a',
-            border: '1px solid #111827',
+            background: 'var(--ll-bg-elevated)',
+            border: '1px solid var(--ll-border)',
             borderRadius: 8,
             padding: 11,
             marginBottom: 6,
           }}
         >
-          <div style={{ fontSize: 11, fontWeight: 500, color: '#f8fafc' }}>
+          <div style={{ fontSize: 11, fontWeight: 500, color: 'var(--ll-text-primary)' }}>
             {space.label}
           </div>
-          <div style={{ fontSize: 10, color: '#475569', marginTop: 1 }}>
+          <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)', marginTop: 1 }}>
             {space.description}
           </div>
         </div>
@@ -106,15 +106,15 @@ export default function DiscoverPosition({ activeSpaceIds = [] }) {
       {/* Invite key box */}
       <div
         style={{
-          background: '#0a0f1a',
-          border: '1px solid #111827',
+          background: 'var(--ll-bg-elevated)',
+          border: '1px solid var(--ll-border)',
           borderRadius: 8,
           padding: 14,
           marginTop: 10,
           textAlign: 'center',
         }}
       >
-        <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: 'var(--ll-text-muted)', marginBottom: 8 }}>
           Have a key?
         </div>
         <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
@@ -126,12 +126,12 @@ export default function DiscoverPosition({ activeSpaceIds = [] }) {
             placeholder="Enter code"
             maxLength={8}
             style={{
-              background: '#060b14',
-              border: '1px solid #1e293b',
+              background: 'var(--ll-bg-base)',
+              border: '1px solid var(--ll-border-hover)',
               borderRadius: 6,
               padding: '6px 10px',
               fontSize: 12,
-              color: '#e2e8f0',
+              color: 'var(--ll-text-secondary)',
               width: 140,
               textAlign: 'center',
               fontFamily: 'var(--font-mono, monospace)',
@@ -142,8 +142,8 @@ export default function DiscoverPosition({ activeSpaceIds = [] }) {
             type="button"
             onClick={handleUnlock}
             style={{
-              background: '#f59e0b',
-              color: '#020617',
+              background: 'var(--ll-accent)',
+              color: 'var(--ll-bg-base)',
               border: 'none',
               borderRadius: 6,
               padding: '6px 14px',

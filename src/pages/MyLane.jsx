@@ -5,7 +5,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Loader2, Store, ArrowRight, X } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { useRole } from '@/hooks/useRole';
-import { useIsMobile } from '@/hooks/use-mobile';
+import useBreakpoint from '@/hooks/useBreakpoint';
 import MyLaneSurface from '@/components/mylane/MyLaneSurface';
 import MylaneMobileSheet from '@/components/mylane/MylaneMobileSheet';
 import AgentChat from '@/components/fieldservice/AgentChat';
@@ -157,7 +157,8 @@ function MyLaneInner() {
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [warmEntry, setWarmEntry] = useState(null); // { workspace, message, wizardPage } | null
   const [copilotOpen, setCopilotOpen] = useState(false);
-  const isMobile = useIsMobile();
+  const { isPhone, isAtLeast } = useBreakpoint();
+  const isMobile = isPhone; // copilot: bottom sheet on phone, slide-in panel on tablet+
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {

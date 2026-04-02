@@ -228,12 +228,12 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect })
 
             const boxSize = isCenter ? 42 : isAdjacent ? 30 : 22;
             const iconSize = isCenter ? 17 : isAdjacent ? 12 : 11;
-            const borderColor = isCenter ? '#f59e0b' : '#1e293b';
+            const borderColor = isCenter ? 'var(--ll-accent, #f59e0b)' : 'var(--ll-border-hover, #1e293b)';
             const borderRadius = isCenter ? 10 : 6;
-            const bgColor = isCenter ? '#120e04' : '#0a0f1a';
-            const iconColor = isCenter ? '#f59e0b' : isAdjacent ? '#64748b' : '#475569';
+            const bgColor = isCenter ? 'var(--ll-bg-active, #120e04)' : 'var(--ll-bg-elevated, #0a0f1a)';
+            const iconColor = isCenter ? 'var(--ll-accent, #f59e0b)' : isAdjacent ? 'var(--ll-text-dim, #64748b)' : 'var(--ll-text-ghost, #475569)';
             const labelSize = isCenter ? 10 : 8;
-            const labelColor = isCenter ? '#f59e0b' : isAdjacent ? '#475569' : '#334155';
+            const labelColor = isCenter ? 'var(--ll-accent, #f59e0b)' : isAdjacent ? 'var(--ll-text-ghost, #475569)' : 'var(--ll-text-faint, #334155)';
             const labelWeight = isCenter ? 500 : 400;
             const labelMargin = isCenter ? 3 : 2;
             const opacity = (isFar || isDimmed) ? 0.15 : 1;
@@ -293,7 +293,7 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect })
 
       {/* Amber dot indicator */}
       <div className="flex justify-center" style={{ marginTop: 5 }}>
-        <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#f59e0b' }} />
+        <div style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--ll-accent, #f59e0b)' }} />
       </div>
     </div>
   );
