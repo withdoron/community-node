@@ -160,7 +160,7 @@ export default function PrioritySpinner({ items = [], currentIndex = 0, onSelect
       </div>
       <div
         className="absolute inset-0 pointer-events-none z-10"
-        style={{ background: 'linear-gradient(180deg, #020617 0%, transparent 15%, transparent 85%, #020617 100%)' }}
+        style={{ background: 'linear-gradient(180deg, var(--ll-bg-base, #020617) 0%, transparent 15%, transparent 85%, var(--ll-bg-base, #020617) 100%)' }}
       />
     </div>
   );

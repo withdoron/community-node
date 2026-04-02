@@ -162,30 +162,29 @@ button:focus-visible {
   --ll-bar-life: #22c55e;        /* priority: life activity */
 }
 
-/* Light theme — STUB. Placeholder values clearly different from dark. */
-/* Real palette will be designed with mockups. */
+/* Cloud — warm paper light theme. No pure white. Text is dark brown, not black. */
 [data-theme="light"] {
-  --ll-bg-base: #f8fafc;
-  --ll-bg-elevated: #ffffff;
-  --ll-bg-surface: #f1f5f9;
-  --ll-bg-overlay: rgba(248, 250, 252, 0.95);
-  --ll-bg-active: #fffbeb;
-  --ll-border: #e2e8f0;
-  --ll-border-hover: #cbd5e1;
-  --ll-border-active: #94a3b8;
-  --ll-text-primary: #0f172a;
-  --ll-text-secondary: #1e293b;
-  --ll-text-muted: #475569;
-  --ll-text-dim: #64748b;
-  --ll-text-ghost: #94a3b8;
-  --ll-text-faint: #cbd5e1;
-  --ll-accent: #d97706;
-  --ll-accent-hover: #b45309;
-  --ll-accent-bg: rgba(217, 119, 6, 0.1);
-  --ll-accent-glow: rgba(217, 119, 6, 0.12);
+  --ll-bg-base: #F0EDE6;
+  --ll-bg-elevated: #F7F5F0;
+  --ll-bg-surface: #EDE9E0;
+  --ll-bg-overlay: rgba(240, 237, 230, 0.97);
+  --ll-bg-active: #FEF3DC;
+  --ll-border: #DDD8CE;
+  --ll-border-hover: #CCC5B8;
+  --ll-border-active: #b45309;
+  --ll-text-primary: #3d3629;
+  --ll-text-secondary: #6d6355;
+  --ll-text-muted: #8a7e6e;
+  --ll-text-dim: #a09484;
+  --ll-text-ghost: #8a7e6e;
+  --ll-text-faint: #c4baa8;
+  --ll-accent: #b45309;
+  --ll-accent-hover: #924408;
+  --ll-accent-bg: #FEF3DC;
+  --ll-accent-glow: rgba(180, 83, 9, 0.1);
   --ll-danger: #dc2626;
   --ll-bar-urgent: #dc2626;
-  --ll-bar-action: #d97706;
+  --ll-bar-action: #b45309;
   --ll-bar-event: #2563eb;
   --ll-bar-life: #16a34a;
 }

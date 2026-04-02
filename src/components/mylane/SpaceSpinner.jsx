@@ -286,7 +286,7 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect })
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'linear-gradient(90deg, #020617 0%, transparent 18%, transparent 82%, #020617 100%)',
+            background: 'linear-gradient(90deg, var(--ll-bg-base, #020617) 0%, transparent 18%, transparent 82%, var(--ll-bg-base, #020617) 100%)',
           }}
         />
       </div>
