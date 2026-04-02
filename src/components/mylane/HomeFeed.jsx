@@ -206,12 +206,9 @@ function findSpaceIndex(spaceItems, spaceId) {
 
 export default function HomeFeed({ profiles = {}, spaceItems = [], onOpenSpace, neighborCount = 0 }) {
   const [activeTab, setActiveTab] = useState('attn');
-  const [verticalIndex, setVerticalIndex] = useState(0);
 
-  // Reset vertical index when switching tabs
   const handleTabSwitch = useCallback((tabId) => {
     setActiveTab(tabId);
-    setVerticalIndex(0);
   }, []);
 
   const attentionItems = useMemo(() => buildAttentionItems(profiles, spaceItems), [profiles, spaceItems]);
@@ -266,11 +263,9 @@ export default function HomeFeed({ profiles = {}, spaceItems = [], onOpenSpace, 
         ))}
       </div>
 
-      {/* Vertical spinner */}
+      {/* Vertical priorities — native scroll with depth effect */}
       <PrioritySpinner
         items={currentItems}
-        currentIndex={verticalIndex}
-        onSelect={setVerticalIndex}
         onOpenSpace={onOpenSpace}
       />
     </div>
