@@ -216,8 +216,7 @@ export default function CommandBar({
   // ─── PANEL MODE (desktop) ───
   return (
     <div style={{
-      width: 300, display: 'flex', flexDirection: 'column', height: '100%',
-      borderLeft: '1px solid var(--ll-border)', background: 'var(--ll-bg-elevated)',
+      display: 'flex', flexDirection: 'column', height: '100%',
     }}>
       {/* Panel header */}
       <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--ll-border)', display: 'flex', alignItems: 'center', gap: 10 }}>

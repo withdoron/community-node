@@ -291,7 +291,9 @@ export default function MyLaneSurface({
   const [spinnerIndex, setSpinnerIndex] = useState(0);
   const [renderedData, setRenderedData] = useState(null);
   const [commandResult, setCommandResult] = useState(null); // { type: 'text'|'data'|'confirm', text?, entity?, data?, ... }
-  const [panelOpen, setPanelOpen] = useState(true);
+  const [panelOpen, setPanelOpen] = useState(() => {
+    try { return localStorage.getItem('mylane_panel') !== '0'; } catch { return true; }
+  });
   const [activeOverlay, setActiveOverlay] = useState(null); // 'freq' | 'dir' | 'evt' | 'acct' | null
   const [welcomeData, setWelcomeData] = useState(() => {
     try {
@@ -485,7 +487,7 @@ export default function MyLaneSurface({
   };
 
   return (
-    <div className="mylane-surface flex flex-col relative" style={{ background: 'var(--ll-bg-base, #020617)', minHeight: '100vh', overflow: 'hidden', containerType: 'inline-size' }}>
+    <div className="mylane-surface flex flex-col relative" style={{ background: 'var(--ll-bg-base, #020617)', height: '100vh', overflow: 'hidden', containerType: 'inline-size' }}>
       {/* Keyframes + container queries + theme variables */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes overlaySlideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
@@ -530,16 +532,17 @@ export default function MyLaneSurface({
         /* ─── Command bar / panel responsive switch ─── */
         /* Mobile default: show bar, hide panel */
         .mylane-bar-mobile { display: block; margin-top: auto; }
-        .mylane-panel-desktop { display: none !important; }
+        .mylane-panel-fixed { display: none; }
+        .mylane-reopen-tab { display: none; }
 
-        /* Desktop (container >= 1024px): hide bar, show panel */
+        /* Desktop (container >= 1024px): hide bar, show fixed panel */
         @container (min-width: 1024px) {
           .mylane-bar-mobile { display: none !important; }
-          .mylane-panel-desktop { display: flex !important; }
-          .mylane-panel-desktop.panel-closed { display: none !important; }
-          .mylane-main-area { flex-direction: row; }
-          .mylane-spinner-wrap { padding-right: 300px; }
-          .mylane-spinner-wrap.panel-closed { padding-right: 0; }
+          .mylane-panel-fixed { display: flex; }
+          .mylane-panel-fixed.panel-closed { display: none; }
+          .mylane-content-area.panel-open { margin-right: 300px; }
+          .mylane-reopen-tab { display: flex; }
+          .mylane-reopen-tab.panel-open { display: none; }
         }
       ` }} />
 
@@ -693,21 +696,22 @@ export default function MyLaneSurface({
         <AccountOverlay currentUser={currentUser} onClose={closeOverlay} />
       </OverlayContainer>
 
-      {/* ─── Body (spinner + content + command panel) ─── */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Horizontal Space Spinner — ALWAYS VISIBLE */}
-        <div className={`mylane-spinner-wrap${panelOpen ? '' : ' panel-closed'}`}>
+      {/* ─── Body (content area + fixed panel) ─── */}
+      <div className="flex-1 overflow-hidden" style={{ position: 'relative' }}>
+        {/* Content area — scrolls independently, shrinks when panel open */}
+        <div
+          className={`mylane-content-area${panelOpen ? ' panel-open' : ''}`}
+          style={{ position: 'absolute', inset: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}
+        >
+          {/* Horizontal Space Spinner — ALWAYS VISIBLE, centers on content width */}
           <SpaceSpinner
             items={spaceItems}
             currentIndex={spinnerIndex}
             onSelect={handleSpinnerSelect}
           />
-        </div>
 
-        {/* Main area: on desktop (container >= 1024px), flex row with panel on right */}
-        <div className="mylane-main-area flex flex-1 overflow-hidden">
-          {/* Content column */}
-          <div className="flex-1 overflow-y-auto flex flex-col" style={{ padding: '8px var(--ll-content-pad, 24px)', paddingBottom: 60 }}>
+          {/* Workspace content */}
+          <div className="flex-1" style={{ padding: '8px var(--ll-content-pad, 24px)', paddingBottom: 60 }}>
             <div style={{ maxWidth: 'var(--ll-content-max, 768px)' }}>
 
               {/* Command result card */}
@@ -725,18 +729,15 @@ export default function MyLaneSurface({
                   >
                     <X style={{ width: 14, height: 14 }} strokeWidth={2} />
                   </button>
-                  {/* Text portion (present in all types that include agent text) */}
                   {commandResult.text && (
                     <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)', lineHeight: 1.5, paddingRight: 24, marginBottom: (commandResult.type !== 'text') ? 12 : 0 }}>
                       {commandResult.text}
                     </div>
                   )}
-                  {/* Data render — entity cards via universal renderer */}
                   {commandResult.type === 'data' && renderEntityView({
                     data: commandResult.data, entity: commandResult.entity,
                     workspace: commandResult.workspace, displayHint: commandResult.displayHint,
                   })}
-                  {/* Confirm render — action approval card */}
                   {commandResult.type === 'confirm' && (
                     <ConfirmationCard
                       entity={commandResult.entity}
@@ -752,28 +753,12 @@ export default function MyLaneSurface({
 
               {renderContent()}
             </div>
-
-            {/* Mobile: command bar bottom-docked */}
-            <div className="mylane-bar-mobile">
-              <CommandBar
-                mode="bar"
-                agentName="MyLane"
-                userId={currentUser?.id}
-                onRenderResult={setCommandResult}
-                onNavigate={(nav) => {
-                  const idx = spaceItems.findIndex((s) => s.id === nav.workspace);
-                  if (idx >= 0) handleSpinnerSelect(idx);
-                }}
-                activeSpace={currentSpace?.id || 'home'}
-                lastResponse={commandResult?.type === 'text' ? commandResult.text : null}
-              />
-            </div>
           </div>
 
-          {/* Desktop: command panel right-docked */}
-          <div className={`mylane-panel-desktop${panelOpen ? '' : ' panel-closed'}`} style={{ display: 'none' }}>
+          {/* Mobile: command bar bottom-docked */}
+          <div className="mylane-bar-mobile">
             <CommandBar
-              mode="panel"
+              mode="bar"
               agentName="MyLane"
               userId={currentUser?.id}
               onRenderResult={setCommandResult}
@@ -781,31 +766,52 @@ export default function MyLaneSurface({
                 const idx = spaceItems.findIndex((s) => s.id === nav.workspace);
                 if (idx >= 0) handleSpinnerSelect(idx);
               }}
-              onClose={() => setPanelOpen(false)}
               activeSpace={currentSpace?.id || 'home'}
               lastResponse={commandResult?.text || null}
             />
           </div>
-
-          {/* Desktop: re-open tab when panel is closed */}
-          {!panelOpen && (
-            <div className="mylane-panel-desktop" style={{ display: 'none', width: 'auto' }}>
-              <button
-                type="button"
-                onClick={() => setPanelOpen(true)}
-                style={{
-                  width: 36, height: 36, borderRadius: '8px 0 0 8px',
-                  background: 'var(--ll-bg-elevated)', border: '1px solid var(--ll-border)',
-                  borderRight: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', alignSelf: 'center',
-                }}
-                title="Open Mylane panel"
-              >
-                <PanelRightOpen style={{ width: 16, height: 16, color: 'var(--ll-accent)' }} strokeWidth={1.5} />
-              </button>
-            </div>
-          )}
         </div>
+
+        {/* Desktop: fixed panel — absolute right, full height of body */}
+        <div
+          className={`mylane-panel-fixed${panelOpen ? '' : ' panel-closed'}`}
+          style={{
+            position: 'absolute', top: 0, right: 0, bottom: 0, width: 300,
+            borderLeft: '1px solid var(--ll-border)', background: 'var(--ll-bg-elevated)',
+            zIndex: 10,
+          }}
+        >
+          <CommandBar
+            mode="panel"
+            agentName="MyLane"
+            userId={currentUser?.id}
+            onRenderResult={setCommandResult}
+            onNavigate={(nav) => {
+              const idx = spaceItems.findIndex((s) => s.id === nav.workspace);
+              if (idx >= 0) handleSpinnerSelect(idx);
+            }}
+            onClose={() => { setPanelOpen(false); try { localStorage.setItem('mylane_panel', '0'); } catch {} }}
+            activeSpace={currentSpace?.id || 'home'}
+            lastResponse={commandResult?.text || null}
+          />
+        </div>
+
+        {/* Desktop: re-open tab when panel is closed */}
+        <button
+          type="button"
+          className={`mylane-reopen-tab${panelOpen ? ' panel-open' : ''}`}
+          onClick={() => { setPanelOpen(true); try { localStorage.setItem('mylane_panel', '1'); } catch {} }}
+          style={{
+            position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
+            width: 28, height: 48, borderRadius: '8px 0 0 8px',
+            background: 'var(--ll-bg-elevated)', border: '1px solid var(--ll-border)',
+            borderRight: 'none', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', zIndex: 10,
+          }}
+          title="Open Mylane panel"
+        >
+          <PanelRightOpen style={{ width: 14, height: 14, color: 'var(--ll-accent)' }} strokeWidth={1.5} />
+        </button>
       </div>
     </div>
   );
