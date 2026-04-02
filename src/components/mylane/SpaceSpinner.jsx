@@ -153,7 +153,7 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect })
     setIsDragging(false);
 
     const dx = d.currentOffset;
-    const velocity = d.velocity; // px/ms
+    const velocity = Math.max(-1.5, Math.min(1.5, d.velocity)); // cap at 1.5 px/ms
 
     // If barely moved, treat as tap (no swipe)
     if (Math.abs(dx) < 5) {
@@ -162,7 +162,7 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect })
     }
 
     // Calculate how many positions to move based on drag + velocity
-    const momentumPx = velocity * 120; // project forward ~120ms of momentum
+    const momentumPx = velocity * 120;
     const totalDelta = dx + momentumPx;
     const positionsDelta = Math.round(-totalDelta / ITEM_WIDTH);
     const targetIdx = Math.max(0, Math.min(items.length - 1, currentIndex + positionsDelta));
@@ -186,11 +186,24 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect })
     }
   }, [currentIndex, items.length, handleSelect]);
 
+  // Mouse wheel handler — scroll through spinner positions on desktop
+  const wheelTimerRef = useRef(null);
+  const handleWheel = useCallback((e) => {
+    e.preventDefault();
+    // Debounce wheel events (fire max once per 120ms)
+    if (wheelTimerRef.current) return;
+    wheelTimerRef.current = setTimeout(() => { wheelTimerRef.current = null; }, 120);
+    if (e.deltaY > 0 || e.deltaX > 0) {
+      if (currentIndex < items.length - 1) handleSelect(currentIndex + 1);
+    } else if (e.deltaY < 0 || e.deltaX < 0) {
+      if (currentIndex > 0) handleSelect(currentIndex - 1);
+    }
+  }, [currentIndex, items.length, handleSelect]);
+
   // Final translateX: base offset + drag delta (during drag) or just base offset (at rest)
   const translateX = isDragging ? baseOffset + dragOffset : baseOffset;
 
   if (containerWidth === 0) {
-    // Render hidden to measure, then show
     return (
       <div ref={containerRef} style={{ padding: '14px 0 6px', height: 68 + 14 + 6 }} />
     );
@@ -204,6 +217,7 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect })
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
+      onWheel={handleWheel}
     >
       {/* Spinner track */}
       <div
