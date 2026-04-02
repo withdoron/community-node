@@ -27,6 +27,7 @@ import { useFrequency } from '@/contexts/FrequencyContext';
 const DirectoryPage = React.lazy(() => import('@/pages/Directory'));
 const EventsPage = React.lazy(() => import('@/pages/Events'));
 const FrequencyStationPage = React.lazy(() => import('@/pages/FrequencyStation'));
+const SettingsPage = React.lazy(() => import('@/pages/Settings'));
 
 // Map workspace type IDs to spinner item config
 const SPACE_CONFIG = {
@@ -75,8 +76,9 @@ function OverlayContainer({ isOpen, keepMounted = false, children }) {
 }
 
 // Account overlay — replaces gear icon. Same toggle pattern as everything else.
+// Settings renders inline. Legal pages open in new tab. Nothing navigates away.
 function AccountOverlay({ currentUser, onClose }) {
-  const navigate = useNavigate();
+  const [showSettings, setShowSettings] = React.useState(false);
   const [soundOn, setSoundOn] = React.useState(() => {
     try { return localStorage.getItem('mylane_sound') !== '0'; } catch { return true; }
   });
@@ -95,6 +97,33 @@ function AccountOverlay({ currentUser, onClose }) {
     }
   };
 
+  // Settings rendered inline — full page component inside the overlay
+  if (showSettings) {
+    return (
+      <div style={{ padding: '0' }}>
+        <div className="flex items-center gap-2" style={{ padding: '16px 24px', borderBottom: '1px solid #111827' }}>
+          <button
+            type="button"
+            onClick={() => setShowSettings(false)}
+            style={{ fontSize: 12, color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}
+          >
+            ← Account
+          </button>
+        </div>
+        <div className="overlay-page-content">
+          <React.Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#475569', fontSize: 12 }}>Loading...</div>}>
+            <SettingsPage />
+          </React.Suspense>
+        </div>
+      </div>
+    );
+  }
+
+  // Helper: open URL in new tab (for legal pages)
+  const openNewTab = (pageName) => {
+    window.open(createPageUrl(pageName), '_blank');
+  };
+
   return (
     <div style={{ padding: 24, maxWidth: 480 }}>
       <div style={{ fontSize: 18, fontWeight: 500, color: '#f8fafc', marginBottom: 20 }}>
@@ -109,7 +138,7 @@ function AccountOverlay({ currentUser, onClose }) {
         <div
           className="flex items-center gap-2.5 cursor-pointer rounded-lg"
           style={{ padding: '10px 12px', transition: 'background 0.15s' }}
-          onClick={() => { onClose(); navigate(createPageUrl('Settings')); }}
+          onClick={() => setShowSettings(true)}
           onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
         >
@@ -151,7 +180,7 @@ function AccountOverlay({ currentUser, onClose }) {
 
       <div style={{ height: 1, background: '#111827', margin: '8px 0' }} />
 
-      {/* Legal */}
+      {/* Legal — opens in new tab (acceptable for legal pages) */}
       <div style={{ marginBottom: 16 }}>
         <div style={{ fontSize: 10, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, fontWeight: 500 }}>
           Legal
@@ -159,7 +188,7 @@ function AccountOverlay({ currentUser, onClose }) {
         <div
           className="flex items-center gap-2.5 cursor-pointer rounded-lg"
           style={{ padding: '10px 12px', transition: 'background 0.15s' }}
-          onClick={() => { onClose(); navigate(createPageUrl('Terms')); }}
+          onClick={() => openNewTab('Terms')}
           onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
         >
@@ -169,7 +198,7 @@ function AccountOverlay({ currentUser, onClose }) {
         <div
           className="flex items-center gap-2.5 cursor-pointer rounded-lg"
           style={{ padding: '10px 12px', transition: 'background 0.15s' }}
-          onClick={() => { onClose(); navigate(createPageUrl('Privacy')); }}
+          onClick={() => openNewTab('Privacy')}
           onMouseEnter={(e) => { e.currentTarget.style.background = '#0a0f1a'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
         >
