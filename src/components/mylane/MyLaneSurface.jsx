@@ -57,21 +57,38 @@ function buildSpinnerItems(profiles, businessProfiles = []) {
 const OVERLAYS = ['freq', 'dir', 'evt', 'acct'];
 
 function OverlayContainer({ isOpen, keepMounted = false, children }) {
-  // keepMounted: render but hide (preserves internal state, e.g. Frequency Station)
   if (!isOpen && !keepMounted) return null;
+  // On desktop (container >= 1024px), overlays render as centered floating panels
+  // On mobile, they fill the full area below the header
   return (
-    <div
-      className="absolute left-0 right-0 bottom-0 z-40 flex flex-col overflow-y-auto"
-      style={{
-        top: 45,
-        background: 'var(--ll-bg-overlay)',
-        backdropFilter: 'blur(12px)',
-        animation: isOpen ? 'overlaySlideDown 0.35s ease' : undefined,
-        display: isOpen ? 'flex' : 'none',
-      }}
-    >
-      {children}
-    </div>
+    <>
+      {/* Backdrop dim — only visible when open */}
+      <div
+        className="absolute inset-0 z-30"
+        style={{
+          background: isOpen ? 'rgba(0,0,0,0.4)' : 'transparent',
+          pointerEvents: isOpen ? 'auto' : 'none',
+          opacity: isOpen ? 1 : 0,
+          transition: 'opacity 0.25s ease',
+        }}
+      />
+      {/* Overlay panel */}
+      <div
+        className="overlay-panel absolute z-40 flex flex-col overflow-y-auto"
+        style={{
+          top: 45,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'var(--ll-bg-overlay)',
+          backdropFilter: 'blur(12px)',
+          animation: isOpen ? 'overlaySlideDown 0.35s ease' : undefined,
+          display: isOpen ? 'flex' : 'none',
+        }}
+      >
+        {children}
+      </div>
+    </>
   );
 }
 
@@ -183,9 +200,10 @@ function AccountOverlay({ currentUser, onClose }) {
           style={{ padding: '10px 12px', transition: 'background 0.15s' }}
           onClick={() => {
             const current = document.documentElement.getAttribute('data-theme') || 'dark';
-            const themes = ['dark', 'light', 'fallout'];
-            const nextIdx = (themes.indexOf(current) + 1) % themes.length;
-            const next = themes[nextIdx];
+            const THEMES = ['dark', 'light', 'fallout'];
+            const LABELS = { dark: 'Gold Standard', light: 'Cloud', fallout: 'Fallout' };
+            const nextIdx = (THEMES.indexOf(current) + 1) % THEMES.length;
+            const next = THEMES[nextIdx];
             document.documentElement.setAttribute('data-theme', next);
             try { localStorage.setItem('ll_theme', next); } catch {}
           }}
@@ -195,7 +213,9 @@ function AccountOverlay({ currentUser, onClose }) {
           <span style={{ fontSize: 16, flexShrink: 0, width: 16, textAlign: 'center' }}>🎨</span>
           <div>
             <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)' }}>Theme</div>
-            <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>Tap to cycle</div>
+            <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>
+              {(() => { const t = typeof document !== 'undefined' ? document.documentElement.getAttribute('data-theme') : 'dark'; return { dark: 'Gold Standard', light: 'Cloud', fallout: 'Fallout' }[t || 'dark'] || 'Gold Standard'; })()}
+            </div>
           </div>
         </div>
       </div>
@@ -472,25 +492,34 @@ export default function MyLaneSurface({
         .overlay-page-content > div { min-height: auto !important; background: transparent !important; }
 
         /* ─── Container queries ─── */
-        /* Content area adapts to available space, not viewport */
         .mylane-surface { container-type: inline-size; }
 
-        /* Default: phone-size */
-        .mylane-surface { --ll-content-max: 100%; --ll-content-pad: 16px; --ll-overlay-mode: fullscreen; }
+        /* Default: phone-size — overlays fullscreen */
+        .mylane-surface { --ll-content-max: 100%; --ll-content-pad: 16px; }
 
         /* Tablet+ (container >= 640px) */
         @container (min-width: 640px) {
           .mylane-surface { --ll-content-max: 640px; --ll-content-pad: 24px; }
         }
 
-        /* Desktop (container >= 1024px) */
+        /* Desktop (container >= 1024px) — overlays become centered panels */
         @container (min-width: 1024px) {
-          .mylane-surface { --ll-content-max: 768px; --ll-content-pad: 32px; --ll-overlay-mode: panel; }
+          .mylane-surface { --ll-content-max: 768px; --ll-content-pad: 32px; }
+          .overlay-panel {
+            top: 60px !important; bottom: 24px !important;
+            left: 50% !important; right: auto !important;
+            transform: translateX(-50%);
+            width: 640px; max-width: calc(100% - 48px);
+            border-radius: 16px;
+            border: 1px solid var(--ll-border);
+            box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+          }
         }
 
         /* Wide (container >= 1280px) */
         @container (min-width: 1280px) {
           .mylane-surface { --ll-content-max: 960px; }
+          .overlay-panel { width: 720px; }
         }
       ` }} />
 

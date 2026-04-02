@@ -395,7 +395,7 @@ function MyLaneInner() {
 
   // Mushroom FAB SVG — sized for FAB (22px per mockup spec)
   const mushroomSvg = (size = 22) => (
-    <svg viewBox="0 0 24 24" style={{ width: size, height: size }} stroke="#f59e0b" fill="none" strokeWidth={1.5}>
+    <svg viewBox="0 0 24 24" style={{ width: size, height: size }} stroke="var(--ll-accent, #f59e0b)" fill="none" strokeWidth={1.5}>
       <circle cx="12" cy="10" r="6" />
       <line x1="12" y1="16" x2="12" y2="22" />
       <line x1="9" y1="19" x2="12" y2="16" />
@@ -404,7 +404,7 @@ function MyLaneInner() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen" style={{ background: 'var(--ll-bg-base)' }}>
       {/* Holographic FAB keyframes */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes fabBreathe {
@@ -449,28 +449,28 @@ function MyLaneInner() {
             style={{
               width: 320,
               right: copilotOpen ? 0 : -320,
-              borderLeft: '1px solid #111827',
-              background: '#060b14',
+              borderLeft: '1px solid var(--ll-border)',
+              background: 'var(--ll-bg-elevated)',
               transition: 'right 0.3s ease',
               zIndex: 45,
             }}
           >
             {/* Panel header */}
-            <div className="flex items-center gap-2" style={{ padding: '12px 16px', borderBottom: '1px solid #111827' }}>
+            <div className="flex items-center gap-2" style={{ padding: '12px 16px', borderBottom: '1px solid var(--ll-border)' }}>
               <div className="flex items-center justify-center flex-shrink-0" style={{
-                width: 24, height: 24, borderRadius: '50%', border: '1.5px solid #f59e0b',
+                width: 24, height: 24, borderRadius: '50%', border: '1.5px solid var(--ll-accent)',
               }}>
                 {mushroomSvg(10)}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#f8fafc' }}>Mylane</div>
-                <div style={{ fontSize: 10, color: '#475569' }}>Your companion</div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--ll-text-primary)' }}>Mylane</div>
+                <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>Your companion</div>
               </div>
               <button
                 type="button"
                 onClick={() => setCopilotOpen(false)}
                 className="cursor-pointer"
-                style={{ padding: '4px 8px', color: '#475569', fontSize: 14, transition: 'color 0.15s' }}
+                style={{ padding: '4px 8px', color: 'var(--ll-text-ghost)', fontSize: 14, transition: 'color 0.15s' }}
               >
                 <X style={{ width: 14, height: 14 }} strokeWidth={2} />
               </button>
@@ -501,7 +501,7 @@ function MyLaneInner() {
               position: 'fixed', bottom: 20, right: 20, width: 44, height: 44,
               borderRadius: '50%',
               border: `1.5px solid ${copilotOpen ? 'rgba(245,158,11,1)' : 'rgba(245,158,11,0.6)'}`,
-              background: copilotOpen ? 'rgba(18,14,4,0.95)' : 'rgba(10,15,26,0.9)',
+              background: 'var(--ll-bg-elevated)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', zIndex: 44, transition: 'opacity 0.2s',
               opacity: copilotOpen ? 0 : 1,
@@ -533,7 +533,7 @@ function MyLaneInner() {
               style={{
                 position: 'fixed', bottom: 20, right: 20, width: 44, height: 44,
                 borderRadius: '50%', border: '1.5px solid rgba(245,158,11,0.6)',
-                background: 'rgba(10,15,26,0.9)', zIndex: 40,
+                background: 'var(--ll-bg-elevated)', zIndex: 40,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: 'pointer',
                 marginBottom: 'env(safe-area-inset-bottom, 0px)',
