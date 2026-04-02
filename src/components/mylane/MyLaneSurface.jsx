@@ -21,6 +21,7 @@ import HomeFeed from './HomeFeed';
 import DiscoverPosition from './DiscoverPosition';
 import { parseRenderInstruction } from './parseRenderInstruction';
 import { renderEntityView } from './renderEntityView';
+import { useFrequency } from '@/contexts/FrequencyContext';
 
 // Lazy-load overlay content — these are full page components rendered inline
 const DirectoryPage = React.lazy(() => import('@/pages/Directory'));
@@ -206,11 +207,12 @@ export default function MyLaneSurface({
   agentMessageRef,
   onDoorOpen = null,
   warmEntryWizardPage = null,
-  frequencyPlaying = false,
-  onFrequencyToggle,
 }) {
   const navigate = useNavigate();
   const profiles = { financeProfiles, fieldServiceProfiles, allTeams, propertyMgmtProfiles, mealPrepProfiles };
+  const freq = useFrequency();
+  const frequencyPlaying = freq?.isEnabled || false;
+  const frequencyIsPlaying = freq?.isPlaying || false; // actual audio playing
 
   const [spinnerIndex, setSpinnerIndex] = useState(0);
   const [renderedData, setRenderedData] = useState(null);
@@ -519,7 +521,7 @@ export default function MyLaneSurface({
                   background: frequencyPlaying ? '#f59e0b33' : '#1e293b',
                   transition: 'background 0.2s',
                 }}
-                onClick={() => onFrequencyToggle?.()}
+                onClick={() => freq?.toggle()}
               >
                 <div style={{
                   width: 18, height: 18, borderRadius: '50%', position: 'absolute', top: 2,

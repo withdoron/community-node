@@ -11,6 +11,7 @@ import MylaneMobileSheet from '@/components/mylane/MylaneMobileSheet';
 import AgentChat from '@/components/fieldservice/AgentChat';
 import { useMylane } from '@/hooks/useMylane';
 import { WARM_ENTRY } from '@/config/warmEntryMessages';
+import { FrequencyProvider, useFrequency } from '@/contexts/FrequencyContext';
 
 // ─── Inline Welcome — replaces the onboarding wizard ───────────────
 // Captures display name, sets onboarding_complete, reveals Mylane.
@@ -142,15 +143,20 @@ function InlineWelcome({ currentUser, onComplete }) {
 
 // ─── Main MyLane page ──────────────────────────────────────────────
 export default function MyLane() {
+  return (
+    <FrequencyProvider>
+      <MyLaneInner />
+    </FrequencyProvider>
+  );
+}
+
+function MyLaneInner() {
   const queryClient = useQueryClient();
   const agentMessageRef = useRef(null);
   const [welcomeJustCompleted, setWelcomeJustCompleted] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [warmEntry, setWarmEntry] = useState(null); // { workspace, message, wizardPage } | null
   const [copilotOpen, setCopilotOpen] = useState(false);
-  const [frequencyPlaying, setFrequencyPlaying] = useState(() => {
-    try { return localStorage.getItem('freq_playing') === '1'; } catch { return false; }
-  });
   const isMobile = useIsMobile();
   const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -430,12 +436,6 @@ export default function MyLane() {
           agentMessageRef={agentMessageRef}
           onDoorOpen={handleDoorOpen}
           warmEntryWizardPage={warmEntry?.wizardPage ?? null}
-          frequencyPlaying={frequencyPlaying}
-          onFrequencyToggle={() => setFrequencyPlaying((p) => {
-            const next = !p;
-            try { localStorage.setItem('freq_playing', next ? '1' : '0'); } catch {}
-            return next;
-          })}
         />
       </div>
 
