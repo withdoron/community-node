@@ -193,15 +193,12 @@ function AccountOverlay({ currentUser, onClose }) {
             <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>{soundOn ? 'On' : 'Off'}</div>
           </div>
         </div>
-      </div>
-
         <div
           className="flex items-center gap-2.5 cursor-pointer rounded-lg"
           style={{ padding: '10px 12px', transition: 'background 0.15s' }}
           onClick={() => {
             const current = document.documentElement.getAttribute('data-theme') || 'dark';
             const THEMES = ['dark', 'light', 'fallout'];
-            const LABELS = { dark: 'Gold Standard', light: 'Cloud', fallout: 'Fallout' };
             const nextIdx = (THEMES.indexOf(current) + 1) % THEMES.length;
             const next = THEMES[nextIdx];
             document.documentElement.setAttribute('data-theme', next);
