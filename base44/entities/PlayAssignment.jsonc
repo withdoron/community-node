@@ -1,0 +1,70 @@
+{
+  "name": "PlayAssignment",
+  "type": "object",
+  "properties": {
+    "play_id": {
+      "type": "string",
+      "description": "Foreign key to Play entity"
+    },
+    "position": {
+      "type": "string",
+      "description": "Position label \u2014 e.g. 'C', 'QB', 'RB', 'X', 'Z' (offense) or defensive positions"
+    },
+    "route": {
+      "type": "string",
+      "description": "Route name (e.g. 'Slant', 'Fly', 'Man Coverage')"
+    },
+    "assignment_text": {
+      "type": "string",
+      "description": "Free text describing what this player does on the play"
+    },
+    "movement_type": {
+      "type": "string",
+      "description": "Route template name (e.g. 'slant', 'fly', 'custom') for the field renderer"
+    },
+    "route_path": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Array of {x, y} coordinate objects defining the route path"
+    },
+    "start_x": {
+      "type": "number",
+      "description": "Starting X position on field (0-100)"
+    },
+    "start_y": {
+      "type": "number",
+      "description": "Starting Y position on field (0-100)"
+    },
+    "route_segments": {
+      "type": "object",
+      "description": "JSON object storing multi-segment route drawing data for the field renderer"
+    }
+  },
+  "required": [
+    "play_id",
+    "position"
+  ],
+  "security": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -81,9 +81,7 @@
     "create": {
       "owner": true
     },
-    "update": {
-      "owner": true
-    },
+    "update": true,
     "delete": {
       "owner": true
     }
@@ -92,13 +90,7 @@
     "create": {
       "created_by": "{{user.email}}"
     },
-    "update": {
-      "created_by": "{{user.email}}"
-    },
     "delete": {
-      "created_by": "{{user.email}}"
-    },
-    "write": {
       "created_by": "{{user.email}}"
     }
   }

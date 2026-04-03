@@ -1,0 +1,80 @@
+{
+  "name": "TeamMember",
+  "type": "object",
+  "properties": {
+    "team_id": {
+      "type": "string",
+      "description": "Foreign key to Team entity"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Foreign key to Users entity (optional \u2014 kids without accounts may not have one)"
+    },
+    "parent_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "User IDs of parent/guardians who manage this player record"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "coach",
+        "assistant_coach",
+        "player",
+        "parent"
+      ],
+      "default": "player",
+      "description": "Member role on the team"
+    },
+    "position": {
+      "type": "string",
+      "description": "Playing position (e.g. 'QB', 'RB', 'C', 'X', 'Z')"
+    },
+    "jersey_name": {
+      "type": "string",
+      "description": "Display name regardless of account status (e.g. 'Kai', 'Coach D')"
+    },
+    "jersey_number": {
+      "type": "string",
+      "description": "Jersey number"
+    },
+    "linked_player_id": {
+      "type": "string",
+      "description": "For parents \u2014 the TeamMember ID of their child"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active",
+      "description": "Member status"
+    }
+  },
+  "required": [
+    "team_id",
+    "role"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": true,
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

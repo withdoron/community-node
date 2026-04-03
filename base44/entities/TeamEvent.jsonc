@@ -1,0 +1,82 @@
+{
+  "name": "TeamEvent",
+  "type": "object",
+  "properties": {
+    "team_id": {
+      "type": "string",
+      "description": "Foreign key to Team entity"
+    },
+    "title": {
+      "type": "string",
+      "description": "Event title"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "practice",
+        "game",
+        "scrimmage",
+        "meeting",
+        "social"
+      ],
+      "description": "Type of team event"
+    },
+    "location": {
+      "type": "string",
+      "description": "Event location (optional)"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event start date and time"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event end date and time (optional)"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Duration in minutes (optional)"
+    },
+    "opponent": {
+      "type": "string",
+      "description": "Opponent name \u2014 for games (optional)"
+    },
+    "recurring_rule": {
+      "type": "string",
+      "description": "Recurrence rule, e.g. 'weekly:tuesday' (optional)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes (optional)"
+    },
+    "syncs_to_network": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this event syncs to the network"
+    },
+    "created_by_user_id": {
+      "type": "string",
+      "description": "FK to users \u2014 who created this event"
+    }
+  },
+  "required": [
+    "team_id",
+    "title",
+    "start_date"
+  ],
+  "security": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
