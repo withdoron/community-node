@@ -862,10 +862,16 @@ function EventCard({
               {formatEventDate(event.start_date, event.start_time)}
             </p>
             {event.location && (
-              <p className="text-muted-foreground text-sm flex items-center gap-1 mt-0.5">
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-muted-foreground hover:text-primary text-sm flex items-center gap-1 mt-0.5 transition-colors"
+              >
                 <MapPin className="h-3.5 w-3.5" />
                 {event.location}
-              </p>
+              </a>
             )}
             {event.opponent && (
               <p className="text-muted-foreground text-sm mt-0.5">vs {event.opponent}</p>
