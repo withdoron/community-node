@@ -273,8 +273,9 @@ function renderCoverFlow(items, currentIndex, { containerWidth, isDragging, drag
   const SIDE_SCALE = 0.72;
   const VISIBLE_SIDES = 2;
   const centerX = containerWidth / 2;
-  // Spring offset shifts all items during snap animation
-  const pixelShift = isDragging ? dragOffset : (springOffset || 0);
+  // Drag visual: positive dragOffset (right drag) should show items from LEFT (scroll/conveyor)
+  // Spring visual: positive springOffset starts at old-position offset, decays to 0
+  const pixelShift = isDragging ? -dragOffset : (springOffset || 0);
 
   return (
     <div className="flex items-center justify-center relative overflow-hidden"
@@ -528,7 +529,8 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
   const baseOffset = getOffsetForIndex(currentIndex);
   const translateX = isDragging ? baseOffset + dragOffset : baseOffset;
   const angleStep = 360 / Math.max(items.length, 6);
-  const dragAngleOffset = isDragging ? (dragOffset / ITEM_WIDTH) * angleStep : 0;
+  // Negate: drag right (positive dragOffset) should rotate to show LEFT items (scroll/conveyor)
+  const dragAngleOffset = isDragging ? -(dragOffset / ITEM_WIDTH) * angleStep : 0;
 
   // ─── Loading ───
   if (containerWidth === 0) {
