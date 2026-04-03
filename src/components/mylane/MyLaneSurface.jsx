@@ -298,6 +298,7 @@ export default function MyLaneSurface({
   const [panelOpen, setPanelOpen] = useState(() => {
     try { return localStorage.getItem('mylane_panel') !== '0'; } catch { return true; }
   });
+  const [showPhysicsTuner, setShowPhysicsTuner] = useState(false);
   const [activeOverlay, setActiveOverlay] = useState(null); // 'freq' | 'dir' | 'evt' | 'acct' | null
   const [welcomeData, setWelcomeData] = useState(() => {
     try {
@@ -478,15 +479,17 @@ export default function MyLaneSurface({
     }
     if (space.id === 'dev-lab') {
       return (
-        <DevLab
-          onTestSpin={() => {
-            // Trigger a spin: go forward one then back, exercising the spring physics
-            const idx = spinnerIndex;
-            const next = idx < spaceItems.length - 1 ? idx + 1 : idx - 1;
-            handleSpinnerSelect(next);
-            setTimeout(() => handleSpinnerSelect(idx), 600);
-          }}
-        />
+        <div style={{ padding: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+            <FlaskConical style={{ width: 20, height: 20, color: 'hsl(var(--primary))' }} strokeWidth={1.5} />
+            <div>
+              <h2 style={{ fontSize: 16, fontWeight: 600, color: 'hsl(var(--foreground))', margin: 0 }}>Dev Lab</h2>
+              <p style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', margin: 0 }}>
+                Physics tuner is above — use the flask button below the spinner
+              </p>
+            </div>
+          </div>
+        </div>
       );
     }
     return (
@@ -727,6 +730,39 @@ export default function MyLaneSurface({
             currentIndex={spinnerIndex}
             onSelect={handleSpinnerSelect}
           />
+
+          {/* Admin: physics tuner toggle + panel — sits between spinner and content */}
+          {currentUser?.role === 'admin' && (
+            <div style={{ padding: '0 var(--ll-content-pad, 24px)' }}>
+              <div style={{ maxWidth: 'var(--ll-content-max, 768px)' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowPhysicsTuner((v) => !v)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '4px 10px', borderRadius: 8, fontSize: 10,
+                    background: showPhysicsTuner ? 'hsl(var(--primary) / 0.15)' : 'transparent',
+                    border: `1px solid ${showPhysicsTuner ? 'hsl(var(--primary) / 0.3)' : 'hsl(var(--border))'}`,
+                    color: showPhysicsTuner ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                    cursor: 'pointer', marginBottom: showPhysicsTuner ? 8 : 0,
+                  }}
+                >
+                  <FlaskConical style={{ width: 10, height: 10 }} strokeWidth={1.5} />
+                  Physics
+                </button>
+                {showPhysicsTuner && (
+                  <DevLab
+                    onTestSpin={() => {
+                      const idx = spinnerIndex;
+                      const next = idx < spaceItems.length - 1 ? idx + 1 : idx - 1;
+                      handleSpinnerSelect(next);
+                      setTimeout(() => handleSpinnerSelect(idx), 600);
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Workspace content */}
           <div className="flex-1" style={{ padding: '8px var(--ll-content-pad, 24px)', paddingBottom: 60 }}>
