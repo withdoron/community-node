@@ -46,6 +46,7 @@ const ENTITY_CONFIG = {
   TeamMessage:        { fkField: 'team_id', workspace: 'team' },
   QuizAttempt:        { fkField: 'team_id', workspace: 'team' },
   PlayerStats:        { fkField: 'team_id', workspace: 'team' },
+  TeamPhoto:          { fkField: 'team_id', workspace: 'team' },
   Team:               { fkField: 'owner_id', workspace: 'team', isProfile: true },
 
   // Property Management

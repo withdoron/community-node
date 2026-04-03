@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Users } from 'lucide-react';
+import { Users, Camera } from 'lucide-react';
 
 const DAY_MS = 86400000;
 
@@ -16,6 +16,18 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
         const list = await base44.entities.TeamMember.filter({ team_id: team.id, status: 'active' });
         return Array.isArray(list) ? list : list ? [list] : [];
       } catch { return []; }
+    },
+    enabled: !!team.id, staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: photoCount = 0 } = useQuery({
+    queryKey: ['mylane-team-photo-count', team.id],
+    queryFn: async () => {
+      if (!team.id) return 0;
+      try {
+        const list = await base44.entities.TeamPhoto.filter({ team_id: team.id });
+        return Array.isArray(list) ? list.length : 0;
+      } catch { return 0; }
     },
     enabled: !!team.id, staleTime: 5 * 60 * 1000,
   });
@@ -72,6 +84,12 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
           ? `${gameImminent ? 'Game' : 'Next'}: ${nextEvent.title || 'Event'} — ${daysUntilEvent === 0 ? 'Today' : daysUntilEvent === 1 ? 'Tomorrow' : new Date(nextEvent.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
           : 'No upcoming events'}
       </div>
+      {photoCount > 0 && (
+        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+          <Camera className="h-3 w-3" />
+          <span>{photoCount} photo{photoCount !== 1 ? 's' : ''}</span>
+        </div>
+      )}
     </div>
   );
 }

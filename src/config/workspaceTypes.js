@@ -29,6 +29,7 @@ import {
   Megaphone,
   Calculator,
   UtensilsCrossed,
+  Camera,
 } from 'lucide-react';
 import DashboardHome from '@/components/dashboard/DashboardHome';
 import AccessWindowManager from '@/components/dashboard/AccessWindowManager';
@@ -40,6 +41,7 @@ import TeamPlaybook from '@/components/team/TeamPlaybook';
 import TeamSchedule from '@/components/team/TeamSchedule';
 import TeamRoster from '@/components/team/TeamRoster';
 import TeamMessages from '@/components/team/TeamMessages';
+import TeamPhotos from '@/components/team/TeamPhotos';
 import TeamSettings from '@/components/team/TeamSettings';
 import FinanceHome from '@/components/finance/FinanceHome';
 import FinanceActivity from '@/components/finance/FinanceActivity';
@@ -200,6 +202,7 @@ export const WORKSPACE_TYPES = {
       { id: 'schedule', label: 'Schedule', icon: Calendar, component: TeamSchedule, getProps: () => ({}) },
       { id: 'roster', label: 'Roster', icon: Users, component: TeamRoster, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach, currentUserId: scope.currentUserId }) },
       { id: 'messages', label: 'Messages', icon: MessageSquare, component: TeamMessages, getProps: () => ({}) },
+      { id: 'photos', label: 'Photos', icon: Camera, component: TeamPhotos, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach, currentUserId: scope.currentUserId }) },
       { id: 'settings', label: 'Settings', icon: Settings, component: TeamSettings, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach, onArchived: scope.onArchived, teamScope: scope }) },
     ],
   },
