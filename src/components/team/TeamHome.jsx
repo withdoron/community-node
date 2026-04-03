@@ -107,19 +107,18 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     () => plays.filter((p) => p.use_renderer === true || p.use_renderer === 'true').map((p) => p.id),
     [plays]
   );
+  // Single bulk fetch — avoids N concurrent requests that trigger 429 rate limits
   const { data: allRendererAssignments = [] } = useQuery({
-    queryKey: ['renderer-play-assignments-home', team?.id, rendererPlayIds.join(',')],
+    queryKey: ['renderer-play-assignments', team?.id],
     queryFn: async () => {
-      if (!rendererPlayIds.length) return [];
-      const results = await Promise.all(
-        rendererPlayIds.map(async (pid) => {
-          const list = await base44.entities.PlayAssignment.filter({ play_id: pid });
-          return Array.isArray(list) ? list : [];
-        })
-      );
-      return results.flat();
+      if (!team?.id) return [];
+      const all = await base44.entities.PlayAssignment.list();
+      const list = Array.isArray(all) ? all : [];
+      const playIdSet = new Set(rendererPlayIds);
+      return list.filter((a) => playIdSet.has(a.play_id));
     },
     enabled: !!team?.id && rendererPlayIds.length > 0,
+    staleTime: 2 * 60 * 1000,
   });
   const assignmentsByPlayId = useMemo(() => {
     const map = {};
