@@ -1,9 +1,8 @@
 /**
  * DevLab — the gardener's shed. Admin-only workspace on the spinner.
- * First tool: Physics Tuner — real-time slider control of SpaceSpinner spring physics.
- * Future tools: Theme Editor, Entity Inspector, Organism Health.
+ * First tool: Physics Tuner — mass + friction sliders for spinner feel.
  */
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { RotateCcw, Copy, Check, FlaskConical, Zap } from 'lucide-react';
 import { DEFAULT_PHYSICS, setPhysicsOverride, clearPhysicsOverrides } from './SpaceSpinner';
 
@@ -14,27 +13,24 @@ const THEMES = [
 ];
 
 const SLIDERS = [
-  { key: 'stiffness', label: 'Stiffness', min: 30, max: 500, step: 5, desc: 'Higher = snappier snap-to-position' },
-  { key: 'damping', label: 'Damping', min: 1, max: 50, step: 1, desc: 'Lower = more bounce/overshoot' },
-  { key: 'mass', label: 'Mass', min: 0.3, max: 4.0, step: 0.1, desc: 'Higher = heavier, slower to move' },
-  { key: 'friction', label: 'Friction', min: 20, max: 400, step: 5, desc: 'Higher = flicks travel farther' },
+  { key: 'mass', label: 'Mass', min: 0.3, max: 3.0, step: 0.1, fmt: (v) => v.toFixed(1), desc: 'Higher = harder to get moving, carries longer' },
+  { key: 'friction', label: 'Friction', min: 0.01, max: 0.15, step: 0.005, fmt: (v) => v.toFixed(3), desc: 'Higher = stops faster' },
 ];
 
-function dampingRatio(s, d, m) {
-  return d / (2 * Math.sqrt(s * m));
+// Estimate how many spaces a standard flick (1.0 px/ms) travels with given physics
+function estimateTravel(mass, friction) {
+  let vel = (1.0 * 16) / (74 * mass); // items/frame from a 1 px/ms flick
+  let pos = 0;
+  for (let i = 0; i < 300; i++) {
+    vel *= (1 - friction);
+    pos += vel;
+    if (Math.abs(vel) < 0.01) break;
+  }
+  return Math.abs(Math.round(pos));
 }
 
-function dampingLabel(ratio) {
-  if (ratio < 0.3) return { text: 'very bouncy', color: '#ef4444' };
-  if (ratio < 0.5) return { text: 'bouncy', color: '#f59e0b' };
-  if (ratio < 0.8) return { text: 'smooth', color: '#22c55e' };
-  if (ratio < 1.05) return { text: 'critically damped', color: '#3b82f6' };
-  return { text: 'overdamped', color: '#8b5cf6' };
-}
-
-function PhysicsSliderSet({ themeKey, label, accent, values, onChange, onReset, onTestSpin }) {
-  const ratio = dampingRatio(values.stiffness, values.damping, values.mass);
-  const ratioInfo = dampingLabel(ratio);
+function PhysicsSliderSet({ label, accent, values, onChange, onReset, onTestSpin }) {
+  const travel = estimateTravel(values.mass, values.friction);
 
   return (
     <div style={{
@@ -46,9 +42,9 @@ function PhysicsSliderSet({ themeKey, label, accent, values, onChange, onReset, 
           <span style={{ fontSize: 14, fontWeight: 600, color: accent }}>{label}</span>
           <span style={{
             marginLeft: 10, fontSize: 11, padding: '2px 8px', borderRadius: 8,
-            background: ratioInfo.color + '22', color: ratioInfo.color,
+            background: 'hsl(var(--muted) / 0.5)', color: 'hsl(var(--muted-foreground))',
           }}>
-            {ratioInfo.text} ({ratio.toFixed(2)})
+            ~{travel} spaces per flick
           </span>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
@@ -65,27 +61,19 @@ function PhysicsSliderSet({ themeKey, label, accent, values, onChange, onReset, 
         </div>
       </div>
 
-      {SLIDERS.map(({ key, label: sliderLabel, min, max, step, desc }) => (
+      {SLIDERS.map(({ key, label: sliderLabel, min, max, step, fmt, desc }) => (
         <div key={key} style={{ marginBottom: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 3 }}>
             <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>{sliderLabel}</span>
             <span style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--foreground))', fontVariantNumeric: 'tabular-nums' }}>
-              {typeof values[key] === 'number' ? (key === 'mass' ? values[key].toFixed(1) : values[key]) : '—'}
+              {fmt(values[key])}
             </span>
           </div>
           <input
-            type="range"
-            min={min} max={max} step={step}
-            value={values[key]}
-            onChange={(e) => {
-              const v = parseFloat(e.target.value);
-              onChange({ ...values, [key]: v });
-            }}
-            style={{
-              width: '100%', height: 4, appearance: 'none', background: 'hsl(var(--border))',
-              borderRadius: 2, outline: 'none', cursor: 'pointer',
-              accentColor: accent,
-            }}
+            type="range" min={min} max={max} step={step} value={values[key]}
+            onChange={(e) => onChange({ ...values, [key]: parseFloat(e.target.value) })}
+            style={{ width: '100%', height: 4, appearance: 'none', background: 'hsl(var(--border))',
+              borderRadius: 2, outline: 'none', cursor: 'pointer', accentColor: accent }}
           />
           <div style={{ fontSize: 9, color: 'hsl(var(--muted-foreground) / 0.5)', marginTop: 1 }}>{desc}</div>
         </div>
@@ -95,7 +83,6 @@ function PhysicsSliderSet({ themeKey, label, accent, values, onChange, onReset, 
 }
 
 export default function DevLab({ onTestSpin }) {
-  // Initialize with defaults
   const [values, setValues] = useState(() => ({
     dark: { ...DEFAULT_PHYSICS.dark },
     light: { ...DEFAULT_PHYSICS.light },
@@ -124,10 +111,8 @@ export default function DevLab({ onTestSpin }) {
   }, []);
 
   const handleCopy = useCallback(() => {
-    const output = `const THEME_PHYSICS = ${JSON.stringify({
-      fallout: values.fallout,
-      dark: values.dark,
-      light: values.light,
+    const output = `const DEFAULT_PHYSICS = ${JSON.stringify({
+      dark: values.dark, light: values.light, fallout: values.fallout,
     }, null, 2)};`;
     navigator.clipboard?.writeText(output).then(() => {
       setCopied(true);
@@ -137,22 +122,19 @@ export default function DevLab({ onTestSpin }) {
 
   return (
     <div style={{ maxWidth: 480 }}>
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
         <FlaskConical style={{ width: 20, height: 20, color: 'hsl(var(--primary))' }} strokeWidth={1.5} />
         <div>
           <h2 style={{ fontSize: 16, fontWeight: 600, color: 'hsl(var(--foreground))', margin: 0 }}>Physics Tuner</h2>
           <p style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', margin: 0 }}>
-            Drag sliders, flick the spinner above, feel the difference
+            Mass + friction. No spring, no bounce.
           </p>
         </div>
       </div>
 
-      {/* Per-theme slider sets */}
       {THEMES.map(({ key, label, accent }) => (
         <PhysicsSliderSet
           key={key}
-          themeKey={key}
           label={label}
           accent={accent}
           values={values[key]}
@@ -162,30 +144,21 @@ export default function DevLab({ onTestSpin }) {
         />
       ))}
 
-      {/* Action bar */}
       <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-        <button
-          onClick={handleCopy}
-          style={{
-            flex: 1, padding: '10px 16px', borderRadius: 8,
-            background: 'hsl(var(--primary))', color: 'hsl(var(--primary-foreground))',
-            border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          }}
-        >
+        <button onClick={handleCopy} style={{
+          flex: 1, padding: '10px 16px', borderRadius: 8,
+          background: 'hsl(var(--primary))', color: 'hsl(var(--primary-foreground))',
+          border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+        }}>
           {copied ? <Check style={{ width: 14, height: 14 }} strokeWidth={2} /> : <Copy style={{ width: 14, height: 14 }} strokeWidth={2} />}
           {copied ? 'Copied!' : 'Copy values'}
         </button>
-        <button
-          onClick={handleResetAll}
-          style={{
-            padding: '10px 16px', borderRadius: 8,
-            background: 'transparent', color: 'hsl(var(--muted-foreground))',
-            border: '1px solid hsl(var(--border))', cursor: 'pointer', fontSize: 13,
-          }}
-        >
-          Reset all
-        </button>
+        <button onClick={handleResetAll} style={{
+          padding: '10px 16px', borderRadius: 8,
+          background: 'transparent', color: 'hsl(var(--muted-foreground))',
+          border: '1px solid hsl(var(--border))', cursor: 'pointer', fontSize: 13,
+        }}>Reset all</button>
       </div>
     </div>
   );

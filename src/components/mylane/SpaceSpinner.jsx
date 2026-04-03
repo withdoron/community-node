@@ -1,9 +1,16 @@
 /**
- * SpaceSpinner — 3D space picker with per-theme physics and variant rendering.
+ * SpaceSpinner — 3D space picker with mass + friction physics.
  *
- * Architecture: shared core (state, events, audio, spring physics) + variant render functions.
- * Theme determines: variant (drum/coverFlow/flat), physics (stiffness/damping/mass/friction).
+ * Architecture: shared core (state, events, audio, friction deceleration) + variant render functions.
+ * Theme determines: variant (drum/coverFlow/flat), physics (mass, friction).
  * Variants are pure functions: (items, currentIndex, opts) → JSX.
+ *
+ * Physics model: heavy puck on a table. Push it, it moves. Friction stops it.
+ * No spring, no bounce, no oscillation, no overshoot. Ever.
+ *
+ * Two modes:
+ *   Ratchet (slow drag): live-snap to discrete positions, zero animation on release
+ *   Momentum (fast flick): friction deceleration, ticks on each position crossed
  *
  * Props:
  *   items        — [{id, label, icon: LucideIcon, dim?: boolean}]
@@ -25,7 +32,7 @@ function getAudioCtx() {
 function isSoundEnabled() {
   try { return localStorage.getItem('mylane_sound') !== '0'; } catch { return true; }
 }
-function playTick(index) {
+function playTick(final) {
   if (!isSoundEnabled()) return;
   try { if (navigator.vibrate) navigator.vibrate(8); } catch {}
   try {
@@ -34,11 +41,12 @@ function playTick(index) {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain); gain.connect(ctx.destination);
-    osc.frequency.value = 440 + index * 60;
-    osc.type = 'sine';
-    gain.gain.value = 0.05;
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
-    osc.start(); osc.stop(ctx.currentTime + 0.04);
+    // Lower pitch, weightier click. Final landing is slightly deeper.
+    osc.frequency.value = final ? 260 : 320;
+    osc.type = 'triangle';
+    gain.gain.value = 0.06;
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+    osc.start(); osc.stop(ctx.currentTime + 0.05);
   } catch {}
 }
 if (typeof document !== 'undefined') {
@@ -50,7 +58,6 @@ function getActiveTheme() {
   if (typeof document === 'undefined') return 'dark';
   return document.documentElement.getAttribute('data-theme') || 'dark';
 }
-
 function useTheme() {
   const [theme, setTheme] = useState(getActiveTheme);
   useEffect(() => {
@@ -61,7 +68,7 @@ function useTheme() {
   return theme;
 }
 
-// ─── Reduced motion detection ────────────────────────────────────────────────
+// ─── Reduced motion ──────────────────────────────────────────────────────────
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -77,71 +84,56 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
-// ─── Per-theme physics ──────────────────────────────────────────────────────
-// stiffness: higher = snappier snap-to-position
-// damping:   lower = more overshoot/bounce. ratio ~= damping / (2 * sqrt(stiffness * mass))
-// mass:      higher = heavier, slower to accelerate and decelerate
-// friction:  momentum multiplier on release (px of lookahead per px/ms velocity)
-// Default (shipped) physics values — the fallback when no overrides are active
+// ─── Per-theme physics (mass + friction only) ───────────────────────────────
+// mass:     affects initial animation velocity: anim_vel = gesture_vel / mass
+// friction: per-frame velocity decay: vel *= (1 - friction). Higher = stops faster.
 export const DEFAULT_PHYSICS = {
-  fallout: { stiffness: 120, damping: 8, mass: 1, friction: 180 },
-  dark:    { stiffness: 200, damping: 20, mass: 1, friction: 100 },
-  light:   { stiffness: 140, damping: 16, mass: 1.6, friction: 130 },
+  dark:    { mass: 1.0, friction: 0.08 },  // responsive, stops quickly
+  light:   { mass: 1.5, friction: 0.06 },  // heavier, glides longer
+  fallout: { mass: 1.0, friction: 0.05 },  // looser, travels farther
 };
 
-// Mutable runtime overrides — the Dev Lab tuning panel writes here directly.
-// The spring rAF loop reads from getPhysics() every time it creates a spring,
-// so changes take effect on the next interaction. No React re-render needed.
 const _physicsOverrides = { fallout: null, dark: null, light: null };
 
 export function setPhysicsOverride(theme, values) {
   _physicsOverrides[theme] = values ? { ...values } : null;
 }
-
 export function clearPhysicsOverrides() {
   _physicsOverrides.fallout = null;
   _physicsOverrides.dark = null;
   _physicsOverrides.light = null;
 }
-
 function getPhysics(theme) {
   return _physicsOverrides[theme] || DEFAULT_PHYSICS[theme] || DEFAULT_PHYSICS.dark;
 }
 
-// ─── Spring simulation ──────────────────────────────────────────────────────
-// Drives snap-to-position with natural velocity inheritance.
-// displacement starts at (oldPos - newPos), velocity from gesture.
-// Settles to 0 — the target position is always 0 displacement.
-// onCrossUnit: called with crossed unit index whenever displacement crosses a unit boundary.
-// Used to play tick sounds as the spring carries through item positions.
-function runSpring({ stiffness, damping, mass, initialDisplacement, initialVelocity, unitSize, onCrossUnit, onUpdate, onComplete }) {
-  let displacement = initialDisplacement;
-  let velocity = initialVelocity;
-  let lastTime = performance.now();
+// ─── Friction deceleration loop ─────────────────────────────────────────────
+// No spring. No bounce. Velocity decays under friction until it stops.
+// Snaps to discrete positions as it crosses boundaries. Tick on each crossing.
+function runFriction({ velocity, friction, onSnap, onComplete }) {
+  let vel = velocity; // in items/frame (~16ms)
+  let position = 0;   // fractional item offset from start
+  let lastSnapped = 0;
   let raf = null;
-  let lastCrossedUnit = unitSize ? Math.round(displacement / unitSize) : 0;
 
-  function step(now) {
-    const dt = Math.min((now - lastTime) / 1000, 0.032);
-    lastTime = now;
+  function step() {
+    vel *= (1 - friction);
+    position += vel;
 
-    const acceleration = (-stiffness * displacement - damping * velocity) / mass;
-    velocity += acceleration * dt;
-    displacement += velocity * dt;
-
-    // Detect unit boundary crossings for tick sounds
-    if (unitSize && onCrossUnit) {
-      const currentUnit = Math.round(displacement / unitSize);
-      if (currentUnit !== lastCrossedUnit) {
-        onCrossUnit(currentUnit);
-        lastCrossedUnit = currentUnit;
-      }
+    // Check if we crossed an item boundary
+    const currentSnap = Math.round(position);
+    if (currentSnap !== lastSnapped) {
+      playTick(false);
+      lastSnapped = currentSnap;
     }
 
-    onUpdate(displacement);
-
-    if (Math.abs(displacement) < 0.3 && Math.abs(velocity) < 0.5) {
-      onUpdate(0);
+    // Stop when velocity is negligible
+    if (Math.abs(vel) < 0.01) {
+      const finalSnap = Math.round(position);
+      if (finalSnap !== 0) {
+        onSnap(finalSnap);
+        playTick(true); // deeper "lock-in" tick
+      }
       onComplete?.();
       return;
     }
@@ -150,23 +142,20 @@ function runSpring({ stiffness, damping, mass, initialDisplacement, initialVeloc
   }
 
   raf = requestAnimationFrame(step);
-
-  // Return cancel function
   return () => { if (raf) cancelAnimationFrame(raf); };
 }
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const ITEM_WIDTH = 74;
+const VELOCITY_THRESHOLD = 0.5; // px/ms — below = ratchet, above = momentum
 
 // ─── Variant: Flat (fallback / reduced motion) ──────────────────────────────
-function renderFlat(items, currentIndex, { containerWidth, translateX, isDragging, springOffset, onItemClick }) {
-  const finalTx = translateX + (springOffset || 0);
+function renderFlat(items, currentIndex, { containerWidth, onItemClick }) {
+  const center = containerWidth / 2 - ITEM_WIDTH / 2;
+  const tx = -(currentIndex * ITEM_WIDTH) + center;
   return (
     <div className="flex items-center justify-center relative overflow-hidden" style={{ height: 68 }}>
-      <div
-        className="flex items-center will-change-transform"
-        style={{ transform: `translateX(${finalTx}px)` }}
-      >
+      <div className="flex items-center will-change-transform" style={{ transform: `translateX(${tx}px)` }}>
         {items.map((item, i) => {
           const d = i - currentIndex;
           const isCenter = d === 0;
@@ -178,25 +167,24 @@ function renderFlat(items, currentIndex, { containerWidth, translateX, isDraggin
           const Icon = item.icon;
           return (
             <div key={item.id} className="flex flex-col items-center justify-center flex-shrink-0 cursor-pointer"
-              style={{ width: ITEM_WIDTH, opacity: (isFar || isDimmed) ? 0.15 : 1, transition: 'opacity 0.25s' }}
-              onClick={() => onItemClick(i)}
-            >
+              style={{ width: ITEM_WIDTH, opacity: (isFar || isDimmed) ? 0.15 : 1, transition: 'opacity 0.2s' }}
+              onClick={() => onItemClick(i)}>
               <div className="flex items-center justify-center" style={{
                 width: boxSize, height: boxSize,
                 border: `1.5px solid ${isCenter ? 'hsl(var(--primary))' : 'hsl(var(--border))'}`,
                 borderRadius: isCenter ? 10 : 6,
                 background: isCenter ? 'var(--ll-bg-active, hsl(var(--secondary)))' : 'hsl(var(--card))',
-                transition: 'all 0.25s',
+                transition: 'all 0.2s',
               }}>
                 <Icon style={{ width: iconSize, height: iconSize,
                   color: isCenter ? 'hsl(var(--primary))' : isAdjacent ? 'hsl(var(--muted-foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
-                  transition: 'all 0.25s',
+                  transition: 'all 0.2s',
                 }} strokeWidth={1.5} />
               </div>
               <span style={{ fontSize: isCenter ? 10 : 8,
                 color: isCenter ? 'hsl(var(--primary))' : isAdjacent ? 'hsl(var(--muted-foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
                 fontWeight: isCenter ? 500 : 400, marginTop: isCenter ? 3 : 2,
-                whiteSpace: 'nowrap', letterSpacing: '0.3px', transition: 'all 0.25s',
+                whiteSpace: 'nowrap', letterSpacing: '0.3px', transition: 'all 0.2s',
               }}>{item.label}</span>
             </div>
           );
@@ -210,26 +198,24 @@ function renderFlat(items, currentIndex, { containerWidth, translateX, isDraggin
 }
 
 // ─── Variant: Drum (Fallout) ────────────────────────────────────────────────
-function renderDrum(items, currentIndex, { isDragging, dragAngleOffset, springAngleOffset, onItemClick }) {
+function renderDrum(items, currentIndex, { onItemClick }) {
   const count = items.length;
   const angleStep = 360 / Math.max(count, 6);
   const radius = 120;
-  const totalAngle = -currentIndex * angleStep + (isDragging ? dragAngleOffset : (springAngleOffset || 0));
+  const totalAngle = -currentIndex * angleStep;
 
   return (
     <div className="flex items-center justify-center relative overflow-hidden" style={{ height: 80 }}>
       <div style={{ perspective: 600, perspectiveOrigin: '50% 50%', width: '100%', height: 80,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
+        display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{
-          transformStyle: 'preserve-3d',
-          transform: `rotateY(${totalAngle}deg)`,
+          transformStyle: 'preserve-3d', transform: `rotateY(${totalAngle}deg)`,
           width: 0, height: 0, position: 'relative',
         }}>
           {items.map((item, i) => {
             const angle = i * angleStep;
             const Icon = item.icon;
-            const relAngle = ((i - currentIndex) * angleStep + (isDragging ? dragAngleOffset : (springAngleOffset || 0)) + 360 * 5) % 360;
+            const relAngle = ((i - currentIndex) * angleStep + 360 * 5) % 360;
             const isFront = relAngle < 50 || relAngle > 310;
             const isNear = relAngle < 90 || relAngle > 270;
             const isDimmed = item.dim && i !== currentIndex;
@@ -247,11 +233,11 @@ function renderDrum(items, currentIndex, { isDragging, dragAngleOffset, springAn
                     border: `1.5px solid ${i === currentIndex ? 'hsl(var(--primary))' : 'hsl(var(--border))'}`,
                     borderRadius: i === currentIndex ? 10 : 6,
                     background: i === currentIndex ? 'hsl(var(--card))' : 'hsl(var(--secondary))',
-                    transition: 'all 0.2s',
+                    transition: 'all 0.15s',
                   }}>
                     <Icon style={{ width: isFront ? 18 : 13, height: isFront ? 18 : 13,
                       color: i === currentIndex ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                      transition: 'all 0.2s',
+                      transition: 'all 0.15s',
                     }} strokeWidth={1.5} />
                   </div>
                   {isFront && (
@@ -275,7 +261,7 @@ function renderDrum(items, currentIndex, { isDragging, dragAngleOffset, springAn
 }
 
 // ─── Variant: Cover Flow (Gold Standard / Cloud) ────────────────────────────
-function renderCoverFlow(items, currentIndex, { containerWidth, isDragging, dragOffset, springOffset, onItemClick }) {
+function renderCoverFlow(items, currentIndex, { containerWidth, onItemClick }) {
   const CARD_WIDTH = 56;
   const SPREAD = 60;
   const ROTATE_ANGLE = 40;
@@ -283,28 +269,23 @@ function renderCoverFlow(items, currentIndex, { containerWidth, isDragging, drag
   const SIDE_SCALE = 0.72;
   const VISIBLE_SIDES = 2;
   const centerX = containerWidth / 2;
-  // Drag visual: positive dragOffset (right drag) should show items from LEFT (scroll/conveyor)
-  // Spring visual: positive springOffset starts at old-position offset, decays to 0
-  const pixelShift = isDragging ? -dragOffset : (springOffset || 0);
 
   return (
     <div className="flex items-center justify-center relative overflow-hidden"
-      style={{ height: 80, perspective: 500, perspectiveOrigin: '50% 50%' }}
-    >
+      style={{ height: 80, perspective: 500, perspectiveOrigin: '50% 50%' }}>
       {items.map((item, i) => {
         const d = i - currentIndex;
-        const rawD = d + (-pixelShift / SPREAD);
-        const absD = Math.abs(rawD);
-        const isCenter = absD < 0.15 && !isDragging;
+        const absD = Math.abs(d);
+        const isCenter = d === 0;
         const isDimmed = item.dim && !isCenter;
         const Icon = item.icon;
         if (absD > VISIBLE_SIDES + 1) return null;
 
         let tx, rotY, z, scale, opacity;
-        if (absD < 0.1 && !isDragging && Math.abs(springOffset || 0) < 2) {
+        if (isCenter) {
           tx = 0; rotY = 0; z = CENTER_Z; scale = 1; opacity = 1;
         } else {
-          const sign = rawD > 0 ? 1 : -1;
+          const sign = d > 0 ? 1 : -1;
           tx = sign * (CARD_WIDTH / 2 + SPREAD * Math.min(absD, VISIBLE_SIDES + 0.5));
           rotY = -sign * ROTATE_ANGLE;
           z = 0;
@@ -321,7 +302,7 @@ function renderCoverFlow(items, currentIndex, { containerWidth, isDragging, drag
             transform: `translateX(${tx}px) translateY(-50%) translateZ(${z}px) rotateY(${rotY}deg) scale(${scale})`,
             transformStyle: 'preserve-3d',
             zIndex: 100 - Math.round(absD * 10), opacity, cursor: 'pointer',
-            transition: isDragging ? 'opacity 0.1s' : 'opacity 0.2s',
+            transition: 'opacity 0.15s',
           }} onClick={() => onItemClick(i)}>
             <div className="flex flex-col items-center">
               <div className="flex items-center justify-center" style={{
@@ -330,18 +311,18 @@ function renderCoverFlow(items, currentIndex, { containerWidth, isDragging, drag
                 borderRadius: isCenter ? 12 : 8,
                 background: isCenter ? 'var(--ll-bg-active, hsl(var(--secondary)))' : 'hsl(var(--card))',
                 boxShadow: isCenter ? '0 4px 20px hsl(var(--primary) / 0.15)' : 'none',
-                transition: 'all 0.25s',
+                transition: 'all 0.15s',
               }}>
                 <Icon style={{ width: iconSize, height: iconSize,
                   color: isCenter ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                  transition: 'all 0.25s',
+                  transition: 'all 0.15s',
                 }} strokeWidth={1.5} />
               </div>
               <span style={{ fontSize: isCenter ? 10 : 8,
                 color: isCenter ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground) / 0.7)',
                 fontWeight: isCenter ? 500 : 400, marginTop: 3,
                 whiteSpace: 'nowrap', letterSpacing: '0.3px', textAlign: 'center',
-                transition: 'all 0.25s',
+                transition: 'all 0.15s',
               }}>{item.label}</span>
             </div>
           </div>
@@ -383,11 +364,9 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
     lastX: 0, lastTime: 0, velocity: 0,
   });
   const [isDragging, setIsDragging] = useState(false);
-  const [dragSnapIndex, setDragSnapIndex] = useState(currentIndex); // live-snapped index during drag
-  const [springOffset, setSpringOffset] = useState(0); // px offset during spring animation
-  const [springAngleOffset, setSpringAngleOffset] = useState(0); // angle offset for drum
-  const springCancelRef = useRef(null);
-  const lastDragSnapRef = useRef(currentIndex); // track for tick sound
+  const [dragSnapIndex, setDragSnapIndex] = useState(currentIndex);
+  const frictionCancelRef = useRef(null);
+  const lastDragSnapRef = useRef(currentIndex);
 
   const handleSelect = useCallback((idx) => {
     if (idx < 0 || idx >= items.length) return;
@@ -398,53 +377,10 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
   const wheelActiveRef = useRef(false);
   const wheelCooldownRef = useRef(null);
 
-  // ─── Start spring animation (fast-flick only) ───
-  const startSpring = useCallback((positionsDelta, gestureVelocityPxMs) => {
-    springCancelRef.current?.();
-
-    if (reducedMotion || variant === 'flat') {
-      setSpringOffset(0);
-      setSpringAngleOffset(0);
-      return;
-    }
-
-    const { stiffness, damping, mass } = physics;
-    const tickOnCross = () => playTick(0); // tick sound on every unit boundary crossing
-
-    if (variant === 'drum') {
-      const angleStep = 360 / Math.max(items.length, 6);
-      const initialAngle = positionsDelta * angleStep;
-      const initialAngVel = -(gestureVelocityPxMs / ITEM_WIDTH) * angleStep * 1000;
-      springCancelRef.current = runSpring({
-        stiffness, damping, mass,
-        initialDisplacement: initialAngle,
-        initialVelocity: initialAngVel,
-        unitSize: angleStep,
-        onCrossUnit: tickOnCross,
-        onUpdate: (d) => setSpringAngleOffset(d),
-        onComplete: () => { setSpringAngleOffset(0); springCancelRef.current = null; },
-      });
-    } else {
-      const initialPx = positionsDelta * ITEM_WIDTH;
-      const initialVel = -gestureVelocityPxMs * 1000;
-      springCancelRef.current = runSpring({
-        stiffness, damping, mass,
-        initialDisplacement: initialPx,
-        initialVelocity: initialVel,
-        unitSize: ITEM_WIDTH,
-        onCrossUnit: tickOnCross,
-        onUpdate: (d) => setSpringOffset(d),
-        onComplete: () => { setSpringOffset(0); springCancelRef.current = null; },
-      });
-    }
-  }, [physics, variant, items.length, reducedMotion]);
-
   // ─── Pointer handlers ───
   const handlePointerDown = useCallback((e) => {
     if (wheelActiveRef.current) return;
-    springCancelRef.current?.();
-    setSpringOffset(0);
-    setSpringAngleOffset(0);
+    frictionCancelRef.current?.();
     const d = dragRef.current;
     d.active = true; d.startX = e.clientX; d.currentOffset = 0;
     d.lastX = e.clientX; d.lastTime = Date.now(); d.velocity = 0;
@@ -464,13 +400,12 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
     if (dt > 0) d.velocity = (e.clientX - d.lastX) / dt;
     d.lastX = e.clientX; d.lastTime = now;
 
-    // Live snap: quantize drag to nearest item position
-    // Scroll/conveyor: drag right (positive dx) → previous items (negative index delta)
+    // Live snap: quantize to nearest item (scroll/conveyor direction)
     const snapped = Math.max(0, Math.min(items.length - 1,
       currentIndex + Math.round(-dx / ITEM_WIDTH)
     ));
     if (snapped !== lastDragSnapRef.current) {
-      playTick(snapped);
+      playTick(false);
       lastDragSnapRef.current = snapped;
     }
     setDragSnapIndex(snapped);
@@ -480,34 +415,37 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
     const d = dragRef.current;
     if (!d.active) return;
     d.active = false; setIsDragging(false);
-    const dx = d.currentOffset;
     const velocity = Math.max(-1.5, Math.min(1.5, d.velocity));
     const absVel = Math.abs(velocity);
 
-    // ── RATCHET MODE (slow drag, |velocity| < threshold) ──
-    // Commit the live-snapped index. Zero animation. Instant lock.
-    if (absVel < 0.4) {
+    // ── RATCHET MODE (slow drag) ──
+    // Commit live-snapped index. Zero animation. Instant lock.
+    if (absVel < VELOCITY_THRESHOLD) {
       if (dragSnapIndex !== currentIndex) {
+        playTick(true);
         handleSelect(dragSnapIndex);
-        // No spring — the user was already previewing this position
       }
       return;
     }
 
     // ── MOMENTUM MODE (fast flick) ──
-    // Calculate target from velocity + displacement, spring to settle
-    const momentumPx = velocity * physics.friction;
-    const totalDelta = dx + momentumPx;
-    const positionsDelta = Math.round(-totalDelta / ITEM_WIDTH);
-    const targetIdx = Math.max(0, Math.min(items.length - 1, currentIndex + positionsDelta));
+    // Convert gesture velocity to items/frame, run friction deceleration
+    const { mass, friction } = physics;
+    // velocity is px/ms → convert to items/frame (~16ms per frame)
+    const itemsPerFrame = (-velocity * 16) / (ITEM_WIDTH * mass);
 
-    const actualDelta = targetIdx - currentIndex;
-    if (actualDelta !== 0) {
-      playTick(targetIdx); // tick for the final landing
-      handleSelect(targetIdx);
-      startSpring(-actualDelta, velocity);
-    }
-  }, [currentIndex, items.length, handleSelect, physics.friction, startSpring, dragSnapIndex]);
+    frictionCancelRef.current = runFriction({
+      velocity: itemsPerFrame,
+      friction,
+      onSnap: (totalDelta) => {
+        const targetIdx = Math.max(0, Math.min(items.length - 1, currentIndex + totalDelta));
+        if (targetIdx !== currentIndex) {
+          handleSelect(targetIdx);
+        }
+      },
+      onComplete: () => { frictionCancelRef.current = null; },
+    });
+  }, [currentIndex, items.length, handleSelect, physics, dragSnapIndex]);
 
   // ─── Wheel handler ───
   const wheelTimerRef = useRef(null);
@@ -526,40 +464,27 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
       if (currentIndex > 0) nextIdx = currentIndex - 1;
     }
     if (nextIdx !== currentIndex) {
-      playTick(nextIdx);
+      playTick(true);
       handleSelect(nextIdx);
-      startSpring(-(nextIdx - currentIndex), 0);
     }
-  }, [currentIndex, items.length, handleSelect, startSpring]);
+  }, [currentIndex, items.length, handleSelect]);
 
   // ─── Click handler ───
   const onItemClick = useCallback((i) => {
     if (Math.abs(dragRef.current.currentOffset) < 5) {
-      const delta = i - currentIndex;
-      if (delta !== 0) {
-        playTick(i);
+      if (i !== currentIndex) {
+        playTick(true);
         handleSelect(i);
-        startSpring(-delta, 0);
       }
     }
-  }, [currentIndex, handleSelect, startSpring]);
+  }, [currentIndex, handleSelect]);
 
-  // Clean up spring on unmount
-  useEffect(() => () => springCancelRef.current?.(), []);
+  // Clean up on unmount
+  useEffect(() => () => frictionCancelRef.current?.(), []);
 
-  // ─── Computed values ───
-  // During drag: render as if dragSnapIndex is the selected item (discrete positions only)
+  // ─── Render ───
   const effectiveIndex = isDragging ? dragSnapIndex : currentIndex;
-  const getOffsetForIndex = useCallback((idx) => {
-    return -(idx * ITEM_WIDTH) + containerWidth / 2 - ITEM_WIDTH / 2;
-  }, [containerWidth]);
 
-  const baseOffset = getOffsetForIndex(effectiveIndex);
-  const translateX = baseOffset;
-  const angleStep = 360 / Math.max(items.length, 6);
-  const dragAngleOffset = 0; // no continuous angle offset — drum snaps to discrete positions too
-
-  // ─── Loading ───
   if (containerWidth === 0) {
     return <div ref={containerRef} style={{ padding: '14px 0 6px', height: 94 }} />;
   }
@@ -576,19 +501,18 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
       onWheel={handleWheel}
     >
       {renderVariant(items, effectiveIndex, {
-        containerWidth, translateX, isDragging,
-        dragOffset: 0, dragAngleOffset: 0,
-        springOffset, springAngleOffset,
+        containerWidth,
+        isDragging,
         onItemClick,
       })}
 
-      {/* Dot indicator — shows effectiveIndex during drag */}
+      {/* Dot indicator */}
       <div className="flex justify-center items-center gap-1" style={{ marginTop: 4, height: 8 }}>
         {items.map((item, i) => (
           <div key={item.id} style={{
             width: i === effectiveIndex ? 6 : 3, height: 3, borderRadius: 2,
             background: i === effectiveIndex ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground) / 0.3)',
-            transition: 'all 0.3s',
+            transition: 'all 0.2s',
           }} />
         ))}
       </div>
