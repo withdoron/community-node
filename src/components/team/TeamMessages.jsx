@@ -33,13 +33,13 @@ function getRoleBadgeClass(role, ownerId, userId) {
 
 export default function TeamMessages({ teamId, teamScope }) {
   const queryClient = useQueryClient();
-  const [activeChannel, setActiveChannel] = useState(isCoach ? 'announcement' : 'discussion');
-  const [inputText, setInputText] = useState('');
-  const messagesEndRef = useRef(null);
   const team = teamScope?.team;
   const members = teamScope?.members || [];
   const currentUserId = teamScope?.currentUserId;
   const isCoach = teamScope?.effectiveRole === 'coach';
+  const [activeChannel, setActiveChannel] = useState(isCoach ? 'announcement' : 'discussion');
+  const [inputText, setInputText] = useState('');
+  const messagesEndRef = useRef(null);
   const messageType = activeChannel === 'announcement' ? 'announcement' : 'discussion';
   const canPostAnnouncement = isCoach && activeChannel === 'announcement';
   const canPostDiscussion = true;
