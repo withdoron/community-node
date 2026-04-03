@@ -253,10 +253,12 @@ export default function JoinTeam() {
       }
 
       // Create parent member record with linked player IDs
+      const parentName = user?.data?.display_name || user?.data?.full_name || 'Parent';
       await base44.entities.TeamMember.create({
         team_id: team.id,
         user_id: user.id,
         role: 'parent',
+        jersey_name: parentName,
         status: 'active',
         linked_player_ids: [...parentSelectedIds],
       });

@@ -235,13 +235,13 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
                 if (name) {
                   const slug = name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
                   navigator.clipboard.writeText(`${window.location.origin}/door/${slug}`);
-                  toast.success('Door link copied — great for stickers & flyers');
+                  toast.success('League link copied — share with other teams');
                 }
               }}
               disabled={!team?.name}
             >
               <Copy className="h-4 w-4 mr-2" />
-              Door Link
+              League Link
             </Button>
           </div>
           <Button
@@ -277,8 +277,9 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
               sortedMembers.map((m) => {
                 const linkedPlayer = getLinkedPlayer(m);
                 const linkedParents = getLinkedParents(m);
-                const isUnclaimedPlayer = !m.user_id;
                 const parentIds = Array.isArray(m.parent_user_ids) ? m.parent_user_ids : m.parent_user_id ? [m.parent_user_id] : [];
+                const hasParentConnection = parentIds.length > 0;
+                const isUnclaimedPlayer = m.role === 'player' && !m.user_id && !hasParentConnection;
                 const isMyChild = m.role === 'player' && parentIds.includes(currentUserId);
                 return (
                   <tr

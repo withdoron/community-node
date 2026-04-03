@@ -223,11 +223,11 @@ function QuickReferenceLayout({ plays, assignmentsByPlayId }) {
                 const assignments = assignmentsByPlayId[play.id] || [];
                 return (
                   <div key={play.id} className="border border-gray-300 rounded-lg p-3 flex flex-col">
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-1">
                       <p className="font-bold text-sm truncate">{play.name}</p>
                       <p className="text-xs text-gray-500 flex-shrink-0 ml-2">{play.formation || '—'}</p>
                     </div>
-                    <div className="flex-1 border border-gray-200 rounded overflow-hidden">
+                    <div className="flex-1 border border-gray-200 rounded overflow-hidden min-h-0">
                       <PlayRenderer
                         play={play}
                         assignments={assignments}
@@ -239,6 +239,19 @@ function QuickReferenceLayout({ plays, assignmentsByPlayId }) {
                         <img src={play.diagram_image} alt={play.name} className="w-full h-full object-contain" />
                       )}
                     </div>
+                    {/* Condensed assignments */}
+                    {assignments.length > 0 && (
+                      <div className="mt-1 pt-1 border-t border-gray-200 space-y-0" style={{ fontSize: '7pt', lineHeight: '1.3' }}>
+                        {assignments.map((a) => (
+                          <div key={a.id || a.position} className="flex gap-1">
+                            <span className="font-bold flex-shrink-0" style={{ minWidth: '20px' }}>{a.position}:</span>
+                            <span className="text-gray-700 truncate">
+                              {a.movement_type || ''}{a.movement_type && a.assignment_text ? ' — ' : ''}{a.assignment_text || ''}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}

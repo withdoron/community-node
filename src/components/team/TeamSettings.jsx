@@ -397,11 +397,11 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
         </section>
       )}
 
-      {/* Door Link — human-readable URL for stickers and flyers */}
+      {/* League Link — human-readable URL for stickers and flyers */}
       {isCoach && doorUrl && (
         <section className="bg-card border border-border rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-1">Door Link</h2>
-          <p className="text-muted-foreground text-sm mb-4">A readable URL for stickers, flyers, and QR codes. Anyone who visits joins as a parent.</p>
+          <h2 className="text-lg font-semibold text-foreground mb-1">League Link</h2>
+          <p className="text-muted-foreground text-sm mb-4">A readable URL for stickers, flyers, and QR codes. Share with other coaches and teams in your league.</p>
           <div className="bg-secondary/50 border border-border rounded-xl p-4 space-y-3 max-w-md">
             <p className="text-sm text-foreground-soft break-all font-mono">{doorUrl}</p>
             <Button
@@ -411,10 +411,10 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
               className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent min-h-[44px]"
               onClick={() => {
                 navigator.clipboard.writeText(doorUrl);
-                toast.success('Door link copied — great for stickers & flyers');
+                toast.success('League link copied — share with other teams');
               }}
             >
-              <Copy className="h-4 w-4 mr-2" /> Copy Door Link
+              <Copy className="h-4 w-4 mr-2" /> Copy League Link
             </Button>
           </div>
         </section>

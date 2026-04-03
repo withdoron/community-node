@@ -199,9 +199,9 @@ export const WORKSPACE_TYPES = {
     tabs: [
       { id: 'home', label: 'Home', icon: LayoutDashboard, component: TeamHome, getProps: (scope) => ({ team: scope.team, members: scope.members, onNavigateTab: scope.onNavigateTab, onCopyInviteLink: scope.onCopyInviteLink, currentUserId: scope.currentUserId }) },
       { id: 'playbook', label: 'Playbook', icon: BookOpen, component: TeamPlaybook, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach, currentUserId: scope.currentUserId }) },
-      { id: 'schedule', label: 'Schedule', icon: Calendar, component: TeamSchedule, getProps: () => ({}) },
+      { id: 'schedule', label: 'Schedule', icon: Calendar, component: TeamSchedule, getProps: (scope) => ({ teamId: scope.team?.id, teamScope: scope }) },
       { id: 'roster', label: 'Roster', icon: Users, component: TeamRoster, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach, currentUserId: scope.currentUserId }) },
-      { id: 'messages', label: 'Messages', icon: MessageSquare, component: TeamMessages, getProps: () => ({}) },
+      { id: 'messages', label: 'Messages', icon: MessageSquare, component: TeamMessages, getProps: (scope) => ({ teamId: scope.team?.id, teamScope: scope }) },
       { id: 'photos', label: 'Photos', icon: Camera, component: TeamPhotos, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach, currentUserId: scope.currentUserId }) },
       { id: 'settings', label: 'Settings', icon: Settings, component: TeamSettings, getProps: (scope) => ({ team: scope.team, members: scope.members, isCoach: scope.isCoach, onArchived: scope.onArchived, teamScope: scope }) },
     ],
