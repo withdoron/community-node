@@ -51,6 +51,7 @@ export default function JoinTeam() {
   const [joining, setJoining] = useState(false);
   const [claiming, setClaiming] = useState(false);
   const [coachName, setCoachName] = useState('');
+  const [parentName, setParentName] = useState('');
   const [showNewCoachForm, setShowNewCoachForm] = useState(false);
 
   // Mark onboarding complete so user doesn't loop into the wizard after joining
@@ -85,13 +86,14 @@ export default function JoinTeam() {
     }
   }, [inviteCode, doorSlug]);
 
-  // Pre-fill coach name from user data
+  // Pre-fill coach/parent name from user data
   useEffect(() => {
-    if (user && !coachName) {
+    if (user) {
       const name = user?.data?.display_name || user?.data?.full_name || '';
-      setCoachName(name);
+      if (!coachName) setCoachName(name);
+      if (!parentName) setParentName(name);
     }
-  }, [user, coachName]);
+  }, [user, coachName, parentName]);
 
   // Detect invite type: family (invite_code), coach (coach_invite_code), or door (slug)
   const lookupKey = inviteCode?.trim() || doorSlug?.trim() || '';
@@ -255,12 +257,12 @@ export default function JoinTeam() {
       }
 
       // Create parent member record with linked player IDs
-      const parentName = user?.data?.display_name || user?.data?.full_name || 'Parent';
+      const finalParentName = parentName?.trim() || user?.data?.display_name || user?.data?.full_name || 'Parent';
       await base44.entities.TeamMember.create({
         team_id: team.id,
         user_id: user.id,
         role: 'parent',
-        jersey_name: parentName,
+        jersey_name: finalParentName,
         status: 'active',
         linked_player_ids: [...parentSelectedIds],
       });
@@ -522,6 +524,18 @@ export default function JoinTeam() {
       <p className={`text-muted-foreground/70 text-xs ${headCoachName ? '' : 'invisible'} mb-6`}>
         {headCoachName ? <>Coach <span className="text-foreground-soft">{headCoachName}</span> invited you</> : '\u00A0'}
       </p>
+      {/* Name capture */}
+      <div className="mb-6">
+        <label className="text-foreground-soft text-sm font-medium block mb-1">What should we call you?</label>
+        <Input
+          value={parentName}
+          onChange={(e) => setParentName(e.target.value)}
+          className="w-full bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring min-h-[44px]"
+          placeholder="Your name"
+          disabled={joining}
+        />
+      </div>
+
       <h2 className="text-lg font-semibold text-foreground mb-1">Link your children</h2>
       <p className="text-muted-foreground text-sm mb-4">Select each child on this team. You can switch to their view in the team later.</p>
       {players.length === 0 ? (
@@ -566,7 +580,7 @@ export default function JoinTeam() {
           <Button
             type="button"
             onClick={handleJoinAsParent}
-            disabled={selectedCount === 0 || joining}
+            disabled={selectedCount === 0 || !parentName?.trim() || joining}
             className="mt-6 w-full bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px]"
           >
             {joining ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : `Link ${selectedCount === 0 ? 'children' : selectedCount === 1 ? 'child' : 'children'}`}

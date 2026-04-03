@@ -14,13 +14,24 @@ const CHANNELS = [
 function getSenderLabel(userId, team, members = []) {
   if (!userId) return 'Team';
   const ownerId = team?.owner_id;
-  if (userId === ownerId) return 'Coach';
+  if (userId === ownerId) {
+    const ownerMember = members.find((m) => m.user_id === userId);
+    return ownerMember?.jersey_name || 'Coach';
+  }
   const member = members.find((m) => m.user_id === userId);
   if (member) {
-    if (member.role === 'coach') return member.jersey_name || 'Coach';
-    if (member.role === 'parent') return member.jersey_name || 'Parent';
-    if (member.role === 'player') return member.jersey_name || 'Player';
-    return member.jersey_name || 'Member';
+    const name = member.jersey_name || (member.role === 'coach' ? 'Coach' : member.role === 'parent' ? 'Parent' : 'Player');
+    // For parents, show linked children names
+    if (member.role === 'parent') {
+      const linkedIds = Array.isArray(member.linked_player_ids) ? member.linked_player_ids : member.linked_player_id ? [member.linked_player_id] : [];
+      if (linkedIds.length > 0) {
+        const kidNames = linkedIds
+          .map((id) => members.find((m) => m.id === id)?.jersey_name)
+          .filter(Boolean);
+        if (kidNames.length > 0) return `${name} (${kidNames.join(', ')})`;
+      }
+    }
+    return name;
   }
   return 'Member';
 }

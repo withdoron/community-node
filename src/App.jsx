@@ -147,20 +147,12 @@ const AuthenticatedApp = () => {
       />
       <Route
         path="/join/:inviteCode"
-        element={
-          <LayoutWrapper currentPageName="JoinTeam">
-            <JoinTeam />
-          </LayoutWrapper>
-        }
+        element={<JoinTeam />}
       />
       {/* Door route — human-readable workspace slug for stickers/flyers/QR codes */}
       <Route
         path="/door/:slug"
-        element={
-          <LayoutWrapper currentPageName="JoinTeam">
-            <JoinTeam />
-          </LayoutWrapper>
-        }
+        element={<JoinTeam />}
       />
       {/* Field Service workspace join via invite code */}
       <Route
