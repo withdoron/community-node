@@ -144,12 +144,14 @@ export default function JoinTeam() {
   const inviteType = teamData?.inviteType;
 
   // Fetch members (needed for player list + head coach name for personalized invite copy)
+  // Use .list() + client-side filter because .filter() returns empty for service-role-created records
   const { data: members = [], isLoading: membersLoading } = useQuery({
     queryKey: ['join-team-members', team?.id],
     queryFn: async () => {
       if (!team?.id) return [];
-      const result = await base44.entities.TeamMember.filter({ team_id: team.id, status: 'active' });
-      return Array.isArray(result) ? result : (result ? [result] : []);
+      const all = await base44.entities.TeamMember.list();
+      const list = Array.isArray(all) ? all : [];
+      return list.filter((m) => String(m.team_id) === String(team.id) && m.status === 'active');
     },
     enabled: !!team?.id,
   });
