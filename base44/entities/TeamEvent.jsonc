@@ -59,6 +59,14 @@
     "created_by_user_id": {
       "type": "string",
       "description": "FK to users \u2014 who created this event"
+    },
+    "rsvps": {
+      "type": "string",
+      "description": "JSON string of RSVP responses. Format: { \"user_id\": \"yes\"|\"no\"|\"maybe\" }"
+    },
+    "duties": {
+      "type": "string",
+      "description": "JSON array string of duty assignments. Format: [{ \"type\": \"snack\"|\"water\"|\"setup\"|\"cleanup\"|\"custom\", \"member_id\": \"xxx\", \"family_name\": \"Johnson\", \"custom_label\": \"\" }]"
     }
   },
   "required": [
