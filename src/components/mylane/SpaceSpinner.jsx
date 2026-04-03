@@ -372,11 +372,12 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
     active: false, startX: 0, currentOffset: 0,
     lastX: 0, lastTime: 0, velocity: 0,
   });
-  const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [dragSnapIndex, setDragSnapIndex] = useState(currentIndex); // live-snapped index during drag
   const [springOffset, setSpringOffset] = useState(0); // px offset during spring animation
   const [springAngleOffset, setSpringAngleOffset] = useState(0); // angle offset for drum
   const springCancelRef = useRef(null);
+  const lastDragSnapRef = useRef(currentIndex); // track for tick sound
 
   const handleSelect = useCallback((idx) => {
     if (idx < 0 || idx >= items.length) return;
@@ -430,16 +431,17 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
   // ─── Pointer handlers ───
   const handlePointerDown = useCallback((e) => {
     if (wheelActiveRef.current) return;
-    // Cancel running spring
     springCancelRef.current?.();
     setSpringOffset(0);
     setSpringAngleOffset(0);
     const d = dragRef.current;
     d.active = true; d.startX = e.clientX; d.currentOffset = 0;
     d.lastX = e.clientX; d.lastTime = Date.now(); d.velocity = 0;
-    setIsDragging(true); setDragOffset(0);
+    setIsDragging(true);
+    setDragSnapIndex(currentIndex);
+    lastDragSnapRef.current = currentIndex;
     e.currentTarget.setPointerCapture?.(e.pointerId);
-  }, []);
+  }, [currentIndex]);
 
   const handlePointerMove = useCallback((e) => {
     const d = dragRef.current;
@@ -450,8 +452,18 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
     const dt = now - d.lastTime;
     if (dt > 0) d.velocity = (e.clientX - d.lastX) / dt;
     d.lastX = e.clientX; d.lastTime = now;
-    setDragOffset(dx);
-  }, []);
+
+    // Live snap: quantize drag to nearest item position
+    // Scroll/conveyor: drag right (positive dx) → previous items (negative index delta)
+    const snapped = Math.max(0, Math.min(items.length - 1,
+      currentIndex + Math.round(-dx / ITEM_WIDTH)
+    ));
+    if (snapped !== lastDragSnapRef.current) {
+      playTick(snapped);
+      lastDragSnapRef.current = snapped;
+    }
+    setDragSnapIndex(snapped);
+  }, [currentIndex, items.length]);
 
   const handlePointerUp = useCallback(() => {
     const d = dragRef.current;
@@ -459,31 +471,29 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
     d.active = false; setIsDragging(false);
     const dx = d.currentOffset;
     const velocity = Math.max(-1.5, Math.min(1.5, d.velocity));
-    if (Math.abs(dx) < 5) { setDragOffset(0); return; }
+    const absVel = Math.abs(velocity);
 
-    // Theme-dependent momentum: friction controls how far flicks travel
-    const momentumPx = velocity * physics.friction;
-    const totalDelta = dx + momentumPx;
-    const positionsDelta = Math.round(-totalDelta / ITEM_WIDTH);
-    const targetIdx = Math.max(0, Math.min(items.length - 1, currentIndex + positionsDelta));
-    setDragOffset(0);
+    // Fast flick: use momentum to determine target (carries through multiple items)
+    // Slow drag: use the live-snapped index (already previewed during drag)
+    let targetIdx;
+    if (absVel > 0.3) {
+      // Fast flick — momentum dominates
+      const momentumPx = velocity * physics.friction;
+      const totalDelta = dx + momentumPx;
+      const positionsDelta = Math.round(-totalDelta / ITEM_WIDTH);
+      targetIdx = Math.max(0, Math.min(items.length - 1, currentIndex + positionsDelta));
+    } else {
+      // Slow drag — commit the snap index the user was previewing
+      targetIdx = dragSnapIndex;
+    }
 
     const actualDelta = targetIdx - currentIndex;
     if (actualDelta !== 0) {
-      // Play ticks for intermediate positions
-      const step = actualDelta > 0 ? 1 : -1;
-      let tickIdx = currentIndex;
-      const iv = setInterval(() => {
-        tickIdx += step;
-        if ((step > 0 && tickIdx > targetIdx) || (step < 0 && tickIdx < targetIdx)) { clearInterval(iv); return; }
-        playTick(tickIdx);
-      }, 50);
-      // Commit selection immediately, animate visually via spring
       handleSelect(targetIdx);
-      // Spring starts at old position relative to new (negative delta)
+      // Spring for settle feel — starts at old position relative to new
       startSpring(-actualDelta, velocity);
     }
-  }, [currentIndex, items.length, handleSelect, physics.friction, startSpring]);
+  }, [currentIndex, items.length, handleSelect, physics.friction, startSpring, dragSnapIndex]);
 
   // ─── Wheel handler ───
   const wheelTimerRef = useRef(null);
@@ -522,15 +532,16 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
   useEffect(() => () => springCancelRef.current?.(), []);
 
   // ─── Computed values ───
+  // During drag: render as if dragSnapIndex is the selected item (discrete positions only)
+  const effectiveIndex = isDragging ? dragSnapIndex : currentIndex;
   const getOffsetForIndex = useCallback((idx) => {
     return -(idx * ITEM_WIDTH) + containerWidth / 2 - ITEM_WIDTH / 2;
   }, [containerWidth]);
 
-  const baseOffset = getOffsetForIndex(currentIndex);
-  const translateX = isDragging ? baseOffset + dragOffset : baseOffset;
+  const baseOffset = getOffsetForIndex(effectiveIndex);
+  const translateX = baseOffset;
   const angleStep = 360 / Math.max(items.length, 6);
-  // Negate: drag right (positive dragOffset) should rotate to show LEFT items (scroll/conveyor)
-  const dragAngleOffset = isDragging ? -(dragOffset / ITEM_WIDTH) * angleStep : 0;
+  const dragAngleOffset = 0; // no continuous angle offset — drum snaps to discrete positions too
 
   // ─── Loading ───
   if (containerWidth === 0) {
@@ -548,19 +559,19 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
       onPointerCancel={handlePointerUp}
       onWheel={handleWheel}
     >
-      {renderVariant(items, currentIndex, {
+      {renderVariant(items, effectiveIndex, {
         containerWidth, translateX, isDragging,
-        dragOffset, dragAngleOffset,
+        dragOffset: 0, dragAngleOffset: 0,
         springOffset, springAngleOffset,
         onItemClick,
       })}
 
-      {/* Dot indicator */}
+      {/* Dot indicator — shows effectiveIndex during drag */}
       <div className="flex justify-center items-center gap-1" style={{ marginTop: 4, height: 8 }}>
         {items.map((item, i) => (
           <div key={item.id} style={{
-            width: i === currentIndex ? 6 : 3, height: 3, borderRadius: 2,
-            background: i === currentIndex ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground) / 0.3)',
+            width: i === effectiveIndex ? 6 : 3, height: 3, borderRadius: 2,
+            background: i === effectiveIndex ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground) / 0.3)',
             transition: 'all 0.3s',
           }} />
         ))}
