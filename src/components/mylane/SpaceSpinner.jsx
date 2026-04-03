@@ -82,29 +82,30 @@ function usePrefersReducedMotion() {
 // damping:   lower = more overshoot/bounce. ratio ~= damping / (2 * sqrt(stiffness * mass))
 // mass:      higher = heavier, slower to accelerate and decelerate
 // friction:  momentum multiplier on release (px of lookahead per px/ms velocity)
-const THEME_PHYSICS = {
-  fallout: {
-    stiffness: 120,  // loose — old hardware
-    damping: 8,      // low — bounces 2-3 times before settling
-    mass: 1,
-    friction: 180,   // high lookahead — flicks travel far
-  },
-  dark: {
-    stiffness: 200,  // snappy — premium response
-    damping: 20,     // controlled — one slight overshoot then crisp settle
-    mass: 1,
-    friction: 100,   // tight — precise stops
-  },
-  light: {
-    stiffness: 140,  // soft — unhurried
-    damping: 16,     // smooth — gentle settle
-    mass: 1.6,       // heavy — takes a beat to move, a beat to stop
-    friction: 130,   // medium — gentle glide
-  },
+// Default (shipped) physics values — the fallback when no overrides are active
+export const DEFAULT_PHYSICS = {
+  fallout: { stiffness: 120, damping: 8, mass: 1, friction: 180 },
+  dark:    { stiffness: 200, damping: 20, mass: 1, friction: 100 },
+  light:   { stiffness: 140, damping: 16, mass: 1.6, friction: 130 },
 };
 
+// Mutable runtime overrides — the Dev Lab tuning panel writes here directly.
+// The spring rAF loop reads from getPhysics() every time it creates a spring,
+// so changes take effect on the next interaction. No React re-render needed.
+const _physicsOverrides = { fallout: null, dark: null, light: null };
+
+export function setPhysicsOverride(theme, values) {
+  _physicsOverrides[theme] = values ? { ...values } : null;
+}
+
+export function clearPhysicsOverrides() {
+  _physicsOverrides.fallout = null;
+  _physicsOverrides.dark = null;
+  _physicsOverrides.light = null;
+}
+
 function getPhysics(theme) {
-  return THEME_PHYSICS[theme] || THEME_PHYSICS.dark;
+  return _physicsOverrides[theme] || DEFAULT_PHYSICS[theme] || DEFAULT_PHYSICS.dark;
 }
 
 // ─── Spring simulation ──────────────────────────────────────────────────────

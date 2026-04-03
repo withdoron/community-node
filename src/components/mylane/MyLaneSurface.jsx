@@ -11,9 +11,10 @@ import { base44 } from '@/api/base44Client';
 import {
   Home, UtensilsCrossed, HardHat, DollarSign, Users,
   Store, Search, Music, Settings, LogOut, FileText,
-  Lock, Mail, Volume2, VolumeX, Building2, X, PanelRightOpen,
+  Lock, Mail, Volume2, VolumeX, Building2, X, PanelRightOpen, FlaskConical,
 } from 'lucide-react';
 import ConfirmationCard from './ConfirmationCard';
+import DevLab from './DevLab';
 import MY_LANE_REGISTRY from '@/config/myLaneRegistry';
 import MyLaneDrillView from './MyLaneDrillView';
 import useMyLaneState from './useMyLaneState';
@@ -40,9 +41,10 @@ const SPACE_CONFIG = {
   team:              { id: 'team',           label: 'Team',      icon: Users },
   business:          { id: 'business',       label: 'Business',  icon: Store, dim: true },
   discover:          { id: 'discover',       label: 'Discover',  icon: Search, dim: true },
+  'dev-lab':         { id: 'dev-lab',        label: 'Dev Lab',   icon: FlaskConical, dim: true },
 };
 
-function buildSpinnerItems(profiles, businessProfiles = []) {
+function buildSpinnerItems(profiles, businessProfiles = [], userRole = null) {
   const items = [SPACE_CONFIG.home];
   if (profiles.mealPrepProfiles?.length > 0) items.push(SPACE_CONFIG['meal-prep']);
   if (profiles.fieldServiceProfiles?.length > 0) items.push(SPACE_CONFIG['field-service']);
@@ -51,6 +53,8 @@ function buildSpinnerItems(profiles, businessProfiles = []) {
   if (businessProfiles.length > 0) items.push({ ...SPACE_CONFIG.business, dim: false });
   if (profiles.propertyMgmtProfiles?.length > 0) items.push({ id: 'property-pulse', label: 'Property', icon: Building2 });
   items.push(SPACE_CONFIG.discover);
+  // Admin-only: Dev Lab
+  if (userRole === 'admin') items.push(SPACE_CONFIG['dev-lab']);
   return items;
 }
 
@@ -340,8 +344,8 @@ export default function MyLaneSurface({
 
   // Build spinner items
   const spaceItems = useMemo(
-    () => buildSpinnerItems(profiles, businessProfiles),
-    [profiles, businessProfiles]
+    () => buildSpinnerItems(profiles, businessProfiles, currentUser?.role),
+    [profiles, businessProfiles, currentUser?.role]
   );
 
   const currentSpace = spaceItems[spinnerIndex] || spaceItems[0];
@@ -471,6 +475,19 @@ export default function MyLaneSurface({
     }
     if (space.id === 'discover') {
       return <DiscoverPosition activeSpaceIds={activeSpaceIds} />;
+    }
+    if (space.id === 'dev-lab') {
+      return (
+        <DevLab
+          onTestSpin={() => {
+            // Trigger a spin: go forward one then back, exercising the spring physics
+            const idx = spinnerIndex;
+            const next = idx < spaceItems.length - 1 ? idx + 1 : idx - 1;
+            handleSpinnerSelect(next);
+            setTimeout(() => handleSpinnerSelect(idx), 600);
+          }}
+        />
+      );
     }
     return (
       <MyLaneDrillView
