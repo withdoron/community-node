@@ -422,177 +422,132 @@ Marketing:
 
 ---
 
-### Session Log -- 2026-03-31 (Audit)
-**Focus:** Full platform audit + Meal Prep workspace orientation
-**Shipped:**
-1. Complete platform audit — all 7 verification items checked (V1-V7)
-2. MEAL-PREP-READINESS-AUDIT.md written to spec-repo (first real file in spec-repo)
-3. Confirmed: zero meal prep code/entities/config exists — clean slate
-4. Documented exact workspace pattern to follow (Field Service as canonical reference)
-5. Identified agentScopedQuery NOT in repo (exists only in Base44 dashboard)
-6. Identified warm entry message gaps (Field Service + Property Management missing)
-7. SEEDLING-TRACKER.md updated — added Meal Prep seedling, 8 new agents, 3 new contacts (Randy, Coach Rick, April)
-8. STATUS-TRACKER.md updated — added 6 missing session entries (2026-03-30 through 2026-03-31), updated node scores
-9. ACTIVE-CONTEXT.md updated — added Meal Prep as priority #1
-10. Spec-repo confirmed nearly empty (no context/, no MEAL files, no ACTIVE-CONTEXT.md)
-11. Private repo confirmed missing from local disk
-**Decisions made:**
-None (audit only)
+### Session Log — 2026-03-31 (Final)
+**Focus:** Comprehensive platform audit (2 passes), 4 fix waves, second audit fixes, pricing economics, landing page artwork direction, philosophy evolution
+**Two-day summary (2026-03-30 evening through 2026-03-31 afternoon):**
+
+This was the longest continuous build session in LocalLane history. Three gardeners working together across strategy, code, legal, economics, and design.
+
+**Code shipped (21+ commits):**
+1. Bug fixes from coaches meeting — d703083, 05a08fe
+2. 8 Dark Until Explored items — e7ba445 through 9e4afb2
+3. Polish pass — fe0a674
+4. Finance fixes x2 — 0d18a19, 37a42fd
+5. Landing page redesign — 4746b17
+6. Conversational onboarding (wizard replaced) — 65adbc3
+7. Nav simplification — 3de7bee
+8. Privacy/Terms update (SB 243 compliant) — 299ee4e
+9. Invite link consistency — e4238de
+10. New user UX fixes (full name, doors, conditional discover, philosophy page) — 7c449c4
+11. Audit Wave 1 (circulation fix, networks gated, dead code) — b06aff0
+12. Audit Wave 2 (all back buttons, community spaces gated) — d71dd8f
+13. Audit Wave 3 (staleTime caching) — db57905
+14. Audit Wave 4 (copy warmth, Support FAQ, dead code) — 9c87b91
+15. Second audit fixes (broken queries, contextual nav, dead code, staleTime) — 0859577
+
+**Net line impact across all commits:** approximately -1,350 lines removed
+
+**Decisions made (DEC-117 through DEC-130):**
+- DEC-117: Dark Until Explored
+- DEC-118: Claim-First Join Pattern
+- DEC-119: Invite Code IS Onboarding
+- DEC-120: Two Dashboard Modes (Auto/Manual)
+- DEC-121: Subdomain-as-Hypha Growth Model
+- DEC-122: Renderer Agent Stays Visual
+- DEC-123: Parent-Player Links as Cross-Space Prototype
+- DEC-124: Mylane-to-Mylane Messaging
+- DEC-125: Pricing Transparency
+- DEC-126: Communication as Frequency/Presence
+- DEC-127: $3 Ante (later revised: free discovery, free manual mode, $9 at AI boundary)
+- DEC-128: Dynamic Pricing in $9 Increments
+- DEC-129: Agent Access is the Pricing Boundary
+- DEC-130: Query Optimization Required Before League Scale
+
+**Pricing model established:** Free discovery → Free with account (manual mode) → Mylane Beta (free during beta, $9 when live) → $18 Personal Assistant. Workspace costs separate: $9 for money-making tools, free for life-organizing tools. Dynamic gauge shows value delivered, not cost incurred.
+
+**Philosophy crystallized:**
+- "Without money, the organism dies."
+- "Free carries little value. Life isn't free."
+- "Money is just the blood — not the purpose of the body, but what keeps the organs alive."
+- "The organism is the relationship, not the name. The frequency, not the flute."
+- "Things which are easy to be a part of lose value."
+- "How much is an hour of your time worth?"
+- "We don't focus on what others do, we focus on what we do."
+- "80% of marketing should come from within, not from without."
+
+**Landing page evolution:**
+- V1: 7 sections → 4 sections (4746b17)
+- V2: Mushroom artwork as full-screen landing page. No nav for unauthenticated visitors. The mushroom IS the door. Desktop and mobile portrait artwork generated. Hyphae provided full technical implementation plan. Build prompt ready for next session.
+
+**Comprehensive audit (2 passes):**
+- First audit: 9 misaligned items found, 4 fix waves shipped (-697 net lines)
+- Second audit (fresh eyes): C1 critical (.filter().list() bug), H1-H4 high, M1-M7 medium, L1-L5 low. Contextual back navigation pattern recommended (navigate(-1) with smart fallback).
+
 **Next up:**
-1. Base44 entity creation (MealPrepProfile, Recipe, RecipeIngredient) via agent prompt
-2. Hyphae build: Meal Prep Phase 1 (Recipe Book)
+1. Mushroom artwork landing page build (next Hyphae session)
+2. Wire Mylane copilot into MyLane.jsx (Mylane Beta toggle)
+3. Query optimization (DEC-130) when Base44 publish blocker resolves
+4. Coach Rick invite retry
+5. Call Randy
+6. Coast trip (North Bend)
 
 ---
 
 ### Session Log -- 2026-04-01
-**Focus:** Repo cleanup + Meal Prep Phase 1 build (Recipe Book)
+**Focus:** MCP mobile confirmation, Meal Prep seedling spec, repo cleanup, Phase 1 build, drill-through fixes, architecture questions
 
-**Repo Cleanup Shipped:**
-1. Deleted `locallane-spec-repo/` (empty duplicate) — real spec repo is `Spec-Repo/` (capitals)
-2. Archived 6 legacy lab nodes to `archive/` (contractor-daily, events-node, field-service-engine, financial-node, microbusiness-kit, property-pulse)
-3. Committed contractor-daily's 264 uncommitted spec lines before archiving
-4. Created `private/MEAL-PREP-SEEDLING.md` placeholder
-5. Corrected repo paths saved to Hyphae memory + SuperMemory
-6. Discovered: locallane-mcp has no git remote, private repo GitHub name is `withdoron/private`
+**Shipped:**
+1. MCP confirmed working from Claude mobile app — full circuit operational across all surfaces
+2. Meal Prep seedling spec written (MEAL-PREP-SEEDLING.md) — pantry awareness, restaurant bridge, receipt scanning, community price intelligence, macro food cost context
+3. Full platform audit by Hyphae — 7 verification items, corrected repo paths
+4. Repo cleanup — deleted locallane-spec-repo/ duplicate, archived 6 legacy lab nodes, corrected GitHub remote mapping
+5. Three Base44 entities created: MealPrepProfile, Recipe, RecipeIngredient
+6. Meal Prep Phase 1 built — 7 new files, 11 modified. Config, onboarding, Recipe Book (Home/Recipes/Settings), MyLane card, server functions
+7. Warm entry messages backfilled for Field Service and Property Management
+8. Door buttons added to MyLane for existing users (filter out already-owned workspaces)
+9. RecipeBookCard onClick fix — card was rendering but not clickable
+10. MyLaneDrillView meal-prep scope case + supplementary profile query (workaround until server function publish)
+11. Safeway weekly flyer analyzed for concept validation
+12. Food inflation and Iran war supply chain research
 
-**Meal Prep Phase 1 Shipped:**
-7. Config registration — meal_prep in workspaceTypes.js, warmEntryMessages.js, workspaceGuides.js, myLaneRegistry.js
-8. MealPrepOnboarding.jsx — 3-step wizard (kitchen name + household, dietary preferences + skill, summary)
-9. MealPrepHome.jsx — home tab with recipe stats, recently added, workspace guide
-10. RecipeBook.jsx — searchable/filterable recipe grid with detail view, favorite toggle, add/edit/delete
-11. RecipeEditor.jsx — full recipe form with ingredient rows, create + edit modes
-12. MealPrepSettings.jsx — profile settings, dietary preferences, danger zone delete
-13. RecipeBookCard.jsx — MyLane card showing recipe count, favorites, latest recipe
-14. getMyLaneProfiles/entry.ts — added MealPrepProfile query (5th entity in parallel fetch)
-15. agentScopedWrite/entry.ts — added meal-prep workspace mappings (profile, whitelist, FK)
-16. MyLane.jsx — wired mealPrepProfiles through data flow (server function + fallback + surface props)
-17. MyLaneSurface.jsx — added meal_prep door button, workspace label, drill view prop
-18. MyLaneDrillView.jsx — added meal-prep workspace key mapping + profile resolution
-19. renderEntityView.jsx — added entity title mappings for MealPrepProfile, Recipe, RecipeIngredient
-20. pages.config.js + MealPrepOnboarding page route
-21. Warm entry backfill — added missing entries for Field Service and Property Management
-
-**Construction gate:** testingMode: true on meal_prep workspace type (admin-only in workspace picker)
+**Architecture Questions Raised (NOT decided):**
+- Do FS and Property Pulse sit inside Business space?
+- Is Business space the pricing gate container?
+- How do events flow across spaces?
+- BusinessDashboard retirement timeline?
+- Broad vision audit needed before detail work
 
 **Decisions made:**
-None (followed existing patterns exactly)
+None (architecture questions captured, not decided)
 
 **Next up:**
-1. Doron walkthrough — test onboarding + recipe CRUD + MyLane card
-2. Doron: update agentScopedQuery in Base44 dashboard (add meal-prep workspace)
-3. Flip construction gate (testingMode: false) after walkthrough
-4. Phase 2: Meal planning calendar + shopping list generation
-5. Locallane-mcp needs git remote added
+1. Broad vision audit — space architecture before more detail work
+2. Doron: publish Base44, update agentScopedQuery, walkthrough Meal Prep
+3. Gold Standard polish pass + flip construction gate
+4. Phase 2 planning (meal planner, shopping lists)
 
 ---
 
-## 2026-04-01 — DEC-131: MyLane Spinner Navigation Build
+### Session Log — 2026-04-02 (Mega Session)
+**Focus:** Semantic Tailwind migration, Fallout CRT, CommandBar wiring, panel layout, render pipeline, query optimization, Living Map spec, Base44 credit research
 
-**Gardeners:** Doron (vision + mockup), Mycelia (architecture consultation), Hyphae (build)
-
-**What shipped:**
-1. SpaceSpinner.jsx — horizontal gallery-style space picker (74px items, amber center, audio ticks, swipe)
-2. PrioritySpinner.jsx — vertical gallery for Home feed (scale/opacity depth, vertical swipe, audio ticks)
-3. HomeFeed.jsx — Home position with Attention | This week | Spaces tabs feeding vertical spinner
-4. FrequencyStation.jsx — persistent audio player UI shell (play/pause, progress bar — no real audio)
-5. DiscoverPosition.jsx — available spaces + invite key placeholder
-6. MyLaneDrillView.jsx — added business workspace scope (revenue, events, RSVP, archetype tabs, delete)
-7. MyLaneSurface.jsx — REWRITTEN: spinner-based navigation, header, copilot bar
-8. MyLane.jsx — updated: business profile fetching, simplified layout (spinner IS the surface)
-9. BusinessDashboard.jsx — DELETED (1,586 lines removed)
-10. pages.config.js — BusinessDashboard route removed
-11. DEC-131 appended to both DECISIONS.md files
-12. BUILD-PROTOCOL.md Phase 4 — mandatory mockup requirement added
-
-**New files:**
-- src/components/mylane/SpaceSpinner.jsx
-- src/components/mylane/PrioritySpinner.jsx
-- src/components/mylane/HomeFeed.jsx
-- src/components/mylane/FrequencyStation.jsx
-- src/components/mylane/DiscoverPosition.jsx
-
-**Deleted files:**
-- src/pages/BusinessDashboard.jsx
+**Shipped:**
+1. Semantic Tailwind migration (a0e4710) — 208 files, ~10,700 literal color classes replaced with semantic tokens (bg-card, text-foreground, etc.). 3 new tokens: foreground-soft, surface, primary-hover. 146-line !important override block fully removed. Cloud and Fallout theme blocks restructured into clean single-selector variable definitions.
+2. Fallout CRT effects (d28b356) — phosphor glow text-shadow, scanlines via body::after, vignette radial gradient, subtle flicker animation. All CSS-only.
+3. CommandBar render wiring (7b83f4e) — Fixed critical overwrite bug: RENDER_DATA was being immediately overwritten by text portion. Panel close/minimize button. CRT sync bar (body::before, 40-second periodic sweep).
+4. Panel layout architecture (70d6912) — Mylane panel now position:absolute within position:relative body. Two independent scroll contexts. Spinner measures container via ResizeObserver, no hardcoded offsets. Panel state persists in localStorage.
+5. CommandBar polish (59eb0d5) — Input themed with semantic tokens, 44px click target, loading indicator (pulsing amber dots), spinner trackpad fix (wheelActiveRef), staleTime 5min on all card queries, 10min on auth.
+6. LIVING-MAP-SPEC.md written with deep research (gaming fog-of-war, ego-centric cartography, cooperative game design, Niantic spatial) and placed in private repo with Hyphae builder notes.
+7. Base44 credit system fully documented via support ticket. Entity queries free. Agent messages ~3 credits. Direct Anthropic API calls via backend functions = zero credits.
 
 **Decisions made:**
-- DEC-131: Spinner Navigation (full spec)
-- BUILD-PROTOCOL Phase 4: mandatory mockup before build
-
-**Key architecture decisions:**
-- HomeFeed data approximated from profile existence, not real-time entity queries
-- Business scope in MyLaneDrillView matches BusinessDashboard patterns exactly
-- Copilot bar is visual — real copilot still uses MylanePanel/MylaneMobileSheet
-- Zero-state: Home + Discover only (Dark Until Explored)
+- DEC-132 updated: migration complete, maintain semantic tokens for all new code
+- DEC-133: Mylane Intelligence Tiers (client-side free / server function free / LLM $18 tier)
 
 **Next up:**
-1. Doron walkthrough — verify mobile swipe, audio ticks, drill-through
-2. Wire real urgency data into HomeFeed (entity queries for pending estimates, upcoming events, etc.)
-3. Base44 publish + agentScopedQuery update
-4. Meal Prep gate flip after walkthrough
-
----
-
-## 2026-04-02 — Mega Session: Spinner + Command Bar + Themes + Responsive
-
-**Gardeners:** Doron (vision + mockups + testing), Mycelia (architecture + prompts), Hyphae (build)
-**Duration:** ~8 hours, ~17 commits
-
-**What shipped:**
-
-**Spinner & Navigation:**
-1. SpaceSpinner centering via ResizeObserver (replaced hardcoded 260px)
-2. Momentum-based swipe with velocity cap (1.5 px/ms)
-3. Mouse wheel support for desktop spinner navigation
-4. iOS Safari AudioContext fix (shared context, user-gesture init)
-5. Vertical priorities refactored: native scroll + IntersectionObserver depth effect
-
-**Header & Overlays:**
-6. Settings renders inline in Account overlay via React.lazy
-7. Terms/Privacy open new tab (navigation-away audit)
-8. Desktop centered overlay panels at 1024px+ (640-720px, dimmed backdrop)
-9. Frequency Station keepMounted pattern (CSS display:none, preserves state)
-
-**Audio & Feedback:**
-10. Frequency audio master switch via FrequencyContext (controls all AudioPlayer components)
-11. 44px touch targets on all header icons
-12. Sound/haptic preference toggle in Account overlay
-
-**Responsive & Themes:**
-13. useBreakpoint gradient hook (phone/tablet/desktop/wide)
-14. Container queries on MyLaneSurface (content width, overlay mode, command bar mode)
-15. 20 CSS variables, 76 hex values replaced in surface files
-16. Cloud light theme: warm paper, dark brown text, deepened amber
-17. Theme propagation: 146 lines CSS overriding 2,870 Tailwind classes (zero component changes)
-18. Three themes live: Gold Standard, Cloud, Fallout
-
-**Copilot / Command Bar:**
-19. CommandBar.jsx (~200 lines) replacing FAB/slide-in copilot
-20. Result card slot in MyLaneSurface
-21. Desktop right-panel mode (300px, container query driven)
-22. Space-aware quick-action chips
-23. Removed FAB, desktop copilot panel, MylaneMobileSheet usage (-170 lines)
-
-**Team & Demo Prep:**
-24. Playbook Pro moved below stats grid in Team Home
-25. AgentChat removed from user-facing workspace views
-
-**New files:**
-- src/hooks/useBreakpoint.js
-- src/contexts/FrequencyContext.jsx
-- src/components/mylane/CommandBar.jsx
-
-**Deleted files:**
-- src/components/mylane/MylanePanel.jsx (orphaned)
-- src/components/mylane/FrequencyStation.jsx (shell replaced by Phase 2 page)
-
-**Decisions made:**
-- DEC-132: Semantic Tailwind migration rule (organic, per-file)
-
-**Next up:**
-1. Friday 5 PM: Coach Rick demo on iPhone (dark mode)
-2. Verify CommandBar chip queries trigger RENDER_DATA from Mylane agent
-3. Base44 publish + test full flow
-4. Creature/mascot design
-5. Finance/EuDash for SNAP submission
+- Coach Rick demo Friday 5:00 PM (verify render pipeline, theme toggling, panel behavior on iPhone)
+- Base44 rate limit numbers (support ticket escalated, awaiting human team response)
+- Mylane agent instruction refresh if RENDER_DATA still not rendering through CommandBar
+- Living Map stays in seedling phase — Hyphae builder notes captured
 
 ---
