@@ -75,7 +75,7 @@ export default function PlayCreateModal({
   });
 
   const assignmentsFromEdit = editPlay ? editAssignmentsFetched : editAssignments;
-  const editDataReady = !editPlay || (!editAssignmentsLoading && editAssignmentsFetched.length > 0);
+  const editDataReady = !editPlay || !editAssignmentsLoading;
 
   const [assignments, setAssignments] = useState(initialAssignments());
 

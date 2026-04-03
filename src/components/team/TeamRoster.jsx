@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import {
 import { toast } from 'sonner';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { getPositionsForFormat, DEFAULT_FORMAT } from '@/config/flagFootball';
+import PlayerCard from './PlayerCard';
 
 const ROLES = [
   { value: 'coach', label: 'Coach' },
@@ -53,8 +54,26 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
   const [deleteConfirmMember, setDeleteConfirmMember] = useState(null);
   const [promoteConfirmMember, setPromoteConfirmMember] = useState(null);
   const [form, setForm] = useState(emptyForm());
+  const [cardMember, setCardMember] = useState(null);
 
   const positions = getPositionsForFormat(team?.format || DEFAULT_FORMAT);
+
+  // Fetch PlayerStats for all team members (for player cards)
+  const { data: allPlayerStats = [] } = useQuery({
+    queryKey: ['team-player-stats', team?.id],
+    queryFn: async () => {
+      if (!team?.id) return [];
+      const list = await base44.entities.PlayerStats.filter({ team_id: team.id });
+      return Array.isArray(list) ? list : [];
+    },
+    enabled: !!team?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+  const statsByUserId = useMemo(() => {
+    const map = {};
+    allPlayerStats.forEach((s) => { if (s.user_id) map[s.user_id] = s; });
+    return map;
+  }, [allPlayerStats]);
 
   const sortedMembers = [...members].sort(
     (a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role)
@@ -262,7 +281,11 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
                 const parentIds = Array.isArray(m.parent_user_ids) ? m.parent_user_ids : m.parent_user_id ? [m.parent_user_id] : [];
                 const isMyChild = m.role === 'player' && parentIds.includes(currentUserId);
                 return (
-                  <tr key={m.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
+                  <tr
+                    key={m.id}
+                    className="border-b border-border/50 hover:bg-secondary/30 transition-colors cursor-pointer"
+                    onClick={() => m.role === 'player' && setCardMember(m)}
+                  >
                     <td className="px-4 py-3">
                       <div className="font-medium text-foreground">{m.jersey_name || '—'}</div>
                       {isUnclaimedPlayer && (
@@ -440,6 +463,14 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
         confirmLabel="Promote"
         loading={promoteMember.isPending}
         onConfirm={() => promoteMember.mutate(promoteConfirmMember)}
+      />
+
+      {/* Player card modal */}
+      <PlayerCard
+        open={!!cardMember}
+        onOpenChange={(open) => { if (!open) setCardMember(null); }}
+        member={cardMember}
+        stats={cardMember ? statsByUserId[cardMember.user_id] || null : null}
       />
     </div>
   );

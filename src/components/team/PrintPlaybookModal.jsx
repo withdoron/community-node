@@ -7,7 +7,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { User, LayoutGrid, Maximize2, GripVertical } from 'lucide-react';
+import { User, LayoutGrid, Maximize2, BookMarked, GripVertical } from 'lucide-react';
 
 const LAYOUTS = [
   {
@@ -27,6 +27,12 @@ const LAYOUTS = [
     label: 'Full Page',
     description: 'One play per page with all details',
     icon: Maximize2,
+  },
+  {
+    id: 'route_reference',
+    label: 'Route Reference',
+    description: 'Route vocabulary sheet — laminate it',
+    icon: BookMarked,
   },
 ];
 
@@ -180,7 +186,7 @@ export default function PrintPlaybookModal({
           {/* Section A: Layout Selection */}
           <div>
             <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider mb-3">Layout</h3>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {LAYOUTS.map((l) => {
                 // Parent can't use player_card for non-linked players, but can pick the layout
                 const Icon = l.icon;
@@ -226,8 +232,8 @@ export default function PrintPlaybookModal({
             )}
           </div>
 
-          {/* Section B: Play Selection */}
-          <div>
+          {/* Section B: Play Selection (hidden for route reference) */}
+          {layout !== 'route_reference' && <div>
             <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider mb-3">
               Plays
               <span className="text-muted-foreground/70 font-normal ml-2">{selectedPlayIds.size} selected</span>
@@ -286,10 +292,10 @@ export default function PrintPlaybookModal({
                 </div>
               ))}
             </div>
-          </div>
+          </div>}
 
           {/* Section C: Grouping & Order */}
-          <div>
+          {layout !== 'route_reference' && <div>
             <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider mb-3">Order</h3>
             <button
               type="button"
@@ -325,7 +331,7 @@ export default function PrintPlaybookModal({
                   );
                 })}
             </div>
-          </div>
+          </div>}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0 mt-4">
@@ -341,7 +347,7 @@ export default function PrintPlaybookModal({
             type="button"
             className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium min-h-[44px]"
             onClick={handlePrint}
-            disabled={selectedPlayIds.size === 0 || (layout === 'player_card' && !selectedPlayerId)}
+            disabled={layout !== 'route_reference' && (selectedPlayIds.size === 0 || (layout === 'player_card' && !selectedPlayerId))}
           >
             Preview & Print
           </Button>

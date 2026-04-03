@@ -33,20 +33,38 @@ function Leaderboard({ teamStats, members }) {
         <Trophy className="h-5 w-5 text-primary" />
         <span className="font-semibold text-foreground">Leaderboard</span>
       </div>
-      <div className="space-y-2">
+      {/* Column headers */}
+      <div className="flex items-center gap-3 px-2 pb-1 mb-1 border-b border-border">
+        <span className="w-6" />
+        <span className="flex-1 text-xs text-muted-foreground uppercase tracking-wider">Player</span>
+        <span className="w-14 text-right text-xs text-muted-foreground uppercase tracking-wider">Score</span>
+        <span className="w-10 text-right text-xs text-muted-foreground uppercase tracking-wider">
+          <BookOpen className="h-3 w-3 inline" title="Plays mastered" />
+        </span>
+        <span className="w-8 text-right text-xs text-muted-foreground uppercase tracking-wider">
+          <Flame className="h-3 w-3 inline" title="Best streak" />
+        </span>
+      </div>
+      <div className="space-y-1">
         {ranked.map((s, i) => (
           <div
             key={s.user_id || i}
-            className="flex items-center gap-3 p-2 rounded-lg bg-secondary/50"
+            className={`flex items-center gap-3 p-2 rounded-lg ${i < 3 ? 'bg-primary/5 border border-primary/10' : 'bg-secondary/50'}`}
           >
-            <span className="w-6 text-center text-sm">
+            <span className="w-6 text-center text-sm flex-shrink-0">
               {i < 3 ? MEDALS[i] : <span className="text-muted-foreground/70">{i + 1}</span>}
             </span>
             <span className="flex-1 text-sm text-foreground font-medium truncate">
               {memberMap[s.user_id] || 'Player'}
             </span>
-            <span className="text-primary text-sm font-bold tabular-nums">
+            <span className="w-14 text-right text-primary text-sm font-bold tabular-nums">
               {(s.high_score || 0).toLocaleString()}
+            </span>
+            <span className="w-10 text-right text-muted-foreground text-xs tabular-nums">
+              {s.plays_mastered || 0}
+            </span>
+            <span className="w-8 text-right text-muted-foreground text-xs tabular-nums">
+              {s.best_streak || 0}
             </span>
           </div>
         ))}
