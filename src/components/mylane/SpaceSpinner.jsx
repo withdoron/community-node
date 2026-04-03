@@ -21,36 +21,70 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
 
 // ─── Audio ───────────────────────────────────────────────────────────────────
+// iOS Safari requires AudioContext to be created AND resumed during a user gesture.
+// We eagerly create + resume on the first touch/click, then all subsequent playTick
+// calls can schedule oscillators immediately.
 let _audioCtx = null;
-function getAudioCtx() {
-  if (!_audioCtx) {
-    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
+let _audioReady = false;
+
+function initAudio() {
+  if (_audioCtx) {
+    if (_audioCtx.state === 'suspended') {
+      _audioCtx.resume().then(() => { _audioReady = true; }).catch(() => {});
+    }
+    return;
   }
-  if (_audioCtx?.state === 'suspended') _audioCtx.resume().catch(() => {});
-  return _audioCtx;
+  try {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // On iOS, context starts suspended. Resume it inside this gesture handler.
+    if (_audioCtx.state === 'suspended') {
+      _audioCtx.resume().then(() => { _audioReady = true; }).catch(() => {});
+    } else {
+      _audioReady = true;
+    }
+    // Play a silent buffer to fully unlock audio on iOS
+    const buf = _audioCtx.createBuffer(1, 1, 22050);
+    const src = _audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(_audioCtx.destination);
+    src.start(0);
+  } catch {}
 }
+
 function isSoundEnabled() {
   try { return localStorage.getItem('mylane_sound') !== '0'; } catch { return true; }
 }
+
 function playTick(final) {
-  if (!isSoundEnabled()) return;
+  if (!isSoundEnabled() || !_audioCtx) return;
+  // Ensure context is running (may have been suspended by OS)
+  if (_audioCtx.state === 'suspended') {
+    _audioCtx.resume().catch(() => {});
+    return; // skip this tick — next one will play
+  }
   try { if (navigator.vibrate) navigator.vibrate(8); } catch {}
   try {
-    const ctx = getAudioCtx();
-    if (!ctx) return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    // Lower pitch, weightier click. Final landing is slightly deeper.
+    const osc = _audioCtx.createOscillator();
+    const gain = _audioCtx.createGain();
+    osc.connect(gain); gain.connect(_audioCtx.destination);
+    // Low mechanical click. Final landing tick is deeper.
     osc.frequency.value = final ? 260 : 320;
     osc.type = 'triangle';
-    gain.gain.value = 0.06;
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-    osc.start(); osc.stop(ctx.currentTime + 0.05);
+    gain.gain.value = 0.07;
+    gain.gain.exponentialRampToValueAtTime(0.001, _audioCtx.currentTime + 0.05);
+    osc.start(); osc.stop(_audioCtx.currentTime + 0.05);
   } catch {}
 }
+
+// Initialize audio on ANY user gesture — touchstart covers iOS, pointerdown covers desktop
 if (typeof document !== 'undefined') {
-  document.addEventListener('pointerdown', () => getAudioCtx(), { once: true });
+  const gestureInit = () => {
+    initAudio();
+    document.removeEventListener('touchstart', gestureInit);
+    document.removeEventListener('pointerdown', gestureInit);
+  };
+  document.addEventListener('touchstart', gestureInit, { once: true, passive: true });
+  document.addEventListener('pointerdown', gestureInit, { once: true });
 }
 
 // ─── Theme detection ─────────────────────────────────────────────────────────
@@ -110,7 +144,7 @@ function getPhysics(theme) {
 // ─── Friction deceleration loop ─────────────────────────────────────────────
 // No spring. No bounce. Velocity decays under friction until it stops.
 // Snaps to discrete positions as it crosses boundaries. Tick on each crossing.
-function runFriction({ velocity, friction, onSnap, onComplete }) {
+function runFriction({ velocity, friction, onStep, onComplete }) {
   let vel = velocity; // in items/frame (~16ms)
   let position = 0;   // fractional item offset from start
   let lastSnapped = 0;
@@ -120,20 +154,18 @@ function runFriction({ velocity, friction, onSnap, onComplete }) {
     vel *= (1 - friction);
     position += vel;
 
-    // Check if we crossed an item boundary
+    // Snap to each item boundary as we cross it — updates visual immediately
     const currentSnap = Math.round(position);
     if (currentSnap !== lastSnapped) {
-      playTick(false);
+      const delta = currentSnap - lastSnapped;
       lastSnapped = currentSnap;
+      playTick(false);
+      onStep(delta); // advances currentIndex by delta (usually ±1)
     }
 
     // Stop when velocity is negligible
     if (Math.abs(vel) < 0.01) {
-      const finalSnap = Math.round(position);
-      if (finalSnap !== 0) {
-        onSnap(finalSnap);
-        playTick(true); // deeper "lock-in" tick
-      }
+      playTick(true); // deeper "lock-in" tick on final position
       onComplete?.();
       return;
     }
@@ -429,18 +461,22 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
     }
 
     // ── MOMENTUM MODE (fast flick) ──
-    // Convert gesture velocity to items/frame, run friction deceleration
+    // Convert gesture velocity to items/frame, run friction deceleration.
+    // Each boundary crossing calls handleSelect to advance the spinner one step.
     const { mass, friction } = physics;
-    // velocity is px/ms → convert to items/frame (~16ms per frame)
     const itemsPerFrame = (-velocity * 16) / (ITEM_WIDTH * mass);
+    // Track running index via ref so rAF callbacks see latest value
+    const runningIdx = { current: currentIndex };
 
     frictionCancelRef.current = runFriction({
       velocity: itemsPerFrame,
       friction,
-      onSnap: (totalDelta) => {
-        const targetIdx = Math.max(0, Math.min(items.length - 1, currentIndex + totalDelta));
-        if (targetIdx !== currentIndex) {
-          handleSelect(targetIdx);
+      onStep: (delta) => {
+        // delta is ±1 for each boundary crossed
+        const nextIdx = Math.max(0, Math.min(items.length - 1, runningIdx.current + delta));
+        if (nextIdx !== runningIdx.current) {
+          runningIdx.current = nextIdx;
+          handleSelect(nextIdx);
         }
       },
       onComplete: () => { frictionCancelRef.current = null; },
