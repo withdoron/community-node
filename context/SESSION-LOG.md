@@ -551,3 +551,59 @@ None (architecture questions captured, not decided)
 - Living Map stays in seedling phase — Hyphae builder notes captured
 
 ---
+
+### Session Log — 2026-04-02/03 (Mega Session — Two Days, 12 Commits)
+**Focus:** Semantic migration, Fallout CRT, CommandBar wiring, panel layout, 3D spinner with variant architecture, spring physics built → tested → removed in favor of friction model, Living Map spec, Base44 credit research, MOJO competitor analysis, landing page mockup
+
+**Shipped (12 commits):**
+1. Semantic Tailwind migration (a0e4710) — 208 files, ~10,700 literal classes → semantic tokens. 3 new tokens: foreground-soft, surface, primary-hover. 146-line !important block removed. Cloud/Fallout theme blocks restructured.
+2. Fallout CRT effects (d28b356) — phosphor glow, scanlines (body::after), vignette, flicker animation. CSS-only.
+3. CommandBar render wiring (7b83f4e) — Fixed RENDER_DATA overwrite bug. Panel close/minimize. CRT sync bar (body::before, 40s periodic sweep).
+4. Panel layout (70d6912) — Mylane panel position:absolute within relative body. Two independent scroll contexts. Spinner measures container via ResizeObserver, no hardcoded offsets. Panel state in localStorage.
+5. CommandBar polish (59eb0d5) — Input themed with semantic tokens, 44px click target, loading dots, trackpad fix (wheelActiveRef), staleTime 5min on card queries, 10min on auth.
+6. 3D SpaceSpinner (e044eef) — Drum (Fallout) + cover flow (Gold Standard/Cloud) variant architecture. Render function strategy pattern. Theme detection via MutationObserver. prefers-reduced-motion flat fallback.
+7. Per-theme spring physics (0d9abac) — JS spring with velocity inheritance. Later replaced.
+8. Dev Lab space (d30df1c) — Admin-only spinner space with physics tuning panel. Reactive THEME_PHYSICS via module-level mutable object.
+9. Tuner relocation (54c1739) — Physics tuner moved below spinner (outside Dev Lab space). Flask toggle, visible on any space.
+10. Ratchet dial (a45946d) — Zero animation on slow-drag release. Live-snap during drag. Two modes: ratchet (slow) vs momentum (fast).
+11. Friction model (96ef772) — Spring equation removed entirely. Replaced with mass + friction deceleration. No bounce, no oscillation. -103 lines net.
+12. Final polish (0543a15) — iOS Safari audio fix (touchstart + silent buffer unlock). Friction step-through fires handleSelect on each boundary crossing for per-space visual ticks. Gain bumped, triangle wave for weightier click.
+
+**Specs created:**
+- LIVING-MAP-SPEC.md (private repo) — Ego-centric vitality-weighted spatial interface. Fog-of-war mechanics. Hyphae builder notes on performance risks, Leaflet gaps, companion mode challenges.
+
+**Research conducted:**
+- Living Map: fog-of-war gaming, ego-centric cartography, Niantic spatial, cooperative game design
+- UI physics: iOS scroll internals, Framer Motion/SwiftUI spring defaults, friction vs spring for navigation
+- MOJO Sports competitor: official NFL FLAG partner, acquired by TeamSnap. 1,400+ activities, 5 sports. Scheduling, chat, drill videos, player cards.
+- Base44 credits: entity queries free, agent ~3 credits, direct Anthropic API = zero credits
+
+**Seeds planted:**
+- Landing page scroll story: "Want to play a game? The game of within." Mockup built.
+- Ephraim's Game Lab: HTML games, async multiplayer, IINE mini controller as Pip-Boy input
+- Church network need: internal communication + cross-church coordination
+- Elderly/Garden theme: simple, large text, high contrast
+- Frequency Station playlist: auto-advance, shuffle, queue
+- Themes as subdomains (fallout.locallane.app, garden.locallane.app)
+
+**Decisions made:**
+- DEC-132 updated: migration complete, maintain semantic tokens for all new code
+- DEC-133: Mylane Intelligence Tiers (Tier 1 client / Tier 2 server / Tier 3 LLM)
+- DEC-134: Spinner physics = friction + mass, NOT spring + damping
+- DEC-135: Themes as game modes — physics, variants, interaction patterns per theme
+
+**Key technical learnings:**
+- iOS AudioContext needs touchstart (not just pointerdown), silent buffer, resume() on every tick
+- Spring physics are wrong for navigation dials — "trying to critically-damp a spring to prevent oscillation is fighting the math"
+- CSS bezier cannot produce multiple oscillations or velocity inheritance
+- Two CSS variable systems coexist: shadcn HSL + --ll-* hex (latter being phased out)
+
+**Next up:**
+- Coach Rick demo today 5:00 PM — publish Base44, test on iPhone
+- Playmaker walkthrough with Doron
+- Landing page scroll story polish
+- Frequency Station playlist feature
+- Mylane agent instruction refresh for ephemeral RENDER_DATA
+- Base44 rate limit numbers (support ticket open)
+
+---
