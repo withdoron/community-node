@@ -430,8 +430,11 @@ export default function TeamSchedule({ teamId, teamScope }) {
       ) : events.length === 0 ? (
         <div className="text-center py-12 bg-card border border-border rounded-xl">
           <Calendar className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
-          <p className="text-muted-foreground">No upcoming events.</p>
-          {isCoach && <p className="text-muted-foreground text-sm mt-1">Tap "Add Event" to schedule a practice or game.</p>}
+          <p className="text-muted-foreground">No events scheduled yet.</p>
+          {isCoach
+            ? <p className="text-muted-foreground text-sm mt-1">Tap "Add Event" to schedule a practice or game.</p>
+            : <p className="text-muted-foreground text-sm mt-1">Your coach will add practices and games here.</p>
+          }
         </div>
       ) : (
         <>
@@ -496,90 +499,115 @@ export default function TeamSchedule({ teamId, teamScope }) {
           <DialogHeader>
             <DialogTitle>{editingEvent ? 'Edit Event' : 'Add Event'}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-xs text-muted-foreground uppercase tracking-wider block mb-1">Type</label>
-              <select
-                value={form.event_type}
-                onChange={(e) => updateForm({ event_type: e.target.value })}
-                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none min-h-[44px]"
-              >
-                {EVENT_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground uppercase tracking-wider block mb-1">Title</label>
-              <input
-                type="text"
-                value={form.title}
-                onChange={(e) => updateForm({ title: e.target.value })}
-                placeholder="e.g. Practice"
-                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none min-h-[44px]"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-muted-foreground uppercase tracking-wider block mb-1">Date</label>
-                <input
-                  type="date"
-                  value={form.start_date}
-                  onChange={(e) => updateForm({ start_date: e.target.value })}
-                  className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none [color-scheme:dark] min-h-[44px]"
-                />
+          <div className="space-y-5">
+            {/* ─── Event Type + Title ─── */}
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                {EVENT_TYPES.map((t) => {
+                  const TypeIcon = t.icon;
+                  const isActive = form.event_type === t.value;
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => updateForm({ event_type: t.value })}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
+                        isActive ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-foreground-soft hover:border-primary/30'
+                      }`}
+                    >
+                      <TypeIcon className="h-3.5 w-3.5" />
+                      {t.label}
+                    </button>
+                  );
+                })}
               </div>
               <div>
-                <label className="text-xs text-muted-foreground uppercase tracking-wider block mb-1">Time</label>
-                <input
-                  type="time"
-                  value={form.start_time}
-                  onChange={(e) => updateForm({ start_time: e.target.value })}
-                  className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none [color-scheme:dark] min-h-[44px]"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground uppercase tracking-wider block mb-1">Duration (minutes)</label>
-              <input
-                type="number"
-                min={15}
-                value={form.duration_minutes}
-                onChange={(e) => updateForm({ duration_minutes: Number(e.target.value) || 60 })}
-                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none min-h-[44px]"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground uppercase tracking-wider block mb-1">Location</label>
-              <input
-                type="text"
-                value={form.location}
-                onChange={(e) => updateForm({ location: e.target.value })}
-                placeholder="Optional"
-                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none min-h-[44px]"
-              />
-            </div>
-            {['game', 'scrimmage'].includes(form.event_type) && (
-              <div>
-                <label className="text-xs text-muted-foreground uppercase tracking-wider block mb-1">Opponent</label>
+                <label className="text-xs text-muted-foreground uppercase tracking-wider block mb-1">Title</label>
                 <input
                   type="text"
-                  value={form.opponent}
-                  onChange={(e) => updateForm({ opponent: e.target.value })}
-                  placeholder="Optional"
+                  value={form.title}
+                  onChange={(e) => updateForm({ title: e.target.value })}
+                  placeholder="e.g. Practice"
                   className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none min-h-[44px]"
                 />
               </div>
-            )}
-            <div>
-              <label className="text-xs text-muted-foreground uppercase tracking-wider block mb-1">Notes</label>
-              <textarea
-                value={form.notes}
-                onChange={(e) => updateForm({ notes: e.target.value })}
-                placeholder="Wear white jerseys, bring water, etc."
-                rows={2}
-                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none resize-none"
-              />
+            </div>
+
+            {/* ─── Date, Time, Duration ─── */}
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">When</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-foreground-soft text-sm block mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={form.start_date}
+                    onChange={(e) => updateForm({ start_date: e.target.value })}
+                    className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none [color-scheme:dark] min-h-[44px]"
+                  />
+                </div>
+                <div>
+                  <label className="text-foreground-soft text-sm block mb-1">Time</label>
+                  <input
+                    type="time"
+                    value={form.start_time}
+                    onChange={(e) => updateForm({ start_time: e.target.value })}
+                    className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none [color-scheme:dark] min-h-[44px]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-foreground-soft text-sm block mb-1">Duration</label>
+                <select
+                  value={form.duration_minutes}
+                  onChange={(e) => updateForm({ duration_minutes: Number(e.target.value) })}
+                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none min-h-[44px]"
+                >
+                  <option value={30}>30 minutes</option>
+                  <option value={40}>40 minutes</option>
+                  <option value={45}>45 minutes</option>
+                  <option value={60}>1 hour</option>
+                  <option value={90}>1.5 hours</option>
+                  <option value={120}>2 hours</option>
+                </select>
+              </div>
+            </div>
+
+            {/* ─── Location + Opponent + Notes ─── */}
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Details</p>
+              <div>
+                <label className="text-foreground-soft text-sm block mb-1">Location</label>
+                <input
+                  type="text"
+                  value={form.location}
+                  onChange={(e) => updateForm({ location: e.target.value })}
+                  placeholder="Field, park, gym..."
+                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none min-h-[44px]"
+                />
+              </div>
+              {['game', 'scrimmage'].includes(form.event_type) && (
+                <div>
+                  <label className="text-foreground-soft text-sm block mb-1">Opponent</label>
+                  <input
+                    type="text"
+                    value={form.opponent}
+                    onChange={(e) => updateForm({ opponent: e.target.value })}
+                    placeholder="Team name"
+                    className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none min-h-[44px]"
+                  />
+                </div>
+              )}
+              <div>
+                <label className="text-foreground-soft text-sm block mb-1">Notes</label>
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => updateForm({ notes: e.target.value })}
+                  placeholder="Wear white jerseys, bring water, etc."
+                  rows={2}
+                  className="w-full bg-card border border-border rounded-lg px-3 py-2 text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none resize-none"
+                />
+              </div>
             </div>
 
             {/* ─── Duties ─── */}
@@ -656,32 +684,57 @@ export default function TeamSchedule({ teamId, teamScope }) {
               <>
                 <div
                   onClick={() => updateForm({ recurring: !form.recurring })}
-                  className="flex items-center justify-between p-4 bg-secondary/50 border border-border rounded-xl mt-2 transition-colors hover:border-primary/50 cursor-pointer"
+                  className="flex items-center justify-between p-4 bg-secondary/50 border border-border rounded-xl transition-colors hover:border-primary/50 cursor-pointer"
                 >
                   <div className="flex-1">
-                    <p className="text-foreground font-medium">Repeat weekly</p>
-                    <p className="text-muted-foreground text-sm">Create multiple instances at once</p>
+                    <p className="text-foreground font-medium">This event repeats</p>
+                    <p className="text-muted-foreground text-sm">Create multiple instances on a schedule</p>
                   </div>
                   <div className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${form.recurring ? 'bg-primary' : 'bg-surface'}`}>
                     <div className={`w-5 h-5 bg-slate-100 rounded-full absolute top-0.5 transition-transform ${form.recurring ? 'translate-x-5' : 'translate-x-0.5'}`} />
                   </div>
                 </div>
                 {form.recurring && (
-                  <div className="space-y-3 pl-4 border-l-2 border-primary/20">
+                  <div className="space-y-4 pl-4 border-l-2 border-primary/20">
+                    <div>
+                      <label className="text-foreground-soft text-sm block mb-1">Frequency</label>
+                      <select
+                        value={form.recurring_pattern}
+                        onChange={(e) => updateForm({ recurring_pattern: e.target.value })}
+                        className="w-full bg-card border border-border text-foreground rounded-lg px-3 py-2 min-h-[44px] focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none"
+                      >
+                        <option value="weekly">Every week</option>
+                        <option value="biweekly">Every 2 weeks</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-foreground-soft text-sm block mb-2">Repeats on</label>
+                      <div className="flex flex-wrap gap-2">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => {
+                              const currentDays = form.recurring_days || [];
+                              const days = currentDays.includes(day)
+                                ? currentDays.filter((d) => d !== day)
+                                : [...currentDays, day];
+                              updateForm({ recurring_days: days });
+                            }}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
+                              (form.recurring_days || []).includes(day)
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-card border border-border text-foreground-soft hover:border-primary/30'
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-foreground text-sm block mb-1">Pattern</label>
-                        <select
-                          value={form.recurring_pattern}
-                          onChange={(e) => updateForm({ recurring_pattern: e.target.value })}
-                          className="w-full bg-card border border-border text-foreground rounded-lg px-3 py-2 min-h-[44px] focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none"
-                        >
-                          <option value="weekly">Weekly</option>
-                          <option value="biweekly">Bi-weekly</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-foreground text-sm block mb-1">How many</label>
+                        <label className="text-foreground-soft text-sm block mb-1">How many</label>
                         <input
                           type="number"
                           min={2}
@@ -691,9 +744,18 @@ export default function TeamSchedule({ teamId, teamScope }) {
                           className="w-full bg-card border border-border text-foreground rounded-lg px-3 py-2 min-h-[44px] focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none"
                         />
                       </div>
+                      <div>
+                        <label className="text-foreground-soft text-sm block mb-1">Ends on</label>
+                        <input
+                          type="date"
+                          value={form.recurring_end_date || ''}
+                          onChange={(e) => updateForm({ recurring_end_date: e.target.value })}
+                          className="w-full bg-secondary border border-border text-foreground rounded-lg px-3 py-2 [color-scheme:dark] min-h-[44px] focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none"
+                        />
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {form.recurring_count} {form.event_type === 'game' ? 'games' : 'events'} will be created, each {form.recurring_pattern === 'biweekly' ? 'every 2 weeks' : 'weekly'} starting from the date above.
+                    <p className="text-xs text-muted-foreground bg-card border border-border rounded-lg p-3">
+                      {form.recurring_count} {form.event_type === 'game' ? 'games' : 'events'} will be created{form.recurring_pattern === 'biweekly' ? ' every 2 weeks' : ' weekly'} starting {form.start_date || 'from the date above'}.{form.recurring_end_date ? ` Ends ${form.recurring_end_date}.` : ''} Each occurrence is a separate event you can edit or cancel individually.
                     </p>
                   </div>
                 )}

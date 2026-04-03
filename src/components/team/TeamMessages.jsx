@@ -33,7 +33,7 @@ function getRoleBadgeClass(role, ownerId, userId) {
 
 export default function TeamMessages({ teamId, teamScope }) {
   const queryClient = useQueryClient();
-  const [activeChannel, setActiveChannel] = useState('announcement');
+  const [activeChannel, setActiveChannel] = useState(isCoach ? 'announcement' : 'discussion');
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef(null);
   const team = teamScope?.team;

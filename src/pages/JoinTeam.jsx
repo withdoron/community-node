@@ -263,6 +263,24 @@ export default function JoinTeam() {
         linked_player_ids: [...parentSelectedIds],
       });
 
+      // Bidirectional link: add this parent to each player's parent_user_ids array
+      for (const playerId of parentSelectedIds) {
+        try {
+          const playerRecord = members.find((m) => m.id === playerId);
+          if (playerRecord) {
+            const currentParentIds = Array.isArray(playerRecord.parent_user_ids)
+              ? [...playerRecord.parent_user_ids]
+              : playerRecord.parent_user_id ? [playerRecord.parent_user_id] : [];
+            if (!currentParentIds.includes(user.id)) {
+              currentParentIds.push(user.id);
+              await base44.entities.TeamMember.update(playerId, { parent_user_ids: currentParentIds });
+            }
+          }
+        } catch (linkErr) {
+          console.error('Failed to link parent to player:', linkErr);
+        }
+      }
+
       toast.success(parentSelectedIds.size === 1 ? "You've joined as a parent." : `Linked ${parentSelectedIds.size} children.`);
       localStorage.removeItem(PENDING_INVITE_KEY); try { localStorage.removeItem('pendingTeamDoorSlug'); } catch {};
       try { localStorage.setItem('mylane_welcome', JSON.stringify({ space: 'team', name: team.name })); } catch {}
