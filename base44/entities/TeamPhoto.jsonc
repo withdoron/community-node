@@ -1,0 +1,58 @@
+{
+  "name": "TeamPhoto",
+  "type": "object",
+  "properties": {
+    "team_id": {
+      "type": "string",
+      "description": "Foreign key linking this photo to a specific Team"
+    },
+    "uploaded_by": {
+      "type": "string",
+      "description": "The user ID of the person who uploaded this photo"
+    },
+    "uploader_name": {
+      "type": "string",
+      "description": "The display name of the uploader (e.g., 'Sarah')"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "The URL of the uploaded image file"
+    },
+    "caption": {
+      "type": "string",
+      "description": "Optional text caption describing the photo"
+    },
+    "event_type": {
+      "type": "string",
+      "description": "Optional tag for the kind of event: game, practice, hangout, other"
+    },
+    "event_date": {
+      "type": "string",
+      "description": "The date of the event the photo is from (e.g., '2026-04-05'). Stored as text."
+    }
+  },
+  "required": [
+    "team_id",
+    "uploaded_by",
+    "uploader_name",
+    "photo_url"
+  ],
+  "security": {
+    "read": true,
+    "create": true,
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
