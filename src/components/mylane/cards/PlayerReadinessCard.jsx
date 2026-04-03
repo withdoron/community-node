@@ -81,7 +81,7 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
   // Time awareness: game within 3 days
   const now = Date.now();
   const daysUntilEvent = nextEvent?.start_date
-    ? Math.max(0, Math.ceil((new Date(nextEvent.start_date).getTime() - now) / DAY_MS))
+    ? Math.max(0, Math.ceil((new Date(nextEvent.start_date + 'T12:00:00').getTime() - now) / DAY_MS))
     : null;
   const gameImminent = daysUntilEvent !== null && daysUntilEvent <= 3;
 
@@ -107,7 +107,7 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
   // Build event display string
   const eventDisplay = useMemo(() => {
     if (!nextEvent) return 'No upcoming events';
-    const dayLabel = daysUntilEvent === 0 ? 'Today' : daysUntilEvent === 1 ? 'Tomorrow' : new Date(nextEvent.start_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const dayLabel = daysUntilEvent === 0 ? 'Today' : daysUntilEvent === 1 ? 'Tomorrow' : new Date(nextEvent.start_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     const title = nextEvent.title || 'Event';
     const time = nextEvent.start_time ? ` at ${formatTime(nextEvent.start_time)}` : '';
     const opponent = nextEvent.opponent ? ` vs ${nextEvent.opponent}` : '';

@@ -160,7 +160,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
   const nextEvent = useMemo(() => {
     const now = Date.now();
     const upcoming = teamEvents
-      .filter((e) => e.start_date && new Date(e.start_date + (e.start_time ? `T${e.start_time}` : '')).getTime() >= now)
+      .filter((e) => e.start_date && new Date(e.start_date + (e.start_time ? `T${e.start_time}` : 'T12:00:00')).getTime() >= now)
       .sort((a, b) => new Date(a.start_date + (a.start_time ? `T${a.start_time}` : '')).getTime() - new Date(b.start_date + (b.start_time ? `T${b.start_time}` : '')).getTime());
     return upcoming[0] || null;
   }, [teamEvents]);
@@ -222,7 +222,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
 
   const nextEventWhen = nextEvent ? formatEventWhen(nextEvent.start_date, nextEvent.start_time) : null;
   const nextEventTime = nextEvent && (nextEvent.start_date || nextEvent.start_time)
-    ? new Date(nextEvent.start_date + (nextEvent.start_time ? `T${nextEvent.start_time}` : '')).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+    ? new Date(nextEvent.start_date + (nextEvent.start_time ? `T${nextEvent.start_time}` : 'T12:00:00')).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
     : '';
 
   const sharedTopSection = (
@@ -400,7 +400,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
         <div className="bg-card border border-border rounded-xl p-4">
           <Calendar className="h-5 w-5 text-primary mb-2" />
           <div className="text-2xl font-bold text-foreground">
-            {teamEvents.filter((e) => e.start_date && new Date(e.start_date + (e.start_time ? `T${e.start_time}` : '')).getTime() >= Date.now()).length}
+            {teamEvents.filter((e) => e.start_date && new Date(e.start_date + (e.start_time ? `T${e.start_time}` : 'T12:00:00')).getTime() >= Date.now()).length}
           </div>
           <div className="text-sm text-muted-foreground">Schedule</div>
         </div>

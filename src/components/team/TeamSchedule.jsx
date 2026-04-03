@@ -79,7 +79,8 @@ const RSVP_OPTIONS = [
 
 function formatEventDate(dateStr, timeStr) {
   if (!dateStr) return '--';
-  const d = new Date(dateStr);
+  // Append T12:00:00 to prevent UTC midnight from rolling back a day in local timezone
+  const d = new Date(dateStr.length === 10 ? dateStr + 'T12:00:00' : dateStr);
   const day = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   if (timeStr) return `${day} at ${formatTime(timeStr)}`;
   return day;
@@ -222,8 +223,8 @@ export default function TeamSchedule({ teamId, teamScope }) {
 
   const events = useMemo(() => {
     const sorted = [...rawEvents].sort((a, b) => {
-      const da = a.start_date ? new Date(a.start_date + (a.start_time ? `T${a.start_time}` : '')).getTime() : 0;
-      const db = b.start_date ? new Date(b.start_date + (b.start_time ? `T${b.start_time}` : '')).getTime() : 0;
+      const da = a.start_date ? new Date(a.start_date + (a.start_time ? `T${a.start_time}` : 'T12:00:00')).getTime() : 0;
+      const db = b.start_date ? new Date(b.start_date + (b.start_time ? `T${b.start_time}` : 'T12:00:00')).getTime() : 0;
       return da - db;
     });
     return sorted;
@@ -231,11 +232,11 @@ export default function TeamSchedule({ teamId, teamScope }) {
 
   const now = Date.now();
   const upcoming = useMemo(() => events.filter((e) => {
-    const t = e.start_date ? new Date(e.start_date + (e.start_time ? `T${e.start_time}` : '')).getTime() : 0;
+    const t = e.start_date ? new Date(e.start_date + (e.start_time ? `T${e.start_time}` : 'T12:00:00')).getTime() : 0;
     return t >= now;
   }), [events, now]);
   const past = useMemo(() => events.filter((e) => {
-    const t = e.start_date ? new Date(e.start_date + (e.start_time ? `T${e.start_time}` : '')).getTime() : 0;
+    const t = e.start_date ? new Date(e.start_date + (e.start_time ? `T${e.start_time}` : 'T12:00:00')).getTime() : 0;
     return t < now;
   }).reverse(), [events, now]);
 
