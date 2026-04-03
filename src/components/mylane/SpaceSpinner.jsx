@@ -112,24 +112,34 @@ function getPhysics(theme) {
 // Drives snap-to-position with natural velocity inheritance.
 // displacement starts at (oldPos - newPos), velocity from gesture.
 // Settles to 0 — the target position is always 0 displacement.
-function runSpring({ stiffness, damping, mass, initialDisplacement, initialVelocity, onUpdate, onComplete }) {
+// onCrossUnit: called with crossed unit index whenever displacement crosses a unit boundary.
+// Used to play tick sounds as the spring carries through item positions.
+function runSpring({ stiffness, damping, mass, initialDisplacement, initialVelocity, unitSize, onCrossUnit, onUpdate, onComplete }) {
   let displacement = initialDisplacement;
   let velocity = initialVelocity;
   let lastTime = performance.now();
   let raf = null;
+  let lastCrossedUnit = unitSize ? Math.round(displacement / unitSize) : 0;
 
   function step(now) {
-    const dt = Math.min((now - lastTime) / 1000, 0.032); // cap at ~30fps to prevent spiral
+    const dt = Math.min((now - lastTime) / 1000, 0.032);
     lastTime = now;
 
-    // F = -kx - cv (spring force - damping force)
     const acceleration = (-stiffness * displacement - damping * velocity) / mass;
     velocity += acceleration * dt;
     displacement += velocity * dt;
 
+    // Detect unit boundary crossings for tick sounds
+    if (unitSize && onCrossUnit) {
+      const currentUnit = Math.round(displacement / unitSize);
+      if (currentUnit !== lastCrossedUnit) {
+        onCrossUnit(currentUnit);
+        lastCrossedUnit = currentUnit;
+      }
+    }
+
     onUpdate(displacement);
 
-    // Settle when both displacement and velocity are negligible
     if (Math.abs(displacement) < 0.3 && Math.abs(velocity) < 0.5) {
       onUpdate(0);
       onComplete?.();
@@ -381,7 +391,6 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
 
   const handleSelect = useCallback((idx) => {
     if (idx < 0 || idx >= items.length) return;
-    playTick(idx);
     onSelect?.(idx);
   }, [items.length, onSelect]);
 
@@ -389,9 +398,8 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
   const wheelActiveRef = useRef(false);
   const wheelCooldownRef = useRef(null);
 
-  // ─── Start spring animation ───
+  // ─── Start spring animation (fast-flick only) ───
   const startSpring = useCallback((positionsDelta, gestureVelocityPxMs) => {
-    // Cancel any running spring
     springCancelRef.current?.();
 
     if (reducedMotion || variant === 'flat') {
@@ -401,27 +409,30 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
     }
 
     const { stiffness, damping, mass } = physics;
+    const tickOnCross = () => playTick(0); // tick sound on every unit boundary crossing
 
     if (variant === 'drum') {
-      // Drum: spring in angle space
       const angleStep = 360 / Math.max(items.length, 6);
       const initialAngle = positionsDelta * angleStep;
-      const initialAngVel = -(gestureVelocityPxMs / ITEM_WIDTH) * angleStep * 1000; // convert to deg/s
+      const initialAngVel = -(gestureVelocityPxMs / ITEM_WIDTH) * angleStep * 1000;
       springCancelRef.current = runSpring({
         stiffness, damping, mass,
         initialDisplacement: initialAngle,
         initialVelocity: initialAngVel,
+        unitSize: angleStep,
+        onCrossUnit: tickOnCross,
         onUpdate: (d) => setSpringAngleOffset(d),
         onComplete: () => { setSpringAngleOffset(0); springCancelRef.current = null; },
       });
     } else {
-      // Cover flow / flat: spring in pixel space
       const initialPx = positionsDelta * ITEM_WIDTH;
-      const initialVel = -gestureVelocityPxMs * 1000; // convert px/ms to px/s
+      const initialVel = -gestureVelocityPxMs * 1000;
       springCancelRef.current = runSpring({
         stiffness, damping, mass,
         initialDisplacement: initialPx,
         initialVelocity: initialVel,
+        unitSize: ITEM_WIDTH,
+        onCrossUnit: tickOnCross,
         onUpdate: (d) => setSpringOffset(d),
         onComplete: () => { setSpringOffset(0); springCancelRef.current = null; },
       });
@@ -473,24 +484,27 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
     const velocity = Math.max(-1.5, Math.min(1.5, d.velocity));
     const absVel = Math.abs(velocity);
 
-    // Fast flick: use momentum to determine target (carries through multiple items)
-    // Slow drag: use the live-snapped index (already previewed during drag)
-    let targetIdx;
-    if (absVel > 0.3) {
-      // Fast flick — momentum dominates
-      const momentumPx = velocity * physics.friction;
-      const totalDelta = dx + momentumPx;
-      const positionsDelta = Math.round(-totalDelta / ITEM_WIDTH);
-      targetIdx = Math.max(0, Math.min(items.length - 1, currentIndex + positionsDelta));
-    } else {
-      // Slow drag — commit the snap index the user was previewing
-      targetIdx = dragSnapIndex;
+    // ── RATCHET MODE (slow drag, |velocity| < threshold) ──
+    // Commit the live-snapped index. Zero animation. Instant lock.
+    if (absVel < 0.4) {
+      if (dragSnapIndex !== currentIndex) {
+        handleSelect(dragSnapIndex);
+        // No spring — the user was already previewing this position
+      }
+      return;
     }
+
+    // ── MOMENTUM MODE (fast flick) ──
+    // Calculate target from velocity + displacement, spring to settle
+    const momentumPx = velocity * physics.friction;
+    const totalDelta = dx + momentumPx;
+    const positionsDelta = Math.round(-totalDelta / ITEM_WIDTH);
+    const targetIdx = Math.max(0, Math.min(items.length - 1, currentIndex + positionsDelta));
 
     const actualDelta = targetIdx - currentIndex;
     if (actualDelta !== 0) {
+      playTick(targetIdx); // tick for the final landing
       handleSelect(targetIdx);
-      // Spring for settle feel — starts at old position relative to new
       startSpring(-actualDelta, velocity);
     }
   }, [currentIndex, items.length, handleSelect, physics.friction, startSpring, dragSnapIndex]);
@@ -512,6 +526,7 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
       if (currentIndex > 0) nextIdx = currentIndex - 1;
     }
     if (nextIdx !== currentIndex) {
+      playTick(nextIdx);
       handleSelect(nextIdx);
       startSpring(-(nextIdx - currentIndex), 0);
     }
@@ -522,6 +537,7 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
     if (Math.abs(dragRef.current.currentOffset) < 5) {
       const delta = i - currentIndex;
       if (delta !== 0) {
+        playTick(i);
         handleSelect(i);
         startSpring(-delta, 0);
       }
