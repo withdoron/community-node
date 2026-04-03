@@ -45,6 +45,7 @@ export default function TeamPhotos({ team, members = [], isCoach, currentUserId 
     queryKey: ['team-photos', teamId],
     queryFn: async () => {
       if (!teamId) return [];
+      if (!base44.entities.TeamPhoto) return [];
       const list = await base44.entities.TeamPhoto.filter({ team_id: teamId });
       return Array.isArray(list) ? list : [];
     },

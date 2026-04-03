@@ -171,7 +171,6 @@ export default function TeamSchedule({ teamId, teamScope }) {
     recurring_pattern: 'weekly',
     recurring_days: [],
     recurring_end_date: '',
-    recurring_count: 8,
     duties: [],
   });
   const [form, setForm] = useState(defaultForm());
@@ -378,17 +377,19 @@ export default function TeamSchedule({ teamId, teamScope }) {
       return;
     }
 
-    // Handle recurring: create multiple instances
+    // Handle recurring: create multiple instances, count derived from dates
     if (form.recurring && form.start_date) {
-      const count = form.recurring_count || 8;
       const interval = form.recurring_pattern === 'biweekly' ? 14 : 7;
       const startDate = new Date(form.start_date + 'T12:00:00');
-      const endDate = form.recurring_end_date ? new Date(form.recurring_end_date + 'T23:59:59') : null;
+      const endDate = form.recurring_end_date
+        ? new Date(form.recurring_end_date + 'T23:59:59')
+        : new Date(startDate.getTime() + 8 * interval * 86400000);
+      const maxCount = Math.min(Math.max(1, Math.floor((endDate.getTime() - startDate.getTime()) / (interval * 86400000)) + 1), 20);
 
       let created = 0;
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < maxCount; i++) {
         const d = new Date(startDate.getTime() + i * interval * 86400000);
-        if (endDate && d > endDate) break;
+        if (d > endDate) break;
         const dateStr = d.toISOString().split('T')[0];
         await base44.entities.TeamEvent.create({
           team_id: teamId,
@@ -732,31 +733,30 @@ export default function TeamSchedule({ teamId, teamScope }) {
                         ))}
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-foreground-soft text-sm block mb-1">How many</label>
-                        <input
-                          type="number"
-                          min={2}
-                          max={20}
-                          value={form.recurring_count}
-                          onChange={(e) => updateForm({ recurring_count: Number(e.target.value) || 8 })}
-                          className="w-full bg-card border border-border text-foreground rounded-lg px-3 py-2 min-h-[44px] focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-foreground-soft text-sm block mb-1">Ends on</label>
-                        <input
-                          type="date"
-                          value={form.recurring_end_date || ''}
-                          onChange={(e) => updateForm({ recurring_end_date: e.target.value })}
-                          className="w-full bg-secondary border border-border text-foreground rounded-lg px-3 py-2 [color-scheme:dark] min-h-[44px] focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none"
-                        />
-                      </div>
+                    <div>
+                      <label className="text-foreground-soft text-sm block mb-1">Until</label>
+                      <input
+                        type="date"
+                        value={form.recurring_end_date || ''}
+                        onChange={(e) => updateForm({ recurring_end_date: e.target.value })}
+                        className="w-full bg-secondary border border-border text-foreground rounded-lg px-3 py-2 [color-scheme:dark] min-h-[44px] focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none"
+                      />
+                      {!form.recurring_end_date && (
+                        <p className="text-xs text-muted-foreground mt-1">No end date = 8 weeks by default</p>
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground bg-card border border-border rounded-lg p-3">
-                      {form.recurring_count} {form.event_type === 'game' ? 'games' : 'events'} will be created{form.recurring_pattern === 'biweekly' ? ' every 2 weeks' : ' weekly'} starting {form.start_date || 'from the date above'}.{form.recurring_end_date ? ` Ends ${form.recurring_end_date}.` : ''} Each occurrence is a separate event you can edit or cancel individually.
-                    </p>
+                    {form.start_date && (() => {
+                      const interval = form.recurring_pattern === 'biweekly' ? 14 : 7;
+                      const start = new Date(form.start_date + 'T12:00:00');
+                      const end = form.recurring_end_date ? new Date(form.recurring_end_date + 'T23:59:59') : new Date(start.getTime() + 8 * interval * 86400000);
+                      const count = Math.max(1, Math.floor((end.getTime() - start.getTime()) / (interval * 86400000)) + 1);
+                      const capped = Math.min(count, 20);
+                      return (
+                        <p className="text-xs text-muted-foreground bg-card border border-border rounded-lg p-3">
+                          {capped} {form.event_type === 'game' ? 'games' : capped === 1 ? 'event' : 'events'} will be created{form.recurring_pattern === 'biweekly' ? ' every 2 weeks' : ' weekly'} from {form.start_date}{form.recurring_end_date ? ` to ${form.recurring_end_date}` : ''}. Each is a separate event you can edit or delete.
+                        </p>
+                      );
+                    })()}
                   </div>
                 )}
               </>
@@ -767,7 +767,13 @@ export default function TeamSchedule({ teamId, teamScope }) {
               Cancel
             </Button>
             <Button onClick={handleSave} className="bg-primary hover:bg-primary-hover text-primary-foreground" disabled={createMutation.isPending || updateMutation.isPending}>
-              {editingEvent ? 'Save' : form.recurring ? `Create ${form.recurring_count} events` : 'Create'}
+              {editingEvent ? 'Save' : form.recurring && form.start_date ? (() => {
+                const interval = form.recurring_pattern === 'biweekly' ? 14 : 7;
+                const start = new Date(form.start_date + 'T12:00:00');
+                const end = form.recurring_end_date ? new Date(form.recurring_end_date + 'T23:59:59') : new Date(start.getTime() + 8 * interval * 86400000);
+                const count = Math.min(Math.max(1, Math.floor((end.getTime() - start.getTime()) / (interval * 86400000)) + 1), 20);
+                return `Create ${count} events`;
+              })() : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>

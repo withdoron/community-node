@@ -51,6 +51,7 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
     queryFn: async () => {
       if (!team.id) return 0;
       try {
+        if (!base44.entities.TeamPhoto) return 0;
         const list = await base44.entities.TeamPhoto.filter({ team_id: team.id });
         return Array.isArray(list) ? list.length : 0;
       } catch { return 0; }
