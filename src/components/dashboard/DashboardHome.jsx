@@ -11,7 +11,7 @@ const fmt = (n) =>
 /**
  * Home tab for the business workspace dashboard.
  * Renders stat cards, upcoming events list, and quick action buttons.
- * Used by BusinessDashboard via workspace tab config.
+ * Used by MyLaneDrillView via workspace tab config.
  */
 export default function DashboardHome({
   business,

@@ -1,9 +1,8 @@
 import React, { useRef, useState, useCallback, useEffect, useMemo } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { Loader2, ArrowRight } from 'lucide-react';
-import { createPageUrl } from '@/utils';
 import { useRole } from '@/hooks/useRole';
 import MyLaneSurface from '@/components/mylane/MyLaneSurface';
 import { useMylane } from '@/hooks/useMylane';
@@ -237,7 +236,6 @@ function MyLaneInner() {
       }
     },
     enabled: !!currentUser?.id,
-    staleTime: 5 * 60 * 1000,
   });
 
   // Destructure profile data
@@ -261,7 +259,6 @@ function MyLaneInner() {
       } catch { return []; }
     },
     enabled: !!currentUser?.id && mealPrepFromServer.length === 0,
-    staleTime: 5 * 60 * 1000,
   });
 
   const mealPrepProfiles = mealPrepFromServer.length > 0 ? mealPrepFromServer : mealPrepDirect;
@@ -283,7 +280,6 @@ function MyLaneInner() {
       } catch { return []; }
     },
     enabled: !!currentUser?.id,
-    staleTime: 5 * 60 * 1000,
   });
 
   // Field Service profiles (joined as worker/sub) — client-only (localStorage)
@@ -312,7 +308,6 @@ function MyLaneInner() {
       } catch { return []; }
     },
     enabled: !!currentUser?.id,
-    staleTime: 5 * 60 * 1000,
   });
 
   // Merge owned + joined FS profiles

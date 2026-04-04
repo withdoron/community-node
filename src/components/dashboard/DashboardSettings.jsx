@@ -7,7 +7,7 @@ import BusinessSettings from '@/components/dashboard/BusinessSettings';
 /**
  * Settings tab for the business workspace dashboard.
  * Renders BusinessSettings plus owner-only delete card.
- * Used by BusinessDashboard via workspace tab config.
+ * Used by MyLaneDrillView via workspace tab config.
  */
 export default function DashboardSettings({
   business,

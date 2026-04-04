@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, Loader2, SearchX, Coins } from "lucide-react";
+import { Search, MapPin, SearchX, Coins } from "lucide-react";
 
 export default function Directory() {
   const { mainCategories, getMainCategory, getSubcategoryLabel, legacyCategoryMapping } = useCategories();
@@ -49,7 +49,6 @@ export default function Directory() {
   const { data: savedSettings = [] } = useQuery({
     queryKey: ['admin-settings'],
     queryFn: () => base44.entities.AdminSettings.list(),
-    staleTime: 5 * 60 * 1000,
   });
 
   const badgeSettings = useMemo(() => {

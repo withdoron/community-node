@@ -6,14 +6,9 @@ import { base44 } from '@/api/base44Client';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { Select } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ChevronLeft, ChevronRight, Loader2, Upload, X, Plus, Trash2,
   Check, Star, Store, Briefcase, Heart, Ticket, Sprout
@@ -86,7 +81,6 @@ export default function BusinessOnboarding() {
   const { data: dbArchetypes = [] } = useQuery({
     queryKey: ['archetypes'],
     queryFn: () => base44.entities.Archetype.list(),
-    staleTime: 5 * 60 * 1000,
   });
 
   const visibleArchetypes = ONBOARDING_CONFIG.archetypes.filter(a => a.active);

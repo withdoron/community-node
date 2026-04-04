@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { HardHat, FolderOpen, ClipboardList, Calendar, FileText, DollarSign, Users, Briefcase } from 'lucide-react';
+import { HardHat, FolderOpen, ClipboardList, FileText, DollarSign, Users, Briefcase } from 'lucide-react';
 import WorkspaceGuide from '@/components/workspaces/WorkspaceGuide';
 
 const fmt = (n) =>

@@ -8,7 +8,6 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useConfig } from '@/hooks/useConfig';
-import { createPageUrl } from '@/utils';
 import EventDetailModal from '@/components/events/EventDetailModal';
 import WeekCalendarStrip from '@/components/events/WeekCalendarStrip';
 import BusinessCard from '@/components/business/BusinessCard';

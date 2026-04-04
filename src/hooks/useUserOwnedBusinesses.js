@@ -1,7 +1,7 @@
 /**
  * Shared hook: does the current user own at least one business?
  * Used for: conditional Business Dashboard nav, MyLane business CTA.
- * Same query key as BusinessDashboard so cache stays in sync after onboarding.
+ * Uses consistent query key so cache stays in sync after onboarding.
  */
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';

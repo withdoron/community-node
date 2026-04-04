@@ -1,10 +1,10 @@
 // Frequency Station — Phase 2 live. Base44 connection restored 2026-03-25.
-import React, { useState, useMemo, useCallback, useRef, useEffect, useContext } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { sanitizeText } from '@/utils/sanitize';
-import { validateFile, MAX_PHOTO_SIZE, ACCEPTED_IMAGE_TYPES } from '@/utils/fileValidation';
+import { validateFile } from '@/utils/fileValidation';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -348,7 +348,6 @@ function ListenTab() {
       const arr = Array.isArray(all) ? all : [];
       return arr.filter((s) => s.status === 'published');
     },
-    staleTime: 5 * 60 * 1000,
   });
 
   const handleListenCounted = useCallback(

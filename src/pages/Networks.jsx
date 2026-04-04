@@ -4,7 +4,7 @@
  * Auth-gated: networks are private gardens discovered through relationships (DEC-121).
  */
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Loader2, ArrowLeft, Sprout } from 'lucide-react';

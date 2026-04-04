@@ -1,12 +1,12 @@
 /**
  * MyLaneDrillView — renders a workspace tab component inside Mylane.
- * Uses the same WORKSPACE_TYPES config and tab components as BusinessDashboard.
+ * Uses WORKSPACE_TYPES config and tab components to render workspace views inside Mylane.
  * Fetches workspace-specific data (team members, FS worker role, business revenue, etc.) on demand.
  */
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { WORKSPACE_TYPES, getBusinessTabs, ARCHETYPE_TITLES } from '@/config/workspaceTypes';
+import { WORKSPACE_TYPES, getBusinessTabs } from '@/config/workspaceTypes';
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { toast } from 'sonner';
 
@@ -57,7 +57,7 @@ export default function MyLaneDrillView({
       const list = await base44.entities.TeamMember.filter({ team_id: teamId, status: 'active' });
       return Array.isArray(list) ? list : list ? [list] : [];
     },
-    enabled: !!teamId, staleTime: 5 * 60 * 1000,
+    enabled: !!teamId,
   });
 
   // Determine FS worker role when drilling into field service
@@ -93,7 +93,7 @@ export default function MyLaneDrillView({
       const events = await base44.entities.Event.filter({ business_id: businessId, is_active: true });
       return Array.isArray(events) ? events : events ? [events] : [];
     },
-    enabled: !!businessId, staleTime: 5 * 60 * 1000,
+    enabled: !!businessId,
   });
 
   const { data: eventRsvpCounts = {} } = useQuery({
@@ -109,7 +109,7 @@ export default function MyLaneDrillView({
       }
       return counts;
     },
-    enabled: businessEvents.length > 0, staleTime: 5 * 60 * 1000,
+    enabled: businessEvents.length > 0,
   });
 
   const businessIsOwner = profile && drilledView.workspace === 'business'

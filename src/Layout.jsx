@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -12,10 +12,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles, Settings } from "lucide-react";
+import { Store, User, LogOut, Shield, Calendar, Menu, Sparkles, Settings } from "lucide-react";
 import Footer from '@/components/layout/Footer';
 import { useRole } from '@/hooks/useRole';
-import { toast } from 'sonner';
+
 
 export default function Layout({ children, currentPageName: currentPageNameProp }) {
   const location = useLocation();

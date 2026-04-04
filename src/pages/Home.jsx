@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
@@ -155,7 +155,6 @@ export default function Home() {
       if (!isAuth) return null;
       return base44.auth.me();
     },
-    staleTime: 5 * 60 * 1000,
   });
   const isUnauth = currentUser === null; // explicitly not authenticated (not loading)
 

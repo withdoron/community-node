@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, ShieldAlert, ChevronLeft, MapPin, Network, Plus } from "lucide-react";
+import { Loader2, ShieldAlert, ChevronLeft, Network, Plus } from "lucide-react";
 import AdminBusinessTable from '@/components/admin/AdminBusinessTable';
 import AdminFilters from '@/components/admin/AdminFilters';
 import AdminCreateBusinessModal from '@/components/admin/AdminCreateBusinessModal';

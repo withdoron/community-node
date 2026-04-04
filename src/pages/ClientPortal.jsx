@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { Loader2, Printer, Camera, Shield, X, FileText, FolderOpen, ClipboardList } from 'lucide-react';
+import { Loader2, Printer, Camera, Shield, X, FileText, ClipboardList } from 'lucide-react';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { toast } from 'sonner';
 

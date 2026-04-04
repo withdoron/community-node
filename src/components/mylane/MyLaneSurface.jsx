@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import ConfirmationCard from './ConfirmationCard';
 import DevLab from './DevLab';
-import MY_LANE_REGISTRY from '@/config/myLaneRegistry';
 import MyLaneDrillView from './MyLaneDrillView';
 import WorkspaceErrorBoundary from '@/components/WorkspaceErrorBoundary';
 import useMyLaneState from './useMyLaneState';
