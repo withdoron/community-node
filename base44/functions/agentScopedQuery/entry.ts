@@ -38,6 +38,7 @@ const ENTITY_CONFIG = {
   RecurringTransaction:{ fkField: 'profile_id', workspace: 'finance' },
   Debt:               { fkField: 'profile_id', workspace: 'finance' },
   DebtPayment:        { fkField: 'profile_id', workspace: 'finance' },
+  TransactionCategory: { fkField: 'profile_id', workspace: 'finance' },
   FinancialProfile:   { fkField: 'user_id',    workspace: 'finance', isProfile: true },
 
   // Team

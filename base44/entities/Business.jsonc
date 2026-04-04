@@ -161,12 +161,12 @@
     "boost_credits_this_period": {
       "type": "number",
       "default": 0,
-      "description": "Number of boost credits available this billing period"
+      "description": "DEPRECATED (DEC-024) — boost credits removed. Do not use in new code."
     },
     "boosts_used_this_period": {
       "type": "number",
       "default": 0,
-      "description": "Number of boosts used this billing period"
+      "description": "DEPRECATED (DEC-024) — boost usage removed. Do not use in new code."
     },
     "bumps_remaining": {
       "type": "number",
@@ -227,11 +227,13 @@
     },
     "average_rating": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "DEPRECATED (DEC-024) — reviews removed. Recommendation system uses nods/vouches."
     },
     "review_count": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "DEPRECATED (DEC-024) — reviews removed. Recommendation system uses nods/vouches."
     },
     "nod_count": {
       "type": "number",
