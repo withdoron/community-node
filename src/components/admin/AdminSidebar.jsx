@@ -92,7 +92,7 @@ export default function AdminSidebar({ onItemClick }) {
   useEffect(() => {
     const loadFeedbackCount = async () => {
       try {
-        const list = await base44.entities.FeedbackLog.list();
+        const list = await base44.entities.ServiceFeedback.list();
         const items = Array.isArray(list) ? list : [];
         setFeedbackCount(items.length);
       } catch {

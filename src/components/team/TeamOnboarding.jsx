@@ -130,7 +130,7 @@ export default function TeamOnboarding() {
   const doorSlug = createdTeam?.name
     ? createdTeam.name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
     : '';
-  const doorLink = doorSlug ? `${origin}/door/${doorSlug}` : '';
+  const leagueLink = doorSlug ? `${origin}/door/${doorSlug}` : '';
 
   const copyLink = (link, label) => {
     navigator.clipboard.writeText(link);
@@ -322,13 +322,13 @@ export default function TeamOnboarding() {
                   </Button>
                 </div>
               )}
-              {doorLink && (
+              {leagueLink && (
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground/70 font-semibold uppercase tracking-wider mb-0.5">Door Link</p>
-                    <p className="text-muted-foreground text-xs truncate">{doorLink}</p>
+                    <p className="text-xs text-muted-foreground/70 font-semibold uppercase tracking-wider mb-0.5">League Link</p>
+                    <p className="text-muted-foreground text-xs truncate">{leagueLink}</p>
                   </div>
-                  <Button type="button" size="sm" variant="outline" className="flex-shrink-0 border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent min-h-[44px]" onClick={() => copyLink(doorLink, 'Door link copied — great for stickers & flyers')}>
+                  <Button type="button" size="sm" variant="outline" className="flex-shrink-0 border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent min-h-[44px]" onClick={() => copyLink(leagueLink, 'League link copied — great for stickers & flyers')}>
                     <Copy className="h-4 w-4 mr-1.5" /> Copy
                   </Button>
                 </div>

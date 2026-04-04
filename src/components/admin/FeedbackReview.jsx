@@ -4,7 +4,8 @@ import { MessageSquarePlus, Trash2, ExternalLink, Image, Clock, User, MapPin, Li
 import { toast } from 'sonner';
 import { adminDeleteFeedback } from '@/functions/adminDeleteFeedback';
 
-const FeedbackLog = base44.entities.FeedbackLog;
+// ServiceFeedback is the active feedback entity (FeedbackLog was the legacy name)
+const ServiceFeedback = base44.entities.ServiceFeedback;
 
 export default function FeedbackReview() {
   const [feedback, setFeedback] = useState([]);
@@ -13,7 +14,7 @@ export default function FeedbackReview() {
 
   const loadFeedback = async () => {
     try {
-      const list = await FeedbackLog.list('-created_at');
+      const list = await ServiceFeedback.list('-created_at');
       setFeedback(Array.isArray(list) ? list : []);
     } catch {
       setFeedback([]);

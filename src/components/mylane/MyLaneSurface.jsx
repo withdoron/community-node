@@ -17,6 +17,7 @@ import ConfirmationCard from './ConfirmationCard';
 import DevLab from './DevLab';
 import MY_LANE_REGISTRY from '@/config/myLaneRegistry';
 import MyLaneDrillView from './MyLaneDrillView';
+import WorkspaceErrorBoundary from '@/components/WorkspaceErrorBoundary';
 import useMyLaneState from './useMyLaneState';
 import SpaceSpinner from './SpaceSpinner';
 import HomeFeed from './HomeFeed';
@@ -494,16 +495,18 @@ export default function MyLaneSurface({
       );
     }
     return (
-      <MyLaneDrillView
-        drilledView={{ workspace: space.id, view: 'home', tab: 'home' }}
-        currentUser={currentUser}
-        fieldServiceProfiles={fieldServiceProfiles}
-        financeProfiles={financeProfiles}
-        allTeams={allTeams}
-        propertyMgmtProfiles={propertyMgmtProfiles}
-        mealPrepProfiles={mealPrepProfiles}
-        businessProfiles={businessProfiles}
-      />
+      <WorkspaceErrorBoundary workspace={space.label || space.id}>
+        <MyLaneDrillView
+          drilledView={{ workspace: space.id, view: 'home', tab: 'home' }}
+          currentUser={currentUser}
+          fieldServiceProfiles={fieldServiceProfiles}
+          financeProfiles={financeProfiles}
+          allTeams={allTeams}
+          propertyMgmtProfiles={propertyMgmtProfiles}
+          mealPrepProfiles={mealPrepProfiles}
+          businessProfiles={businessProfiles}
+        />
+      </WorkspaceErrorBoundary>
     );
   };
 

@@ -29,7 +29,7 @@ const REQUIRED_FIELDS = {
   FSClient:        ['name'],
   FSProject:       ['name'],
   Transaction:     ['amount', 'category', 'date'],
-  Play:            ['name'],
+  Play:            ['name', 'side'],
   PMProperty:      ['name'],
   Recipe:          ['name'],
   ServiceFeedback: ['feedback_text'],
@@ -257,6 +257,33 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'update') {
+      // Ownership check — verify the record belongs to the user's workspace
+      var fkConfigForUpdate = ENTITY_FK[entity];
+      if (fkConfigForUpdate && !isAdmin) {
+        try {
+          var existingRecord = await entities[entity].get(record_id);
+          if (existingRecord) {
+            var ownerField = fkConfigForUpdate.fkField;
+            var expectedOwner = (ownerField === 'user_id' || ownerField === 'owner_id') ? resolvedUserId : profileId;
+            if (expectedOwner && !idMatch(existingRecord[ownerField], expectedOwner)) {
+              return Response.json({
+                success: false,
+                error: 'ownership_mismatch',
+                message: 'Cannot update a record that does not belong to your workspace.',
+              }, { status: 403 });
+            }
+          }
+        } catch (lookupErr) {
+          console.error('[agentScopedWrite] Ownership check failed for ' + entity + ' ' + record_id + ': ' + lookupErr.message);
+          // If we can't verify ownership, reject the update for safety
+          return Response.json({
+            success: false,
+            error: 'ownership_check_failed',
+            message: 'Could not verify record ownership.',
+          }, { status: 403 });
+        }
+      }
+
       var updateData = Object.assign({}, data, { updated_via: 'agent' });
       var updatedRecord = await entities[entity].update(record_id, updateData);
       console.log('[agentScopedWrite] UPDATE ' + entity + ' ' + record_id + ' for user ' + resolvedUserId);

@@ -21,8 +21,7 @@ import FinanceOnboarding from './pages/FinanceOnboarding';
 import FieldServiceOnboarding from './pages/FieldServiceOnboarding';
 import PropertyManagementOnboarding from './pages/PropertyManagementOnboarding';
 import MealPrepOnboarding from './pages/MealPrepOnboarding';
-import JoinTeam from './pages/JoinTeam';
-import JoinPM from './pages/JoinPM';
+// JoinTeam and JoinPM imported only in App.jsx for parameterized routes
 import __Layout from './Layout.jsx';
 
 
@@ -50,8 +49,9 @@ export const PAGES = {
     "FieldServiceOnboarding": FieldServiceOnboarding,
     "PropertyManagementOnboarding": PropertyManagementOnboarding,
     "MealPrepOnboarding": MealPrepOnboarding,
-    "JoinTeam": JoinTeam,
-    "JoinPM": JoinPM,
+    // JoinTeam and JoinPM removed from pages config — they require URL params
+    // (inviteCode / slug) and show infinite spinners without them.
+    // Access via /join/:inviteCode, /door/:slug, /join-pm/:inviteCode only.
 }
 
 export const pagesConfig = {

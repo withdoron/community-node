@@ -1,9 +1,10 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createPageUrl } from '@/utils';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 import { getFriendlyErrorMessage } from '@/lib/errorMessages';
+import { queryClientInstance } from '@/lib/query-client';
 
 const AuthContext = createContext();
 
@@ -97,11 +98,13 @@ export const AuthProvider = ({ children }) => {
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
+      // Seed React Query cache so inline ['currentUser'] queries don't refetch
+      queryClientInstance.setQueryData(['currentUser'], currentUser);
     } catch (error) {
       console.error('User auth check failed:', error);
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
-      
+
       // If user auth fails, it might be an expired token
       if (error.status === 401 || error.status === 403) {
         setAuthError({
@@ -111,6 +114,20 @@ export const AuthProvider = ({ children }) => {
       }
     }
   };
+
+  // refreshUser — single function to sync BOTH AuthContext state and React Query cache
+  // Call this after profile updates to keep all components in sync
+  const refreshUser = useCallback(async () => {
+    try {
+      const freshUser = await base44.auth.me();
+      setUser(freshUser);
+      queryClientInstance.setQueryData(['currentUser'], freshUser);
+      return freshUser;
+    } catch (error) {
+      console.error('refreshUser failed:', error);
+      return null;
+    }
+  }, []);
 
   const logout = (shouldRedirect = true) => {
     setUser(null);
@@ -132,16 +149,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isAuthenticated, 
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated,
       isLoadingAuth,
       isLoadingPublicSettings,
       authError,
       appPublicSettings,
       logout,
       navigateToLogin,
-      checkAppState
+      checkAppState,
+      refreshUser,
     }}>
       {children}
     </AuthContext.Provider>

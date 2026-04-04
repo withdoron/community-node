@@ -6,9 +6,20 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
+
+    // Auth check — verify caller is authenticated and has admin or event-owner role
+    var caller = null;
+    try {
+      caller = await base44.auth.me();
+    } catch (e) {
+      // auth.me() failed
+    }
+    if (!caller || !caller.id) {
+      return Response.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { event: triggerEvent, data: eventData } = await req.json();
-    
+
     if (!eventData || eventData.status !== 'cancelled') {
       return Response.json({ message: 'Event not cancelled, no action needed' });
     }

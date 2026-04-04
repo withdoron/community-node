@@ -18,7 +18,7 @@ export async function adminDeleteFeedback(feedbackId) {
   } catch (err) {
     // Fallback: server function not yet created in Base44 dashboard
     if (err?.message?.includes('not found') || err?.status === 404) {
-      return base44.entities.FeedbackLog.delete(feedbackId);
+      return base44.entities.ServiceFeedback.delete(feedbackId);
     }
     throw err;
   }

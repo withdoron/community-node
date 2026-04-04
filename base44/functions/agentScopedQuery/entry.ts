@@ -6,6 +6,7 @@ const WORKSPACE_PROFILE_MAP = {
   'finance':       { entity: 'FinancialProfile',    userField: 'user_id' },
   'team':          { entity: 'Team',                userField: 'owner_id' },
   'property-pulse':{ entity: 'PMPropertyProfile',   userField: 'user_id' },
+  'meal-prep':     { entity: 'MealPrepProfile',     userField: 'user_id' },
 };
 
 // Profile entities — queried directly by user field
@@ -14,6 +15,7 @@ const PROFILE_ENTITIES = new Set([
   'FinancialProfile',
   'Team',
   'PMPropertyProfile',
+  'MealPrepProfile',
 ]);
 
 // Entity → { fkField, workspace }
@@ -62,6 +64,11 @@ const ENTITY_CONFIG = {
   PMListing:          { fkField: 'profile_id', workspace: 'property-pulse' },
   PMGuest:            { fkField: 'profile_id', workspace: 'property-pulse' },
   PMPropertyProfile:  { fkField: 'user_id',    workspace: 'property-pulse', isProfile: true },
+
+  // Meal Prep
+  Recipe:             { fkField: 'profile_id', workspace: 'meal-prep' },
+  RecipeIngredient:   { fkField: 'profile_id', workspace: 'meal-prep' },
+  MealPrepProfile:    { fkField: 'user_id',    workspace: 'meal-prep', isProfile: true },
 
   // Platform
   Business:           { fkField: 'owner_user_id', workspace: 'platform', isPlatform: true },
