@@ -1,0 +1,64 @@
+{
+  "name": "MylaneNote",
+  "type": "object",
+  "description": "Stores personal reminders, tasks, and notes created by users through their Mylane companion. Each record belongs to one user and represents something they asked Mylane to remember, a task they need to complete, or a general note. These notes surface in the user's Home feed and can be marked as done or dismissed.",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The user ID of the person who created this note. Used to scope notes so each user sees only their own."
+    },
+    "content": {
+      "type": "string",
+      "description": "The reminder or note text. Examples: 'Call April about Recess flyers' or 'Pick up jerseys before Tuesday practice.'"
+    },
+    "note_type": {
+      "type": "string",
+      "description": "The type of note. Expected values: 'reminder' (time-sensitive, has a due date), 'task' (action item without urgency), or 'note' (general information to remember)."
+    },
+    "due_date": {
+      "type": "string",
+      "description": "Optional target date for the reminder, stored as a text string in YYYY-MM-DD format. If set, the note gets urgency treatment in the Home feed as the date approaches."
+    },
+    "source_space": {
+      "type": "string",
+      "description": "Which workspace context the note came from. Expected values: 'team', 'field-service', 'finance', 'property-pulse', 'general'. Defaults to 'general' for cross-cutting reminders."
+    },
+    "status": {
+      "type": "string",
+      "description": "The current state of the note. Expected values: 'active' (shows in Home feed), 'done' (completed, hidden from feed), 'dismissed' (removed without completing, hidden from feed)."
+    },
+    "created_by_agent": {
+      "type": "string",
+      "description": "Which AI agent created this note. Expected value is 'MyLane' for most cases. In the future, space agents may also create notes."
+    }
+  },
+  "required": [
+    "user_id",
+    "content",
+    "note_type",
+    "status"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": true,
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
