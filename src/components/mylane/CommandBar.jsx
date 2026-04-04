@@ -25,14 +25,14 @@ const SpeechRecognition = typeof window !== 'undefined'
 
 // ─── Space-aware chips ───
 const SPACE_CHIPS = {
-  home: ['What needs attention', 'My reminders', 'Log income', 'Log expense'],
-  team: ['Show roster', 'Next practice', 'Player stats'],
-  'field-service': ['Pending estimates', 'My clients', 'Log daily'],
-  finance: ['This month', 'Log income', 'Log expense', 'Debts'],
-  'meal-prep': ['My recipes', 'Meal plan'],
-  'property-pulse': ['My properties', 'Maintenance requests', 'Vacancies'],
-  discover: ['Search directory', 'Upcoming events'],
-  business: ['Revenue', 'Events', 'Joy Coins'],
+  home: ['What needs attention', 'My reminders', 'Log income', 'Have feedback?'],
+  team: ['Show roster', 'Next practice', 'Player stats', 'Have feedback?'],
+  'field-service': ['Pending estimates', 'My clients', 'Log daily', 'Have feedback?'],
+  finance: ['This month', 'Log income', 'Log expense', 'Have feedback?'],
+  'meal-prep': ['My recipes', 'Meal plan', 'Have feedback?'],
+  'property-pulse': ['My properties', 'Maintenance requests', 'Have feedback?'],
+  discover: ['Search directory', 'Upcoming events', 'Have feedback?'],
+  business: ['Revenue', 'Events', 'Joy Coins', 'Have feedback?'],
 };
 
 export default function CommandBar({

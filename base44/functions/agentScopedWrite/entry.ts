@@ -32,7 +32,7 @@ const REQUIRED_FIELDS = {
   Play:            ['name'],
   PMProperty:      ['name'],
   Recipe:          ['name'],
-  ServiceFeedback: ['message'],
+  ServiceFeedback: ['feedback_text'],
   MylaneNote:      ['content', 'note_type', 'status'],
 };
 

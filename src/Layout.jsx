@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { sanitizeText } from '@/utils/sanitize';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles, Settings, MessageSquarePlus, X, Send, Camera, Lightbulb, Bug } from "lucide-react";
+import { Store, User, LogOut, LayoutDashboard, Shield, Calendar, Menu, Sparkles, Settings } from "lucide-react";
 import Footer from '@/components/layout/Footer';
 import { useRole } from '@/hooks/useRole';
 import { toast } from 'sonner';
@@ -33,55 +32,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
 
   const { isAppAdmin } = useRole();
 
-  // Hide feedback button when a workspace superagent is active (agent IS the feedback channel)
-  const [agentActive, setAgentActive] = useState(false);
-  useEffect(() => {
-    const handler = (e) => setAgentActive(!!e.detail);
-    window.addEventListener('agent-active', handler);
-    return () => window.removeEventListener('agent-active', handler);
-  }, []);
 
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [feedbackType, setFeedbackType] = useState('feedback');
-  const [whatHappened, setWhatHappened] = useState('');
-  const [whatExpected, setWhatExpected] = useState('');
-  const [screenshotFile, setScreenshotFile] = useState(null);
-  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
-
-  const handleFeedbackSubmit = async (e) => {
-    e?.preventDefault?.();
-    if (!whatHappened?.trim()) return;
-    setFeedbackSubmitting(true);
-    try {
-      let screenshotUrl = null;
-      if (screenshotFile) {
-        const result = await base44.integrations.Core.UploadFile({ file: screenshotFile });
-        screenshotUrl = result?.file_url || result?.url || null;
-      }
-      const payload = {
-        user_id: currentUser?.id ?? undefined,
-        user_email: currentUser?.email ?? undefined,
-        user_role: isAppAdmin ? 'admin' : 'user',
-        page_url: window.location.pathname ?? undefined,
-        feedback_type: feedbackType,
-        what_happened: sanitizeText(whatHappened.trim()),
-        what_expected: sanitizeText(whatExpected?.trim()) || undefined,
-      };
-      if (screenshotUrl) payload.screenshot = screenshotUrl;
-      await base44.entities.FeedbackLog.create(payload);
-      setWhatHappened('');
-      setWhatExpected('');
-      setScreenshotFile(null);
-      setFeedbackType('feedback');
-      setFeedbackOpen(false);
-      toast.success('Thanks — we got it! Your feedback helps make Local Lane better.');
-    } catch (err) {
-      console.error('Feedback submit error:', err);
-      toast.error('Could not submit feedback. Please try again.');
-    } finally {
-      setFeedbackSubmitting(false);
-    }
-  };
 
   const handleLogout = () => {
     base44.auth.logout();
@@ -327,121 +278,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
       {/* Footer hidden on MyLane — surface fills edge to edge */}
       {currentPageName !== 'MyLane' && <Footer />}
 
-      {/* Feedback Button + Panel — hidden when superagent is active (agent IS the feedback channel) */}
-      {currentUser && !agentActive && (
-        <>
-          {!feedbackOpen && (
-            <button
-              onClick={() => setFeedbackOpen(true)}
-              className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-full shadow-lg transition-all hover:shadow-xl print:hidden"
-            >
-              <MessageSquarePlus className="w-5 h-5" />
-              <span className="hidden sm:inline">Feedback</span>
-            </button>
-          )}
-
-          {feedbackOpen && (
-            <div className="fixed bottom-6 right-6 z-50 w-80 sm:w-96 bg-secondary border border-border rounded-2xl shadow-2xl print:hidden">
-              <div className="flex items-center justify-between p-4 border-b border-border">
-                <h3 className="text-foreground font-semibold">Send Feedback</h3>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFeedbackOpen(false);
-                    setFeedbackType('feedback');
-                    setWhatHappened('');
-                    setWhatExpected('');
-                    setScreenshotFile(null);
-                  }}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Mode Tabs */}
-              <div className="flex gap-2 px-4 pt-3">
-                <button
-                  type="button"
-                  onClick={() => setFeedbackType('feedback')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    feedbackType === 'feedback'
-                      ? 'bg-primary/20 text-primary border border-primary/30'
-                      : 'bg-card text-muted-foreground border border-border hover:text-foreground-soft'
-                  }`}
-                >
-                  <Lightbulb className="w-4 h-4" />
-                  Feedback
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFeedbackType('bug')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    feedbackType === 'bug'
-                      ? 'bg-primary/20 text-primary border border-primary/30'
-                      : 'bg-card text-muted-foreground border border-border hover:text-foreground-soft'
-                  }`}
-                >
-                  <Bug className="w-4 h-4" />
-                  Report Bug
-                </button>
-              </div>
-
-              <form onSubmit={handleFeedbackSubmit} className="p-4 space-y-3">
-                <div>
-                  <label className="text-sm text-muted-foreground mb-1 block">{feedbackType === 'bug' ? 'Describe the bug *' : 'What happened? *'}</label>
-                  <textarea
-                    value={whatHappened}
-                    onChange={(e) => setWhatHappened(e.target.value)}
-                    placeholder={feedbackType === 'bug' ? 'What went wrong...' : 'Share your idea or suggestion...'}
-                    rows={3}
-                    className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm resize-none focus:outline-none focus:border-primary"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-muted-foreground mb-1 block">{feedbackType === 'bug' ? 'What should have happened? (optional)' : 'What did you expect? (optional)'}</label>
-                  <textarea
-                    value={whatExpected}
-                    onChange={(e) => setWhatExpected(e.target.value)}
-                    placeholder={feedbackType === 'bug' ? 'What should have happened instead...' : 'Any additional context...'}
-                    rows={2}
-                    className="w-full px-3 py-2 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground/70 text-sm resize-none focus:outline-none focus:border-primary"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-muted-foreground mb-1 block">Screenshot (optional)</label>
-                  <label className="flex items-center gap-2 px-3 py-2 bg-card border border-border rounded-lg text-muted-foreground text-sm cursor-pointer hover:border-border transition-colors">
-                    <Camera className="w-4 h-4" />
-                    <span>{screenshotFile ? screenshotFile.name || 'Image selected' : 'Attach image'}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => setScreenshotFile(e.target.files?.[0] || null)}
-                    />
-                  </label>
-                </div>
-
-                <p className="text-xs text-muted-foreground/70">
-                  Page and account info are captured automatically.
-                </p>
-
-                <button
-                  type="submit"
-                  disabled={!whatHappened?.trim() || feedbackSubmitting}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover disabled:bg-surface disabled:text-muted-foreground/70 text-primary-foreground font-semibold rounded-lg transition-colors"
-                >
-                  <Send className="w-4 h-4" />
-                  {feedbackSubmitting ? 'Sending...' : 'Send Feedback'}
-                </button>
-              </form>
-            </div>
-          )}
-        </>
-      )}
+      {/* Feedback flows through Mylane — no standalone button. Users tap "Have feedback?" chip or tell Mylane directly. */}
     </div>
   );
 }
