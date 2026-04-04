@@ -25,7 +25,7 @@ const SpeechRecognition = typeof window !== 'undefined'
 
 // ─── Space-aware chips ───
 const SPACE_CHIPS = {
-  home: ['What needs attention', 'This week', 'Log income', 'Log expense'],
+  home: ['What needs attention', 'My reminders', 'Log income', 'Log expense'],
   team: ['Show roster', 'Next practice', 'Player stats'],
   'field-service': ['Pending estimates', 'My clients', 'Log daily'],
   finance: ['This month', 'Log income', 'Log expense', 'Debts'],

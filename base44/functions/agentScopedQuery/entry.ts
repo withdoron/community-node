@@ -67,6 +67,7 @@ const ENTITY_CONFIG = {
   Business:           { fkField: 'owner_user_id', workspace: 'platform', isPlatform: true },
   Event:              { fkField: 'created_by',    workspace: 'platform', isPlatform: true },
   ServiceFeedback:    { fkField: 'user_id',       workspace: 'platform', isPlatform: true },
+  MylaneNote:         { fkField: 'user_id',       workspace: 'platform', isPlatform: true },
 };
 
 // Safe string comparison — handles ObjectId, number, null, undefined

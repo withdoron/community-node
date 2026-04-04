@@ -21,7 +21,7 @@ const ENTITY_WHITELIST = {
     'PMProperty', 'PMTenant', 'PMMaintenanceRequest', 'PMTransaction', 'PMListing',
   ],
   'meal-prep': ['Recipe', 'RecipeIngredient'],
-  'platform': ['ServiceFeedback', 'Recommendation'],
+  'platform': ['ServiceFeedback', 'Recommendation', 'MylaneNote'],
 };
 
 // ── Required fields per entity (create only) ──
@@ -33,6 +33,7 @@ const REQUIRED_FIELDS = {
   PMProperty:      ['name'],
   Recipe:          ['name'],
   ServiceFeedback: ['message'],
+  MylaneNote:      ['content', 'note_type', 'status'],
 };
 
 // ── Entity → FK field for ownership stamping on create ──
@@ -67,6 +68,7 @@ const ENTITY_FK = {
   // Platform
   ServiceFeedback: { fkField: 'user_id',  workspace: 'platform' },
   Recommendation:  { fkField: 'user_id',  workspace: 'platform' },
+  MylaneNote:      { fkField: 'user_id',  workspace: 'platform' },
 };
 
 // Safe string comparison — handles ObjectId, number, null, undefined

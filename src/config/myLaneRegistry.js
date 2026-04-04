@@ -8,7 +8,7 @@
  * urgencyWindow: days before event when card gets sort boost
  * urgencyEntity: which entity drives the urgency check
  */
-import { DollarSign, FileText, Users, Building2, FolderKanban, UtensilsCrossed } from 'lucide-react';
+import { DollarSign, FileText, Users, Building2, FolderKanban, UtensilsCrossed, ClipboardList } from 'lucide-react';
 
 import EnoughNumberCard from '@/components/mylane/cards/EnoughNumberCard';
 import PendingEstimatesCard from '@/components/mylane/cards/PendingEstimatesCard';
@@ -16,8 +16,21 @@ import PlayerReadinessCard from '@/components/mylane/cards/PlayerReadinessCard';
 import PropertyOverviewCard from '@/components/mylane/cards/PropertyOverviewCard';
 import ActiveProjectsCard from '@/components/mylane/cards/ActiveProjectsCard';
 import RecipeBookCard from '@/components/mylane/cards/RecipeBookCard';
+import RemindersCard from '@/components/mylane/cards/RemindersCard';
 
 const MY_LANE_REGISTRY = [
+  {
+    id: 'reminders',
+    label: 'Reminders',
+    space: 'personal',
+    icon: ClipboardList,
+    CardComponent: RemindersCard,
+    getProfile: () => true, // Always render — personal, not space-specific
+    timeAware: true,
+    urgencyWindow: 1,
+    urgencyEntity: 'MylaneNote',
+    personal: true, // Flag for rendering logic — receives userId not profile
+  },
   {
     id: 'enough-number',
     label: 'Enough Number',

@@ -12,6 +12,7 @@
  */
 import React, { useState, useCallback, useMemo } from 'react';
 import PrioritySpinner from './PrioritySpinner';
+import RemindersCard from './cards/RemindersCard';
 
 const TABS = [
   { id: 'attn', label: 'Attention' },
@@ -204,7 +205,7 @@ function findSpaceIndex(spaceItems, spaceId) {
   return idx >= 0 ? idx : null;
 }
 
-export default function HomeFeed({ profiles = {}, spaceItems = [], onOpenSpace, neighborCount = 0 }) {
+export default function HomeFeed({ profiles = {}, spaceItems = [], onOpenSpace, neighborCount = 0, userId }) {
   const [activeTab, setActiveTab] = useState('attn');
 
   const handleTabSwitch = useCallback((tabId) => {
@@ -262,6 +263,13 @@ export default function HomeFeed({ profiles = {}, spaceItems = [], onOpenSpace, 
           </button>
         ))}
       </div>
+
+      {/* Personal reminders — above priority items */}
+      {userId && (
+        <div style={{ padding: '8px 16px 0' }}>
+          <RemindersCard userId={userId} />
+        </div>
+      )}
 
       {/* Vertical priorities — native scroll with depth effect */}
       <PrioritySpinner

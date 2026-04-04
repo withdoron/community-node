@@ -470,6 +470,7 @@ export default function MyLaneSurface({
           <HomeFeed
             profiles={profiles} spaceItems={spaceItems}
             onOpenSpace={handleOpenSpace} neighborCount={neighborCount}
+            userId={currentUser?.id}
           />
         </>
       );
