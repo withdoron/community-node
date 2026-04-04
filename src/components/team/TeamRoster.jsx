@@ -67,7 +67,6 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
       return Array.isArray(list) ? list : [];
     },
     enabled: !!team?.id,
-    staleTime: 5 * 60 * 1000,
   });
   const statsByUserId = useMemo(() => {
     const map = {};

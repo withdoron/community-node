@@ -28,6 +28,30 @@ const DISCOVERABLE_SPACES = [
     description: 'Local food and farmers market',
     wizardPage: null, // not yet built
   },
+  {
+    id: 'finance',
+    label: 'Personal finance',
+    description: 'Income, expenses, bills, Enough Number',
+    wizardPage: 'FinanceOnboarding',
+  },
+  {
+    id: 'fieldservice',
+    label: 'Field service',
+    description: 'Clients, estimates, projects, daily logs',
+    wizardPage: 'FieldServiceOnboarding',
+  },
+  {
+    id: 'team',
+    label: 'Team / Playmaker',
+    description: 'Playbook, roster, schedule, game day',
+    wizardPage: 'TeamOnboarding',
+  },
+  {
+    id: 'meal_prep',
+    label: 'Kitchen',
+    description: 'Recipes, meal planning, grocery lists',
+    wizardPage: 'MealPrepOnboarding',
+  },
 ];
 
 export default function DiscoverPosition({ activeSpaceIds = [] }) {
@@ -41,10 +65,9 @@ export default function DiscoverPosition({ activeSpaceIds = [] }) {
 
   const handleUnlock = () => {
     if (!keyCode.trim()) return;
-    toast('Coming soon', {
-      description: 'Invite key lookup arrives with the first network space.',
-    });
-    setKeyCode('');
+    // Invite codes route to the team join flow (most common)
+    // The join page handles invalid codes gracefully
+    navigate(`/join/${keyCode.trim()}`);
   };
 
   const handleKeyDown = (e) => {

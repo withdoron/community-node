@@ -47,19 +47,9 @@ function buildAttentionItems(profiles, spaceItems) {
     }
   }
 
-  // Field Service: pending estimates
-  const fsProfile = profiles.fieldServiceProfiles?.[0];
-  if (fsProfile) {
-    // We can't query FSEstimate from here (no entity access in component),
-    // but we signal that estimates exist via the profile.
-    items.push({
-      title: 'Estimate awaiting signature',
-      subtitle: 'Check pending estimates',
-      barColor: 'ac',
-      spaceIndex: findSpaceIndex(spaceItems, 'field-service'),
-      spaceName: 'Jobsite',
-    });
-  }
+  // Field Service: only show attention item if the workspace is active
+  // We can't query FSEstimate from here, so we don't show phantom estimates
+  // The workspace Home tab shows real estimate status
 
   // Team: check game readiness
   const team = profiles.allTeams?.[0];

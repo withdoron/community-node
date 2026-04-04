@@ -37,7 +37,6 @@ export function useActiveRegion() {
   const { data: regions, isLoading, error } = useQuery({
     queryKey: ['active-region'],
     queryFn: () => base44.entities.Region.filter({ is_active: true }, '-created_date', 10),
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
   // Find the primary region, or fall back to first active region

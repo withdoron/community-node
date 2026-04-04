@@ -35,7 +35,6 @@ export function useConfig(domain, configType) {
         return defaults;
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
     placeholderData: defaults,
   });
 }

@@ -20,7 +20,7 @@ export default function PendingEstimatesCard({ profile, onClick, onUrgency }) {
         return Array.isArray(list) ? list : list ? [list] : [];
       } catch { return []; }
     },
-    enabled: !!profile.id, staleTime: 5 * 60 * 1000,
+    enabled: !!profile.id,
   });
 
   const pending = estimates.filter(

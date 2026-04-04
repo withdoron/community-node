@@ -99,7 +99,7 @@ export default function JoinPM() {
         : 'property manager';
       toast.success(`You've joined as a ${roleLabel}.`);
       localStorage.removeItem(PENDING_INVITE_KEY);
-      try { localStorage.setItem('mylane_welcome', JSON.stringify({ space: 'property-pulse', name: workspace?.workspace_name || 'Property' })); } catch {}
+      try { localStorage.setItem('mylane_welcome', JSON.stringify({ space: 'property-pulse', name: profile?.workspace_name || 'Property' })); } catch {}
       navigate(createPageUrl('MyLane'), { replace: true });
     } catch (err) {
       toast.error(err?.message || 'Failed to join');

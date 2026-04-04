@@ -43,7 +43,7 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
         return Array.isArray(list) ? list : list ? [list] : [];
       } catch { return []; }
     },
-    enabled: !!team.id, staleTime: 5 * 60 * 1000,
+    enabled: !!team.id,
   });
 
   const { data: photoCount = 0 } = useQuery({
@@ -56,7 +56,7 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
         return Array.isArray(list) ? list.length : 0;
       } catch { return 0; }
     },
-    enabled: !!team.id, staleTime: 5 * 60 * 1000,
+    enabled: !!team.id,
   });
 
   const { data: nextEvent } = useQuery({
@@ -73,7 +73,7 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
         return upcoming[0] || null;
       } catch { return null; }
     },
-    enabled: !!team.id, staleTime: 5 * 60 * 1000,
+    enabled: !!team.id,
   });
 
   const total = members.length;

@@ -204,7 +204,6 @@ export default function TeamSchedule({ teamId, teamScope }) {
       return Array.isArray(list) ? list : [];
     },
     enabled: !!teamId,
-    staleTime: 5 * 60 * 1000,
   });
 
   // Play count for readiness denominator
@@ -216,7 +215,6 @@ export default function TeamSchedule({ teamId, teamScope }) {
       return Array.isArray(list) ? list : [];
     },
     enabled: !!teamId,
-    staleTime: 5 * 60 * 1000,
   });
 
   const gameDayPlayCount = useMemo(() => teamPlays.filter((p) => p.game_day && p.status === 'active').length, [teamPlays]);

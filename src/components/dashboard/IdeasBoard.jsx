@@ -346,7 +346,6 @@ export default function IdeasBoard({ currentUser }) {
         return [];
       }
     },
-    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch current user's votes
@@ -364,7 +363,6 @@ export default function IdeasBoard({ currentUser }) {
       }
     },
     enabled: !!currentUser?.id,
-    staleTime: 5 * 60 * 1000,
   });
 
   // Map of idea_id → vote record for quick lookup

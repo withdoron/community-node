@@ -17,7 +17,7 @@ export default function EnoughNumberCard({ profile, onClick, onUrgency }) {
       const list = await base44.entities.Transaction.filter({ profile_id: profile.id });
       return Array.isArray(list) ? list : list ? [list] : [];
     },
-    enabled: !!profile.id, staleTime: 5 * 60 * 1000,
+    enabled: !!profile.id,
   });
 
   // Current month income

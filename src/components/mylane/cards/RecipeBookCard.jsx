@@ -14,7 +14,6 @@ export default function RecipeBookCard({ profile, onClick }) {
       );
     },
     enabled: !!profile?.id,
-    staleTime: 5 * 60 * 1000,
   });
 
   const total = recipes.length;
