@@ -51,9 +51,16 @@
   "security": {
     "read": true,
     "create": true,
-    "update": true,
+    "update": {
+      "owner": true
+    },
     "delete": {
       "admin": true
+    }
+  },
+  "rls": {
+    "update": {
+      "created_by": "{{user.email}}"
     }
   }
 }

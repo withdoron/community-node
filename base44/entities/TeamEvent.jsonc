@@ -75,7 +75,9 @@
     "start_date"
   ],
   "security": {
-    "read": true,
+    "read": {
+      "owner": true
+    },
     "create": true,
     "update": true,
     "delete": {
@@ -83,6 +85,9 @@
     }
   },
   "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
     "delete": {
       "created_by": "{{user.email}}"
     }

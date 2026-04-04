@@ -108,7 +108,9 @@
     "title"
   ],
   "security": {
-    "read": true,
+    "read": {
+      "owner": true
+    },
     "create": true,
     "update": {
       "owner": true
@@ -118,6 +120,9 @@
     }
   },
   "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
     "delete": {
       "created_by": "{{user.email}}"
     }

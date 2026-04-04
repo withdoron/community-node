@@ -184,17 +184,27 @@
     "line_items"
   ],
   "security": {
-    "read": true,
+    "read": {
+      "owner": true
+    },
     "create": {
       "owner": true
     },
-    "update": true,
+    "update": {
+      "owner": true
+    },
     "delete": {
       "owner": true
     }
   },
   "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
     "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
       "created_by": "{{user.email}}"
     },
     "delete": {
