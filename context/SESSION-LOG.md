@@ -607,3 +607,30 @@ None (architecture questions captured, not decided)
 - Base44 rate limit numbers (support ticket open)
 
 ---
+
+### Session — 2026-04-04 (Saturday — Full Day)
+
+**Focus:** MylaneNote reminders, Founding Gardener observation, feedback pipeline consolidation, full 13-category audit, security lockdown, medium/low polish. Health score 68 to 87.
+
+**Builds shipped:**
+1. MylaneNote entity + reminders lifecycle (create, display, mark done via conversation)
+2. Founding Gardener observation (platformPulse gardeners action + MCP deploy)
+3. Feedback pipeline consolidated: FeedbackLog retired, ServiceFeedback sole path, "Have feedback?" chip
+4. Full 13-category audit: 343 files, 68/100
+5. Critical+High fixes (3 commits): 9 entity permissions locked, staleTime 5min default, dual auth resolved, handleEventCancellation auth, agentScopedWrite ownership check, DEC-107 enforced, WorkspaceErrorBoundary, CLAUDE.md updated. Score: 68 to 82.
+6. Medium+Low polish (4 commits): 19 dead files deleted (-1,968 lines), platformPulse header-only auth, /networks auth-gated, phantom attention removed, Discover wired, 27 staleTime overrides removed, 31 unused imports cleaned, agent instructions trimmed. Score: 82 to 87.
+
+**Base44 Operations:** MylaneNote entity created. 9 entity permissions locked.
+
+**MCP Operations:** Cloudflare Worker redeployed with gardeners action.
+
+**Decisions:** DEC-136 (Creator Only default permissions), DEC-137 (feedback through companion), DEC-138 (Founding Gardener earned status).
+
+**Next up:**
+- Coach Rick demo
+- Ephraim Pip-Boy design session
+- Newsletter "The Good News"
+- Bari visit for feedback chip demo
+- Remaining polish: StepIndicator extraction, loading states, shared EmptyState, accessibility pass
+
+---

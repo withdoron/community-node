@@ -8,12 +8,12 @@
 
 | Node | Type | Status | Score | Last Updated |
 |------|------|--------|-------|-------------|
-| Community Node | Platform | Pilot-ready, blocked on LLC/EIN | ~75/100 | 2026-03-27 |
+| Community Node | Platform | Audit complete (87/100). Entity permissions locked. Dead code cleaned. Auth consolidated. | ~87/100 | 2026-04-04 |
 | Field Service | Workspace | Documents + e-sign + agent live. Mobile optimized. | ~92/100 | 2026-03-27 |
 | Harvest Network | Network | Phase 2 shipped — product tags, payment methods, tag filtering, geocoding. Map view and application flow gated. Two egg sellers ready to join. | ~60/100 | 2026-03-27 |
 | Property Management | Workspace | Phase 4 complete | ~95/100 | 2026-03-25 |
 | Personal Finance | Workspace | V1 complete | ~78/100 | 2026-03-25 |
-| Play Trainer (Team) | Workspace | Go-live ready | ~95/100 | 2026-03-25 |
+| Play Trainer (Team) | Workspace | Production. Schedule, photos, print, leaderboard, parent invite. | Production | 2026-04-03 |
 | Frequency Station | Feature | Phase 2 live, "Come Alive" playing | Functional | 2026-03-25 |
 | FieldServiceAgent | Space Agent | LIVE. First Superagent. Reads via agentScopedQuery, ServiceFeedback. Chat UI with voice. | Live | 2026-03-27 |
 | PlaymakerAgent | Space Agent | LIVE. 9 team entities, global + per-user memory. | Live | 2026-03-29 |
@@ -35,6 +35,9 @@
 | Mycelia Admin Agent | Platform Agent | Planned | Platform-level Superagent for the gardener. Admin dashboard intelligence. |
 | HarvestAgent | Space Agent | Planned | Agent for Harvest Network space. Vendor lookup, market schedules. |
 | RecessAgent | Space Agent | Planned | Agent for movement/play spaces. Class schedules, instructor lookup. |
+| Founding Gardener Program | Feature | Concept (2026-04-04) | DEC-138. Earned status, not signup bonus. Observation live via platformPulse gardeners + MCP. First report: 22 users, 6 active, 16 dormant. |
+| Newsletter "The Good News" | Content | Planned (2026-04-04) | Wake 16 dormant accounts. "We've been building. Here's what grew." |
+| League & Play Library | Workspace | Seedling (2026-04-03) | Randy layer. Fork model for play sharing. Matures at 3+ teams. |
 
 ## Key Contacts
 
@@ -47,5 +50,7 @@
 | Coach Rick | Team pilot user | Active | Invite flow now bulletproof, retry pending. |
 | April (St. Rita Psychiatry) | Recess Network contact | Building | Practice serves ages 5-21, neurodivergent kids. Interested in Recess flyers. |
 | Get Air (Charlie) | Recess Pass pilot | Declined for now | Open to future when established. |
+| Natasha (nataherb2024) | First pure organic signup | Discovered 2026-04-04 | Gardener score 13. Unknown connection. Worth investigating. |
+| Jeslyn Everitt | First real parent user | Active | Gardener score 4. Entered via team invite. |
 
 ---

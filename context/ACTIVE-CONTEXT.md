@@ -1,38 +1,42 @@
 # ACTIVE-CONTEXT.md
 
 > What's happening RIGHT NOW. This file gets overwritten each session, not appended.
-> Last updated: 2026-04-03 (Team space production push — 15 commits, 7+ builds)
+> Last updated: 2026-04-04 (Full-day audit + security lockdown + polish pass)
 
 ## Current Focus
 
-Team space is production-ready. Full schedule with RSVP + duties + readiness. Photo gallery live. Print congruence complete (4 layouts). Parent invite flow working end-to-end. Credit audit done — entity reads are free.
+Application audit complete — health score 68 to 87. All Critical and High issues resolved. Entity permissions locked down. Dead code cleaned. Foundation is stone for Coach Rick demo. MylaneNote reminders live. Founding Gardener observation live via MCP. Feedback pipeline consolidated to ServiceFeedback.
 
 ## Active Architecture
 
-- **Theme system:** Semantic tokens throughout. Three themes: Gold Standard, Cloud, Fallout.
+- **Theme system:** Semantic tokens throughout (98.5% migrated). Three themes: Gold Standard, Cloud, Fallout.
 - **Spinner:** 3D variant architecture. Friction + mass physics. Ratchet snap.
-- **Team space (7 tabs):** Home, Playbook, Schedule, Roster, Messages, Photos, Settings. Schedule has RSVP + duties + recurring + readiness. Photos has upload + lightbox. Messages has Announcements (coach) + Discussion (all).
-- **Query optimization:** Batch-fetch pattern for PlayAssignments (single .list() instead of N parallel .filter()). staleTime 2-5min on team queries. .list() + client-side filter for service-role-created records.
+- **Team space (7 tabs):** Home, Playbook, Schedule, Roster, Messages, Photos, Settings.
+- **Query optimization:** staleTime 5min global default (DEC-130). getMyLaneProfiles batches 6 queries into 1. .list() + client-side filter for service-role records.
 - **Panel:** Mylane panel viewport-fixed. Desktop: 300px right panel. Mobile: bottom bar.
-- **Credit model confirmed:** Entity reads = free. Agent messages = ~3 integration credits. Own API key = zero credits. Message credits (250/mo) = real bottleneck at scale.
+- **Agent architecture:** DEC-107 fully enforced — space agents use agentScopedQuery only (no direct entity tools). 5 agents + AdminAgent + Renderer + Scout.
+- **Auth:** Single source of truth — AuthContext seeds React Query cache, refreshUser() syncs both.
+- **Error isolation:** WorkspaceErrorBoundary wraps each workspace drill view.
+- **Security:** Entity permissions default Creator Only (DEC-136). Server functions with asServiceRole handle cross-user access.
+- **Credit model:** Entity reads = free. Agent messages = ~3 integration credits. Message credits (250/mo) = real bottleneck.
 
-## What Just Shipped (2026-04-03)
+## What Just Shipped (2026-04-04)
 
-1. Print: 4 layouts (Player Card, Quick Reference with assignments, Full Page, Route Reference)
-2. Leaderboard: score + mastered + streak columns
-3. Player Cards: trading card with earned stats from Roster tap
-4. Photo gallery: 7th tab, upload, lightbox, captions, delete
-5. Schedule: event creation + RSVP + duties + auto-rotation + recurring + readiness
-6. Parent UX: name capture, Discussion default, role-aware empty states
-7. Identity: parent names in messages with linked kids ("Sarah (Elek)")
-8. Bug fixes: timezone dates, Messages crash, 429 rate limits, .filter() quirk, invite layout
+1. MylaneNote entity + reminders lifecycle (create, display, mark done via Mylane conversation)
+2. Founding Gardener observation (platformPulse gardeners action + MCP deploy)
+3. Feedback pipeline: FeedbackLog retired, ServiceFeedback is sole path, "Have feedback?" chip on all spaces
+4. Full 13-category audit: 343 files, 6 Critical, 14 High, 22 Medium, 19 Low
+5. Critical fixes: entity permissions (9 locked), staleTime, auth consolidation, ownership verification
+6. High fixes: DEC-107 enforced, agent field names corrected, meal-prep in agentScopedQuery
+7. Polish: 19 dead files deleted (-1,968 lines), 31 unused imports, Discover wired, phantom attention removed
+8. CLAUDE.md fully updated (was 1 month stale)
 
 ## Upcoming Priorities
 
-1. Test invite flow with Coach Rick's phone (end-to-end)
-2. League Link rethink — league discovery page instead of team join
-3. DEC-130 query optimization — batch profile queries for 429 reduction
-4. Play Library seedling — matures when 3+ teams active
-5. Mylane agent instruction refresh for current Team entities
-6. Anthropic API key for direct backend function LLM calls (zero credits)
-7. Landing page scroll story polish
+1. Coach Rick demo — foundation is stone, Team space production-ready
+2. Ephraim Pip-Boy design session
+3. Newsletter "The Good News" to wake dormant accounts
+4. Bari visit — show feedback chip, get verbal items into ServiceFeedback
+5. League Link rethink — league discovery page instead of team join
+6. Play Library seedling — matures when 3+ teams active
+7. Remaining polish: StepIndicator extraction, loading states, shared EmptyState, PM getProps, accessibility

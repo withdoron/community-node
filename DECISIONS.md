@@ -445,3 +445,30 @@
 **Status:** Active — ongoing
 
 ---
+
+### DEC-136: Creator Only as Default Entity Permission (2026-04-04)
+
+**Date:** 2026-04-04
+**Context:** Full audit found FSClient, FSDocument, FSEstimate had public read, exposing PII and portal tokens. 6 Critical issues, 3 were entity permission holes.
+**Decision:** Entity permissions default to Creator Only. Server functions with `asServiceRole` handle authorized cross-user access. Entity-level permissions are the last line of defense. New entities start Creator Only and open up only with explicit justification.
+**Status:** Active — 9 entities locked down
+
+---
+
+### DEC-137: Feedback Flows Through Companion (2026-04-04)
+
+**Date:** 2026-04-04
+**Context:** Two parallel feedback systems (FeedbackLog + ServiceFeedback). Bari's 14+ feedback items were verbal, never reached data layer.
+**Decision:** All feedback flows through MyLane companion. "Have feedback?" chip on all 8 space positions. ServiceFeedback is the sole entity. No confirmation card for feedback — effortless, not bureaucratic. FeedbackLog retired.
+**Status:** Active — floating button removed, ServiceFeedback is sole path
+
+---
+
+### DEC-138: Founding Gardener — Earned Status, Not Signup Bonus (2026-04-04)
+
+**Date:** 2026-04-04
+**Context:** platformPulse gardener observation revealed 22 users, 6 active, 16 dormant. Engagement highly concentrated.
+**Decision:** Founding Gardener is earned, not given. Weighted score: spaces (10), feedback (5), weeks active (3), content (2), participation (1). Personally assigned by Doron. Mycelia observes via gardener pulse; Doron observes from the field.
+**Status:** Active — gardener observation live via MCP
+
+---

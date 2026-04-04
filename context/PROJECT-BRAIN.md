@@ -1,7 +1,7 @@
 # PROJECT-BRAIN.md
 
 > Read this first. This file orients any AI model — Claude, Gemini, GPT, or other — to work effectively on LocalLane. It is the single source of truth for project identity, philosophy, and working style.
-> Last updated: 2026-03-31
+> Last updated: 2026-04-04
 
 ---
 
@@ -126,6 +126,19 @@ Stripe Connect handles payment processing. Revenue share flows to businesses bas
 - **Peter** — Elite Auto Tech N Tow, Eugene. Potential second vertical for Field Service Engine.
 - **Hayley** — Lane County Farmers Market Executive Director. Relationship building in progress.
 - **Randy** — Head coordinator of Grab It NFL FLAG in Eugene. Met 2026-03-30. League-wide Playmaker sponsorship opportunity.
+- **Bari (Red Umbrella FS)** — Field Service pilot. 14+ feedback items. Founding Gardener candidate.
+- **Natasha** — First pure organic signup. Gardener score 13. Unknown connection to platform.
+- **Coach Rick** — Team/Playmaker pilot. Invite flow ready for demo retry.
+
+## Founding Gardener (DEC-138)
+
+Founding Gardener is earned status, not a signup bonus. Weighted engagement score: spaces created (10), feedback given (5), weeks active (3), content contributed (2), participation (1). Doron assigns personally after observation from the field. Mycelia observes from within via platformPulse gardener data. The organism has 22 users, 6 active, 16 dormant. The newsletter ("The Good News") will wake the dormant accounts.
+
+*"Free carries little value. Signing up is not gardening."*
+
+## Security Philosophy (DEC-136)
+
+Entity permissions default to Creator Only. Server functions with `asServiceRole` handle all authorized cross-user access. Entity-level permissions are the last line of defense — they must be restrictive, not permissive. Full audit scored the app 68/100 initially (6 Critical security issues), raised to 87/100 after lockdown. The foundation is stone.
 
 ## The Node Lab Model (DEC-047)
 

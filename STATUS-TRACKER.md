@@ -21,12 +21,13 @@
 | 2026-03-31 (afternoon) | Landing page, onboarding, nav, privacy/terms, credit analysis | 7 | DEC-127 through DEC-130 |
 | 2026-03-31 (audit) | Meal Prep readiness audit, doc sync | — | — |
 | 2026-04-01 | Repo cleanup, Meal Prep Phase 1 build, drill-through fixes, MCP mobile confirmed | 4 commits | — |
+| 2026-04-04 | Full-day audit + security lockdown + polish. MylaneNote, Founding Gardener, feedback consolidation. 13-category audit (68/100). 7 commits: entity permissions, staleTime, auth, DEC-107, dead code (-1,968 lines). Score 68→87. | 7 | DEC-136 through DEC-138 |
 
 ## Node Status
 
 | Node | Score | Status | Last Updated |
 |------|-------|--------|-------------|
-| Community Node | ~85/100 | Meal Prep P1 shipped, repo cleaned, MCP mobile confirmed, 22 users | 2026-04-01 |
+| Community Node | ~87/100 | Full audit complete. Entity permissions locked (DEC-136). Dead code cleaned. Auth consolidated. DEC-107 enforced. MylaneNote live. Founding Gardener observation live. | 2026-04-04 |
 | Meal Prep | Phase 1 (gated) | 3 entities, recipe book, MyLane card, construction gated | 2026-04-01 |
 | Field Service | ~92/100 | Documents + e-sign + FieldServiceAgent + agentScopedWrite live | 2026-03-30 |
 | Harvest Network | ~60/100 | Phase 2 shipped, map gated | 2026-03-27 |
@@ -55,6 +56,6 @@
 | 12 | Documentation | Active |
 | 13 | Legal Check | Active |
 | 14 | Organism Signal | Active |
-| 15 | Space Agent | LIVE -- 5 agents (DEC-094, DEC-103) |
+| 15 | Space Agent | LIVE -- 8 App Agents + 1 Mycelia Superagent. DEC-107 enforced (no direct entity tools). |
 
 ---
