@@ -11,12 +11,14 @@ Deno.serve(async (req) => {
 
     let action;
 
+    // Auth: header-only (x-api-key). Query param auth removed — keys leak in logs/referrers.
+    // GET requests: pass action as query param, key as header
     if (req.method === 'GET') {
-      const queryKey = url.searchParams.get('key');
-      const queryAction = url.searchParams.get('action');
-      if (!queryKey || queryKey !== envKey) {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      const headerKey = req.headers.get('x-api-key');
+      if (!headerKey || headerKey !== envKey) {
+        return Response.json({ error: 'Unauthorized — pass API key via x-api-key header' }, { status: 401 });
       }
+      const queryAction = url.searchParams.get('action');
       if (!queryAction) {
         return Response.json({
           error: 'Missing action',

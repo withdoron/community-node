@@ -18,7 +18,14 @@ async function generateSignature(payload, secret) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
+
+    // Auth check — verify caller is authenticated (internal function calls carry auth context)
+    var caller = null;
+    try { caller = await base44.auth.me(); } catch (e) { /* no auth */ }
+    if (!caller || !caller.id) {
+      return Response.json({ error: 'Authentication required — this function is for internal use only' }, { status: 401 });
+    }
+
     // This function should be called by other backend functions or automations
     // Payload should include: spoke_id, event_type, local_event_id, data
     const payload = await req.json();

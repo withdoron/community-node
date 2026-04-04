@@ -119,20 +119,25 @@ const AuthenticatedApp = () => {
           </ProtectedRoute>
         }
       />
+      {/* Networks are private gardens — require auth (DEC-117, PROJECT-BRAIN) */}
       <Route
         path="/networks"
         element={
-          <LayoutWrapper currentPageName="Networks">
-            <Networks />
-          </LayoutWrapper>
+          <ProtectedRoute>
+            <LayoutWrapper currentPageName="Networks">
+              <Networks />
+            </LayoutWrapper>
+          </ProtectedRoute>
         }
       />
       <Route
         path="/networks/:slug"
         element={
-          <LayoutWrapper currentPageName="Networks">
-            <NetworkPage />
-          </LayoutWrapper>
+          <ProtectedRoute>
+            <LayoutWrapper currentPageName="Networks">
+              <NetworkPage />
+            </LayoutWrapper>
+          </ProtectedRoute>
         }
       />
       <Route

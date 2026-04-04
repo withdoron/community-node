@@ -122,7 +122,7 @@ export default function StaffWidget({ business, currentUserId }) {
       if (rolesExisting.length > 0) {
         try {
           currentRoles = JSON.parse(rolesExisting[0].value || '[]') || [];
-        } catch {}
+        } catch { /* malformed JSON — use empty default */ }
       }
       const newRole = {
         user_id: userId,
@@ -173,7 +173,7 @@ export default function StaffWidget({ business, currentUserId }) {
       if (existing.length > 0) {
         try {
           currentInvites = JSON.parse(existing[0].value) || [];
-        } catch {}
+        } catch { /* malformed JSON — use empty default */ }
       }
       if (currentInvites.some((inv) => (inv.email || '').toLowerCase() === email.toLowerCase())) {
         throw new Error('Already invited');
@@ -230,7 +230,7 @@ export default function StaffWidget({ business, currentUserId }) {
           let currentInvites = [];
           try {
             currentInvites = JSON.parse(existing[0].value) || [];
-          } catch {}
+          } catch { /* malformed JSON — use empty default */ }
           const updatedInvites = currentInvites.filter(
             (inv) => (inv.email || '').toLowerCase() !== String(identifier).toLowerCase()
           );
@@ -258,7 +258,7 @@ export default function StaffWidget({ business, currentUserId }) {
           let currentRoles = [];
           try {
             currentRoles = JSON.parse(rolesExisting[0].value) || [];
-          } catch {}
+          } catch { /* malformed JSON — use empty default */ }
           const updatedRoles = currentRoles.filter((r) => r.user_id !== identifier);
           await base44.functions.invoke('updateAdminSettings', {
             action: 'update',

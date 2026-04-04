@@ -492,7 +492,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       if (existing.length > 0) {
         try {
           currentRoles = JSON.parse(existing[0].value) || [];
-        } catch {}
+        } catch { /* malformed JSON — use empty default */ }
       }
       const newRole = { user_id: userId, role, added_at: new Date().toISOString() };
       const updatedRoles = [...currentRoles.filter((r) => r.user_id !== userId), newRole];
@@ -547,7 +547,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
         let currentRoles = [];
         try {
           currentRoles = JSON.parse(existing[0].value) || [];
-        } catch {}
+        } catch { /* malformed JSON — use empty default */ }
         const updatedRoles = currentRoles.filter((r) => r.user_id !== userId);
         await base44.functions.invoke('updateAdminSettings', {
           action: 'update',
@@ -610,7 +610,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       if (existing.length > 0) {
         try {
           currentInvites = JSON.parse(existing[0].value) || [];
-        } catch {}
+        } catch { /* malformed JSON — use empty default */ }
       }
       if (currentInvites.some((inv) => (inv.email || '').toLowerCase() === email.toLowerCase())) {
         throw new Error('Already invited');

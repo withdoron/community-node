@@ -6,7 +6,9 @@ export const sanitizeText = (input) => {
   return DOMPurify.sanitize(input, { ALLOWED_TAGS: [] });
 };
 
-// Allow basic formatting (bold, italic, links) — for rich text fields if needed
+// Allow basic formatting (bold, italic, links) — reserved for future rich text input fields.
+// Currently unused. When adding rich text rendering (e.g. agent markdown output),
+// run user content through this before dangerouslySetInnerHTML.
 export const sanitizeRichText = (input) => {
   if (!input || typeof input !== 'string') return input;
   return DOMPurify.sanitize(input, {

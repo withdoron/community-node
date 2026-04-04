@@ -108,7 +108,7 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
       await navigator.clipboard.writeText(url);
       setLinkCopied(true);
       setTimeout(() => setLinkCopied(false), 2000);
-    } catch {}
+    } catch { /* clipboard API unavailable */ }
   };
 
   if (loading) {
