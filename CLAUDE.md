@@ -16,7 +16,7 @@ Build with care. Every line of code is a hypha extending the organism into new t
 > Read at the start of every Claude Code session.
 > Lean by design — uses @imports for details. Only what Claude cannot guess lives here.
 > Update this file when a mistake should never recur or a new convention is established.
-> Last updated: 2026-03-04
+> Last updated: 2026-04-04
 
 ---
 
@@ -83,7 +83,7 @@ Key source files to read before coding:
 | RSVP logic | `src/hooks/useRSVP.js` |
 | Admin panel | `src/pages/Admin.jsx`, `src/components/admin/` |
 | MyLane | `src/pages/MyLane.jsx`, `src/components/mylane/` |
-| Dashboard | `src/pages/BusinessDashboard.jsx`, `src/components/dashboard/` |
+| Dashboard (retired) | BusinessDashboard retired (DEC-131). Dashboard components in `src/components/dashboard/` are legacy — workspaces render through MyLane spinner + MyLaneDrillView |
 | Config data | `src/config/` |
 
 ---
@@ -122,7 +122,7 @@ useEffect(() => {
 }, [user?.id]);
 ```
 
-**Entity definitions live in the Base44 dashboard, not in this repo.** There is no `base44/entities/` folder.
+**Entity definitions live in the Base44 dashboard.** The `base44/entities/` folder contains .jsonc reference copies (21 entities) but is NOT the source of truth — the dashboard is. Many entities in use (~50+) don't have .jsonc files yet.
 
 **Base44 Entity Management (DEC-093):** Entity creation, field additions, and permission changes are done via Base44 agent prompts, not manually in the dashboard. When a build requires entity changes:
 1. Write a separate Base44 agent prompt (markdown with tables)
@@ -145,11 +145,10 @@ const list = (Array.isArray(all) ? all : []).filter((t) => t.profile_id === prof
 
 Confirmed on: FSDocumentTemplate, FrequencySong. Assume any entity with service-role-created records has this issue.
 
-### Superagent Patterns
-- base44.auth.me() in backend functions gives authenticated user context — never pass user_id as agent parameter
-- Agents can have entity tools + backend function tools simultaneously — LLM chooses based on instructions
-- Entity Tool reads use RLS only — "Authenticated Users" means agent sees ALL records
-- For workspace-scoped reads, agents must use a backend function (agentScopedQuery) that filters by user's profile
+### Superagent Patterns (DEC-107)
+- Space agents (FieldService, Finance, Playmaker, PropertyPulse, MyLane) use ONLY agentScopedQuery for data reads + ServiceFeedback entity for feedback. Direct entity tools were removed per DEC-107 to enforce the permission membrane. AdminAgent is the exception — it reads all entities directly.
+- base44.auth.me() in backend functions gives authenticated user context — agents pass user_id explicitly (DEC-110)
+- For workspace-scoped reads, agents MUST use agentScopedQuery server function
 - Agent responses can include structured JSON — frontend intercepts via subscribeToConversation callback
 - AgentChat MessageBubble renders content via ReactMarkdown
 
@@ -161,39 +160,40 @@ Confirmed on: FSDocumentTemplate, FrequencySong. Assume any entity with service-
 
 ## Tier System
 
-Three tiers. Always lowercase in code and database.
+Two pricing tiers for workspace profiles (DEC-115, DEC-128). Always lowercase in code and database.
 
 ```javascript
-subscription_tier: 'basic' | 'standard' | 'partner'
-// Use the hook, not raw string comparisons:
-const { tier, tierLevel, canUseJoyCoins, canAutoPublish, isPartner } = useOrganization();
-// tierLevel: 1 = basic, 2 = standard, 3 = partner
+// Workspace profile tier (on FieldServiceProfile, FinancialProfile, PMPropertyProfile, etc.)
+subscription_tier: 'free' | 'help' | 'full'
+// 'free' = no agent ($3 base)
+// 'help' = read-only agent ($9/month)
+// 'full' = read+write agent ($18/month)
 ```
 
-Locked feature pattern:
-```jsx
-{tierLevel < 2 ? (
-  <div className="flex items-center gap-2 text-slate-400">
-    <Lock className="h-4 w-4 text-amber-500" />
-    <span>Standard tier required</span>
-  </div>
-) : (
-  <ActualFeature />
-)}
+Business directory uses a separate tier system:
+```javascript
+// Business entity tier (legacy, separate from workspace profiles)
+subscription_tier: 'free' | 'silver' | 'gold'
 ```
+
+The `useOrganization()` hook returns business-level tier info. For workspace agent gating, check `profile.subscription_tier` directly. agentScopedWrite enforces `tier === 'full'` server-side.
 
 ---
 
-## Gold Standard — Quick Reference
+## Gold Standard — Quick Reference (DEC-132: Semantic Tokens)
+
+Use semantic Tailwind classes, not hardcoded colors. Migration is 98.5% complete.
 
 ```
-BACKGROUNDS:  bg-slate-950 (page) / bg-slate-900 (cards) / bg-slate-800 (elevated)
-ACCENT:       bg-amber-500 (primary) / bg-amber-400 (hover) / bg-amber-600 (active)
-TEXT:          text-white (primary) / text-slate-300 (secondary) / text-slate-400 (muted) / text-black (on gold)
-BORDERS:      border-slate-800 (default) / border-white/10 (subtle) / border-amber-500 (selected)
-ICONS:        text-amber-500 (emphasis) or text-white / text-slate-400 (default). Lucide React only.
-NEVER:        bg-white, bg-blue-*, bg-green-*, colorful icons, gradients
+BACKGROUNDS:  bg-background (page) / bg-card (cards) / bg-secondary (elevated)
+ACCENT:       bg-primary (gold) / bg-primary-hover / text-primary
+TEXT:          text-foreground (primary) / text-foreground-soft (secondary) / text-muted-foreground (muted) / text-primary-foreground (on gold)
+BORDERS:      border-border (default) / border-white/10 (subtle) / border-primary (selected)
+ICONS:        text-primary (emphasis) or text-foreground / text-muted-foreground (default). Lucide React only.
+NEVER:        bg-white, bg-blue-*, bg-green-*, colorful icons, gradients, hardcoded bg-slate-* or text-white
 ```
+
+When modifying any file, convert remaining hardcoded color classes to semantic equivalents (DEC-132 organic migration).
 
 Full details: @STYLE-GUIDE.md
 
@@ -293,6 +293,18 @@ Always include `hover:bg-transparent` on outline buttons to override shadcn/ui B
 ### formatCurrency
 
 Use `Intl.NumberFormat` — never `.toFixed(2)`.
+
+### Auth State: Single Source of Truth (2026-04-04)
+
+AuthContext and React Query `['currentUser']` are synchronized. AuthContext seeds the RQ cache on login, and `refreshUser()` updates both. When updating user profile data, call `refreshUser()` from `useAuth()` to keep both in sync. Do NOT call `base44.auth.me()` directly in new components — use the `['currentUser']` query key which is pre-seeded by AuthContext.
+
+### React Query staleTime (2026-04-04, DEC-130)
+
+Default staleTime is 5 minutes (set in `query-client.js`). Do NOT override with `staleTime: 0` in individual queries unless you have a specific real-time data need. The 5-minute default prevents redundant API calls on route changes. If a query needs fresher data, set `staleTime: 60 * 1000` (1 min), not 0.
+
+### Agent entity tools removed (2026-04-04, DEC-107)
+
+Space agents (FieldService, Finance, Playmaker, PropertyPulse, MyLane) no longer have direct entity read tools. They use ONLY agentScopedQuery + ServiceFeedback entity. Do NOT re-add entity tools when updating agent configs — it bypasses the permission membrane.
 
 ---
 
