@@ -22,6 +22,7 @@
 | 2026-03-31 (audit) | Meal Prep readiness audit, doc sync | — | — |
 | 2026-04-01 | Repo cleanup, Meal Prep Phase 1 build, drill-through fixes, MCP mobile confirmed | 4 commits | — |
 | 2026-04-04 | Full-day audit + security lockdown + polish. MylaneNote, Founding Gardener, feedback consolidation. 13-category audit (68/100). 7 commits: entity permissions, staleTime, auth, DEC-107, dead code (-1,968 lines). Score 68→87. | 7 | DEC-136 through DEC-138 |
+| 2026-04-05 | MyLane reminder loop bug fix. Server-authoritative user_id on agent writes (DEC-139). MyLane instructions updated. Read path confirmed. Pending Base44 publish. | 1 | DEC-139 |
 
 ## Node Status
 

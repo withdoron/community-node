@@ -634,3 +634,21 @@ None (architecture questions captured, not decided)
 - Remaining polish: StepIndicator extraction, loading states, shared EmptyState, accessibility pass
 
 ---
+
+### Session — 2026-04-05 (Sunday — MyLane Reminder Loop Bug Fix)
+
+**Focus:** MylaneNote reminder loop field test. Diagnosed user_id bug, shipped server-side fix (DEC-139), updated MyLane instructions, healed record, confirmed read path.
+
+**Bug:** MyLane agent wrote `user_id: "special-user"` as literal string. LLM interpreted instruction as placeholder token. `agentScopedWrite` had a `== null` guard that preserved the agent's value.
+
+**Fix:** agentScopedWrite now unconditionally stamps `user_id`/`owner_id` from server-resolved auth context. Null-check removed for identity fields. Commit: `fix(agent-write): server-authoritative user_id on per-user entity writes`.
+
+**Also shipped:** MyLane instruction updates (removed user_id from write payloads, added query/write asymmetry). Bad record healed by Mycelia. RemindersCard confirmed rendering.
+
+**Decisions:** DEC-139 (server-authoritative identity on agent writes)
+
+**Pending:** Base44 publish for server fix + instruction updates to go live. End-to-end write verification.
+
+**Known issues:** Date parsing bug ("tomorrow" → 2026-04-19), MCP fallback path weaker than auth.me().
+
+---

@@ -472,3 +472,14 @@
 **Status:** Active — gardener observation live via MCP
 
 ---
+
+### DEC-139: Server-Authoritative Identity on Agent Writes (2026-04-05)
+
+**Date:** 2026-04-05
+**Context:** MyLane agent wrote `user_id: "special-user"` as literal string into MylaneNote. LLM interpreted instruction as placeholder token. Record persisted but invisible (query by real user_id found nothing).
+**Decision:** Identity fields (`user_id`, `owner_id`) are set exclusively by agentScopedWrite from server-resolved auth context. Null-check guard removed — server always wins. Query/write asymmetry: queries need user_id for scoping, writes forbid it.
+**Cross-references:** Extends DEC-115 (three-gate enforcement) with identity stamping gate. Complements DEC-136 (Creator Only permissions).
+**Affected:** ServiceFeedback, Recommendation, MylaneNote, plus `workspace === 'platform'` catch-all.
+**Status:** Active — shipped, pending Base44 publish
+
+---
