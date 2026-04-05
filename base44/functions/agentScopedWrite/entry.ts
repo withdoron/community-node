@@ -227,19 +227,23 @@ Deno.serve(async (req) => {
 
       // Stamp FK field so the record belongs to the user's workspace
       var fkConfig = ENTITY_FK[entity];
-      if (fkConfig && profileId) {
+      if (fkConfig) {
         var fk = fkConfig.fkField;
-        if (writeData[fk] == null) {
-          if (fk === 'user_id' || fk === 'owner_id') {
-            writeData[fk] = resolvedUserId;
-          } else {
-            writeData[fk] = profileId;
-          }
+        if (fk === 'user_id' || fk === 'owner_id') {
+          // Server-authoritative user_id / owner_id. Agents cannot set this field.
+          // The real authenticated user is resolved from auth.me() or MCP user lookup
+          // and ALWAYS overwrites any value the agent passed in data.
+          // This prevents agents from interpreting instructional phrases
+          // (e.g. "pass the user's ID from your context") as placeholder tokens
+          // and writing literal strings into identity-scoping fields.
+          writeData[fk] = resolvedUserId;
+        } else if (profileId && writeData[fk] == null) {
+          writeData[fk] = profileId;
         }
       }
 
-      // Platform entities get user_id stamped directly
-      if (workspace === 'platform' && writeData.user_id == null) {
+      // Platform entities: also enforce user_id even if not in ENTITY_FK
+      if (workspace === 'platform') {
         writeData.user_id = resolvedUserId;
       }
 
