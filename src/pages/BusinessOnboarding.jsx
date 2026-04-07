@@ -25,7 +25,7 @@ function formatPhone(value) {
   if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
-
+//small change
 const ARCHETYPE_ICON_MAP = { Store, Briefcase, Heart, Ticket, Sprout };
 
 export default function BusinessOnboarding() {
