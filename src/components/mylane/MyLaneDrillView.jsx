@@ -5,6 +5,7 @@
  */
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { fetchTeamData } from '@/hooks/useTeamEntity';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { WORKSPACE_TYPES, getBusinessTabs } from '@/config/workspaceTypes';
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
@@ -54,8 +55,7 @@ export default function MyLaneDrillView({
     queryKey: ['mylane-drill-team-members', teamId],
     queryFn: async () => {
       if (!teamId) return [];
-      const list = await base44.entities.TeamMember.filter({ team_id: teamId, status: 'active' });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      return fetchTeamData('TeamMember', teamId, { status: 'active' });
     },
     enabled: !!teamId,
   });

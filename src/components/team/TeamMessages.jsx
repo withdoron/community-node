@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { fetchTeamData } from '@/hooks/useTeamEntity';
 import { sanitizeText } from '@/utils/sanitize';
 import { toast } from 'sonner';
 import { MessageSquare, Send, Pin } from 'lucide-react';
@@ -59,8 +60,7 @@ export default function TeamMessages({ teamId, teamScope }) {
     queryKey: ['team-messages', teamId],
     queryFn: async () => {
       if (!teamId) return [];
-      const list = await base44.entities.TeamMessage.filter({ team_id: teamId });
-      return Array.isArray(list) ? list : [];
+      return fetchTeamData('TeamMessage', teamId);
     },
     enabled: !!teamId,
   });

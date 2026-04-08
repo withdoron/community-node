@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { fetchTeamData } from '@/hooks/useTeamEntity';
 import { Button } from '@/components/ui/button';
 import { Users, BookOpen, Calendar, UserPlus, Share2, MessageSquare, Clock, MapPin, Zap, Trophy, Flame } from 'lucide-react';
 import usePlayerStats from '@/hooks/usePlayerStats';
@@ -95,8 +96,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     queryKey: ['plays-count', team?.id],
     queryFn: async () => {
       if (!team?.id) return [];
-      const list = await base44.entities.Play.filter({ team_id: team.id, status: 'active' });
-      return Array.isArray(list) ? list : [];
+      return fetchTeamData('Play', team.id, { status: 'active' });
     },
     enabled: !!team?.id,
   });
@@ -112,10 +112,10 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     queryKey: ['renderer-play-assignments', team?.id],
     queryFn: async () => {
       if (!team?.id) return [];
-      const all = await base44.entities.PlayAssignment.list();
-      const list = Array.isArray(all) ? all : [];
+      // Fetch all assignments for renderer plays via readTeamData (bypasses Creator Only RLS)
+      const allAssignments = await fetchTeamData('PlayAssignment', team.id, {});
       const playIdSet = new Set(rendererPlayIds);
-      return list.filter((a) => playIdSet.has(a.play_id));
+      return allAssignments.filter((a) => playIdSet.has(a.play_id));
     },
     enabled: !!team?.id && rendererPlayIds.length > 0,
     staleTime: 2 * 60 * 1000,
@@ -133,8 +133,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     queryKey: ['team-events', team?.id],
     queryFn: async () => {
       if (!team?.id) return [];
-      const list = await base44.entities.TeamEvent.filter({ team_id: team.id });
-      return Array.isArray(list) ? list : [];
+      return fetchTeamData('TeamEvent', team.id);
     },
     enabled: !!team?.id,
   });
@@ -142,8 +141,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     queryKey: ['team-player-stats', team?.id],
     queryFn: async () => {
       if (!team?.id) return [];
-      const list = await base44.entities.PlayerStats.filter({ team_id: team.id });
-      return Array.isArray(list) ? list : [];
+      return fetchTeamData('PlayerStats', team.id);
     },
     enabled: !!team?.id,
   });
@@ -151,8 +149,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     queryKey: ['team-messages', team?.id],
     queryFn: async () => {
       if (!team?.id) return [];
-      const list = await base44.entities.TeamMessage.filter({ team_id: team.id });
-      return Array.isArray(list) ? list : [];
+      return fetchTeamData('TeamMessage', team.id);
     },
     enabled: !!team?.id,
   });

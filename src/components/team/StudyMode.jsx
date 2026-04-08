@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { fetchTeamData } from '@/hooks/useTeamEntity';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import PlayRenderer from '@/components/field/PlayRenderer';
 import { getPositionsForFormat, DEFAULT_FORMAT } from '@/config/flagFootball';
@@ -28,6 +29,7 @@ export default function StudyMode({
   onClose,
   initialIndex = 0,
   teamFormat,
+  teamId,
 }) {
   const [currentIndex, setCurrentIndex] = useState(Math.min(initialIndex, Math.max(0, plays.length - 1)));
   const [viewMode, setViewMode] = useState(playerPosition ? 'my' : 'full'); // players default My Assignment, coaches Full Play
@@ -58,8 +60,8 @@ export default function StudyMode({
         return;
       }
       try {
-        const result = await base44.entities.PlayAssignment.filter({ play_id: play.id });
-        setCurrentAssignments(Array.isArray(result) ? result : []);
+        const result = await fetchTeamData('PlayAssignment', teamId, { play_id: play.id });
+        setCurrentAssignments(result);
       } catch (err) {
         console.error('Failed to fetch assignments:', err);
         setCurrentAssignments([]);

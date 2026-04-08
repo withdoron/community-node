@@ -156,6 +156,34 @@ Confirmed on: FSDocumentTemplate, FrequencySong. Assume any entity with service-
 
 **Base44 SERVER SDK (.asServiceRole) — DIFFERENT PATTERN:** In server functions (functions/ directory), `.filter()` returns the array directly. Do NOT chain `.list()` — it will fail because `.list()` is not a function on an array. Pattern: `base44.asServiceRole.entities.Entity.filter({ field: value })` — no `.list()`.
 
+### Team-Scoped Entity Reads — readTeamData (2026-04-08)
+
+**All team-scoped entity reads MUST go through `readTeamData` server function or the `useTeamEntity` / `fetchTeamData` hook.**
+
+Direct `.filter()` or `.list()` calls on team entities will silently return per-user filtered data due to Base44 Creator Only RLS (DEC-136). This is not a bug in your code — Base44's RLS layer strips records whose `created_by` doesn't match the requesting user, before results reach the client. Under Creator Only, `.list()` does NOT bypass RLS (confirmed by Base44 support 2026-04-08).
+
+**Team-scoped entities:** Play, TeamMember, TeamEvent, TeamMessage, TeamPhoto, PlayAssignment, PlayerStats, QuizAttempt
+
+```javascript
+// WRONG — returns only records YOU created (Creator Only RLS)
+const list = await base44.entities.Play.filter({ team_id: teamId });
+const all = await base44.entities.TeamMember.list();
+
+// RIGHT — server function verifies membership, uses asServiceRole to bypass RLS
+import { fetchTeamData } from '@/hooks/useTeamEntity';
+const plays = await fetchTeamData('Play', teamId, { status: 'active' });
+
+// RIGHT — React hook wrapper (for useQuery patterns)
+import { useTeamEntity } from '@/hooks/useTeamEntity';
+const { data: members } = useTeamEntity('TeamMember', teamId, { status: 'active' });
+```
+
+**Exception:** User-scoped reads within team context (e.g., `usePlayerStats` reading the current user's own stats via `{ user_id, team_id }`) work correctly under Creator Only because the user IS the creator. Only team-wide reads require `readTeamData`.
+
+**Server function note:** `readTeamData` uses `asServiceRole.entities[entityName].filter({...})` for database-level filtering. Always pass specific filter criteria — never fetch all records and filter in memory.
+
+Full architecture: `private/TEAM-VISIBILITY-ARCHITECTURE.md`
+
 ---
 
 ## Tier System

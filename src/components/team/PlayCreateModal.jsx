@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { fetchTeamData } from '@/hooks/useTeamEntity';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,8 +69,7 @@ export default function PlayCreateModal({
     queryKey: ['play-assignments-edit', editPlay?.id],
     queryFn: async () => {
       if (!editPlay?.id) return [];
-      const list = await base44.entities.PlayAssignment.filter({ play_id: editPlay.id });
-      return Array.isArray(list) ? list : [];
+      return fetchTeamData('PlayAssignment', teamId, { play_id: editPlay.id });
     },
     enabled: !!editPlay?.id && open,
   });
@@ -218,8 +218,7 @@ export default function PlayCreateModal({
 
       // Smart update: match by position, only delete removed, only create added
       if (editPlay?.id) {
-        const existing = await base44.entities.PlayAssignment.filter({ play_id: playId }).then((r) => r ?? []);
-        const existingList = Array.isArray(existing) ? existing : [];
+        const existingList = await fetchTeamData('PlayAssignment', teamId, { play_id: playId });
         const existingByPos = Object.fromEntries(existingList.map((a) => [a.position, a]));
 
         for (const pos of positions) {

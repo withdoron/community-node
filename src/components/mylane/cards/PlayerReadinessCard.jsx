@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
+import { fetchTeamData } from '@/hooks/useTeamEntity';
 import { useQuery } from '@tanstack/react-query';
 import { Users, Camera, Calendar } from 'lucide-react';
 
@@ -38,10 +39,7 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
     queryKey: ['mylane-team-members', team.id],
     queryFn: async () => {
       if (!team.id) return [];
-      try {
-        const list = await base44.entities.TeamMember.filter({ team_id: team.id, status: 'active' });
-        return Array.isArray(list) ? list : list ? [list] : [];
-      } catch { return []; }
+      return fetchTeamData('TeamMember', team.id, { status: 'active' });
     },
     enabled: !!team.id,
   });
@@ -50,11 +48,8 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
     queryKey: ['mylane-team-photo-count', team.id],
     queryFn: async () => {
       if (!team.id) return 0;
-      try {
-        if (!base44.entities.TeamPhoto) return 0;
-        const list = await base44.entities.TeamPhoto.filter({ team_id: team.id });
-        return Array.isArray(list) ? list.length : 0;
-      } catch { return 0; }
+      const photos = await fetchTeamData('TeamPhoto', team.id);
+      return photos.length;
     },
     enabled: !!team.id,
   });
@@ -63,15 +58,12 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
     queryKey: ['mylane-team-next-event', team.id],
     queryFn: async () => {
       if (!team.id) return null;
-      try {
-        const list = await base44.entities.TeamEvent.filter({ team_id: team.id });
-        const events = Array.isArray(list) ? list : list ? [list] : [];
-        const today = new Date().toISOString().split('T')[0];
-        const upcoming = events
-          .filter((e) => e.start_date >= today)
-          .sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''));
-        return upcoming[0] || null;
-      } catch { return null; }
+      const events = await fetchTeamData('TeamEvent', team.id);
+      const today = new Date().toISOString().split('T')[0];
+      const upcoming = events
+        .filter((e) => e.start_date >= today)
+        .sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''));
+      return upcoming[0] || null;
     },
     enabled: !!team.id,
   });

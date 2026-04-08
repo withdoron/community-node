@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { fetchTeamData } from '@/hooks/useTeamEntity';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import PlayRenderer from '@/components/field/PlayRenderer';
 import { getPositionsForFormat, DEFAULT_FORMAT } from '@/config/flagFootball';
@@ -9,6 +10,7 @@ export default function SidelineMode({
   plays = [],
   onClose,
   teamFormat,
+  teamId,
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [gameDayOnly, setGameDayOnly] = useState(true);
@@ -30,8 +32,7 @@ export default function SidelineMode({
     queryKey: ['play-assignments', play?.id],
     queryFn: async () => {
       if (!play?.id) return [];
-      const list = await base44.entities.PlayAssignment.filter({ play_id: play.id });
-      return Array.isArray(list) ? list : [];
+      return fetchTeamData('PlayAssignment', teamId, { play_id: play.id });
     },
     enabled: !!play?.id,
   });

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
+import { fetchTeamData } from '@/hooks/useTeamEntity';
 import { Loader2, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -405,12 +406,7 @@ export default function PlayBuilder({
         playId = initialPlay.id;
 
         // Smart assignment update: update existing, create new, delete removed
-        const existingAssignments = await base44.entities.PlayAssignment.filter({
-          play_id: playId,
-        });
-        const existingList = Array.isArray(existingAssignments)
-          ? existingAssignments
-          : [];
+        const existingList = await fetchTeamData('PlayAssignment', team.id, { play_id: playId });
 
         const existingByPosition = {};
         existingList.forEach((a) => {

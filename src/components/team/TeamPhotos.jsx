@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { fetchTeamData } from '@/hooks/useTeamEntity';
 import { toast } from 'sonner';
 import { Camera, X, Trash2, ChevronLeft, ChevronRight, Loader2, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -46,8 +47,7 @@ export default function TeamPhotos({ team, members = [], isCoach, currentUserId 
     queryFn: async () => {
       if (!teamId) return [];
       try {
-        const list = await base44.entities.TeamPhoto.filter({ team_id: teamId });
-        return Array.isArray(list) ? list : [];
+        return fetchTeamData('TeamPhoto', teamId);
       } catch { return []; }
     },
     enabled: !!teamId,

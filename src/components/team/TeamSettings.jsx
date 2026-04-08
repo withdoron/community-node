@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { fetchTeamData } from '@/hooks/useTeamEntity';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,8 +44,7 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
     queryKey: ['plays', team?.id],
     queryFn: async () => {
       if (!team?.id) return [];
-      const list = await base44.entities.Play.filter({ team_id: team.id, status: 'active' });
-      return Array.isArray(list) ? list : [];
+      return fetchTeamData('Play', team.id, { status: 'active' });
     },
     enabled: !!team?.id,
   });
@@ -126,8 +126,7 @@ export default function TeamSettings({ team, members = [], isCoach, onArchived, 
 
   const transferOwnership = useMutation({
     mutationFn: async ({ newOwnerUserId }) => {
-      const teamMembers = await base44.entities.TeamMember.filter({ team_id: team.id });
-      const list = Array.isArray(teamMembers) ? teamMembers : [];
+      const list = await fetchTeamData('TeamMember', team.id);
       const newOwnerMember = list.find((m) => m.user_id === newOwnerUserId);
       const currentMember = list.find((m) => m.user_id === currentUserId);
       if (!newOwnerMember || !currentMember) throw new Error('Member not found');

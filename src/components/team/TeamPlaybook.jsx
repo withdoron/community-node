@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { fetchTeamData } from '@/hooks/useTeamEntity';
 import { Plus, BookOpen, Monitor, Zap, Lightbulb, Star, Printer, Scale } from 'lucide-react';
 import { toast } from 'sonner';
 import PlayCard from './PlayCard';
@@ -47,8 +48,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
     queryKey: ['plays', team?.id],
     queryFn: async () => {
       if (!team?.id) return [];
-      const list = await base44.entities.Play.filter({ team_id: team.id });
-      return Array.isArray(list) ? list : [];
+      return fetchTeamData('Play', team.id);
     },
     enabled: !!team?.id,
   });
@@ -57,8 +57,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
     queryKey: ['play-assignments', selectedPlay?.id],
     queryFn: async () => {
       if (!selectedPlay?.id) return [];
-      const list = await base44.entities.PlayAssignment.filter({ play_id: selectedPlay.id });
-      return Array.isArray(list) ? list : [];
+      return fetchTeamData('PlayAssignment', team.id, { play_id: selectedPlay.id });
     },
     enabled: !!selectedPlay?.id,
   });
@@ -73,10 +72,10 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
     queryKey: ['renderer-play-assignments', team?.id],
     queryFn: async () => {
       if (!team?.id) return [];
-      const all = await base44.entities.PlayAssignment.list();
-      const list = Array.isArray(all) ? all : [];
+      // Fetch all assignments via readTeamData (bypasses Creator Only RLS)
+      const allAssignments = await fetchTeamData('PlayAssignment', team.id, {});
       const playIdSet = new Set(rendererPlayIds);
-      return list.filter((a) => playIdSet.has(a.play_id));
+      return allAssignments.filter((a) => playIdSet.has(a.play_id));
     },
     enabled: !!team?.id && rendererPlayIds.length > 0,
     staleTime: 2 * 60 * 1000,
@@ -141,8 +140,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
       // Fetch assignments — swallow errors (may be rate limited or already gone)
       let assignmentList = [];
       try {
-        const assignments = await base44.entities.PlayAssignment.filter({ play_id: play.id });
-        assignmentList = Array.isArray(assignments) ? assignments : [];
+        assignmentList = await fetchTeamData('PlayAssignment', team.id, { play_id: play.id });
       } catch { /* rate limit or network error — proceed to delete play anyway */ }
 
       // Delete assignments one by one, ignore failures (404 = already gone)
@@ -486,6 +484,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
           playerPosition={playerPosition}
           isCoach={isCoach}
           teamFormat={team?.format}
+          teamId={team?.id}
           onClose={() => { setStudyModeOpen(false); setStudyModeInitialPlayId(null); }}
           initialIndex={
             studyModeInitialPlayId
@@ -500,6 +499,7 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
         <SidelineMode
           plays={officialPlaysForSide}
           teamFormat={team?.format}
+          teamId={team?.id}
           onClose={() => setSidelineModeOpen(false)}
         />
       )}

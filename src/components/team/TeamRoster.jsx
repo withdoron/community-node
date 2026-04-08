@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
+import { fetchTeamData } from '@/hooks/useTeamEntity';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,8 +64,7 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
     queryKey: ['team-player-stats', team?.id],
     queryFn: async () => {
       if (!team?.id) return [];
-      const list = await base44.entities.PlayerStats.filter({ team_id: team.id });
-      return Array.isArray(list) ? list : [];
+      return fetchTeamData('PlayerStats', team.id);
     },
     enabled: !!team?.id,
   });
