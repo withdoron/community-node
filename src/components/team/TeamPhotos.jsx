@@ -56,7 +56,7 @@ export default function TeamPhotos({ team, members = [], isCoach, currentUserId 
 
   // Sort newest first
   const photos = useMemo(
-    () => [...rawPhotos].sort((a, b) => new Date(b.created_date || 0).getTime() - new Date(a.created_date || 0).getTime()),
+    () => { const safe = Array.isArray(rawPhotos) ? rawPhotos : []; return [...safe].sort((a, b) => new Date(b.created_date || 0).getTime() - new Date(a.created_date || 0).getTime()); },
     [rawPhotos]
   );
 

@@ -217,14 +217,15 @@ export default function TeamSchedule({ teamId, teamScope }) {
 
   const gameDayPlayCount = useMemo(() => teamPlays.filter((p) => p.game_day && p.status === 'active').length, [teamPlays]);
 
+  const safeRawEvents = Array.isArray(rawEvents) ? rawEvents : [];
   const events = useMemo(() => {
-    const sorted = [...rawEvents].sort((a, b) => {
+    const sorted = [...safeRawEvents].sort((a, b) => {
       const da = a.start_date ? new Date(a.start_date + (a.start_time ? `T${a.start_time}` : 'T12:00:00')).getTime() : 0;
       const db = b.start_date ? new Date(b.start_date + (b.start_time ? `T${b.start_time}` : 'T12:00:00')).getTime() : 0;
       return da - db;
     });
     return sorted;
-  }, [rawEvents]);
+  }, [safeRawEvents]);
 
   const now = Date.now();
   const upcoming = useMemo(() => events.filter((e) => {

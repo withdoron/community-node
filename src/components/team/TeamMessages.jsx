@@ -66,7 +66,8 @@ export default function TeamMessages({ teamId, teamScope }) {
   });
 
   const messages = useMemo(() => {
-    const filtered = rawMessages.filter((m) => m.message_type === messageType);
+    const safe = Array.isArray(rawMessages) ? rawMessages : [];
+    const filtered = safe.filter((m) => m.message_type === messageType);
     if (messageType === 'announcement') {
       return [...filtered].sort((a, b) => {
         if (a.pinned && !b.pinned) return -1;

@@ -90,7 +90,8 @@ function formatEventWhen(startDate, startTime) {
 }
 
 export default function TeamHome({ team, members = [], onNavigateTab, onCopyInviteLink, viewingAsMember, effectiveRole, currentUserId }) {
-  const playerCount = members.filter((m) => PLAYER_COUNT_ROLES.includes(m.role)).length;
+  const safeMembers = Array.isArray(members) ? members : [];
+  const playerCount = safeMembers.filter((m) => PLAYER_COUNT_ROLES.includes(m.role)).length;
   const { stats: playerStats, isLoading: statsLoading } = usePlayerStats({ userId: currentUserId, teamId: team?.id });
   const { data: plays = [] } = useQuery({
     queryKey: ['plays-count', team?.id],
@@ -104,7 +105,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
 
   // Fetch assignments for renderer plays (needed for QuizMode)
   const rendererPlayIds = useMemo(
-    () => plays.filter((p) => p.use_renderer === true || p.use_renderer === 'true').map((p) => p.id),
+    () => (Array.isArray(plays) ? plays : []).filter((p) => p.use_renderer === true || p.use_renderer === 'true').map((p) => p.id),
     [plays]
   );
   // Single bulk fetch — avoids N concurrent requests that trigger 429 rate limits
@@ -113,7 +114,8 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     queryFn: async () => {
       if (!team?.id) return [];
       // Fetch all assignments for renderer plays via readTeamData (bypasses Creator Only RLS)
-      const allAssignments = await fetchTeamData('PlayAssignment', team.id, {});
+      const raw = await fetchTeamData('PlayAssignment', team.id, {});
+      const allAssignments = Array.isArray(raw) ? raw : [];
       const playIdSet = new Set(rendererPlayIds);
       return allAssignments.filter((a) => playIdSet.has(a.play_id));
     },
@@ -153,13 +155,14 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     },
     enabled: !!team?.id,
   });
+  const safeEvents = Array.isArray(teamEvents) ? teamEvents : [];
   const nextEvent = useMemo(() => {
     const now = Date.now();
-    const upcoming = teamEvents
+    const upcoming = safeEvents
       .filter((e) => e.start_date && new Date(e.start_date + (e.start_time ? `T${e.start_time}` : 'T12:00:00')).getTime() >= now)
       .sort((a, b) => new Date(a.start_date + (a.start_time ? `T${a.start_time}` : '')).getTime() - new Date(b.start_date + (b.start_time ? `T${b.start_time}` : '')).getTime());
     return upcoming[0] || null;
-  }, [teamEvents]);
+  }, [safeEvents]);
   const recentMessages = useMemo(() => {
     const msgs = Array.isArray(teamMessages) ? teamMessages : [];
     const sorted = [...msgs].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());

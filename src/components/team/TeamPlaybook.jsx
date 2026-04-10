@@ -73,7 +73,8 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
     queryFn: async () => {
       if (!team?.id) return [];
       // Fetch all assignments via readTeamData (bypasses Creator Only RLS)
-      const allAssignments = await fetchTeamData('PlayAssignment', team.id, {});
+      const raw = await fetchTeamData('PlayAssignment', team.id, {});
+      const allAssignments = Array.isArray(raw) ? raw : [];
       const playIdSet = new Set(rendererPlayIds);
       return allAssignments.filter((a) => playIdSet.has(a.play_id));
     },
@@ -82,7 +83,8 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
   });
   const assignmentsByPlayId = useMemo(() => {
     const map = {};
-    allRendererAssignments.forEach((a) => {
+    const safeAssignments = Array.isArray(allRendererAssignments) ? allRendererAssignments : [];
+    safeAssignments.forEach((a) => {
       if (!map[a.play_id]) map[a.play_id] = [];
       map[a.play_id].push(a);
     });
@@ -92,7 +94,8 @@ export default function TeamPlaybook({ team, members = [], isCoach, currentUserI
   const invoke = (args) => base44.functions.invoke('manageTeamPlay', { ...args, team_id: team?.id });
 
   // ─── Play collections (split by status, backward compat: default to 'active') ───
-  const allActivePlays = useMemo(() => plays.filter((p) => (p.status || 'active') !== 'archived'), [plays]);
+  const safePlays = Array.isArray(plays) ? plays : [];
+  const allActivePlays = useMemo(() => safePlays.filter((p) => (p.status || 'active') !== 'archived'), [safePlays]);
   const playbookPlays = useMemo(() => allActivePlays.filter((p) => (p.status || 'active') === 'active'), [allActivePlays]);
   const experimentalPlays = useMemo(() => allActivePlays.filter((p) => p.status === 'experimental'), [allActivePlays]);
   const gameDayPlays = useMemo(() => playbookPlays.filter((p) => p.game_day), [playbookPlays]);

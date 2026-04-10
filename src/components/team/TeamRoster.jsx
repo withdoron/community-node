@@ -74,7 +74,8 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
     return map;
   }, [allPlayerStats]);
 
-  const sortedMembers = [...members].sort(
+  const safeMembers = Array.isArray(members) ? members : [];
+  const sortedMembers = [...safeMembers].sort(
     (a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role)
   );
 
@@ -177,7 +178,7 @@ export default function TeamRoster({ team, members = [], isCoach, currentUserId 
     saveMember.mutate(form);
   };
 
-  const players = members.filter((m) => m.role === 'player');
+  const players = safeMembers.filter((m) => m.role === 'player');
 
   const getLinkedPlayer = (member) => {
     if (member.role !== 'parent' || !member.linked_player_id) return null;

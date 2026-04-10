@@ -27,7 +27,8 @@ export default function PlayDetail({
   const tags = parseTags(play?.tags);
   const playSide = play?.side || 'offense';
   const positionOrder = getPositionsForFormat(teamFormat || DEFAULT_FORMAT, playSide).map((p) => p.id);
-  const sortedAssignments = [...assignments].sort(
+  const safeAssignments = Array.isArray(assignments) ? assignments : [];
+  const sortedAssignments = [...safeAssignments].sort(
     (a, b) => {
       const ai = positionOrder.indexOf(a.position);
       const bi = positionOrder.indexOf(b.position);
