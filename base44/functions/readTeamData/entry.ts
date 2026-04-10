@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
     // This is the membrane — only team members pass through.
     const members = await entities.TeamMember.filter({
       team_id: teamId,
-      user_id: user.id,
+      user_id: String(user.id),
     });
     const memberList = Array.isArray(members) ? members : [];
     const activeMember = memberList.find(
