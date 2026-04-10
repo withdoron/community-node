@@ -30,6 +30,13 @@ const CHILD_ENTITIES = ['PlayAssignment'];
 // Complete whitelist — only these entities can be read through this function.
 const ALLOWED_ENTITIES = [...TEAM_ID_ENTITIES, ...CHILD_ENTITIES];
 
+// Safe string comparison — handles ObjectId, number, null, undefined.
+// Copied from agentScopedQuery (same SDK version, same proven pattern).
+function idMatch(a: unknown, b: unknown): boolean {
+  if (a == null || b == null) return false;
+  return String(a) === String(b);
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -72,31 +79,41 @@ Deno.serve(async (req) => {
     // ── Verify team membership ────────────────────────────────────
     // The requesting user must have an active TeamMember record for this team.
     // This is the membrane — only team members pass through.
-    const members = await entities.TeamMember.filter({
-      team_id: teamId,
-      user_id: String(user.id),
-    });
-    const memberList = Array.isArray(members) ? members : [];
-    const activeMember = memberList.find(
-      (m: Record<string, unknown>) => m.status === 'active'
+    //
+    // Pattern: .list() + JS filter (matches agentScopedQuery lines 172-173).
+    // SDK 0.8.23's .filter() does not return cross-creator records via
+    // asServiceRole. The .list() + idMatch() pattern is proven on this SDK.
+    const allMembers = await entities.TeamMember.list();
+    const allMemberList = Array.isArray(allMembers) ? allMembers : [];
+    const activeMember = allMemberList.find(
+      (m: Record<string, unknown>) =>
+        idMatch(m.team_id, teamId) &&
+        idMatch(m.user_id, user.id) &&
+        m.status === 'active'
     );
 
     if (!activeMember) {
       return Response.json({ error: 'Not a member of this team' }, { status: 403 });
     }
 
-    // ── Build query ───────────────────────────────────────────────
-    // For entities with team_id: add team_id to query automatically.
-    // For child entities (PlayAssignment): use caller-provided filter only.
-    const query = TEAM_ID_ENTITIES.includes(entity)
-      ? { team_id: teamId, ...filter }
-      : filter;
-
     // ── Read data ─────────────────────────────────────────────────
-    // Use asServiceRole to bypass Creator Only RLS.
-    // .filter() performs database-level filtering in the server SDK.
-    const records = await entities[entity].filter(query);
-    const recordList = Array.isArray(records) ? records : [];
+    // Use asServiceRole .list() to bypass Creator Only RLS, then scope
+    // in JavaScript. Same pattern as agentScopedQuery (lines 172-173).
+    const allRecords = await entities[entity].list();
+    const allRecordList = Array.isArray(allRecords) ? allRecords : [];
+
+    // For entities with team_id: scope by team_id + apply additional filters.
+    // For child entities (PlayAssignment): apply caller-provided filter only.
+    const recordList = allRecordList.filter((r: Record<string, unknown>) => {
+      if (TEAM_ID_ENTITIES.includes(entity)) {
+        if (!idMatch(r.team_id, teamId)) return false;
+      }
+      // Apply additional filters (e.g., { status: 'active' }, { play_id: '...' })
+      for (const [key, val] of Object.entries(filter)) {
+        if (!idMatch(r[key], val)) return false;
+      }
+      return true;
+    });
 
     return Response.json({
       success: true,
