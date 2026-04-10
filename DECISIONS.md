@@ -483,3 +483,23 @@
 **Status:** Active — shipped, pending Base44 publish
 
 ---
+
+### DEC-140: readTeamData as Security Boundary — Membrane Moves to Function Level (2026-04-10)
+
+**Date:** 2026-04-10
+**Context:** Two-day Playmaker visibility bug. Creator Only RLS on team-scoped entities caused each user to see only records they created. `asServiceRole` does not reliably bypass Creator Only RLS on reads in SDK 0.8.23, despite platform documentation saying it should (confirmed by Base44 support 2026-04-10).
+**Decision:** Entity Read permissions on all 8 team-scoped entities (TeamMember, Play, TeamEvent, TeamMessage, TeamPhoto, PlayerStats, QuizAttempt, PlayAssignment) are relaxed from Creator Only to Authenticated Users. Team membership is enforced inside the `readTeamData` server function, which verifies the requesting user has an active TeamMember row for the requested team before returning data. The security membrane moves from entity-level RLS to function-level verification. This is the proven pattern going forward for all team-scoped and community-scoped reads.
+**Cross-references:** Supersedes DEC-136 for team-scoped entities specifically. DEC-136 remains the default for personal workspace entities (FSClient, FSDocument, etc.).
+**Status:** Active — confirmed working. Coach Rick sees full team data from his own device.
+
+---
+
+### DEC-141: Runtime Logging Before Theorizing (2026-04-10)
+
+**Date:** 2026-04-10
+**Context:** Four successive theories about why readTeamData returned empty — String() coercion, SDK version differences, .filter() vs .list(), asServiceRole behavior — none identified the actual root cause. A single `console.log` of the runtime value revealed the Axios wrapper (`{data, status, headers, config}`) within 30 seconds.
+**Decision:** When diagnosing Base44 SDK behavior, platform quirks, or any unknown system response, the first move is a temporary `console.log` of the actual runtime value — not another theory from code reading. Log the type, shape, and content. Remove after diagnosis. A single log is worth four theories.
+**Rationale:** Code reading tells you what the code SAYS. Runtime logging tells you what the system DOES. When the gap between the two is the bug, only runtime observation can close it.
+**Status:** Active — process rule
+
+---

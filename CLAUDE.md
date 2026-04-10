@@ -182,7 +182,36 @@ const { data: members } = useTeamEntity('TeamMember', teamId, { status: 'active'
 
 **Server function note:** `readTeamData` uses `asServiceRole.entities[entityName].filter({...})` for database-level filtering. Always pass specific filter criteria — never fetch all records and filter in memory.
 
+**Entity permissions (DEC-140):** All 8 team-scoped entities have Read permission set to Authenticated Users (not Creator Only). The security boundary is the `readTeamData` function, not entity-level RLS. This is intentional — `asServiceRole` does not reliably bypass Creator Only RLS in SDK 0.8.23.
+
 Full architecture: `private/TEAM-VISIBILITY-ARCHITECTURE.md`
+
+### base44.functions.invoke() Returns Axios Wrapper (2026-04-10)
+
+**CRITICAL:** `base44.functions.invoke('functionName', payload)` returns an **Axios response wrapper**, NOT the parsed JSON body. The actual server response is nested inside `.data`:
+
+```javascript
+const result = await base44.functions.invoke('readTeamData', { entity, team_id, filter });
+// result = { data: { success: true, data: [...], role: 'coach' }, status: 200, headers: ..., config: ... }
+// result.data = the JSON body (what the server function returned via Response.json())
+// result.data.data = the actual payload array
+
+// WRONG — gets the Axios wrapper's data field (the JSON body object, not the array)
+return result?.data || [];
+
+// RIGHT — extract the actual payload from inside the JSON body
+return result?.data?.data || [];
+```
+
+This applies to ALL server function invocations from the client. If your server function returns `Response.json({ success: true, data: records })`, the client must access `result.data.data` to get `records`.
+
+### asServiceRole Does NOT Bypass Creator Only RLS on Reads (SDK 0.8.23)
+
+Despite Base44 documentation stating `asServiceRole` bypasses RLS, in practice (SDK 0.8.23) it does NOT reliably bypass Creator Only Read permissions. Both `.filter()` and `.list()` via `asServiceRole` return only records matching the creator identity.
+
+**Workaround (DEC-140):** Set entity Read permission to Authenticated Users. Enforce scoping at the server function level (see `readTeamData` as reference implementation). This moves the security membrane from entity config to application code, which is more flexible and auditable.
+
+**Note:** This contradicts DEC-095 (which documented the same behavior for Update permissions) and DEC-136 (which set Creator Only as default). DEC-136 remains the default for personal workspace entities. Team-scoped entities use Authenticated Users Read + server function scoping.
 
 ---
 
