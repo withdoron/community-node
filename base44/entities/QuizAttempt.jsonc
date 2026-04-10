@@ -1,0 +1,73 @@
+{
+  "name": "QuizAttempt",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The player taking the quiz"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "Which team this quiz is for"
+    },
+    "play_id": {
+      "type": "string",
+      "description": "Which play was quizzed"
+    },
+    "quiz_type": {
+      "type": "string",
+      "enum": [
+        "name_that_play",
+        "know_your_job",
+        "identify_route"
+      ],
+      "description": "Type of quiz question"
+    },
+    "question_data": {
+      "type": "object",
+      "description": "The question that was asked (options, correct answer, position context)"
+    },
+    "answer": {
+      "type": "string",
+      "description": "What the player answered"
+    },
+    "is_correct": {
+      "type": "boolean",
+      "description": "Whether they got it right"
+    },
+    "time_seconds": {
+      "type": "number",
+      "description": "How long they took to answer"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "easy",
+        "medium",
+        "hard"
+      ],
+      "description": "Question difficulty level"
+    }
+  },
+  "required": [
+    "user_id",
+    "team_id",
+    "play_id",
+    "quiz_type"
+  ],
+  "security": {
+    "read": {
+      "authenticated": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": false,
+    "delete": false
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -38,7 +38,9 @@
     "photo_url"
   ],
   "security": {
-    "read": true,
+    "read": {
+      "authenticated": true
+    },
     "create": true,
     "update": {
       "owner": true

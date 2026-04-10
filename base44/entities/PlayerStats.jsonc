@@ -1,0 +1,76 @@
+{
+  "name": "PlayerStats",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The player"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "Which team"
+    },
+    "plays_mastered": {
+      "type": "number",
+      "default": 0,
+      "description": "Plays with >80% quiz accuracy"
+    },
+    "total_attempts": {
+      "type": "number",
+      "default": 0,
+      "description": "Total quiz questions answered"
+    },
+    "total_correct": {
+      "type": "number",
+      "default": 0,
+      "description": "Total correct answers"
+    },
+    "current_streak": {
+      "type": "number",
+      "default": 0,
+      "description": "Consecutive correct answers"
+    },
+    "best_streak": {
+      "type": "number",
+      "default": 0,
+      "description": "All-time best streak"
+    },
+    "game_day_readiness": {
+      "type": "number",
+      "default": 0,
+      "description": "0-100 percentage of game day plays mastered"
+    },
+    "last_quiz_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time player took a quiz"
+    }
+  },
+  "required": [
+    "user_id",
+    "team_id"
+  ],
+  "security": {
+    "read": {
+      "authenticated": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": false
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
