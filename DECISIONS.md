@@ -503,3 +503,16 @@
 **Status:** Active — process rule
 
 ---
+
+### DEC-142: Frequency Station Pip-Boy Radio Model + Canonicalized Taxonomies (2026-04-10)
+
+**Date:** 2026-04-10
+**Context:** Frequency Station audit revealed: FrequencyProvider mounted inside MyLane (audio dies on navigation), page components ran their own `<audio>` elements (three players fighting), no MediaSession API (no lock-screen controls), no persistent mini-player. Status and mood taxonomies diverged between spec and code.
+**Decision:** Three changes:
+1. **Pip-Boy Radio model:** FrequencyProvider lifted to App.jsx root (wraps all routes). Single `<audio playsInline>` element. Page components are pure UI — read state from `useFrequency()`, no local audio tags. Persistent floating mini-player at bottom of every screen. MediaSession API for lock-screen controls (play/pause/skip/seekto). localStorage persists current song + position.
+2. **Canonicalized taxonomies (code wins):** Mood tags: `fire, water, earth, air, storm, custom` (elemental, not emotional). Status lifecycle: `submitted, in_progress, released, archived` (matches code, not spec's longer list). Spec updated to match.
+3. **FrequencyArtist confirmed as real entity** for Build 2 (not just a "future possibility seed"). Artist-scoped library, `artist_id` on FrequencySong, and song creation form are the next build after Pip-Boy radio lands.
+**Cross-references:** Updates FREQUENCY-STATION-SPEC.md (private). Extends DEC-102 (Creative Engine).
+**Status:** Active — Build 1 shipped
+
+---

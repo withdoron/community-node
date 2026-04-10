@@ -100,89 +100,54 @@ function StatusBadge({ status }) {
 }
 
 // ─── Audio Player ────────────────────────────────────────────────────────────
-// Respects FrequencyContext master switch. When OFF, refuses to play and pauses active audio.
-function AudioPlayer({ audioUrl, variant = 'compact', onPlay }) {
-  const audioRef = useRef(null);
+// Pure UI — reads state from FrequencyContext, no local <audio> element.
+// Calls context methods (setSong, play, pause, seek) for all playback control.
+function AudioPlayer({ song, audioUrl, variant = 'compact', onPlay }) {
   const progressRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  // Master power switch — when OFF, no audio plays anywhere
   const freq = useFrequency();
-  const masterEnabled = freq?.isEnabled ?? true; // fallback true if context unavailable (standalone page)
+  const masterEnabled = freq?.isEnabled ?? true;
 
-  // Kill audio immediately when master switch turns OFF
-  useEffect(() => {
-    if (!masterEnabled && isPlaying && audioRef.current) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    }
-  }, [masterEnabled, isPlaying]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const onLoadedMetadata = () => {
-      setDuration(audio.duration);
-      setIsLoading(false);
-    };
-    const onTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const onEnded = () => setIsPlaying(false);
-    const onError = () => {
-      setError(true);
-      setIsLoading(false);
-    };
-    const onCanPlay = () => setIsLoading(false);
-
-    audio.addEventListener('loadedmetadata', onLoadedMetadata);
-    audio.addEventListener('timeupdate', onTimeUpdate);
-    audio.addEventListener('ended', onEnded);
-    audio.addEventListener('error', onError);
-    audio.addEventListener('canplay', onCanPlay);
-
-    return () => {
-      audio.removeEventListener('loadedmetadata', onLoadedMetadata);
-      audio.removeEventListener('timeupdate', onTimeUpdate);
-      audio.removeEventListener('ended', onEnded);
-      audio.removeEventListener('error', onError);
-      audio.removeEventListener('canplay', onCanPlay);
-    };
-  }, [audioUrl]);
+  // Is THIS song the one currently playing in the global context?
+  const isThisSong = freq?.currentSong?.audioUrl === audioUrl;
+  const isPlaying = isThisSong && freq?.isPlaying;
+  const currentTime = isThisSong ? (freq?.currentTime ?? 0) : 0;
+  const duration = isThisSong ? (freq?.duration ?? 0) : 0;
 
   const togglePlay = useCallback(
     (e) => {
       e?.stopPropagation?.();
-      const audio = audioRef.current;
-      if (!audio || error) return;
-      // Master switch OFF → refuse to play
       if (!masterEnabled) {
         toast('Frequency Station is off', { description: 'Turn it on from the header toggle.' });
         return;
       }
-      if (isPlaying) {
-        audio.pause();
-        setIsPlaying(false);
+      if (isThisSong && isPlaying) {
+        freq.pause();
+      } else if (isThisSong) {
+        freq.play();
       } else {
-        audio.play().catch(() => setError(true));
-        setIsPlaying(true);
+        // Switch to this song in the global context
+        freq.setSong({
+          id: song?.id,
+          title: song?.title || 'Unknown',
+          artist: song?.credit_line || '',
+          audioUrl: audioUrl,
+          coverUrl: song?.cover_image_url || '',
+          slug: song?.slug || '',
+        });
         onPlay?.();
       }
     },
-    [isPlaying, error, onPlay, masterEnabled]
+    [isThisSong, isPlaying, masterEnabled, freq, audioUrl, song, onPlay]
   );
 
   const handleProgressClick = useCallback((e) => {
-    const audio = audioRef.current;
+    if (!isThisSong || !duration) return;
     const bar = progressRef.current;
-    if (!audio || !bar || !duration) return;
+    if (!bar) return;
     const rect = bar.getBoundingClientRect();
     const fraction = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    audio.currentTime = fraction * duration;
-  }, [duration]);
+    freq.seek(fraction * duration);
+  }, [isThisSong, duration, freq]);
 
   const formatTime = (s) => {
     if (!s || !isFinite(s)) return '0:00';
@@ -192,32 +157,18 @@ function AudioPlayer({ audioUrl, variant = 'compact', onPlay }) {
   };
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-
-  if (error) {
-    return (
-      <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
-        <AlertCircle className="h-3 w-3" />
-        Audio unavailable
-      </div>
-    );
-  }
-
   const isCompact = variant === 'compact';
 
   return (
     <div className={`flex items-center gap-3 ${isCompact ? '' : 'w-full'}`} onClick={(e) => e.stopPropagation()}>
-      <audio ref={audioRef} src={audioUrl} preload="metadata" />
       <button
         type="button"
         onClick={togglePlay}
-        disabled={isLoading}
-        className={`shrink-0 flex items-center justify-center rounded-full bg-primary hover:bg-primary-hover text-primary-foreground transition-colors disabled:bg-surface disabled:text-muted-foreground/70 ${
+        className={`shrink-0 flex items-center justify-center rounded-full bg-primary hover:bg-primary-hover text-primary-foreground transition-colors ${
           isCompact ? 'w-8 h-8' : 'w-12 h-12'
         }`}
       >
-        {isLoading ? (
-          <Loader2 className={`animate-spin ${isCompact ? 'h-4 w-4' : 'h-5 w-5'}`} />
-        ) : isPlaying ? (
+        {isPlaying ? (
           <Pause className={isCompact ? 'h-4 w-4' : 'h-5 w-5'} />
         ) : (
           <Play className={`${isCompact ? 'h-4 w-4' : 'h-5 w-5'} ml-0.5`} />
@@ -314,7 +265,7 @@ function SongCard({ song, onListenCounted }) {
         </div>
         {/* Audio player */}
         {song.audio_url && (
-          <AudioPlayer audioUrl={song.audio_url} variant="compact" onPlay={handlePlay} />
+          <AudioPlayer song={song} audioUrl={song.audio_url} variant="compact" onPlay={handlePlay} />
         )}
         {/* Footer: listen count + share */}
         <div className="flex items-center justify-between pt-2 border-t border-border">
@@ -339,6 +290,7 @@ function SongCard({ song, onListenCounted }) {
 // ─── Tab 1: Listen ───────────────────────────────────────────────────────────
 function ListenTab() {
   const queryClient = useQueryClient();
+  const freq = useFrequency();
 
   const { data: songs = [], isLoading } = useQuery({
     queryKey: ['frequency-songs'],
@@ -349,6 +301,23 @@ function ListenTab() {
       return arr.filter((s) => s.status === 'published');
     },
   });
+
+  // Set global playlist when songs load so next/prev work
+  useEffect(() => {
+    if (songs.length > 0 && freq) {
+      const playlist = songs
+        .filter((s) => s.audio_url)
+        .map((s) => ({
+          id: s.id,
+          title: s.title || 'Unknown',
+          artist: s.credit_line || '',
+          audioUrl: s.audio_url,
+          coverUrl: s.cover_image_url || '',
+          slug: s.slug || '',
+        }));
+      freq.setPlaylist(playlist);
+    }
+  }, [songs, freq]);
 
   const handleListenCounted = useCallback(
     (songId) => {
@@ -466,7 +435,7 @@ function FeaturedSongCard({ song, onListenCounted }) {
             {song.style_genre && <span className="text-xs text-muted-foreground/70">{song.style_genre}</span>}
           </div>
           {song.audio_url && (
-            <AudioPlayer audioUrl={song.audio_url} variant="full" onPlay={handlePlay} />
+            <AudioPlayer song={song} audioUrl={song.audio_url} variant="full" onPlay={handlePlay} />
           )}
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1 text-xs text-muted-foreground/70">

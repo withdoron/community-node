@@ -7,8 +7,6 @@ import { useRole } from '@/hooks/useRole';
 import MyLaneSurface from '@/components/mylane/MyLaneSurface';
 import { useMylane } from '@/hooks/useMylane';
 import { WARM_ENTRY } from '@/config/warmEntryMessages';
-import { FrequencyProvider } from '@/contexts/FrequencyContext';
-
 // ─── Inline Welcome — replaces the onboarding wizard ───────────────
 // Captures display name, sets onboarding_complete, reveals Mylane.
 // Agent-free, zero-latency, works even if Base44 agent API is down.
@@ -139,14 +137,6 @@ function InlineWelcome({ currentUser, onComplete }) {
 
 // ─── Main MyLane page ──────────────────────────────────────────────
 export default function MyLane() {
-  return (
-    <FrequencyProvider>
-      <MyLaneInner />
-    </FrequencyProvider>
-  );
-}
-
-function MyLaneInner() {
   const queryClient = useQueryClient();
   const agentMessageRef = useRef(null);
   const [welcomeJustCompleted, setWelcomeJustCompleted] = useState(false);

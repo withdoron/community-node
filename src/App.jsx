@@ -25,6 +25,8 @@ import FrequencyStation from '@/pages/FrequencyStation';
 import SongDetail from '@/pages/SongDetail';
 import ShapingTheGarden from '@/pages/ShapingTheGarden';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { FrequencyProvider } from '@/contexts/FrequencyContext';
+import FrequencyMiniPlayer from '@/components/frequency/FrequencyMiniPlayer';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -224,8 +226,11 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <ErrorBoundary>
           <Router>
-            <NavigationTracker />
-            <AuthenticatedApp />
+            <FrequencyProvider>
+              <NavigationTracker />
+              <AuthenticatedApp />
+              <FrequencyMiniPlayer />
+            </FrequencyProvider>
           </Router>
           <Toaster />
           <SonnerToaster position="top-center" richColors />

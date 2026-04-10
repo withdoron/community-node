@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -14,7 +14,6 @@ import {
   Headphones,
   Share2,
   Loader2,
-  AlertCircle,
   Flame,
   Droplets,
   Mountain,
@@ -48,74 +47,48 @@ function ThemePill({ themeId }) {
 }
 
 // ─── Full Audio Player ───────────────────────────────────────────────────────
-function FullAudioPlayer({ audioUrl, onPlay }) {
-  const audioRef = useRef(null);
+// Pure UI — reads state from FrequencyContext, no local <audio> element.
+function FullAudioPlayer({ song, audioUrl, onPlay }) {
   const progressRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  // Master power switch — when OFF, no audio plays
   const freq = useFrequency();
   const masterEnabled = freq?.isEnabled ?? true;
 
-  // Kill audio when master switch turns OFF
-  useEffect(() => {
-    if (!masterEnabled && isPlaying && audioRef.current) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    }
-  }, [masterEnabled, isPlaying]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    const onLoadedMetadata = () => { setDuration(audio.duration); setIsLoading(false); };
-    const onTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const onEnded = () => setIsPlaying(false);
-    const onError = () => { setError(true); setIsLoading(false); };
-    const onCanPlay = () => setIsLoading(false);
-    audio.addEventListener('loadedmetadata', onLoadedMetadata);
-    audio.addEventListener('timeupdate', onTimeUpdate);
-    audio.addEventListener('ended', onEnded);
-    audio.addEventListener('error', onError);
-    audio.addEventListener('canplay', onCanPlay);
-    return () => {
-      audio.removeEventListener('loadedmetadata', onLoadedMetadata);
-      audio.removeEventListener('timeupdate', onTimeUpdate);
-      audio.removeEventListener('ended', onEnded);
-      audio.removeEventListener('error', onError);
-      audio.removeEventListener('canplay', onCanPlay);
-    };
-  }, [audioUrl]);
+  // Is THIS song the one currently playing in the global context?
+  const isThisSong = freq?.currentSong?.audioUrl === audioUrl;
+  const isPlaying = isThisSong && freq?.isPlaying;
+  const currentTime = isThisSong ? (freq?.currentTime ?? 0) : 0;
+  const duration = isThisSong ? (freq?.duration ?? 0) : 0;
 
   const togglePlay = useCallback(() => {
-    const audio = audioRef.current;
-    if (!audio || error) return;
     if (!masterEnabled) {
       toast('Frequency Station is off', { description: 'Turn it on from the header toggle.' });
       return;
     }
-    if (isPlaying) {
-      audio.pause();
-      setIsPlaying(false);
+    if (isThisSong && isPlaying) {
+      freq.pause();
+    } else if (isThisSong) {
+      freq.play();
     } else {
-      audio.play().catch(() => setError(true));
-      setIsPlaying(true);
+      freq.setSong({
+        id: song?.id,
+        title: song?.title || 'Unknown',
+        artist: song?.credit_line || '',
+        audioUrl: audioUrl,
+        coverUrl: song?.cover_image_url || '',
+        slug: song?.slug || '',
+      });
       onPlay?.();
     }
-  }, [isPlaying, error, onPlay, masterEnabled]);
+  }, [isThisSong, isPlaying, masterEnabled, freq, audioUrl, song, onPlay]);
 
   const handleProgressClick = useCallback((e) => {
-    const audio = audioRef.current;
+    if (!isThisSong || !duration) return;
     const bar = progressRef.current;
-    if (!audio || !bar || !duration) return;
+    if (!bar) return;
     const rect = bar.getBoundingClientRect();
     const fraction = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    audio.currentTime = fraction * duration;
-  }, [duration]);
+    freq.seek(fraction * duration);
+  }, [isThisSong, duration, freq]);
 
   const formatTime = (s) => {
     if (!s || !isFinite(s)) return '0:00';
@@ -126,28 +99,15 @@ function FullAudioPlayer({ audioUrl, onPlay }) {
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-  if (error) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground/70 py-4">
-        <AlertCircle className="h-4 w-4" />
-        Audio unavailable
-      </div>
-    );
-  }
-
   return (
     <div className="w-full space-y-3">
-      <audio ref={audioRef} src={audioUrl} preload="metadata" />
       <div className="flex items-center gap-4">
         <button
           type="button"
           onClick={togglePlay}
-          disabled={isLoading}
-          className="shrink-0 flex items-center justify-center w-14 h-14 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground transition-colors disabled:bg-surface disabled:text-muted-foreground/70"
+          className="shrink-0 flex items-center justify-center w-14 h-14 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground transition-colors"
         >
-          {isLoading ? (
-            <Loader2 className="h-6 w-6 animate-spin" />
-          ) : isPlaying ? (
+          {isPlaying ? (
             <Pause className="h-6 w-6" />
           ) : (
             <Play className="h-6 w-6 ml-0.5" />
@@ -279,7 +239,7 @@ export default function SongDetail() {
       {/* Audio player */}
       {song.audio_url && (
         <div className="bg-card border border-border rounded-xl p-5 mb-6">
-          <FullAudioPlayer audioUrl={song.audio_url} onPlay={handlePlay} />
+          <FullAudioPlayer song={song} audioUrl={song.audio_url} onPlay={handlePlay} />
         </div>
       )}
 
