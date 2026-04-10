@@ -42,6 +42,7 @@ export async function fetchTeamData(entity, teamId, filter = {}) {
       team_id: teamId,
       filter,
     });
+    console.log('fetchTeamData raw result:', entity, typeof result, Array.isArray(result), result);
     return result?.data || [];
   } catch (err) {
     console.error(`fetchTeamData(${entity}, ${teamId}) failed:`, err?.message || err);
