@@ -12,7 +12,7 @@ const PLAYER_COUNT_ROLES = ['player'];
 const MEDALS = ['🥇', '🥈', '🥉'];
 
 function Leaderboard({ teamStats, members }) {
-  if (!teamStats || teamStats.length === 0) return null;
+  if (!Array.isArray(teamStats) || teamStats.length === 0) return null;
 
   // Build member name lookup
   const memberMap = {};
@@ -161,7 +161,8 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
     return upcoming[0] || null;
   }, [teamEvents]);
   const recentMessages = useMemo(() => {
-    const sorted = [...teamMessages].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+    const msgs = Array.isArray(teamMessages) ? teamMessages : [];
+    const sorted = [...msgs].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
     return sorted.slice(0, 3);
   }, [teamMessages]);
   const sportLabel = team?.sport === 'flag_football' ? 'Flag Football' : (team?.sport || 'Team');
