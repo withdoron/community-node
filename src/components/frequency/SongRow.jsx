@@ -27,7 +27,6 @@ export default function SongRow({
   showQueueControls = false,
 }) {
   const freq = useFrequency();
-  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
 
   const isThisSong = freq?.currentSong?.id === song.id;
