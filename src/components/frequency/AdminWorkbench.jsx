@@ -356,7 +356,9 @@ export default function AdminWorkbench() {
   }, [updateMutation]);
 
   const filtered = useMemo(() => {
-    const sorted = [...submissions].sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0));
+    // Exclude drafts — those are private to the submitter
+    const nonDraft = submissions.filter((s) => s.status !== 'draft');
+    const sorted = [...nonDraft].sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0));
     if (statusFilter === 'all') return sorted;
     return sorted.filter((s) => s.status === statusFilter);
   }, [submissions, statusFilter]);

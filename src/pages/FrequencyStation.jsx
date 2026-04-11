@@ -62,6 +62,7 @@ const THEMES = [
 const THEME_MAP = Object.fromEntries(THEMES.map((t) => [t.id, t]));
 
 const STATUS_CONFIG = {
+  draft: { label: 'Draft', color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
   submitted: { label: 'Submitted', color: 'text-primary-hover', bg: 'bg-primary/20' },
   in_progress: { label: 'In Progress', color: 'text-blue-400', bg: 'bg-blue-500/20' },
   released: { label: 'Released', color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
@@ -583,8 +584,8 @@ function EditSeedForm({ seed, onCancel, onSaved }) {
   );
 }
 
-// ─── Tab 3: My Seeds ─────────────────────────────────────────────────────────
-function MySeedsTab({ user }) {
+// ─── My Submissions (was My Seeds) ──────────────────────────────────────────
+function MySeedsTab({ user, onEditDraft }) {
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState(null);
 
@@ -618,7 +619,7 @@ function MySeedsTab({ user }) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <AlertCircle className="h-8 w-8 text-primary mb-4" />
-        <h3 className="text-xl font-bold text-foreground mb-2">Sign in to view your seeds</h3>
+        <h3 className="text-xl font-bold text-foreground mb-2">Sign in to view your submissions</h3>
         <p className="text-muted-foreground">You need to be a member to see your submissions.</p>
       </div>
     );
@@ -636,9 +637,9 @@ function MySeedsTab({ user }) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <Music className="h-8 w-8 text-muted-foreground/70 mb-4" />
-        <h3 className="text-lg font-bold text-foreground mb-2">No seeds yet</h3>
+        <h3 className="text-lg font-bold text-foreground mb-2">No submissions yet</h3>
         <p className="text-muted-foreground max-w-sm">
-          Submit a piece of writing to see it here. Anonymous seeds won't appear — they're truly private.
+          Submit a piece of writing to see it here.
         </p>
       </div>
     );
@@ -677,16 +678,27 @@ function MySeedsTab({ user }) {
             {seed.dedication && (
               <p className="text-xs text-muted-foreground/70 italic mb-2">For: {seed.dedication}</p>
             )}
-            {seed.status === 'submitted' && (
+            {(seed.status === 'submitted' || seed.status === 'draft') && (
               <div className="flex gap-2 pt-2 border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => setEditingId(seed.id)}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <Pencil className="h-3 w-3" />
-                  Edit
-                </button>
+                {seed.status === 'draft' && onEditDraft ? (
+                  <button
+                    type="button"
+                    onClick={() => onEditDraft(seed)}
+                    className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover transition-colors font-medium"
+                  >
+                    <Pencil className="h-3 w-3" />
+                    Edit draft
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setEditingId(seed.id)}
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <Pencil className="h-3 w-3" />
+                    Edit
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => handleWithdraw(seed.id)}
@@ -706,10 +718,10 @@ function MySeedsTab({ user }) {
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'listen', label: 'Listen', icon: Music },
-  { id: 'submit', label: 'Submit', icon: Send },
   { id: 'library', label: 'My Library', icon: LibraryBig },
-  { id: 'my-seeds', label: 'My Seeds', icon: Sparkles },
+  { id: 'explore', label: 'Explore', icon: Music },
+  { id: 'submit', label: 'Submit', icon: Send },
+  { id: 'my-submissions', label: 'My Submissions', icon: Sparkles },
 ];
 
 const ADMIN_TABS = [
@@ -719,7 +731,8 @@ const ADMIN_TABS = [
 
 export default function FrequencyStation() {
   const { user, isAuthenticated, isLoadingAuth: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState('listen');
+  const [activeTab, setActiveTab] = useState(null); // null = not yet resolved
+  const [editingDraft, setEditingDraft] = useState(null); // draft being edited in wizard
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -729,6 +742,26 @@ export default function FrequencyStation() {
 
   const isAdmin = currentUser?.role === 'admin';
   const tabs = isAdmin ? ADMIN_TABS : TABS;
+
+  // Check if user owns any songs (for default-active tab logic)
+  const { data: ownedSongCount = 0 } = useQuery({
+    queryKey: ['frequency-owned-count', currentUser?.id],
+    queryFn: async () => {
+      const all = await base44.entities.FrequencySong.list();
+      return (Array.isArray(all) ? all : []).filter(
+        (s) => String(s.owner_user_id) === String(currentUser.id)
+      ).length;
+    },
+    enabled: !!currentUser?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Resolve default-active tab on first load
+  useEffect(() => {
+    if (activeTab === null && currentUser?.id) {
+      setActiveTab(ownedSongCount > 0 ? 'library' : 'explore');
+    }
+  }, [activeTab, currentUser?.id, ownedSongCount]);
 
   // Unseen count for admin queue badge
   const { data: unseenCount = 0 } = useQuery({
@@ -813,12 +846,31 @@ export default function FrequencyStation() {
       </div>
 
       {/* Tab content */}
-      {activeTab === 'listen' && <ListenTab />}
+      {activeTab === 'explore' && <ListenTab />}
       {activeTab === 'submit' && (
-        <SubmitWizard user={currentUser} onSubmitSuccess={() => setActiveTab('my-seeds')} />
+        <SubmitWizard
+          user={currentUser}
+          editingDraft={editingDraft}
+          onSubmitSuccess={() => {
+            setEditingDraft(null);
+            setActiveTab('my-submissions');
+          }}
+          onDraftSaved={() => {
+            setEditingDraft(null);
+            setActiveTab('my-submissions');
+          }}
+        />
       )}
       {activeTab === 'library' && <MyLibrary user={currentUser} isAdmin={isAdmin} />}
-      {activeTab === 'my-seeds' && <MySeedsTab user={currentUser} />}
+      {activeTab === 'my-submissions' && (
+        <MySeedsTab
+          user={currentUser}
+          onEditDraft={(draft) => {
+            setEditingDraft(draft);
+            setActiveTab('submit');
+          }}
+        />
+      )}
       {activeTab === 'queue' && isAdmin && <AdminWorkbench />}
     </div>
   );

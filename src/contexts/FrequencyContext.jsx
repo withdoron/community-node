@@ -21,6 +21,7 @@
  *   seek(seconds)  — seek to position
  */
 import React, { createContext, useContext, useState, useRef, useCallback, useEffect } from 'react';
+import { useAuth } from '@/lib/AuthContext';
 
 const FrequencyContext = createContext(null);
 
@@ -30,10 +31,33 @@ export function useFrequency() {
 
 // ── localStorage helpers (debounced position save) ──────────────────────────
 const LS_KEYS = {
-  enabled: 'freq_playing',
+  enabledLegacy: 'freq_playing',          // legacy global key (pre-B1)
+  enabledPerUser: (uid) => `freq_playing_${uid}`, // per-user key
   song: 'freq_current_song',
   position: 'freq_position',
 };
+
+// Read per-user enabled state with migration from legacy key
+function readEnabledState(userId) {
+  if (userId) {
+    const perUser = lsGet(LS_KEYS.enabledPerUser(userId));
+    if (perUser !== null) return perUser === '1';
+    // Migration: copy legacy value to per-user key on first read
+    const legacy = lsGet(LS_KEYS.enabledLegacy);
+    if (legacy !== null) {
+      lsSet(LS_KEYS.enabledPerUser(userId), legacy);
+      return legacy === '1';
+    }
+  }
+  // No user or no saved state → default OFF
+  return false;
+}
+
+function writeEnabledState(userId, enabled) {
+  const val = enabled ? '1' : '0';
+  if (userId) lsSet(LS_KEYS.enabledPerUser(userId), val);
+  lsSet(LS_KEYS.enabledLegacy, val); // keep legacy key in sync
+}
 
 function lsGet(key) {
   try { return localStorage.getItem(key); } catch { return null; }
@@ -68,11 +92,18 @@ function setMediaSessionState(state) {
 }
 
 export function FrequencyProvider({ children }) {
+  const { user } = useAuth();
+  const userId = user?.id;
   const audioRef = useRef(null);
   const positionSaveTimer = useRef(null);
 
-  // Master power switch — persists to localStorage
-  const [isEnabled, setIsEnabled] = useState(() => lsGet(LS_KEYS.enabled) === '1');
+  // Master power switch — per-user, persists to localStorage
+  const [isEnabled, setIsEnabled] = useState(() => readEnabledState(userId));
+
+  // When userId changes (login/logout), re-read per-user enabled state
+  useEffect(() => {
+    setIsEnabled(readEnabledState(userId));
+  }, [userId]);
 
   // Restore last song from localStorage (don't auto-play — just have it ready)
   const [currentSong, setCurrentSong] = useState(() => lsGetJSON(LS_KEYS.song));
@@ -226,7 +257,7 @@ export function FrequencyProvider({ children }) {
   const toggle = useCallback(() => {
     setIsEnabled((prev) => {
       const next = !prev;
-      lsSet(LS_KEYS.enabled, next ? '1' : '0');
+      writeEnabledState(userId, next);
       if (!next && audioRef.current) {
         audioRef.current.pause();
       } else if (next && audioRef.current && currentSong?.audioUrl) {
@@ -234,7 +265,7 @@ export function FrequencyProvider({ children }) {
       }
       return next;
     });
-  }, [currentSong]);
+  }, [currentSong, userId]);
 
   const play = useCallback(() => {
     if (audioRef.current && currentSong?.audioUrl) {
