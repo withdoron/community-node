@@ -1,0 +1,110 @@
+{
+  "name": "FSFrequencySubmission",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "FK to Users entity (optional \u2014 null for anonymous submissions)"
+    },
+    "raw_text": {
+      "type": "string",
+      "description": "The submitted poem, lyric, or piece of writing"
+    },
+    "theme": {
+      "type": "string",
+      "enum": [
+        "fire",
+        "water",
+        "earth",
+        "air",
+        "storm",
+        "custom"
+      ],
+      "description": "Elemental theme of the submission"
+    },
+    "custom_theme": {
+      "type": "string",
+      "description": "Custom theme label if theme is 'custom'"
+    },
+    "is_anonymous": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to hide the author's identity on public display"
+    },
+    "dedication": {
+      "type": "string",
+      "description": "Optional dedication message"
+    },
+    "title_suggestion": {
+      "type": "string",
+      "description": "Suggested title from the submitter"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "submitted",
+        "in_progress",
+        "released",
+        "archived"
+      ],
+      "default": "submitted",
+      "description": "Editorial status of the submission"
+    },
+    "admin_seen": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether an admin has viewed this submission"
+    },
+    "title": {
+      "type": "string",
+      "description": "Submitter's working title for the song"
+    },
+    "mood_id": {
+      "type": "string",
+      "description": "FK to FrequencyMood entity"
+    },
+    "style_genre": {
+      "type": "string",
+      "description": "Free text genre/style, e.g. 'Billy Joel piano rock'"
+    },
+    "vocal_style": {
+      "type": "string",
+      "description": "e.g. 'masculine', 'feminine', 'neutral', 'duet', 'instrumental'"
+    },
+    "tempo_feel": {
+      "type": "string",
+      "description": "e.g. 'slow', 'medium', 'fast', 'building'"
+    },
+    "reference_artist": {
+      "type": "string",
+      "description": "Free text, e.g. 'Billy Joel'"
+    }
+  },
+  "required": [
+    "raw_text",
+    "theme"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": true,
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
