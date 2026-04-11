@@ -108,8 +108,8 @@ export default function NotificationBell({ userId }) {
                         <p className={`text-xs ${notif.is_read ? 'text-foreground-soft' : 'text-foreground font-medium'}`}>
                           {notif.title}
                         </p>
-                        {notif.message && (
-                          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{notif.message}</p>
+                        {notif.body && (
+                          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{notif.body}</p>
                         )}
                         {notif.created_date && (
                           <p className="text-[10px] text-muted-foreground/50 mt-1">

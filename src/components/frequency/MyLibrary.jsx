@@ -88,7 +88,7 @@ function ArtistManager({ user }) {
     queryFn: async () => {
       const all = await base44.entities.FrequencyArtist.list();
       const arr = Array.isArray(all) ? all : [];
-      return arr.find((a) => String(a.user_id) === String(user.id)) || null;
+      return arr.find((a) => String(a.owner_user_id) === String(user.id)) || null;
     },
     enabled: !!user?.id,
   });
@@ -110,8 +110,9 @@ function ArtistManager({ user }) {
         });
       } else {
         await base44.entities.FrequencyArtist.create({
-          user_id: user.id,
+          owner_user_id: user.id,
           name: sanitizeText(name.trim()),
+          slug: generateSlug(name),
           bio: sanitizeText(bio.trim()),
           avatar_url: '',
         });
@@ -390,7 +391,7 @@ export default function MyLibrary({ user, isAdmin }) {
     queryFn: async () => {
       const all = await base44.entities.FrequencyArtist.list();
       const arr = Array.isArray(all) ? all : [];
-      return arr.find((a) => String(a.user_id) === String(user.id)) || null;
+      return arr.find((a) => String(a.owner_user_id) === String(user.id)) || null;
     },
     enabled: !!user?.id,
   });

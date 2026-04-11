@@ -156,7 +156,7 @@ function DeliveryForm({ submission, onDelivered, onCancel }) {
         audio_url: audioUrl,
         cover_image_url: coverUrl,
         credit_line: sanitizeText(creditLine.trim()) || 'Frequency Station',
-        owner_user_id: submission.created_by || submission.user_id || '',
+        owner_user_id: submission.user_id || submission.created_by || '',
         source_submission_id: String(submission.id),
         is_public: false,
         listen_count: 0,
@@ -167,13 +167,13 @@ function DeliveryForm({ submission, onDelivered, onCancel }) {
       });
 
       // Create notification for submitter
-      if (submission.created_by || submission.user_id) {
+      if (submission.user_id || submission.created_by) {
         try {
           await base44.entities.FrequencyNotification.create({
-            user_id: submission.created_by || submission.user_id,
+            user_id: submission.user_id || submission.created_by,
             type: 'song_delivered',
             title: 'Your song is ready!',
-            message: `"${title}" has been created from your seed.`,
+            body: `"${title}" has been created from your seed.`,
             link: `/frequency/${slug}`,
             is_read: false,
           });
