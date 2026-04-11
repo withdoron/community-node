@@ -87,6 +87,8 @@ export function FrequencyProvider({ children }) {
     const saved = currentSong;
     if (audio && saved?.audioUrl && !audio.src) {
       audio.src = saved.audioUrl;
+      // Set lock-screen metadata on restore so it's ready before play
+      updateMediaSession(saved);
       const savedPos = parseFloat(lsGet(LS_KEYS.position) || '0');
       if (savedPos > 0) {
         const onLoaded = () => {
@@ -139,6 +141,8 @@ export function FrequencyProvider({ children }) {
     const onPlay = () => {
       setIsPlaying(true);
       setMediaSessionState('playing');
+      // Ensure lock-screen metadata is current (covers toggle-on resume)
+      if (currentSong) updateMediaSession(currentSong);
     };
     const onPause = () => {
       setIsPlaying(false);

@@ -1,4 +1,4 @@
-// Frequency Station — Phase 2 live. Base44 connection restored 2026-03-25.
+// Frequency Station — Build 2: Studio, Library, Ownership Model.
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -9,6 +9,10 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useFrequency } from '@/contexts/FrequencyContext';
+import SubmitWizard from '@/components/frequency/SubmitWizard';
+import AdminWorkbench from '@/components/frequency/AdminWorkbench';
+import MyLibrary from '@/components/frequency/MyLibrary';
+import NotificationBell from '@/components/frequency/NotificationBell';
 import {
   Music,
   Send,
@@ -38,6 +42,7 @@ import {
   Image,
   Headphones,
   Volume2,
+  LibraryBig,
 } from 'lucide-react';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -298,7 +303,7 @@ function ListenTab() {
       // .filter().list() returns empty on this entity — use .list() + client filter
       const all = await base44.entities.FrequencySong.list();
       const arr = Array.isArray(all) ? all : [];
-      return arr.filter((s) => s.status === 'published');
+      return arr.filter((s) => s.status === 'published' && s.is_public !== false);
     },
   });
 
@@ -1405,12 +1410,13 @@ function QueueTab() {
 const TABS = [
   { id: 'listen', label: 'Listen', icon: Music },
   { id: 'submit', label: 'Submit', icon: Send },
+  { id: 'library', label: 'My Library', icon: LibraryBig },
   { id: 'my-seeds', label: 'My Seeds', icon: Sparkles },
 ];
 
 const ADMIN_TABS = [
   ...TABS,
-  { id: 'queue', label: 'Queue', icon: Filter },
+  { id: 'queue', label: 'Workbench', icon: Filter },
 ];
 
 export default function FrequencyStation() {
@@ -1430,8 +1436,8 @@ export default function FrequencyStation() {
   const { data: unseenCount = 0 } = useQuery({
     queryKey: ['frequency-unseen-count'],
     queryFn: async () => {
-      const all = await base44.entities.FSFrequencySubmission.filter({ admin_seen: false });
-      return Array.isArray(all) ? all.length : 0;
+      const all = await base44.entities.FSFrequencySubmission.list();
+      return (Array.isArray(all) ? all : []).filter((s) => !s.admin_seen).length;
     },
     enabled: isAdmin,
     refetchInterval: 30000,
@@ -1472,10 +1478,12 @@ export default function FrequencyStation() {
         <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 border border-primary/20">
           <Music className="h-5 w-5 text-primary" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold text-foreground">Frequency Station</h1>
           <p className="text-sm text-muted-foreground">The community's radio station</p>
         </div>
+        {/* Notification bell */}
+        <NotificationBell userId={currentUser?.id} />
       </div>
 
       {/* Tab bar */}
@@ -1509,10 +1517,11 @@ export default function FrequencyStation() {
       {/* Tab content */}
       {activeTab === 'listen' && <ListenTab />}
       {activeTab === 'submit' && (
-        <SubmitTab user={currentUser} onSubmitSuccess={() => setActiveTab('my-seeds')} />
+        <SubmitWizard user={currentUser} onSubmitSuccess={() => setActiveTab('my-seeds')} />
       )}
+      {activeTab === 'library' && <MyLibrary user={currentUser} isAdmin={isAdmin} />}
       {activeTab === 'my-seeds' && <MySeedsTab user={currentUser} />}
-      {activeTab === 'queue' && isAdmin && <QueueTab />}
+      {activeTab === 'queue' && isAdmin && <AdminWorkbench />}
     </div>
   );
 }

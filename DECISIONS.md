@@ -516,3 +516,21 @@
 **Status:** Active — Build 1 shipped
 
 ---
+
+### DEC-143: Frequency Station Build 2 — Studio, Library, Ownership Model (2026-04-10)
+
+**Date:** 2026-04-10
+**Context:** Build 1 shipped the radio (background playback, MediaSession, mini-player). Build 2 adds the studio: ownership, library, rich submissions, and admin transform workflow.
+**Decision:** Five architectural changes:
+1. **Ownership model:** `owner_user_id` and `is_public` on FrequencySong. Every song has an owner. Owner toggles public/private. Listen tab shows only `is_public === true`. My Library shows owner's songs.
+2. **Submission wizard:** Multi-step form (words → sound → details) collecting title, raw_text, mood (dynamic FrequencyMood entity), style_genre, vocal_style, tempo_feel, reference_artist, dedication. Replaces old single-form SubmitTab.
+3. **Admin workbench:** Suno copy-paste boxes (Lyrics + Styles) assembled from submission fields. "Deliver to submitter" creates FrequencySong owned by submitter + FrequencyNotification. Marked as temporary path toward Frequency Agent.
+4. **FrequencyArtist entity:** user_id, name, bio, avatar_url. One per user. Created from My Library tab. Used for credit display and lock-screen metadata.
+5. **Dynamic FrequencyMood:** Moods loaded from entity (name, icon, color, is_active). No more hardcoded lists.
+**New entities:** FrequencyArtist, FrequencyMood, FrequencyNotification.
+**New fields on FrequencySong:** owner_user_id, is_public, artist_id, source_submission_id.
+**New fields on FSFrequencySubmission:** title, mood_id, style_genre, vocal_style, tempo_feel, reference_artist.
+**Cross-references:** Updates FREQUENCY-STATION-SPEC.md (private). Extends DEC-142.
+**Status:** Active — Build 2 shipped
+
+---
