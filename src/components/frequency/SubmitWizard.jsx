@@ -104,6 +104,12 @@ export default function SubmitWizard({ user, onSubmitSuccess }) {
   };
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Enter key in a text input triggers form submit on any step.
+    // On non-final steps, advance instead of submitting.
+    if (step < STEPS.length - 1) {
+      if (canAdvance()) handleNext();
+      return;
+    }
     if (!rawText.trim()) return;
     submitMutation.mutate();
   };
