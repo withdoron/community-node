@@ -106,6 +106,7 @@ function DeliveryForm({ submission, onDelivered, onCancel }) {
   const [audioFile, setAudioFile] = useState(null);
   const [coverFile, setCoverFile] = useState(null);
   const [delivering, setDelivering] = useState(false);
+  const deliveringRef = useRef(false); // sync guard against double-click
   const audioInputRef = useRef(null);
   const coverInputRef = useRef(null);
 
@@ -132,6 +133,10 @@ function DeliveryForm({ submission, onDelivered, onCancel }) {
       toast.error('Title and audio file are required');
       return;
     }
+    // Synchronous ref guard — prevents double-invocation from fast double-click
+    // (React state update is async; disabled prop lags one render behind)
+    if (deliveringRef.current) return;
+    deliveringRef.current = true;
     setDelivering(true);
     try {
       // Upload audio
@@ -148,15 +153,30 @@ function DeliveryForm({ submission, onDelivered, onCancel }) {
 
       // Create FrequencySong owned by submitter
       const slug = generateSlug(title);
+      const submitterUserId = submission.user_id || submission.created_by || '';
+
+      // Look up submitter's FrequencyArtist for artist_id (if they have one)
+      let artistId = '';
+      if (submitterUserId) {
+        try {
+          const allArtists = await base44.entities.FrequencyArtist.list();
+          const submitterArtist = (Array.isArray(allArtists) ? allArtists : [])
+            .find((a) => String(a.owner_user_id) === String(submitterUserId));
+          if (submitterArtist) artistId = String(submitterArtist.id);
+        } catch {}
+      }
+
       await base44.entities.FrequencySong.create({
         title: sanitizeText(title.trim()),
         slug,
         lyrics: sanitizeText(lyrics.trim()),
         style_genre: sanitizeText(styleGenre.trim()),
+        mood_tag: submission.theme || '',
+        artist_id: artistId,
         audio_url: audioUrl,
         cover_image_url: coverUrl,
         credit_line: sanitizeText(creditLine.trim()) || 'Frequency Station',
-        owner_user_id: submission.user_id || submission.created_by || '',
+        owner_user_id: submitterUserId,
         source_submission_id: String(submission.id),
         is_public: false,
         listen_count: 0,
@@ -167,10 +187,10 @@ function DeliveryForm({ submission, onDelivered, onCancel }) {
       });
 
       // Create notification for submitter
-      if (submission.user_id || submission.created_by) {
+      if (submitterUserId) {
         try {
           await base44.entities.FrequencyNotification.create({
-            user_id: submission.user_id || submission.created_by,
+            user_id: submitterUserId,
             type: 'song_delivered',
             title: 'Your song is ready!',
             body: `"${title}" has been created from your seed.`,
@@ -198,6 +218,7 @@ function DeliveryForm({ submission, onDelivered, onCancel }) {
       console.error('Delivery error:', err);
       toast.error('Failed to deliver song');
     } finally {
+      deliveringRef.current = false;
       setDelivering(false);
     }
   }, [title, lyrics, styleGenre, creditLine, audioFile, coverFile, submission, queryClient, onDelivered]);

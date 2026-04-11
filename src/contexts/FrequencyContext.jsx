@@ -141,8 +141,11 @@ export function FrequencyProvider({ children }) {
     const onPlay = () => {
       setIsPlaying(true);
       setMediaSessionState('playing');
-      // Ensure lock-screen metadata is current (covers toggle-on resume)
-      if (currentSong) updateMediaSession(currentSong);
+      // NOTE: Do NOT call updateMediaSession(currentSong) here.
+      // currentSong is a stale closure ref from when this effect was set up.
+      // setSongInternal already calls updateMediaSession(song) with the fresh
+      // song object BEFORE play() — calling it again here overwrites correct
+      // metadata with the PREVIOUS song's data (the "backwards title" bug).
     };
     const onPause = () => {
       setIsPlaying(false);
