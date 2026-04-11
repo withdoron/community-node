@@ -29,26 +29,29 @@ export function useFrequencyFavorites(userId) {
   const favoriteIds = new Set(favorites.map((f) => String(f.track_id)));
 
   const toggleFavorite = useCallback(async (song) => {
-    if (!userId) return;
+    if (!userId || !song?.id) return;
     // Read from ref to avoid stale closure
     const currentFavorites = favoritesRef.current;
-    const existing = currentFavorites.find((f) => String(f.track_id) === String(song.id));
+    const songIdStr = String(song.id);
+    const existing = currentFavorites.find((f) => String(f.track_id) === songIdStr);
     try {
       if (existing) {
         await base44.entities.FSFrequencyFavorite.delete(existing.id);
         toast.success('Removed from favorites');
       } else {
+        // All fields must be non-null strings — Base44 schema is all string fields
         await base44.entities.FSFrequencyFavorite.create({
-          user_id: userId,
-          track_id: String(song.id),
-          track_title: song.title || '',
-          track_artist: song.credit_line || '',
+          user_id: String(userId),
+          track_id: songIdStr,
+          track_title: String(song.title || 'Untitled'),
+          track_artist: String(song.credit_line || ''),
           notes: '',
         });
         toast.success('Added to favorites');
       }
       queryClient.invalidateQueries({ queryKey: ['frequency-favorites'] });
-    } catch {
+    } catch (err) {
+      console.error('[FAV] toggleFavorite error:', err);
       toast.error('Could not update favorites');
     }
   }, [userId, queryClient]);
