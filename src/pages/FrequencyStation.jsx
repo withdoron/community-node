@@ -307,22 +307,28 @@ function ListenTab() {
     },
   });
 
-  // Set global playlist when songs load so next/prev work
+  // Set global playlist when songs load so next/prev work.
+  // Depend on a stable fingerprint of the song IDs, not `freq` (which changes
+  // on every setPlaylist call and would cause an infinite render loop).
+  const setPlaylist = freq?.setPlaylist;
+  const songFingerprint = useMemo(
+    () => songs.filter((s) => s.audio_url).map((s) => s.id).join(','),
+    [songs]
+  );
   useEffect(() => {
-    if (songs.length > 0 && freq) {
-      const playlist = songs
-        .filter((s) => s.audio_url)
-        .map((s) => ({
-          id: s.id,
-          title: s.title || 'Unknown',
-          artist: s.credit_line || '',
-          audioUrl: s.audio_url,
-          coverUrl: s.cover_image_url || '',
-          slug: s.slug || '',
-        }));
-      freq.setPlaylist(playlist);
-    }
-  }, [songs, freq]);
+    if (!songFingerprint || !setPlaylist) return;
+    const playlist = songs
+      .filter((s) => s.audio_url)
+      .map((s) => ({
+        id: s.id,
+        title: s.title || 'Unknown',
+        artist: s.credit_line || '',
+        audioUrl: s.audio_url,
+        coverUrl: s.cover_image_url || '',
+        slug: s.slug || '',
+      }));
+    setPlaylist(playlist);
+  }, [songFingerprint, setPlaylist]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleListenCounted = useCallback(
     (songId) => {
