@@ -86,7 +86,7 @@
   ],
   "security": {
     "read": {
-      "owner": true
+      "authenticated": true
     },
     "create": true,
     "update": {
@@ -97,9 +97,6 @@
     }
   },
   "rls": {
-    "read": {
-      "created_by": "{{user.email}}"
-    },
     "update": {
       "created_by": "{{user.email}}"
     },
