@@ -27,7 +27,7 @@ export function useFrequencyQueue(userId, freq) {
         user_id: userId,
         title: 'queue',
         description: '',
-        track_ids: '[]',
+        track_ids: [],
         is_public: false,
         cover_url: '',
       });
@@ -56,7 +56,7 @@ export function useFrequencyQueue(userId, freq) {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     const doUpdate = () => {
       base44.entities.FSFrequencyPlaylist.update(recordId, {
-        track_ids: JSON.stringify(newIds),
+        track_ids: newIds,
       }).catch(() => {});
       queryClient.invalidateQueries({ queryKey: ['frequency-queue-playlist'] });
     };
