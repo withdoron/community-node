@@ -90,16 +90,13 @@
     },
     "create": true,
     "update": {
-      "owner": true
+      "authenticated": true
     },
     "delete": {
       "owner": true
     }
   },
   "rls": {
-    "update": {
-      "created_by": "{{user.email}}"
-    },
     "delete": {
       "created_by": "{{user.email}}"
     }
