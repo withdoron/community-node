@@ -13,6 +13,9 @@ import SubmitWizard from '@/components/frequency/SubmitWizard';
 import AdminWorkbench from '@/components/frequency/AdminWorkbench';
 import MyLibrary from '@/components/frequency/MyLibrary';
 import NotificationBell from '@/components/frequency/NotificationBell';
+import SongRow from '@/components/frequency/SongRow';
+import { useFrequencyFavorites } from '@/hooks/useFrequencyFavorites';
+import { useFrequencyQueue } from '@/hooks/useFrequencyQueue';
 import {
   Music,
   Send,
@@ -32,6 +35,7 @@ import {
   AlertCircle,
   Loader2,
   ChevronDown,
+  ChevronUp,
   X,
   Play,
   Pause,
@@ -293,8 +297,8 @@ function SongCard({ song, onListenCounted }) {
   );
 }
 
-// ─── Tab 1: Listen ───────────────────────────────────────────────────────────
-function ListenTab() {
+// ─── Tab 1: Explore (was Listen) ────────────────────────────────────────────
+function ListenTab({ favoriteIds, toggleFavorite, addToQueue, ownedIds }) {
   const queryClient = useQueryClient();
   const freq = useFrequency();
 
@@ -376,16 +380,24 @@ function ListenTab() {
 
   return (
     <div className="py-6 space-y-6">
-      {/* Featured song */}
+      {/* Featured song — keep the hero card for the top song */}
       {featured && (
         <FeaturedSongCard song={featured} onListenCounted={handleListenCounted} />
       )}
 
-      {/* Song grid */}
+      {/* Song list — one-line rows with heart + queue buttons */}
       {rest.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="space-y-1.5">
           {rest.map((song) => (
-            <SongCard key={song.id} song={song} onListenCounted={handleListenCounted} />
+            <SongRow
+              key={song.id}
+              song={song}
+              context="explore"
+              isFavorited={favoriteIds?.has(String(song.id))}
+              isOwned={ownedIds?.has(String(song.id))}
+              onHeart={toggleFavorite}
+              onAddToQueue={addToQueue}
+            />
           ))}
         </div>
       )}
@@ -588,6 +600,7 @@ function EditSeedForm({ seed, onCancel, onSaved }) {
 function MySeedsTab({ user, onEditDraft }) {
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState(null);
+  const [expandedSeedId, setExpandedSeedId] = useState(null);
 
   const { data: seeds = [], isLoading } = useQuery({
     queryKey: ['frequency-my-seeds', user?.id],
@@ -645,10 +658,15 @@ function MySeedsTab({ user, onEditDraft }) {
     );
   }
 
-  const sorted = [...seeds].sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0));
+  // Sort by title alphabetically
+  const sorted = [...seeds].sort((a, b) => {
+    const titleA = (a.title || a.title_suggestion || a.raw_text || '').toLowerCase();
+    const titleB = (b.title || b.title_suggestion || b.raw_text || '').toLowerCase();
+    return titleA.localeCompare(titleB);
+  });
 
   return (
-    <div className="max-w-xl mx-auto py-6 space-y-4">
+    <div className="max-w-xl mx-auto py-6 space-y-1.5">
       {sorted.map((seed) => {
         if (editingId === seed.id) {
           return (
@@ -660,53 +678,58 @@ function MySeedsTab({ user, onEditDraft }) {
             />
           );
         }
+        const displayTitle = seed.title || seed.title_suggestion || seed.raw_text?.slice(0, 60) || 'Untitled';
+        const isExpandable = seed.id === expandedSeedId;
         return (
-          <div key={seed.id} className="bg-card border border-border rounded-lg p-4">
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <StatusBadge status={seed.status} />
-                {seed.theme && <ThemePill themeId={seed.theme} />}
-              </div>
-              <span className="text-xs text-muted-foreground/70">
-                {seed.created_date ? new Date(seed.created_date).toLocaleDateString() : ''}
-              </span>
-            </div>
-            <p className="text-sm text-foreground-soft whitespace-pre-wrap mb-3 line-clamp-4">{seed.raw_text}</p>
-            {seed.title_suggestion && (
-              <p className="text-xs text-muted-foreground/70 mb-2">Title idea: {seed.title_suggestion}</p>
-            )}
-            {seed.dedication && (
-              <p className="text-xs text-muted-foreground/70 italic mb-2">For: {seed.dedication}</p>
-            )}
-            {(seed.status === 'submitted' || seed.status === 'draft') && (
-              <div className="flex gap-2 pt-2 border-t border-border">
-                {seed.status === 'draft' && onEditDraft ? (
-                  <button
-                    type="button"
-                    onClick={() => onEditDraft(seed)}
-                    className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover transition-colors font-medium"
-                  >
-                    <Pencil className="h-3 w-3" />
-                    Edit draft
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setEditingId(seed.id)}
-                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <Pencil className="h-3 w-3" />
-                    Edit
+          <div key={seed.id} className="bg-card border border-border rounded-lg overflow-hidden">
+            {/* Collapsed row */}
+            <div className="flex items-center gap-3 p-3">
+              <button
+                type="button"
+                onClick={() => setExpandedSeedId(isExpandable ? null : seed.id)}
+                className="flex-1 min-w-0 text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground truncate">{displayTitle}</p>
+                  <StatusBadge status={seed.status} />
+                </div>
+              </button>
+              <div className="flex items-center gap-1 shrink-0">
+                {(seed.status === 'draft') && onEditDraft && (
+                  <button type="button" onClick={() => onEditDraft(seed)}
+                    className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover transition-colors font-medium px-1">
+                    <Pencil className="h-3 w-3" /> Edit
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={() => handleWithdraw(seed.id)}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-400 transition-colors"
-                >
-                  <Trash2 className="h-3 w-3" />
-                  Withdraw
+                {seed.status === 'submitted' && (
+                  <button type="button" onClick={() => setEditingId(seed.id)}
+                    className="p-1 text-muted-foreground/40 hover:text-primary transition-colors">
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                )}
+                {(seed.status === 'submitted' || seed.status === 'draft') && (
+                  <button type="button" onClick={() => handleWithdraw(seed.id)}
+                    className="p-1 text-muted-foreground/30 hover:text-red-400 transition-colors">
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                )}
+                <button type="button" onClick={() => setExpandedSeedId(isExpandable ? null : seed.id)}
+                  className="p-1 text-muted-foreground/30 hover:text-foreground transition-colors">
+                  {isExpandable ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                 </button>
+              </div>
+            </div>
+            {/* Expanded details */}
+            {isExpandable && (
+              <div className="px-3 pb-3 border-t border-border space-y-2 mt-0">
+                <p className="text-xs text-foreground-soft whitespace-pre-wrap line-clamp-6 font-serif mt-2">{seed.raw_text}</p>
+                <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+                  {seed.style_genre && <span className="bg-secondary px-2 py-0.5 rounded">{seed.style_genre}</span>}
+                  {seed.vocal_style && <span className="bg-secondary px-2 py-0.5 rounded">{seed.vocal_style} vocal</span>}
+                  {seed.tempo_feel && <span className="bg-secondary px-2 py-0.5 rounded">{seed.tempo_feel} tempo</span>}
+                  {seed.reference_artist && <span className="bg-secondary px-2 py-0.5 rounded">like {seed.reference_artist}</span>}
+                  {seed.dedication && <span className="italic">For: {seed.dedication}</span>}
+                </div>
               </div>
             )}
           </div>
@@ -762,6 +785,25 @@ export default function FrequencyStation() {
       setActiveTab(ownedSongCount > 0 ? 'library' : 'explore');
     }
   }, [activeTab, currentUser?.id, ownedSongCount]);
+
+  // Favorites + queue hooks for Explore tab
+  const { favoriteIds, toggleFavorite } = useFrequencyFavorites(currentUser?.id);
+  const freq = useFrequency();
+  const { addToQueue } = useFrequencyQueue(currentUser?.id, freq);
+
+  // Owned song IDs for the "yours" badge on Explore
+  const { data: ownedIds } = useQuery({
+    queryKey: ['frequency-owned-ids', currentUser?.id],
+    queryFn: async () => {
+      const all = await base44.entities.FrequencySong.list();
+      const ids = (Array.isArray(all) ? all : [])
+        .filter((s) => String(s.owner_user_id) === String(currentUser.id))
+        .map((s) => String(s.id));
+      return new Set(ids);
+    },
+    enabled: !!currentUser?.id,
+    staleTime: 5 * 60 * 1000,
+  });
 
   // Unseen count for admin queue badge
   const { data: unseenCount = 0 } = useQuery({
@@ -846,7 +888,14 @@ export default function FrequencyStation() {
       </div>
 
       {/* Tab content */}
-      {activeTab === 'explore' && <ListenTab />}
+      {activeTab === 'explore' && (
+        <ListenTab
+          favoriteIds={favoriteIds}
+          toggleFavorite={toggleFavorite}
+          addToQueue={addToQueue}
+          ownedIds={ownedIds}
+        />
+      )}
       {activeTab === 'submit' && (
         <SubmitWizard
           user={currentUser}
