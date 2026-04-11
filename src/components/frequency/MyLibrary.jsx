@@ -9,8 +9,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { sanitizeText } from '@/utils/sanitize';
 import { useFrequency } from '@/contexts/FrequencyContext';
-import { useFrequencyFavorites } from '@/hooks/useFrequencyFavorites';
-import { useFrequencyQueue } from '@/hooks/useFrequencyQueue';
+// Favorites + Queue hooks are called in the PARENT (FrequencyStation.jsx) and
+// passed as props. Single-owner pattern avoids duplicate hook instances that
+// cause race conditions with Base44 (ERR_CONNECTION_CLOSED on concurrent creates).
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import SongRow from './SongRow';
@@ -157,7 +158,10 @@ function SectionHeader({ icon: Icon, title, count, children }) {
 }
 
 // ── Main Library Tab ────────────────────────────────────────────────────────
-export default function MyLibrary({ user, isAdmin }) {
+const EMPTY_SET = new Set();
+const EMPTY_ARR = [];
+
+export default function MyLibrary({ user, isAdmin, favoriteIds = EMPTY_SET, toggleFavorite, queueTrackIds = EMPTY_ARR, queueIds = EMPTY_SET, addToQueue, removeFromQueue, reorderQueue, clearQueue }) {
   const queryClient = useQueryClient();
   const freq = useFrequency();
   const [showBulkUpload, setShowBulkUpload] = useState(false);
@@ -189,10 +193,6 @@ export default function MyLibrary({ user, isAdmin }) {
     },
     enabled: !!user?.id,
   });
-
-  // Favorites + Queue hooks
-  const { favoriteIds, toggleFavorite } = useFrequencyFavorites(user?.id);
-  const { trackIds: queueTrackIds, queueIds, addToQueue, removeFromQueue, reorderQueue, clearQueue } = useFrequencyQueue(user?.id, freq);
 
   // Resolve favorite songs (excluding owned — dedupe rule)
   const favoriteSongs = useMemo(() => {

@@ -786,10 +786,10 @@ export default function FrequencyStation() {
     }
   }, [activeTab, currentUser?.id, ownedSongCount]);
 
-  // Favorites + queue hooks for Explore tab
+  // Favorites + queue hooks — single owner, passed to all children
   const { favoriteIds, toggleFavorite } = useFrequencyFavorites(currentUser?.id);
   const freq = useFrequency();
-  const { addToQueue } = useFrequencyQueue(currentUser?.id, freq);
+  const { trackIds: queueTrackIds, queueIds, addToQueue, removeFromQueue, reorderQueue, clearQueue } = useFrequencyQueue(currentUser?.id, freq);
 
   // Owned song IDs for the "yours" badge on Explore
   const { data: ownedIds } = useQuery({
@@ -910,7 +910,20 @@ export default function FrequencyStation() {
           }}
         />
       )}
-      {activeTab === 'library' && <MyLibrary user={currentUser} isAdmin={isAdmin} />}
+      {activeTab === 'library' && (
+        <MyLibrary
+          user={currentUser}
+          isAdmin={isAdmin}
+          favoriteIds={favoriteIds}
+          toggleFavorite={toggleFavorite}
+          queueTrackIds={queueTrackIds}
+          queueIds={queueIds}
+          addToQueue={addToQueue}
+          removeFromQueue={removeFromQueue}
+          reorderQueue={reorderQueue}
+          clearQueue={clearQueue}
+        />
+      )}
       {activeTab === 'my-submissions' && (
         <MySeedsTab
           user={currentUser}
