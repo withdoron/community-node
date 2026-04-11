@@ -12,6 +12,7 @@ import { validateFile } from '@/utils/fileValidation';
 import { useFrequency } from '@/contexts/FrequencyContext';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import BulkUploadModal from './BulkUploadModal';
 import {
   Music, Play, Pause, Trash2, Loader2, AlertCircle,
   Eye, EyeOff, User, Pencil, Upload, X, Image, Volume2,
@@ -375,6 +376,7 @@ function AdminUploadForm({ user, artist, isAdmin }) {
 export default function MyLibrary({ user, isAdmin }) {
   const queryClient = useQueryClient();
   const freq = useFrequency();
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
 
   const { data: songs = [], isLoading } = useQuery({
     queryKey: ['frequency-my-library', user?.id],
@@ -449,8 +451,27 @@ export default function MyLibrary({ user, isAdmin }) {
       {/* Artist manager */}
       <ArtistManager user={user} />
 
-      {/* Upload (visible to all users who have an artist identity) */}
-      {artist && <AdminUploadForm user={user} artist={artist} isAdmin={isAdmin} />}
+      {/* Upload buttons (visible to all users who have an artist identity) */}
+      {artist && (
+        <div className="flex gap-2 mb-6">
+          <button
+            type="button"
+            onClick={() => setShowBulkUpload(true)}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-card border border-dashed border-border rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-colors text-sm"
+          >
+            <Upload className="h-4 w-4" /> Upload songs
+          </button>
+        </div>
+      )}
+
+      {/* Bulk upload modal */}
+      {showBulkUpload && (
+        <BulkUploadModal
+          user={user}
+          artist={artist}
+          onClose={() => setShowBulkUpload(false)}
+        />
+      )}
 
       {/* Song list */}
       {isLoading ? (
