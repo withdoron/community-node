@@ -1,0 +1,63 @@
+{
+  "name": "FrequencyNotification",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Recipient user ID"
+    },
+    "type": {
+      "type": "string",
+      "description": "Notification type, e.g. 'song_delivered'"
+    },
+    "title": {
+      "type": "string",
+      "description": "Short notification text, e.g. 'Your seed became a song'"
+    },
+    "body": {
+      "type": "string",
+      "description": "Longer description"
+    },
+    "link": {
+      "type": "string",
+      "description": "Route to navigate to on tap, e.g. '/frequency?tab=library'"
+    },
+    "related_song_id": {
+      "type": "string",
+      "description": "FK to FrequencySong if relevant"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the recipient has read this notification"
+    }
+  },
+  "required": [
+    "user_id",
+    "type",
+    "title"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": true,
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

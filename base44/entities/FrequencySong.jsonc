@@ -1,0 +1,113 @@
+{
+  "name": "FrequencySong",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Song title"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-safe identifier"
+    },
+    "lyrics": {
+      "type": "string",
+      "description": "Full song lyrics"
+    },
+    "style_genre": {
+      "type": "string",
+      "description": "Genre or style tag (e.g. lo-fi, spoken word, folk)"
+    },
+    "mood_tag": {
+      "type": "string",
+      "description": "Mood descriptor (e.g. reflective, uplifting, melancholic)"
+    },
+    "audio_url": {
+      "type": "string",
+      "description": "URL to the audio file"
+    },
+    "cover_image_url": {
+      "type": "string",
+      "description": "URL to the cover artwork"
+    },
+    "credit_line": {
+      "type": "string",
+      "description": "Attribution or credit text displayed with the song"
+    },
+    "submission_ids": {
+      "type": "string",
+      "description": "JSON-stringified array of FSFrequencySubmission IDs that contributed to this song"
+    },
+    "listen_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times the song has been played"
+    },
+    "share_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times the song has been shared"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this song is featured/highlighted in the station"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published",
+        "archived"
+      ],
+      "default": "draft",
+      "description": "Publication status"
+    },
+    "published_at": {
+      "type": "string",
+      "description": "ISO datetime when the song was published"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "User ID or email of the creator"
+    },
+    "owner_user_id": {
+      "type": "string",
+      "description": "The user whose library this song lives in"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the song appears on the public Listen tab"
+    },
+    "artist_id": {
+      "type": "string",
+      "description": "FK to FrequencyArtist; nullable for songs without an assigned artist"
+    },
+    "source_submission_id": {
+      "type": "string",
+      "description": "FK to FrequencySubmission if transformed from a submission; null for direct uploads"
+    }
+  },
+  "required": [
+    "title",
+    "slug"
+  ],
+  "security": {
+    "read": {
+      "authenticated": true
+    },
+    "create": {
+      "authenticated": true
+    },
+    "update": true,
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

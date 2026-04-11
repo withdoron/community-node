@@ -1,0 +1,53 @@
+{
+  "name": "FrequencyArtist",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Display name, e.g. 'The OG - A hand full of seeds'"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-safe identifier, auto-generated from name"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Short free text bio"
+    },
+    "avatar_url": {
+      "type": "string",
+      "description": "Cover image URL for the artist"
+    },
+    "owner_user_id": {
+      "type": "string",
+      "description": "LocalLane user who controls this artist"
+    }
+  },
+  "required": [
+    "name",
+    "slug",
+    "owner_user_id"
+  ],
+  "security": {
+    "read": {
+      "authenticated": true
+    },
+    "create": {
+      "authenticated": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

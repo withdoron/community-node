@@ -1,0 +1,89 @@
+{
+  "name": "FrequencySubmission",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Submitter's working title for the song"
+    },
+    "mood_id": {
+      "type": "string",
+      "description": "FK to FrequencyMood"
+    },
+    "style_genre": {
+      "type": "string",
+      "description": "Free text genre/style, e.g. 'indie folk', 'hard hitting dark rap'"
+    },
+    "vocal_style": {
+      "type": "string",
+      "description": "e.g. 'masculine', 'feminine', 'neutral', 'duet', 'instrumental'"
+    },
+    "tempo_feel": {
+      "type": "string",
+      "description": "e.g. 'slow', 'medium', 'fast', 'building'"
+    },
+    "reference_artist": {
+      "type": "string",
+      "description": "Free text, e.g. 'something like Phoebe Bridgers'"
+    },
+    "dedication": {
+      "type": "string",
+      "description": "Free text context, e.g. 'this is for my mom'"
+    },
+    "seed_text": {
+      "type": "string",
+      "description": "The raw seed content \u2014 words, phrases, feelings the submitter wants in the song"
+    },
+    "lyrics": {
+      "type": "string",
+      "description": "Full lyrics if provided or generated"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Queue status managed by admin"
+    },
+    "submitter_user_id": {
+      "type": "string",
+      "description": "User ID of the person who submitted"
+    },
+    "resulting_song_id": {
+      "type": "string",
+      "description": "FK to FrequencySong once the submission has been transformed"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Internal notes visible only to admin"
+    }
+  },
+  "required": [
+    "title",
+    "mood_id",
+    "style_genre"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "authenticated": true
+    },
+    "update": {
+      "admin": true
+    },
+    "delete": {
+      "admin": true
+    }
+  },
+  "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
