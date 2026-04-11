@@ -3,7 +3,7 @@
  * One record per user where title === 'queue', track_ids is the ordered list.
  * Returns { queueIds, addToQueue, removeFromQueue, reorderQueue, clearQueue, playQueue, isLoading }.
  */
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 export function useFrequencyQueue(userId, freq) {
   const queryClient = useQueryClient();
   const debounceTimer = useRef(null);
+  const queueRecordRef = useRef(null); // avoids stale closure in persistQueue
 
   const { data: queueRecord, isLoading } = useQuery({
     queryKey: ['frequency-queue-playlist', userId],
@@ -35,6 +36,9 @@ export function useFrequencyQueue(userId, freq) {
     enabled: !!userId,
   });
 
+  // Keep ref in sync so persistQueue never has a stale closure
+  useEffect(() => { queueRecordRef.current = queueRecord; }, [queueRecord]);
+
   // Parse track_ids — stored as JSON string or array
   const trackIds = (() => {
     if (!queueRecord?.track_ids) return [];
@@ -45,11 +49,13 @@ export function useFrequencyQueue(userId, freq) {
   const queueIds = new Set(trackIds.map(String));
 
   // Persist track_ids to Base44 (debounced for reorders)
+  // Uses ref to avoid stale closure over queueRecord
   const persistQueue = useCallback((newIds, immediate = false) => {
-    if (!queueRecord?.id) return;
+    const recordId = queueRecordRef.current?.id;
+    if (!recordId) return;
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     const doUpdate = () => {
-      base44.entities.FSFrequencyPlaylist.update(queueRecord.id, {
+      base44.entities.FSFrequencyPlaylist.update(recordId, {
         track_ids: JSON.stringify(newIds),
       }).catch(() => {});
       queryClient.invalidateQueries({ queryKey: ['frequency-queue-playlist'] });
@@ -59,7 +65,7 @@ export function useFrequencyQueue(userId, freq) {
     } else {
       debounceTimer.current = setTimeout(doUpdate, 500);
     }
-  }, [queueRecord?.id, queryClient]);
+  }, [queryClient]);
 
   const addToQueue = useCallback((song) => {
     const songId = String(song.id);
