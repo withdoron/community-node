@@ -534,3 +534,17 @@
 **Status:** Active — Build 2 shipped
 
 ---
+
+### DEC-144: Frequency Station RLS Loosening + Client-Side Scoping Pattern (2026-04-10)
+
+**Date:** 2026-04-10
+**Context:** FSFrequencySubmission.Read and FrequencyNotification.Read were set to `owner` (RLS: created_by == user.email). Admin workbench couldn't see other users' submissions; notification recipients couldn't read admin-created notifications. FSFrequencySubmission.Update also blocked admin status changes on other users' records.
+**Decision:** Three changes:
+1. **RLS loosened:** FSFrequencySubmission.Read, FSFrequencySubmission.Update, and FrequencyNotification.Read changed from owner to authenticated.
+2. **Client-side scoping enforces isolation:** MySeedsTab filters by `user_id === currentUser.id`. NotificationBell filters by `user_id === currentUser.id`. AdminWorkbench shows all (admin-only tab gated by `isAdmin`).
+3. **Base44 agent discussion mode default:** Base44 agent stays in discussion mode by default (extends DEC-093). Action mode only for entity creation, field additions, permission changes, and server function work. Prevents accidental schema drift.
+**Rationale:** RLS on cross-user entities blocks core workflows (admin can't manage submissions, recipients can't read notifications). Matches the existing pattern on FrequencySong.Update (No Restrictions for server function compatibility). Trades database-level isolation for application-level isolation. Tighten with dedicated server functions if strict isolation becomes a requirement.
+**Cross-references:** Extends DEC-093 (Base44 entity management), DEC-136 (Creator Only default), DEC-140 (same RLS loosening pattern used for team entities).
+**Status:** Active
+
+---

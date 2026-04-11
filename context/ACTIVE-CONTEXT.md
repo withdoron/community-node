@@ -1,47 +1,45 @@
 # ACTIVE-CONTEXT.md
 
 > What's happening RIGHT NOW. This file gets overwritten each session, not appended.
-> Last updated: 2026-04-05 (MyLane reminder loop bug fix)
+> Last updated: 2026-04-10 (Frequency Station Build 1 + Build 2 ship-it)
 
 ## Current Focus
 
-MylaneNote reminder loop diagnosed and fixed. Server-side user_id enforcement shipped (DEC-139). MyLane instructions updated. Bad record healed. Read path confirmed working. Write path pending Base44 publish.
+Frequency Station end-to-end loop is functional: seed → wizard → admin workbench → Suno transform → deliver to submitter's library → lock-screen playback. First real song: "Grow, Little Seedlings" by The OG. Debug chain resolved RLS permissions, field name mismatches, and wizard state bugs. Polish items queued.
 
 ## Active Architecture
 
-- **Agent writes:** DEC-139 — identity fields (user_id, owner_id) are server-authoritative on all agentScopedWrite calls. Agents cannot set these fields.
+- **Frequency Station:** Phase 3 in progress. Pip-Boy radio model (DEC-142). Studio + Library + Ownership (DEC-143). RLS loosened (DEC-144). Provider at App.jsx root. Single `<audio playsInline>`. MediaSession wired. Persistent mini-player.
+- **Agent writes:** DEC-139 — identity fields (user_id, owner_id) are server-authoritative on all agentScopedWrite calls.
 - **Theme system:** Semantic tokens (98.5% migrated). Three themes: Gold Standard, Cloud, Fallout.
 - **Spinner:** 3D variant architecture. Friction + mass physics. Ratchet snap.
-- **Team space (7 tabs):** Home, Playbook, Schedule, Roster, Messages, Photos, Settings.
+- **Team space (7 tabs):** Production-ready. Coach Rick confirmed. readTeamData server function (DEC-140).
 - **Query optimization:** staleTime 5min global default (DEC-130). getMyLaneProfiles batches 6 queries into 1.
 - **Agent architecture:** DEC-107 enforced — space agents use agentScopedQuery only. DEC-136 — Creator Only default.
-- **Auth:** Single source of truth — AuthContext seeds React Query cache, refreshUser() syncs both.
+- **Auth:** Single source of truth — AuthContext seeds React Query cache.
 - **Health score:** 87/100
 
-## What Just Shipped (2026-04-05)
+## What Just Shipped (2026-04-10)
 
-1. Server-side fix: agentScopedWrite unconditionally stamps user_id/owner_id from auth context (DEC-139)
-2. MyLane instruction updates: removed user_id from write payloads, added query/write asymmetry
-3. Healed MylaneNote record visible on Home feed
-4. Read path confirmed end-to-end (entity → query → RemindersCard)
+1. **Build 1 — Pip-Boy Radio:** FrequencyProvider at root, single audio element, MediaSession, mini-player, localStorage persistence. Background playback verified on iPhone.
+2. **Build 2 — Studio & Library:** SubmitWizard (3-step), AdminWorkbench (Suno boxes + delivery), MyLibrary (public/private toggle), FrequencyArtist CRUD, NotificationBell, ownership model (owner_user_id + is_public).
+3. **Debug chain:** ListenTab infinite loop fix, wizard Enter-key fix, RLS permission loosening (DEC-144), field name corrections (FrequencyArtist owner_user_id, FrequencyNotification body, DeliveryForm owner chain).
+4. **Team space visibility:** Coach Rick phone-confirmed. readTeamData server function + 8 entity permissions relaxed (DEC-140).
 
-## Pending (Blocked on Base44 Publish)
+## Known Issues (Frequency Station — Polish Queue)
 
-- Server fix deployed to runtime
-- MyLane instruction updates deployed
-- End-to-end write-path verification
-
-## Known Issues for Next Session
-
-1. Date parsing bug: "tomorrow" → 2026-04-19 instead of 2026-04-06
-2. MCP user_id fallback path weaker than auth.me()
-3. Broader user_id flow audit across all entities
+1. Notification bell polish — badge may not render correctly
+2. Duplicate song on delivery — two FrequencySong records per delivery
+3. FrequencyMood sort_order not respected
+4. FrequencyMood color_hex not used in UI
+5. ~300 lines dead code in FrequencyStation.jsx (old SubmitTab, SongCreationForm, QueueTab)
+6. DeliveryForm doesn't write mood_tag or artist_id on delivered songs
+7. Old SongCreationForm creates songs without owner_user_id/is_public (dead but dangerous)
+8. EditSeedForm still used by MySeedsTab — needs update for new submission fields
 
 ## Upcoming Priorities
 
-1. Base44 publish (unblocks everything)
-2. Coach Rick demo
-3. Date parsing bug fix
-4. Ephraim Pip-Boy design session
-5. Newsletter "The Good News"
-6. Remaining polish: StepIndicator extraction, loading states, shared EmptyState, accessibility
+1. Frequency Station polish — work through known issues
+2. Newsletter "The Good News" — wake dormant accounts
+3. Ephraim Pip-Boy design session
+4. Bari visit for feedback chip demo
