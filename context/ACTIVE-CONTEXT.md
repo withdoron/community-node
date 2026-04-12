@@ -1,45 +1,35 @@
 # ACTIVE-CONTEXT.md
 
 > What's happening RIGHT NOW. This file gets overwritten each session, not appended.
-> Last updated: 2026-04-10 (Frequency Station Build 1 + Build 2 ship-it)
+> Last updated: 2026-04-11 (Frequency Station B1-B2 + payload debug chain)
 
 ## Current Focus
 
-Frequency Station end-to-end loop is functional: seed → wizard → admin workbench → Suno transform → deliver to submitter's library → lock-screen playback. First real song: "Grow, Little Seedlings" by The OG. Debug chain resolved RLS permissions, field name mismatches, and wizard state bugs. Polish items queued.
+Frequency Station three-section library is functional. 17 songs in Doron's library. Favorites and queue work end-to-end from all contexts (Explore, My Songs). Payload-first debugging principle established (DEC-145).
 
 ## Active Architecture
 
-- **Frequency Station:** Phase 3 in progress. Pip-Boy radio model (DEC-142). Studio + Library + Ownership (DEC-143). RLS loosened (DEC-144). Provider at App.jsx root. Single `<audio playsInline>`. MediaSession wired. Persistent mini-player.
-- **Agent writes:** DEC-139 — identity fields (user_id, owner_id) are server-authoritative on all agentScopedWrite calls.
-- **Theme system:** Semantic tokens (98.5% migrated). Three themes: Gold Standard, Cloud, Fallout.
-- **Spinner:** 3D variant architecture. Friction + mass physics. Ratchet snap.
-- **Team space (7 tabs):** Production-ready. Coach Rick confirmed. readTeamData server function (DEC-140).
-- **Query optimization:** staleTime 5min global default (DEC-130). getMyLaneProfiles batches 6 queries into 1.
-- **Agent architecture:** DEC-107 enforced — space agents use agentScopedQuery only. DEC-136 — Creator Only default.
-- **Auth:** Single source of truth — AuthContext seeds React Query cache.
-- **Health score:** 87/100
+- **Frequency Station:** Phase 3 complete. Three-section My Library. Single-owner hook pattern (DEC-145). SongRow shared component. Pip-Boy radio (DEC-142), Studio + Library (DEC-143), RLS (DEC-144).
+- **Frequency hooks:** Single owner in FrequencyStation.jsx, passed as props to MyLibrary. `useFrequencyFavorites` + `useFrequencyQueue`. All payloads String()-typed. track_ids sent as real arrays.
+- **Payload-first rule (DEC-145):** When Base44 ops fail, log payload and compare to schema BEFORE theorizing about React state/closures.
 
-## What Just Shipped (2026-04-10)
+## What Just Shipped (2026-04-11)
 
-1. **Build 1 — Pip-Boy Radio:** FrequencyProvider at root, single audio element, MediaSession, mini-player, localStorage persistence. Background playback verified on iPhone.
-2. **Build 2 — Studio & Library:** SubmitWizard (3-step), AdminWorkbench (Suno boxes + delivery), MyLibrary (public/private toggle), FrequencyArtist CRUD, NotificationBell, ownership model (owner_user_id + is_public).
-3. **Debug chain:** ListenTab infinite loop fix, wizard Enter-key fix, RLS permission loosening (DEC-144), field name corrections (FrequencyArtist owner_user_id, FrequencyNotification body, DeliveryForm owner chain).
-4. **Team space visibility:** Coach Rick phone-confirmed. readTeamData server function + 8 entity permissions relaxed (DEC-140).
+1. **Prompt A:** Lock-screen fix, delivery guard, dead code (515 lines), mood_tag/artist_id
+2. **B1:** Single-page wizard with drafts, tab rename/reorder, per-user station default
+3. **B1.5:** Bulk upload (17 songs imported)
+4. **B2:** Three-section library, SongRow, favorites, queue, heart + queue buttons everywhere
+5. **Debug chain:** SongRow useNavigate → single-owner hooks → queue track_ids string→array (422) → favorites String() defaults
 
-## Known Issues (Frequency Station — Polish Queue)
+## Known Issues
 
-1. Notification bell polish — badge may not render correctly
-2. Duplicate song on delivery — two FrequencySong records per delivery
-3. FrequencyMood sort_order not respected
-4. FrequencyMood color_hex not used in UI
-5. ~300 lines dead code in FrequencyStation.jsx (old SubmitTab, SongCreationForm, QueueTab)
-6. DeliveryForm doesn't write mood_tag or artist_id on delivered songs
-7. Old SongCreationForm creates songs without owner_user_id/is_public (dead but dangerous)
-8. EditSeedForm still used by MySeedsTab — needs update for new submission fields
+1. **FrequencyLibraryContext refactor** — prop drilling for favorites/queue should become a context provider
+2. **EditSeedForm uses old field set** — legacy fields only
+3. **AdminUploadForm + SongCard dead code** — defined but not rendered
+4. **Bulk upload no cover art** — jsmediatags incompatible with Base44 deployment
 
 ## Upcoming Priorities
 
-1. Frequency Station polish — work through known issues
-2. Newsletter "The Good News" — wake dormant accounts
-3. Ephraim Pip-Boy design session
-4. Bari visit for feedback chip demo
+1. FrequencyLibraryContext refactor
+2. Newsletter "The Good News"
+3. Responsive polish pass

@@ -548,3 +548,16 @@
 **Status:** Active
 
 ---
+
+### DEC-145: Payload-First Debugging + Single-Owner Hooks + FrequencyLibraryContext Planned (2026-04-11)
+
+**Date:** 2026-04-11
+**Context:** Three-layer debug chain on Frequency Station favorites/queue: (1) stale closure theory led to ref-based hook hardening — correct as defensive measure but didn't fix the bug, (2) ERR_CONNECTION_CLOSED traced to duplicate hook instances racing concurrent Base44 creates — fixed by single-owner pattern, (3) FSFrequencyPlaylist 422 traced to `track_ids: '[]'` (string instead of array) — the actual root cause all along. Two hours spent on architecture theories before 10 seconds of payload inspection revealed a type mismatch.
+**Decision:** Three changes:
+1. **Payload-first debugging rule (extends DEC-141):** When a Base44 entity operation fails (422, 400, ERR_CONNECTION_CLOSED, or silent non-persist), the first diagnostic step is: log the exact payload immediately before `.create()` or `.update()`. Compare every field name, type, and value against the Base44 entity schema. The bug is almost always wrong JS type (string where array expected), wrong field name, or null where string expected. Do not theorize about React state until the payload is confirmed correct.
+2. **Single-owner hook pattern:** When a custom hook manages Base44 entity state (CRUD operations), call it in exactly one component (the highest common ancestor). Pass results as props to children. Never instantiate the same hook in a parent and child simultaneously — duplicate instances cause concurrent Base44 writes that trigger ERR_CONNECTION_CLOSED.
+3. **FrequencyLibraryContext planned:** The single-owner pattern works but creates prop drilling (10+ props from FrequencyStation to MyLibrary). Next touch of this area should wrap favorites + queue state in a `FrequencyLibraryContext` provider. One provider, any consumer, no prop drilling, no races.
+**Cross-references:** Extends DEC-141 (runtime logging before theorizing), DEC-144 (client-side scoping).
+**Status:** Active
+
+---
