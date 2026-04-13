@@ -16,7 +16,7 @@ Build with care. Every line of code is a hypha extending the organism into new t
 > Read at the start of every Claude Code session.
 > Lean by design — uses @imports for details. Only what Claude cannot guess lives here.
 > Update this file when a mistake should never recur or a new convention is established.
-> Last updated: 2026-04-04
+> Last updated: 2026-04-13
 
 ---
 
@@ -63,6 +63,45 @@ For decisions DEC-001 through DEC-083, check DECISIONS.md before assuming behavi
 7. Push — single descriptive commit to main
 
 **At session end:** Remind Doron to update `context/ACTIVE-CONTEXT.md` and append to `context/SESSION-LOG.md`.
+
+---
+
+## Session Discipline (added 2026-04-13 from /insights data)
+
+Sessions cap at the deliverable, not the energy.
+
+When the goal of a session is complete — the build ships, the audit finishes, the bug is fixed — stop. Tell Doron the session is done with a clear "shipped" signal and what was completed. Do not continue into the next deliverable in the same session, even if Doron seems to have momentum.
+
+**Why:** The `/insights` report (2026-04-13) showed that sessions running past ~400 user messages reliably produce context drift, which triggers expensive audit cycles to catch the drift, which generates more long sessions. The cleanest code in the dataset came from focused sessions ending at the deliverable (March 19 Bari fix, April 10 Frequency Station build). The longest sessions (March 27 Documents redesign at 55 hours, March 31 triple-audit day) produced the most rework.
+
+**Practical rule:** When you ship the thing, signal shipped. Doron will start a new session for the next thing. Five minutes of session-startup overhead is cheaper than hours of drift recovery.
+
+If you notice you're approaching ~400 user messages in a session and the deliverable isn't done, surface this to Doron explicitly: "We're at message N and approaching context-fill territory. Recommend wrapping the current scope and starting fresh for what remains." Let him decide.
+
+---
+
+## When to Use /ultraplan (added 2026-04-13)
+
+`/ultraplan` offloads planning to a cloud session running Opus 4.6 with up to 30 minutes of think time, then surfaces the plan in the browser for review with inline comments before execution.
+
+**Use `/ultraplan` when the build:**
+
+- Touches more than two files
+- Affects architecture (entity model, security boundaries, multi-workspace integrations)
+- Crosses workspace boundaries (e.g., changes that touch both Field Service and Property Management)
+- Involves migrations, refactors, or destructive changes
+- Doron describes the work as "redesign," "restructure," "rebuild," or names a major feature
+
+**Do NOT use `/ultraplan` for:**
+
+- Single-file edits
+- Bug fixes with known root cause
+- Polish, copy changes, color tweaks
+- Quick verification or read-only audits
+
+Mycelia will write `/ultraplan` into prompts when she identifies the build as qualifying. You should also self-trigger when you notice a prompt heading into substantial-build territory — propose `/ultraplan` to Doron with one line of why ("This touches X files and Y workspaces — recommend running through /ultraplan for the planning phase, then teleporting back here to execute") and let him decide.
+
+If Doron is intuitive about the build and you've been working clean, normal flow is fine. `/ultraplan` is for when complexity warrants the 30-minute cloud think.
 
 ---
 
