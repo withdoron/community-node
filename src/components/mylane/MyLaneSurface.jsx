@@ -1077,8 +1077,12 @@ export default function MyLaneSurface({
           </div>
 
           {/* Mobile: command bar bottom-docked — agent-only */}
+          {/* Lifts above FrequencyMiniPlayer (54px) when music is active */}
           {agentEnabled && (
-          <div className="mylane-bar-mobile">
+          <div className="mylane-bar-mobile" style={{
+            paddingBottom: (freq?.currentSong && freq?.isEnabled) ? 54 : 0,
+            transition: 'padding-bottom 0.2s ease-out',
+          }}>
             <CommandBar
               mode="bar"
               agentName="MyLane"
@@ -1088,7 +1092,6 @@ export default function MyLaneSurface({
                 const idx = spaceItems.findIndex((s) => s.id === nav.workspace);
                 if (idx >= 0) handleSpinnerSelect(idx);
               }}
-              activeSpace={currentSpace?.id || 'home'}
               lastResponse={commandResult?.text || null}
             />
           </div>
@@ -1116,7 +1119,6 @@ export default function MyLaneSurface({
               if (idx >= 0) handleSpinnerSelect(idx);
             }}
             onClose={() => { setPanelOpen(false); try { localStorage.setItem('mylane_panel', '0'); } catch {} }}
-            activeSpace={currentSpace?.id || 'home'}
             lastResponse={commandResult?.text || null}
           />
         </div>

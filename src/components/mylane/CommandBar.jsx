@@ -10,7 +10,6 @@
  *   onRenderResult — ({ type, text?, entity?, workspace?, data?, displayHint? }) => void
  *   onNavigate     — ({ workspace, view, tab }) => void
  *   onClose        — () => void (panel mode: close/minimize the panel)
- *   activeSpace    — current spinner space ID (for chip context)
  *   mylane_tier    — tier level for future gating
  *   lastResponse   — brief text from last agent response (shown in panel mode)
  */
@@ -23,18 +22,6 @@ const SpeechRecognition = typeof window !== 'undefined'
   ? window.SpeechRecognition || window.webkitSpeechRecognition
   : null;
 
-// ─── Space-aware chips ───
-const SPACE_CHIPS = {
-  home: ['What needs attention', 'My reminders', 'Log income', 'Have feedback?'],
-  team: ['Show roster', 'Next practice', 'Player stats', 'Have feedback?'],
-  'field-service': ['Pending estimates', 'My clients', 'Log daily', 'Have feedback?'],
-  finance: ['This month', 'Log income', 'Log expense', 'Have feedback?'],
-  'meal-prep': ['My recipes', 'Meal plan', 'Have feedback?'],
-  'property-pulse': ['My properties', 'Maintenance requests', 'Have feedback?'],
-  discover: ['Search directory', 'Upcoming events', 'Have feedback?'],
-  business: ['Revenue', 'Events', 'Joy Coins', 'Have feedback?'],
-};
-
 export default function CommandBar({
   mode = 'bar',
   agentName = 'MyLane',
@@ -42,7 +29,6 @@ export default function CommandBar({
   onRenderResult,
   onNavigate,
   onClose,
-  activeSpace = 'home',
   mylane_tier = 'basic',
   lastResponse = null,
 }) {
@@ -52,8 +38,6 @@ export default function CommandBar({
   const [pendingQuery, setPendingQuery] = useState(null); // query text shown while waiting
   const recognitionRef = useRef(null);
   const inputRef = useRef(null);
-
-  const chips = SPACE_CHIPS[activeSpace] || SPACE_CHIPS.home;
 
   // ─── Send query to agent ───
   const handleSend = useCallback(async (text) => {
@@ -113,7 +97,6 @@ export default function CommandBar({
   }, [input, isSending, agentName, userId, onRenderResult, onNavigate]);
 
   const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
-  const handleChip = (text) => handleSend(text);
 
   // ─── Voice input ───
   const startListening = useCallback(() => {
@@ -194,32 +177,10 @@ export default function CommandBar({
     </div>
   );
 
-  // ─── Chips row ───
-  const chipRow = (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: mode === 'panel' ? '8px 14px' : '6px 12px 2px' }}>
-      {chips.map((chip) => (
-        <button
-          key={chip} type="button" onClick={() => handleChip(chip)}
-          disabled={isSending}
-          style={{
-            padding: '4px 10px', borderRadius: 12, fontSize: 11,
-            background: 'var(--ll-bg-surface)', border: '1px solid var(--ll-border)',
-            color: 'var(--ll-text-muted)', cursor: 'pointer', transition: 'border-color 0.15s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--ll-accent)'; e.currentTarget.style.color = 'var(--ll-accent)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--ll-border)'; e.currentTarget.style.color = 'var(--ll-text-muted)'; }}
-        >
-          {chip}
-        </button>
-      ))}
-    </div>
-  );
-
   // ─── BAR MODE (mobile/tablet) ───
   if (mode === 'bar') {
     return (
       <div style={{ background: 'var(--ll-bg-elevated)', borderTop: '1px solid var(--ll-border)' }}>
-        {chipRow}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 32, height: 32, borderRadius: '50%', border: '1.5px solid var(--ll-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginLeft: 12 }}>
             {mushroomIcon}
@@ -254,7 +215,7 @@ export default function CommandBar({
         )}
       </div>
 
-      {/* Panel body — chips + last response */}
+      {/* Panel body — last response */}
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '12px 0' }}>
         {lastResponse ? (
           <div style={{ padding: '8px 16px', fontSize: 12, color: 'var(--ll-text-secondary)', lineHeight: 1.5 }}>
@@ -265,7 +226,6 @@ export default function CommandBar({
             Ask anything about your spaces
           </div>
         )}
-        {chipRow}
       </div>
 
       {/* Panel input — bottom */}
