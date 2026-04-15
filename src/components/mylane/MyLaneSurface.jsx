@@ -26,6 +26,10 @@ import { renderEntityView } from './renderEntityView';
 import { useFrequency } from '@/contexts/FrequencyContext';
 import CommandBar from './CommandBar';
 
+// R&D allowlist for Mylane AI agent. Manual Mylane is the default experience.
+// Add testers here as agent matures. Gate by email, not role or tier.
+const MYLANE_AGENT_ALLOWLIST = ['doron.bsg@gmail.com'];
+
 // Lazy-load overlay content — these are full page components rendered inline
 const DirectoryPage = lazy(() => import('@/pages/Directory'));
 const EventsPage = lazy(() => import('@/pages/Events'));
@@ -291,6 +295,9 @@ export default function MyLaneSurface({
   const freq = useFrequency();
   const frequencyPlaying = freq?.isEnabled || false;
   const frequencyIsPlaying = freq?.isPlaying || false; // actual audio playing
+
+  // AI agent gated to R&D allowlist — manual Mylane is the default for everyone else
+  const agentEnabled = MYLANE_AGENT_ALLOWLIST.includes(currentUser?.email);
 
   const [spinnerIndex, setSpinnerIndex] = useState(0);
   const [renderedData, setRenderedData] = useState(null);
@@ -724,7 +731,7 @@ export default function MyLaneSurface({
       <div className="flex-1 overflow-hidden" style={{ position: 'relative' }}>
         {/* Content area — scrolls independently, shrinks when panel open */}
         <div
-          className={`mylane-content-area${panelOpen ? ' panel-open' : ''}`}
+          className={`mylane-content-area${agentEnabled && panelOpen ? ' panel-open' : ''}`}
           style={{ position: 'absolute', inset: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}
         >
           {/* Horizontal Space Spinner — ALWAYS VISIBLE, centers on content width */}
@@ -771,8 +778,8 @@ export default function MyLaneSurface({
           <div className="flex-1" style={{ padding: '8px var(--ll-content-pad, 24px)', paddingBottom: 60 }}>
             <div style={{ maxWidth: 'var(--ll-content-max, 768px)' }}>
 
-              {/* Command result card */}
-              {commandResult && (
+              {/* Command result card — agent-only */}
+              {agentEnabled && commandResult && (
                 <div style={{
                   marginBottom: 12, padding: '14px 16px',
                   background: 'var(--ll-bg-elevated)',
@@ -831,7 +838,8 @@ export default function MyLaneSurface({
             </div>
           </div>
 
-          {/* Mobile: command bar bottom-docked */}
+          {/* Mobile: command bar bottom-docked — agent-only */}
+          {agentEnabled && (
           <div className="mylane-bar-mobile">
             <CommandBar
               mode="bar"
@@ -846,9 +854,12 @@ export default function MyLaneSurface({
               lastResponse={commandResult?.text || null}
             />
           </div>
+          )}
         </div>
 
-        {/* Desktop: fixed panel — absolute right, full height of body */}
+        {/* Desktop: fixed panel + re-open tab — agent-only */}
+        {agentEnabled && (
+        <>
         <div
           className={`mylane-panel-fixed${panelOpen ? '' : ' panel-closed'}`}
           style={{
@@ -872,7 +883,6 @@ export default function MyLaneSurface({
           />
         </div>
 
-        {/* Desktop: re-open tab when panel is closed */}
         <button
           type="button"
           className={`mylane-reopen-tab${panelOpen ? ' panel-open' : ''}`}
@@ -888,6 +898,8 @@ export default function MyLaneSurface({
         >
           <PanelRightOpen style={{ width: 14, height: 14, color: 'var(--ll-accent)' }} strokeWidth={1.5} />
         </button>
+        </>
+        )}
       </div>
     </div>
   );
