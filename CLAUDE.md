@@ -16,7 +16,7 @@ Build with care. Every line of code is a hypha extending the organism into new t
 > Read at the start of every Claude Code session.
 > Lean by design — uses @imports for details. Only what Claude cannot guess lives here.
 > Update this file when a mistake should never recur or a new convention is established.
-> Last updated: 2026-04-13
+> Last updated: 2026-04-15
 
 ---
 
@@ -28,6 +28,38 @@ LocalLane — community-first platform in Eugene, Oregon. Base44 backend, React/
 
 @context/PROJECT-BRAIN.md
 @context/ACTIVE-CONTEXT.md
+
+---
+
+## Living Feet Design Principle (DEC-146)
+
+> Anything that exists in more than one place should exist as one thing. When it changes, every place it appears changes with it. The cost of adding a new instance should be one line, never twelve. Stone is for foundations; everything that grows is feet.
+
+**This is load-bearing.** Every build prompt should be evaluated against it.
+
+**When building anything new, ask first:**
+- Does this concept live in more than one place already?
+- If yes, is there already one thing it should hook into?
+- If no thing exists yet, am I building this as the one thing, or am I creating the second instance of a future stone?
+
+**When refactoring, ask:**
+- What's frozen as stone that should be feet?
+- Where are we paying a 12-line cost for what should be a 1-line cost?
+
+**When debugging, ask:**
+- Is this one bug, or is this the visible instance of a stone that should be feet?
+
+**Examples in LocalLane:**
+- Themes: one config, every component reads it
+- OV constant: one source of truth for overlay names
+- AgentChat: one component, every space agent reuses with config
+- Workspace shell: one frame, every space type renders inside it
+
+**The opposite (anti-pattern):**
+- Hardcoded strings repeated across the codebase
+- Parallel containers instead of nested ones
+- Per-component permission checks
+- Duplicate fetch patterns
 
 ---
 

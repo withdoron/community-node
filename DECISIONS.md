@@ -561,3 +561,89 @@
 **Status:** Active
 
 ---
+
+### DEC-146: Living Feet Design Principle (2026-04-15)
+
+**Decision:** Adopt Living Feet as the constitutional design principle for LocalLane architecture.
+
+**Definition (Doron's words):**
+> Anything that exists in more than one place should exist as one thing. When it changes, every place it appears changes with it. The cost of adding a new instance should be one line, never twelve. Stone is for foundations; everything that grows is feet.
+
+**Application:**
+This principle applies to every layer of the codebase where the same concept appears in more than one place:
+
+- **Themes** — one config, every component reads it (proven)
+- **Overlays** — one OV constant, every check references it (proven Session B — 13 hardcoded strings → 1 constant; validated Session C — adding Networks was instantiation, not invention)
+- **Spaces** — one workspace shell, every space type renders inside it
+- **Agents** — one AgentChat component, every space's agent uses it with config
+- **Cards** — one card component family, every list/grid uses them
+- **Forms** — one form pattern, every input/submit/validation uses it
+- **Permissions** — one gating pattern (allowlist, role, tier) applied consistently
+- **Navigation** — one shell, every page renders inside it
+- **Entity reads** — one fetch pattern (Axios wrapper handling, etc.)
+
+**Triggering questions:**
+
+When building:
+> Does this live in more than one place? If yes, how do I build it once?
+
+When auditing:
+> What's frozen as stone that should be feet? What's repeated that should be one?
+
+When debugging:
+> Is this one bug, or is this the visible instance of a stone that should be feet?
+
+**Relationship to other principles:**
+- **DEC-089 (Fractal SOP):** Find one bug, audit all instances of the same pattern. Living Feet is the architectural response: if you keep finding the same instance, that's a stone that should be feet.
+- **Construction Gate (DEC-092):** New features ship behind a guard until walkthrough passes. Living Feet says: when those features prove out, they should be built once and reused, not duplicated.
+
+**Status:** Active. Load-bearing. Referenced in PROJECT-BRAIN.md and CLAUDE.md.
+
+---
+
+### DEC-147: R&D Allowlist Pattern for Pre-Release Features (2026-04-15)
+
+**Decision:** Features under R&D that aren't ready for broad rollout are gated by an email-based allowlist constant, hidden completely (no "coming soon" UI) for non-allowlisted users.
+
+**Pattern:**
+```js
+const FEATURE_ALLOWLIST = ['doron.bsg@gmail.com'];
+const featureEnabled = FEATURE_ALLOWLIST.includes(currentUser?.email);
+```
+
+Gate at the highest reasonable level (parent that mounts the feature, not each sub-component). When `featureEnabled` is false, the feature UI is completely hidden — no placeholder, no "coming soon," no phantom space. The non-allowlisted experience reflows naturally as if the feature never existed.
+
+**Why allowlist by email, not role or tier:**
+- Roles are for permissions on entities
+- Tiers are for product-level access (paid/free)
+- Allowlist is for R&D gating — small, ad-hoc, easy to expand by adding emails
+
+**First application:** Mylane AI agent (MYLANE_AGENT_ALLOWLIST) gates 4 agent UI surfaces — mobile command bar, desktop fixed panel, desktop re-open tab, command result card.
+
+**Status:** Active pattern. Reusable for any future pre-release feature.
+
+---
+
+### DEC-148: Mylane Shell Containment via Overlay Expansion (2026-04-15)
+
+**Decision:** Use overlay expansion (NOT router restructure) to bring all user-facing pages inside the Mylane shell.
+
+**Context:** Audit at `audit-reports/MYLANE-CONTAINMENT-AUDIT-2026-04-15.md` found that the Layout wrapper and Mylane shell are parallel containers, not nested. Two approaches considered:
+1. Restructure router so Mylane shell wraps all routes
+2. Expand the existing overlay pattern (Directory/Events render inside shell as overlays) to cover all surfaces
+
+**Chose Option 2 (overlay expansion).** Reasoning:
+- Incremental, doesn't require router restructure with regression risk across the entire app
+- Matches the existing pattern that already works
+- Each surface gets contained as it's needed, not all-at-once
+- Standalone routes remain alive for unauthenticated/public access and external deep-linking
+
+**Pattern:** Page renders as `<OverlayContainer>` block inside MyLaneSurface, lazy-loaded, with backdrop click-to-close and Escape key support. Stacked overlays use higher z-index (drill-in panels). Standalone route preserved for public access.
+
+**Sessions A, B, and C closed all 6 known escape points from the audit.** Remaining accepted escapes (intentional, not bugs) documented in STATUS-TRACKER.md.
+
+**Known technical debt (flagged for future refactor):** Overlay z-indices are currently hardcoded (z-50 BusinessProfile, z-55 Network, z-60 Recommend). When the third "stacked overlay opens from another overlay" scenario appears, refactor to stack-based z-index assignment so adding instances is a one-line change. Two instances is coincidence, three is a pattern.
+
+**Status:** Active. Containment Sessions A+B+C shipped 2026-04-15.
+
+---
