@@ -172,7 +172,7 @@ export default function CommandBar({
           className="placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
           style={{
             flex: 1, background: 'transparent', border: 'none',
-            borderRadius: 20, padding: '8px 14px', fontSize: 13,
+            borderRadius: 20, padding: '8px 14px', fontSize: 16,
             color: 'hsl(var(--foreground))', outline: 'none', minHeight: 44,
           }}
         />
