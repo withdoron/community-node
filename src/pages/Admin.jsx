@@ -260,9 +260,7 @@ export default function Admin() {
                     <h2 className="text-lg font-semibold text-foreground">Partners (Spoke Apps)</h2>
                     <p className="text-sm text-muted-foreground mt-1">Manage connected spoke applications</p>
                   </div>
-                  <Link to={createPageUrl('SpokeDetails')}>
-                    <Button className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold">Add New Spoke</Button>
-                  </Link>
+                  <Button disabled className="bg-primary/50 text-primary-foreground font-semibold cursor-not-allowed">Add New Spoke (Coming Soon)</Button>
                 </div>
                 {spokesLoading ? (
                   <div className="flex items-center justify-center py-20">
@@ -272,9 +270,7 @@ export default function Admin() {
                   <div className="text-center py-12">
                     <Network className="h-12 w-12 text-muted-foreground/70 mx-auto mb-4" />
                     <p className="text-muted-foreground">No spoke apps configured yet</p>
-                    <Link to={createPageUrl('SpokeDetails')}>
-                      <Button className="mt-4 bg-primary hover:bg-primary/80 text-primary-foreground font-semibold">Create Your First Spoke</Button>
-                    </Link>
+                    <Button disabled className="mt-4 bg-primary/50 text-primary-foreground font-semibold cursor-not-allowed">Create Your First Spoke (Coming Soon)</Button>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
@@ -303,9 +299,7 @@ export default function Admin() {
                             </td>
                             <td className="py-3 px-4 text-xs text-muted-foreground/70 font-mono">{spoke.api_key?.substring(0, 20)}...</td>
                             <td className="py-3 px-4 text-right">
-                              <Link to={createPageUrl('SpokeDetails') + `?spokeId=${spoke.id}`}>
-                                <Button variant="outline" size="sm" className="bg-transparent border-border text-foreground-soft hover:border-primary hover:text-primary">Edit</Button>
-                              </Link>
+                              <Button variant="outline" size="sm" disabled className="bg-transparent border-border text-muted-foreground/50 cursor-not-allowed">Edit</Button>
                             </td>
                           </tr>
                         ))}

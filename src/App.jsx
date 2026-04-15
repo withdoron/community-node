@@ -23,7 +23,7 @@ import JoinFieldService from '@/pages/JoinFieldService';
 import JoinPM from '@/pages/JoinPM';
 import FrequencyStation from '@/pages/FrequencyStation';
 import SongDetail from '@/pages/SongDetail';
-import ShapingTheGarden from '@/pages/ShapingTheGarden';
+// ShapingTheGarden deleted (containment session B — 2026-04-15)
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { FrequencyProvider } from '@/contexts/FrequencyContext';
 import FrequencyMiniPlayer from '@/components/frequency/FrequencyMiniPlayer';
@@ -34,8 +34,8 @@ const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 
 // Pages that don't require authentication
 const PUBLIC_PAGES = new Set([
-  'Home', 'BusinessProfile', 'CategoryPage', 'Directory', 'Events',
-  'Philosophy', 'Privacy', 'Search', 'SpokeDetails', 'Support', 'Terms',
+  'Home', 'BusinessProfile', 'Directory', 'Events',
+  'Philosophy', 'Privacy', 'Support', 'Terms',
 ]);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
@@ -189,14 +189,7 @@ const AuthenticatedApp = () => {
         element={<ClientPortal />}
       />
       {/* Community spaces */}
-      <Route
-        path="/shaping"
-        element={
-          <LayoutWrapper currentPageName="Shaping">
-            <ShapingTheGarden />
-          </LayoutWrapper>
-        }
-      />
+      {/* /shaping route removed — ShapingTheGarden deleted (containment session B) */}
       <Route
         path="/frequency"
         element={

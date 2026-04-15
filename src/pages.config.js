@@ -2,16 +2,16 @@ import Admin from './pages/Admin';
 // BusinessDashboard retired (DEC-131) — workspaces render through MyLane spinner + MyLaneDrillView
 import BusinessOnboarding from './pages/BusinessOnboarding';
 import BusinessProfile from './pages/BusinessProfile';
-import CategoryPage from './pages/CategoryPage';
+// CategoryPage deleted (containment session B — 2026-04-15, no live references)
 import Directory from './pages/Directory';
 import Events from './pages/Events';
 import Home from './pages/Home';
 import MyLane from './pages/MyLane';
 import Philosophy from './pages/Philosophy';
 import Privacy from './pages/Privacy';
-import Search from './pages/Search';
+// Search deleted (containment session B — 2026-04-15, no live references)
 import Settings from './pages/Settings';
-import SpokeDetails from './pages/SpokeDetails';
+// SpokeDetails deleted (containment session B — 2026-04-15, confirmed dead by Doron)
 import Support from './pages/Support';
 import Terms from './pages/Terms';
 import Recommend from './pages/Recommend';
@@ -30,16 +30,16 @@ export const PAGES = {
     // "BusinessDashboard" retired (DEC-131) — redirects to MyLane
     "BusinessOnboarding": BusinessOnboarding,
     "BusinessProfile": BusinessProfile,
-    "CategoryPage": CategoryPage,
+    // CategoryPage: deleted
     "Directory": Directory,
     "Events": Events,
     "Home": Home,
     "MyLane": MyLane,
     "Philosophy": Philosophy,
     "Privacy": Privacy,
-    "Search": Search,
+    // Search: deleted
     "Settings": Settings,
-    "SpokeDetails": SpokeDetails,
+    // SpokeDetails: deleted
     "Support": Support,
     "Terms": Terms,
     "Recommend": Recommend,

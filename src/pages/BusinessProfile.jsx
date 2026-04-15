@@ -46,7 +46,7 @@ function getCategoryDisplayLabel(business, getLabel, legacyCategoryMapping) {
   return business.category || '';
 }
 
-export default function BusinessProfile({ businessId: businessIdProp } = {}) {
+export default function BusinessProfile({ businessId: businessIdProp, onRecommendClick } = {}) {
   const navigate = useNavigate();
   const { getLabel, legacyCategoryMapping } = useCategories();
   const { data: networksConfig = [] } = useConfig('platform', 'networks');
@@ -449,32 +449,61 @@ export default function BusinessProfile({ businessId: businessIdProp } = {}) {
 
                 {/* Recommend CTA */}
                 <div className="flex flex-col sm:flex-row gap-3 justify-end">
-                  <Link to={createPageUrl(`Recommend?businessId=${business.id}`)}>
-                    <Button className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold">
-                      <ThumbsUp className="h-4 w-4 mr-2" />
-                      Recommend
-                    </Button>
-                  </Link>
-                  <Link to={createPageUrl(`Recommend?businessId=${business.id}&mode=story`)}>
-                    <Button variant="outline" className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent">
-                      <BookOpen className="h-4 w-4 mr-2" />
-                      Share a Story
-                    </Button>
-                  </Link>
-                  <Link to={createPageUrl(`Recommend?businessId=${business.id}&mode=vouch`)}>
-                    <Button variant="outline" className="border-primary/50 text-primary hover:bg-primary/10">
-                      <Shield className="h-4 w-4 mr-2" />
-                      Vouch for This Business
-                    </Button>
-                  </Link>
+                  {onRecommendClick ? (
+                    <>
+                      <Button onClick={() => onRecommendClick(business.id)} className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold">
+                        <ThumbsUp className="h-4 w-4 mr-2" />
+                        Recommend
+                      </Button>
+                      <Button onClick={() => onRecommendClick(business.id, 'story')} variant="outline" className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent">
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        Share a Story
+                      </Button>
+                      <Button onClick={() => onRecommendClick(business.id, 'vouch')} variant="outline" className="border-primary/50 text-primary hover:bg-primary/10">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Vouch for This Business
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to={createPageUrl(`Recommend?businessId=${business.id}`)}>
+                        <Button className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold">
+                          <ThumbsUp className="h-4 w-4 mr-2" />
+                          Recommend
+                        </Button>
+                      </Link>
+                      <Link to={createPageUrl(`Recommend?businessId=${business.id}&mode=story`)}>
+                        <Button variant="outline" className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent">
+                          <BookOpen className="h-4 w-4 mr-2" />
+                          Share a Story
+                        </Button>
+                      </Link>
+                      <Link to={createPageUrl(`Recommend?businessId=${business.id}&mode=vouch`)}>
+                        <Button variant="outline" className="border-primary/50 text-primary hover:bg-primary/10">
+                          <Shield className="h-4 w-4 mr-2" />
+                          Vouch for This Business
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                 </div>
                 <div className="mt-4 text-center">
-                  <Link
-                    to={createPageUrl(`Recommend?businessId=${business.id}&mode=concern`)}
-                    className="text-sm text-muted-foreground/70 hover:text-foreground-soft transition-colors"
-                  >
-                    Had a different experience?
-                  </Link>
+                  {onRecommendClick ? (
+                    <button
+                      type="button"
+                      onClick={() => onRecommendClick(business.id, 'concern')}
+                      className="text-sm text-muted-foreground/70 hover:text-foreground-soft transition-colors cursor-pointer bg-transparent border-none"
+                    >
+                      Had a different experience?
+                    </button>
+                  ) : (
+                    <Link
+                      to={createPageUrl(`Recommend?businessId=${business.id}&mode=concern`)}
+                      className="text-sm text-muted-foreground/70 hover:text-foreground-soft transition-colors"
+                    >
+                      Had a different experience?
+                    </Link>
+                  )}
                 </div>
 
                 {/* Stories List */}

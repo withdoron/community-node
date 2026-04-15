@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import {
   Home, UtensilsCrossed, HardHat, DollarSign, Users,
   Store, Search, Music, Settings, LogOut, FileText,
-  Lock, Mail, Volume2, VolumeX, Building2, X, PanelRightOpen, FlaskConical,
+  Lock, Mail, Volume2, VolumeX, Building2, X, PanelRightOpen, FlaskConical, BookOpen, HelpCircle,
 } from 'lucide-react';
 import ConfirmationCard from './ConfirmationCard';
 import DevLab from './DevLab';
@@ -37,6 +37,9 @@ const EventsPage = lazy(() => import('@/pages/Events'));
 const FrequencyStationPage = lazy(() => import('@/pages/FrequencyStation'));
 const SettingsPage = lazy(() => import('@/pages/Settings'));
 const BusinessProfilePage = lazy(() => import('@/pages/BusinessProfile'));
+const PhilosophyPage = lazy(() => import('@/pages/Philosophy'));
+const SupportPage = lazy(() => import('@/pages/Support'));
+const RecommendPage = lazy(() => import('@/pages/Recommend'));
 
 // Map workspace type IDs to spinner item config
 const SPACE_CONFIG = {
@@ -66,17 +69,26 @@ function buildSpinnerItems(profiles, businessProfiles = [], userRole = null) {
 
 // ─── Overlay system ────────────────────────────────────────────────
 // Every header icon is a toggle. Only one overlay open at a time.
-const OVERLAYS = ['freq', 'dir', 'evt', 'acct'];
+// Add new overlays here — the rest of the system picks them up automatically.
+const OV = {
+  FREQ: 'freq',
+  DIR: 'dir',
+  EVT: 'evt',
+  ACCT: 'acct',
+  PHILOSOPHY: 'philosophy',
+  SUPPORT: 'support',
+};
 
-function OverlayContainer({ isOpen, keepMounted = false, children }) {
+function OverlayContainer({ isOpen, keepMounted = false, onClose, children }) {
   if (!isOpen && !keepMounted) return null;
   // On desktop (container >= 1024px), overlays render as centered floating panels
   // On mobile, they fill the full area below the header
   return (
     <>
-      {/* Backdrop dim — only visible when open */}
+      {/* Backdrop dim — click to close */}
       <div
         className="absolute inset-0 z-30"
+        onClick={isOpen && onClose ? (e) => { if (e.target === e.currentTarget) onClose(); } : undefined}
         style={{
           background: isOpen ? 'rgba(0,0,0,0.4)' : 'transparent',
           pointerEvents: isOpen ? 'auto' : 'none',
@@ -105,8 +117,8 @@ function OverlayContainer({ isOpen, keepMounted = false, children }) {
 }
 
 // Account overlay — replaces gear icon. Same toggle pattern as everything else.
-// Settings renders inline. Legal pages open in new tab. Nothing navigates away.
-function AccountOverlay({ currentUser, onClose }) {
+// Settings renders inline. About + Legal open as overlays. Nothing navigates away.
+function AccountOverlay({ currentUser, onClose, onOpenOverlay }) {
   const [showSettings, setShowSettings] = useState(false);
   const [showNewsletter, setShowNewsletter] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -304,6 +316,35 @@ function AccountOverlay({ currentUser, onClose }) {
 
       <div style={{ height: 1, background: 'var(--ll-border)', margin: '8px 0' }} />
 
+      {/* About — identity pages rendered as overlays inside the shell */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 10, color: 'var(--ll-text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, fontWeight: 500 }}>
+          About
+        </div>
+        <div
+          className="flex items-center gap-2.5 cursor-pointer rounded-lg"
+          style={{ padding: '10px 12px', transition: 'background 0.15s' }}
+          onClick={() => onOpenOverlay?.(OV.PHILOSOPHY)}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ll-bg-elevated)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        >
+          <BookOpen style={{ width: 16, height: 16, color: 'var(--ll-text-dim)', flexShrink: 0 }} strokeWidth={1.5} />
+          <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)' }}>Philosophy</div>
+        </div>
+        <div
+          className="flex items-center gap-2.5 cursor-pointer rounded-lg"
+          style={{ padding: '10px 12px', transition: 'background 0.15s' }}
+          onClick={() => onOpenOverlay?.(OV.SUPPORT)}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ll-bg-elevated)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        >
+          <HelpCircle style={{ width: 16, height: 16, color: 'var(--ll-text-dim)', flexShrink: 0 }} strokeWidth={1.5} />
+          <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)' }}>Support</div>
+        </div>
+      </div>
+
+      <div style={{ height: 1, background: 'var(--ll-border)', margin: '8px 0' }} />
+
       {/* Legal — opens in new tab (acceptable for legal pages) */}
       <div style={{ marginBottom: 16 }}>
         <div style={{ fontSize: 10, color: 'var(--ll-text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, fontWeight: 500 }}>
@@ -377,8 +418,9 @@ export default function MyLaneSurface({
     try { return localStorage.getItem('mylane_panel') !== '0'; } catch { return true; }
   });
   const [showPhysicsTuner, setShowPhysicsTuner] = useState(false);
-  const [activeOverlay, setActiveOverlay] = useState(null); // 'freq' | 'dir' | 'evt' | 'acct' | null
+  const [activeOverlay, setActiveOverlay] = useState(null); // OV.* key or null
   const [overlayBusinessId, setOverlayBusinessId] = useState(null); // stacked BusinessProfile drill-in
+  const [overlayRecommend, setOverlayRecommend] = useState(null); // stacked Recommend {businessId, mode} or null
   const [welcomeData, setWelcomeData] = useState(() => {
     try {
       const raw = localStorage.getItem('mylane_welcome');
@@ -415,21 +457,22 @@ export default function MyLaneSurface({
     return () => window.removeEventListener('mylane-user-message', handler);
   }, [trackMessage]);
 
-  // Close overlay on Escape (BusinessProfile stack first, then base overlay)
+  // Close overlay on Escape — unwind stack: Recommend → BusinessProfile → base overlay
   useEffect(() => {
     const handler = (e) => {
       if (e.key === 'Escape') {
+        if (overlayRecommend) { setOverlayRecommend(null); return; }
         if (overlayBusinessId) { setOverlayBusinessId(null); return; }
         if (activeOverlay) setActiveOverlay(null);
       }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [activeOverlay, overlayBusinessId]);
+  }, [activeOverlay, overlayBusinessId, overlayRecommend]);
 
   // FrequencyMiniPlayer tap → open frequency overlay inside the shell
   useEffect(() => {
-    const handler = () => setActiveOverlay('freq');
+    const handler = () => setActiveOverlay(OV.FREQ);
     window.addEventListener('frequency-open-fullview', handler);
     return () => window.removeEventListener('frequency-open-fullview', handler);
   }, []);
@@ -442,18 +485,20 @@ export default function MyLaneSurface({
 
   const currentSpace = spaceItems[spinnerIndex] || spaceItems[0];
 
-  // Toggle overlay — only one at a time. Clear BusinessProfile stack on any switch.
+  // Toggle overlay — only one at a time. Clear stacked overlays on any switch.
   const toggleOverlay = useCallback((name) => {
+    setOverlayRecommend(null);
     setOverlayBusinessId(null);
     setActiveOverlay((prev) => prev === name ? null : name);
   }, []);
 
-  const closeOverlay = useCallback(() => { setOverlayBusinessId(null); setActiveOverlay(null); }, []);
+  const closeOverlay = useCallback(() => { setOverlayRecommend(null); setOverlayBusinessId(null); setActiveOverlay(null); }, []);
 
   // Handle spinner navigation
   const handleSpinnerSelect = useCallback((idx) => {
     setSpinnerIndex(idx);
     setRenderedData(null);
+    setOverlayRecommend(null);
     setOverlayBusinessId(null);
     setActiveOverlay(null); // close any overlay when navigating
     drillStartRef.current = Date.now();
@@ -681,12 +726,12 @@ export default function MyLaneSurface({
           <div
             className="cursor-pointer relative flex items-center justify-center"
             style={{ minWidth: 44, minHeight: 44 }}
-            onClick={() => toggleOverlay('freq')}
+            onClick={() => toggleOverlay(OV.FREQ)}
           >
             <Music
               style={{ width: 14, height: 14, transition: 'color 0.2s' }}
               strokeWidth={1.5}
-              color={activeOverlay === 'freq' ? 'var(--ll-accent)' : 'var(--ll-text-dim)'}
+              color={activeOverlay === OV.FREQ ? 'var(--ll-accent)' : 'var(--ll-text-dim)'}
             />
             {frequencyPlaying && (
               <div style={{
@@ -701,11 +746,11 @@ export default function MyLaneSurface({
           <div
             className="cursor-pointer flex items-center justify-center"
             style={{ minWidth: 44, minHeight: 44 }}
-            onClick={() => toggleOverlay('dir')}
+            onClick={() => toggleOverlay(OV.DIR)}
           >
             <span style={{
               fontSize: 12, transition: 'color 0.2s',
-              color: activeOverlay === 'dir' ? 'var(--ll-accent)' : 'var(--ll-text-dim)',
+              color: activeOverlay === OV.DIR ? 'var(--ll-accent)' : 'var(--ll-text-dim)',
             }}>
               Directory
             </span>
@@ -715,11 +760,11 @@ export default function MyLaneSurface({
           <div
             className="cursor-pointer flex items-center justify-center"
             style={{ minWidth: 44, minHeight: 44 }}
-            onClick={() => toggleOverlay('evt')}
+            onClick={() => toggleOverlay(OV.EVT)}
           >
             <span style={{
               fontSize: 12, transition: 'color 0.2s',
-              color: activeOverlay === 'evt' ? 'var(--ll-accent)' : 'var(--ll-text-dim)',
+              color: activeOverlay === OV.EVT ? 'var(--ll-accent)' : 'var(--ll-text-dim)',
             }}>
               Events
             </span>
@@ -729,15 +774,15 @@ export default function MyLaneSurface({
           <div
             className="cursor-pointer flex items-center justify-center"
             style={{ minWidth: 44, minHeight: 44 }}
-            onClick={() => toggleOverlay('acct')}
+            onClick={() => toggleOverlay(OV.ACCT)}
           >
             <div
               className="flex items-center justify-center select-none"
               style={{
                 width: 36, height: 36, borderRadius: '50%',
-                border: `1.5px solid ${activeOverlay === 'acct' ? 'var(--ll-accent)' : 'var(--ll-border-active)'}`,
+                border: `1.5px solid ${activeOverlay === OV.ACCT ? 'var(--ll-accent)' : 'var(--ll-border-active)'}`,
                 fontSize: 12, transition: 'border-color 0.2s, color 0.2s',
-                color: activeOverlay === 'acct' ? 'var(--ll-accent)' : 'var(--ll-text-muted)',
+                color: activeOverlay === OV.ACCT ? 'var(--ll-accent)' : 'var(--ll-text-muted)',
               }}
             >
               {userInitial.toUpperCase()}
@@ -750,7 +795,7 @@ export default function MyLaneSurface({
       {/* Page headers are suppressed inside overlays via [data-overlay] > div > .mb-6:first-child CSS */}
 
       {/* Frequency Station overlay — keepMounted so audio state persists */}
-      <OverlayContainer isOpen={activeOverlay === 'freq'} keepMounted>
+      <OverlayContainer isOpen={activeOverlay === OV.FREQ} keepMounted onClose={closeOverlay}>
         <div style={{ padding: 24, maxWidth: 640 }}>
           {/* Title row with on/off toggle */}
           <div className="flex justify-between items-center" style={{ marginBottom: 24 }}>
@@ -788,7 +833,7 @@ export default function MyLaneSurface({
       </OverlayContainer>
 
       {/* Directory overlay */}
-      <OverlayContainer isOpen={activeOverlay === 'dir'}>
+      <OverlayContainer isOpen={activeOverlay === OV.DIR} onClose={closeOverlay}>
         <Suspense fallback={
           <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
         }>
@@ -818,14 +863,40 @@ export default function MyLaneSurface({
             <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
           }>
             <div className="overlay-page-content">
-              <BusinessProfilePage businessId={overlayBusinessId} />
+              <BusinessProfilePage businessId={overlayBusinessId} onRecommendClick={(bizId, mode) => setOverlayRecommend({ businessId: bizId, mode: mode || null })} />
+            </div>
+          </Suspense>
+        </div>
+      )}
+
+      {/* Recommend overlay — stacks on top of BusinessProfile (z-[60]) */}
+      {overlayRecommend && (
+        <div className="absolute flex flex-col overflow-y-auto" style={{
+          top: 45, left: 0, right: 0, bottom: 0, zIndex: 60,
+          background: 'var(--ll-bg-overlay)', backdropFilter: 'blur(12px)',
+          animation: 'overlaySlideDown 0.35s ease',
+        }}>
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--ll-border)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setOverlayRecommend(null)}
+              style={{ fontSize: 12, color: 'var(--ll-text-dim)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}
+            >
+              ← Back
+            </button>
+          </div>
+          <Suspense fallback={
+            <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
+          }>
+            <div className="overlay-page-content">
+              <RecommendPage businessId={overlayRecommend.businessId} initialMode={overlayRecommend.mode} />
             </div>
           </Suspense>
         </div>
       )}
 
       {/* Events overlay */}
-      <OverlayContainer isOpen={activeOverlay === 'evt'}>
+      <OverlayContainer isOpen={activeOverlay === OV.EVT} onClose={closeOverlay}>
         <Suspense fallback={
           <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
         }>
@@ -836,8 +907,26 @@ export default function MyLaneSurface({
       </OverlayContainer>
 
       {/* Account overlay */}
-      <OverlayContainer isOpen={activeOverlay === 'acct'}>
-        <AccountOverlay currentUser={currentUser} onClose={closeOverlay} />
+      <OverlayContainer isOpen={activeOverlay === OV.ACCT} onClose={closeOverlay}>
+        <AccountOverlay currentUser={currentUser} onClose={closeOverlay} onOpenOverlay={(ov) => setActiveOverlay(ov)} />
+      </OverlayContainer>
+
+      {/* Philosophy overlay */}
+      <OverlayContainer isOpen={activeOverlay === OV.PHILOSOPHY} onClose={closeOverlay}>
+        <Suspense fallback={<div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>}>
+          <div className="overlay-page-content">
+            <PhilosophyPage />
+          </div>
+        </Suspense>
+      </OverlayContainer>
+
+      {/* Support overlay */}
+      <OverlayContainer isOpen={activeOverlay === OV.SUPPORT} onClose={closeOverlay}>
+        <Suspense fallback={<div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>}>
+          <div className="overlay-page-content">
+            <SupportPage />
+          </div>
+        </Suspense>
       </OverlayContainer>
 
       {/* ─── Body (content area + fixed panel) ─── */}

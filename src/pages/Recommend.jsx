@@ -12,11 +12,11 @@ import { Label } from "@/components/ui/label";
 import { ThumbsUp, BookOpen, ChevronLeft, Loader2, Upload, X, CheckCircle, ShieldCheck, Shield } from "lucide-react";
 import ConcernForm from '@/components/recommendations/ConcernForm';
 
-export default function Recommend() {
+export default function Recommend({ businessId: businessIdProp, initialMode } = {}) {
   const queryClient = useQueryClient();
   const urlParams = new URLSearchParams(window.location.search);
-  const businessId = urlParams.get('businessId');
-  const urlMode = urlParams.get('mode');
+  const businessId = businessIdProp || urlParams.get('businessId');
+  const urlMode = initialMode || urlParams.get('mode');
 
   // mode: 'choose' | 'story' | 'nod-done' | 'story-done' | 'concern' | 'concern-done' | 'vouch' | 'vouch-done'
   const [mode, setMode] = useState(
