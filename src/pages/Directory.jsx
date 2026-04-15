@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Search, MapPin, SearchX, Coins } from "lucide-react";
 
-export default function Directory() {
+export default function Directory({ onBusinessClick } = {}) {
   const { mainCategories, getMainCategory, getSubcategoryLabel, legacyCategoryMapping } = useCategories();
   const { region, isLoading: regionLoading } = useActiveRegion();
 
@@ -261,6 +261,7 @@ export default function Directory() {
                   key={business.id}
                   business={business}
                   badgeSettings={badgeSettings}
+                  onBusinessClick={onBusinessClick}
                 />
               ))}
             </div>

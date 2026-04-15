@@ -8,6 +8,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo, Suspense, laz
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import { toast } from 'sonner';
 import {
   Home, UtensilsCrossed, HardHat, DollarSign, Users,
   Store, Search, Music, Settings, LogOut, FileText,
@@ -35,6 +36,7 @@ const DirectoryPage = lazy(() => import('@/pages/Directory'));
 const EventsPage = lazy(() => import('@/pages/Events'));
 const FrequencyStationPage = lazy(() => import('@/pages/FrequencyStation'));
 const SettingsPage = lazy(() => import('@/pages/Settings'));
+const BusinessProfilePage = lazy(() => import('@/pages/BusinessProfile'));
 
 // Map workspace type IDs to spinner item config
 const SPACE_CONFIG = {
@@ -106,6 +108,9 @@ function OverlayContainer({ isOpen, keepMounted = false, children }) {
 // Settings renders inline. Legal pages open in new tab. Nothing navigates away.
 function AccountOverlay({ currentUser, onClose }) {
   const [showSettings, setShowSettings] = useState(false);
+  const [showNewsletter, setShowNewsletter] = useState(false);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(() => {
     try { return localStorage.getItem('ll_theme') || 'dark'; } catch { return 'dark'; }
   });
@@ -182,6 +187,7 @@ function AccountOverlay({ currentUser, onClose }) {
         <div
           className="flex items-center gap-2.5 cursor-pointer rounded-lg"
           style={{ padding: '10px 12px', transition: 'background 0.15s' }}
+          onClick={() => setShowNewsletter((v) => !v)}
           onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ll-bg-elevated)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
         >
@@ -191,6 +197,71 @@ function AccountOverlay({ currentUser, onClose }) {
             <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>The Good News</div>
           </div>
         </div>
+        {showNewsletter && (
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const value = newsletterEmail.trim().toLowerCase();
+              if (!value || !value.includes('@') || !value.includes('.') || value.length < 6) {
+                toast.error('Please enter a valid email address.');
+                return;
+              }
+              setNewsletterSubmitting(true);
+              try {
+                const allSubs = await base44.entities.NewsletterSubscriber.list();
+                const exists = (Array.isArray(allSubs) ? allSubs : []).some(
+                  (s) => (s.email || '').toLowerCase() === value
+                );
+                if (exists) {
+                  toast.success("You're already subscribed!");
+                  setNewsletterEmail('');
+                  setShowNewsletter(false);
+                  return;
+                }
+                await base44.entities.NewsletterSubscriber.create({
+                  email: value,
+                  subscribed_at: new Date().toISOString(),
+                  source: 'account-overlay',
+                  user_id: currentUser?.id || null,
+                  first_name: currentUser?.full_name?.split(' ')[0] || null,
+                  is_active: true,
+                });
+                toast.success("You're in! Welcome to The Good News.");
+                setNewsletterEmail('');
+                setShowNewsletter(false);
+              } catch {
+                toast.error('Something went wrong. Try again?');
+              } finally {
+                setNewsletterSubmitting(false);
+              }
+            }}
+            style={{ padding: '4px 12px 10px 36px', display: 'flex', gap: 6 }}
+          >
+            <input
+              type="email"
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
+              placeholder="your@email.com"
+              disabled={newsletterSubmitting}
+              style={{
+                flex: 1, fontSize: 16, padding: '6px 10px', borderRadius: 8,
+                background: 'var(--ll-bg-surface)', border: '1px solid var(--ll-border)',
+                color: 'var(--ll-text-primary)', outline: 'none',
+              }}
+            />
+            <button
+              type="submit"
+              disabled={newsletterSubmitting}
+              style={{
+                fontSize: 12, padding: '6px 12px', borderRadius: 8,
+                background: 'var(--ll-accent)', border: 'none',
+                color: 'var(--ll-bg-base)', cursor: 'pointer', fontWeight: 500,
+              }}
+            >
+              {newsletterSubmitting ? '…' : 'Subscribe'}
+            </button>
+          </form>
+        )}
         <div
           className="flex items-center gap-2.5 cursor-pointer rounded-lg"
           style={{ padding: '10px 12px', transition: 'background 0.15s' }}
@@ -307,6 +378,7 @@ export default function MyLaneSurface({
   });
   const [showPhysicsTuner, setShowPhysicsTuner] = useState(false);
   const [activeOverlay, setActiveOverlay] = useState(null); // 'freq' | 'dir' | 'evt' | 'acct' | null
+  const [overlayBusinessId, setOverlayBusinessId] = useState(null); // stacked BusinessProfile drill-in
   const [welcomeData, setWelcomeData] = useState(() => {
     try {
       const raw = localStorage.getItem('mylane_welcome');
@@ -343,12 +415,24 @@ export default function MyLaneSurface({
     return () => window.removeEventListener('mylane-user-message', handler);
   }, [trackMessage]);
 
-  // Close overlay on Escape
+  // Close overlay on Escape (BusinessProfile stack first, then base overlay)
   useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape' && activeOverlay) setActiveOverlay(null); };
+    const handler = (e) => {
+      if (e.key === 'Escape') {
+        if (overlayBusinessId) { setOverlayBusinessId(null); return; }
+        if (activeOverlay) setActiveOverlay(null);
+      }
+    };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [activeOverlay]);
+  }, [activeOverlay, overlayBusinessId]);
+
+  // FrequencyMiniPlayer tap → open frequency overlay inside the shell
+  useEffect(() => {
+    const handler = () => setActiveOverlay('freq');
+    window.addEventListener('frequency-open-fullview', handler);
+    return () => window.removeEventListener('frequency-open-fullview', handler);
+  }, []);
 
   // Build spinner items
   const spaceItems = useMemo(
@@ -358,17 +442,19 @@ export default function MyLaneSurface({
 
   const currentSpace = spaceItems[spinnerIndex] || spaceItems[0];
 
-  // Toggle overlay — only one at a time
+  // Toggle overlay — only one at a time. Clear BusinessProfile stack on any switch.
   const toggleOverlay = useCallback((name) => {
+    setOverlayBusinessId(null);
     setActiveOverlay((prev) => prev === name ? null : name);
   }, []);
 
-  const closeOverlay = useCallback(() => setActiveOverlay(null), []);
+  const closeOverlay = useCallback(() => { setOverlayBusinessId(null); setActiveOverlay(null); }, []);
 
   // Handle spinner navigation
   const handleSpinnerSelect = useCallback((idx) => {
     setSpinnerIndex(idx);
     setRenderedData(null);
+    setOverlayBusinessId(null);
     setActiveOverlay(null); // close any overlay when navigating
     drillStartRef.current = Date.now();
   }, []);
@@ -526,6 +612,7 @@ export default function MyLaneSurface({
         /* Suppress page headers when rendered inside overlays */
         .overlay-page-content > div > .mb-6:first-child { display: none; }
         .overlay-page-content > div > .flex.items-center.gap-3.mb-6:first-child { display: none; }
+        .overlay-page-content > div > .sticky:first-child { display: none; }
         /* Suppress auth gates and min-h-screen in overlay context */
         .overlay-page-content > div { min-height: auto !important; background: transparent !important; }
 
@@ -706,10 +793,36 @@ export default function MyLaneSurface({
           <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
         }>
           <div className="overlay-page-content">
-            <DirectoryPage />
+            <DirectoryPage onBusinessClick={(id) => setOverlayBusinessId(id)} />
           </div>
         </Suspense>
       </OverlayContainer>
+
+      {/* BusinessProfile overlay — stacks on top of Directory or any other overlay */}
+      {overlayBusinessId && (
+        <div className="absolute z-50 flex flex-col overflow-y-auto" style={{
+          top: 45, left: 0, right: 0, bottom: 0,
+          background: 'var(--ll-bg-overlay)', backdropFilter: 'blur(12px)',
+          animation: 'overlaySlideDown 0.35s ease',
+        }}>
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--ll-border)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setOverlayBusinessId(null)}
+              style={{ fontSize: 12, color: 'var(--ll-text-dim)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}
+            >
+              ← Back
+            </button>
+          </div>
+          <Suspense fallback={
+            <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
+          }>
+            <div className="overlay-page-content">
+              <BusinessProfilePage businessId={overlayBusinessId} />
+            </div>
+          </Suspense>
+        </div>
+      )}
 
       {/* Events overlay */}
       <OverlayContainer isOpen={activeOverlay === 'evt'}>

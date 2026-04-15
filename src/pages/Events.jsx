@@ -279,7 +279,6 @@ export default function Events() {
                   onClick={(clickedEvent) => {
                     const targetId = (clickedEvent || event).id;
                     setExpandedEventId(targetId);
-                    navigate(`/Events/${targetId}`, { replace: true });
                   }}
                 />
               ))}
@@ -293,7 +292,6 @@ export default function Events() {
         isOpen={!!expandedEventId}
         onClose={() => {
           setExpandedEventId(null);
-          if (eventId) navigate('/Events', { replace: true });
         }}
       />
 

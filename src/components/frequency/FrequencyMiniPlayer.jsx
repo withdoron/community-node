@@ -15,6 +15,12 @@ export default function FrequencyMiniPlayer() {
   const navigate = useNavigate();
 
   const handleTap = useCallback(() => {
+    // Inside the Mylane shell: open the Frequency overlay via custom event
+    if (window.location.pathname.startsWith('/MyLane')) {
+      window.dispatchEvent(new CustomEvent('frequency-open-fullview'));
+      return;
+    }
+    // Outside the shell (public pages): navigate to standalone route
     if (freq?.currentSong?.slug) {
       navigate(`/frequency/${freq.currentSong.slug}`);
     } else {

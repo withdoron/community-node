@@ -46,12 +46,12 @@ function getCategoryDisplayLabel(business, getLabel, legacyCategoryMapping) {
   return business.category || '';
 }
 
-export default function BusinessProfile() {
+export default function BusinessProfile({ businessId: businessIdProp } = {}) {
   const navigate = useNavigate();
   const { getLabel, legacyCategoryMapping } = useCategories();
   const { data: networksConfig = [] } = useConfig('platform', 'networks');
   const urlParams = new URLSearchParams(window.location.search);
-  const businessId = urlParams.get('id');
+  const businessId = businessIdProp || urlParams.get('id');
 
   const { data: business, isLoading: businessLoading } = useQuery({
     queryKey: ['business', businessId],

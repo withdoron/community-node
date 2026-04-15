@@ -72,7 +72,7 @@ export function resolveCategoryAccent(business, legacyCategoryMapping) {
  * No images, logos, or cover photos. Equal visual weight for every business.
  * Category accent bar signals identity. Hover warmth signals aliveness.
  */
-export default function BusinessCard({ business }) {
+export default function BusinessCard({ business, onBusinessClick }) {
   const navigate = useNavigate();
   const { getLabel, getMainCategory, legacyCategoryMapping } = useCategories();
   const { data: networksConfig = [] } = useConfig('platform', 'networks');
@@ -99,19 +99,29 @@ export default function BusinessCard({ business }) {
     })
     .filter(Boolean);
 
+  const cardClass = cn(
+    "block rounded-lg p-5 cursor-pointer",
+    "bg-gradient-to-br from-secondary to-secondary/90",
+    "border border-border",
+    "hover:border-primary/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)]",
+    "hover:-translate-y-0.5",
+    "transition-all duration-300 ease-out",
+    "border-l-4",
+    accentColor
+  );
+
+  // When onBusinessClick is provided (inside Mylane shell), intercept navigation
+  const Wrapper = onBusinessClick
+    ? ({ children, ...rest }) => (
+        <div {...rest} onClick={(e) => { e.preventDefault(); onBusinessClick(business.id); }}>
+          {children}
+        </div>
+      )
+    : ({ children, ...rest }) => <Link to={profileUrl} {...rest}>{children}</Link>;
+
   return (
-    <Link
-      to={profileUrl}
-      className={cn(
-        "block rounded-lg p-5 cursor-pointer",
-        "bg-gradient-to-br from-secondary to-secondary/90",
-        "border border-border",
-        "hover:border-primary/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)]",
-        "hover:-translate-y-0.5",
-        "transition-all duration-300 ease-out",
-        "border-l-4",
-        accentColor
-      )}
+    <Wrapper
+      className={cardClass}
       data-vitality="neutral"
     >
       {/* Business Name */}
@@ -186,6 +196,6 @@ export default function BusinessCard({ business }) {
           {business.founding_member ? 'Founding Member' : 'Standard Member'}
         </p>
       )}
-    </Link>
+    </Wrapper>
   );
 }
