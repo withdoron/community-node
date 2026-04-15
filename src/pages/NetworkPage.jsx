@@ -16,9 +16,10 @@ import { Loader2, Store, Calendar, ArrowLeft, X, Search, LayoutGrid, Map as MapI
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
-export default function NetworkPage() {
+export default function NetworkPage({ slug: slugProp, onBusinessClick, onNetworkClick } = {}) {
   const navigate = useNavigate();
-  const { slug } = useParams();
+  const { slug: slugParam } = useParams();
+  const slug = slugProp || slugParam;
   const queryClient = useQueryClient();
   const [expandedEvent, setExpandedEvent] = useState(null);
   const [lightboxImage, setLightboxImage] = useState(null);
@@ -375,7 +376,7 @@ export default function NetworkPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredBusinesses.map((business) => (
                 <div key={business.id}>
-                  <BusinessCard business={business} />
+                  <BusinessCard business={business} onBusinessClick={onBusinessClick} onNetworkClick={onNetworkClick} />
                 </div>
               ))}
             </div>

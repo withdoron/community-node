@@ -40,6 +40,7 @@ const BusinessProfilePage = lazy(() => import('@/pages/BusinessProfile'));
 const PhilosophyPage = lazy(() => import('@/pages/Philosophy'));
 const SupportPage = lazy(() => import('@/pages/Support'));
 const RecommendPage = lazy(() => import('@/pages/Recommend'));
+const NetworkPageComponent = lazy(() => import('@/pages/NetworkPage'));
 
 // Map workspace type IDs to spinner item config
 const SPACE_CONFIG = {
@@ -77,6 +78,7 @@ const OV = {
   ACCT: 'acct',
   PHILOSOPHY: 'philosophy',
   SUPPORT: 'support',
+  NETWORK: 'network',
 };
 
 function OverlayContainer({ isOpen, keepMounted = false, onClose, children }) {
@@ -421,6 +423,7 @@ export default function MyLaneSurface({
   const [activeOverlay, setActiveOverlay] = useState(null); // OV.* key or null
   const [overlayBusinessId, setOverlayBusinessId] = useState(null); // stacked BusinessProfile drill-in
   const [overlayRecommend, setOverlayRecommend] = useState(null); // stacked Recommend {businessId, mode} or null
+  const [overlayNetworkSlug, setOverlayNetworkSlug] = useState(null); // stacked NetworkPage drill-in
   const [welcomeData, setWelcomeData] = useState(() => {
     try {
       const raw = localStorage.getItem('mylane_welcome');
@@ -457,10 +460,11 @@ export default function MyLaneSurface({
     return () => window.removeEventListener('mylane-user-message', handler);
   }, [trackMessage]);
 
-  // Close overlay on Escape — unwind stack: Recommend → BusinessProfile → base overlay
+  // Close overlay on Escape — unwind stack: Network/Recommend → BusinessProfile → base overlay
   useEffect(() => {
     const handler = (e) => {
       if (e.key === 'Escape') {
+        if (overlayNetworkSlug) { setOverlayNetworkSlug(null); return; }
         if (overlayRecommend) { setOverlayRecommend(null); return; }
         if (overlayBusinessId) { setOverlayBusinessId(null); return; }
         if (activeOverlay) setActiveOverlay(null);
@@ -468,7 +472,7 @@ export default function MyLaneSurface({
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [activeOverlay, overlayBusinessId, overlayRecommend]);
+  }, [activeOverlay, overlayBusinessId, overlayRecommend, overlayNetworkSlug]);
 
   // FrequencyMiniPlayer tap → open frequency overlay inside the shell
   useEffect(() => {
@@ -487,17 +491,19 @@ export default function MyLaneSurface({
 
   // Toggle overlay — only one at a time. Clear stacked overlays on any switch.
   const toggleOverlay = useCallback((name) => {
+    setOverlayNetworkSlug(null);
     setOverlayRecommend(null);
     setOverlayBusinessId(null);
     setActiveOverlay((prev) => prev === name ? null : name);
   }, []);
 
-  const closeOverlay = useCallback(() => { setOverlayRecommend(null); setOverlayBusinessId(null); setActiveOverlay(null); }, []);
+  const closeOverlay = useCallback(() => { setOverlayNetworkSlug(null); setOverlayRecommend(null); setOverlayBusinessId(null); setActiveOverlay(null); }, []);
 
   // Handle spinner navigation
   const handleSpinnerSelect = useCallback((idx) => {
     setSpinnerIndex(idx);
     setRenderedData(null);
+    setOverlayNetworkSlug(null);
     setOverlayRecommend(null);
     setOverlayBusinessId(null);
     setActiveOverlay(null); // close any overlay when navigating
@@ -838,7 +844,7 @@ export default function MyLaneSurface({
           <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
         }>
           <div className="overlay-page-content">
-            <DirectoryPage onBusinessClick={(id) => setOverlayBusinessId(id)} />
+            <DirectoryPage onBusinessClick={(id) => setOverlayBusinessId(id)} onNetworkClick={(s) => setOverlayNetworkSlug(s)} />
           </div>
         </Suspense>
       </OverlayContainer>
@@ -863,7 +869,7 @@ export default function MyLaneSurface({
             <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
           }>
             <div className="overlay-page-content">
-              <BusinessProfilePage businessId={overlayBusinessId} onRecommendClick={(bizId, mode) => setOverlayRecommend({ businessId: bizId, mode: mode || null })} />
+              <BusinessProfilePage businessId={overlayBusinessId} onRecommendClick={(bizId, mode) => setOverlayRecommend({ businessId: bizId, mode: mode || null })} onNetworkClick={(s) => setOverlayNetworkSlug(s)} />
             </div>
           </Suspense>
         </div>
@@ -890,6 +896,36 @@ export default function MyLaneSurface({
           }>
             <div className="overlay-page-content">
               <RecommendPage businessId={overlayRecommend.businessId} initialMode={overlayRecommend.mode} />
+            </div>
+          </Suspense>
+        </div>
+      )}
+
+      {/* Network overlay — stacks on top of BusinessProfile (z-55) */}
+      {overlayNetworkSlug && (
+        <div className="absolute flex flex-col overflow-y-auto" style={{
+          top: 45, left: 0, right: 0, bottom: 0, zIndex: 55,
+          background: 'var(--ll-bg-overlay)', backdropFilter: 'blur(12px)',
+          animation: 'overlaySlideDown 0.35s ease',
+        }}>
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--ll-border)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setOverlayNetworkSlug(null)}
+              style={{ fontSize: 12, color: 'var(--ll-text-dim)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}
+            >
+              ← Back
+            </button>
+          </div>
+          <Suspense fallback={
+            <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
+          }>
+            <div className="overlay-page-content">
+              <NetworkPageComponent
+                slug={overlayNetworkSlug}
+                onBusinessClick={(id) => setOverlayBusinessId(id)}
+                onNetworkClick={(s) => setOverlayNetworkSlug(s)}
+              />
             </div>
           </Suspense>
         </div>

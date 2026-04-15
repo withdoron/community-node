@@ -46,7 +46,7 @@ function getCategoryDisplayLabel(business, getLabel, legacyCategoryMapping) {
   return business.category || '';
 }
 
-export default function BusinessProfile({ businessId: businessIdProp, onRecommendClick } = {}) {
+export default function BusinessProfile({ businessId: businessIdProp, onRecommendClick, onNetworkClick } = {}) {
   const navigate = useNavigate();
   const { getLabel, legacyCategoryMapping } = useCategories();
   const { data: networksConfig = [] } = useConfig('platform', 'networks');
@@ -223,13 +223,25 @@ export default function BusinessProfile({ businessId: businessIdProp, onRecommen
                       </Badge>
                     )}
                     {networks.map(({ slug, label }) => (
-                      <Link
-                        key={slug}
-                        to={`/networks/${slug}`}
-                        className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full hover:bg-primary/20 transition-colors"
-                      >
-                        {label}
-                      </Link>
+                      onNetworkClick ? (
+                        <span
+                          key={slug}
+                          role="link"
+                          tabIndex={0}
+                          onClick={() => onNetworkClick(slug)}
+                          className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full hover:bg-primary/20 transition-colors cursor-pointer"
+                        >
+                          {label}
+                        </span>
+                      ) : (
+                        <Link
+                          key={slug}
+                          to={`/networks/${slug}`}
+                          className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full hover:bg-primary/20 transition-colors"
+                        >
+                          {label}
+                        </Link>
+                      )
                     ))}
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{business.name}</h1>

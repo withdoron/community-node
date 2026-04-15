@@ -72,7 +72,7 @@ export function resolveCategoryAccent(business, legacyCategoryMapping) {
  * No images, logos, or cover photos. Equal visual weight for every business.
  * Category accent bar signals identity. Hover warmth signals aliveness.
  */
-export default function BusinessCard({ business, onBusinessClick }) {
+export default function BusinessCard({ business, onBusinessClick, onNetworkClick }) {
   const navigate = useNavigate();
   const { getLabel, getMainCategory, legacyCategoryMapping } = useCategories();
   const { data: networksConfig = [] } = useConfig('platform', 'networks');
@@ -168,13 +168,13 @@ export default function BusinessCard({ business, onBusinessClick }) {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                navigate(`/networks/${slug}`);
+                onNetworkClick ? onNetworkClick(slug) : navigate(`/networks/${slug}`);
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
                   e.stopPropagation();
-                  navigate(`/networks/${slug}`);
+                  onNetworkClick ? onNetworkClick(slug) : navigate(`/networks/${slug}`);
                 }
               }}
               className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full hover:bg-primary/20 transition-colors cursor-pointer"
