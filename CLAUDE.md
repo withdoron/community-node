@@ -156,6 +156,9 @@ Key source files to read before coding:
 | MyLane | `src/pages/MyLane.jsx`, `src/components/mylane/` |
 | Dashboard (retired) | BusinessDashboard retired (DEC-131). Dashboard components in `src/components/dashboard/` are legacy — workspaces render through MyLane spinner + MyLaneDrillView |
 | Config data | `src/config/` |
+| Bottom UI stack | `src/hooks/useBottomInset.js` (HEADER_HEIGHT, MINI_PLAYER_HEIGHT, COMMAND_BAR_HEIGHT) |
+| Hidden fields filter | `src/components/mylane/renderEntityView.jsx` (HIDDEN_FIELDS constant) |
+| Workspace types | `src/config/workspaceTypes.js` (tab config, component registry) |
 
 ---
 
@@ -433,6 +436,22 @@ Default staleTime is 5 minutes (set in `query-client.js`). Do NOT override with 
 ### Agent entity tools removed (2026-04-04, DEC-107)
 
 Space agents (FieldService, Finance, Playmaker, PropertyPulse, MyLane) no longer have direct entity read tools. They use ONLY agentScopedQuery + ServiceFeedback entity. Do NOT re-add entity tools when updating agent configs — it bypasses the permission membrane.
+
+### Mylane Agent v2 Live (2026-04-16, DEC-149)
+
+Mylane agent instructions were fully rewritten. Mandatory 4-step protocol: Classify → Execute → Verify → Respond. "Never lie" rule — saying "Done" without calling the tool is explicitly a lie. 26 entity tools removed, 2 backend functions remain. Smart routing (DEC-150): "show me" queries emit TYPE 1 RENDER (mounts real workspace components via MyLaneDrillView), TYPE 2 RENDER_DATA reserved for novel queries only.
+
+### useBottomInset Hook + Height Constants (2026-04-16)
+
+`src/hooks/useBottomInset.js` is the single source of truth for bottom UI stack height (Living Feet). Exports: `HEADER_HEIGHT` (45), `MINI_PLAYER_HEIGHT` (54), `COMMAND_BAR_HEIGHT` (54). The hook returns the combined pixel height of visible bottom UI (mini-player + command bar). Used by: overlay containment (bottomInset prop), content area padding, CommandBar fixed positioning. Do NOT hardcode these values anywhere — import from the hook.
+
+### HIDDEN_FIELDS Constant (2026-04-16)
+
+`src/components/mylane/renderEntityView.jsx` exports `HIDDEN_FIELDS` — a Set of 33 internal field names excluded from TYPE 2 entity card renders. Import and reuse this constant in any component that renders raw entity records. Do NOT show fields like `created_by`, `updated_date`, `user_id`, `profile_id`, etc. in user-facing cards.
+
+### Spec Review Protocol (2026-04-16, DEC-151)
+
+Before designing new architecture or protocols, get Hyphae's codebase review first. The review checks: does the infrastructure already exist? Do the assumptions about component APIs hold? Is there a lighter path? What's the smallest slice that produces visible improvement? This saved weeks on the Home Canvas spec — the existing TYPE 1 pipeline already did what the proposed TYPE 4 would have built.
 
 ---
 
