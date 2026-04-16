@@ -41,18 +41,27 @@ const SOURCE_LABELS = {
 export default function RemindersCard({ userId }) {
   const queryClient = useQueryClient();
 
+  // Read via agentScopedQuery (asServiceRole) so agent-created records are visible.
+  // MylaneNote has Creator Only RLS — .list() misses records created by agentScopedWrite.
+  // This is the DEC-140/DEC-144 pattern: read via service role, scope by user_id.
   const { data: notes = [] } = useQuery({
     queryKey: ['mylane-notes', userId],
     queryFn: async () => {
       if (!userId) return [];
       try {
-        const all = await base44.entities.MylaneNote.list();
-        const list = Array.isArray(all) ? all : [];
-        return list.filter((n) => n.user_id === userId);
+        const res = await base44.functions.invoke('agentScopedQuery', {
+          action: 'query',
+          user_id: userId,
+          workspace: 'platform',
+          entity: 'MylaneNote',
+        });
+        // Axios wrapper: result.data is the JSON body, result.data.data is the records
+        const records = res?.data?.data || res?.data || [];
+        return Array.isArray(records) ? records : [];
       } catch { return []; }
     },
     enabled: !!userId,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 30 * 1000, // 30s — reminders should appear quickly after agent writes
   });
 
   const activeNotes = useMemo(

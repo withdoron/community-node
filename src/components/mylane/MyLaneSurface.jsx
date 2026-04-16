@@ -1030,8 +1030,8 @@ export default function MyLaneSurface({
             </div>
           )}
 
-          {/* Workspace content */}
-          <div className="flex-1" style={{ padding: '8px var(--ll-content-pad, 24px)', paddingBottom: 60 }}>
+          {/* Workspace content — paddingBottom clears fixed bottom UI (input bar + mini-player) */}
+          <div className="flex-1" style={{ padding: '8px var(--ll-content-pad, 24px)', paddingBottom: bottomInset + 20 }}>
             <div style={{ maxWidth: 'var(--ll-content-max, 768px)' }}>
 
               {/* Command result card — agent-only */}
@@ -1094,26 +1094,6 @@ export default function MyLaneSurface({
             </div>
           </div>
 
-          {/* Mobile: command bar bottom-docked — agent-only */}
-          {/* Lifts above FrequencyMiniPlayer (54px) when music is active */}
-          {agentEnabled && (
-          <div className="mylane-bar-mobile" style={{
-            paddingBottom: (freq?.currentSong && freq?.isEnabled) ? MINI_PLAYER_HEIGHT : 0,
-            transition: 'padding-bottom 0.2s ease-out',
-          }}>
-            <CommandBar
-              mode="bar"
-              agentName="MyLane"
-              userId={currentUser?.id}
-              onRenderResult={setCommandResult}
-              onNavigate={(nav) => {
-                const idx = spaceItems.findIndex((s) => s.id === nav.workspace);
-                if (idx >= 0) handleSpinnerSelect(idx);
-              }}
-              lastResponse={commandResult?.text || null}
-            />
-          </div>
-          )}
         </div>
 
         {/* Desktop: fixed panel + re-open tab — agent-only */}
@@ -1159,6 +1139,33 @@ export default function MyLaneSurface({
         </>
         )}
       </div>
+
+      {/* Mobile: command bar pinned to viewport bottom — agent-only */}
+      {/* Always visible regardless of scroll. Sits above FrequencyMiniPlayer when music is active. */}
+      {agentEnabled && (
+        <div className="mylane-bar-mobile" style={{
+          position: 'fixed',
+          bottom: (freq?.currentSong && freq?.isEnabled) ? MINI_PLAYER_HEIGHT : 0,
+          left: 0,
+          right: 0,
+          zIndex: 9997,
+          // Safe-area padding only when at viewport bottom (no mini-player below)
+          paddingBottom: (freq?.currentSong && freq?.isEnabled) ? 0 : 'env(safe-area-inset-bottom, 0px)',
+          transition: 'bottom 0.2s ease-out',
+        }}>
+          <CommandBar
+            mode="bar"
+            agentName="MyLane"
+            userId={currentUser?.id}
+            onRenderResult={setCommandResult}
+            onNavigate={(nav) => {
+              const idx = spaceItems.findIndex((s) => s.id === nav.workspace);
+              if (idx >= 0) handleSpinnerSelect(idx);
+            }}
+            lastResponse={commandResult?.text || null}
+          />
+        </div>
+      )}
     </div>
   );
 }
