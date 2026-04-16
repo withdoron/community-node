@@ -26,6 +26,7 @@ import { parseRenderInstruction } from './parseRenderInstruction';
 import { renderEntityView } from './renderEntityView';
 import { useFrequency } from '@/contexts/FrequencyContext';
 import CommandBar from './CommandBar';
+import useBottomInset, { HEADER_HEIGHT, MINI_PLAYER_HEIGHT, COMMAND_BAR_HEIGHT } from '@/hooks/useBottomInset';
 
 // R&D allowlist for Mylane AI agent. Manual Mylane is the default experience.
 // Add testers here as agent matures. Gate by email, not role or tier.
@@ -81,10 +82,10 @@ const OV = {
   NETWORK: 'network',
 };
 
-function OverlayContainer({ isOpen, keepMounted = false, onClose, children }) {
+function OverlayContainer({ isOpen, keepMounted = false, onClose, bottomInset = 0, children }) {
   if (!isOpen && !keepMounted) return null;
   // On desktop (container >= 1024px), overlays render as centered floating panels
-  // On mobile, they fill the full area below the header
+  // On mobile, they fill the full area below the header and above the bottom UI stack
   return (
     <>
       {/* Backdrop dim — click to close */}
@@ -98,18 +99,20 @@ function OverlayContainer({ isOpen, keepMounted = false, onClose, children }) {
           transition: 'opacity 0.25s ease',
         }}
       />
-      {/* Overlay panel */}
+      {/* Overlay panel — contained within the shell frame (below header, above bottom UI) */}
       <div
         className="overlay-panel absolute z-40 flex flex-col overflow-y-auto"
         style={{
-          top: 45,
+          top: HEADER_HEIGHT,
           left: 0,
           right: 0,
-          bottom: 0,
+          bottom: bottomInset,
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           background: 'var(--ll-bg-overlay)',
           backdropFilter: 'blur(12px)',
           animation: isOpen ? 'overlaySlideDown 0.35s ease' : undefined,
           display: isOpen ? 'flex' : 'none',
+          transition: 'bottom 0.2s ease-out',
         }}
       >
         {children}
@@ -413,6 +416,9 @@ export default function MyLaneSurface({
   // AI agent gated to R&D allowlist — manual Mylane is the default for everyone else
   const agentEnabled = MYLANE_AGENT_ALLOWLIST.includes(currentUser?.email);
 
+  // Bottom UI stack height — one computation, many consumers (Living Feet)
+  const bottomInset = useBottomInset(agentEnabled);
+
   const [spinnerIndex, setSpinnerIndex] = useState(0);
   const [renderedData, setRenderedData] = useState(null);
   const [commandResult, setCommandResult] = useState(null); // { type: 'text'|'data'|'confirm', text?, entity?, data?, ... }
@@ -664,8 +670,8 @@ export default function MyLaneSurface({
         .overlay-page-content > div > .mb-6:first-child { display: none; }
         .overlay-page-content > div > .flex.items-center.gap-3.mb-6:first-child { display: none; }
         .overlay-page-content > div > .sticky:first-child { display: none; }
-        /* Suppress auth gates and min-h-screen in overlay context */
-        .overlay-page-content > div { min-height: auto !important; background: transparent !important; }
+        /* Suppress auth gates and min-h-screen in overlay context + horizontal containment */
+        .overlay-page-content > div { min-height: auto !important; background: transparent !important; padding-left: 16px; padding-right: 16px; }
 
         /* ─── Container queries ─── */
         .mylane-surface { container-type: inline-size; }
@@ -801,7 +807,7 @@ export default function MyLaneSurface({
       {/* Page headers are suppressed inside overlays via [data-overlay] > div > .mb-6:first-child CSS */}
 
       {/* Frequency Station overlay — keepMounted so audio state persists */}
-      <OverlayContainer isOpen={activeOverlay === OV.FREQ} keepMounted onClose={closeOverlay}>
+      <OverlayContainer isOpen={activeOverlay === OV.FREQ} keepMounted onClose={closeOverlay} bottomInset={bottomInset}>
         <div style={{ padding: 24, maxWidth: 640 }}>
           {/* Title row with on/off toggle */}
           <div className="flex justify-between items-center" style={{ marginBottom: 24 }}>
@@ -839,7 +845,7 @@ export default function MyLaneSurface({
       </OverlayContainer>
 
       {/* Directory overlay */}
-      <OverlayContainer isOpen={activeOverlay === OV.DIR} onClose={closeOverlay}>
+      <OverlayContainer isOpen={activeOverlay === OV.DIR} onClose={closeOverlay} bottomInset={bottomInset}>
         <Suspense fallback={
           <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
         }>
@@ -851,12 +857,14 @@ export default function MyLaneSurface({
 
       {/* BusinessProfile overlay — stacks on top of Directory or any other overlay */}
       {overlayBusinessId && (
-        <div className="absolute z-50 flex flex-col overflow-y-auto" style={{
-          top: 45, left: 0, right: 0, bottom: 0,
+        <div className="absolute z-50 flex flex-col" style={{
+          top: HEADER_HEIGHT, left: 0, right: 0, bottom: bottomInset,
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           background: 'var(--ll-bg-overlay)', backdropFilter: 'blur(12px)',
           animation: 'overlaySlideDown 0.35s ease',
+          transition: 'bottom 0.2s ease-out',
         }}>
-          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--ll-border)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--ll-border)', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <button
               type="button"
               onClick={() => setOverlayBusinessId(null)}
@@ -865,24 +873,28 @@ export default function MyLaneSurface({
               ← Back
             </button>
           </div>
-          <Suspense fallback={
-            <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
-          }>
-            <div className="overlay-page-content">
-              <BusinessProfilePage businessId={overlayBusinessId} onRecommendClick={(bizId, mode) => setOverlayRecommend({ businessId: bizId, mode: mode || null })} onNetworkClick={(s) => setOverlayNetworkSlug(s)} />
-            </div>
-          </Suspense>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            <Suspense fallback={
+              <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
+            }>
+              <div className="overlay-page-content">
+                <BusinessProfilePage businessId={overlayBusinessId} onRecommendClick={(bizId, mode) => setOverlayRecommend({ businessId: bizId, mode: mode || null })} onNetworkClick={(s) => setOverlayNetworkSlug(s)} />
+              </div>
+            </Suspense>
+          </div>
         </div>
       )}
 
       {/* Recommend overlay — stacks on top of BusinessProfile (z-[60]) */}
       {overlayRecommend && (
-        <div className="absolute flex flex-col overflow-y-auto" style={{
-          top: 45, left: 0, right: 0, bottom: 0, zIndex: 60,
+        <div className="absolute flex flex-col" style={{
+          top: HEADER_HEIGHT, left: 0, right: 0, bottom: bottomInset, zIndex: 60,
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           background: 'var(--ll-bg-overlay)', backdropFilter: 'blur(12px)',
           animation: 'overlaySlideDown 0.35s ease',
+          transition: 'bottom 0.2s ease-out',
         }}>
-          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--ll-border)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--ll-border)', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <button
               type="button"
               onClick={() => setOverlayRecommend(null)}
@@ -891,24 +903,28 @@ export default function MyLaneSurface({
               ← Back
             </button>
           </div>
-          <Suspense fallback={
-            <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
-          }>
-            <div className="overlay-page-content">
-              <RecommendPage businessId={overlayRecommend.businessId} initialMode={overlayRecommend.mode} />
-            </div>
-          </Suspense>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            <Suspense fallback={
+              <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
+            }>
+              <div className="overlay-page-content">
+                <RecommendPage businessId={overlayRecommend.businessId} initialMode={overlayRecommend.mode} />
+              </div>
+            </Suspense>
+          </div>
         </div>
       )}
 
       {/* Network overlay — stacks on top of BusinessProfile (z-55) */}
       {overlayNetworkSlug && (
-        <div className="absolute flex flex-col overflow-y-auto" style={{
-          top: 45, left: 0, right: 0, bottom: 0, zIndex: 55,
+        <div className="absolute flex flex-col" style={{
+          top: HEADER_HEIGHT, left: 0, right: 0, bottom: bottomInset, zIndex: 55,
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           background: 'var(--ll-bg-overlay)', backdropFilter: 'blur(12px)',
           animation: 'overlaySlideDown 0.35s ease',
+          transition: 'bottom 0.2s ease-out',
         }}>
-          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--ll-border)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--ll-border)', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <button
               type="button"
               onClick={() => setOverlayNetworkSlug(null)}
@@ -917,22 +933,24 @@ export default function MyLaneSurface({
               ← Back
             </button>
           </div>
-          <Suspense fallback={
-            <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
-          }>
-            <div className="overlay-page-content">
-              <NetworkPageComponent
-                slug={overlayNetworkSlug}
-                onBusinessClick={(id) => setOverlayBusinessId(id)}
-                onNetworkClick={(s) => setOverlayNetworkSlug(s)}
-              />
-            </div>
-          </Suspense>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            <Suspense fallback={
+              <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
+            }>
+              <div className="overlay-page-content">
+                <NetworkPageComponent
+                  slug={overlayNetworkSlug}
+                  onBusinessClick={(id) => setOverlayBusinessId(id)}
+                  onNetworkClick={(s) => setOverlayNetworkSlug(s)}
+                />
+              </div>
+            </Suspense>
+          </div>
         </div>
       )}
 
       {/* Events overlay */}
-      <OverlayContainer isOpen={activeOverlay === OV.EVT} onClose={closeOverlay}>
+      <OverlayContainer isOpen={activeOverlay === OV.EVT} onClose={closeOverlay} bottomInset={bottomInset}>
         <Suspense fallback={
           <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>
         }>
@@ -943,12 +961,12 @@ export default function MyLaneSurface({
       </OverlayContainer>
 
       {/* Account overlay */}
-      <OverlayContainer isOpen={activeOverlay === OV.ACCT} onClose={closeOverlay}>
+      <OverlayContainer isOpen={activeOverlay === OV.ACCT} onClose={closeOverlay} bottomInset={bottomInset}>
         <AccountOverlay currentUser={currentUser} onClose={closeOverlay} onOpenOverlay={(ov) => setActiveOverlay(ov)} />
       </OverlayContainer>
 
       {/* Philosophy overlay */}
-      <OverlayContainer isOpen={activeOverlay === OV.PHILOSOPHY} onClose={closeOverlay}>
+      <OverlayContainer isOpen={activeOverlay === OV.PHILOSOPHY} onClose={closeOverlay} bottomInset={bottomInset}>
         <Suspense fallback={<div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>}>
           <div className="overlay-page-content">
             <PhilosophyPage />
@@ -957,7 +975,7 @@ export default function MyLaneSurface({
       </OverlayContainer>
 
       {/* Support overlay */}
-      <OverlayContainer isOpen={activeOverlay === OV.SUPPORT} onClose={closeOverlay}>
+      <OverlayContainer isOpen={activeOverlay === OV.SUPPORT} onClose={closeOverlay} bottomInset={bottomInset}>
         <Suspense fallback={<div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading...</div>}>
           <div className="overlay-page-content">
             <SupportPage />
@@ -1080,7 +1098,7 @@ export default function MyLaneSurface({
           {/* Lifts above FrequencyMiniPlayer (54px) when music is active */}
           {agentEnabled && (
           <div className="mylane-bar-mobile" style={{
-            paddingBottom: (freq?.currentSong && freq?.isEnabled) ? 54 : 0,
+            paddingBottom: (freq?.currentSong && freq?.isEnabled) ? MINI_PLAYER_HEIGHT : 0,
             transition: 'padding-bottom 0.2s ease-out',
           }}>
             <CommandBar
