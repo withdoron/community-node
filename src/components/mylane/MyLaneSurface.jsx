@@ -420,6 +420,7 @@ export default function MyLaneSurface({
   const bottomInset = useBottomInset(agentEnabled);
 
   const [spinnerIndex, setSpinnerIndex] = useState(0);
+  const [drilledTab, setDrilledTab] = useState('home'); // tab/view from TYPE 1 RENDER or spinner nav
   const [renderedData, setRenderedData] = useState(null);
   const [commandResult, setCommandResult] = useState(null); // { type: 'text'|'data'|'confirm', text?, entity?, data?, ... }
   const [panelOpen, setPanelOpen] = useState(() => {
@@ -506,8 +507,9 @@ export default function MyLaneSurface({
   const closeOverlay = useCallback(() => { setOverlayNetworkSlug(null); setOverlayRecommend(null); setOverlayBusinessId(null); setActiveOverlay(null); }, []);
 
   // Handle spinner navigation
-  const handleSpinnerSelect = useCallback((idx) => {
+  const handleSpinnerSelect = useCallback((idx, tab) => {
     setSpinnerIndex(idx);
+    setDrilledTab(tab || 'home');
     setRenderedData(null);
     setOverlayNetworkSlug(null);
     setOverlayRecommend(null);
@@ -646,7 +648,7 @@ export default function MyLaneSurface({
     return (
       <WorkspaceErrorBoundary workspace={space.label || space.id}>
         <MyLaneDrillView
-          drilledView={{ workspace: space.id, view: 'home', tab: 'home' }}
+          drilledView={{ workspace: space.id, view: drilledTab, tab: drilledTab }}
           currentUser={currentUser}
           fieldServiceProfiles={fieldServiceProfiles}
           financeProfiles={financeProfiles}
@@ -1114,7 +1116,7 @@ export default function MyLaneSurface({
             onRenderResult={setCommandResult}
             onNavigate={(nav) => {
               const idx = spaceItems.findIndex((s) => s.id === nav.workspace);
-              if (idx >= 0) handleSpinnerSelect(idx);
+              if (idx >= 0) handleSpinnerSelect(idx, nav.tab);
             }}
             onClose={() => { setPanelOpen(false); try { localStorage.setItem('mylane_panel', '0'); } catch {} }}
             lastResponse={commandResult?.text || null}
@@ -1160,7 +1162,7 @@ export default function MyLaneSurface({
             onRenderResult={setCommandResult}
             onNavigate={(nav) => {
               const idx = spaceItems.findIndex((s) => s.id === nav.workspace);
-              if (idx >= 0) handleSpinnerSelect(idx);
+              if (idx >= 0) handleSpinnerSelect(idx, nav.tab);
             }}
             lastResponse={commandResult?.text || null}
           />

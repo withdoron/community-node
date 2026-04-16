@@ -3,7 +3,7 @@
  * Uses WORKSPACE_TYPES config and tab components to render workspace views inside Mylane.
  * Fetches workspace-specific data (team members, FS worker role, business revenue, etc.) on demand.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { fetchTeamData } from '@/hooks/useTeamEntity';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -32,6 +32,10 @@ export default function MyLaneDrillView({
   businessProfiles = [],
 }) {
   const [activeTab, setActiveTab] = useState(drilledView.tab || 'home');
+  // Sync tab when parent changes drilledView.tab (e.g., TYPE 1 RENDER with view param)
+  useEffect(() => {
+    if (drilledView.tab) setActiveTab(drilledView.tab);
+  }, [drilledView.tab]);
   const [checkInEvent, setCheckInEvent] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const queryClient = useQueryClient();

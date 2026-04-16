@@ -78,8 +78,9 @@ export default function CommandBar({
 
       if (parsed.hasRender) {
         if (parsed.type === 'workspace') {
+          // Clear loading state immediately — the workspace view IS the response
+          onRenderResult?.(textPart ? { type: 'text', text: textPart } : null);
           onNavigate?.({ workspace: parsed.workspace, view: parsed.view, tab: parsed.tab });
-          if (textPart) onRenderResult?.({ type: 'text', text: textPart });
         } else if (parsed.type === 'data') {
           onRenderResult?.({ type: 'data', text: textPart || null, entity: parsed.entity, workspace: parsed.workspace, data: parsed.data, displayHint: parsed.displayHint });
         } else if (parsed.type === 'confirm') {
