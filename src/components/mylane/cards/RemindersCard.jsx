@@ -41,13 +41,17 @@ const SOURCE_LABELS = {
 export default function RemindersCard({ userId }) {
   const queryClient = useQueryClient();
 
-  // Read via agentScopedQuery (asServiceRole) so agent-created records are visible.
-  // MylaneNote has Creator Only RLS — .list() misses records created by agentScopedWrite.
-  // This is the DEC-140/DEC-144 pattern: read via service role, scope by user_id.
+  // Read MylaneNote records via two paths for reliability:
+  // 1. agentScopedQuery (asServiceRole) — sees agent-created records (Creator Only RLS bypass)
+  // 2. client .list() fallback — sees user-created records (direct auth)
+  // Merge results, deduplicate by ID, scope to current user.
   const { data: notes = [] } = useQuery({
     queryKey: ['mylane-notes', userId],
     queryFn: async () => {
       if (!userId) return [];
+      const allRecords = new Map(); // deduplicate by id
+
+      // Path 1: agentScopedQuery (sees service-role-created records)
       try {
         const res = await base44.functions.invoke('agentScopedQuery', {
           action: 'query',
@@ -55,13 +59,37 @@ export default function RemindersCard({ userId }) {
           workspace: 'platform',
           entity: 'MylaneNote',
         });
-        // Axios wrapper: result.data is the JSON body, result.data.data is the records
-        const records = res?.data?.data || res?.data || [];
-        return Array.isArray(records) ? records : [];
-      } catch { return []; }
+        // Dig through possible response shapes (Axios wrapper, direct, nested)
+        const raw = res?.data;
+        const records = Array.isArray(raw) ? raw
+          : Array.isArray(raw?.data) ? raw.data
+          : [];
+        console.log('[RemindersCard] agentScopedQuery raw:', raw, '→ records:', records.length);
+        for (const r of records) {
+          if (r?.id && String(r.user_id) === String(userId)) allRecords.set(r.id, r);
+        }
+      } catch (err) {
+        console.warn('[RemindersCard] agentScopedQuery failed:', err?.message || err);
+      }
+
+      // Path 2: client .list() fallback (sees user-created records under Creator Only RLS)
+      try {
+        const all = await base44.entities.MylaneNote.list();
+        const list = Array.isArray(all) ? all : [];
+        console.log('[RemindersCard] .list() returned:', list.length, 'records');
+        for (const r of list) {
+          if (r?.id && String(r.user_id) === String(userId)) allRecords.set(r.id, r);
+        }
+      } catch (err) {
+        console.warn('[RemindersCard] .list() failed:', err?.message || err);
+      }
+
+      const merged = Array.from(allRecords.values());
+      console.log('[RemindersCard] merged total:', merged.length, 'records for userId:', userId);
+      return merged;
     },
     enabled: !!userId,
-    staleTime: 30 * 1000, // 30s — reminders should appear quickly after agent writes
+    staleTime: 30 * 1000,
   });
 
   const activeNotes = useMemo(
