@@ -15,6 +15,31 @@
  */
 import React from 'react';
 
+// ─── Hidden Fields (Living Feet: one set, every entity render uses it) ────
+// Internal/system fields excluded from user-facing entity card renders.
+// Exported so other components can reuse the same filter.
+export const HIDDEN_FIELDS = new Set([
+  // Identity & ownership (never user-meaningful in card context)
+  'id', '_id', '__v',
+  'user_id', 'owner_id', 'owner_user_id', 'created_by', 'created_by_id',
+  // Foreign keys (shown as context via title/grouping, not as raw IDs)
+  'profile_id', 'workspace_id', 'team_id', 'business_id', 'property_id',
+  'group_id', 'event_id', 'play_id', 'recipe_id', 'submission_id',
+  'artist_id', 'mood_id', 'source_submission_id', 'parent_id',
+  // Timestamps (clutters cards — title/status tell the story)
+  'created_date', 'updated_date', 'created_at', 'updated_at',
+  // Agent/system metadata
+  'created_by_agent', 'created_via', 'source_space', 'note_type',
+  // Soft-delete / sample flags
+  'is_deleted', 'is_sample',
+  // Linked user ID arrays (opaque ObjectIds, not displayable)
+  'parent_user_ids', 'parent_user_id', 'linked_player_ids',
+  // Subscription/tier internals
+  'subscription_tier', 'tier_trial_start',
+  // Misc internals
+  'onboarding_complete', 'invite_code', 'coach_invite_code',
+]);
+
 // ─── Field Type Detection ────────────────────────
 
 function detectFieldType(key, value) {
@@ -263,6 +288,7 @@ function renderCardList(data, entity, onRecordTap) {
           const title = getRecordTitle(record, entity);
           const titleKey = getRecordTitleKey(record, entity);
           const fields = Object.entries(record)
+            .filter(([key]) => !HIDDEN_FIELDS.has(key))
             .map(([key, value]) => ({ key, value, type: detectFieldType(key, value) }))
             .filter((f) => f.type !== 'id' && f.type !== 'json' && f.type !== 'empty' && f.key !== titleKey);
 
@@ -298,6 +324,7 @@ function renderCardList(data, entity, onRecordTap) {
 function renderDetail(record, entity) {
   const title = getRecordTitle(record, entity);
   const fields = Object.entries(record)
+    .filter(([key]) => !HIDDEN_FIELDS.has(key))
     .map(([key, value]) => ({ key, value, type: detectFieldType(key, value) }))
     .filter((f) => f.type !== 'id' && f.type !== 'json' && f.type !== 'empty');
 
