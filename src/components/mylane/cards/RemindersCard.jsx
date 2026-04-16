@@ -60,8 +60,10 @@ export default function RemindersCard({ userId }) {
           entity: 'MylaneNote',
         });
         // Dig through possible response shapes (Axios wrapper, direct, nested)
+        // agentScopedQuery returns { success, count, records, entity, user_id, workspace }
         const raw = res?.data;
         const records = Array.isArray(raw) ? raw
+          : Array.isArray(raw?.records) ? raw.records
           : Array.isArray(raw?.data) ? raw.data
           : [];
         console.log('[RemindersCard] agentScopedQuery raw:', raw, '→ records:', records.length);
