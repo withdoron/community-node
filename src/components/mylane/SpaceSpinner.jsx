@@ -479,7 +479,6 @@ function renderCompass(items, currentIndex, { containerWidth, onItemClick }) {
   const center = containerWidth / 2 - STATION_WIDTH / 2;
   const tx = -(currentIndex * STATION_WIDTH) + center;
   const activeItem = items[currentIndex];
-  const activeLabel = activeItem?.label?.toLowerCase() || '';
   const activeBearing = activeItem ? getBearing(activeItem.id, currentIndex, items.length) : 0;
 
   return (
@@ -487,7 +486,10 @@ function renderCompass(items, currentIndex, { containerWidth, onItemClick }) {
       className="ll-compass"
       style={{ display: 'flex', flexDirection: 'column', height: 112, position: 'relative' }}
     >
-      {/* Chrome row — 22px */}
+      {/* Chrome row — 22px. Framing only: 'bearing' affordance label on the
+          left, active degrees on the right. Active station identity lives on
+          the strip, not here. Degrees still update live during drag as
+          activeBearing is derived from currentIndex. */}
       <div
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -501,15 +503,6 @@ function renderCompass(items, currentIndex, { containerWidth, onItemClick }) {
           }}
         >
           bearing
-        </span>
-        <span
-          className="ll-compass-station-label ll-compass-active-label"
-          style={{
-            fontSize: 12, fontWeight: 500, color: 'hsl(var(--primary))',
-            letterSpacing: '0.3px', whiteSpace: 'nowrap',
-          }}
-        >
-          {activeLabel}
         </span>
         <span
           className="ll-compass-bearing"
@@ -552,11 +545,9 @@ function renderCompass(items, currentIndex, { containerWidth, onItemClick }) {
             else opacity = 0.12;
             if (isDimmed) opacity *= 0.5;
             const bearing = getBearing(item.id, i, items.length);
-            // Active station's name + bearing live in the chrome row. The
-            // station slot on the strip stays (for drag alignment + consistent
-            // visual rhythm) but renders blank so the needle points through a
-            // quiet space. Chrome row is the single voice for active identity
-            // and bearing; strip's job is scrubbing and showing neighbors.
+            // Active station stays in place and lights up in accent. Needle
+            // passes through its name. Chrome row does not repeat its identity.
+            // Inactive stations stay muted; distance-opacity does the fade.
             return (
               <div
                 key={item.id}
@@ -567,32 +558,32 @@ function renderCompass(items, currentIndex, { containerWidth, onItemClick }) {
                   opacity, transition: 'opacity 0.3s ease',
                 }}
               >
-                {!isCenter && (
-                  <>
-                    <div
-                      className="ll-compass-station-label"
-                      style={{
-                        fontSize: 10,
-                        color: 'hsl(var(--foreground))',
-                        fontWeight: 400,
-                        letterSpacing: '0.3px', whiteSpace: 'nowrap',
-                        transition: 'color 0.2s, font-size 0.2s',
-                      }}
-                    >
-                      {item.label.toLowerCase()}
-                    </div>
-                    <div
-                      className="ll-compass-bearing"
-                      style={{
-                        fontSize: 8, color: 'hsl(var(--muted-foreground))',
-                        marginTop: 3, letterSpacing: '0.08em',
-                        fontVariantNumeric: 'tabular-nums',
-                      }}
-                    >
-                      {padBearing(bearing)}°
-                    </div>
-                  </>
-                )}
+                <div
+                  className="ll-compass-station-label"
+                  style={{
+                    fontSize: isCenter ? 11 : 10,
+                    color: isCenter ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                    fontWeight: isCenter ? 500 : 400,
+                    letterSpacing: '0.3px', whiteSpace: 'nowrap',
+                    transition: 'color 0.2s, font-size 0.2s, font-weight 0.2s',
+                  }}
+                >
+                  {item.label.toLowerCase()}
+                </div>
+                <div
+                  className="ll-compass-bearing"
+                  style={{
+                    fontSize: 8,
+                    // Active bearing ties to the name in accent (at 75% to let
+                    // the name lead). Inactive stays muted.
+                    color: isCenter ? 'hsl(var(--primary) / 0.75)' : 'hsl(var(--muted-foreground))',
+                    marginTop: 3, letterSpacing: '0.08em',
+                    fontVariantNumeric: 'tabular-nums',
+                    transition: 'color 0.2s',
+                  }}
+                >
+                  {padBearing(bearing)}°
+                </div>
               </div>
             );
           })}
