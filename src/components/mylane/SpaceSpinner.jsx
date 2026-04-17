@@ -552,6 +552,11 @@ function renderCompass(items, currentIndex, { containerWidth, onItemClick }) {
             else opacity = 0.12;
             if (isDimmed) opacity *= 0.5;
             const bearing = getBearing(item.id, i, items.length);
+            // Active station's name + bearing live in the chrome row. The
+            // station slot on the strip stays (for drag alignment + consistent
+            // visual rhythm) but renders blank so the needle points through a
+            // quiet space. Chrome row is the single voice for active identity
+            // and bearing; strip's job is scrubbing and showing neighbors.
             return (
               <div
                 key={item.id}
@@ -562,28 +567,32 @@ function renderCompass(items, currentIndex, { containerWidth, onItemClick }) {
                   opacity, transition: 'opacity 0.3s ease',
                 }}
               >
-                <div
-                  className="ll-compass-station-label"
-                  style={{
-                    fontSize: isCenter ? 11 : 10,
-                    color: isCenter ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
-                    fontWeight: isCenter ? 500 : 400,
-                    letterSpacing: '0.3px', whiteSpace: 'nowrap',
-                    transition: 'color 0.2s, font-size 0.2s',
-                  }}
-                >
-                  {item.label.toLowerCase()}
-                </div>
-                <div
-                  className="ll-compass-bearing"
-                  style={{
-                    fontSize: 8, color: 'hsl(var(--muted-foreground))',
-                    marginTop: 3, letterSpacing: '0.08em',
-                    fontVariantNumeric: 'tabular-nums',
-                  }}
-                >
-                  {padBearing(bearing)}°
-                </div>
+                {!isCenter && (
+                  <>
+                    <div
+                      className="ll-compass-station-label"
+                      style={{
+                        fontSize: 10,
+                        color: 'hsl(var(--foreground))',
+                        fontWeight: 400,
+                        letterSpacing: '0.3px', whiteSpace: 'nowrap',
+                        transition: 'color 0.2s, font-size 0.2s',
+                      }}
+                    >
+                      {item.label.toLowerCase()}
+                    </div>
+                    <div
+                      className="ll-compass-bearing"
+                      style={{
+                        fontSize: 8, color: 'hsl(var(--muted-foreground))',
+                        marginTop: 3, letterSpacing: '0.08em',
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
+                      {padBearing(bearing)}°
+                    </div>
+                  </>
+                )}
               </div>
             );
           })}
@@ -834,16 +843,21 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
         onItemClick,
       })}
 
-      {/* Dot indicator */}
-      <div className="flex justify-center items-center gap-1" style={{ marginTop: 4, height: 8 }}>
-        {items.map((item, i) => (
-          <div key={item.id} style={{
-            width: i === effectiveIndex ? 6 : 3, height: 3, borderRadius: 2,
-            background: i === effectiveIndex ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground) / 0.3)',
-            transition: 'all 0.2s',
-          }} />
-        ))}
-      </div>
+      {/* Dot indicator — orientation layer for spinner cockpit variants.
+          Compass cockpit has its own orientation arc (with labeled dots),
+          so this row would be a second position indicator doing the same
+          job. Skip it for compass. */}
+      {variant !== 'compass' && (
+        <div className="flex justify-center items-center gap-1" style={{ marginTop: 4, height: 8 }}>
+          {items.map((item, i) => (
+            <div key={item.id} style={{
+              width: i === effectiveIndex ? 6 : 3, height: 3, borderRadius: 2,
+              background: i === effectiveIndex ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground) / 0.3)',
+              transition: 'all 0.2s',
+            }} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
