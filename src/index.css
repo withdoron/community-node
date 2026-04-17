@@ -357,6 +357,17 @@ button:focus-visible {
   animation: crt-sync 40s linear infinite;
 }
 
+/* Fallout × Compass cockpit — Pip-Boy flavor
+ * The green-phosphor accent is already applied via the fallout theme's --primary
+ * variable. The CRT scanline overlay is global via body::before. This rule adds
+ * the terminal-style monospace font to compass labels when both theme + cockpit
+ * are Fallout / compass. Scoped tightly so it doesn't leak. */
+[data-theme="fallout"] [data-cockpit="compass"] .ll-compass .ll-compass-station-label,
+[data-theme="fallout"] [data-cockpit="compass"] .ll-compass .ll-compass-bearing {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Courier New', monospace;
+  letter-spacing: 0.08em;
+}
+
 /* ─── THEME SYSTEM ──────────────────────────────────────────────────────────
  *
  * HOW TO ADD A NEW THEME:
@@ -367,6 +378,18 @@ button:focus-visible {
  * All components use semantic Tailwind classes (bg-card, text-foreground, etc.)
  * that resolve through CSS variables. Status colors (emerald, red, blue) stay
  * literal — success/danger/info are universal across themes.
+ *
+ * ─── COCKPIT SYSTEM ────────────────────────────────────────────────────────
+ *
+ * Cockpit = which instrument the user operates Mylane from. Orthogonal to theme.
+ * Stored in localStorage as `ll_cockpit`, applied as `data-cockpit` attribute.
+ * Implementation in src/components/mylane/SpaceSpinner.jsx (VARIANT_MAP).
+ *
+ * HOW TO ADD A NEW COCKPIT:
+ * 1. Add a render<Name> function to SpaceSpinner.jsx matching the variant contract
+ * 2. Register it in VARIANT_MAP
+ * 3. Add the cockpit id to COCKPITS + COCKPIT_LABELS in AccountOverlay
+ * 4. Optional: add [data-cockpit="yourcockpit"] styling here for global tweaks
  */
 
 /* Autofill theme-aware overrides */

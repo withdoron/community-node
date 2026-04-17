@@ -11,6 +11,14 @@ try {
   }
 } catch {}
 
+// Apply persisted cockpit before first paint (mirrors theme pattern)
+try {
+  const cockpit = localStorage.getItem('ll_cockpit');
+  if (cockpit && cockpit !== 'spinner') {
+    document.documentElement.setAttribute('data-cockpit', cockpit);
+  }
+} catch {}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   // <React.StrictMode>
   <App />

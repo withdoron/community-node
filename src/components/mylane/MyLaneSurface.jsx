@@ -13,6 +13,7 @@ import {
   Home, UtensilsCrossed, HardHat, DollarSign, Users,
   Store, Search, Music, Settings, LogOut, FileText,
   Lock, Mail, Volume2, VolumeX, Building2, X, PanelRightOpen, FlaskConical, BookOpen, HelpCircle,
+  Compass,
 } from 'lucide-react';
 import ConfirmationCard from './ConfirmationCard';
 import DevLab from './DevLab';
@@ -132,6 +133,10 @@ function AccountOverlay({ currentUser, onClose, onOpenOverlay }) {
     try { return localStorage.getItem('ll_theme') || 'dark'; } catch { return 'dark'; }
   });
   const THEME_LABELS = { dark: 'Gold Standard', light: 'Cloud', fallout: 'Fallout' };
+  const [currentCockpit, setCurrentCockpit] = useState(() => {
+    try { return localStorage.getItem('ll_cockpit') || 'spinner'; } catch { return 'spinner'; }
+  });
+  const COCKPIT_LABELS = { spinner: 'Spinner', compass: 'Compass' };
   const [soundOn, setSoundOn] = useState(() => {
     try { return localStorage.getItem('mylane_sound') !== '0'; } catch { return true; }
   });
@@ -315,6 +320,27 @@ function AccountOverlay({ currentUser, onClose, onOpenOverlay }) {
           <div>
             <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)' }}>Theme</div>
             <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>{THEME_LABELS[currentTheme] || 'Gold Standard'}</div>
+          </div>
+        </div>
+        {/* Cockpit — the instrument you operate Mylane from. Theme paints the panel; cockpit picks the instruments. */}
+        <div
+          className="flex items-center gap-2.5 cursor-pointer rounded-lg"
+          style={{ padding: '10px 12px', transition: 'background 0.15s' }}
+          onClick={() => {
+            const COCKPITS = ['spinner', 'compass'];
+            const nextIdx = (COCKPITS.indexOf(currentCockpit) + 1) % COCKPITS.length;
+            const next = COCKPITS[nextIdx];
+            document.documentElement.setAttribute('data-cockpit', next);
+            try { localStorage.setItem('ll_cockpit', next); } catch {}
+            setCurrentCockpit(next);
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ll-bg-elevated)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        >
+          <Compass style={{ width: 16, height: 16, color: 'var(--ll-text-dim)', flexShrink: 0 }} strokeWidth={1.5} />
+          <div>
+            <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)' }}>Cockpit</div>
+            <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>{COCKPIT_LABELS[currentCockpit] || 'Spinner'}</div>
           </div>
         </div>
       </div>

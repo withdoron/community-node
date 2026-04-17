@@ -102,6 +102,24 @@ function useTheme() {
   return theme;
 }
 
+// ─── Cockpit detection ───────────────────────────────────────────────────────
+// Cockpit = which instrument the user operates Mylane from. Theme paints the
+// panel; cockpit picks the instruments. Mirrors the theme plumbing exactly —
+// localStorage + data-cockpit attribute + MutationObserver. Default: 'spinner'.
+function getActiveCockpit() {
+  if (typeof document === 'undefined') return 'spinner';
+  return document.documentElement.getAttribute('data-cockpit') || 'spinner';
+}
+function useCockpit() {
+  const [cockpit, setCockpit] = useState(getActiveCockpit);
+  useEffect(() => {
+    const observer = new MutationObserver(() => setCockpit(getActiveCockpit()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-cockpit'] });
+    return () => observer.disconnect();
+  }, []);
+  return cockpit;
+}
+
 // ─── Reduced motion ──────────────────────────────────────────────────────────
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(() => {
@@ -364,9 +382,282 @@ function renderCoverFlow(items, currentIndex, { containerWidth, onItemClick }) {
   );
 }
 
-// ─── Variant + theme maps ───────────────────────────────────────────────────
-const VARIANT_MAP = { flat: renderFlat, drum: renderDrum, coverFlow: renderCoverFlow };
+// ─── Variant: Compass (cockpit: compass) ────────────────────────────────────
+// Horizontal compass dial. Active station sits centered under a fixed vertical
+// needle. Stations slide under the needle during drag. Orientation arc below
+// shows macro-position across the organism.
+//
+// Contract honored:
+//   - items[i].dim renders quieter (per Dark Until Explored)
+//   - prefers-reduced-motion handled at parent level (delegates to renderFlat)
+//   - mylane_sound gates audio feedback via the same playTick shared util
+//   - max render height 112px (within 120px budget)
+//
+// Bearings: soft convention mapping common space ids to cardinal degrees.
+// mylane/home = 000° (N). East for active work, NW/W for inward/community.
+// Falls back to even distribution around the compass if id isn't in the map.
+const COMPASS_BEARINGS = {
+  home: 0,
+  mylane: 0,
+  'field-service': 90,
+  finance: 45,
+  team: 135,
+  business: 180,
+  'property-pulse': 225,
+  'meal-prep': 315,
+  frequency: 315,
+  discover: 270,
+  'dev-lab': 45,
+};
+
+function getBearing(id, index, total) {
+  if (id && COMPASS_BEARINGS[id] !== undefined) return COMPASS_BEARINGS[id];
+  // Fallback: distribute evenly, index 0 at 0°
+  if (total <= 1) return 0;
+  return Math.round((index / total) * 360) % 360;
+}
+
+function padBearing(n) {
+  const v = Math.max(0, Math.min(359, Math.round(n)));
+  return v.toString().padStart(3, '0');
+}
+
+function OrientationArc({ items, currentIndex }) {
+  const width = 180;
+  const arcHeight = 20;
+  // Always show up to 5 dots — compress if more items
+  const dotCount = Math.min(Math.max(items.length, 1), 5);
+  const pts = [];
+  for (let i = 0; i < dotCount; i++) {
+    const t = dotCount === 1 ? 0.5 : i / (dotCount - 1);
+    const x = 16 + t * (width - 32);
+    // Shallow arc — parabola rising slightly in the middle
+    const y = arcHeight - Math.sin(t * Math.PI) * (arcHeight - 4);
+    pts.push({ x, y });
+  }
+  const activeDotIdx = items.length <= 1
+    ? 0
+    : Math.round((currentIndex / (items.length - 1)) * (dotCount - 1));
+  const startLabel = items[0]?.label?.toLowerCase() || '';
+  const edgeLabel = items[items.length - 1]?.label?.toLowerCase() || '';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 36, gap: 2 }}>
+      <svg width={width} height={arcHeight + 4} viewBox={`0 0 ${width} ${arcHeight + 4}`} style={{ display: 'block' }}>
+        <path
+          d={`M ${pts[0]?.x ?? 16} ${pts[0]?.y ?? arcHeight} Q ${width / 2} ${-2} ${pts[pts.length - 1]?.x ?? width - 16} ${pts[pts.length - 1]?.y ?? arcHeight}`}
+          fill="none"
+          stroke="hsl(var(--muted-foreground) / 0.25)"
+          strokeWidth={1}
+        />
+        {pts.map((p, i) => {
+          const isActive = i === activeDotIdx;
+          return (
+            <circle
+              key={i}
+              cx={p.x}
+              cy={p.y}
+              r={isActive ? 2.5 : 1.5}
+              fill={isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground) / 0.45)'}
+            />
+          );
+        })}
+      </svg>
+      <div style={{ display: 'flex', justifyContent: 'space-between', width, fontSize: 8, color: 'hsl(var(--muted-foreground) / 0.55)', letterSpacing: '0.3px' }}>
+        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 60 }}>{startLabel}</span>
+        <span style={{ color: 'hsl(var(--primary))', fontWeight: 500 }}>here</span>
+        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 60, textAlign: 'right' }}>{edgeLabel}</span>
+      </div>
+    </div>
+  );
+}
+
+function renderCompass(items, currentIndex, { containerWidth, onItemClick }) {
+  // Station rhythm matches ITEM_WIDTH so drag math (which snaps every ITEM_WIDTH
+  // pixels of gesture) visually aligns with stations passing under the needle.
+  const STATION_WIDTH = ITEM_WIDTH;
+  const center = containerWidth / 2 - STATION_WIDTH / 2;
+  const tx = -(currentIndex * STATION_WIDTH) + center;
+  const activeItem = items[currentIndex];
+  const activeLabel = activeItem?.label?.toLowerCase() || '';
+  const activeBearing = activeItem ? getBearing(activeItem.id, currentIndex, items.length) : 0;
+
+  return (
+    <div
+      className="ll-compass"
+      style={{ display: 'flex', flexDirection: 'column', height: 112, position: 'relative' }}
+    >
+      {/* Chrome row — 22px */}
+      <div
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 20px', height: 22, flexShrink: 0,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 9, color: 'hsl(var(--muted-foreground) / 0.55)',
+            letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 400,
+          }}
+        >
+          bearing
+        </span>
+        <span
+          className="ll-compass-station-label ll-compass-active-label"
+          style={{
+            fontSize: 12, fontWeight: 500, color: 'hsl(var(--primary))',
+            letterSpacing: '0.3px', whiteSpace: 'nowrap',
+          }}
+        >
+          {activeLabel}
+        </span>
+        <span
+          className="ll-compass-bearing"
+          style={{
+            fontSize: 10, color: 'hsl(var(--muted-foreground))',
+            letterSpacing: '0.08em', fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {padBearing(activeBearing)}°
+        </span>
+      </div>
+
+      {/* Dial strip — 54px */}
+      <div
+        style={{
+          position: 'relative', height: 54, overflow: 'hidden', flexShrink: 0,
+        }}
+      >
+        {/* Sliding track */}
+        <div
+          className="will-change-transform"
+          style={{
+            position: 'absolute', top: 0, bottom: 0, left: 0,
+            display: 'flex', alignItems: 'center',
+            transform: `translateX(${tx}px)`,
+            transition: 'transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1)',
+          }}
+        >
+          {items.map((item, i) => {
+            const d = i - currentIndex;
+            const absD = Math.abs(d);
+            const isCenter = d === 0;
+            const isAdjacent = absD === 1;
+            const isDimmed = item.dim && !isCenter;
+            // Opacity: center 1.0, adjacent 0.45, further 0.2, hidden past 3
+            let opacity;
+            if (isCenter) opacity = 1;
+            else if (isAdjacent) opacity = 0.5;
+            else if (absD === 2) opacity = 0.28;
+            else opacity = 0.12;
+            if (isDimmed) opacity *= 0.5;
+            const bearing = getBearing(item.id, i, items.length);
+            return (
+              <div
+                key={item.id}
+                onClick={() => onItemClick(i)}
+                style={{
+                  width: STATION_WIDTH, flexShrink: 0,
+                  textAlign: 'center', cursor: 'pointer',
+                  opacity, transition: 'opacity 0.3s ease',
+                }}
+              >
+                <div
+                  className="ll-compass-station-label"
+                  style={{
+                    fontSize: isCenter ? 11 : 10,
+                    color: isCenter ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                    fontWeight: isCenter ? 500 : 400,
+                    letterSpacing: '0.3px', whiteSpace: 'nowrap',
+                    transition: 'color 0.2s, font-size 0.2s',
+                  }}
+                >
+                  {item.label.toLowerCase()}
+                </div>
+                <div
+                  className="ll-compass-bearing"
+                  style={{
+                    fontSize: 8, color: 'hsl(var(--muted-foreground))',
+                    marginTop: 3, letterSpacing: '0.08em',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  {padBearing(bearing)}°
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Needle — vertical line + arrow heads, fixed in center, fades through the word */}
+        <div
+          className="pointer-events-none"
+          style={{
+            position: 'absolute', top: 0, bottom: 0, left: '50%',
+            transform: 'translateX(-50%)', width: 1,
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+          }}
+        >
+          {/* Top arrow head */}
+          <div
+            style={{
+              width: 0, height: 0,
+              borderLeft: '3px solid transparent',
+              borderRight: '3px solid transparent',
+              borderTop: '5px solid hsl(var(--primary))',
+              flexShrink: 0,
+            }}
+          />
+          {/* Gradient line — transparent at ends, ~40% through center */}
+          <div
+            style={{
+              flex: 1, width: 1,
+              background: 'linear-gradient(180deg, hsl(var(--primary) / 0) 0%, hsl(var(--primary) / 0.4) 15%, hsl(var(--primary) / 0.4) 85%, hsl(var(--primary) / 0) 100%)',
+            }}
+          />
+          {/* Bottom arrow head */}
+          <div
+            style={{
+              width: 0, height: 0,
+              borderLeft: '3px solid transparent',
+              borderRight: '3px solid transparent',
+              borderBottom: '5px solid hsl(var(--primary))',
+              flexShrink: 0,
+            }}
+          />
+        </div>
+
+        {/* Edge fade — matches other variants' pattern */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(90deg, var(--ll-bg-base, hsl(var(--background))) 0%, transparent 14%, transparent 86%, var(--ll-bg-base, hsl(var(--background))) 100%)',
+          }}
+        />
+      </div>
+
+      {/* Orientation arc — 36px */}
+      <OrientationArc items={items} currentIndex={currentIndex} />
+    </div>
+  );
+}
+
+// ─── Variant + cockpit maps ────────────────────────────────────────────────
+// VARIANT_MAP is the library of render functions. COCKPIT_VARIANT routes a
+// cockpit id to a variant. 'spinner' cockpit preserves the original
+// theme-driven selection (coverFlow default, drum in fallout). 'compass'
+// always uses the compass variant regardless of theme — theme paints the
+// colors via CSS variables.
+const VARIANT_MAP = { flat: renderFlat, drum: renderDrum, coverFlow: renderCoverFlow, compass: renderCompass };
 const THEME_VARIANT = { dark: 'coverFlow', light: 'coverFlow', fallout: 'drum' };
+
+function resolveVariant({ cockpit, theme, reducedMotion, variantProp }) {
+  if (reducedMotion) return 'flat';
+  if (variantProp) return variantProp;
+  if (cockpit === 'compass') return 'compass';
+  // spinner cockpit (default) — theme picks the variant
+  return THEME_VARIANT[theme] || 'coverFlow';
+}
 
 // ─── Core SpaceSpinner ──────────────────────────────────────────────────────
 export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, variant: variantProp }) {
@@ -374,8 +665,9 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
   const [containerWidth, setContainerWidth] = useState(0);
 
   const theme = useTheme();
+  const cockpit = useCockpit();
   const reducedMotion = usePrefersReducedMotion();
-  const variant = reducedMotion ? 'flat' : (variantProp || THEME_VARIANT[theme] || 'coverFlow');
+  const variant = resolveVariant({ cockpit, theme, reducedMotion, variantProp });
   const renderVariant = VARIANT_MAP[variant] || renderCoverFlow;
   const physics = getPhysics(theme);
 
