@@ -1,0 +1,110 @@
+{
+  "name": "PMMaintenanceRequest",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to PMPropertyProfile"
+    },
+    "property_id": {
+      "type": "string",
+      "description": "FK to PMProperty"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "submitted_by_role": {
+      "type": "string",
+      "enum": [
+        "tenant",
+        "manager",
+        "owner"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "photos": {
+      "type": "string",
+      "description": "JSON array of URLs"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "emergency"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "submitted",
+        "triaged",
+        "assigned",
+        "in_progress",
+        "complete",
+        "cancelled"
+      ]
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "Worker email or userId"
+    },
+    "estimated_cost": {
+      "type": "number"
+    },
+    "actual_cost": {
+      "type": "number"
+    },
+    "reported_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "completion_photos": {
+      "type": "string",
+      "description": "JSON array of URLs"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "profile_id",
+    "property_id",
+    "title",
+    "priority",
+    "status"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": true,
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

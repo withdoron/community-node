@@ -1,0 +1,79 @@
+{
+  "name": "FSMaterialEntry",
+  "type": "object",
+  "properties": {
+    "daily_log_id": {
+      "type": "string",
+      "description": "FK to FSDailyLog"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "FK to Users entity"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "FK to FSProject (for receipt split)"
+    },
+    "description": {
+      "type": "string"
+    },
+    "quantity": {
+      "type": "number"
+    },
+    "unit": {
+      "type": "string",
+      "enum": [
+        "each",
+        "ft",
+        "sq ft",
+        "board",
+        "roll",
+        "box",
+        "bag",
+        "gal"
+      ],
+      "description": "Unit of measure"
+    },
+    "unit_cost": {
+      "type": "number"
+    },
+    "total_cost": {
+      "type": "number"
+    },
+    "business_id": {
+      "type": "string",
+      "description": "FK to a Business record. Scopes this record to a specific business inside the new multi-business architecture. Will be backfilled in a separate Hyphae script. Code continues to work with business_id: null (dual-read pattern during backfill)."
+    }
+  },
+  "required": [
+    "daily_log_id",
+    "user_id",
+    "description",
+    "quantity",
+    "unit",
+    "unit_cost"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

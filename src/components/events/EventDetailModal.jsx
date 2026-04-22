@@ -45,18 +45,8 @@ function formatPhone(value) {
 }
 
 export default function EventDetailModal({ event, isOpen, onClose }) {
-  if (!event) return null;
-
-  const eventDate = new Date(event.date || event.start_date);
-  const isPast = eventDate < new Date();
-  const priceBadge = getPriceBadge(event);
-  const isFree = event.pricing_type === 'free';
-  const isCancelled = event.status === 'cancelled';
-  const acceptsJoyCoins = event.joy_coin_enabled;
-  const joyCoinCost = event.joy_coin_cost ?? (acceptsJoyCoins ? Math.max(1, Math.round((event.price || 0) / 10)) : 0);
-  const isJoyCoinEvent = acceptsJoyCoins && joyCoinCost > 0;
-
   const { isAppAdmin } = useRole();
+
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -170,11 +160,21 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
     ? event.network.charAt(0).toUpperCase() + event.network.slice(1).replace(/_/g, ' ')
     : '';
 
+  // Derived values — after all hooks
+  const eventDate = event ? new Date(event.date || event.start_date) : new Date();
+  const isPast = eventDate < new Date();
+  const priceBadge = event ? getPriceBadge(event) : null;
+  const isFree = event?.pricing_type === 'free';
+  const isCancelled = event?.status === 'cancelled';
+  const acceptsJoyCoins = event?.joy_coin_enabled;
+  const joyCoinCost = event?.joy_coin_cost ?? (acceptsJoyCoins ? Math.max(1, Math.round((event?.price || 0) / 10)) : 0);
+  const isJoyCoinEvent = acceptsJoyCoins && joyCoinCost > 0;
+
   // Fetch spoke information if this is a spoke event
   const { data: spokeEvent } = useQuery({
-    queryKey: ['spokeEvent', event.id],
+    queryKey: ['spokeEvent', event?.id],
     queryFn: async () => {
-      const spokeEvents = await base44.entities.SpokeEvent.filter({ local_event_id: event.id });
+      const spokeEvents = await base44.entities.SpokeEvent.filter({ local_event_id: event?.id });
       if (spokeEvents.length === 0) return null;
       
       const spokeId = spokeEvents[0].spoke_id;
@@ -183,6 +183,8 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
     },
     enabled: isOpen && !!event.id
   });
+
+  if (!event) return null;
 
   return (
     <AnimatePresence>

@@ -1,0 +1,51 @@
+{
+  "name": "SubCategory",
+  "type": "object",
+  "properties": {
+    "group_id": {
+      "type": "string",
+      "description": "Foreign key to CategoryGroup entity"
+    },
+    "name": {
+      "type": "string",
+      "description": "Subcategory name (e.g., 'Restaurant (Sit-down)', 'Plumbing')"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Search keywords for this subcategory"
+    }
+  },
+  "required": [
+    "group_id",
+    "name"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

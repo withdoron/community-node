@@ -129,6 +129,18 @@
     "tier_trial_start": {
       "type": "string",
       "description": "ISO datetime when the trial for the current tier started"
+    },
+    "business_id": {
+      "type": "string",
+      "description": "FK to a Business record. Scopes this record to a specific business inside the new multi-business architecture. Will be backfilled in a separate Hyphae script. Code continues to work with business_id: null (dual-read pattern during backfill)."
+    },
+    "archived_at": {
+      "type": "string",
+      "description": "Soft-archive timestamp for FS profiles. If set, this profile is archived."
+    },
+    "archived_by": {
+      "type": "string",
+      "description": "User ID / email of the user who archived this FS profile."
     }
   },
   "required": [

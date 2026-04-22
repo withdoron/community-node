@@ -1,0 +1,67 @@
+{
+  "name": "PMWorkspaceMember",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to PMPropertyProfile"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "FK to Users entity"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "owner",
+        "property_manager",
+        "worker",
+        "tenant"
+      ],
+      "description": "Member role in the workspace"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "joined_at": {
+      "type": "string",
+      "description": "ISO datetime when member joined"
+    }
+  },
+  "required": [
+    "profile_id"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

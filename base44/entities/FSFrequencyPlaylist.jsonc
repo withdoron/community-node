@@ -1,0 +1,61 @@
+{
+  "name": "FSFrequencyPlaylist",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "FK to Users entity"
+    },
+    "title": {
+      "type": "string",
+      "description": "Playlist title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description of the playlist"
+    },
+    "track_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Ordered array of track IDs in this playlist"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this playlist is visible to other community members"
+    },
+    "cover_url": {
+      "type": "string",
+      "description": "Optional cover image URL for the playlist"
+    }
+  },
+  "required": [
+    "user_id",
+    "title"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": true,
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

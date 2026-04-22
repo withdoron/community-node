@@ -1,0 +1,41 @@
+{
+  "name": "IdeaVote",
+  "type": "object",
+  "properties": {
+    "idea_id": {
+      "type": "string",
+      "description": "Reference to the Idea entity"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User ID of the voter"
+    },
+    "created_at": {
+      "type": "string",
+      "description": "ISO datetime string of when the vote was cast"
+    }
+  },
+  "required": [
+    "idea_id",
+    "user_id",
+    "created_at"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": false,
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "name": "FSPermit",
+  "name": "FSDailyLog",
   "type": "object",
   "properties": {
     "profile_id": {
@@ -14,56 +14,28 @@
       "type": "string",
       "description": "FK to FSProject"
     },
-    "permit_type": {
+    "date": {
       "type": "string",
-      "enum": [
-        "Building",
-        "Electrical",
-        "Plumbing",
-        "Mechanical",
-        "Other"
-      ],
-      "description": "Permit type"
+      "format": "date",
+      "description": "ISO date"
     },
-    "permit_number": {
-      "type": "string"
-    },
-    "status": {
+    "day_number": {
       "type": "string",
-      "enum": [
-        "not_applied",
-        "applied",
-        "issued",
-        "expired"
-      ],
-      "description": "Permit status"
+      "description": "e.g. '3 of 14'"
     },
-    "applied_date": {
+    "tasks_completed": {
       "type": "string",
-      "format": "date"
-    },
-    "issued_date": {
-      "type": "string",
-      "format": "date"
-    },
-    "expiry_date": {
-      "type": "string",
-      "format": "date"
+      "description": "Description of completed tasks"
     },
     "notes": {
       "type": "string"
     },
-    "inspections": {
-      "type": "object",
-      "description": "Array of {type, date, status, inspector, notes}"
+    "weather": {
+      "type": "string"
     },
-    "portal_url": {
-      "type": "string",
-      "description": "Link to city permit portal"
-    },
-    "apply_url": {
-      "type": "string",
-      "description": "URL link to apply for this permit online"
+    "sent_to_client": {
+      "type": "boolean",
+      "default": false
     },
     "business_id": {
       "type": "string",
@@ -74,8 +46,8 @@
     "profile_id",
     "user_id",
     "project_id",
-    "permit_type",
-    "status"
+    "date",
+    "tasks_completed"
   ],
   "security": {
     "read": true,

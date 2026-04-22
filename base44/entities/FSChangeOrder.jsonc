@@ -1,0 +1,90 @@
+{
+  "name": "FSChangeOrder",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "FK to FSProject"
+    },
+    "estimate_id": {
+      "type": "string",
+      "description": "FK to FSEstimate (optional)"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "FK to Users entity"
+    },
+    "workspace_id": {
+      "type": "string",
+      "description": "FK to FieldServiceProfile"
+    },
+    "change_order_number": {
+      "type": "string",
+      "description": "e.g. CO-001"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "line_items": {
+      "type": "object",
+      "default": {},
+      "description": "Array of line item objects"
+    },
+    "subtotal": {
+      "type": "number",
+      "default": 0
+    },
+    "total": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "accepted",
+        "declined"
+      ],
+      "default": "draft"
+    },
+    "accepted_date": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO date when change order was accepted"
+    }
+  },
+  "required": [
+    "project_id",
+    "user_id",
+    "workspace_id",
+    "title",
+    "status"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

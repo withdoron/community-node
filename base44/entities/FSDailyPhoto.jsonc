@@ -1,0 +1,73 @@
+{
+  "name": "FSDailyPhoto",
+  "type": "object",
+  "properties": {
+    "daily_log_id": {
+      "type": "string",
+      "description": "FK to FSDailyLog"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "FK to Users entity"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "FK to FSProject"
+    },
+    "photo": {
+      "type": "string",
+      "description": "Uploaded photo URL"
+    },
+    "caption": {
+      "type": "string"
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "Before",
+        "Demo",
+        "Framing",
+        "Rough-in",
+        "Finish",
+        "Final"
+      ],
+      "description": "Construction phase"
+    },
+    "sort_order": {
+      "type": "number"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO datetime"
+    }
+  },
+  "required": [
+    "daily_log_id",
+    "user_id",
+    "photo"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

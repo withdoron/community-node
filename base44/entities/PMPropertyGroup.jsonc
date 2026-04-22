@@ -1,0 +1,89 @@
+{
+  "name": "PMPropertyGroup",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to PMPropertyProfile"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "description": "e.g. 'Oregon Duplex'"
+    },
+    "address": {
+      "type": "string"
+    },
+    "structure_type": {
+      "type": "string",
+      "enum": [
+        "single",
+        "duplex",
+        "triplex",
+        "fourplex",
+        "apartment_building",
+        "other"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "management_fee_pct": {
+      "type": "number",
+      "default": 10
+    },
+    "maintenance_reserve_pct": {
+      "type": "number",
+      "default": 10
+    },
+    "emergency_reserve_pct": {
+      "type": "number",
+      "default": 5
+    },
+    "emergency_reserve_target": {
+      "type": "number",
+      "description": "Dollar target"
+    },
+    "has_insurance": {
+      "type": "boolean"
+    },
+    "insurance_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "profile_id",
+    "user_id",
+    "name"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

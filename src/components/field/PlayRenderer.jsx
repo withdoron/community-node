@@ -37,22 +37,19 @@ export default function PlayRenderer({
 }) {
   const viewBox = FLAG_FOOTBALL.field.viewBox;
 
-  // Backward compat: don't render for photo-based plays
-  if (play?.use_renderer !== true && play?.use_renderer !== 'true') return null;
-
   // Build position config map (base + custom)
-  const formatId = play.format || DEFAULT_FORMAT;
-  const playSide = play.side || 'offense';
+  const formatId = play?.format || DEFAULT_FORMAT;
+  const playSide = play?.side || 'offense';
   const configPositions = getPositionsForFormat(formatId, playSide);
   const configMap = Object.fromEntries(configPositions.map((p) => [p.id, p]));
 
   // Merge in custom positions from play
   let customPositions = [];
-  if (play.custom_positions) {
+  if (play?.custom_positions) {
     try {
-      customPositions = typeof play.custom_positions === 'string'
-        ? JSON.parse(play.custom_positions)
-        : play.custom_positions;
+    customPositions = typeof play?.custom_positions === 'string'
+      ? JSON.parse(play.custom_positions)
+      : play?.custom_positions;
     } catch { customPositions = []; }
   }
   customPositions.forEach((cp) => {
@@ -63,6 +60,9 @@ export default function PlayRenderer({
 
   // Apply mirror transform if needed
   const mirrorX = (x) => mirrored ? (100 - x) : x;
+
+  // Backward compat: don't render for photo-based plays
+  const isRenderable = play?.use_renderer === true || play?.use_renderer === 'true';
 
   // Build renderable data from assignments
   const renderData = useMemo(() => {
@@ -106,7 +106,7 @@ export default function PlayRenderer({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assignments, mirrored]);
 
-  if (renderData.length === 0) return null;
+  if (!isRenderable || renderData.length === 0) return null;
 
   const isInteractive = mode === 'sideline' || (mode === 'view' && !!onPositionTap);
   const isMini = mode === 'mini';

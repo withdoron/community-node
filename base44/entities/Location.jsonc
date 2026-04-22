@@ -1,0 +1,131 @@
+{
+  "name": "Location",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "FK to Business"
+    },
+    "name": {
+      "type": "string",
+      "description": "Location label (e.g. Downtown, South Austin)"
+    },
+    "street_address": {
+      "type": "string",
+      "description": "Street address line 1"
+    },
+    "address_line2": {
+      "type": "string",
+      "description": "Apt, suite, unit, etc. (optional)"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "description": "Two-letter state code (e.g., OR, WA, CA)"
+    },
+    "zip_code": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string",
+      "default": "United States"
+    },
+    "is_home_based": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, hide street address publicly but use for internal calculations"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "lat": {
+      "type": "number"
+    },
+    "lng": {
+      "type": "number"
+    },
+    "timezone": {
+      "type": "string",
+      "default": "America/Los_Angeles",
+      "description": "Location timezone for boost window calculations"
+    },
+    "category_id": {
+      "type": "string",
+      "description": "Primary category for this location (from business)"
+    },
+    "boost_start_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When current boost started"
+    },
+    "boost_end_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When current boost expires"
+    },
+    "is_auto_boost_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether Smart Auto-Boost is enabled"
+    },
+    "boost_credits_this_period": {
+      "type": "number",
+      "default": 0,
+      "description": "How many boosts available this billing period"
+    },
+    "boosts_used_this_period": {
+      "type": "number",
+      "default": 0,
+      "description": "Boosts used this billing period"
+    },
+    "last_boost_started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the last boost was started"
+    },
+    "views_last_7_days": {
+      "type": "number",
+      "default": 0,
+      "description": "View count in the last 7 days for exposure calculation"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "business_id",
+    "city"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

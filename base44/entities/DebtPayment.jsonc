@@ -1,0 +1,65 @@
+{
+  "name": "DebtPayment",
+  "type": "object",
+  "properties": {
+    "debt_id": {
+      "type": "string",
+      "description": "Foreign key to Debt entity"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Foreign key to Users entity"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Payment amount"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Payment date"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "Optional link to a Transaction entity record"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes (optional)"
+    }
+  },
+  "required": [
+    "debt_id",
+    "user_id",
+    "amount",
+    "date"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

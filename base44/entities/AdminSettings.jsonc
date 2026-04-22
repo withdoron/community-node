@@ -1,0 +1,48 @@
+{
+  "name": "AdminSettings",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Setting key identifier"
+    },
+    "value": {
+      "type": "string",
+      "description": "Setting value (stored as JSON string)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the setting"
+    }
+  },
+  "required": [
+    "key",
+    "value"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

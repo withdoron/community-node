@@ -1,0 +1,61 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "description": "Append-only log of entity mutations performed by migrations, admin actions, reparenting, and backfills. Every future schema-changing or cross-entity operation writes an AuditLog entry before and after the mutation. Used for retrospective debugging and rollback reference.",
+  "properties": {
+    "entity_type": {
+      "type": "string",
+      "description": "Name of the affected entity (e.g., 'Business', 'FieldServiceProfile', 'FSClient')."
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "Primary ID of the affected record."
+    },
+    "action": {
+      "type": "string",
+      "description": "The type of action performed. Allowed values: create, update, delete, archive, reparent, backfill, migration."
+    },
+    "old_value": {
+      "type": "string",
+      "description": "JSON-stringified prior state of the record (or the affected subset of fields). Null for create actions."
+    },
+    "new_value": {
+      "type": "string",
+      "description": "JSON-stringified new state of the record (or the affected subset of fields). Null for delete actions."
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User ID of the person or service role that triggered the action. For server-driven actions, use the acting admin's user ID (server-authoritative, per DEC-139)."
+    },
+    "source": {
+      "type": "string",
+      "description": "Which system wrote this entry. Allowed values (free-text, not enforced): manual, migration, reparent_function, backfill_script, admin_ui, agent_write."
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO datetime when the action occurred. Mirrors created_date for compatibility with migration scripts that set it explicitly."
+    }
+  },
+  "required": [
+    "entity_type",
+    "entity_id",
+    "action",
+    "user_id",
+    "source",
+    "timestamp"
+  ],
+  "security": {
+    "read": {
+      "role": "admin"
+    },
+    "create": {
+      "authenticated": true
+    },
+    "update": {
+      "role": "admin"
+    },
+    "delete": {
+      "role": "admin"
+    }
+  }
+}

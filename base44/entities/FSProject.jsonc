@@ -1,5 +1,5 @@
 {
-  "name": "FSPermit",
+  "name": "FSProject",
   "type": "object",
   "properties": {
     "profile_id": {
@@ -10,60 +10,76 @@
       "type": "string",
       "description": "FK to Users entity"
     },
-    "project_id": {
+    "name": {
       "type": "string",
-      "description": "FK to FSProject"
+      "description": "Project name"
     },
-    "permit_type": {
+    "client_id": {
       "type": "string",
-      "enum": [
-        "Building",
-        "Electrical",
-        "Plumbing",
-        "Mechanical",
-        "Other"
-      ],
-      "description": "Permit type"
+      "description": "FK to FSClient (optional)"
     },
-    "permit_number": {
+    "client_name": {
       "type": "string"
+    },
+    "client_email": {
+      "type": "string"
+    },
+    "client_phone": {
+      "type": "string"
+    },
+    "client_address": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string",
+      "description": "Job site address"
     },
     "status": {
       "type": "string",
       "enum": [
-        "not_applied",
-        "applied",
-        "issued",
-        "expired"
+        "active",
+        "quoting",
+        "paused",
+        "completed",
+        "cancelled"
       ],
-      "description": "Permit status"
+      "description": "Project status"
     },
-    "applied_date": {
+    "start_date": {
       "type": "string",
-      "format": "date"
+      "format": "date",
+      "description": "ISO date"
     },
-    "issued_date": {
+    "estimated_end_date": {
       "type": "string",
-      "format": "date"
+      "format": "date",
+      "description": "ISO date"
     },
-    "expiry_date": {
-      "type": "string",
-      "format": "date"
+    "original_budget": {
+      "type": "number",
+      "description": "Original approved budget"
+    },
+    "total_budget": {
+      "type": "number"
+    },
+    "description": {
+      "type": "string"
     },
     "notes": {
       "type": "string"
     },
-    "inspections": {
-      "type": "object",
-      "description": "Array of {type, date, status, inspector, notes}"
+    "show_costs_to_clients": {
+      "type": "boolean",
+      "default": false
     },
-    "portal_url": {
-      "type": "string",
-      "description": "Link to city permit portal"
+    "client_show_breakdown": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, the client portal shows materials and labor as separate line items. When false, clients see only the total budget/spent."
     },
-    "apply_url": {
+    "estimate_id": {
       "type": "string",
-      "description": "URL link to apply for this permit online"
+      "description": "FK to FSEstimate if linked"
     },
     "business_id": {
       "type": "string",
@@ -73,8 +89,7 @@
   "required": [
     "profile_id",
     "user_id",
-    "project_id",
-    "permit_type",
+    "name",
     "status"
   ],
   "security": {

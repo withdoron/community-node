@@ -307,15 +307,6 @@ function LogPaymentForm({ open, onOpenChange, debt, profile, currentUser }) {
 
 // ─── Main Tab ──────────────────────────────────────
 export default function FinanceDebts({ profile, currentUser }) {
-  // Ownership guard
-  if (profile && currentUser && profile.user_id !== currentUser.id) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   const queryClient = useQueryClient();
   const [debtFormOpen, setDebtFormOpen] = useState(false);
   const [editingDebt, setEditingDebt] = useState(null);
@@ -368,6 +359,15 @@ export default function FinanceDebts({ profile, currentUser }) {
   const openAdd = () => { setEditingDebt(null); setDebtFormOpen(true); };
   const openEdit = (d) => { setEditingDebt(d); setDebtFormOpen(true); };
   const openPay = (d) => { setPayingDebt(d); setPayFormOpen(true); };
+
+  // Ownership guard — after all hooks
+  if (profile && currentUser && profile.user_id !== currentUser.id) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

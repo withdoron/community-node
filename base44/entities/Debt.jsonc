@@ -1,0 +1,88 @@
+{
+  "name": "Debt",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "Foreign key to FinancialProfile entity"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Foreign key to Users entity"
+    },
+    "name": {
+      "type": "string",
+      "description": "Debt name or label"
+    },
+    "original_amount": {
+      "type": "number",
+      "description": "Original total amount of the debt"
+    },
+    "current_balance": {
+      "type": "number",
+      "description": "Current remaining balance"
+    },
+    "interest_rate": {
+      "type": "number",
+      "description": "Annual interest rate (optional)"
+    },
+    "minimum_payment": {
+      "type": "number",
+      "description": "Minimum required payment (optional)"
+    },
+    "priority": {
+      "type": "number",
+      "description": "Priority order for payoff"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paid_off",
+        "deferred"
+      ],
+      "description": "Current status of the debt"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes (optional)"
+    }
+  },
+  "required": [
+    "profile_id",
+    "user_id",
+    "name",
+    "original_amount",
+    "current_balance",
+    "priority",
+    "status"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

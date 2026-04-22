@@ -1,0 +1,105 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "is_business_owner": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this user owns any businesses"
+    },
+    "is_instructor": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this user is an instructor"
+    },
+    "is_facilitator": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this user is a regional facilitator"
+    },
+    "associated_businesses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs of businesses this user works for (as owner or instructor)"
+    },
+    "region_id": {
+      "type": "string",
+      "description": "Preferred region"
+    },
+    "saved_businesses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of saved/favorited business IDs"
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "Future: Stripe customer ID for this user"
+    },
+    "onboarding_complete": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the user has completed onboarding"
+    },
+    "network_interests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Network IDs the user expressed interest in during onboarding"
+    },
+    "community_pass_interest": {
+      "type": "string",
+      "enum": [
+        "yes",
+        "maybe_later"
+      ],
+      "description": "Whether the user expressed interest in Community Pass (yes, maybe_later, or null)"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Freeform user bio. Reserved for future public user pages (Round 2)."
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Geocoded latitude. Reserved for future user location features."
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Geocoded longitude. Reserved for future user location features."
+    },
+    "page_public_toggle": {
+      "type": "boolean",
+      "default": false,
+      "description": "Controls whether this user's personal page is public. Default private. Reserved for Round 2."
+    },
+    "geocoded_at": {
+      "type": "string",
+      "description": "ISO datetime of last geocode for this user's lat/lng."
+    },
+    "active_member": {
+      "type": "boolean",
+      "default": false,
+      "description": "Membership flag for the $9/month per-user entity fee (DEC/Round 1). Phase 5 will read this to gate certain actions."
+    }
+  },
+  "required": [],
+  "security": {
+    "read": {
+      "authenticated": true
+    },
+    "create": {
+      "role": "admin"
+    },
+    "update": {
+      "role": "admin"
+    },
+    "delete": {
+      "role": "admin"
+    }
+  }
+}

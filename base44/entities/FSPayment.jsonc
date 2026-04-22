@@ -1,5 +1,5 @@
 {
-  "name": "FSPermit",
+  "name": "FSPayment",
   "type": "object",
   "properties": {
     "profile_id": {
@@ -14,56 +14,50 @@
       "type": "string",
       "description": "FK to FSProject"
     },
-    "permit_type": {
+    "type": {
       "type": "string",
       "enum": [
-        "Building",
-        "Electrical",
-        "Plumbing",
-        "Mechanical",
-        "Other"
+        "deposit",
+        "progress_payment",
+        "final_payment",
+        "change_order",
+        "refund"
       ],
-      "description": "Permit type"
+      "description": "Payment type"
     },
-    "permit_number": {
+    "amount": {
+      "type": "number"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO date"
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "check",
+        "card",
+        "transfer",
+        "other"
+      ],
+      "description": "Payment method"
+    },
+    "check_number": {
+      "type": "string"
+    },
+    "notes": {
       "type": "string"
     },
     "status": {
       "type": "string",
       "enum": [
-        "not_applied",
-        "applied",
-        "issued",
-        "expired"
+        "pending",
+        "received",
+        "cleared"
       ],
-      "description": "Permit status"
-    },
-    "applied_date": {
-      "type": "string",
-      "format": "date"
-    },
-    "issued_date": {
-      "type": "string",
-      "format": "date"
-    },
-    "expiry_date": {
-      "type": "string",
-      "format": "date"
-    },
-    "notes": {
-      "type": "string"
-    },
-    "inspections": {
-      "type": "object",
-      "description": "Array of {type, date, status, inspector, notes}"
-    },
-    "portal_url": {
-      "type": "string",
-      "description": "Link to city permit portal"
-    },
-    "apply_url": {
-      "type": "string",
-      "description": "URL link to apply for this permit online"
+      "description": "Payment status"
     },
     "business_id": {
       "type": "string",
@@ -74,7 +68,9 @@
     "profile_id",
     "user_id",
     "project_id",
-    "permit_type",
+    "type",
+    "amount",
+    "date",
     "status"
   ],
   "security": {

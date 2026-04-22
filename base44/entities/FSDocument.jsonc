@@ -100,6 +100,10 @@
     "owner_signed_at": {
       "type": "string",
       "description": "ISO datetime when owner signed"
+    },
+    "business_id": {
+      "type": "string",
+      "description": "FK to a Business record. Scopes this record to a specific business inside the new multi-business architecture. Will be backfilled in a separate Hyphae script. Code continues to work with business_id: null (dual-read pattern during backfill)."
     }
   },
   "required": [

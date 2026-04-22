@@ -161,12 +161,12 @@
     "boost_credits_this_period": {
       "type": "number",
       "default": 0,
-      "description": "DEPRECATED (DEC-024) — boost credits removed. Do not use in new code."
+      "description": "DEPRECATED (DEC-024) \u2014 boost credits removed. Do not use in new code."
     },
     "boosts_used_this_period": {
       "type": "number",
       "default": 0,
-      "description": "DEPRECATED (DEC-024) — boost usage removed. Do not use in new code."
+      "description": "DEPRECATED (DEC-024) \u2014 boost usage removed. Do not use in new code."
     },
     "bumps_remaining": {
       "type": "number",
@@ -228,12 +228,12 @@
     "average_rating": {
       "type": "number",
       "default": 0,
-      "description": "DEPRECATED (DEC-024) — reviews removed. Recommendation system uses nods/vouches."
+      "description": "DEPRECATED (DEC-024) \u2014 reviews removed. Recommendation system uses nods/vouches."
     },
     "review_count": {
       "type": "number",
       "default": 0,
-      "description": "DEPRECATED (DEC-024) — reviews removed. Recommendation system uses nods/vouches."
+      "description": "DEPRECATED (DEC-024) \u2014 reviews removed. Recommendation system uses nods/vouches."
     },
     "nod_count": {
       "type": "number",
@@ -301,6 +301,47 @@
     "geocoded_at": {
       "type": "string",
       "description": "ISO datetime of last geocode"
+    },
+    "legal_name": {
+      "type": "string",
+      "description": "Legal entity name (e.g. 'Mycelia, LLC'). Distinct from the brand display name."
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Public-facing brand display name. If null, UI falls back to existing name field."
+    },
+    "listed_in_directory": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this business appears in the public directory. Separates directory visibility from is_active."
+    },
+    "brand_color": {
+      "type": "string",
+      "description": "Hex color for brand (e.g. '#f59e0b'). Used on tiles, banners, buttons inside this business's spaces."
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL of the business's brand logo. Separate from banner_url and photos."
+    },
+    "tagline": {
+      "type": "string",
+      "description": "Short brand tagline shown on tiles and the directory listing."
+    },
+    "location_precision": {
+      "type": "string",
+      "description": "Location privacy control. Allowed values: exact, neighborhood, general_area. Used by micro-producers who don't want their home address shown."
+    },
+    "parent_business_id": {
+      "type": "string",
+      "description": "FK to another Business record. When set, this business is nested under a parent (holding-company or brand-under-brand relationship)."
+    },
+    "archived_at": {
+      "type": "string",
+      "description": "Soft-archive timestamp. If set, this business is archived and should not appear in normal queries even when is_active: true."
+    },
+    "archived_by": {
+      "type": "string",
+      "description": "User ID (or email) of the user who archived the business."
     }
   },
   "required": [

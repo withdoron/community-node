@@ -1,0 +1,94 @@
+{
+  "name": "JoyCoinReservations",
+  "type": "object",
+  "title": "Joy Coin Reservations",
+  "description": "Tracks in-flight coin holds from RSVP to resolution (check-in, cancel, or no-show).",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Link to Users entity"
+    },
+    "event_id": {
+      "type": "string",
+      "description": "Link to Events entity"
+    },
+    "rsvp_id": {
+      "type": "string",
+      "description": "Link to RSVPs entity"
+    },
+    "amount": {
+      "type": "integer",
+      "description": "Total coins held (includes full party size)"
+    },
+    "status": {
+      "type": "string",
+      "description": "Current reservation status",
+      "enum": [
+        "held",
+        "redeemed",
+        "refunded",
+        "forfeited"
+      ]
+    },
+    "held_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When coins were reserved"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When reservation was finalized (nullable until resolved)"
+    },
+    "resolution_type": {
+      "type": "string",
+      "description": "How the reservation was resolved (nullable until resolved)",
+      "enum": [
+        "checkin",
+        "cancel_refund",
+        "cancel_forfeit",
+        "noshow",
+        "event_cancelled"
+      ]
+    }
+  },
+  "required": [
+    "user_id",
+    "event_id",
+    "rsvp_id",
+    "amount",
+    "status",
+    "held_at"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

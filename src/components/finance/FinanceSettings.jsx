@@ -79,15 +79,6 @@ function getTaxLabel(id) {
 
 // ═══════════════════════════════════════════════════
 export default function FinanceSettings({ profile, currentUser }) {
-  // Ownership guard
-  if (profile && currentUser && profile.user_id !== currentUser.id) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -414,6 +405,15 @@ export default function FinanceSettings({ profile, currentUser }) {
     },
     onError: (err) => toast.error(err?.message || 'Failed to delete workspace'),
   });
+
+  // Ownership guard — after all hooks
+  if (profile && currentUser && profile.user_id !== currentUser.id) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   // ─── Helpers ────────────────────────────────────────
   const createdDate = profile?.created_date || profile?.created_at;

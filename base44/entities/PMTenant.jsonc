@@ -1,0 +1,97 @@
+{
+  "name": "PMTenant",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to PMPropertyProfile"
+    },
+    "property_id": {
+      "type": "string",
+      "description": "FK to PMProperty (the unit they occupy)"
+    },
+    "group_id": {
+      "type": "string",
+      "description": "FK to PMPropertyGroup"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "The tenant's LocalLane user ID (linked when they join via invite code)"
+    },
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "lease_start": {
+      "type": "string",
+      "description": "Date (YYYY-MM-DD)"
+    },
+    "lease_end": {
+      "type": "string",
+      "description": "Date (YYYY-MM-DD)"
+    },
+    "monthly_rent": {
+      "type": "number"
+    },
+    "deposit_amount": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "past",
+        "pending"
+      ],
+      "default": "active"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "move_in_date": {
+      "type": "string",
+      "description": "Date (YYYY-MM-DD)"
+    },
+    "move_out_date": {
+      "type": "string",
+      "description": "Date (YYYY-MM-DD)"
+    }
+  },
+  "required": [
+    "profile_id",
+    "property_id",
+    "group_id",
+    "first_name"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

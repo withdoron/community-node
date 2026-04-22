@@ -1,0 +1,44 @@
+{
+  "name": "CategoryClick",
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string",
+      "description": "The category that was clicked"
+    },
+    "click_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times this category was clicked"
+    }
+  },
+  "required": [
+    "category"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": true,
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

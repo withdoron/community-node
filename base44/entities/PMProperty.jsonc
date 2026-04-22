@@ -1,0 +1,129 @@
+{
+  "name": "PMProperty",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to PMPropertyProfile"
+    },
+    "group_id": {
+      "type": "string",
+      "description": "FK to PMPropertyGroup"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "description": "e.g. 'Unit A'"
+    },
+    "unit_label": {
+      "type": "string",
+      "description": "e.g. 'A', 'B'"
+    },
+    "property_type": {
+      "type": "string",
+      "enum": [
+        "single_family",
+        "duplex_unit",
+        "triplex_unit",
+        "apartment",
+        "short_term",
+        "other"
+      ]
+    },
+    "monthly_rent": {
+      "type": "number"
+    },
+    "nightly_rate": {
+      "type": "number"
+    },
+    "bedrooms": {
+      "type": "number"
+    },
+    "bathrooms": {
+      "type": "number"
+    },
+    "sqft": {
+      "type": "number"
+    },
+    "has_garage": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "occupied",
+        "vacant",
+        "maintenance",
+        "listed"
+      ]
+    },
+    "tenant_name": {
+      "type": "string"
+    },
+    "tenant_email": {
+      "type": "string"
+    },
+    "tenant_phone": {
+      "type": "string"
+    },
+    "lease_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "lease_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "deposit_amount": {
+      "type": "number"
+    },
+    "photos": {
+      "type": "string",
+      "description": "JSON array of URLs"
+    },
+    "amenities": {
+      "type": "string",
+      "description": "JSON array"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "profile_id",
+    "group_id",
+    "user_id",
+    "name",
+    "status"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

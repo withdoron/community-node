@@ -1,0 +1,49 @@
+{
+  "name": "Archetype",
+  "type": "object",
+  "properties": {
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly identifier (e.g., 'venue', 'service', 'organizer')",
+      "unique": true
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name (e.g., 'Location / Venue')"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of this archetype"
+    }
+  },
+  "required": [
+    "slug",
+    "name"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

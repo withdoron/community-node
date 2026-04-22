@@ -1,0 +1,82 @@
+{
+  "name": "Concern",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business related to this concern"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID of the user who submitted the concern"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Display name of the user who submitted the concern"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the concern"
+    },
+    "desired_resolution": {
+      "type": "string",
+      "description": "What resolution the user is seeking"
+    },
+    "approximate_date": {
+      "type": "string",
+      "description": "Approximate date when the issue occurred"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_review",
+        "resolved",
+        "closed"
+      ],
+      "default": "pending",
+      "description": "Current status of the concern"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Internal notes from admin reviewing the concern"
+    },
+    "resolved_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date when the concern was resolved"
+    }
+  },
+  "required": [
+    "business_id",
+    "user_id",
+    "user_name",
+    "description"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "name": "PMLaborEntry",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to PMPropertyProfile"
+    },
+    "property_id": {
+      "type": "string",
+      "description": "FK to PMProperty"
+    },
+    "maintenance_id": {
+      "type": "string",
+      "description": "FK to PMMaintenanceRequest (optional)"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "worker_name": {
+      "type": "string"
+    },
+    "worker_type": {
+      "type": "string",
+      "enum": [
+        "handyman",
+        "manager",
+        "owner",
+        "cleaner",
+        "landscaper",
+        "other"
+      ]
+    },
+    "hourly_rate": {
+      "type": "number"
+    },
+    "hours": {
+      "type": "number"
+    },
+    "total": {
+      "type": "number",
+      "description": "Computed: hourly_rate * hours"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "profile_id",
+    "property_id",
+    "user_id",
+    "worker_name",
+    "hourly_rate",
+    "hours",
+    "date"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

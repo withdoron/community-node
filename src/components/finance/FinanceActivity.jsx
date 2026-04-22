@@ -52,15 +52,6 @@ function getDateRange(preset) {
 }
 
 export default function FinanceActivity({ profile, currentUser }) {
-  // Ownership guard
-  if (profile && currentUser && profile.user_id !== currentUser.id) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   const [typeFilter, setTypeFilter] = useState('all');
   const [contextFilter, setContextFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -154,6 +145,15 @@ export default function FinanceActivity({ profile, currentUser }) {
   const getContextLabel = (ctxId) => {
     return profile?.contexts?.[ctxId]?.label || ctxId;
   };
+
+  // Ownership guard — after all hooks
+  if (profile && currentUser && profile.user_id !== currentUser.id) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

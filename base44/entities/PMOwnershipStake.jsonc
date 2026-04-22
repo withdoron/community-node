@@ -1,0 +1,60 @@
+{
+  "name": "PMOwnershipStake",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to PMPropertyProfile"
+    },
+    "owner_id": {
+      "type": "string",
+      "description": "FK to PMOwner"
+    },
+    "group_id": {
+      "type": "string",
+      "description": "FK to PMPropertyGroup"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "ownership_pct": {
+      "type": "number",
+      "description": "e.g. 50"
+    }
+  },
+  "required": [
+    "profile_id",
+    "owner_id",
+    "group_id",
+    "user_id",
+    "ownership_pct"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

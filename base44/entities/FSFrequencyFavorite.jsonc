@@ -1,0 +1,53 @@
+{
+  "name": "FSFrequencyFavorite",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "FK to Users entity"
+    },
+    "track_id": {
+      "type": "string",
+      "description": "ID or reference to the favorited track/song"
+    },
+    "track_title": {
+      "type": "string",
+      "description": "Title of the favorited track"
+    },
+    "track_artist": {
+      "type": "string",
+      "description": "Artist of the favorited track"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional personal notes about this favorite"
+    }
+  },
+  "required": [
+    "user_id",
+    "track_id"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": true,
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

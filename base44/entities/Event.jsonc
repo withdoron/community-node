@@ -1,0 +1,433 @@
+{
+  "name": "Event",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business hosting this event"
+    },
+    "location_id": {
+      "type": "string",
+      "description": "ID of the location where event is held"
+    },
+    "instructor_id": {
+      "type": "string",
+      "description": "User ID of the instructor leading this event"
+    },
+    "title": {
+      "type": "string",
+      "description": "Event title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Event description"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published",
+        "cancelled"
+      ],
+      "default": "published",
+      "description": "Event publication status"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event date and time"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event end date and time (optional)"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Event duration in minutes"
+    },
+    "is_all_day": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is an all-day event"
+    },
+    "location": {
+      "type": "string",
+      "description": "Event location address"
+    },
+    "is_location_tbd": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether location is to be determined"
+    },
+    "lat": {
+      "type": "number",
+      "description": "Latitude"
+    },
+    "lng": {
+      "type": "number",
+      "description": "Longitude"
+    },
+    "is_virtual": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a virtual event"
+    },
+    "virtual_url": {
+      "type": "string",
+      "description": "URL for virtual event"
+    },
+    "virtual_platform": {
+      "type": "string",
+      "description": "Virtual event platform (e.g., Zoom, Google Meet)"
+    },
+    "thumbnail_url": {
+      "type": "string",
+      "description": "Event thumbnail image"
+    },
+    "pricing_type": {
+      "type": "string",
+      "enum": [
+        "free",
+        "single_price",
+        "multiple_tickets",
+        "pay_what_you_wish"
+      ],
+      "default": "free",
+      "description": "Type of pricing structure"
+    },
+    "price": {
+      "type": "number",
+      "default": 0,
+      "description": "Ticket price (0 for free)"
+    },
+    "is_pay_what_you_wish": {
+      "type": "boolean",
+      "default": false,
+      "description": "Pay what you wish pricing"
+    },
+    "min_price": {
+      "type": "number",
+      "description": "Minimum price for pay what you wish"
+    },
+    "ticket_types": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Multiple ticket types with different prices"
+    },
+    "first_visit_free": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether first visit is free (intro offer)"
+    },
+    "accepts_rsvps": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this event accepts RSVPs"
+    },
+    "is_recurring": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a recurring event"
+    },
+    "recurring_pattern": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "biweekly",
+        "monthly"
+      ],
+      "description": "Recurring event pattern"
+    },
+    "recurring_days": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+          "sunday"
+        ]
+      },
+      "description": "Days of the week for recurring events"
+    },
+    "recurring_end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When recurring series ends"
+    },
+    "recurring_series_id": {
+      "type": "string",
+      "description": "ID linking all events in a recurring series"
+    },
+    "network": {
+      "type": "string",
+      "enum": [
+        "recess",
+        "tca"
+      ],
+      "description": "Network partnership (Recess or TCA)"
+    },
+    "network_only": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, this event is only visible to members of the associated network"
+    },
+    "punch_pass_accepted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether punch pass is accepted for this event"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "markets_fairs",
+        "live_music",
+        "food_drink",
+        "workshops_classes",
+        "sports_active",
+        "art_culture"
+      ],
+      "description": "Type of event"
+    },
+    "audience_tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "family_friendly",
+          "adults_only",
+          "pet_friendly",
+          "seniors"
+        ]
+      },
+      "description": "Audience tags for filtering"
+    },
+    "audience": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "family",
+          "adults",
+          "teens",
+          "kids",
+          "all_ages"
+        ]
+      },
+      "description": "Target audience (legacy)"
+    },
+    "setting": {
+      "type": "string",
+      "enum": [
+        "indoor",
+        "outdoor",
+        "both"
+      ],
+      "default": "both"
+    },
+    "accepts_silver": {
+      "type": "boolean",
+      "default": false,
+      "description": "Accepts silver payment"
+    },
+    "accessibility_features": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "wheelchair_accessible",
+          "free_parking",
+          "asl_interpreter",
+          "captioning",
+          "sensory_friendly",
+          "gender_neutral_restrooms"
+        ]
+      },
+      "description": "Accessibility features available"
+    },
+    "pet_friendly": {
+      "type": "boolean",
+      "default": false,
+      "description": "Pets are welcome"
+    },
+    "mats_provided": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mats or equipment provided"
+    },
+    "wheelchair_accessible": {
+      "type": "boolean",
+      "default": false,
+      "description": "Wheelchair accessible venue (legacy)"
+    },
+    "free_parking": {
+      "type": "boolean",
+      "default": false,
+      "description": "Free parking available (legacy)"
+    },
+    "instructor_note": {
+      "type": "string",
+      "description": "Personal note from the instructor"
+    },
+    "boost_start_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When boost promotion started"
+    },
+    "boost_end_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When boost promotion ends"
+    },
+    "is_trusted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Trusted host verified by community"
+    },
+    "is_volunteer": {
+      "type": "boolean",
+      "default": false,
+      "description": "Volunteer opportunity"
+    },
+    "organizer_name": {
+      "type": "string",
+      "description": "Event organizer name"
+    },
+    "organizer_email": {
+      "type": "string",
+      "description": "Contact email"
+    },
+    "organizer_phone": {
+      "type": "string",
+      "description": "Contact phone"
+    },
+    "website": {
+      "type": "string",
+      "description": "Event website or registration link"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "community",
+        "sports",
+        "arts",
+        "education",
+        "fundraiser",
+        "social",
+        "other"
+      ],
+      "default": "community",
+      "description": "Legacy category field"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "joy_coin_enabled": {
+      "type": "boolean",
+      "description": "Whether this event accepts Joy Coins for RSVP",
+      "default": false
+    },
+    "joy_coin_cost": {
+      "type": "integer",
+      "description": "Coins per person to attend (required if joy_coin_enabled is true)",
+      "minimum": 1
+    },
+    "joy_coin_spots": {
+      "type": "integer",
+      "description": "Max spots available for Joy Coin members (null = use total capacity)",
+      "minimum": 1
+    },
+    "joy_coin_unlimited": {
+      "type": "boolean",
+      "description": "If true, ignores joy_coin_spots limit",
+      "default": false
+    },
+    "max_party_size": {
+      "type": "integer",
+      "description": "Max guests per RSVP (null = use household size)",
+      "minimum": 1
+    },
+    "frequency_limit_count": {
+      "type": "integer",
+      "description": "Max times a member can attend this event type per period (null = unlimited)",
+      "minimum": 1
+    },
+    "frequency_limit_period": {
+      "type": "string",
+      "description": "Period for frequency limit",
+      "enum": [
+        "week",
+        "month",
+        "total"
+      ]
+    },
+    "age_minimum": {
+      "type": "integer",
+      "description": "Minimum age to attend (null = no minimum)",
+      "minimum": 0
+    },
+    "adults_only": {
+      "type": "boolean",
+      "description": "If true, only adults (18+) can attend",
+      "default": false
+    },
+    "refund_policy": {
+      "type": "string",
+      "description": "Cancellation policy: flexible (2hr), moderate (24hr), strict (no refunds)",
+      "enum": [
+        "flexible",
+        "moderate",
+        "strict"
+      ],
+      "default": "moderate"
+    }
+  },
+  "required": [
+    "title",
+    "date",
+    "location"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

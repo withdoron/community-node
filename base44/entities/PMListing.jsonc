@@ -1,0 +1,122 @@
+{
+  "name": "PMListing",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to PMPropertyProfile"
+    },
+    "property_id": {
+      "type": "string",
+      "description": "FK to PMProperty"
+    },
+    "group_id": {
+      "type": "string",
+      "description": "FK to PMPropertyGroup"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "listing_type": {
+      "type": "string",
+      "enum": [
+        "long_term",
+        "short_term"
+      ]
+    },
+    "price": {
+      "type": "number"
+    },
+    "available_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "photos": {
+      "type": "string",
+      "description": "JSON array of listing photo URLs"
+    },
+    "amenities": {
+      "type": "string",
+      "description": "JSON array"
+    },
+    "pet_policy": {
+      "type": "string",
+      "enum": [
+        "allowed",
+        "case_by_case",
+        "no_pets"
+      ]
+    },
+    "parking": {
+      "type": "string",
+      "enum": [
+        "included",
+        "available",
+        "street"
+      ]
+    },
+    "furnished": {
+      "type": "boolean"
+    },
+    "utilities_included": {
+      "type": "string",
+      "description": "JSON array"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "pending",
+        "rented"
+      ]
+    },
+    "contact_method": {
+      "type": "string",
+      "enum": [
+        "email",
+        "phone",
+        "both"
+      ]
+    },
+    "address": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "profile_id",
+    "property_id",
+    "user_id",
+    "title",
+    "listing_type",
+    "status"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

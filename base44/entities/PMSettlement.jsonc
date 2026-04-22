@@ -1,0 +1,103 @@
+{
+  "name": "PMSettlement",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to PMPropertyProfile"
+    },
+    "group_id": {
+      "type": "string",
+      "description": "FK to PMPropertyGroup"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "month": {
+      "type": "string",
+      "description": "YYYY-MM"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "finalized"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "finalized_at": {
+      "type": "string",
+      "description": "ISO timestamp"
+    },
+    "gross_rent": {
+      "type": "number"
+    },
+    "total_fixed_expenses": {
+      "type": "number"
+    },
+    "management_fee": {
+      "type": "number"
+    },
+    "maintenance_reserve": {
+      "type": "number"
+    },
+    "emergency_reserve": {
+      "type": "number"
+    },
+    "total_labor_costs": {
+      "type": "number"
+    },
+    "total_reimbursements": {
+      "type": "number"
+    },
+    "net_distributable": {
+      "type": "number"
+    },
+    "distributions": {
+      "type": "string",
+      "description": "JSON-stringified distribution array"
+    },
+    "locked": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, prevents edits to expenses in the settlement period"
+    }
+  },
+  "required": [
+    "profile_id",
+    "group_id",
+    "user_id",
+    "month",
+    "status"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

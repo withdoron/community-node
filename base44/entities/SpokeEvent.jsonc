@@ -1,0 +1,54 @@
+{
+  "name": "SpokeEvent",
+  "type": "object",
+  "properties": {
+    "spoke_id": {
+      "type": "string",
+      "description": "ID of the spoke app that created this event"
+    },
+    "spoke_event_id": {
+      "type": "string",
+      "description": "Original event ID in the spoke app"
+    },
+    "local_event_id": {
+      "type": "string",
+      "description": "Event ID in Local Lane hub"
+    },
+    "last_synced_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time this event was synced from the spoke"
+    }
+  },
+  "required": [
+    "spoke_id",
+    "spoke_event_id",
+    "local_event_id"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

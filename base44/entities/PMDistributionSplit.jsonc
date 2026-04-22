@@ -1,0 +1,67 @@
+{
+  "name": "PMDistributionSplit",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to PMPropertyProfile"
+    },
+    "from_owner_id": {
+      "type": "string",
+      "description": "FK to PMOwner"
+    },
+    "to_owner_id": {
+      "type": "string",
+      "description": "FK to PMOwner"
+    },
+    "group_id": {
+      "type": "string",
+      "description": "FK to PMPropertyGroup"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "split_pct": {
+      "type": "number"
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "profile_id",
+    "from_owner_id",
+    "to_owner_id",
+    "group_id",
+    "user_id",
+    "split_pct"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

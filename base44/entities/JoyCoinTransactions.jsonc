@@ -1,0 +1,100 @@
+{
+  "name": "JoyCoinTransactions",
+  "type": "object",
+  "title": "Joy Coin Transactions",
+  "description": "Immutable audit trail of all Joy Coin movements. Never update or delete these records.",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Link to Users entity"
+    },
+    "type": {
+      "type": "string",
+      "description": "Transaction type",
+      "enum": [
+        "monthly_grant",
+        "reservation",
+        "redemption",
+        "refund",
+        "forfeit",
+        "release",
+        "transfer_out",
+        "transfer_in",
+        "adjustment"
+      ]
+    },
+    "amount": {
+      "type": "integer",
+      "description": "Positive for credits, negative for debits"
+    },
+    "balance_after": {
+      "type": "integer",
+      "description": "User balance snapshot after this transaction for audit trail"
+    },
+    "event_id": {
+      "type": "string",
+      "description": "Link to Events entity (nullable)"
+    },
+    "rsvp_id": {
+      "type": "string",
+      "description": "Link to RSVPs entity (nullable)"
+    },
+    "reservation_id": {
+      "type": "string",
+      "description": "Link to JoyCoinReservations entity (nullable)"
+    },
+    "business_id": {
+      "type": "string",
+      "description": "Link to Business entity (nullable)"
+    },
+    "transfer_to_user_id": {
+      "type": "string",
+      "description": "Recipient user for transfer_out transactions (nullable)"
+    },
+    "transfer_from_user_id": {
+      "type": "string",
+      "description": "Sender user for transfer_in transactions (nullable)"
+    },
+    "note": {
+      "type": "string",
+      "description": "Optional note, primarily for adjustment transactions"
+    }
+  },
+  "required": [
+    "user_id",
+    "type",
+    "amount",
+    "balance_after"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

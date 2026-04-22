@@ -1,0 +1,88 @@
+{
+  "name": "Idea",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Idea title"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Idea description"
+    },
+    "author_id": {
+      "type": "string",
+      "description": "User ID of the submitter"
+    },
+    "author_name": {
+      "type": "string",
+      "description": "Display name at time of submission"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "proposed",
+        "reviewing",
+        "building",
+        "shipped",
+        "deferred"
+      ],
+      "default": "proposed",
+      "description": "Current status of the idea"
+    },
+    "vote_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Total upvotes"
+    },
+    "admin_note": {
+      "type": "string",
+      "description": "Optional steward note visible to all users"
+    },
+    "created_at": {
+      "type": "string",
+      "description": "ISO datetime string of submission"
+    },
+    "status_updated_at": {
+      "type": "string",
+      "description": "ISO datetime string of last status change"
+    }
+  },
+  "required": [
+    "title",
+    "description",
+    "author_id",
+    "author_name",
+    "status",
+    "vote_count",
+    "created_at"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

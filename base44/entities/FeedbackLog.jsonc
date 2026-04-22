@@ -1,0 +1,58 @@
+{
+  "name": "FeedbackLog",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID of the user submitting feedback"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user submitting feedback"
+    },
+    "user_role": {
+      "type": "string",
+      "description": "Role of the user submitting feedback"
+    },
+    "page_url": {
+      "type": "string",
+      "description": "URL of the page where feedback was submitted"
+    },
+    "what_happened": {
+      "type": "string",
+      "description": "Description of what happened"
+    },
+    "what_expected": {
+      "type": "string",
+      "description": "Description of what the user expected to happen"
+    },
+    "screenshot": {
+      "type": "string",
+      "description": "URL of uploaded screenshot"
+    },
+    "feedback_type": {
+      "type": "string",
+      "description": "Type of feedback submitted"
+    }
+  },
+  "required": [],
+  "security": {
+    "read": {
+      "authenticated": true
+    },
+    "create": {
+      "authenticated": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "role": "admin"
+    }
+  },
+  "rls": {
+    "update": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

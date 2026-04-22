@@ -1,0 +1,75 @@
+{
+  "name": "FSFeedback",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to FieldServiceProfile"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "FK to Users entity"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "user_role": {
+      "type": "string"
+    },
+    "feedback_type": {
+      "type": "string",
+      "enum": [
+        "app_feedback",
+        "client_note"
+      ],
+      "description": "Feedback type"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "FK to FSProject"
+    },
+    "what_happened": {
+      "type": "string",
+      "description": "Description of feedback or issue"
+    },
+    "what_expected": {
+      "type": "string"
+    },
+    "screenshot": {
+      "type": "string",
+      "description": "Uploaded screenshot URL"
+    },
+    "parent_id": {
+      "type": "string",
+      "description": "FK to self for threading"
+    }
+  },
+  "required": [
+    "user_id",
+    "feedback_type",
+    "what_happened"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

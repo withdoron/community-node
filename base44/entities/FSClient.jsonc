@@ -55,6 +55,10 @@
       ],
       "default": "active",
       "description": "Client status"
+    },
+    "business_id": {
+      "type": "string",
+      "description": "FK to a Business record. Scopes this record to a specific business inside the new multi-business architecture. Will be backfilled in a separate Hyphae script. Code continues to work with business_id: null (dual-read pattern during backfill)."
     }
   },
   "required": [

@@ -1,0 +1,68 @@
+{
+  "name": "JoyCoins",
+  "type": "object",
+  "title": "Joy Coins",
+  "description": "Primary balance record for Community Pass members. One record per user.",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Link to Users entity (unique per user)"
+    },
+    "balance": {
+      "type": "integer",
+      "description": "Current spendable coins (excludes reserved)",
+      "default": 0,
+      "minimum": 0
+    },
+    "lifetime_earned": {
+      "type": "integer",
+      "description": "Total coins ever received (grants, refunds, transfers in)",
+      "default": 0,
+      "minimum": 0
+    },
+    "lifetime_spent": {
+      "type": "integer",
+      "description": "Total coins ever redeemed (check-ins only, not reservations)",
+      "default": 0,
+      "minimum": 0
+    },
+    "pin_hash": {
+      "type": "string",
+      "description": "Hashed 4-digit PIN for check-in verification"
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

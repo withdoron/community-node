@@ -1,0 +1,117 @@
+{
+  "name": "RSVP",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "description": "ID of the event being RSVP'd to"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID of the user who RSVP'd"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Display name of the user at time of RSVP"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "going",
+        "cancelled"
+      ],
+      "default": "going",
+      "description": "RSVP status"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "True when going, false when cancelled"
+    },
+    "party_size": {
+      "type": "integer",
+      "description": "Total number of people in this RSVP (primary + guests)",
+      "default": 1,
+      "minimum": 1
+    },
+    "party_composition": {
+      "type": "array",
+      "description": "Optional array of party member details",
+      "items": {
+        "type": "object",
+        "properties": {
+          "household_member_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "is_primary": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "joy_coin_total": {
+      "type": "integer",
+      "description": "Total Joy Coins for this RSVP (party_size \u00d7 event cost)"
+    },
+    "joy_coin_reservation_id": {
+      "type": "string",
+      "description": "Link to JoyCoinReservations entity"
+    },
+    "checked_in": {
+      "type": "boolean",
+      "description": "Whether attendee has checked in",
+      "default": false
+    },
+    "checked_in_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of check-in"
+    },
+    "checked_in_by": {
+      "type": "string",
+      "description": "How check-in occurred",
+      "enum": [
+        "staff",
+        "self",
+        "auto"
+      ]
+    },
+    "check_in_staff_id": {
+      "type": "string",
+      "description": "Link to Users entity for staff who processed check-in"
+    }
+  },
+  "required": [
+    "event_id",
+    "user_id"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

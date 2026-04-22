@@ -1,0 +1,74 @@
+{
+  "name": "Region",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Region/city name (e.g., 'Austin Metro', 'Eugene Area')"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly identifier"
+    },
+    "facilitator_email": {
+      "type": "string",
+      "description": "Email of region facilitator"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "is_primary": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is the primary/default region for this instance"
+    },
+    "center_lat": {
+      "type": "number",
+      "description": "Center latitude for region"
+    },
+    "center_lng": {
+      "type": "number",
+      "description": "Center longitude for region"
+    },
+    "default_radius_miles": {
+      "type": "number",
+      "default": 30,
+      "description": "Default service area radius in miles"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "User-facing display name (e.g., 'Greater Austin Area')"
+    }
+  },
+  "required": [
+    "name",
+    "slug"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

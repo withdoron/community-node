@@ -1,0 +1,67 @@
+{
+  "name": "FSLaborEntry",
+  "type": "object",
+  "properties": {
+    "daily_log_id": {
+      "type": "string",
+      "description": "FK to FSDailyLog"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "FK to Users entity"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "FK to FSProject"
+    },
+    "worker_name": {
+      "type": "string"
+    },
+    "hours": {
+      "type": "number"
+    },
+    "hourly_rate": {
+      "type": "number"
+    },
+    "total_cost": {
+      "type": "number"
+    },
+    "description": {
+      "type": "string"
+    },
+    "business_id": {
+      "type": "string",
+      "description": "FK to a Business record. Scopes this record to a specific business inside the new multi-business architecture. Will be backfilled in a separate Hyphae script. Code continues to work with business_id: null (dual-read pattern during backfill)."
+    }
+  },
+  "required": [
+    "daily_log_id",
+    "user_id",
+    "worker_name",
+    "hours",
+    "hourly_rate"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "name": "AccessWindow",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "FK to Business entity"
+    },
+    "day_of_week": {
+      "type": "string",
+      "enum": [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday"
+      ],
+      "description": "Day of the week for this access window"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "Start time in HH:MM format, 24hr (e.g. '09:00')"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "End time in HH:MM format, 24hr (e.g. '12:00')"
+    },
+    "coin_cost": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3,
+      "description": "Joy Coin cost (1-3 coins)"
+    },
+    "capacity": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Max persons per window (0 = unlimited)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this access window is currently active"
+    },
+    "label": {
+      "type": "string",
+      "description": "Optional friendly name (e.g. 'Morning Open Play')"
+    }
+  },
+  "required": [
+    "business_id",
+    "day_of_week",
+    "start_time",
+    "end_time",
+    "coin_cost",
+    "is_active"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

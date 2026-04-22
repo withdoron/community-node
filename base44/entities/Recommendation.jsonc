@@ -1,0 +1,78 @@
+{
+  "name": "Recommendation",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "ID of the business being recommended"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID of the user who made the recommendation"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Display name of the recommender"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "nod",
+        "story"
+      ],
+      "description": "Type of recommendation: nod or story"
+    },
+    "service_used": {
+      "type": "string",
+      "description": "What service they used (for stories)"
+    },
+    "content": {
+      "type": "string",
+      "description": "The story text (for stories)"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photo URLs (for stories)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the recommendation is active"
+    }
+  },
+  "required": [
+    "business_id",
+    "user_id",
+    "user_name",
+    "type"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

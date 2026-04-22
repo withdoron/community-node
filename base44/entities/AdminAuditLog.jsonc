@@ -1,0 +1,62 @@
+{
+  "name": "AdminAuditLog",
+  "type": "object",
+  "properties": {
+    "admin_id": {
+      "type": "string",
+      "description": "ID of the admin who performed the action"
+    },
+    "admin_email": {
+      "type": "string",
+      "description": "Email of the admin who performed the action"
+    },
+    "action": {
+      "type": "string",
+      "description": "Action performed"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Type of entity affected"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID of the entity affected"
+    },
+    "details": {
+      "type": "string",
+      "description": "Additional details about the action"
+    }
+  },
+  "required": [],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

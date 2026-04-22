@@ -27,15 +27,6 @@ function toMonthly(amount, frequency) {
 }
 
 export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
-  // Ownership guard
-  if (profile && currentUser && profile.user_id !== currentUser.id) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   const queryClient = useQueryClient();
 
   const [formOpen, setFormOpen] = useState(false);
@@ -294,6 +285,15 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
     }
     return done;
   }, [contextCount, allTransactions.length, recurringItems.length, debts.length]);
+
+  // Ownership guard — after all hooks
+  if (profile && currentUser && profile.user_id !== currentUser.id) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

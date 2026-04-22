@@ -1,0 +1,66 @@
+{
+  "name": "HouseholdMembers",
+  "type": "object",
+  "title": "Household Members",
+  "description": "Members of a user's household who can attend events together. Attached to primary account, no separate login.",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Link to Users entity (the primary account holder)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name for this household member"
+    },
+    "category": {
+      "type": "string",
+      "description": "Age category for event eligibility",
+      "enum": [
+        "adult",
+        "child",
+        "infant"
+      ]
+    },
+    "age": {
+      "type": "integer",
+      "description": "Optional age (nullable for privacy)",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "user_id",
+    "name",
+    "category"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

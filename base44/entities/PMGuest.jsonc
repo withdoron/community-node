@@ -1,0 +1,101 @@
+{
+  "name": "PMGuest",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "FK to PMPropertyProfile"
+    },
+    "property_id": {
+      "type": "string",
+      "description": "FK to PMProperty"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "check_in": {
+      "type": "string",
+      "format": "date"
+    },
+    "check_out": {
+      "type": "string",
+      "format": "date"
+    },
+    "nightly_rate": {
+      "type": "number"
+    },
+    "total_amount": {
+      "type": "number"
+    },
+    "guests_count": {
+      "type": "number"
+    },
+    "booking_source": {
+      "type": "string",
+      "enum": [
+        "direct",
+        "airbnb",
+        "vrbo",
+        "other"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "confirmed",
+        "checked_in",
+        "checked_out",
+        "cancelled"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "profile_id",
+    "property_id",
+    "user_id",
+    "name",
+    "check_in",
+    "check_out",
+    "status"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

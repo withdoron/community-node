@@ -19,20 +19,16 @@ export default function RoutePath({
     return routePath.map((pt) => percentToSvg(pt.x, pt.y, viewBox));
   }, [routePath, viewBox]);
 
-  if (svgPoints.length < 2) return null;
-
-  const pointsStr = svgPoints.map((p) => `${p.x},${p.y}`).join(' ');
-
-  const strokeWidth = strokeWidthOverride ?? (isHighlighted ? 3 : 1.5);
-  const opacity = opacityOverride ?? (dimmed ? 0.2 : isHighlighted ? 1 : 0.6);
-  const dashArray = isPreview ? '4 3' : 'none';
+  const lastPtRaw = svgPoints.length >= 2 ? svgPoints[svgPoints.length - 1] : null;
+  const prevPtRaw = svgPoints.length >= 2 ? svgPoints[svgPoints.length - 2] : null;
+  const arrowSizeVal = isHighlighted ? 6 : 4;
 
   // Arrow at the end — small triangle pointing in the direction of the last segment
-  const lastPt = svgPoints[svgPoints.length - 1];
-  const prevPt = svgPoints[svgPoints.length - 2];
-  const arrowSize = isHighlighted ? 6 : 4;
   const arrow = useMemo(() => {
-    if (!lastPt || !prevPt) return null;
+    if (!lastPtRaw || !prevPtRaw) return null;
+    const lastPt = lastPtRaw;
+    const prevPt = prevPtRaw;
+    const arrowSize = arrowSizeVal;
     const dx = lastPt.x - prevPt.x;
     const dy = lastPt.y - prevPt.y;
     const len = Math.sqrt(dx * dx + dy * dy);
@@ -57,7 +53,14 @@ export default function RoutePath({
     const p3 = `${baseX - px * arrowSize * 0.5},${baseY - py * arrowSize * 0.5}`;
 
     return `${p1} ${p2} ${p3}`;
-  }, [lastPt, prevPt, arrowSize]);
+  }, [lastPtRaw, prevPtRaw, arrowSizeVal]);
+
+  if (svgPoints.length < 2) return null;
+
+  const pointsStr = svgPoints.map((p) => `${p.x},${p.y}`).join(' ');
+  const strokeWidth = strokeWidthOverride ?? (isHighlighted ? 3 : 1.5);
+  const opacity = opacityOverride ?? (dimmed ? 0.2 : isHighlighted ? 1 : 0.6);
+  const dashArray = isPreview ? '4 3' : 'none';
 
   return (
     <g style={{ opacity }}>

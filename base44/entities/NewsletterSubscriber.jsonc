@@ -1,0 +1,62 @@
+{
+  "name": "NewsletterSubscriber",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "Subscriber email address"
+    },
+    "first_name": {
+      "type": "string",
+      "description": "Subscriber first name (optional)"
+    },
+    "source": {
+      "type": "string",
+      "description": "Where the subscription originated (e.g., 'footer', 'onboarding', 'popup')"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the subscription is active"
+    },
+    "unsubscribed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the subscriber unsubscribed (nullable)"
+    },
+    "subscribed_at": {
+      "type": "string",
+      "description": "When the subscriber signed up"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID of the associated user (optional)"
+    }
+  },
+  "required": [
+    "email"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": true,
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "name": "RecurringTransaction",
+  "type": "object",
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "description": "Foreign key to FinancialProfile entity"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Foreign key to Users entity"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "income",
+        "expense"
+      ],
+      "description": "Transaction type: income or expense"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Transaction amount"
+    },
+    "description": {
+      "type": "string",
+      "description": "Transaction description"
+    },
+    "category": {
+      "type": "string",
+      "description": "Transaction category"
+    },
+    "context": {
+      "type": "string",
+      "description": "Transaction context"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "weekly",
+        "biweekly",
+        "monthly",
+        "quarterly",
+        "annual"
+      ],
+      "description": "Recurrence frequency"
+    },
+    "day_of_month": {
+      "type": "number",
+      "description": "Day of month for monthly/quarterly/annual recurrences (optional)"
+    },
+    "next_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next scheduled occurrence date"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "Whether this recurring transaction is active",
+      "default": true
+    }
+  },
+  "required": [
+    "profile_id",
+    "user_id",
+    "type",
+    "amount",
+    "description",
+    "category",
+    "context",
+    "frequency",
+    "next_date",
+    "is_active"
+  ],
+  "security": {
+    "read": {
+      "owner": true
+    },
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

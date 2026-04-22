@@ -1,0 +1,66 @@
+{
+  "name": "Spoke",
+  "type": "object",
+  "properties": {
+    "spoke_id": {
+      "type": "string",
+      "description": "Unique identifier for the spoke app (e.g., 'austin-creative-collective')"
+    },
+    "organization_name": {
+      "type": "string",
+      "description": "Display name of the spoke organization"
+    },
+    "api_key": {
+      "type": "string",
+      "description": "API key for authenticating requests from this spoke"
+    },
+    "webhook_url": {
+      "type": "string",
+      "description": "URL to send webhook notifications to (e.g., RSVP updates)"
+    },
+    "webhook_secret": {
+      "type": "string",
+      "description": "Secret for signing webhook requests sent to this spoke"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this spoke is currently active"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the spoke app/organization"
+    }
+  },
+  "required": [
+    "spoke_id",
+    "organization_name",
+    "api_key"
+  ],
+  "security": {
+    "read": true,
+    "create": {
+      "owner": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
