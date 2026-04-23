@@ -90,7 +90,10 @@ Deno.serve(async (req) => {
         return Response.json({ error: `Business ${businessId} not found` }, { status: 404 });
       }
 
-      if (newParentId !== null) {
+      // Parent existence is only verified on apply. In dry-run the parent may
+      // be a symbolic placeholder (e.g. "<pending>") because earlier dry-run
+      // steps haven't created it yet.
+      if (!dryRun && newParentId !== null) {
         const parent = await entities.Business.get(newParentId);
         if (!parent) {
           return Response.json(
