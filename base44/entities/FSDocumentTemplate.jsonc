@@ -6,6 +6,10 @@
       "type": "string",
       "description": "FK to FieldServiceProfile"
     },
+    "business_id": {
+      "type": "string",
+      "description": "Business that owns this template. Null = system template (visible to all users). Set = private to this business."
+    },
     "template_type": {
       "type": "string",
       "enum": [
