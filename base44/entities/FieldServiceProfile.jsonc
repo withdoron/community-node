@@ -154,9 +154,7 @@
     "create": {
       "owner": true
     },
-    "update": {
-      "owner": true
-    },
+    "update": true,
     "delete": {
       "owner": true
     }

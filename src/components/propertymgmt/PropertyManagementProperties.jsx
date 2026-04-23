@@ -32,15 +32,6 @@ function sortUnits(units) {
 }
 
 export default function PropertyManagementProperties({ profile, currentUser, memberRole, canEdit }) {
-  // Role guard
-  if (!memberRole) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   const profileId = profile?.id;
 
   const [groups, setGroups] = useState([]);
@@ -252,6 +243,15 @@ export default function PropertyManagementProperties({ profile, currentUser, mem
   };
 
   // --- Render ---
+
+  // Role guard — after all hooks
+  if (!memberRole) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

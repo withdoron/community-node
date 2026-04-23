@@ -73,15 +73,6 @@ export default function PropertyManagementMaintenance({ profile, currentUser, me
 
   const refresh = () => setRefreshKey((k) => k + 1);
 
-  // Role guard — after all hooks
-  if (!memberRole) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   // Worker names for autocomplete (from labor entries)
   const workerNames = useMemo(() => {
     const names = new Set();
@@ -230,6 +221,15 @@ export default function PropertyManagementMaintenance({ profile, currentUser, me
       toast.error('Failed to delete request. Please try again.');
     }
   };
+
+  // Role guard — after all hooks
+  if (!memberRole) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   // ── Loading skeleton ──
   if (loading) {

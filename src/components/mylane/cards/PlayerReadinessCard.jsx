@@ -66,8 +66,6 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
     enabled: !!team.id,
   });
 
-  if (!team) return null;
-
   const total = members.length;
 
   // Time awareness: game within 3 days
@@ -95,6 +93,8 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
 
   const borderColor = gameImminent ? 'border-primary/40' : 'border-border';
   const eventColor = gameImminent ? 'text-primary-hover' : 'text-muted-foreground';
+
+  if (!team) return null;
 
   // Build event display string
   const eventDisplay = useMemo(() => {

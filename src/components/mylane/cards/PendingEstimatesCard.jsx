@@ -21,8 +21,6 @@ export default function PendingEstimatesCard({ profile, onClick, onUrgency }) {
     enabled: !!profile.id,
   });
 
-  if (!profile) return null;
-
   const pending = estimates.filter(
     (e) => e.status && !['signed', 'declined', 'expired', 'accepted'].includes(e.status)
   );
@@ -39,6 +37,8 @@ export default function PendingEstimatesCard({ profile, onClick, onUrgency }) {
   useEffect(() => {
     onUrgency?.('pending-estimates', hasStale);
   }, [hasStale, onUrgency]);
+
+  if (!profile) return null;
 
   const countColor = hasStale ? 'text-primary-hover' : 'text-foreground';
   const borderColor = hasStale ? 'border-primary/40' : 'border-border';

@@ -95,15 +95,6 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
 
   const refresh = () => setRefreshKey((k) => k + 1);
 
-  // Role guard — after all hooks
-  if (!memberRole) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   // ── Running totals ──
   const { totalIncome, totalExpenses, netTotal } = useMemo(() => {
     let inc = 0;
@@ -201,6 +192,15 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
       toast.error('Failed to delete. Please try again.');
     }
   };
+
+  // Role guard — after all hooks
+  if (!memberRole) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   // ── Loading skeleton ──
   if (loading) {

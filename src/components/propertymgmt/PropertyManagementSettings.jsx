@@ -54,15 +54,6 @@ function Section({ icon: Icon, title, defaultOpen = false, children }) {
 // ═══ Main Component ═══
 
 export default function PropertyManagementSettings({ profile, currentUser, memberRole, isAdmin, canEdit }) {
-  // Role guard
-  if (!memberRole) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -246,6 +237,15 @@ export default function PropertyManagementSettings({ profile, currentUser, membe
   const previewMaint = sampleRent * ((parseFloat(maintReservePct) || 0) / 100);
   const previewEmerg = sampleRent * ((parseFloat(emergReservePct) || 0) / 100);
   const previewNet = sampleRent - previewMgmt - previewMaint - previewEmerg;
+
+  // Role guard — after all hooks
+  if (!memberRole) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

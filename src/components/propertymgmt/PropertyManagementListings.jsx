@@ -67,15 +67,6 @@ export default function PropertyManagementListings({ profile, currentUser, membe
 
   const refresh = () => setRefreshKey((k) => k + 1);
 
-  // Role guard — after all hooks
-  if (!memberRole) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   // Property label helper
   const groupsById = useMemo(() => {
     const m = {};
@@ -180,6 +171,15 @@ export default function PropertyManagementListings({ profile, currentUser, membe
       toast.error('Failed to delete listing. Please try again.');
     }
   };
+
+  // Role guard — after all hooks
+  if (!memberRole) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   // ── Loading skeleton ──
   if (loading) {

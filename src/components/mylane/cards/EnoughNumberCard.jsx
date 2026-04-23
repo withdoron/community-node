@@ -16,8 +16,6 @@ export default function EnoughNumberCard({ profile, onClick, onUrgency }) {
     enabled: !!profile.id,
   });
 
-  if (!profile) return null;
-
   const enoughTarget = parseFloat(profile.enough_number) || 0;
 
   // Current month income
@@ -43,6 +41,8 @@ export default function EnoughNumberCard({ profile, onClick, onUrgency }) {
   useEffect(() => {
     onUrgency?.('enough-number', endOfMonthUrgent);
   }, [endOfMonthUrgent, onUrgency]);
+
+  if (!profile) return null;
 
   return (
     <div

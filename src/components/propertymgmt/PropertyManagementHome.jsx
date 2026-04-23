@@ -182,15 +182,6 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
     });
   }, [groupSummaries, settlements]);
 
-  // ─── Role guard — after all hooks ───────────────
-  if (!memberRole) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   // ─── Workspace Guide (Activation Protocol Moment 3) ──────────
   const guideDismissed = profile?.guide_dismissed === true;
   const queryClient = useQueryClient();
@@ -235,6 +226,15 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
     }
     return done;
   }, [profile?.workspace_name, profile?.business_name, groups.length, expenses.length, maintenance.length]);
+
+  // ─── Role guard — after all hooks ───────────────
+  if (!memberRole) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

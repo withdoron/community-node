@@ -21,15 +21,6 @@ import SettlementCreateDialog from './SettlementCreateDialog';
 import SettlementFinalizeDialog from './SettlementFinalizeDialog';
 
 export default function PropertyManagementSettlements({ profile, currentUser, memberRole, canEdit }) {
-  // Role guard
-  if (!memberRole) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   const profileId = profile?.id;
 
   // Data
@@ -286,6 +277,15 @@ export default function PropertyManagementSettlements({ profile, currentUser, me
       toast.error('Failed to delete settlement. Please try again.');
     }
   };
+
+  // Role guard — after all hooks
+  if (!memberRole) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   // ── Loading skeleton ──
   if (loading) {

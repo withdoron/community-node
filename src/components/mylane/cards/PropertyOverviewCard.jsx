@@ -30,8 +30,6 @@ export default function PropertyOverviewCard({ profile, onClick, onUrgency }) {
     enabled: !!profile.id,
   });
 
-  if (!profile) return null;
-
   const total = properties.length;
   const occupied = properties.filter((p) => p.status === 'occupied').length;
   const vacant = properties.filter((p) => p.status === 'vacant');
@@ -49,6 +47,8 @@ export default function PropertyOverviewCard({ profile, onClick, onUrgency }) {
   useEffect(() => {
     onUrgency?.('property-overview', hasLongVacancy);
   }, [hasLongVacancy, onUrgency]);
+
+  if (!profile) return null;
 
   const borderColor = hasLongVacancy ? 'border-primary/40' : 'border-border';
   const vacantColor = hasLongVacancy ? 'text-primary-hover' : 'text-muted-foreground';
