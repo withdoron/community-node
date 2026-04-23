@@ -20,6 +20,7 @@
  *            private/BACKFILL-DRY-RUN-2026-04-22.md
  */
 
+/* eslint-env node */
 import { base44 } from '@/api/base44Client';
 
 const MIGRATION_NAME = 'TEMPLATE_rename_me_per_migration';

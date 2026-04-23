@@ -120,6 +120,10 @@
       "type": "string",
       "description": "Online shop or selling URL"
     },
+    "video_url": {
+      "type": "string",
+      "description": "Optional URL to an intro video (YouTube, Vimeo, or direct video file). Will display on the public business profile when the redesigned profile ships."
+    },
     "photos": {
       "type": "array",
       "items": {

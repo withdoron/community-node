@@ -42,6 +42,63 @@ export default function NetworkPage({ slug: slugProp, onBusinessClick, onNetwork
     },
   });
 
+  useEffect(() => {
+    setOptimisticFollowing(null);
+    setFollowHover(false);
+  }, [slug]);
+
+  const networkInterests = currentUser?.data?.network_interests ?? [];
+  const followsNetwork =
+    optimisticFollowing !== null ? optimisticFollowing : (Array.isArray(networkInterests) && networkInterests.includes(slug));
+
+  const displayNameForToast = network?.label ?? network?.name ?? slug;
+
+  const { data: events = [], isLoading: eventsLoading } = useQuery({
+    queryKey: ['network-events', slug],
+    queryFn: async () => {
+      const all = await base44.entities.Event.filter({ is_active: true }, 'date', 200);
+      return all.filter((e) => !e.is_deleted && e.status !== 'cancelled');
+    },
+    enabled: !!slug,
+  });
+
+  const { data: businesses = [], isLoading: businessesLoading } = useQuery({
+    queryKey: ['network-businesses', slug],
+    queryFn: async () => {
+      const list = await base44.entities.Business.filter({ is_active: true }, '-created_date', 200);
+      return list.filter((b) => Array.isArray(b.network_ids) && b.network_ids.includes(slug));
+    },
+    enabled: !!slug,
+  });
+
+  const filteredBusinesses = useMemo(() => {
+    if (!productFilter.trim()) return businesses;
+    const term = productFilter.toLowerCase().trim();
+    return businesses.filter((b) =>
+      Array.isArray(b.product_tags) &&
+      b.product_tags.some((tag) => tag.toLowerCase().includes(term))
+    );
+  }, [businesses, productFilter]);
+
+  const now = new Date();
+  const upcomingEvents = useMemo(() => {
+    const slugLower = (slug || '').toLowerCase();
+    const eventMatchesNetwork = (e) => {
+      const single = (e.network ?? e.data?.network ?? '').toString().toLowerCase();
+      const arr = Array.isArray(e.networks) ? e.networks : [];
+      return single === slugLower || arr.some((n) => (n || '').toString().toLowerCase() === slugLower);
+    };
+
+    return events
+      .filter(
+        (e) =>
+          eventMatchesNetwork(e) &&
+          new Date(e.date) >= now &&
+          e.status === 'published'
+      )
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+  }, [events, slug]);
+
   // Auth gate — networks are private gardens (DEC-121)
   if (authLoading) {
     return (
@@ -70,17 +127,6 @@ export default function NetworkPage({ slug: slugProp, onBusinessClick, onNetwork
     );
   }
 
-  useEffect(() => {
-    setOptimisticFollowing(null);
-    setFollowHover(false);
-  }, [slug]);
-
-  const networkInterests = currentUser?.data?.network_interests ?? [];
-  const followsNetwork =
-    optimisticFollowing !== null ? optimisticFollowing : (Array.isArray(networkInterests) && networkInterests.includes(slug));
-
-  const displayNameForToast = network?.label ?? network?.name ?? slug;
-
   const handleFollow = async () => {
     if (!currentUser) {
       base44.auth.redirectToLogin();
@@ -106,55 +152,6 @@ export default function NetworkPage({ slug: slugProp, onBusinessClick, onNetwork
       toast.error('Failed to update. Please try again.');
     }
   };
-
-  const { data: events = [], isLoading: eventsLoading } = useQuery({
-    queryKey: ['network-events', slug],
-    queryFn: async () => {
-      const all = await base44.entities.Event.filter({ is_active: true }, 'date', 200);
-      return all.filter((e) => !e.is_deleted && e.status !== 'cancelled');
-    },
-    enabled: !!slug,
-  });
-
-  const { data: businesses = [], isLoading: businessesLoading } = useQuery({
-    queryKey: ['network-businesses', slug],
-    queryFn: async () => {
-      const list = await base44.entities.Business.filter({ is_active: true }, '-created_date', 200);
-      return list.filter((b) => Array.isArray(b.network_ids) && b.network_ids.includes(slug));
-    },
-    enabled: !!slug,
-  });
-
-  // Product tag filter — applies to both grid and map views
-  const filteredBusinesses = useMemo(() => {
-    if (!productFilter.trim()) return businesses;
-    const term = productFilter.toLowerCase().trim();
-    return businesses.filter((b) =>
-      Array.isArray(b.product_tags) &&
-      b.product_tags.some((tag) => tag.toLowerCase().includes(term))
-    );
-  }, [businesses, productFilter]);
-
-  const now = new Date();
-  const upcomingEvents = useMemo(() => {
-    const slugLower = (slug || '').toLowerCase();
-    const eventMatchesNetwork = (e) => {
-      const single = (e.network ?? e.data?.network ?? '').toString().toLowerCase();
-      const arr = Array.isArray(e.networks) ? e.networks : [];
-      return single === slugLower || arr.some((n) => (n || '').toString().toLowerCase() === slugLower);
-    };
-
-    // Show ALL events for this network (including network_only) — this is the network's home page.
-    // Network-only filtering applies only on Events page and MyLane Happening Soon.
-    return events
-      .filter(
-        (e) =>
-          eventMatchesNetwork(e) &&
-          new Date(e.date) >= now &&
-          e.status === 'published'
-      )
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
-  }, [events, slug]);
 
   if (networksLoading) {
     return (

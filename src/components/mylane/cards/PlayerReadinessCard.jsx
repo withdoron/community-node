@@ -91,11 +91,6 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
     onUrgency?.('player-readiness', gameImminent);
   }, [gameImminent, onUrgency]);
 
-  const borderColor = gameImminent ? 'border-primary/40' : 'border-border';
-  const eventColor = gameImminent ? 'text-primary-hover' : 'text-muted-foreground';
-
-  if (!team) return null;
-
   // Build event display string
   const eventDisplay = useMemo(() => {
     if (!nextEvent) return 'No upcoming events';
@@ -106,6 +101,11 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
     const location = nextEvent.location ? ` -- ${nextEvent.location}` : '';
     return `${title}${opponent}${time}${location} -- ${dayLabel}`;
   }, [nextEvent, daysUntilEvent]);
+
+  const borderColor = gameImminent ? 'border-primary/40' : 'border-border';
+  const eventColor = gameImminent ? 'text-primary-hover' : 'text-muted-foreground';
+
+  if (!team) return null;
 
   return (
     <div
