@@ -70,6 +70,20 @@ function stripMetadataHeader(raw) {
   return lines.slice(startIdx).join('\n');
 }
 
+// Strip italic *(Note: ...)* implementer-facing annotations from rendered content.
+// These notes live in the .md source files to document Bari's source typos for
+// future developers. They MUST NOT appear in the preview modal or rendered
+// documents — that would surface "hey Bari, you have typos" inline in his
+// contracts. The typos themselves in the contract language are preserved
+// verbatim (Section 6 twice, "fifteen percent (25%)", duplicate 21.2,
+// missing 22.4); only the meta-commentary about them is removed.
+//
+// Greedy leading \s* eats the blank line / leading space before the note,
+// so both standalone-paragraph and inline note forms collapse cleanly.
+function stripImplementerNotes(content) {
+  return content.replace(/\s*\*\(Note:[\s\S]*?\)\*/g, '');
+}
+
 function extractMergeFields(content) {
   const matches = [...content.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1]);
   return [...new Set(matches)];
@@ -123,7 +137,9 @@ async function loadOne(tpl) {
   } catch (err) {
     throw new Error(`Failed to read asset ${assetPath}: ${err.message}`);
   }
-  const content = stripMetadataHeader(raw);
+  const bodyWithNotes = stripMetadataHeader(raw);
+  const content = stripImplementerNotes(bodyWithNotes);
+  const strippedNoteCount = (bodyWithNotes.match(/\*\(Note:/g) || []).length;
   const mergeFields = extractMergeFields(content);
 
   const fields = {
@@ -140,7 +156,7 @@ async function loadOne(tpl) {
 
   console.log(`\n── ${tpl.title}`);
   console.log(`   asset:        ${tpl.filename}`);
-  console.log(`   content:      ${content.length} chars`);
+  console.log(`   content:      ${content.length} chars (after stripping ${strippedNoteCount} implementer note${strippedNoteCount === 1 ? '' : 's'})`);
   console.log(`   merge fields: ${mergeFields.length} unique (${mergeFields.slice(0, 6).join(', ')}${mergeFields.length > 6 ? ', ...' : ''})`);
   console.log(`   business_id:  ${RED_UMBRELLA_BUSINESS_ID}`);
   console.log(`   profile_id:   ${BARI_FS_PROFILE_ID}`);
