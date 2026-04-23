@@ -75,6 +75,7 @@ function getInitialFormData(business) {
     website: business.website || '',
     instagram: business.instagram || '',
     facebook: business.facebook || '',
+    video_url: business.video_url || '',
     address: business.address || '',
     city: business.city || '',
     state: business.state || '',
@@ -506,6 +507,22 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                   className={INPUT_CLASS}
                   placeholder="facebook.com/yourbusiness"
                 />
+              </div>
+              <div>
+                <Label htmlFor="business-video-url" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
+                  Intro Video (optional)
+                </Label>
+                <Input
+                  id="business-video-url"
+                  type="url"
+                  value={formData.video_url}
+                  onChange={(e) => handleChange('video_url', e.target.value)}
+                  className={INPUT_CLASS}
+                  placeholder="YouTube, Vimeo, or direct video URL"
+                />
+                <p className="text-xs text-muted-foreground/70 mt-1">
+                  Paste a link to a video showcasing your work. This will display on your business profile when the redesigned profile ships.
+                </p>
               </div>
             </div>
 

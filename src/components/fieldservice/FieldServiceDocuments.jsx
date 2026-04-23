@@ -66,6 +66,16 @@ const TEMPLATE_TYPE_BADGES = {
 };
 
 // ═══════════════════════════════════════════════════
+// Legal Disclaimer — system templates only
+// ═══════════════════════════════════════════════════
+
+const SYSTEM_TEMPLATE_DISCLAIMER =
+  'This template is provided as a convenience. It is not legal advice. Laws vary by ' +
+  'jurisdiction and change over time. Before using this document for a real transaction, ' +
+  'have it reviewed by a licensed attorney in your state. LocalLane makes no warranty that ' +
+  'this template is fit for any particular purpose or complies with all applicable laws.';
+
+// ═══════════════════════════════════════════════════
 // Merge Field Replacement Engine
 // ═══════════════════════════════════════════════════
 
@@ -77,8 +87,22 @@ function mergeFields(content, data) {
   return result;
 }
 
-function buildMergeData(profile, client, project, estimate) {
+// Branding composites from the Business record (primary) with FSProfile fallback.
+// Legacy {{company_*}} and new {{business_*}} both resolve to the same values.
+function buildMergeData(profile, business, client, project, estimate) {
   const today = new Date();
+  const bizName = business?.name || profile?.business_name || profile?.workspace_name || '';
+  const bizPhoneRaw = business?.phone || profile?.phone || '';
+  const bizPhone = bizPhoneRaw ? formatPhone(bizPhoneRaw) : '';
+  const bizEmail = business?.email || business?.contact_email || profile?.email || '';
+  const bizWebsite = business?.website || profile?.website || '';
+  const bizAddress = business?.street_address || business?.address || '';
+  const bizCity = business?.city || '';
+  const bizState = business?.state || '';
+  const bizZip = business?.zip_code || '';
+  const bizFullAddress = [bizAddress, bizCity, [bizState, bizZip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  const bizLogo = business?.logo_url || profile?.logo_url || '';
+  const bizBanner = business?.banner_url || '';
   return {
     date: today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
     current_date: today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
@@ -102,13 +126,33 @@ function buildMergeData(profile, client, project, estimate) {
     estimate_total: estimate?.total ? fmt(estimate.total) : '',
     estimate_subtotal: estimate?.subtotal ? fmt(estimate.subtotal) : '',
     estimate_terms: estimate?.terms || '',
-    company_name: profile?.business_name || profile?.workspace_name || '',
-    company_phone: profile?.phone ? formatPhone(profile.phone) : '',
-    company_email: profile?.email || '',
-    company_website: profile?.website || '',
+    // Legacy company_* (preserved for existing system templates)
+    company_name: bizName,
+    company_phone: bizPhone,
+    company_email: bizEmail,
+    company_website: bizWebsite,
+    // New business_* — preferred for new templates
+    business_name: bizName,
+    business_phone: bizPhone,
+    business_email: bizEmail,
+    business_website: bizWebsite,
+    business_address: bizAddress,
+    business_city: bizCity,
+    business_state: bizState,
+    business_zip_code: bizZip,
+    business_full_address: bizFullAddress,
+    business_logo_url: bizLogo,
+    business_banner_url: bizBanner,
+    business_license_number: profile?.license_number || '',
+    business_tagline: business?.tagline || profile?.tagline || '',
+    // Owner / signature fields
     owner_name: profile?.owner_name || '',
+    owner_signature_name: profile?.owner_name || '',
+    owner_signature_email: profile?.email || '',
+    owner_signature_phone: profile?.phone ? formatPhone(profile.phone) : '',
+    // Legacy / misc
     license_number: profile?.license_number || '',
-    service_area: profile?.service_area || '',
+    service_area: profile?.service_area || business?.service_area || '',
     amount_owed: estimate?.total ? fmt(estimate.total) : project?.total_budget ? fmt(project.total_budget) : '',
     due_date: '',
     sub_name: '',
@@ -116,6 +160,39 @@ function buildMergeData(profile, client, project, estimate) {
     sub_amount: '',
     payment_terms: '',
   };
+}
+
+// Preview merge data — real branding, bracketed placeholders for per-client fields
+const PREVIEW_PLACEHOLDERS = {
+  client_name: '[Client Name]',
+  client_email: '[Client Email]',
+  client_phone: '[Client Phone]',
+  client_address: '[Client Address]',
+  client_city: '[Client City]',
+  client_state: '[Client State]',
+  client_zip_code: '[Client Zip]',
+  client_company_name: '[Client Company]',
+  client_full_address: '[Client Address]',
+  project_name: '[Project Name]',
+  project_address: '[Project Address]',
+  project_description: '[Project Description]',
+  start_date: '[Start Date]',
+  end_date: '[End Date]',
+  project_budget: '[Project Budget]',
+  estimate_number: '[Estimate #]',
+  estimate_total: '[Estimate Total]',
+  estimate_subtotal: '[Estimate Subtotal]',
+  estimate_terms: '[Estimate Terms]',
+  amount_owed: '[Amount Owed]',
+  due_date: '[Due Date]',
+  sub_name: '[Subcontractor Name]',
+  scope_of_work: '[Scope of Work]',
+  sub_amount: '[Subcontractor Amount]',
+  payment_terms: '[Payment Terms]',
+};
+
+function buildPreviewMergeData(profile, business) {
+  return { ...buildMergeData(profile, business, null, null, null), ...PREVIEW_PLACEHOLDERS };
 }
 
 // ═══════════════════════════════════════════════════
@@ -273,11 +350,145 @@ function RecallDialog({ doc, onConfirm, onCancel, isRecalling }) {
 }
 
 // ═══════════════════════════════════════════════════
+// Template Preview Modal — read-only preview before commit
+// ═══════════════════════════════════════════════════
+
+function TemplatePreviewModal({ template, profile, business, onClose, onUseTemplate }) {
+  const rendered = useMemo(() => {
+    if (!template) return '';
+    const data = buildPreviewMergeData(profile, business);
+    return mergeFields(template.content || '', data);
+  }, [template, profile, business]);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  if (!template) return null;
+  const isSystem = !!template.is_system;
+  const logoUrl = business?.logo_url || profile?.logo_url || '';
+  const bizName = business?.name || profile?.business_name || 'Your Business';
+  const typeBadge = TEMPLATE_TYPE_BADGES[template.template_type] || TEMPLATE_TYPE_BADGES.custom;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/70 flex items-start justify-center p-4 overflow-y-auto"
+      onClick={onClose}
+    >
+      <div
+        className="bg-card border border-border rounded-xl max-w-3xl w-full my-8 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 p-4 border-b border-border">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-base font-bold text-foreground truncate">{template.title}</h3>
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${typeBadge.color}`}>
+                {typeBadge.label}
+              </span>
+              {isSystem && (
+                <span className="inline-block px-1.5 py-0.5 rounded text-xs font-medium bg-secondary text-muted-foreground">
+                  System Template
+                </span>
+              )}
+              {template.description && (
+                <span className="text-xs text-muted-foreground/70 truncate">{template.description}</span>
+              )}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 text-muted-foreground/70 hover:text-foreground-soft transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
+            aria-label="Close preview"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Disclaimer banner (system templates only) */}
+        {isSystem && (
+          <div className="mx-4 mt-4 p-3 rounded-lg bg-primary/10 border border-primary/30">
+            <div className="flex gap-2">
+              <AlertTriangle className="h-4 w-4 text-primary-hover flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-foreground-soft leading-relaxed">
+                {SYSTEM_TEMPLATE_DISCLAIMER}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Rendered content on paper */}
+        <div className="p-4">
+          <div className="bg-white rounded-lg p-6 md:p-8 shadow-inner">
+            {(logoUrl || bizName) && (
+              <div className="flex items-center gap-3 pb-4 mb-4 border-b border-slate-200">
+                {logoUrl && (
+                  <img
+                    src={logoUrl}
+                    alt={bizName}
+                    className="h-12 w-12 rounded object-cover"
+                  />
+                )}
+                <div className="min-w-0">
+                  <p className="text-base font-bold text-slate-900 truncate">{bizName}</p>
+                  {(business?.tagline || profile?.tagline) && (
+                    <p className="text-xs text-slate-600 truncate">{business?.tagline || profile?.tagline}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <pre className="whitespace-pre-wrap text-sm text-slate-900 font-sans leading-relaxed">
+              {rendered}
+            </pre>
+
+            {isSystem && (
+              <div className="mt-6 pt-3 border-t border-slate-200">
+                <p className="text-[10px] text-slate-500 italic leading-snug">
+                  {SYSTEM_TEMPLATE_DISCLAIMER}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <p className="text-xs text-muted-foreground/70 mt-3">
+            Fields shown in [brackets] will be filled in during document creation.
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex flex-wrap gap-2 justify-end p-4 border-t border-border bg-secondary/30 rounded-b-xl">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg border border-border text-foreground-soft hover:text-foreground hover:bg-transparent text-sm min-h-[44px] transition-colors"
+          >
+            Close
+          </button>
+          <button
+            type="button"
+            onClick={() => onUseTemplate(template)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] transition-colors"
+          >
+            <FileText className="h-4 w-4" />
+            Use this Template
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
 // Document Detail View
 // ═══════════════════════════════════════════════════
 
 function DocumentDetail({
-  doc, client, profile, currentUser, onBack, onUpdate, onDelete, onSendForSignature,
+  doc, client, profile, business, sourceTemplate, currentUser, onBack, onUpdate, onDelete, onSendForSignature,
   onCopyLink, onRecall, onCreateAmendment, isUpdating,
 }) {
   const [editing, setEditing] = useState(false);
@@ -427,6 +638,26 @@ function DocumentDetail({
 
       {/* Document Content */}
       <div className="doc-print-area bg-white rounded-xl p-6 md:p-10 shadow-lg print:shadow-none print:p-0 print:rounded-none">
+        {/* Business letterhead — composites from Business branding when available */}
+        {(business?.logo_url || profile?.logo_url || business?.name || profile?.business_name) && (
+          <div className="flex items-center gap-3 pb-4 mb-4 border-b border-slate-200">
+            {(business?.logo_url || profile?.logo_url) && (
+              <img
+                src={business?.logo_url || profile?.logo_url}
+                alt={business?.name || profile?.business_name || 'Business logo'}
+                className="h-12 w-12 rounded object-cover"
+              />
+            )}
+            <div className="min-w-0">
+              <p className="text-base font-bold text-slate-900 truncate">
+                {business?.name || profile?.business_name || profile?.workspace_name}
+              </p>
+              {(business?.tagline || profile?.tagline) && (
+                <p className="text-xs text-slate-600 truncate">{business?.tagline || profile?.tagline}</p>
+              )}
+            </div>
+          </div>
+        )}
         {editing ? (
           <div className="space-y-3">
             <textarea
@@ -449,6 +680,15 @@ function DocumentDetail({
           <pre className="whitespace-pre-wrap text-sm text-primary-foreground font-sans leading-relaxed print:text-primary-foreground">
             {doc.content}
           </pre>
+        )}
+
+        {/* System template disclaimer footer */}
+        {sourceTemplate?.is_system && (
+          <div className="mt-6 pt-3 border-t border-slate-200">
+            <p className="text-[10px] text-slate-500 italic leading-snug">
+              {SYSTEM_TEMPLATE_DISCLAIMER}
+            </p>
+          </div>
         )}
 
         {/* Owner Signature */}
@@ -507,11 +747,12 @@ function DocumentDetail({
 // Create Document Flow (multi-step)
 // ═══════════════════════════════════════════════════
 
-function CreateDocumentFlow({ profile, currentUser, templates, clients, projects, estimates, onSave, onCancel, isSaving, onClientCreated }) {
+function CreateDocumentFlow({ profile, business, currentUser, templates, clients, projects, estimates, onSave, onCancel, isSaving, onClientCreated, initialTemplate }) {
   const [step, setStep] = useState('client'); // client | template | content
   const [clientId, setClientId] = useState('');
   const [projectId, setProjectId] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState(initialTemplate || null);
+  const [previewTemplate, setPreviewTemplate] = useState(null);
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
   const [clientSearch, setClientSearch] = useState('');
@@ -547,10 +788,10 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
   // When template is selected, populate content
   useEffect(() => {
     if (!selectedTemplate) return;
-    const data = buildMergeData(profile, selectedClient, selectedProject, linkedEstimate);
+    const data = buildMergeData(profile, business, selectedClient, selectedProject, linkedEstimate);
     setContent(mergeFields(selectedTemplate.content || '', data));
     setTitle(selectedTemplate.title || '');
-  }, [selectedTemplate, profile, selectedClient, selectedProject, linkedEstimate]);
+  }, [selectedTemplate, profile, business, selectedClient, selectedProject, linkedEstimate]);
 
   const handleAddClient = async () => {
     if (!newClient.name.trim() || !newClient.email.trim()) {
@@ -752,21 +993,37 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
             For: <span className="text-foreground-soft">{selectedClient?.name}</span>
           </p>
 
+          <p className="text-xs text-muted-foreground/70">Click a template to preview. You can review the language and branding before committing.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {templates.map((tpl) => {
               const typeBadge = TEMPLATE_TYPE_BADGES[tpl.template_type] || TEMPLATE_TYPE_BADGES.custom;
+              const isSelected = selectedTemplate?.id === tpl.id;
               return (
                 <button
                   key={tpl.id}
                   type="button"
-                  onClick={() => { setSelectedTemplate(tpl); setStep('content'); }}
-                  className="text-left bg-secondary border border-border rounded-lg p-3 hover:border-primary/50 transition-colors"
+                  onClick={() => setPreviewTemplate(tpl)}
+                  className={`text-left bg-secondary border rounded-lg p-3 transition-colors ${
+                    isSelected ? 'border-primary' : 'border-border hover:border-primary/50'
+                  }`}
                 >
-                  <p className="text-sm font-medium text-foreground truncate">{tpl.title}</p>
-                  <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${typeBadge.color} mt-1`}>
-                    {typeBadge.label}
-                  </span>
-                  {tpl.description && <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2">{tpl.description}</p>}
+                  <div className="flex items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground truncate">{tpl.title}</p>
+                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                        <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${typeBadge.color}`}>
+                          {typeBadge.label}
+                        </span>
+                        {isSelected && (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-primary/20 text-primary-hover">
+                            <Check className="h-3 w-3" /> Selected
+                          </span>
+                        )}
+                      </div>
+                      {tpl.description && <p className="text-xs text-muted-foreground/70 mt-1 line-clamp-2">{tpl.description}</p>}
+                    </div>
+                    <Eye className="h-4 w-4 text-muted-foreground/70 flex-shrink-0 mt-0.5" />
+                  </div>
                 </button>
               );
             })}
@@ -785,11 +1042,38 @@ function CreateDocumentFlow({ profile, currentUser, templates, clients, projects
             </button>
           </div>
 
+          {selectedTemplate?.id && (
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-border">
+              <p className="text-xs text-muted-foreground">
+                Continue with <span className="text-foreground-soft font-medium">{selectedTemplate.title}</span>.
+              </p>
+              <button type="button" onClick={() => setStep('content')}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-xs min-h-[44px] transition-colors">
+                Continue
+              </button>
+            </div>
+          )}
+
           <button type="button" onClick={() => setStep('client')}
             className="text-sm text-muted-foreground hover:text-primary min-h-[44px]">
             ← Back to Client
           </button>
         </div>
+      )}
+
+      {/* Preview modal for template-step cards */}
+      {previewTemplate && (
+        <TemplatePreviewModal
+          template={previewTemplate}
+          profile={profile}
+          business={business}
+          onClose={() => setPreviewTemplate(null)}
+          onUseTemplate={(tpl) => {
+            setSelectedTemplate(tpl);
+            setPreviewTemplate(null);
+            setStep('content');
+          }}
+        />
       )}
 
       {/* Step 3: Content + Project + Save */}
@@ -944,17 +1228,51 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [recallDoc, setRecallDoc] = useState(null);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState(null);
+  const [initialTemplate, setInitialTemplate] = useState(null);
+
+  // ─── Query: Business ────────────────────────────
+  // Business holds branding (logo_url, banner_url, name, address) composited into rendered documents.
+  // .list() + client-side filter per DEC-140 pattern (service-role-created records + RLS quirk).
+  const { data: business = null } = useQuery({
+    queryKey: ['fs-business', profile?.business_id, profile?.user_id],
+    queryFn: async () => {
+      if (!profile?.business_id && !profile?.user_id) return null;
+      try {
+        if (profile?.business_id) {
+          const biz = await base44.entities.Business.get(profile.business_id);
+          if (biz) return biz;
+        }
+        if (profile?.user_id) {
+          const all = await base44.entities.Business.list();
+          return (Array.isArray(all) ? all : []).find((b) => b.owner_user_id === profile.user_id) || null;
+        }
+        return null;
+      } catch { return null; }
+    },
+    enabled: !!(profile?.business_id || profile?.user_id),
+  });
 
   // ─── Query: Templates ────────────────────────────
-  // .filter() returns empty for service-role-created records — Base44 SDK quirk.
-  // Use .list() + client filter by profile_id instead.
+  // FSDocumentTemplate Read is authenticated — client-side scoping enforces isolation (DEC-140 pattern).
+  // Visibility rules:
+  //   - business_id matches current business → business-owned, visible
+  //   - business_id is null AND profile_id matches this profile → legacy/system seeded for this profile, visible
+  //   - business_id is null AND no profile_id match → treat as globally-visible system template
+  //   - business_id set to any OTHER business → drop (private to that business)
   const { data: templates = [], isLoading: templatesLoading } = useQuery({
-    queryKey: ['fs-doc-templates', profile?.id],
+    queryKey: ['fs-doc-templates', profile?.id, profile?.business_id],
     queryFn: async () => {
       if (!profile?.id) return [];
       try {
         const all = await base44.entities.FSDocumentTemplate.list();
-        return (Array.isArray(all) ? all : []).filter((t) => t.profile_id === profile.id);
+        return (Array.isArray(all) ? all : []).filter((t) => {
+          if (t.business_id) {
+            return t.business_id === profile?.business_id;
+          }
+          // Null business_id: system templates seeded per-profile today, visible if matches ours
+          return t.profile_id === profile.id || !t.profile_id;
+        });
       } catch { return []; }
     },
     enabled: !!profile?.id,
@@ -1088,10 +1406,16 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
         const { id, ...rest } = data;
         return base44.entities.FSDocumentTemplate.update(id, rest);
       }
-      return base44.entities.FSDocumentTemplate.create({ ...data, profile_id: profile.id });
+      // New user templates are business-scoped when a business exists on the profile.
+      // System templates are never created through this mutation (seeded via initializeWorkspace).
+      return base44.entities.FSDocumentTemplate.create({
+        ...data,
+        profile_id: profile.id,
+        business_id: profile?.business_id || business?.id || null,
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['fs-doc-templates', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-doc-templates'] });
       toast.success('Template saved');
       setView('list');
       setEditingTemplate(null);
@@ -1275,6 +1599,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     return (
       <CreateDocumentFlow
         profile={profile}
+        business={business}
         currentUser={currentUser}
         templates={templates}
         clients={clients}
@@ -1282,19 +1607,25 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
         estimates={estimates}
         isSaving={createDocMutation.isPending}
         onSave={(data) => createDocMutation.mutate(data)}
-        onCancel={() => setView('list')}
+        onCancel={() => { setView('list'); setInitialTemplate(null); }}
         onClientCreated={() => queryClient.invalidateQueries(['fs-clients', profile?.id])}
+        initialTemplate={initialTemplate}
       />
     );
   }
 
   if (view === 'detail' && selectedDoc) {
     const client = selectedDoc.client_id ? clientMap[selectedDoc.client_id] : null;
+    const sourceTemplate = selectedDoc.template_id
+      ? templates.find((t) => t.id === selectedDoc.template_id) || null
+      : null;
     return (
       <DocumentDetail
         doc={selectedDoc}
         client={client}
         profile={profile}
+        business={business}
+        sourceTemplate={sourceTemplate}
         currentUser={currentUser}
         onBack={() => { setView('list'); setSelectedDoc(null); }}
         onUpdate={(id, data) => updateDocMutation.mutate({ id, data })}
@@ -1407,39 +1738,97 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
         </button>
       </div>
 
-      {/* Templates section (collapsible) */}
-      {showTemplates && (
-        <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">Document Templates</h3>
-            <button type="button" onClick={() => setView('newTemplate')}
-              className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover">
-              <Plus className="h-3 w-3" /> Custom
-            </button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {templates.map((tpl) => {
-              const typeBadge = TEMPLATE_TYPE_BADGES[tpl.template_type] || TEMPLATE_TYPE_BADGES.custom;
-              return (
-                <div key={tpl.id} className="flex items-center justify-between gap-2 bg-secondary rounded-lg px-3 py-2">
-                  <div className="min-w-0">
-                    <p className="text-sm text-foreground truncate">{tpl.title}</p>
-                    <span className={`inline-block px-1 py-0.5 rounded text-xs ${typeBadge.color}`}>{typeBadge.label}</span>
-                  </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    {!tpl.is_system && (
-                      <button type="button" onClick={() => { setEditingTemplate(tpl); setView('editTemplate'); }}
-                        className="p-1.5 text-muted-foreground/70 hover:text-primary transition-colors">
-                        <Pencil className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
+      {/* Templates section (collapsible) — two-section split by ownership */}
+      {showTemplates && (() => {
+        const systemTemplates = templates.filter((t) => !t.business_id);
+        const businessTemplates = profile?.business_id
+          ? templates.filter((t) => t.business_id === profile.business_id)
+          : [];
+        const businessLabel = (business?.name || profile?.business_name || '').toUpperCase();
+        const renderCard = (tpl) => {
+          const typeBadge = TEMPLATE_TYPE_BADGES[tpl.template_type] || TEMPLATE_TYPE_BADGES.custom;
+          const canEdit = !!tpl.business_id; // user-owned templates are editable; system (null business_id) is not
+          return (
+            <div key={tpl.id} className="flex items-center justify-between gap-2 bg-secondary rounded-lg px-3 py-2 hover:border-primary/50 border border-transparent transition-colors">
+              <button
+                type="button"
+                onClick={() => setPreviewTemplate(tpl)}
+                className="flex-1 text-left min-w-0"
+              >
+                <p className="text-sm text-foreground truncate">{tpl.title}</p>
+                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                  <span className={`inline-block px-1 py-0.5 rounded text-xs ${typeBadge.color}`}>{typeBadge.label}</span>
+                  {!tpl.business_id && (
+                    <span className="inline-block px-1 py-0.5 rounded text-xs bg-secondary text-muted-foreground/70">System</span>
+                  )}
                 </div>
-              );
-            })}
+              </button>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button type="button" onClick={() => setPreviewTemplate(tpl)} title="Preview"
+                  className="p-1.5 text-muted-foreground/70 hover:text-primary transition-colors">
+                  <Eye className="h-3 w-3" />
+                </button>
+                {canEdit && (
+                  <button type="button" onClick={() => { setEditingTemplate(tpl); setView('editTemplate'); }} title="Edit"
+                    className="p-1.5 text-muted-foreground/70 hover:text-primary transition-colors">
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        };
+        return (
+          <div className="bg-card border border-border rounded-xl p-4 space-y-5">
+            {/* Business-scoped section — above system when a business exists */}
+            {profile?.business_id && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">
+                    {businessLabel ? `${businessLabel} Templates` : 'My Business Templates'}
+                  </h3>
+                  <button type="button" onClick={() => setView('newTemplate')}
+                    className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover">
+                    <Plus className="h-3 w-3" /> Custom
+                  </button>
+                </div>
+                {businessTemplates.length === 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setView('newTemplate')}
+                    className="w-full text-center py-6 px-3 rounded-lg border border-dashed border-border text-muted-foreground hover:text-foreground-soft hover:border-primary/50 transition-colors"
+                  >
+                    <Plus className="h-4 w-4 mx-auto mb-1" />
+                    <p className="text-sm">Add your first {business?.name || 'business'} template</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">Private to your business</p>
+                  </button>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {businessTemplates.map(renderCard)}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* System section — always present */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">Document Templates</h3>
+                {!profile?.business_id && (
+                  <button type="button" onClick={() => setView('newTemplate')}
+                    className="flex items-center gap-1 text-xs text-primary hover:text-primary-hover">
+                    <Plus className="h-3 w-3" /> Custom
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground/70">Click any template to preview before creating a document. System templates are provided as a convenience; review with an attorney before use.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {systemTemplates.map(renderCard)}
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* No clients state */}
       {clients.length === 0 ? (
@@ -1493,6 +1882,21 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
           onConfirm={handleRecallConfirm}
           onCancel={() => setRecallDoc(null)}
           isRecalling={updateDocMutation.isPending}
+        />
+      )}
+
+      {/* Template preview modal — opens from the main templates grid */}
+      {previewTemplate && (
+        <TemplatePreviewModal
+          template={previewTemplate}
+          profile={profile}
+          business={business}
+          onClose={() => setPreviewTemplate(null)}
+          onUseTemplate={(tpl) => {
+            setInitialTemplate(tpl);
+            setPreviewTemplate(null);
+            setView('create');
+          }}
         />
       )}
     </div>
