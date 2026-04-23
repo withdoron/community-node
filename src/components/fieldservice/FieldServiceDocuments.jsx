@@ -1154,9 +1154,7 @@ function TemplateEditor({ template, onSave, onCancel, isSaving }) {
       template_type: templateType,
       content,
       is_system: false,
-      merge_fields: JSON.stringify(
-        [...content.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1]).filter((v, i, a) => a.indexOf(v) === i)
-      ),
+      merge_fields: [...content.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1]).filter((v, i, a) => a.indexOf(v) === i),
     });
   };
 
