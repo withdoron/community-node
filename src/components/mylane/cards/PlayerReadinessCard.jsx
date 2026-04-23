@@ -33,8 +33,6 @@ function parseRsvps(event) {
 const DUTY_LABELS = { snack: 'Snack', water: 'Water', setup: 'Setup', cleanup: 'Cleanup' };
 
 export default function PlayerReadinessCard({ profile: team, onClick, onUrgency }) {
-  if (!team) return null;
-
   const { data: members = [] } = useQuery({
     queryKey: ['mylane-team-members', team.id],
     queryFn: async () => {
@@ -67,6 +65,8 @@ export default function PlayerReadinessCard({ profile: team, onClick, onUrgency 
     },
     enabled: !!team.id,
   });
+
+  if (!team) return null;
 
   const total = members.length;
 

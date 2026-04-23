@@ -85,6 +85,15 @@
       "type": "boolean",
       "default": false,
       "description": "Membership flag for the $9/month per-user entity fee (DEC/Round 1). Phase 5 will read this to gate certain actions."
+    },
+    "is_legacy_user": {
+      "type": "boolean",
+      "default": false,
+      "description": "Marks users who existed pre-v4 architecture. When Round 2 Stripe billing goes live, a script will walk all users with this flag set and assign them a 30-day grace window. Phase 2 sets this to true for Bari and Dan. Phase 1 users remain false until otherwise indicated."
+    },
+    "legacy_grace_until": {
+      "type": "string",
+      "description": "Grace period expiration (ISO datetime string). Set to billing_live_date + 30 days for all is_legacy_user: true users when Round 2 billing goes live. Null until then \u2014 intentional. Phase 5 (membership gate) will read this."
     }
   },
   "required": [],

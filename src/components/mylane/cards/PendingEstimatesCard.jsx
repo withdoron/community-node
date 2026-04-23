@@ -9,8 +9,6 @@ const fmtUsd = (n) =>
 const DAY_MS = 86400000;
 
 export default function PendingEstimatesCard({ profile, onClick, onUrgency }) {
-  if (!profile) return null;
-
   const { data: estimates = [] } = useQuery({
     queryKey: ['mylane-fs-estimates', profile.id],
     queryFn: async () => {
@@ -22,6 +20,8 @@ export default function PendingEstimatesCard({ profile, onClick, onUrgency }) {
     },
     enabled: !!profile.id,
   });
+
+  if (!profile) return null;
 
   const pending = estimates.filter(
     (e) => e.status && !['signed', 'declined', 'expired', 'accepted'].includes(e.status)

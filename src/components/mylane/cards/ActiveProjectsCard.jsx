@@ -4,8 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { FolderKanban } from 'lucide-react';
 
 export default function ActiveProjectsCard({ profile, onClick, onUrgency }) {
-  if (!profile) return null;
-
   const { data: projects = [] } = useQuery({
     queryKey: ['mylane-fs-projects', profile.id],
     queryFn: async () => {
@@ -17,6 +15,8 @@ export default function ActiveProjectsCard({ profile, onClick, onUrgency }) {
     },
     enabled: !!profile.id,
   });
+
+  if (!profile) return null;
 
   const active = projects.filter((p) => p.status === 'active');
   const latest = active.sort((a, b) => (b.created_date || '').localeCompare(a.created_date || ''))[0];

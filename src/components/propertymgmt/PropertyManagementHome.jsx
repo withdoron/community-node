@@ -17,15 +17,6 @@ const fmtShortDate = (d) => {
 };
 
 export default function PropertyManagementHome({ profile, currentUser, onNavigateTab, memberRole, canEdit }) {
-  // ─── Role guard ───────────────────────────────────
-  if (!memberRole) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   // ─── Query: Property Groups ─────────────────────
   const { data: groups = [] } = useQuery({
     queryKey: ['pm-groups', profile?.id],
@@ -190,6 +181,15 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
       };
     });
   }, [groupSummaries, settlements]);
+
+  // ─── Role guard — after all hooks ───────────────
+  if (!memberRole) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   // ─── Workspace Guide (Activation Protocol Moment 3) ──────────
   const guideDismissed = profile?.guide_dismissed === true;

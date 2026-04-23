@@ -22,15 +22,6 @@ import MaintenanceCompleteDialog from './MaintenanceCompleteDialog';
 const PRIORITY_ORDER = { emergency: 0, high: 1, medium: 2, low: 3 };
 
 export default function PropertyManagementMaintenance({ profile, currentUser, memberRole, canEdit }) {
-  // Role guard
-  if (!memberRole) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   const profileId = profile?.id;
 
   // Data
@@ -81,6 +72,15 @@ export default function PropertyManagementMaintenance({ profile, currentUser, me
   }, [profileId, refreshKey]);
 
   const refresh = () => setRefreshKey((k) => k + 1);
+
+  // Role guard — after all hooks
+  if (!memberRole) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   // Worker names for autocomplete (from labor entries)
   const workerNames = useMemo(() => {

@@ -30,15 +30,6 @@ const SUB_TABS = [
 ];
 
 export default function PropertyManagementFinances({ profile, currentUser, memberRole, canEdit }) {
-  // Role guard
-  if (!memberRole) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   const profileId = profile?.id;
 
   // Data
@@ -103,6 +94,15 @@ export default function PropertyManagementFinances({ profile, currentUser, membe
   }, [profileId, refreshKey]);
 
   const refresh = () => setRefreshKey((k) => k + 1);
+
+  // Role guard — after all hooks
+  if (!memberRole) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   // ── Running totals ──
   const { totalIncome, totalExpenses, netTotal } = useMemo(() => {

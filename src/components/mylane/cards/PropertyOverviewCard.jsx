@@ -6,8 +6,6 @@ import { Building2 } from 'lucide-react';
 const DAY_MS = 86400000;
 
 export default function PropertyOverviewCard({ profile, onClick, onUrgency }) {
-  if (!profile) return null;
-
   const { data: properties = [] } = useQuery({
     queryKey: ['mylane-pm-properties', profile.id],
     queryFn: async () => {
@@ -31,6 +29,8 @@ export default function PropertyOverviewCard({ profile, onClick, onUrgency }) {
     },
     enabled: !!profile.id,
   });
+
+  if (!profile) return null;
 
   const total = properties.length;
   const occupied = properties.filter((p) => p.status === 'occupied').length;

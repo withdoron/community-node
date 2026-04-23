@@ -7,10 +7,6 @@ const fmtUsd = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n || 0);
 
 export default function EnoughNumberCard({ profile, onClick, onUrgency }) {
-  if (!profile) return null;
-
-  const enoughTarget = parseFloat(profile.enough_number) || 0;
-
   const { data: transactions = [] } = useQuery({
     queryKey: ['mylane-finance-transactions', profile.id],
     queryFn: async () => {
@@ -19,6 +15,10 @@ export default function EnoughNumberCard({ profile, onClick, onUrgency }) {
     },
     enabled: !!profile.id,
   });
+
+  if (!profile) return null;
+
+  const enoughTarget = parseFloat(profile.enough_number) || 0;
 
   // Current month income
   const now = new Date();

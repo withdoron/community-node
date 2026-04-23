@@ -342,6 +342,11 @@
     "archived_by": {
       "type": "string",
       "description": "User ID (or email) of the user who archived the business."
+    },
+    "subscription_exempt": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, this business does NOT pay the $9/month platform fee. Used for LocalLane-the-brand (charging itself is circular) and potentially for hidden holding-company records. Phase 2 sets this to true on the LocalLane Business record when it's created. All other existing businesses remain false."
     }
   },
   "required": [

@@ -23,15 +23,6 @@ function sortOwnersByName(list) {
 }
 
 export default function PropertyManagementOwners({ profile, currentUser, memberRole, canEdit }) {
-  // Role guard
-  if (!memberRole) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>You don't have access to this workspace.</p>
-      </div>
-    );
-  }
-
   const profileId = profile?.id;
 
   const [owners, setOwners] = useState([]);
@@ -83,6 +74,15 @@ export default function PropertyManagementOwners({ profile, currentUser, memberR
   }, [profileId, refreshKey]);
 
   const refresh = () => setRefreshKey((k) => k + 1);
+
+  // Role guard — after all hooks
+  if (!memberRole) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>You don't have access to this workspace.</p>
+      </div>
+    );
+  }
 
   const ownershipTotalByGroup = useMemo(() => {
     const totals = {};
