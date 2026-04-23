@@ -14,6 +14,7 @@
 //   unarchive_fs_profile            — reverse
 //   mark_legacy_user                — set is_legacy_user: true on a User
 //   unmark_legacy_user              — clear the flag
+//   create_fs_document_template     — create an FSDocumentTemplate, idempotent on business_id+title
 //
 // Actions (read-only, for migration lookups):
 //   find_user_by_email              — returns a User record or null
@@ -376,6 +377,73 @@ Deno.serve(async (req) => {
         source: 'migration',
       });
       return Response.json({ success: true, user_id: userId, audit_log_id: audit.id });
+    }
+
+    // ─── create_fs_document_template ──────────────────────────────
+    // Creates an FSDocumentTemplate record via service role. Idempotent on
+    // business_id + title: if a template with both already exists, returns the
+    // existing record id and marks skipped. AuditLog'd.
+    if (action === 'create_fs_document_template') {
+      const fields = (body.fields ?? {}) as Record<string, unknown>;
+      if (!fields.title || typeof fields.title !== 'string') {
+        return Response.json({ error: 'fields.title is required (string)' }, { status: 400 });
+      }
+      if (!fields.profile_id || typeof fields.profile_id !== 'string') {
+        return Response.json({ error: 'fields.profile_id is required (string)' }, { status: 400 });
+      }
+      if (!fields.content || typeof fields.content !== 'string') {
+        return Response.json({ error: 'fields.content is required (string)' }, { status: 400 });
+      }
+
+      // Idempotency check: same business_id + title = same template
+      const businessId = (fields.business_id as string | null | undefined) ?? null;
+      const title = fields.title as string;
+      const existing = await entities.FSDocumentTemplate.filter({ title });
+      const hit = (Array.isArray(existing) ? existing : []).find((t: Record<string, unknown>) => {
+        const tBiz = (t.business_id as string | null | undefined) ?? null;
+        return tBiz === businessId;
+      });
+      if (hit) {
+        return Response.json({
+          success: true,
+          skipped: true,
+          reason: 'FSDocumentTemplate with matching business_id + title already exists',
+          template_id: hit.id,
+          dry_run: dryRun,
+        });
+      }
+
+      if (dryRun) {
+        return Response.json({
+          success: true,
+          dry_run: true,
+          planned: {
+            entity_type: 'FSDocumentTemplate',
+            action: 'create',
+            new_value: {
+              ...fields,
+              content_length: String(fields.content).length,
+              content: `<${String(fields.content).length} chars>`,
+            },
+          },
+        });
+      }
+
+      const created = await entities.FSDocumentTemplate.create(fields);
+      const audit = await writeAudit(base44, {
+        entity_type: 'FSDocumentTemplate',
+        entity_id: created.id as string,
+        action: 'create',
+        old_value: null,
+        new_value: { ...fields, content: `<${String(fields.content).length} chars>` },
+        source: 'migration',
+      });
+      return Response.json({
+        success: true,
+        template_id: created.id,
+        record: created,
+        audit_log_id: audit.id,
+      });
     }
 
     return Response.json({ error: `Unknown action: ${String(action)}` }, { status: 400 });
