@@ -587,17 +587,33 @@ export default function MyLaneSurface({
   //   - tapping the centered tile commits the business
   //   - tapping a neighbor rotates the focus (does not commit)
   const handleSwitcherSelect = useCallback((idx) => {
+    // [DEC-168 DIAG] Log entry to see whether commit path is even invoked.
+    console.log('[DEC-168] handleSwitcherSelect entered', {
+      idx,
+      switcherFocusIdx,
+      ownedBusinessesCount: ownedBusinesses.length,
+      targetId: ownedBusinesses[idx]?.id,
+      targetName: ownedBusinesses[idx]?.name,
+      willCommit: idx === switcherFocusIdx,
+    });
     if (idx === switcherFocusIdx) {
       // Commit: write active business, exit switcher, snap to Home. Spinner
       // reforms with the new business's spaces; space-mode content re-renders
       // because every consumer reads through useActiveBusiness (Living Feet).
+      console.log('[DEC-168] handleSwitcherSelect — COMMIT branch');
       const target = ownedBusinesses[idx];
-      if (target) setActiveBusiness(target.id);
+      if (target) {
+        console.log('[DEC-168] calling setActiveBusiness', { id: target.id });
+        setActiveBusiness(target.id);
+      } else {
+        console.log('[DEC-168] commit branch hit but target was falsy', { idx });
+      }
       setSwitcherMode(false);
       setSpinnerIndex(0); // Home = index 0 of spaceItems
       setDrilledTab('home');
       setRenderedData(null);
     } else {
+      console.log('[DEC-168] handleSwitcherSelect — ROTATE branch');
       setSwitcherFocusIdx(idx);
     }
   }, [switcherFocusIdx, ownedBusinesses, setActiveBusiness]);

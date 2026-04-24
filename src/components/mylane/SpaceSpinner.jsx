@@ -799,11 +799,23 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
 
   // ─── Click handler ───
   const onItemClick = useCallback((i) => {
+    // [DEC-168 DIAG] Log every tile tap to see if center taps reach here.
+    console.log('[DEC-168] SpaceSpinner.onItemClick fired', {
+      tappedIndex: i,
+      currentIndex,
+      isCenter: i === currentIndex,
+      dragOffset: dragRef.current.currentOffset,
+      willCallHandleSelect: Math.abs(dragRef.current.currentOffset) < 5 && i !== currentIndex,
+    });
     if (Math.abs(dragRef.current.currentOffset) < 5) {
       if (i !== currentIndex) {
         playTick(true);
         handleSelect(i);
+      } else {
+        console.log('[DEC-168] SpaceSpinner.onItemClick — SWALLOWED (center tap, i === currentIndex)');
       }
+    } else {
+      console.log('[DEC-168] SpaceSpinner.onItemClick — SWALLOWED (drag offset too large)');
     }
   }, [currentIndex, handleSelect]);
 

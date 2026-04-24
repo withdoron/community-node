@@ -53,22 +53,40 @@ export function useActiveBusiness(currentUser) {
 
   const activeBusiness = useMemo(() => {
     if (!ownedBusinesses.length) return null;
+    let result;
     if (storedId) {
       const match = ownedBusinesses.find((b) => b.id === storedId);
-      if (match) return match;
+      if (match) result = match;
     }
-    return ownedBusinesses[0];
+    if (!result) result = ownedBusinesses[0];
+    // [DEC-168 DIAG] Log every recomputation so we can see whether the hook
+    // picks up a new storedId after setActiveBusiness fires.
+    console.log('[DEC-168] useActiveBusiness.activeBusiness recomputed', {
+      storedId,
+      resolvedId: result?.id,
+      resolvedName: result?.name,
+      ownedCount: ownedBusinesses.length,
+    });
+    return result;
   }, [ownedBusinesses, storedId]);
 
   const setActiveBusiness = useCallback((businessId) => {
+    // [DEC-168 DIAG] Log the hook-level write so we can confirm it fires.
+    console.log('[DEC-168] useActiveBusiness.setActiveBusiness called', { businessId });
     try {
       if (businessId) localStorage.setItem(STORAGE_KEY, businessId);
       else localStorage.removeItem(STORAGE_KEY);
-    } catch {}
+      console.log('[DEC-168] localStorage write ok', { stored: localStorage.getItem(STORAGE_KEY) });
+    } catch (err) {
+      console.log('[DEC-168] localStorage write failed', err);
+    }
     setStoredId(businessId ?? null);
     try {
       window.dispatchEvent(new CustomEvent(CHANGE_EVENT, { detail: businessId ?? null }));
-    } catch {}
+      console.log('[DEC-168] change event dispatched');
+    } catch (err) {
+      console.log('[DEC-168] change event dispatch failed', err);
+    }
   }, []);
 
   return {
