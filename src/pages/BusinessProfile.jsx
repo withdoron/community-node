@@ -245,9 +245,20 @@ export default function BusinessProfile({ businessId: businessIdProp, onRecommen
                     ))}
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{business.name}</h1>
-                  {business.subcategory?.trim() && (
-                    <p className="text-muted-foreground text-sm mt-1">{business.subcategory.trim()}</p>
-                  )}
+                  {(() => {
+                    // Subtitle fallback ladder (Build B): tagline → category
+                    // label → nothing (TrustSignal's "New to LocalLane" below
+                    // then fills the empty visual slot).
+                    const tagline = business.tagline?.trim();
+                    if (tagline) {
+                      return <p className="text-muted-foreground text-sm mt-1">{tagline}</p>;
+                    }
+                    const categoryLabel = getCategoryDisplayLabel(business, getLabel, legacyCategoryMapping);
+                    if (categoryLabel) {
+                      return <p className="text-muted-foreground text-sm mt-1">{categoryLabel}</p>;
+                    }
+                    return null;
+                  })()}
                   <div className="mt-3">
                     <TrustSignal business={business} />
                   </div>

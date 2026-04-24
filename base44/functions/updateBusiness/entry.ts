@@ -16,6 +16,9 @@ const PROFILE_ALLOWLIST = [
   'video_url',
   'product_tags', 'payment_methods', 'payment_notes', 'latitude', 'longitude', 'geocoded_at',
   'listed_in_directory',
+  // Build B (2026-04-24) audited this list against BusinessSettings' new
+  // editors (tagline, services[], photos[], accepts_*). All fields were
+  // already allowlisted above; no additions were needed.
 ];
 
 const ADMIN_EXTRA_ALLOWLIST = [

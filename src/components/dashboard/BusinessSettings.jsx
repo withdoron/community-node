@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Settings, Store, Star, Zap, Crown, ExternalLink, Mail, Phone, Globe, MapPin, Pencil, Loader2, Upload, Users, ImageIcon, X, Check } from 'lucide-react';
+import { Settings, Store, Star, Zap, Crown, ExternalLink, Mail, Phone, Globe, MapPin, Pencil, Loader2, Upload, Users, ImageIcon, X, Check, Plus, Sprout, Coins } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -63,6 +63,7 @@ function getInitialFormData(business) {
   const mainId = business.primary_category || business.main_category || business.category || '';
   return {
     name: business.name || '',
+    tagline: business.tagline || '',
     description: business.description || '',
     primary_category: mainId,
     main_category: business.main_category || mainId || '',
@@ -83,6 +84,7 @@ function getInitialFormData(business) {
     display_full_address: business.display_full_address === true,
     service_area: business.service_area || '',
     services_offered: business.services_offered || '',
+    services: Array.isArray(business.services) ? business.services : [],
     shop_url: business.shop_url || '',
     product_tags: Array.isArray(business.product_tags) ? business.product_tags : [],
     payment_methods: Array.isArray(business.payment_methods) ? business.payment_methods : [],
@@ -90,13 +92,33 @@ function getInitialFormData(business) {
   };
 }
 
+// Is this business's public profile sparse enough to warrant the empty-state
+// nudge in Settings? Build B (2026-04-24): only the owner sees this; it's a
+// positive prompt, not an error. The check is intentionally forgiving — once
+// any of description / services / category is populated, the nudge rests.
+function isProfileSparse(business) {
+  if (!business) return false;
+  const hasDescription = (business.description || '').trim().length > 0;
+  const hasServices =
+    (Array.isArray(business.services) && business.services.length > 0) ||
+    (business.services_offered || '').trim().length > 0;
+  const hasCategory =
+    (business.main_category || '').trim().length > 0 ||
+    (business.primary_category || '').trim().length > 0 ||
+    (business.category || '').trim().length > 0;
+  return !hasDescription && !hasServices && !hasCategory;
+}
+
 export default function BusinessSettings({ business, currentUserId, onNavigateTab }) {
   const queryClient = useQueryClient();
   const { mainCategories, getSubcategory, getLabel, legacyCategoryMapping } = useCategories();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(null);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const logoInputRef = React.useRef(null);
   const bannerInputRef = React.useRef(null);
+  const photosInputRef = React.useRef(null);
 
   // Compute Select value: must match SelectItem value format "mainId|subId"
   const categorySelectValue = useMemo(() => {
@@ -148,8 +170,15 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
       });
     },
     onSuccess: () => {
+      // Build B: widen the invalidation set so public surfaces repaint on
+      // profile edits (description, services, tagline, etc.). Build 2
+      // established this pattern for the visibility toggle; mirror it.
       queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUserId] });
       queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['business', business?.id] });
+      queryClient.invalidateQueries({ queryKey: ['directory-businesses'] });
+      queryClient.invalidateQueries({ queryKey: ['network-businesses'] });
+      queryClient.invalidateQueries({ queryKey: ['homepage-recent-businesses'] });
       toast.success('Business profile updated');
       setIsEditing(false);
       if (onNavigateTab) onNavigateTab('home');
@@ -248,6 +277,110 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
     },
   });
 
+  // Accepts-payment toggle mutation — immediate write, one field at a time
+  // (Joy Coins and Silver each flip independently). Shared onSuccess keeps
+  // the same profile queries fresh that Build 2 invalidates.
+  const acceptsMutation = useMutation({
+    mutationFn: async ({ field, value }) => {
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update_profile',
+        business_id: business.id,
+        data: { [field]: value },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['business', business?.id] });
+      queryClient.invalidateQueries({ queryKey: ['directory-businesses'] });
+      queryClient.invalidateQueries({ queryKey: ['network-businesses'] });
+      queryClient.invalidateQueries({ queryKey: ['homepage-recent-businesses'] });
+      toast.success('Saved');
+    },
+    onError: (err) => {
+      console.error('Accepts toggle save error:', err);
+      toast.error('Could not save that change. Please try again.');
+    },
+  });
+
+  // Photos gallery — upload-then-append pattern so the user sees each photo
+  // land as it completes rather than a batch blackout. Mutation writes the
+  // full photos array after collecting uploaded URLs.
+  const photosMutation = useMutation({
+    mutationFn: async (nextPhotos) => {
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update_profile',
+        business_id: business.id,
+        data: { photos: nextPhotos },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['business', business?.id] });
+      queryClient.invalidateQueries({ queryKey: ['directory-businesses'] });
+    },
+    onError: (err) => {
+      console.error('Photos save error:', err);
+      toast.error('Failed to save photo changes. Please try again.');
+    },
+  });
+
+  const handlePhotoUpload = async (files) => {
+    if (!files || files.length === 0) return;
+    const { validateFile } = await import('@/utils/fileValidation');
+    setUploadingPhotos(true);
+    const uploadedUrls = [];
+    for (const file of files) {
+      const check = validateFile(file);
+      if (!check.valid) { toast.error(check.error); continue; }
+      try {
+        const result = await base44.integrations.Core.UploadFile({ file });
+        const url = result?.file_url ?? result?.url;
+        if (url) uploadedUrls.push(url);
+      } catch (err) {
+        console.error('Photo upload failed:', err);
+        toast.error(`Failed to upload ${file.name}`);
+      }
+    }
+    if (uploadedUrls.length > 0) {
+      const existing = Array.isArray(business?.photos) ? business.photos : [];
+      const next = [...existing, ...uploadedUrls];
+      await photosMutation.mutateAsync(next);
+      toast.success(uploadedUrls.length === 1 ? 'Photo uploaded' : `${uploadedUrls.length} photos uploaded`);
+    }
+    setUploadingPhotos(false);
+    if (photosInputRef.current) photosInputRef.current.value = '';
+  };
+
+  const handlePhotoRemove = async (index) => {
+    const existing = Array.isArray(business?.photos) ? business.photos : [];
+    const next = existing.filter((_, i) => i !== index);
+    await photosMutation.mutateAsync(next);
+    toast.success('Photo removed');
+  };
+
+  // Services[] editor — addService / removeService / updateService mirror
+  // the BusinessOnboarding pattern (DEC-146: reuse one shape across surfaces).
+  const addService = () => {
+    setFormData((prev) => (prev
+      ? { ...prev, services: [...(prev.services || []), { name: '', description: '', starting_price: '' }] }
+      : prev));
+  };
+  const removeService = (index) => {
+    setFormData((prev) => (prev
+      ? { ...prev, services: (prev.services || []).filter((_, i) => i !== index) }
+      : prev));
+  };
+  const updateService = (index, field, value) => {
+    setFormData((prev) => {
+      if (!prev) return prev;
+      const next = [...(prev.services || [])];
+      next[index] = { ...next[index], [field]: value };
+      return { ...prev, services: next };
+    });
+  };
+
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -276,14 +409,27 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
     if (!business || !formData) return;
     const changedFields = {};
     const initial = getInitialFormData(business);
-    // Handle array fields separately — String comparison doesn't work for arrays
-    ['product_tags', 'payment_methods'].forEach((key) => {
+    // Array fields — JSON.stringify diff. services[] joins the list per Build B.
+    const ARRAY_FIELDS = ['product_tags', 'payment_methods', 'services'];
+    ARRAY_FIELDS.forEach((key) => {
+      const cleaned = key === 'services'
+        // Drop blank service rows and coerce starting_price to number/null so the
+        // shape matches what BusinessProfile's Services tab expects.
+        ? (formData.services || [])
+            .filter((s) => (s.name || '').trim())
+            .map((s) => ({
+              ...s,
+              name: (s.name || '').trim(),
+              description: (s.description || '').trim(),
+              starting_price: s.starting_price ? parseFloat(s.starting_price) : null,
+            }))
+        : formData[key] || [];
       const a = JSON.stringify(initial[key] || []);
-      const b = JSON.stringify(formData[key] || []);
-      if (a !== b) changedFields[key] = formData[key];
+      const b = JSON.stringify(cleaned);
+      if (a !== b) changedFields[key] = cleaned;
     });
     (Object.keys(formData) || []).forEach((key) => {
-      if (['product_tags', 'payment_methods'].includes(key)) return; // handled above
+      if (ARRAY_FIELDS.includes(key)) return; // handled above
       const a = initial[key];
       const b = formData[key];
       const va = a == null ? '' : String(a).trim();
@@ -304,8 +450,34 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
 
   if (!business || !formData) return null;
 
+  const isOwner = business?.owner_user_id === currentUserId;
+  const showProfileNudge = isOwner && isProfileSparse(business) && !nudgeDismissed;
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
+      {/* Empty-state nudge (Build B) — owner-only, only while the public
+          profile is sparse, session-dismissable. Warm framing, not error. */}
+      {showProfileNudge && (
+        <Card className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <Sprout className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm text-foreground-soft leading-relaxed">
+                Your profile is showing as new right now. Add a bit about your business below and neighbors will find you by what you do, not just by name.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setNudgeDismissed(true)}
+              aria-label="Dismiss nudge"
+              className="text-muted-foreground hover:text-foreground transition-colors p-1"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </Card>
+      )}
+
       {/* Section Header */}
       <div>
         <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -365,6 +537,20 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                   className={INPUT_CLASS}
                   placeholder="Your business name"
                 />
+              </div>
+              <div>
+                <Label htmlFor="business-tagline" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
+                  Tagline
+                </Label>
+                <Input
+                  id="business-tagline"
+                  value={formData.tagline}
+                  onChange={(e) => handleChange('tagline', e.target.value)}
+                  className={INPUT_CLASS}
+                  placeholder="A short line people will see on your profile (e.g., Home and Garage Contractors)"
+                  maxLength={120}
+                />
+                <p className="text-xs text-muted-foreground/70 mt-1">Shown under your business name on your public profile.</p>
               </div>
               <div>
                 <Label htmlFor="business-description" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
@@ -552,15 +738,19 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
               </div>
             </div>
 
-            {/* Archetype-specific: Your Services (service_provider) */}
+            {/* Service Area (service_provider archetype only). The legacy
+                services_offered textarea was removed in Build B (2026-04-24):
+                new writes go to services[] via the Services section below.
+                Legacy services_offered data still renders on the public
+                profile as a display fallback. */}
             {resolvedArchetype === 'service_provider' && (
               <div className="space-y-4">
                 <div className="border-b border-border pb-2">
-                  <h4 className="text-xs text-muted-foreground uppercase tracking-wider">Your Services</h4>
+                  <h4 className="text-xs text-muted-foreground uppercase tracking-wider">Service Area</h4>
                 </div>
                 <div>
                   <Label htmlFor="business-service-area" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
-                    Service Area
+                    Where do you serve?
                   </Label>
                   <Input
                     id="business-service-area"
@@ -570,21 +760,76 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                     placeholder="e.g., Eugene/Springfield area"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="business-services-offered" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
-                    What services do you offer?
-                  </Label>
-                  <Textarea
-                    id="business-services-offered"
-                    value={formData.services_offered}
-                    onChange={(e) => handleChange('services_offered', e.target.value)}
-                    rows={3}
-                    className={INPUT_CLASS}
-                    placeholder="Describe the services you provide"
-                  />
-                </div>
               </div>
             )}
+
+            {/* Services (Build B) — universal structured editor. Writes to
+                services[] array of {name, description, starting_price}. Only
+                rows with a non-empty name are persisted (handleSave cleanup). */}
+            <div className="space-y-4">
+              <div className="border-b border-border pb-2">
+                <h4 className="text-xs text-muted-foreground uppercase tracking-wider">Services</h4>
+              </div>
+              <p className="text-xs text-muted-foreground/70 -mt-2">
+                Each service becomes a row on your public profile. Starting price is optional.
+              </p>
+              {(formData.services || []).map((service, idx) => (
+                <div key={idx} className="bg-background/50 border border-border rounded-lg p-3 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 space-y-2">
+                      <Input
+                        value={service.name || ''}
+                        onChange={(e) => updateService(idx, 'name', e.target.value)}
+                        className={INPUT_CLASS}
+                        placeholder="Service name (e.g., Garage build-out)"
+                      />
+                      <Textarea
+                        value={service.description || ''}
+                        onChange={(e) => updateService(idx, 'description', e.target.value)}
+                        rows={2}
+                        className={INPUT_CLASS}
+                        placeholder="What's included (optional)"
+                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">From $</span>
+                        <Input
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          value={service.starting_price ?? ''}
+                          onChange={(e) => updateService(idx, 'starting_price', e.target.value)}
+                          className={`${INPUT_CLASS} max-w-[140px]`}
+                          placeholder="Optional"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeService(idx)}
+                      aria-label={`Remove service ${idx + 1}`}
+                      className="text-muted-foreground hover:text-red-400 transition-colors p-1"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addService}
+                className="border-border text-foreground-soft hover:border-primary hover:text-primary hover:bg-transparent"
+              >
+                <Plus className="h-3.5 w-3.5 mr-1.5" />
+                Add a service
+              </Button>
+              {(business?.services_offered || '').trim() && (formData.services || []).length === 0 && (
+                <div className="text-xs text-muted-foreground/70 bg-secondary/50 border border-border rounded-lg p-3 leading-relaxed">
+                  <span className="text-foreground-soft">Legacy note:</span> your previous free-text services block still shows on the profile — once you add services above, the structured list takes over.
+                </div>
+              )}
+            </div>
 
             {/* Archetype-specific: Your Shop (product_seller / micro_business) */}
             {(resolvedArchetype === 'product_seller' || resolvedArchetype === 'micro_business') && (
@@ -1036,6 +1281,94 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
           </Card>
         );
       })()}
+
+      {/* Photos gallery (Build B) — standalone card; upload flow is async, no
+          edit mode required. Owner-only. */}
+      {isOwner && (
+        <Card className="bg-card border-border rounded-xl p-5">
+          <div className="flex items-start justify-between gap-4 mb-3">
+            <div>
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-primary" />
+                Photos
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                These appear in the Photos tab on your public profile. The first photo also fills the hero banner if you haven't uploaded a separate banner.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {(business?.photos || []).map((photo, idx) => (
+              <div key={idx} className="relative group">
+                <img
+                  src={photo}
+                  alt={`${business.name || 'Business'} photo ${idx + 1}`}
+                  className="h-24 w-24 rounded-lg object-cover border-2 border-border"
+                />
+                <button
+                  type="button"
+                  onClick={() => handlePhotoRemove(idx)}
+                  disabled={photosMutation.isPending}
+                  aria-label={`Remove photo ${idx + 1}`}
+                  className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+            <label className="h-24 w-24 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/10 transition-all">
+              {uploadingPhotos ? (
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              ) : (
+                <>
+                  <Upload className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground mt-1">Add photo</span>
+                </>
+              )}
+              <input
+                ref={photosInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => handlePhotoUpload(Array.from(e.target.files || []))}
+                className="hidden"
+                disabled={uploadingPhotos || photosMutation.isPending}
+              />
+            </label>
+          </div>
+        </Card>
+      )}
+
+      {/* Accepts Payments (Build B) — two independent toggles. Owner-only. */}
+      {isOwner && (
+        <Card className="bg-card border-border rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+            <Coins className="h-4 w-4 text-primary" />
+            Accepts Payments
+          </h3>
+          <p className="text-xs text-muted-foreground mb-4">
+            Badges appear on your directory tile and profile so neighbors know how they can pay.
+          </p>
+          <div className="space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <Switch
+                checked={business?.accepts_joy_coins === true}
+                disabled={acceptsMutation.isPending}
+                onCheckedChange={(checked) => acceptsMutation.mutate({ field: 'accepts_joy_coins', value: checked })}
+              />
+              <span className="text-sm text-foreground">Accepts Joy Coins</span>
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <Switch
+                checked={business?.accepts_silver === true}
+                disabled={acceptsMutation.isPending}
+                onCheckedChange={(checked) => acceptsMutation.mutate({ field: 'accepts_silver', value: checked })}
+              />
+              <span className="text-sm text-foreground">Accepts Silver</span>
+            </label>
+          </div>
+        </Card>
+      )}
 
       {/* Subscription Status */}
       <Card className="bg-card border-border rounded-xl p-5">
