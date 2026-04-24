@@ -822,12 +822,13 @@ export default function MyLaneSurface({
         .mylane-panel-fixed { display: none; }
         .mylane-reopen-tab { display: none; }
 
-        /* Desktop (container >= 1024px): hide bar, show fixed panel */
+        /* Desktop (container >= 1024px): hide bar, show fixed panel. Panel
+           overlays on top; content-area stays full-width so the cockpit centers
+           to the viewport (was shifted left 150px by a prior margin-right). */
         @container (min-width: 1024px) {
           .mylane-bar-mobile { display: none !important; }
           .mylane-panel-fixed { display: flex; }
           .mylane-panel-fixed.panel-closed { display: none; }
-          .mylane-content-area.panel-open { margin-right: 300px; }
           .mylane-reopen-tab { display: flex; }
           .mylane-reopen-tab.panel-open { display: none; }
         }
