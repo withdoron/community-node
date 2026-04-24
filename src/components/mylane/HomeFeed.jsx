@@ -161,7 +161,7 @@ function buildSpacesItems(profiles, spaceItems) {
       subtitle: 'Review pending',
       barColor: 'ac',
       spaceIndex: findSpaceIndex(spaceItems, 'field-service'),
-      spaceName: 'Jobsite',
+      spaceName: 'Desk',
     });
   }
 

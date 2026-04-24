@@ -49,7 +49,7 @@ const NetworkPageComponent = lazy(() => import('@/pages/NetworkPage'));
 const SPACE_CONFIG = {
   home:              { id: 'home',           label: 'Home',      icon: Home },
   'meal-prep':       { id: 'meal-prep',      label: 'Kitchen',   icon: UtensilsCrossed },
-  'field-service':   { id: 'field-service',  label: 'Jobsite',   icon: HardHat },
+  'field-service':   { id: 'field-service',  label: 'Desk',      icon: HardHat },
   finance:           { id: 'finance',        label: 'Finances',  icon: DollarSign },
   team:              { id: 'team',           label: 'Team',      icon: Users },
   business:          { id: 'business',       label: 'Business',  icon: Store, dim: true },
@@ -666,7 +666,7 @@ export default function MyLaneSurface({
 
   // Space label map for welcome card
   const WELCOME_LABELS = {
-    'team': 'team', 'field-service': 'jobsite', 'property-pulse': 'property',
+    'team': 'team', 'field-service': 'desk', 'property-pulse': 'property',
     'finance': 'finances', 'meal-prep': 'kitchen', 'business': 'business',
   };
 
