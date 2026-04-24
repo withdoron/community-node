@@ -253,24 +253,8 @@ export default function MyLane() {
 
   const mealPrepProfiles = mealPrepFromServer.length > 0 ? mealPrepFromServer : mealPrepDirect;
 
-  // Business profiles — fetch owned businesses for spinner
-  const { data: businessProfiles = [] } = useQuery({
-    queryKey: ['mylane-businesses', currentUser?.id],
-    queryFn: async () => {
-      if (!currentUser?.id) return [];
-      try {
-        const owned = await base44.entities.Business.filter(
-          { owner_user_id: currentUser.id },
-          '-created_date',
-          100
-        );
-        return (Array.isArray(owned) ? owned : owned ? [owned] : []).filter(
-          (b) => !b.is_deleted && b.status !== 'deleted'
-        );
-      } catch { return []; }
-    },
-    enabled: !!currentUser?.id,
-  });
+  // Business scope lives in useActiveBusiness (DEC-168) — MyLaneSurface reads
+  // ownedBusinesses + activeBusiness directly from the hook. No prop-drilling.
 
   // Field Service profiles (joined as worker/sub) — client-only (localStorage)
   const { data: joinedFSProfiles = [] } = useQuery({
@@ -371,7 +355,6 @@ export default function MyLane() {
         allTeams={allTeams}
         propertyMgmtProfiles={propertyMgmtProfiles}
         mealPrepProfiles={mealPrepProfiles}
-        businessProfiles={businessProfiles}
         agentMessageRef={agentMessageRef}
         onDoorOpen={handleDoorOpen}
         warmEntryWizardPage={warmEntry?.wizardPage ?? null}

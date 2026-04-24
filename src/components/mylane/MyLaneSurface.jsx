@@ -26,6 +26,7 @@ import DiscoverPosition from './DiscoverPosition';
 import { parseRenderInstruction } from './parseRenderInstruction';
 import { renderEntityView } from './renderEntityView';
 import { useFrequency } from '@/contexts/FrequencyContext';
+import { useActiveBusiness } from '@/hooks/useActiveBusiness';
 import CommandBar from './CommandBar';
 import useBottomInset, { HEADER_HEIGHT, MINI_PLAYER_HEIGHT, COMMAND_BAR_HEIGHT } from '@/hooks/useBottomInset';
 
@@ -56,18 +57,29 @@ const SPACE_CONFIG = {
   'dev-lab':         { id: 'dev-lab',        label: 'Dev Lab',   icon: FlaskConical, dim: true },
 };
 
-function buildSpinnerItems(profiles, businessProfiles = [], userRole = null) {
+function buildSpinnerItems(profiles, ownedBusinesses = [], userRole = null) {
   const items = [SPACE_CONFIG.home];
   if (profiles.mealPrepProfiles?.length > 0) items.push(SPACE_CONFIG['meal-prep']);
   if (profiles.fieldServiceProfiles?.length > 0) items.push(SPACE_CONFIG['field-service']);
   if (profiles.financeProfiles?.length > 0) items.push(SPACE_CONFIG.finance);
   if (profiles.allTeams?.length > 0) items.push(SPACE_CONFIG.team);
-  if (businessProfiles.length > 0) items.push({ ...SPACE_CONFIG.business, dim: false });
+  if (ownedBusinesses.length > 0) items.push({ ...SPACE_CONFIG.business, dim: false });
   if (profiles.propertyMgmtProfiles?.length > 0) items.push({ id: 'property-pulse', label: 'Property', icon: Building2 });
   items.push(SPACE_CONFIG.discover);
   // Admin-only: Dev Lab
   if (userRole === 'admin') items.push(SPACE_CONFIG['dev-lab']);
   return items;
+}
+
+// Space the business-switcher tiles use while in switcher mode. Reuses the
+// Store glyph so the cockpit vocabulary stays consistent; businesses ride
+// the same SpaceSpinner that spaces do.
+function buildBusinessSwitcherItems(ownedBusinesses) {
+  return ownedBusinesses.map((b) => ({
+    id: b.id,
+    label: b.name || b.business_name || 'Business',
+    icon: Store,
+  }));
 }
 
 // ─── Overlay system ────────────────────────────────────────────────
@@ -116,6 +128,24 @@ function OverlayContainer({ isOpen, keepMounted = false, onClose, bottomInset = 
           transition: 'bottom 0.2s ease-out',
         }}
       >
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close overlay"
+            className="flex items-center justify-center"
+            style={{
+              position: 'absolute', top: 8, right: 8, zIndex: 1,
+              width: 36, height: 36, borderRadius: '50%',
+              background: 'var(--ll-bg-elevated, rgba(255,255,255,0.04))',
+              border: '1px solid var(--ll-border)',
+              color: 'var(--ll-text-dim)',
+              cursor: 'pointer', padding: 0,
+            }}
+          >
+            <X style={{ width: 16, height: 16 }} strokeWidth={1.75} />
+          </button>
+        )}
         {children}
       </div>
     </>
@@ -428,13 +458,15 @@ export default function MyLaneSurface({
   allTeams = [],
   propertyMgmtProfiles = [],
   mealPrepProfiles = [],
-  businessProfiles = [],
   agentMessageRef,
   onDoorOpen = null,
   warmEntryWizardPage = null,
 }) {
   const navigate = useNavigate();
   const profiles = { financeProfiles, fieldServiceProfiles, allTeams, propertyMgmtProfiles, mealPrepProfiles };
+  // Business scope — one source of truth. DEC-168 (cockpit-native switcher)
+  // and Living Feet (DEC-146) both depend on no consumer re-deriving this.
+  const { ownedBusinesses, activeBusiness, setActiveBusiness, isMultiBusiness } = useActiveBusiness(currentUser);
   const freq = useFrequency();
   const frequencyPlaying = freq?.isEnabled || false;
   const frequencyIsPlaying = freq?.isPlaying || false; // actual audio playing
@@ -493,19 +525,20 @@ export default function MyLaneSurface({
     return () => window.removeEventListener('mylane-user-message', handler);
   }, [trackMessage]);
 
-  // Close overlay on Escape — unwind stack: Network/Recommend → BusinessProfile → base overlay
+  // Close overlay on Escape — unwind stack: Network/Recommend → BusinessProfile → base overlay → switcher
   useEffect(() => {
     const handler = (e) => {
       if (e.key === 'Escape') {
         if (overlayNetworkSlug) { setOverlayNetworkSlug(null); return; }
         if (overlayRecommend) { setOverlayRecommend(null); return; }
         if (overlayBusinessId) { setOverlayBusinessId(null); return; }
-        if (activeOverlay) setActiveOverlay(null);
+        if (activeOverlay) { setActiveOverlay(null); return; }
+        if (switcherMode) { setSwitcherMode(false); }
       }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [activeOverlay, overlayBusinessId, overlayRecommend, overlayNetworkSlug]);
+  }, [activeOverlay, overlayBusinessId, overlayRecommend, overlayNetworkSlug, switcherMode]);
 
   // FrequencyMiniPlayer tap → open frequency overlay inside the shell
   useEffect(() => {
@@ -516,9 +549,53 @@ export default function MyLaneSurface({
 
   // Build spinner items
   const spaceItems = useMemo(
-    () => buildSpinnerItems(profiles, businessProfiles, currentUser?.role),
-    [profiles, businessProfiles, currentUser?.role]
+    () => buildSpinnerItems(profiles, ownedBusinesses, currentUser?.role),
+    [profiles, ownedBusinesses, currentUser?.role]
   );
+
+  // ─── Business-switcher mode (DEC-168) ──────────────────────────────
+  // Cockpit-native: Spinner dissolves its space tiles and reforms with
+  // ownedBusinesses. Only wakes when isMultiBusiness is true — single-
+  // business users never see the affordance (Dark Until Explored, DEC-117).
+  const [switcherMode, setSwitcherMode] = useState(false);
+  const [switcherFocusIdx, setSwitcherFocusIdx] = useState(0);
+
+  const businessItems = useMemo(
+    () => buildBusinessSwitcherItems(ownedBusinesses),
+    [ownedBusinesses]
+  );
+
+  // When entering switcher mode, focus the currently active business so the
+  // three visible tiles are prev/current/next around the user's real context.
+  const enterSwitcher = useCallback(() => {
+    if (!isMultiBusiness) return;
+    const idx = activeBusiness
+      ? ownedBusinesses.findIndex((b) => b.id === activeBusiness.id)
+      : 0;
+    setSwitcherFocusIdx(Math.max(0, idx));
+    setSwitcherMode(true);
+  }, [isMultiBusiness, activeBusiness, ownedBusinesses]);
+
+  const exitSwitcher = useCallback(() => setSwitcherMode(false), []);
+
+  // SpaceSpinner's onSelect fires on tile taps. For the business switcher:
+  //   - tapping the centered tile commits the business
+  //   - tapping a neighbor rotates the focus (does not commit)
+  const handleSwitcherSelect = useCallback((idx) => {
+    if (idx === switcherFocusIdx) {
+      // Commit: write active business, exit switcher, snap to Home. Spinner
+      // reforms with the new business's spaces; space-mode content re-renders
+      // because every consumer reads through useActiveBusiness (Living Feet).
+      const target = ownedBusinesses[idx];
+      if (target) setActiveBusiness(target.id);
+      setSwitcherMode(false);
+      setSpinnerIndex(0); // Home = index 0 of spaceItems
+      setDrilledTab('home');
+      setRenderedData(null);
+    } else {
+      setSwitcherFocusIdx(idx);
+    }
+  }, [switcherFocusIdx, ownedBusinesses, setActiveBusiness]);
 
   const currentSpace = spaceItems[spinnerIndex] || spaceItems[0];
 
@@ -681,7 +758,6 @@ export default function MyLaneSurface({
           allTeams={allTeams}
           propertyMgmtProfiles={propertyMgmtProfiles}
           mealPrepProfiles={mealPrepProfiles}
-          businessProfiles={businessProfiles}
         />
       </WorkspaceErrorBoundary>
     );
@@ -754,61 +830,92 @@ export default function MyLaneSurface({
         className="flex justify-between items-center relative z-50"
         style={{ padding: '10px 24px', borderBottom: '1px solid var(--ll-border)', background: 'var(--ll-bg-base)' }}
       >
-        <div
-          className="cursor-pointer select-none active:opacity-60"
-          onClick={handleLogoClick}
-          style={{ fontSize: 15, fontWeight: 500, color: 'var(--ll-text-primary)' }}
-        >
-          <span style={{ color: 'var(--ll-accent)', fontWeight: 700 }}>Local</span> Lane
-        </div>
+        {switcherMode ? (
+          <button
+            type="button"
+            onClick={exitSwitcher}
+            className="cursor-pointer select-none active:opacity-60"
+            style={{
+              background: 'none', border: 'none', padding: 0,
+              fontSize: 13, color: 'var(--ll-text-dim)', fontWeight: 400,
+            }}
+          >
+            ‹ back
+          </button>
+        ) : (
+          <div
+            className="cursor-pointer select-none active:opacity-60"
+            onClick={handleLogoClick}
+            style={{ fontSize: 15, fontWeight: 500, color: 'var(--ll-text-primary)' }}
+          >
+            <span style={{ color: 'var(--ll-accent)', fontWeight: 700 }}>Local</span> Lane
+          </div>
+        )}
+        {switcherMode && (
+          <div
+            className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+            style={{
+              fontSize: 11, fontStyle: 'italic', color: 'var(--ll-text-ghost)',
+              letterSpacing: '0.3px',
+            }}
+          >
+            operating as
+          </div>
+        )}
         <div className="flex items-center" style={{ gap: 4 }}>
-          {/* Music icon — 44px tap zone */}
-          <div
-            className="cursor-pointer relative flex items-center justify-center"
-            style={{ minWidth: 44, minHeight: 44 }}
-            onClick={() => toggleOverlay(OV.FREQ)}
-          >
-            <Music
-              style={{ width: 14, height: 14, transition: 'color 0.2s' }}
-              strokeWidth={1.5}
-              color={activeOverlay === OV.FREQ ? 'var(--ll-accent)' : 'var(--ll-text-dim)'}
-            />
-            {frequencyPlaying && (
-              <div style={{
-                position: 'absolute', width: 6, height: 6, borderRadius: '50%',
-                background: 'var(--ll-accent)', top: 6, right: 6,
-                animation: 'fpulse 2s infinite',
-              }} />
-            )}
-          </div>
+          {/* Music / Directory / Events collapse while switching business —
+              header shows back + "operating as" + avatar only (DEC-168). */}
+          {!switcherMode && (
+            <>
+              {/* Music icon — 44px tap zone */}
+              <div
+                className="cursor-pointer relative flex items-center justify-center"
+                style={{ minWidth: 44, minHeight: 44 }}
+                onClick={() => toggleOverlay(OV.FREQ)}
+              >
+                <Music
+                  style={{ width: 14, height: 14, transition: 'color 0.2s' }}
+                  strokeWidth={1.5}
+                  color={activeOverlay === OV.FREQ ? 'var(--ll-accent)' : 'var(--ll-text-dim)'}
+                />
+                {frequencyPlaying && (
+                  <div style={{
+                    position: 'absolute', width: 6, height: 6, borderRadius: '50%',
+                    background: 'var(--ll-accent)', top: 6, right: 6,
+                    animation: 'fpulse 2s infinite',
+                  }} />
+                )}
+              </div>
 
-          {/* Directory — 44px tap zone */}
-          <div
-            className="cursor-pointer flex items-center justify-center"
-            style={{ minWidth: 44, minHeight: 44 }}
-            onClick={() => toggleOverlay(OV.DIR)}
-          >
-            <span style={{
-              fontSize: 12, transition: 'color 0.2s',
-              color: activeOverlay === OV.DIR ? 'var(--ll-accent)' : 'var(--ll-text-dim)',
-            }}>
-              Directory
-            </span>
-          </div>
+              {/* Directory — 44px tap zone */}
+              <div
+                className="cursor-pointer flex items-center justify-center"
+                style={{ minWidth: 44, minHeight: 44 }}
+                onClick={() => toggleOverlay(OV.DIR)}
+              >
+                <span style={{
+                  fontSize: 12, transition: 'color 0.2s',
+                  color: activeOverlay === OV.DIR ? 'var(--ll-accent)' : 'var(--ll-text-dim)',
+                }}>
+                  Directory
+                </span>
+              </div>
 
-          {/* Events — 44px tap zone */}
-          <div
-            className="cursor-pointer flex items-center justify-center"
-            style={{ minWidth: 44, minHeight: 44 }}
-            onClick={() => toggleOverlay(OV.EVT)}
-          >
-            <span style={{
-              fontSize: 12, transition: 'color 0.2s',
-              color: activeOverlay === OV.EVT ? 'var(--ll-accent)' : 'var(--ll-text-dim)',
-            }}>
-              Events
-            </span>
-          </div>
+              {/* Events — 44px tap zone */}
+              <div
+                className="cursor-pointer flex items-center justify-center"
+                style={{ minWidth: 44, minHeight: 44 }}
+                onClick={() => toggleOverlay(OV.EVT)}
+              >
+                <span style={{
+                  fontSize: 12, transition: 'color 0.2s',
+                  color: activeOverlay === OV.EVT ? 'var(--ll-accent)' : 'var(--ll-text-dim)',
+                }}>
+                  Events
+                </span>
+              </div>
+            </>
+          )}
 
           {/* Avatar — 44px tap zone, 36px visual circle */}
           <div
@@ -1018,12 +1125,54 @@ export default function MyLaneSurface({
           className={`mylane-content-area${agentEnabled && panelOpen ? ' panel-open' : ''}`}
           style={{ position: 'absolute', inset: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}
         >
-          {/* Horizontal Space Spinner — ALWAYS VISIBLE, centers on content width */}
-          <SpaceSpinner
-            items={spaceItems}
-            currentIndex={spinnerIndex}
-            onSelect={handleSpinnerSelect}
-          />
+          {/* Horizontal Space Spinner — ALWAYS VISIBLE, centers on content width.
+              In switcher mode (DEC-168), the same spinner re-skins with the
+              user's owned businesses; the cockpit's visual language carries
+              forward — only the tile contents change. */}
+          {switcherMode ? (
+            <SpaceSpinner
+              items={businessItems}
+              currentIndex={switcherFocusIdx}
+              onSelect={handleSwitcherSelect}
+            />
+          ) : (
+            <SpaceSpinner
+              items={spaceItems}
+              currentIndex={spinnerIndex}
+              onSelect={handleSpinnerSelect}
+            />
+          )}
+
+          {/* Space-name pill — sits below the spinner. In space mode, it names
+              the active space and (when the user owns 2+ businesses) carries
+              a swap glyph that enters business-switcher mode. Single-business
+              users see the same pill without interactivity — the affordance
+              is dark until there's something to switch between (DEC-117). */}
+          {!switcherMode && (
+            <div className="flex justify-center" style={{ marginTop: 4, marginBottom: 4 }}>
+              <button
+                type="button"
+                onClick={isMultiBusiness ? enterSwitcher : undefined}
+                disabled={!isMultiBusiness}
+                aria-label={isMultiBusiness ? `Switch business (currently ${activeBusiness?.name || 'active business'})` : currentSpace.label}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '3px 10px', borderRadius: 999,
+                  background: isMultiBusiness ? 'var(--ll-bg-elevated, rgba(255,255,255,0.03))' : 'transparent',
+                  border: `1px solid ${isMultiBusiness ? 'var(--ll-border)' : 'transparent'}`,
+                  fontSize: 10, letterSpacing: '0.3px',
+                  color: 'var(--ll-text-ghost)',
+                  cursor: isMultiBusiness ? 'pointer' : 'default',
+                  transition: 'background 0.15s, border-color 0.15s',
+                }}
+              >
+                <span>{currentSpace.label.toLowerCase()}</span>
+                {isMultiBusiness && (
+                  <span aria-hidden="true" style={{ fontSize: 11, color: 'var(--ll-text-dim)' }}>⇄</span>
+                )}
+              </button>
+            </div>
+          )}
 
           {/* Admin: physics tuner toggle + panel — sits between spinner and content */}
           {currentUser?.role === 'admin' && (
@@ -1118,7 +1267,21 @@ export default function MyLaneSurface({
                 </div>
               )}
 
-              {renderContent()}
+              {switcherMode ? (
+                <div
+                  className="flex items-center justify-center"
+                  style={{ padding: '48px 16px', textAlign: 'center' }}
+                >
+                  <div
+                    style={{
+                      fontSize: 11, color: 'var(--ll-text-ghost)',
+                      letterSpacing: '0.3px', lineHeight: 1.6, maxWidth: 320,
+                    }}
+                  >
+                    Tap the center business to switch into it. Neighbors rotate the dial without committing.
+                  </div>
+                </div>
+              ) : renderContent()}
             </div>
           </div>
 

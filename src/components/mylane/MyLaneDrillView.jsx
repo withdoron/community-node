@@ -9,6 +9,7 @@ import { fetchTeamData } from '@/hooks/useTeamEntity';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { WORKSPACE_TYPES, getBusinessTabs } from '@/config/workspaceTypes';
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
+import { useActiveBusiness } from '@/hooks/useActiveBusiness';
 import { toast } from 'sonner';
 
 // Map drill workspace names to WORKSPACE_TYPES keys
@@ -29,7 +30,6 @@ export default function MyLaneDrillView({
   allTeams = [],
   propertyMgmtProfiles = [],
   mealPrepProfiles = [],
-  businessProfiles = [],
 }) {
   const [activeTab, setActiveTab] = useState(drilledView.tab || 'home');
   // Sync tab when parent changes drilledView.tab (e.g., TYPE 1 RENDER with view param)
@@ -43,6 +43,11 @@ export default function MyLaneDrillView({
   const wsKey = WORKSPACE_KEY_MAP[drilledView.workspace];
   const wsConfig = wsKey ? WORKSPACE_TYPES[wsKey] : null;
 
+  // Business profile comes from useActiveBusiness — the cockpit-native switcher
+  // (Spinner) commits which business is active; every consumer reads the same
+  // source (DEC-168 + Living Feet DEC-146). Never re-derive from an owned list.
+  const { activeBusiness } = useActiveBusiness(currentUser);
+
   // Get the profile for this workspace
   const profile =
     drilledView.workspace === 'field-service' ? fieldServiceProfiles?.[0] :
@@ -50,7 +55,7 @@ export default function MyLaneDrillView({
     drilledView.workspace === 'team' ? allTeams?.[0] :
     drilledView.workspace === 'property-pulse' ? propertyMgmtProfiles?.[0] :
     drilledView.workspace === 'meal-prep' ? mealPrepProfiles?.[0] :
-    drilledView.workspace === 'business' ? businessProfiles?.[0] :
+    drilledView.workspace === 'business' ? activeBusiness :
     null;
 
   // Fetch team members when drilling into team workspace
