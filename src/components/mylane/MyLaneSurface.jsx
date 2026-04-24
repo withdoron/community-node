@@ -584,36 +584,23 @@ export default function MyLaneSurface({
   const exitSwitcher = useCallback(() => setSwitcherMode(false), []);
 
   // SpaceSpinner's onSelect fires on tile taps. For the business switcher:
-  //   - tapping the centered tile commits the business
+  //   - tapping the centered tile commits the business (via onCenterTap,
+  //     which SpaceSpinner routes through handlePointerUp; a direct onSelect
+  //     call with the centered index also commits for keyboard/programmatic
+  //     callers)
   //   - tapping a neighbor rotates the focus (does not commit)
   const handleSwitcherSelect = useCallback((idx) => {
-    // [DEC-168 DIAG] Log entry to see whether commit path is even invoked.
-    console.log('[DEC-168] handleSwitcherSelect entered', {
-      idx,
-      switcherFocusIdx,
-      ownedBusinessesCount: ownedBusinesses.length,
-      targetId: ownedBusinesses[idx]?.id,
-      targetName: ownedBusinesses[idx]?.name,
-      willCommit: idx === switcherFocusIdx,
-    });
     if (idx === switcherFocusIdx) {
       // Commit: write active business, exit switcher, snap to Home. Spinner
       // reforms with the new business's spaces; space-mode content re-renders
       // because every consumer reads through useActiveBusiness (Living Feet).
-      console.log('[DEC-168] handleSwitcherSelect — COMMIT branch');
       const target = ownedBusinesses[idx];
-      if (target) {
-        console.log('[DEC-168] calling setActiveBusiness', { id: target.id });
-        setActiveBusiness(target.id);
-      } else {
-        console.log('[DEC-168] commit branch hit but target was falsy', { idx });
-      }
+      if (target) setActiveBusiness(target.id);
       setSwitcherMode(false);
       setSpinnerIndex(0); // Home = index 0 of spaceItems
       setDrilledTab('home');
       setRenderedData(null);
     } else {
-      console.log('[DEC-168] handleSwitcherSelect — ROTATE branch');
       setSwitcherFocusIdx(idx);
     }
   }, [switcherFocusIdx, ownedBusinesses, setActiveBusiness]);
@@ -874,13 +861,15 @@ export default function MyLaneSurface({
         )}
         {switcherMode && (
           <div
-            className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+            className="absolute left-1/2 -translate-x-1/2 pointer-events-none whitespace-nowrap"
             style={{
               fontSize: 11, fontStyle: 'italic', color: 'var(--ll-text-ghost)',
               letterSpacing: '0.3px',
             }}
           >
-            operating as
+            {activeBusiness?.name
+              ? <>operating as <span style={{ color: 'var(--ll-text-dim)' }}>{activeBusiness.name}</span></>
+              : 'select a business'}
           </div>
         )}
         <div className="flex items-center" style={{ gap: 4 }}>
@@ -1155,6 +1144,7 @@ export default function MyLaneSurface({
               items={businessItems}
               currentIndex={switcherFocusIdx}
               onSelect={handleSwitcherSelect}
+              onCenterTap={() => handleSwitcherSelect(switcherFocusIdx)}
             />
           ) : (
             <SpaceSpinner

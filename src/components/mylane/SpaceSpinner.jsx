@@ -16,6 +16,10 @@
  *   items        — [{id, label, icon: LucideIcon, dim?: boolean}]
  *   currentIndex — active position
  *   onSelect(index) — callback when user taps or swipes to a position
+ *   onCenterTap() — optional. Fires when the user taps the already-centered
+ *                   tile (or releases a tap there). Space mode omits this —
+ *                   tapping the active tile is a no-op. Switcher mode passes
+ *                   it to commit the centered business (DEC-168).
  *   variant      — override variant ('drum' | 'coverFlow' | 'flat')
  */
 import React, { useRef, useCallback, useEffect, useState } from 'react';
@@ -660,7 +664,7 @@ function resolveVariant({ cockpit, theme, reducedMotion, variantProp }) {
 }
 
 // ─── Core SpaceSpinner ──────────────────────────────────────────────────────
-export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, variant: variantProp }) {
+export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, onCenterTap, variant: variantProp }) {
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
@@ -748,6 +752,12 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
       if (dragSnapIndex !== currentIndex) {
         playTick(true);
         handleSelect(dragSnapIndex);
+      } else if (onCenterTap) {
+        // Tap on the already-centered tile. In space mode no handler is
+        // passed and this is a no-op (preserves today's behavior). Switcher
+        // mode passes onCenterTap so center taps commit (DEC-168).
+        playTick(true);
+        onCenterTap();
       }
       return;
     }
@@ -798,26 +808,20 @@ export default function SpaceSpinner({ items = [], currentIndex = 0, onSelect, v
   }, [currentIndex, items.length, handleSelect]);
 
   // ─── Click handler ───
+  // Belt-and-suspenders: handlePointerUp is the primary tap path (pointer
+  // capture on the container routes pointerup there). onItemClick also
+  // fires on some browsers/event paths; branch the same way so behavior is
+  // identical whichever path wins.
   const onItemClick = useCallback((i) => {
-    // [DEC-168 DIAG] Log every tile tap to see if center taps reach here.
-    console.log('[DEC-168] SpaceSpinner.onItemClick fired', {
-      tappedIndex: i,
-      currentIndex,
-      isCenter: i === currentIndex,
-      dragOffset: dragRef.current.currentOffset,
-      willCallHandleSelect: Math.abs(dragRef.current.currentOffset) < 5 && i !== currentIndex,
-    });
-    if (Math.abs(dragRef.current.currentOffset) < 5) {
-      if (i !== currentIndex) {
-        playTick(true);
-        handleSelect(i);
-      } else {
-        console.log('[DEC-168] SpaceSpinner.onItemClick — SWALLOWED (center tap, i === currentIndex)');
-      }
-    } else {
-      console.log('[DEC-168] SpaceSpinner.onItemClick — SWALLOWED (drag offset too large)');
+    if (Math.abs(dragRef.current.currentOffset) >= 5) return;
+    if (i !== currentIndex) {
+      playTick(true);
+      handleSelect(i);
+    } else if (onCenterTap) {
+      playTick(true);
+      onCenterTap();
     }
-  }, [currentIndex, handleSelect]);
+  }, [currentIndex, handleSelect, onCenterTap]);
 
   // Clean up on unmount
   useEffect(() => () => frictionCancelRef.current?.(), []);
