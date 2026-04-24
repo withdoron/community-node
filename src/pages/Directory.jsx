@@ -5,6 +5,7 @@ import { useCategories } from '@/hooks/useCategories';
 import BusinessCard from '@/components/business/BusinessCard';
 import { rankBusinesses } from '@/components/business/rankingUtils';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
+import { filterListedBusinesses } from '@/utils/directoryVisibility';
 import {
   Select,
   SelectContent,
@@ -67,12 +68,15 @@ export default function Directory({ onBusinessClick, onNetworkClick } = {}) {
     };
   }, [savedSettings]);
 
-  // Fetch businesses filtered by region
+  // Fetch businesses — filtered by listing visibility (Section 13.1) then by region.
+  // Base44 .filter() can only do equality, so listing-visibility filtering is
+  // client-side via the shared helper (see src/utils/directoryVisibility.js).
   const { data: businesses = [], isLoading } = useQuery({
     queryKey: ['directory-businesses', region?.id],
     queryFn: async () => {
       const list = await base44.entities.Business.filter({ is_active: true }, '-created_date', 200);
-      return filterBusinessesByRegion(list, region);
+      const listed = filterListedBusinesses(list);
+      return filterBusinessesByRegion(listed, region);
     },
     enabled: !!region
   });

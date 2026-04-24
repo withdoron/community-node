@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
+import { filterListedBusinesses } from '@/utils/directoryVisibility';
 import { ChevronDown } from 'lucide-react';
 
 // ─── CSS Animations (injected once) ─────────────────────────────────
@@ -177,7 +178,7 @@ export default function Home() {
     staleTime: 10 * 60 * 1000,
   });
 
-  // Real data: recent businesses
+  // Real data: recent businesses (homepage teaser)
   const { data: recentBusinesses = [] } = useQuery({
     queryKey: ['homepage-recent-businesses', region?.id],
     queryFn: async () => {
@@ -186,7 +187,7 @@ export default function Home() {
         '-created_date',
         10
       );
-      return filterBusinessesByRegion(businesses, region).slice(0, 3);
+      return filterBusinessesByRegion(filterListedBusinesses(businesses), region).slice(0, 3);
     },
     enabled: !!region,
     staleTime: 10 * 60 * 1000,

@@ -222,6 +222,32 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
     },
   });
 
+  // Directory-visibility toggle — writes listed_in_directory immediately, no
+  // separate save step. Every public-directory consumer reads through the
+  // same filter helper (DEC-146 living feet), so the change is visible as
+  // soon as each surface's React Query cache invalidates.
+  const visibilityMutation = useMutation({
+    mutationFn: async (nextValue) => {
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update_profile',
+        business_id: business.id,
+        data: { listed_in_directory: nextValue },
+      });
+    },
+    onSuccess: (_data, nextValue) => {
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['directory-businesses'] });
+      queryClient.invalidateQueries({ queryKey: ['network-businesses'] });
+      queryClient.invalidateQueries({ queryKey: ['homepage-recent-businesses'] });
+      toast.success(nextValue ? 'Business now appears in the directory' : 'Business hidden from the directory');
+    },
+    onError: (err) => {
+      console.error('Directory visibility save error:', err);
+      toast.error('Failed to update directory visibility. Please try again.');
+    },
+  });
+
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -974,6 +1000,42 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
           </div>
         )}
       </Card>
+
+      {/* Directory Visibility — per Section 13.1 of the core architecture.
+          Only business owners can toggle. Writes immediately via the same
+          updateBusiness server function the rest of this page uses. */}
+      {business?.owner_user_id === currentUserId && (() => {
+        const directoryListed = business?.listed_in_directory !== false;
+        return (
+          <Card className="bg-card border-border rounded-xl p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-primary" />
+                  Directory Visibility
+                </h3>
+                <div className="mt-3">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <Switch
+                      checked={directoryListed}
+                      disabled={visibilityMutation.isPending}
+                      onCheckedChange={(checked) => visibilityMutation.mutate(checked)}
+                    />
+                    <span className="text-sm text-foreground">
+                      Appear in the LocalLane directory
+                    </span>
+                  </label>
+                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                    {directoryListed
+                      ? 'Your business is visible to everyone browsing LocalLane. Visitors can find you through search and category browsing.'
+                      : 'Your business is hidden from the public directory. Your tools still work; your business just won\u2019t appear to people browsing.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Card>
+        );
+      })()}
 
       {/* Subscription Status */}
       <Card className="bg-card border-border rounded-xl p-5">

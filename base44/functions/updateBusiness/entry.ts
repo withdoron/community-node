@@ -15,6 +15,7 @@ const PROFILE_ALLOWLIST = [
   'banner_url', // TODO: Add banner_url field to Business entity in Base44 dashboard (type: text/url)
   'video_url',
   'product_tags', 'payment_methods', 'payment_notes', 'latitude', 'longitude', 'geocoded_at',
+  'listed_in_directory',
 ];
 
 const ADMIN_EXTRA_ALLOWLIST = [

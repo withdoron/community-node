@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Store, Calendar, ArrowLeft, X, Search, LayoutGrid, Map as MapIcon, Sprout } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { filterListedBusinesses } from '@/utils/directoryVisibility';
 
 export default function NetworkPage({ slug: slugProp, onBusinessClick, onNetworkClick } = {}) {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ export default function NetworkPage({ slug: slugProp, onBusinessClick, onNetwork
     queryKey: ['network-businesses', slug],
     queryFn: async () => {
       const list = await base44.entities.Business.filter({ is_active: true }, '-created_date', 200);
-      return list.filter((b) => Array.isArray(b.network_ids) && b.network_ids.includes(slug));
+      return filterListedBusinesses(list).filter((b) => Array.isArray(b.network_ids) && b.network_ids.includes(slug));
     },
     enabled: !!slug,
   });
