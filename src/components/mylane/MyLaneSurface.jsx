@@ -496,6 +496,11 @@ export default function MyLaneSurface({
     } catch {}
     return null;
   });
+  // Business-switcher mode (DEC-168). Declared up here with the other state
+  // so the Escape useEffect below can read switcherMode in its deps without
+  // tripping the TDZ — order of useState matters during the first render.
+  const [switcherMode, setSwitcherMode] = useState(false);
+  const [switcherFocusIdx, setSwitcherFocusIdx] = useState(0);
   const drillStartRef = useRef(null);
 
   const {
@@ -557,8 +562,8 @@ export default function MyLaneSurface({
   // Cockpit-native: Spinner dissolves its space tiles and reforms with
   // ownedBusinesses. Only wakes when isMultiBusiness is true — single-
   // business users never see the affordance (Dark Until Explored, DEC-117).
-  const [switcherMode, setSwitcherMode] = useState(false);
-  const [switcherFocusIdx, setSwitcherFocusIdx] = useState(0);
+  // State declarations live with the other useState calls near the top of
+  // the component so earlier hooks can depend on them without TDZ.
 
   const businessItems = useMemo(
     () => buildBusinessSwitcherItems(ownedBusinesses),
