@@ -816,6 +816,17 @@ export default function MyLaneSurface({
           .overlay-panel { width: 720px; }
         }
 
+        /* Workspace + tuner content centers in available width. When the
+           agent panel is open (.mylane-content-area.panel-open), content
+           reverts to left-anchored so the absolute panel overlay (z-index
+           10, right: 0, width: 300px) doesn't cover the right edge at
+           narrower desktop widths (1280-1620px). Centering is a no-op at
+           narrow viewports where --ll-content-max is 100%. Build H. */
+        .mylane-content-frame { margin-left: auto; margin-right: auto; }
+        .mylane-content-area.panel-open .mylane-content-frame {
+          margin-left: 0; margin-right: 0;
+        }
+
         /* ─── Command bar / panel responsive switch ─── */
         /* Mobile default: show bar, hide panel */
         .mylane-bar-mobile { display: block; margin-top: auto; }
@@ -1189,7 +1200,7 @@ export default function MyLaneSurface({
           {/* Admin: physics tuner toggle + panel — sits between spinner and content */}
           {currentUser?.role === 'admin' && (
             <div style={{ padding: '0 var(--ll-content-pad, 24px)' }}>
-              <div style={{ maxWidth: 'var(--ll-content-max, 768px)' }}>
+              <div className="mylane-content-frame" style={{ maxWidth: 'var(--ll-content-max, 768px)' }}>
                 <button
                   type="button"
                   onClick={() => setShowPhysicsTuner((v) => !v)}
@@ -1221,7 +1232,7 @@ export default function MyLaneSurface({
 
           {/* Workspace content — paddingBottom clears fixed bottom UI (input bar + mini-player) */}
           <div className="flex-1" style={{ padding: '8px var(--ll-content-pad, 24px)', paddingBottom: bottomInset + 20 }}>
-            <div style={{ maxWidth: 'var(--ll-content-max, 768px)' }}>
+            <div className="mylane-content-frame" style={{ maxWidth: 'var(--ll-content-max, 768px)' }}>
 
               {/* Command result card — agent-only */}
               {agentEnabled && commandResult && (
