@@ -21,6 +21,7 @@
  */
 
 /* eslint-env node */
+/* global process */
 import { base44 } from '@/api/base44Client';
 
 const MIGRATION_NAME = 'TEMPLATE_rename_me_per_migration';

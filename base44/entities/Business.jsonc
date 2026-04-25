@@ -68,8 +68,12 @@
       "description": "Text description of services offered"
     },
     "service_area": {
-      "type": "string",
-      "description": "Description of service area (e.g., '25 mile radius')"
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of Lane County town slugs the business serves. Slugs match `src/config/laneCountyTowns.js` in the application code."
     },
     "business_hours": {
       "type": "string",

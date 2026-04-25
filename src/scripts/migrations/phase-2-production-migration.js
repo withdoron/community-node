@@ -32,6 +32,7 @@
  */
 
 /* eslint-env node */
+/* global process */
 const BASE44_APP_ID = process.env.BASE44_APP_ID || '69308d4dd5ee90afc9b011d3';
 const BASE44_BASE_URL = process.env.BASE44_BASE_URL || 'https://base44.app';
 const MIGRATION_SECRET = process.env.MIGRATION_SECRET;
