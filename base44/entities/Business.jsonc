@@ -15,6 +15,14 @@
       "type": "string",
       "description": "Legacy category field for backwards compatibility"
     },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of category slugs the business belongs to. Plural replacement for the legacy `category` field. Slugs are drawn from the hardcoded list in src/config/businessCategories.js. No enum constraint \u2014 slug list evolves in code, not at the schema layer."
+    },
     "main_category": {
       "type": "string",
       "description": "Main category ID (e.g., home_services, auto_transportation)"
