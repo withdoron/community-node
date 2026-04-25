@@ -18,6 +18,8 @@ import StaffWidget from './widgets/StaffWidget';
 import { useCategories } from '@/hooks/useCategories';
 import { ARCHETYPE_SLUG_TO_CONFIG } from '@/config/onboardingConfig';
 import { archetypeSubcategories } from '@/components/categories/categoryData';
+import { LANE_COUNTY_TOWNS } from '@/config/laneCountyTowns';
+import TownMultiSelect from '@/components/business/TownMultiSelect';
 
 function formatPhone(value) {
   if (!value) return '';
@@ -82,7 +84,9 @@ function getInitialFormData(business) {
     state: business.state || '',
     zip_code: business.zip_code || '',
     display_full_address: business.display_full_address === true,
-    service_area: business.service_area || '',
+    // service_area is managed via serviceAreaMutation (immediate write per
+    // chip toggle, Build E) — kept out of formData so handleSave's diff
+    // doesn't clobber the array.
     services_offered: business.services_offered || '',
     services: Array.isArray(business.services) ? business.services : [],
     shop_url: business.shop_url || '',
@@ -302,6 +306,48 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
       toast.error('Could not save that change. Please try again.');
     },
   });
+
+  // Service area — immediate write per chip add/remove (Build E). Replaces
+  // the freeform service_area string with a structured array of Lane County
+  // town slugs. Legacy string values are preserved on the Business record
+  // until the owner saves a structured selection for the first time, at
+  // which point this mutation overwrites with the array.
+  const serviceAreaMutation = useMutation({
+    mutationFn: async (nextSlugs) => {
+      await base44.functions.invoke('updateBusiness', {
+        action: 'update_profile',
+        business_id: business.id,
+        data: { service_area: nextSlugs },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['business', business?.id] });
+      queryClient.invalidateQueries({ queryKey: ['directory-businesses'] });
+      queryClient.invalidateQueries({ queryKey: ['network-businesses'] });
+      queryClient.invalidateQueries({ queryKey: ['homepage-recent-businesses'] });
+      toast.success('Service area saved');
+    },
+    onError: (err) => {
+      console.error('Service area save error:', err);
+      toast.error('Could not save service area. Please try again.');
+    },
+  });
+
+  const currentServiceAreaSlugs = Array.isArray(business?.service_area)
+    ? business.service_area
+    : [];
+  const legacyServiceAreaText =
+    typeof business?.service_area === 'string' ? business.service_area.trim() : '';
+
+  const handleAddTown = (slug) => {
+    if (currentServiceAreaSlugs.includes(slug)) return;
+    serviceAreaMutation.mutate([...currentServiceAreaSlugs, slug]);
+  };
+  const handleRemoveTown = (slug) => {
+    serviceAreaMutation.mutate(currentServiceAreaSlugs.filter((s) => s !== slug));
+  };
 
   // Photos gallery — upload-then-append pattern so the user sees each photo
   // land as it completes rather than a batch blackout. Mutation writes the
@@ -738,30 +784,35 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
               </div>
             </div>
 
-            {/* Service Area (service_provider archetype only). The legacy
-                services_offered textarea was removed in Build B (2026-04-24):
-                new writes go to services[] via the Services section below.
-                Legacy services_offered data still renders on the public
-                profile as a display fallback. */}
-            {resolvedArchetype === 'service_provider' && (
-              <div className="space-y-4">
-                <div className="border-b border-border pb-2">
-                  <h4 className="text-xs text-muted-foreground uppercase tracking-wider">Service Area</h4>
-                </div>
-                <div>
-                  <Label htmlFor="business-service-area" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
-                    Where do you serve?
-                  </Label>
-                  <Input
-                    id="business-service-area"
-                    value={formData.service_area}
-                    onChange={(e) => handleChange('service_area', e.target.value)}
-                    className={INPUT_CLASS}
-                    placeholder="e.g., Eugene/Springfield area"
-                  />
-                </div>
+            {/* Service Area (Build E) — universal structured editor. Replaces
+                the archetype-gated freeform string. Pick towns/communities in
+                Lane County the business serves; persists as an array of slugs
+                via serviceAreaMutation (immediate write per chip toggle).
+                Universal — every archetype declares coverage. */}
+            <div className="space-y-4">
+              <div className="border-b border-border pb-2">
+                <h4 className="text-xs text-muted-foreground uppercase tracking-wider">Service Area</h4>
               </div>
-            )}
+              <p className="text-xs text-muted-foreground/70 -mt-2">
+                Pick the towns and communities you serve. You can declare coverage
+                anywhere in Lane County — your business address doesn't constrain
+                where you operate.
+              </p>
+              {legacyServiceAreaText && currentServiceAreaSlugs.length === 0 && (
+                <div className="text-xs text-muted-foreground/80 bg-secondary/50 border border-border rounded-lg p-3 leading-relaxed">
+                  <span className="text-foreground-soft">You previously entered:</span>{' '}
+                  <span className="italic">"{legacyServiceAreaText}"</span>. Pick the
+                  towns below to update.
+                </div>
+              )}
+              <TownMultiSelect
+                selectedSlugs={currentServiceAreaSlugs}
+                towns={LANE_COUNTY_TOWNS}
+                onAdd={handleAddTown}
+                onRemove={handleRemoveTown}
+                disabled={serviceAreaMutation.isPending}
+              />
+            </div>
 
             {/* Services (Build B) — universal structured editor. Writes to
                 services[] array of {name, description, starting_price}. Only

@@ -24,6 +24,8 @@ import EventCard from '@/components/events/EventCard';
 import { useCategories } from '@/hooks/useCategories';
 import { useConfig } from '@/hooks/useConfig';
 import { resolveCategoryAccent } from '@/components/business/BusinessCard';
+import { useAuth } from '@/lib/AuthContext';
+import { getTownDisplayName } from '@/config/laneCountyTowns';
 
 function formatPhone(value) {
   if (!value) return '';
@@ -50,6 +52,7 @@ export default function BusinessProfile({ businessId: businessIdProp, onRecommen
   const navigate = useNavigate();
   const { getLabel, legacyCategoryMapping } = useCategories();
   const { data: networksConfig = [] } = useConfig('platform', 'networks');
+  const { user: currentUser } = useAuth();
   const urlParams = new URLSearchParams(window.location.search);
   const businessId = businessIdProp || urlParams.get('id');
 
@@ -284,12 +287,38 @@ export default function BusinessProfile({ businessId: businessIdProp, onRecommen
                 {business.description || 'No description available.'}
               </p>
 
-              {business.service_area?.trim() && (
-                <p className="text-foreground-soft mt-4 flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                  Serves: {business.service_area.trim()}
-                </p>
-              )}
+              {/* Service area — Build E. Renders structured array of town
+                  slugs as display-name list; falls back to legacy string for
+                  records that haven't migrated to the structured editor.
+                  "(legacy)" annotation is owner-only — public visitors just
+                  see the text. */}
+              {(() => {
+                const sa = business.service_area;
+                const isOwner = currentUser?.id && currentUser.id === business.owner_user_id;
+                if (Array.isArray(sa) && sa.length > 0) {
+                  const labels = sa.map((slug) => getTownDisplayName(slug));
+                  return (
+                    <p className="text-foreground-soft mt-4 flex items-start gap-1.5">
+                      <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+                      <span>Serves: {labels.join(', ')}</span>
+                    </p>
+                  );
+                }
+                if (typeof sa === 'string' && sa.trim()) {
+                  return (
+                    <p className="text-foreground-soft mt-4 flex items-start gap-1.5">
+                      <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+                      <span>
+                        Serves: {sa.trim()}
+                        {isOwner && (
+                          <span className="ml-1.5 text-xs text-muted-foreground/70">(legacy)</span>
+                        )}
+                      </span>
+                    </p>
+                  );
+                }
+                return null;
+              })()}
               {business.services_offered?.trim() && (
                 <div className="mt-4">
                   <p className="text-foreground-soft whitespace-pre-line">{business.services_offered.trim()}</p>
