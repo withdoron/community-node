@@ -10,7 +10,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import {
-  Home, UtensilsCrossed, HardHat, DollarSign, Users,
+  Home, UtensilsCrossed, Briefcase, DollarSign, Users,
   Store, Search, Music, Settings, LogOut, FileText,
   Lock, Mail, Volume2, VolumeX, Building2, X, PanelRightOpen, FlaskConical, BookOpen, HelpCircle,
   Compass,
@@ -49,7 +49,7 @@ const NetworkPageComponent = lazy(() => import('@/pages/NetworkPage'));
 const SPACE_CONFIG = {
   home:              { id: 'home',           label: 'Home',      icon: Home },
   'meal-prep':       { id: 'meal-prep',      label: 'Kitchen',   icon: UtensilsCrossed },
-  'field-service':   { id: 'field-service',  label: 'Desk',      icon: HardHat },
+  'field-service':   { id: 'field-service',  label: 'Desk',      icon: Briefcase },
   finance:           { id: 'finance',        label: 'Finances',  icon: DollarSign },
   team:              { id: 'team',           label: 'Team',      icon: Users },
   business:          { id: 'business',       label: 'Business',  icon: Store, dim: true },
