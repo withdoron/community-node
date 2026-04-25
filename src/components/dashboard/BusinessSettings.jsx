@@ -19,7 +19,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { ARCHETYPE_SLUG_TO_CONFIG } from '@/config/onboardingConfig';
 import { archetypeSubcategories } from '@/components/categories/categoryData';
 import { LANE_COUNTY_TOWNS } from '@/config/laneCountyTowns';
-import TownMultiSelect from '@/components/business/TownMultiSelect';
+import SlugMultiSelect from '@/components/business/SlugMultiSelect';
 
 function formatPhone(value) {
   if (!value) return '';
@@ -805,12 +805,13 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                   towns below to update.
                 </div>
               )}
-              <TownMultiSelect
+              <SlugMultiSelect
                 selectedSlugs={currentServiceAreaSlugs}
-                towns={LANE_COUNTY_TOWNS}
+                items={LANE_COUNTY_TOWNS}
                 onAdd={handleAddTown}
                 onRemove={handleRemoveTown}
                 disabled={serviceAreaMutation.isPending}
+                emptyHelpText="Pick the towns you serve."
               />
             </div>
 
