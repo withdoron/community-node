@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -19,7 +19,9 @@ import { useCategories } from '@/hooks/useCategories';
 import { ARCHETYPE_SLUG_TO_CONFIG } from '@/config/onboardingConfig';
 import { archetypeSubcategories } from '@/components/categories/categoryData';
 import { LANE_COUNTY_TOWNS } from '@/config/laneCountyTowns';
+import { BUSINESS_CATEGORIES } from '@/config/businessCategories';
 import SlugMultiSelect from '@/components/business/SlugMultiSelect';
+import { Business } from '@/api/business';
 
 function formatPhone(value) {
   if (!value) return '';
@@ -115,7 +117,7 @@ function isProfileSparse(business) {
 
 export default function BusinessSettings({ business, currentUserId, onNavigateTab }) {
   const queryClient = useQueryClient();
-  const { mainCategories, getSubcategory, getLabel, legacyCategoryMapping } = useCategories();
+  const { getLabel, legacyCategoryMapping } = useCategories();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(null);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
@@ -123,19 +125,6 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
   const logoInputRef = React.useRef(null);
   const bannerInputRef = React.useRef(null);
   const photosInputRef = React.useRef(null);
-
-  // Compute Select value: must match SelectItem value format "mainId|subId"
-  const categorySelectValue = useMemo(() => {
-    if (!formData) return '';
-    const mainId = formData.primary_category || formData.main_category;
-    const subId = formData.sub_category_id;
-    if (mainId && subId) return `${mainId}|${subId}`;
-    // Legacy: primary_category/sub_category may be labels
-    const main = mainCategories.find((m) => m.id === mainId || m.label === formData.primary_category);
-    const sub = main?.subcategories.find((s) => s.id === subId || s.label === formData.sub_category);
-    if (main && sub) return `${main.id}|${sub.id}`;
-    return '';
-  }, [formData, mainCategories]);
 
   const resolvedArchetype = useMemo(() => {
     if (!business?.archetype) return null;
@@ -347,6 +336,48 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
   };
   const handleRemoveTown = (slug) => {
     serviceAreaMutation.mutate(currentServiceAreaSlugs.filter((s) => s !== slug));
+  };
+
+  // Subcategories — immediate write per chip add/remove (Build F). Mirrors the
+  // serviceAreaMutation pattern. Routes through Business.updateProfile, which
+  // wraps the updateBusiness server function (PROFILE_ALLOWLIST gates the
+  // field; DEC-025). Seeding: when the entity's subcategories[] is empty but
+  // legacy main_category / sub_category_id are set, render the legacy value as
+  // a selected chip so the owner sees their existing classification. Visual
+  // only — no write happens until the owner takes an add/remove action.
+  const subcategoriesMutation = useMutation({
+    mutationFn: async (nextSlugs) => {
+      await Business.updateProfile(business.id, { subcategories: nextSlugs });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses', currentUserId] });
+      queryClient.invalidateQueries({ queryKey: ['business', business?.id] });
+      queryClient.invalidateQueries({ queryKey: ['directory-businesses'] });
+      queryClient.invalidateQueries({ queryKey: ['network-businesses'] });
+      queryClient.invalidateQueries({ queryKey: ['homepage-recent-businesses'] });
+      toast.success('Categories saved');
+    },
+    onError: (err) => {
+      console.error('Subcategories save error:', err);
+      toast.error('Could not save categories. Please try again.');
+    },
+  });
+
+  const currentSubcategorySlugs = useMemo(() => {
+    if (Array.isArray(business?.subcategories) && business.subcategories.length > 0) {
+      return business.subcategories;
+    }
+    const seedSlug = business?.sub_category_id || business?.main_category;
+    return seedSlug ? [seedSlug] : [];
+  }, [business?.subcategories, business?.sub_category_id, business?.main_category]);
+
+  const handleAddSubcategory = (slug) => {
+    if (currentSubcategorySlugs.includes(slug)) return;
+    subcategoriesMutation.mutate([...currentSubcategorySlugs, slug]);
+  };
+  const handleRemoveSubcategory = (slug) => {
+    subcategoriesMutation.mutate(currentSubcategorySlugs.filter((s) => s !== slug));
   };
 
   // Photos gallery — upload-then-append pattern so the user sees each photo
@@ -612,50 +643,17 @@ export default function BusinessSettings({ business, currentUserId, onNavigateTa
                 />
               </div>
               <div>
-                <Label htmlFor="business-category" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
-                  Category
+                <Label htmlFor="business-categories" className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
+                  Categories
                 </Label>
-                <Select
-                  value={categorySelectValue}
-                  onValueChange={(val) => {
-                    if (!val) {
-                      handleChange('primary_category', '');
-                      handleChange('main_category', '');
-                      handleChange('sub_category', '');
-                      handleChange('sub_category_id', '');
-                      return;
-                    }
-                    const [mainId, subId] = val.split('|');
-                    const sub = getSubcategory(mainId, subId);
-                    const subLabel = sub?.label ?? subId;
-                    handleChange('primary_category', mainId);
-                    handleChange('main_category', mainId);
-                    handleChange('sub_category', subLabel);
-                    handleChange('sub_category_id', subId || '');
-                  }}
-                >
-                  <SelectTrigger className="bg-secondary border-border text-foreground rounded-lg focus:border-primary focus:ring-ring/20">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mainCategories.map((main) => (
-                      <SelectGroup key={main.id}>
-                        <SelectLabel className="text-muted-foreground text-xs uppercase tracking-wide px-2 py-1">
-                          {main.label}
-                        </SelectLabel>
-                        {main.subcategories.map((sub) => (
-                          <SelectItem
-                            key={`${main.id}|${sub.id}`}
-                            value={`${main.id}|${sub.id}`}
-                            className="text-foreground-soft focus:bg-secondary pl-4"
-                          >
-                            {sub.label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SlugMultiSelect
+                  selectedSlugs={currentSubcategorySlugs}
+                  items={BUSINESS_CATEGORIES}
+                  onAdd={handleAddSubcategory}
+                  onRemove={handleRemoveSubcategory}
+                  disabled={subcategoriesMutation.isPending}
+                  emptyHelpText="Pick the categories that describe your business. You can pick more than one."
+                />
               </div>
               {subcategoryOptions.length > 0 && (
                 <div>

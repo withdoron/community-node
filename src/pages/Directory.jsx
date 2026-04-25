@@ -6,6 +6,7 @@ import BusinessCard from '@/components/business/BusinessCard';
 import { rankBusinesses } from '@/components/business/rankingUtils';
 import { useActiveRegion, filterBusinessesByRegion } from '@/components/region/useActiveRegion';
 import { filterListedBusinesses } from '@/utils/directoryVisibility';
+import { BUSINESS_CATEGORIES } from '@/config/businessCategories';
 import {
   Select,
   SelectContent,
@@ -102,12 +103,21 @@ export default function Directory({ onBusinessClick, onNetworkClick } = {}) {
       });
     }
 
-    // Category filter
+    // Category filter — checks main_category, legacy category, AND subcategories[]
+    // membership in the selected main category. The subcategories[] check is
+    // load-bearing for businesses classified through Build F's multi-select
+    // editor (which writes only subcategories[], not main_category).
     if (selectedCategory !== 'all') {
       result = result.filter(b => {
         if (b.main_category === selectedCategory) return true;
         if (b.category && legacyCategoryMapping[b.category]) {
           return legacyCategoryMapping[b.category].main === selectedCategory;
+        }
+        if (Array.isArray(b.subcategories) && b.subcategories.length > 0) {
+          return b.subcategories.some((subSlug) => {
+            const cat = BUSINESS_CATEGORIES.find((c) => c.slug === subSlug);
+            return cat?.main_category_slug === selectedCategory;
+          });
         }
         return false;
       });
