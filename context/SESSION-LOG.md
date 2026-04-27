@@ -608,28 +608,147 @@ None (architecture questions captured, not decided)
 
 ---
 
+## Session — 2026-04-03 (All Day — Team Space Production Push)
+
+**Focus:** Team space from 85% to production-ready. 15 commits, 7+ builds, credit audit, seedling spec, live testing with parent account.
+
+**Build 1: Print + Learning Loop** (commit 4697add)
+- PrintPlaybook field refs fixed: image_url to diagram_image (3x), notes to coach_notes (2x)
+- PlayCreateModal editDataReady fix — plays with zero assignments no longer hang
+- Route Reference Sheet — 4th print layout with 25 mini SVG route diagrams from routeTemplates
+- Leaderboard enhanced — plays_mastered + best_streak columns, top 3 highlighted
+- Player Cards — trading card component with earned stats, opens from Roster tap
+
+**Build 2: TeamPhotos Gallery** (commit e6747f6)
+- New Photos tab (7th tab between Messages and Settings)
+- Upload via UploadFile, lightbox with caption/uploader/date, delete own photos
+- TeamPhoto entity created in Base44 (7 fields, proper permissions)
+- agentScopedQuery + PlaymakerAgent updated for TeamPhoto access
+- PlayerReadinessCard shows photo count
+
+**Build 3: Identity + Props + UX Fixes** (commit eb129dd)
+- Parent name capture from auth provider display_name
+- Messages + Schedule getProps fix (root cause of both tabs rendering null)
+- Quick Reference print — condensed assignments below each play diagram
+- League Link rename (was Door Link)
+- Pending badge updated to respect parent connections
+
+**Build 4: Schedule Phase 2** (commit 0d472b7)
+- Full event creation with duties (snack/water/setup/cleanup) and auto-rotation
+- RSVP (yes/no/maybe) with attendance counts
+- Recurring events (weekly/biweekly batch creation)
+- Team Readiness view on game events (player mastery of game-day plays)
+- Event type buttons, duration presets, grouped form sections
+
+**Build 5: Credit Audit + Seedling Review** (private + Spec-Repo)
+- Entity reads confirmed FREE (not integration credits) per Base44 support
+- PRICING-ECONOMICS.md corrected: league projection 23,550 to ~1,460 credits/mo
+- DEC-130 urgency revised URGENT to MEDIUM
+- League & Play Library seedling review notes integrated
+
+**Build 6: Regression Audit** (investigation only)
+- No regressions found — all issues were role-based rendering (parent vs coach)
+- One real bug: parent join didn't write parent_user_ids to player records
+
+**Build 7: Pending Fix + Parent UX + Event Polish** (commit 56c5963)
+- Bidirectional parent-player link fix
+- Schedule role-aware empty state for parents
+- Messages defaults parents to Discussion channel
+- Event form polish: type buttons with icons, duration dropdown presets, day-of-week selectors
+
+**Bug Fix Wave** (commits 500c1a8, 0c521d4, 481eae5, edd28ff, 59d8c3d, 355332f, d9439bb, 1cd81c5)
+- Messages tab crash: isCoach used before declaration (temporal dead zone)
+- TeamPhoto query safety guards (try/catch for entity not yet in SDK)
+- Recurring event count auto-calculated from dates (removed manual input)
+- Date off-by-one timezone fix (UTC midnight rollback, append T12:00:00)
+- Location links to Google Maps on tap
+- JoinTeam member fetch: .list() to avoid .filter() quirk with service-role records
+- Invite page: removed public header/footer, name input for parents, messages show linked kids
+- PlayAssignment batch fetch: single .list() instead of N parallel .filter() calls (429 fix)
+
+**Base44 Operations:**
+- All team entity permissions fixed
+- TeamPhoto entity created (7 fields)
+- TeamEvent fields added (rsvps, duties)
+
+**Research & Strategy:**
+- Credit economics confirmed: entity reads free, own API key = zero credits
+- Base44 rate limits received: analytics 50/min, list users 50/min, get user 75/min
+- League & Play Library seedling planted in private repo
+
+**Decisions:**
+- DEC-130 UPDATE: entity reads free, urgency MEDIUM (performance/429s, not credits)
+- League Link: renamed from Door Link, future rethink needed for league discovery page
+- Parent UX: default to Discussion channel, role-aware empty states, name capture in join flow
+
+**Next up:**
+- Test invite flow end-to-end with Coach Rick's phone
+- League Link rethink — league discovery page instead of team join
+- Play Library seedling matures at 3+ teams
+- DEC-130 query optimization for performance/429s before Randy league rollout
+
+---
+
 ### Session — 2026-04-04 (Saturday — Full Day)
 
-**Focus:** MylaneNote reminders, Founding Gardener observation, feedback pipeline consolidation, full 13-category audit, security lockdown, medium/low polish. Health score 68 to 87.
+**Focus:** MylaneNote reminders, Founding Gardener observation tools, feedback pipeline consolidation, full 13-category application audit, security lockdown, medium/low polish pass. Health score 68 to 87.
 
-**Builds shipped:**
-1. MylaneNote entity + reminders lifecycle (create, display, mark done via conversation)
-2. Founding Gardener observation (platformPulse gardeners action + MCP deploy)
-3. Feedback pipeline consolidated: FeedbackLog retired, ServiceFeedback sole path, "Have feedback?" chip
-4. Full 13-category audit: 343 files, 68/100
-5. Critical+High fixes (3 commits): 9 entity permissions locked, staleTime 5min default, dual auth resolved, handleEventCancellation auth, agentScopedWrite ownership check, DEC-107 enforced, WorkspaceErrorBoundary, CLAUDE.md updated. Score: 68 to 82.
-6. Medium+Low polish (4 commits): 19 dead files deleted (-1,968 lines), platformPulse header-only auth, /networks auth-gated, phantom attention removed, Discover wired, 27 staleTime overrides removed, 31 unused imports cleaned, agent instructions trimmed. Score: 82 to 87.
+**Build 1: MylaneNote — Persistent Reminders**
+- MylaneNote entity created in Base44 (7 fields: user_id, content, note_type, due_date, source_space, status, created_by_agent)
+- MyLane agent instructions updated with recognition patterns for reminders/tasks/notes
+- agentScopedWrite + agentScopedQuery whitelists updated for MylaneNote (platform entity, user_id scoped)
+- RemindersCard in Mylane Home feed, "My reminders" quick-action chip
+- Full lifecycle: create via conversation, display in feed, mark done via conversation
 
-**Base44 Operations:** MylaneNote entity created. 9 entity permissions locked.
+**Build 2: Founding Gardener Observation**
+- platformPulse `gardeners` action: queries 15 entity types per user, returns engagement scores
+- Weighted score: spaces (10), feedback (5), weeks active (3), content (2), participation (1)
+- MCP worker redeployed with gardeners enum
+- First report: 22 users, 6 active. Doron (52), Bari (13), Gary Spetzler (13), Natasha (13, pure organic signup), Jeslyn Everitt (4), Coach Rick (4). 16 dormant accounts.
+
+**Build 3: Feedback Pipeline Consolidation**
+- Two parallel systems found (FeedbackLog + ServiceFeedback). Merged to ServiceFeedback only.
+- Floating Feedback button removed (~120 lines). "Have feedback?" chip on all 8 space positions.
+- Bug fix: agentScopedWrite ServiceFeedback required field was 'message' not 'feedback_text' (writes silently failing)
+
+**Build 4: Full 13-Category Application Audit**
+- 343 files scanned. Score: 68/100 — 6 Critical, 14 High, 22 Medium, 19 Low
+- Critical: FSClient/FSDocument/FSEstimate public read exposing PII and portal tokens, handleEventCancellation zero auth, dual auth state, no default staleTime
+- Strengths: architecture sound, semantic migration 98.5%, Dark Until Explored properly implemented
+
+**Build 5: Critical + High Fixes (3 commits)**
+- Base44: 9 entity permissions locked to Creator Only (FS entities, Team entities, NetworkApplication)
+- staleTime 5min default (40-60% API call reduction)
+- Dual auth resolved: AuthContext seeds RQ cache, refreshUser() syncs both
+- handleEventCancellation + agentScopedWrite ownership check + sendWebhookToSpoke auth added
+- 403 direct entity tool_configs removed from 5 agents (DEC-107 enforced)
+- Play required fields, MyLane instruction field names, meal-prep in agentScopedQuery
+- Dead-end routes fixed, League Link rename, WorkspaceErrorBoundary, CLAUDE.md updated
+- Score: 68 to 82
+
+**Build 6: Medium + Low Polish (4 commits)**
+- 19 dead files deleted (15 components + 4 hooks), -1,968 net lines
+- platformPulse header-only auth, /networks auth-gated (DEC-117)
+- Phantom FS attention item removed, Discover shows all workspace types
+- 27 redundant staleTime overrides removed, 31 unused imports cleaned
+- Agent cross-workspace references trimmed, MyLane meal-prep awareness added
+- Score: 82 to 87
+
+**Base44 Operations:** MylaneNote entity created. 9 entity permissions locked down.
 
 **MCP Operations:** Cloudflare Worker redeployed with gardeners action.
 
-**Decisions:** DEC-136 (Creator Only default permissions), DEC-137 (feedback through companion), DEC-138 (Founding Gardener earned status).
+**Decisions:**
+- MylaneNote is a platform entity scoped by user_id (crosses all spaces)
+- Feedback flows through companion, not standalone buttons
+- Founding Gardener is earned status (not signup bonus), assigned by Doron
+- Entity permissions default to Creator Only; server functions handle cross-user access
+- DEC-107 fully enforced: direct entity tools removed from all space agents
 
 **Next up:**
-- Coach Rick demo
+- Coach Rick demo (foundation is stone)
 - Ephraim Pip-Boy design session
-- Newsletter "The Good News"
+- Newsletter "The Good News" to wake dormant accounts
 - Bari visit for feedback chip demo
 - Remaining polish: StepIndicator extraction, loading states, shared EmptyState, accessibility pass
 
@@ -637,18 +756,612 @@ None (architecture questions captured, not decided)
 
 ### Session — 2026-04-05 (Sunday — MyLane Reminder Loop Bug Fix)
 
-**Focus:** MylaneNote reminder loop field test. Diagnosed user_id bug, shipped server-side fix (DEC-139), updated MyLane instructions, healed record, confirmed read path.
+**Focus:** Field-tested MylaneNote reminder loop. Found it broken. Diagnosed to root cause, shipped server-side fix, updated MyLane instructions, healed bad record, confirmed read path end-to-end. Write path pending Base44 publish.
 
-**Bug:** MyLane agent wrote `user_id: "special-user"` as literal string. LLM interpreted instruction as placeholder token. `agentScopedWrite` had a `== null` guard that preserved the agent's value.
+**Bug diagnosis:**
+- Symptom: "My reminders" chip and RemindersCard showed nothing despite a MylaneNote record existing
+- Mycelia investigated: record `69d2ccd8ae352f9e7ce36ded` had `data.user_id: "special-user"` (literal string)
+- `created_by_id` on the record = Doron's real ID (Base44 auto-populated from auth)
+- Client query filters by `data.user_id === currentUser.id` — mismatch, record invisible
+- Root cause: MyLane agent instructions said "pass the authenticated user's ID from your context" and the LLM interpreted it as a placeholder token, writing the literal string
 
-**Fix:** agentScopedWrite now unconditionally stamps `user_id`/`owner_id` from server-resolved auth context. Null-check removed for identity fields. Commit: `fix(agent-write): server-authoritative user_id on per-user entity writes`.
+**Server-side fix (1 commit):**
+- `agentScopedWrite` now unconditionally overwrites `user_id` and `owner_id` on writes where those are FK fields
+- Removed the `writeData[fk] == null` guard that let agent-provided values through
+- Affected entities: ServiceFeedback, Recommendation, MylaneNote, plus blanket `workspace === 'platform'` catch-all
+- Verified: no `owner_id` entities in the FK whitelist today, so `owner_id` branch is defensive only
+- Commit: `fix(agent-write): server-authoritative user_id on per-user entity writes`
 
-**Also shipped:** MyLane instruction updates (removed user_id from write payloads, added query/write asymmetry). Bad record healed by Mycelia. RemindersCard confirmed rendering.
+**MyLane instruction updates (Base44 Builder):**
+- Removed `user_id` from MylaneNote write payload instructions
+- Added query-vs-write asymmetry paragraph (queries need user_id for scoping, writes forbid it)
+- Updated Write Capability section to explicitly forbid passing user_id
+
+**Data cleanup:**
+- Mycelia healed record `69d2ccd8ae352f9e7ce36ded`: `data.user_id` updated from `"special-user"` to `"69308d4dd5ee90afc9b011d4"`
+- Content: "Text Kate from LinkedIn" (due_date: 2026-04-19 — date parsing bug, see below)
+- RemindersCard confirmed rendering the healed record on Home feed
 
 **Decisions:** DEC-139 (server-authoritative identity on agent writes)
 
-**Pending:** Base44 publish for server fix + instruction updates to go live. End-to-end write verification.
+**Known issues for next session:**
+1. Date parsing bug: MyLane parsed "tomorrow" as 2026-04-19 instead of 2026-04-06. Likely stale date awareness or arithmetic error.
+2. MCP user_id fallback path is weaker than auth.me() — known from audit, not introduced by this fix
+3. Broader user_id flow audit — today's cascade suggests more ambiguous identity paths may exist
 
-**Known issues:** Date parsing bug ("tomorrow" → 2026-04-19), MCP fallback path weaker than auth.me().
+**Pending (blocked on Base44 publish):**
+- Server fix deployed to Base44 runtime
+- MyLane instruction updates deployed
+- End-to-end write-path verification (create → display → complete lifecycle)
+
+---
+
+### Session — 2026-04-10 (Thursday — Playmaker Visibility Resolution + Platform Thesis)
+
+**Focus:** Two-day Playmaker visibility bug resolved end-to-end. Coach Rick confirmed from his own phone: "Hi looks like - I have everything!" Platform thesis work emerged in parallel.
+
+**The bug — root cause (four layers deep):**
+
+The symptom: each user in a team space saw only the records they personally created. Doron saw 12 roster, 12 plays, 0 schedule. Coach Rick saw 0 roster, 4 plays, 17 schedule. Same team, different data.
+
+The diagnosis identified Creator Only RLS on all team-scoped entities as the cause. The fix architecture: a generic `readTeamData` server function that verifies team membership, then reads data via `asServiceRole` to bypass RLS. Spec written, validated by Base44 platform team, implementation shipped.
+
+But the fix didn't work. Four layers of issues stacked:
+
+1. **Entity permissions:** `asServiceRole` does not reliably bypass Creator Only RLS in SDK 0.8.23, despite documentation saying it should (confirmed by Base44 support). Fix: change Read permissions on all 8 team entities from Creator Only to Authenticated Users. The security membrane moves from entity level to server function level. (DEC-140)
+2. **Client-side crash guards:** Components used `[...data]` spread and `.filter()` on query results without `Array.isArray` checks. When the server function returned errors, the data became non-array values, crashing the component tree. Fix: defensive `Array.isArray` guards on every external data spread/filter in team components.
+3. **Axios response wrapper:** `base44.functions.invoke()` returns an Axios response wrapper `{data, status, headers, config}`, not the parsed JSON body. `fetchTeamData` was extracting `result.data` (the Axios data field = the JSON body) when it needed `result.data.data` (the JSON body's data field = the actual array).
+4. **The one-line fix:** `result.data` → `result.data.data` in `fetchTeamData`.
+
+**Process lesson:** Layers 1-2 were found by reasoning from code. Layer 3 was found by a single `console.log` of the actual runtime value. When diagnosing unknown SDK behavior, a one-line log of the actual shape is faster than four theories from code alone. (DEC-141)
+
+**What shipped:**
+- `readTeamData` server function (generic team-scoped read primitive with membership verification)
+- `useTeamEntity` hook + `fetchTeamData` utility (client-side guardrail for all team reads)
+- 8 entity Read permissions relaxed to Authenticated Users (TeamMember, Play, TeamEvent, TeamMessage, TeamPhoto, PlayerStats, QuizAttempt, PlayAssignment)
+- 32 read sites migrated across 14 files
+- Defensive `Array.isArray` guards on all external data spreads/filters in team components
+- CLAUDE.md updated with Axios wrapper pattern and readTeamData documentation
+- TEAM-VISIBILITY-ARCHITECTURE.md spec in private repo
+
+**Decisions:** DEC-140 (readTeamData as security boundary), DEC-141 (runtime logging before theorizing)
+
+**Confirmed working:** Coach Rick, logged in on his own phone, sees full roster, playbook, and schedule. Doron sees the same data. The membrane holds.
+
+---
+
+### 2026-04-10 (evening) — Frequency Station Build 1 + Build 2 + Field Audit Debug Chain
+
+**Focus:** Frequency Station goes from "audio player on a page" to "Pip-Boy radio with a studio and library." Two builds, a long debug chain, and the first real song transformation.
+
+**Build 1 — Pip-Boy Radio Model (DEC-142):**
+- FrequencyProvider lifted from MyLane.jsx to App.jsx root — audio survives all navigation
+- Consolidated to single `<audio playsInline>` element; page components are pure UI reading from `useFrequency()`
+- MediaSession API wired: lock-screen controls (play/pause/skip/seekto) on iOS Safari and Android Chrome
+- Persistent mini-player bar at bottom of every screen (title, artist, play/pause, skip, progress)
+- localStorage persistence: current song, position (debounced 3s), master toggle
+- iPhone testing confirmed: background playback works with screen off
+
+**Build 2 — Studio & Library (DEC-143):**
+- SubmitWizard: 3-step form (words → sound → details) with dynamic FrequencyMood entity, style_genre, vocal_style, tempo_feel, reference_artist
+- AdminWorkbench: Suno copy-paste boxes (Lyrics + Styles) assembled from submission fields, "Deliver to submitter" creates owned song + FrequencyNotification
+- MyLibrary tab: personal song library with public/private toggle, FrequencyArtist CRUD, song upload
+- NotificationBell: unread count badge + dropdown, client-side user_id filter
+- Ownership model: owner_user_id + is_public on FrequencySong. Listen tab filters is_public. Library shows owned songs.
+- New entities: FrequencyArtist, FrequencyMood, FrequencyNotification
+
+**Debug chain (the real story of the evening):**
+1. ListenTab infinite render loop — `useEffect` depended on `freq` (whole context object); every `setPlaylist` call created new ref → infinite loop. Fix: stable function ref + memoized song-ID fingerprint.
+2. Wizard Enter-key form submission — pressing Enter in text inputs triggered native form submit, bypassing step 3. Fix: `handleSubmit` checks step and advances instead of submitting on non-final steps.
+3. Base44 entity duplicate cleanup — unprefixed `FrequencySubmission` deleted (was duplicate of `FSFrequencySubmission`). New fields added to FSFrequencySubmission.
+4. RLS permission audit — `FSFrequencySubmission.Read` was `owner` (RLS: created_by == user.email). Admin workbench couldn't see other users' submissions. `FrequencyNotification.Read` had same problem. Both loosened to `authenticated`. `FSFrequencySubmission.Update` also loosened.
+5. Field name audit — Hyphae frontend audit vs Base44 schema revealed: FrequencyArtist uses `owner_user_id` not `user_id`; FrequencyNotification uses `body` not `message`; DeliveryForm owner chain had `created_by` (email) before `user_id` (ID). All fixed.
+
+**Key lessons:**
+- Base44 agent defaults to discussion mode — action mode only for entity/permission/server-function work. Prevents drift. Extends DEC-093.
+- Schema-reality audits (Base44 discussion mode + Hyphae frontend audit) are a repeatable pattern when debugging spirals. The join between what the backend actually has and what the frontend writes is where bugs hide.
+- RLS on cross-user entities blocks core workflows. Client-side scoping is the pragmatic choice when the alternative is "the feature doesn't work." Tighten later with server functions.
+
+**First real song transformed:** "Grow, Little Seedlings" by The OG (dedication: Egan, Elek, Ephraim). Seed → Suno boxes → audio → delivered to library → played on lock screen.
+
+**Decisions:** DEC-142 (Pip-Boy radio), DEC-143 (Studio + Library), DEC-144 (RLS loosening + client-side scoping)
+
+**What shipped (code):**
+- FrequencyContext.jsx rewritten (MediaSession, playsinline, localStorage persistence, lock-screen metadata fix)
+- FrequencyMiniPlayer.jsx (new component)
+- SubmitWizard.jsx, AdminWorkbench.jsx, MyLibrary.jsx, NotificationBell.jsx (new components)
+- FrequencyStation.jsx updated (new tab wiring, ListenTab is_public filter, playlist fingerprint)
+- SongDetail.jsx updated (pure UI, no local audio)
+- MyLane.jsx updated (FrequencyProvider removed, lives in App.jsx now)
+- App.jsx updated (FrequencyProvider + mini-player at root)
+
+---
+
+### 2026-04-11 — Frequency Station Polish A + B1 + B1.5 + B2 + Debug Chain
+
+**Focus:** Five-prompt build day. Lock-screen fix, dead code removal, wizard collapse, bulk upload, three-section library, and a long payload-debugging chain that surfaced the difference between React bugs and schema bugs.
+
+**Prompt A — Polish (5 fixes):**
+- Lock-screen stale title: `onPlay` handler's closure captured previous song's metadata, overwrote correct metadata set by `setSongInternal`. Fix: removed redundant `updateMediaSession` from `onPlay`.
+- Notification bell: reviewed fully, no remaining bug — the `message→body` field fix from last night resolved it.
+- Duplicate song on delivery: added ref-based sync guard (`deliveringRef`) to prevent double-click double-invocation.
+- Dead code removal: deleted old SubmitTab, SongCreationForm, QueueTab (515 lines). EditSeedForm and MySeedsTab kept.
+- DeliveryForm now writes `mood_tag` and `artist_id` on delivered songs.
+
+**Prompt B1 — Wizard collapse + tab restructure + station default:**
+- Wizard collapsed from 3-step to single scrollable page. All fields visible at once. Two buttons: Save as Draft + Plant this seed.
+- Tabs reordered: My Library > Explore > Submit > My Submissions > Workbench. Listen→Explore, My Seeds→My Submissions.
+- Default-active tab: My Library if user owns songs, Explore otherwise.
+- Per-user station default: `freq_playing_${userId}` localStorage key with legacy migration.
+- Mood/FrequencyMood dropdown removed from wizard (admin sets during transformation if needed).
+
+**Prompt B1.5 — Bulk upload:**
+- BulkUploadModal: multi-file select, title parsed from filename (simple: strip extension, underscores→spaces, user reviews inline).
+- jsmediatags attempted for ID3 cover art extraction — failed in Base44 deployment (broken package.json main field). Removed entirely. Songs upload without covers.
+- 17 of Doron's Suno back catalog imported into My Library.
+
+**Prompt B2 — Three-section library + favorites + queue:**
+- MyLibrary restructured: My Songs / My Favorites / My Queue.
+- SongRow shared component: one-line expandable, used everywhere (My Songs, Favorites, Queue, Explore).
+- `useFrequencyFavorites` hook: FSFrequencyFavorite CRUD, `favoriteIds` Set, `toggleFavorite`.
+- `useFrequencyQueue` hook: FSFrequencyPlaylist (title='queue'), `addToQueue`, `removeFromQueue`, `reorderQueue`, `clearQueue`.
+- Dedupe rule: owned+favorited songs show in My Songs with filled heart, not duplicated in Favorites.
+
+**Debug chain (the long one):**
+1. SongRow `useNavigate` ReferenceError — imported but not defined. Removed dead reference.
+2. Favorites/queue not working from My Library — diagnosed as "stale closure" → added refs → didn't fix it.
+3. Actually: two hook instances (parent + child) racing on concurrent Base44 creates → ERR_CONNECTION_CLOSED. Fix: single-owner pattern — hooks in parent only, props to children.
+4. Actually actually: FSFrequencyPlaylist.create 422 — `track_ids: '[]'` (string) instead of `track_ids: []` (array). Schema says array of string. Fix: send real arrays.
+5. FSFrequencyFavorite.create — `user_id` not wrapped in `String()`, potential type mismatch. Fix: all fields explicitly `String()` wrapped with defensive defaults.
+
+**Key lesson — payload first, architecture second (DEC-145):**
+When a Base44 entity operation fails, the first step is logging the exact payload and comparing field-by-field against the schema. The bug is almost always wrong JS type, wrong field name, or null where string expected. Do not theorize about React state, closures, or component lifecycle until the payload is confirmed correct. Two bugs today (queue string-not-array, favorites type coercion) would have been caught in seconds by payload inspection. The closure refactoring was defensive hardening, not the fix.
+
+**Decisions:** DEC-145 (payload-first debugging + single-owner hooks + FrequencyLibraryContext planned)
+
+**What shipped (code):**
+- FrequencyContext.jsx: lock-screen metadata fix, per-user localStorage key
+- FrequencyStation.jsx: tab rename/reorder, default-active logic, single-owner hooks, ListenTab→SongRow, MySeedsTab one-line rows, 515 lines dead code removed
+- SubmitWizard.jsx: single-page form with draft/submit
+- MyLibrary.jsx: three sections, props-based favorites/queue
+- SongRow.jsx: shared one-line expandable row component
+- BulkUploadModal.jsx: multi-file upload with filename parsing
+- AdminWorkbench.jsx: delivery ref guard, mood_tag/artist_id writes, draft exclusion
+- useFrequencyFavorites.js: ref-based callbacks, String() defensive defaults
+- useFrequencyQueue.js: ref-based callbacks, array (not string) track_ids
+
+---
+
+## 2026-04-15 — Mylane Containment + Living Feet Principle
+
+### What shipped
+
+**Foundation fixes (early in day):**
+- Viewport pinch-to-fit: CommandBar input fontSize 13 → 16, iOS auto-zoom resolved
+- Mylane agent gated to MYLANE_AGENT_ALLOWLIST (R&D, doron.bsg@gmail.com only) — 4 UI surfaces hidden for non-allowlisted users
+
+**Mylane Containment Audit:**
+- Full audit at `audit-reports/MYLANE-CONTAINMENT-AUDIT-2026-04-15.md`
+- 29 routes mapped, 6 escape points, 10 orphans
+- Structural root: Layout wrapper and Mylane shell are parallel, not nested
+- Approved approach: overlay expansion (DEC-148)
+
+**Session A — Closed 4 escape points:**
+- BusinessCard → BusinessProfile stacked overlay (z-50 over z-40, Escape unwinds)
+- FrequencyMiniPlayer → custom event opens shell Frequency overlay (with fallback for non-shell pages)
+- Events overlay → removed redundant navigate() calls, deep-link route still works
+- Newsletter → inline form in Account overlay
+
+**Session B — Refactor + orphans + polish + deletions:**
+- 13 hardcoded overlay strings refactored to OV constant (Living Feet proof)
+- Philosophy and Support overlays added (Account → About section)
+- Recommend stacked overlay (z-60 over BusinessProfile z-50, mode-parameterized)
+- Backdrop click-to-close on all 6 OverlayContainer instances
+- Deleted: SpokeDetails (574 lines), ShapingTheGarden (50 lines), CategoryPage (185 lines), Search + components/search/ directory (~360 lines)
+- ClaimBusiness deferred to future cleanup session (BusinessEditDrawer reference, co-presence model deletion)
+- JoyCoinsHistory left parked (Recess feature, surfaces when Recess ships)
+
+**Session C — Networks containment:**
+- NetworkPage stacked overlay at z-55 (between BusinessProfile z-50 and Recommend z-60)
+- BusinessCard and BusinessProfile network chips now fire `onNetworkClick` callback when inside shell
+- Mirrors BusinessProfile containment pattern exactly (Living Feet — instantiate, don't invent)
+- All 6 known escapes from audit are now closed
+
+### Decisions made
+
+- DEC-146: Living Feet Design Principle (constitutional)
+- DEC-147: R&D Allowlist Pattern for Pre-Release Features
+- DEC-148: Mylane Shell Containment via Overlay Expansion
+
+### Known accepted escapes (documented in STATUS-TRACKER)
+
+- Onboarding wizards (one-time flows, stepping aside is natural UX)
+- Terms/Privacy in new tabs (industry standard, deep-linkable for compliance)
+- Admin standalone (admin-only, complex, single user — future reframe: per-space admin toggle)
+- Networks index `/networks` (not reachable from inside shell)
+- Log out (auth requirement)
+
+### Known technical debt
+
+- Overlay z-indices are hardcoded (z-50/55/60). Refactor to stack-based assignment when third stacked-from-overlay scenario appears.
+
+### What's next
+
+- Walkthrough Sessions A/B/C in the live app — Doron to find UX issues Hyphae can't see
+- ClaimBusiness deletion + BusinessEditDrawer cleanup (co-presence model session)
+- Footer removal or strip (Philosophy/Support/Newsletter now inside shell)
+- Admin containment reframe (per-space admin toggle, not monolithic Admin panel)
+- Mylane reminders root cause investigation (deferred from earlier)
+- Audio mini-player / Mylane input stacking (small fix, only matters for Doron now)
+
+---
+
+## 2026-04-16 — Mylane Agent Architecture + Shell Polish
+
+### What shipped
+
+**Overlay containment fix:**
+- useBottomInset hook (single source of truth for bottom UI stack)
+- Exported constants: HEADER_HEIGHT (45), MINI_PLAYER_HEIGHT (54), COMMAND_BAR_HEIGHT (54)
+- All 9 overlays fixed at container level (top/bottom/sides/scroll containment)
+
+**Mylane Agent v2 (DEC-149):**
+- Full instruction rewrite deployed to Base44 (soul seed, mandatory 4-step protocol, failure logging, growth protocol)
+- 26 entity tools removed, 2 backend functions remain (agentScopedQuery + agentScopedWrite)
+- Agent hallucination FIXED — tested and verified: reminder write succeeds, record confirmed in database
+- Smart routing (DEC-150): "show me" queries emit TYPE 1 RENDER (real components) not TYPE 2 (data dumps)
+
+**Shell polish:**
+- RemindersCard read path fixed (Creator Only RLS bypass via agentScopedQuery, staleTime 30s)
+- CommandBar pinned to viewport bottom (position: fixed, dynamic offset via useBottomInset)
+- Hidden fields filter (33 fields) in renderEntityView.jsx for TYPE 2 renders
+- DrillView tab routing fix (view parameter wired through 3-layer render chain)
+- Agent loading state fix (clear on RENDER tag parse, not on text completion)
+
+**Design work:**
+- Home Canvas spec designed with mockups (TYPE 4 RENDER_CANVAS)
+- Hyphae review saved weeks: no component accepts raw data as props, all self-fetch
+- Recommendation: don't build TYPE 4, use smart TYPE 1 routing instead (DEC-150)
+- Spec shelved — existing architecture handles it with smarter routing (DEC-151)
+
+### Decisions made
+
+- DEC-149: Mylane Agent v2 — mandatory classify/execute/verify/respond protocol
+- DEC-150: Smart Routing — TYPE 1 for workspace views, TYPE 2 only for novel queries
+- DEC-151: Spec Review Protocol — always get Hyphae's codebase review before architecting
+
+### What's next
+
+- Walkthrough of today's fixes (verify tab routing, reminders display, loading state)
+- CLAUDE.md compression pass (Vercel pattern — passive context, dense index)
+- Agent Soul Seed Protocol (shared template for all space agents)
+- Mylane action tiles Phase 1 (reminders as proof of concept)
+- Space agent attention signals (when 3+ spaces have real signals)
+- ClaimBusiness deletion + co-presence model session
+- Footer removal/strip
+- Admin per-space reframe
+
+---
+
+## 2026-04-17 — Cockpit Library (spinner + compass)
+
+### What shipped
+
+**Cockpit library architecture:**
+- `ll_cockpit` localStorage preference with `data-cockpit` DOM attribute, mirroring the theme plumbing (localStorage + attribute + MutationObserver). Pre-paint in main.jsx prevents FOUC.
+- `resolveVariant()` inside SpaceSpinner decouples variant selection from theme. The old `THEME_VARIANT = { dark: 'coverFlow', light: 'coverFlow', fallout: 'drum' }` is wrapped inside the spinner cockpit branch — existing users see zero behavioral change.
+- `useCockpit()` hook mirrors the existing `useTheme()` DIY hook in SpaceSpinner (same MutationObserver pattern, different attribute).
+- No React provider, no context, no server-persisted preference. Matches codebase convention.
+
+**Compass variant (fourth entry in VARIANT_MAP):**
+- Chrome row (22px): `BEARING` affordance label left, live degrees right, empty center.
+- Dial strip (54px): horizontal track, stations at ITEM_WIDTH rhythm, 1px needle with solid triangular arrow heads, gradient fade to 40% opacity through the active word.
+- Orientation arc (36px): shallow SVG arc with compressed dots (max 5), active dot scaled/colored, labels below (start / "here" / edge).
+- Active station lights up in place: `hsl(var(--primary))` name at 11px weight 500, `hsl(var(--primary) / 0.75)` bearing at 8px. Inactive stations muted with distance-opacity fade.
+- `COMPASS_BEARINGS` soft convention (home=0°, east for active work, NW/W for inward/community) with `getBearing()` fallback for unregistered spaces.
+- Fallout-theme handling: green-phosphor accent threads through via existing theme tokens, monospace font added via single CSS rule scoped to `[data-theme="fallout"] [data-cockpit="compass"]`.
+
+**Picker UI:**
+- Two-state cycle button in AccountOverlay, mirroring the theme cycle button pattern. Same row structure, same hover treatment, same label + sublabel.
+- Available to all users. No "New!" badge, no onboarding nudge — Dark Until Discovered.
+
+**Polish arc (three commits):**
+- v1 (c44bb21): library + compass + picker shipped.
+- v2 (b4d187e): removed redundant readouts — hid active station from strip, removed global dot indicator row under compass. Overcorrected — needle pointed at empty space.
+- v3 (ad04eb1): restored active station in place with accent-color treatment, simplified chrome row to affordance-only. Identity lives where the eye lives.
+
+### Decisions made
+
+- DEC-152: Cockpit Library Pattern
+- DEC-153: Color-in-Place Over Out-of-Band Readout
+- DEC-154: Iterate on the Live Surface
+
+### Tensions noted
+
+- DevLab physics sliders do not affect compass behavior (compass uses CSS transitions, not the friction loop). Harmless; low-priority cleanup would gate DevLab visually by cockpit.
+- `BEARING` label in chrome row may be slightly over-weighted relative to degrees readout after active name moved back to strip. Soft polish flag for field test.
+- Arc active-dot is still scaled + colored. Not currently redundant (strip = micro, arc = macro position), but worth watching.
+- Needle arrow treatment in Fallout may want a green-phosphor adjustment after field test.
+
+### What's next
+
+Changing focus — Doron directing next work. Cockpit library paused in a shipped, field-testable state. Follow-up polish happens only when field testing surfaces specific needs.
+
+---
+
+## Session Log — 2026-04-23 (Mycelia tree anchored)
+
+**Focus:** Close the three-day architecture arc (v4 → v4.1), ship Phase 1 schema foundation, ship Phase 2 production migration. Mycelia, LLC now exists as a real Business record with LocalLane, TCA, and reparented Recess as children. Bari's Red Umbrella promoted from his FS profile. Doron's test sandbox archived. Dan preserved as unclaimed orphan.
+
+### Architecture arc closure
+
+The three-day v4 → v4.1 conversation finalized during today's prep. Scoped-peer beat nested-containers (DEC-156) for tool architecture — tools remain top-level entities with a `business_id` filter, which is cheaper to build and produces the same UX. Per-entity $9 pricing with LocalLane exemption (DEC-155) supersedes the old DEC-115 model in full. Networks unified into one architecture with three configurable axes (cost/access/discovery mode — DEC-157). Users became first-class entities with optional public pages (DEC-158). DEC-117 (Dark Until Explored) preserved — the architecture doesn't touch user-visible flow. Settings stays in avatar. Tool rename ("Field Service" → "Desk", DEC-160) communicated in person to Bari and Dan; no in-app notice at current user scale.
+
+### Phase 1 — Schema Foundation shipped (2026-04-22)
+
+Base44 prompt at `community-node/base44-prompts/PHASE-1-SCHEMA-FOUNDATION.md` applied cleanly. Added 12 fields to Business (10 new + 2 archive), 6 fields to User, `business_id` to all 10 FS entities, archive fields to FieldServiceProfile, created new `AuditLog` entity (entity_type/entity_id/action/old_value/new_value/user_id/source/timestamp, admin-only Read). Canonical migration pattern at `src/scripts/migrations/TEMPLATE.js` (idempotent, dry-run-first, audit-logged). Committed `cfdcdb9` — Base44 auto-fixed 8 pre-existing component lint errors as a side effect; reconciled cleanly since Base44 pushes directly to main.
+
+Phase 1.5 (this morning): three more fields requested and applied — User.is_legacy_user, User.legacy_grace_until, Business.subscription_exempt. Cascaded into the entity jsonc files via Base44 auto-push.
+
+### Phase 2 — Reparenting machinery + production migration shipped
+
+Two Base44 server functions + one Node migration script, all gated by a shared `MIGRATION_SECRET` header (Base44 API-key auth does not populate `caller.role`, so role-based gating was wrong). All entity I/O via `asServiceRole`. All mutations write to AuditLog with `user_id = Doron` per DEC-139 server-authoritative identity.
+
+- **`reparentBusiness`** (Base44 server fn) — actions: `reparent` | `rollback`. Idempotent (if current parent matches target → skip). Dry-run skips parent-existence check (fix in commit `210d087` after first dry-run surfaced symbolic-parent edge case).
+- **`migrationHelpers`** (Base44 server fn) — actions: `create_business`, `create_business_from_fs_profile`, `archive_business`/`unarchive_business`, `archive_fs_profile`/`unarchive_fs_profile`, `mark_legacy_user`/`unmark_legacy_user`, `find_user_by_email`.
+- **`phase-2-production-migration.js`** (Node) — dry-run by default, `--apply` executes, prints audit_log_ids on mid-step failure for surgical rollback.
+
+Code committed to community-node main: Commit 1 `cc051a9` (machinery) + `210d087` (dry-run fix). Reports committed to private repo: `177e915`.
+
+**Production tree after apply:**
+
+```
+Mycelia, LLC (69ea4eb39932effeb503d889) — hidden, subscription_exempt
+├── LocalLane (69ea4eb4ff90f499289e5def) — exempt
+├── The Camel Academy (69ea4eb5d5b69f39bbcc404f)
+└── Recess (699e0d3deb3cfa670a28b275) — reparented
+
+Red Umbrella (69ea5590481b7e15af7216b6) — NEW, owner Bari, peer not child
+Spetzler Designs, NH systems, Danny Sikes Construction — untouched
+```
+
+Pulse: 4 → 8 businesses, 3 → 7 claimed. Bari's FS profile has `business_id` linked. Bari's User has `is_legacy_user: true`. Doron's test sandbox archived (`archived_at` set). 9 AuditLog rows written, all reversible.
+
+### What the migration surfaced (DEC-095 amendment — see DECISIONS.md)
+
+First `--apply` completed steps 1-4 then 500'd at step 5 ("Permission denied for update operation on FieldServiceProfile entity"). The assumed fix (open `security.update: true`) wasn't enough. Base44 has a **separate `rls` block** whose update rule is independent of the security layer. `asServiceRole` respects `rls.update: {"created_by": "{{user.email}}"}` and rejects when the service role identity ≠ the record's creator. Full fix required removing the `rls.update` key entirely (matches post-original-DEC-095 FSDocument pattern). Append amendment to DEC-095 formalizes this.
+
+### Base44 working agreement established (DEC-162)
+
+Multiple sessions this week surfaced the same pattern: Base44's agent auto-lint-fixes files beyond the scope of the prompt when applying schema changes. Fix: applied-directly prompts with four-category confirmation checklist — (a) scoped change applied, (b) files read but not modified, (c) out-of-scope observations, (d) files consciously not touched despite noticing issues. Report-don't-fix is a standing rule. DEC-162 codifies.
+
+### Decisions made
+
+- DEC-155: Per-entity $9 membership model with LocalLane exemption (supersedes DEC-115)
+- DEC-156: Business-as-scoped-peer, not nested container
+- DEC-157: Networks unified architecture
+- DEC-158: Users as first-class entities with optional public pages
+- DEC-159: Legacy user grace period pattern
+- DEC-160: Desk rename
+- DEC-161: Living tiles, not photos
+- DEC-162: Base44 agent working agreement
+- DEC-095 amendment: `security.update` is only half of the fix — `rls.update` key must also be absent
+
+### Drift + cleanup items noted (future sessions)
+
+- **DECISIONS.md drift:** `Spec-Repo/DECISIONS.md` and `community-node/DECISIONS.md` have diverged. Spec-Repo jumped 145 → 149 skipping 146-148; community-node has 146 (Living Feet), 147 (R&D Allowlist), 148 (Overlay Expansion). Both have a DEC-152 pointing at different decisions (Spec-Repo = Cockpit Library; Doron's intended DEC-152 now renumbered to DEC-162). This session adds new entries to Spec-Repo only; community-node copy not synced. Needs its own audit/merge session.
+- **Base44 auto-push behavior:** continues to push "File changes" commits directly to main (uninformative messages, occasional unrelated lint fixes bundled with intended schema changes). DEC-162 working-agreement mitigates but does not eliminate; expect it in any entity-change session.
+
+### What's next
+
+Phase 3 — business switcher — queued for a future session (separate day, UI-only, no production mutations). Phases 4 (Desk rename + business-scoped rendering), 5 (membership gate), 6 (onboarding fork) follow. Round 2 (Stripe Connect) is the prerequisite for real money flow and will re-invoke the legacy grace pattern (DEC-159) to populate `legacy_grace_until` on all `is_legacy_user: true` users.
+
+Bari workspace verification pending — Doron will log in from a real device when it's convenient. No UI changes expected; the migration only populated a background `business_id` link.
+
+### Cleanup
+
+- `MIGRATION_SECRET` removed from Base44 env config (Doron) and from `community-node/.env` (Hyphae). `.env` file kept for Round 2 Stripe keys; verified gitignored; verified no commits contain the secret.
+
+---
+
+## Session Log — 2026-04-23 (Bari-prep)
+
+**Focus:** Build-and-ship session to prepare Bari Swartz's Red Umbrella Services LLC workspace for the 2026-04-24 morning meeting. User-owned templates as a feature, preview UX on all template cards, legal disclaimer on system templates, `video_url` field on Business (plumbing only), and load Bari's two attorney-drafted contracts (General Construction Contract + Subcontractor Agreement) into his workspace.
+
+**Shipped to community-node (origin/main):**
+
+1. **Track A — feature surface (commit `e3ba53a`):** Two-tier FSDocumentTemplate (DEC-163) with `business_id` field and client-side partition (DEC-140 pattern). Two-section templates UI on FS Documents tab: "{{BUSINESS NAME}} TEMPLATES" above "DOCUMENT TEMPLATES" system section. Click-any-template preview modal (DEC-165) with business-branded letterhead, bracketed per-client placeholders, Close + "Use this Template" CTAs, Escape + backdrop close. Lightweight legal disclaimer on system templates only: banner in preview modal + small italic footer on rendered FSDocument. `buildMergeData` rewritten business-first (DEC-164): 14 new `{{business_*}}` merge fields including `logo_url` and `banner_url`, legacy `{{company_*}}` preserved. Branded letterhead (logo + name + tagline) in DocumentDetail. `video_url` field plumbed: `PROFILE_ALLOWLIST` in `updateBusiness/entry.ts`, URL input after Facebook in `BusinessSettings.jsx`, jsonc reference copy updated. No render on BusinessProfile — deferred to BusinessProfile redesign session.
+2. **Track B cleanup (commit `4c6ceda`):** Strip italic `*(Note: ...)*` implementer annotations from loaded template content. Source `.md` files in `base44-prompts/assets/` keep the annotations for repo documentation; only what reaches Base44 is clean. Regex eats leading whitespace so both standalone-paragraph and inline note forms collapse cleanly.
+3. **Track B load (commit `c3a7091`):** `base44-prompts/assets/` directory with `bari-red-umbrella-construction-contract.md` + `bari-red-umbrella-subcontract.md` (source verbatim). New `migrationHelpers.create_fs_document_template` action: idempotent on `business_id + title`, `asServiceRole` write, AuditLog row. Loader at `src/scripts/migrations/load-bari-templates.js` — dry-run default, `--apply` executes, strips metadata header at first `---` divider then strips implementer notes.
+4. **Bari's templates applied** via `node src/scripts/migrations/load-bari-templates.js --apply`. Two `FSDocumentTemplate` records created:
+   - `69ea7974c5f30ff25c860702` — "Red Umbrella General Construction Contract" (21 unique merge fields, 14,860 chars, audit `69ea7974395160c0cb100bf6`)
+   - `69ea797533163127a73aeef3` — "Red Umbrella Subcontractor Agreement" (26 unique merge fields, 21,252 chars, audit `69ea7975450b88cc171192ba`)
+   Both scoped to Red Umbrella (`business_id: 69ea5590481b7e15af7216b6`), Bari's FS profile (`profile_id: 69baba55a6b9cca0c7d5700b`), `is_system: false`. Source typos preserved verbatim: Section 6 appears twice in the construction contract, Section 15 of the subcontract reads "fifteen percent (25%)", Section 21 has duplicate 21.2, Section 22 is missing 22.4. Idempotent re-apply returned SKIPPED for both — idempotency verified.
+5. **Regression fix (commit `9e349be`):** `TemplateEditor.handleSave` line 1157 wrapped `merge_fields` in `JSON.stringify(...)`; Base44 schema declares `merge_fields` as `array`. Pre-existing bug from Phase 4 (DEC-085 era, commit `6ce2faa`), dormant for months because no UI path had walked the "+ Custom" TemplateEditor save against live Base44 validation between Phase 4 and tonight's dogfood. Not a Track A regression. One-line fix: drop the stringify, pass raw array. Bug scope limited to TemplateEditor create + update paths — document generation, template preview, and system-template seeding all passed proper arrays and were unaffected. Bari's two migration-loaded templates also unaffected (loader script passed a real JS array).
+
+**Base44 changes applied by Doron (via agent prompts):**
+
+- `FSDocumentTemplate.business_id` (string, optional, FK→Business) — Read permission confirmed authenticated (no rls.read rule existed at audit time)
+- `Business.video_url` (string, optional) — URL field for intro video (YouTube, Vimeo, or direct mp4)
+- `migrationHelpers` — new `create_fs_document_template` action pushed via GitHub auto-sync, deployed by Base44 platform sync
+
+**Dogfood observations:**
+
+- Template creation "+ Custom" flow hit the dormant `merge_fields` stringify bug → fix pushed same session (`9e349be`).
+- Doron needed to verify Bari's workspace view (templates visible under "RED UMBRELLA TEMPLATES") but couldn't without logging in as Bari → surfaced as a seedling (Admin Impersonation Mode, private/SEEDLING-TRACKER.md).
+- Video URL input needed to be pasted into Bari's settings but Doron couldn't impersonate → same seedling, second hit in 30 minutes — strong signal this gap will keep biting.
+- Current-business signal on the Documents tab reads `profile.business_id` — works for today's single-business case, resolves cleanly in Phase 3 when the business switcher becomes the authoritative source.
+- Test template created in Doron's workspace (business_id `69ea4eb5d5b69f39bbcc404f`) deleted post-session.
+
+**Decisions made:**
+
+- **DEC-163** Two-tier template architecture — system + business-scoped user-owned
+- **DEC-164** Business-first branding composition in FS document rendering
+- **DEC-165** Template preview before commit
+- **DEC-166** Bari-prep user-template provisioning via admin migration path
+- **DEC-167** Write-mutation schema-conformance audit protocol (from the `merge_fields` bug root-cause)
+
+**Tech debt logged (private/TECH-DEBT.md, new file this session):**
+
+- FSDocumentTemplate `rls.update` creator-only — business teammates cannot edit each other's templates; Bari cannot edit the two migration-loaded templates. Workaround: fresh "+ Custom" copy. Fix: remove `rls.update` per DEC-095 amendment pattern.
+- Phase 2 carryover — FieldServiceProfile + User `security.update: true` with no RLS. Wide-open by design to let Phase 2 migration run. Phase 5 (membership gate) re-tightens per DEC-095 amendment pattern.
+- Phase 2 migration scripts `eslint-env node` placement bug in `scripts/migrations/TEMPLATE.js` and `scripts/migrations/phase-2-production-migration.js`. Cosmetic, no runtime impact.
+
+**Seedlings logged (private/SEEDLING-TRACKER.md):**
+
+- Admin Impersonation Mode (Phase 6+)
+- Shared Base44 Entity Schema Validator Module (Living Feet DEC-146 pattern — architectural mitigation for the class of bug DEC-167 addresses procedurally)
+- BusinessProfile Website-Shaped Redesign (video render becomes live at that point)
+
+**Next up:**
+
+- Bari workspace live check from Bari's device (2026-04-24 morning)
+- Phase 3 — business switcher
+- Phase 4 — Desk rename + business-scoped rendering (DEC-160, DEC-156)
+- Phase 5 — membership gate + re-tighten FSProfile/User `rls.update`
+- Round 2 — Stripe Connect (prerequisite for real money flow + legacy grace population)
+- BusinessProfile redesign (video render goes live)
+- DECISIONS.md drift audit + merge session
+
+**Ship-it timestamp:** 2026-04-23, evening. Session closed.
+
+---
+
+## Session Log — 2026-04-24 (Phase 3 marathon)
+
+**Focus:** Multi-build day closing most of Round 1 Phase 3. Six community-node commits + one Spec-Repo architecture commit. First external revenue logged (Bari, $500 retainer). Migration plan resolved (Pattern C+, Phase 6 trigger). Service area becomes structured. Vocabulary settled (Jobsite → Desk).
+
+**Shipped to community-node (origin/main):**
+
+1. **Build 1 commit-handler patch (`c0d7c3f`):** SpaceSpinner pointer-capture issue resolved — center-tile commits now fire reliably; `onCenterTap` prop added. The cockpit-native business switcher (DEC-168) is functional end-to-end after this. Preceded by a TDZ-error patch (`e6b4c4c`) and a diagnostic commit (`87a8ee4`).
+2. **Build 2 — Directory visibility filter + Settings toggle (`65e3fd7`):** new `src/utils/directoryVisibility.js` helper (`filterListedBusinesses`, predicate `b.listed_in_directory !== false`) applied at all three public surfaces — `Directory.jsx`, `NetworkPage.jsx`, `Home.jsx`. Owner-only "Directory Visibility" card in `BusinessSettings` with immediate write + toast (matches the Build 2 pattern). `listed_in_directory` added to `PROFILE_ALLOWLIST` in `updateBusiness/entry.ts`. Mycelia, LLC stops leaking to public surfaces; admin surfaces unaffected (owners always see their full tree per DEC §13.1).
+3. **Build B — Profile Settings editors + tagline render + photos + accepts toggles + empty-state nudge (`6521232`):** preceded by diagnostic commit `57db9d6`. Closes the origination gap from Phase 2 — businesses created via reparenting (Mycelia, Red Umbrella) skipped the directory content `BusinessOnboarding` would have captured, so Settings now carries editors for every rendered-but-previously-uneditable field. Tagline editor in Basic Info; universal `services[]` structured editor (port of `BusinessOnboarding` add/remove/update pattern); standalone Photos card (upload-then-append, reuses `Step2Details.jsx`); standalone Accepts Payments card (Joy Coins + Silver toggles, immediate write); empty-state nudge banner (owner-only, only while sparse, session-dismissable). `BusinessProfile.jsx` subtitle ladder fixed: `tagline → getCategoryDisplayLabel → "New to LocalLane"`. `PROFILE_ALLOWLIST` audited; no additions needed. The legacy `services_offered` textarea was removed (new writes go to `services[]`); legacy data still renders via the profile's existing fallback.
+4. **Build C — Jobsite → Desk vocabulary rename (`9598128`, DEC-170):** three `PLATFORM-LABEL` changes in `MyLaneSurface.jsx` (label + welcome map) and `HomeFeed.jsx` (priority spinner). Inside-the-business cockpit no longer says "Jobsite"; says "Desk." `FieldServiceAgent` persona text intentionally preserved (domain vernacular). Bari's subcontract preserved (user content, not platform copy). No URL or component file renames — Phase 4 (DEC-160) will rename the implementation tier; this build cleans the user-visible vocabulary.
+5. **Build D — Cockpit centering on wide viewports (`47d1af2`):** root cause was `.mylane-content-area.panel-open { margin-right: 300px }` reserving width for an agent panel that's already an absolute overlay (Living Feet violation — the panel was load-bearing in two places: the absolute overlay layout and the margin reservation). Removed the margin rule; layout now centers cleanly on 375 / 1280 / 1400 / 1600 / 1920 / 2560 px.
+6. **Build E — Service area structured editor (`7c21c3e`, DEC-174):** new `src/config/laneCountyTowns.js` with curated 21-town list (Coburg, Cottage Grove, Creswell, Dexter, Dunes City, Elmira, Eugene, Fall Creek, Florence, Junction City, Lowell, Marcola, McKenzie Bridge, Noti, Oakridge, Pleasant Hill, Springfield, Veneta, Vida, Walterville, Westfir — incorporated cities + notable unincorporated communities). Each town carries `{slug, display_name, region_slug: 'lane-county'}` for forward compatibility with the Phase 6 Region entity (DEC-172). New `src/components/business/TownMultiSelect.jsx` reusable curated multi-select chip component (matches Build B's `product_tags` chip visual). `BusinessSettings.jsx` replaces the freeform `service_area` Input with `TownMultiSelect`, universal across archetypes — no longer gated to `service_provider`. `service_area` is now `array<slug>`; legacy strings preserved verbatim and rendered with an owner-only "(legacy)" annotation on `BusinessProfile.jsx`. `serviceAreaMutation` writes immediately on chip toggle (matches Build 2's `acceptsMutation`). `service_area` was already in `PROFILE_ALLOWLIST`; no server-side changes.
+
+**Shipped to Spec-Repo (origin/main):**
+
+7. **Architecture v4.1 amendments (`955f8e2`):** DEC-169 (folder architecture — cockpits render folders at every depth; root universal + contextual; workspace at the leaf), DEC-170 (Home collapses into Desk inside a business — Home is a Personal-scope concept; Desk is the home of business work), DEC-171 (path-based direct doors `/b/{slug}` for Round 1 — Base44 has no wildcard subdomains; custom domains for Round 2+; URL is the primary scope source for `useActiveBusiness`), DEC-172 (Region as first-class entity with `seed / sprouting / established` lifecycle; "carried in the wind" growth — visitors from unfounded regions become seeds of those regions; Phase 6 implementation), DEC-173 (resurface before rebuild — when a previously-built surface is needed, find it in the codebase or git history first; rebuild from scratch is the last resort; standing rule across all phases).
+
+**Decisions made:**
+
+- **DEC-169** Folder architecture
+- **DEC-170** Home collapses into Desk inside a business
+- **DEC-171** Direct doors are path-based for Round 1 (custom domains Round 2+)
+- **DEC-172** Region as first-class entity with lifecycle states
+- **DEC-173** Resurface before rebuild
+- **DEC-174** `service_area` is `array<slug>` on Business (forward-compatible with Phase 6 Region/Town foundation)
+- **DEC-175** Migration to Supabase + Vercel deferred to Phase 6, combined with Region foundation backfill (single fragility window). All 8 Base44 agents retired during migration; new warm-presence AI companion designed fresh based on Bari's "AI tour guide" framing. Sandbox new platform on `lanecountyrecess.com`; `locallane.app` stays on Base44 during construction. Disciplined seam-hardening through Phase 4-5 (Build F bundles SDK wrap into `src/api/`).
+
+**Organism milestone — first external revenue:**
+
+Bari Swartz paid a **$500 retainer check on 2026-04-24**. Pricing structure agreed: $45/mo platform (founding rate, locked vs $69 launch standard), $45/hr dogfood rate, $90/hr service rate, $40 service call, $350 half-day, $650 full-day. **First external revenue in LocalLane history.** Phase milestone, logged.
+
+**Migration plan resolved (DEC-175 — Pattern C+):**
+
+Migration research doc at `community-node/docs/migration-research.md` (commit `78fc8c7`) evaluated five patterns. Selected: **C+ — build to prepare on Base44, migrate at Phase 6 combined with Region backfill.** Rationale:
+- Phase 6 already opens the database for Region backfill — adding the platform migration to that window incurs one fragility cost instead of two.
+- Eight existing Base44 agents have hardcoded entity-name vocabulary. Retiring them and birthing a single warm-presence companion fresh at migration time is cheaper than porting eight.
+- Bari's "AI tour guide" framing is the design seed for the new companion — softer, fewer agents, more presence.
+- `lanecountyrecess.com` is the sandbox for the new platform (Supabase + Vercel) so `locallane.app` keeps running on Base44 during construction.
+- Phases 4 and 5 will harden seams: Build F bundles the SDK wrap into `src/api/` (no new direct CRUD anywhere), giving the swap layer a single point of replacement at migration time.
+
+**Build queue (pending):**
+
+- **Build F — Multi-category support + SDK wrap into `src/api/`** (bundled — F touches many files anyway, validating the wrapper shape with the first real consumer). Closes Phase 3.
+- **Build G — Desk tile icon swap** (cosmetic, ~15 min — HardHat → Briefcase or similar).
+- **Build H — Workspace content centering on wide monitors** (cosmetic; needs more thought than a one-line fix; defer past Build F).
+- **Phase 3.5 — Direct doors** (`/b/{slug}` per DEC-171).
+
+**Phase position:**
+
+- **Round 1 Phase 3 ~95% complete.** Switcher (Build 1 patch), directory visibility (Build 2), profile editors (Build B), Desk vocabulary rename (Build C), centering fix (Build D), service area structured editor (Build E). Build F closes Phase 3.
+- **Phase 3.5 (direct doors)** is next.
+
+**Carryover items:**
+
+- `community-node/docs/migration-research.md` was supposed to be deleted post-decision per its own ephemeral note; still present in main as of `78fc8c7`. Cleanup owed in a future community-node commit (not this Spec-Repo session).
+- DECISIONS.md drift between Spec-Repo and community-node still pending (carryover from 2026-04-23).
+
+**Ship-it timestamp:** 2026-04-24, evening. Session closed.
+
+---
+
+## Session Log — 2026-04-25 (Phase 3 closeout + multi-machine infrastructure)
+
+**Focus:** Phase 3 closed across Builds F, G, and H. One Base44 schema fix (`service_area`). Multi-machine development infrastructure brought online (Mac mini as primary alongside MacBook Pro). DEC-176 through DEC-181 added. Strategic clarifications: Phase 3.5 deferred, new Phase 5 (pre-migration cleanup) inserted, payment infrastructure deferred.
+
+**Shipped to community-node (origin/main):**
+
+1. **Build F.1 — SDK wrap foundation + businessCategories config hoist (`946b9eb`):** Foundation for the Base44 SDK wrap landing in `src/api/`. Multi-category config (`businessCategories`) hoisted from where it lived inline into a config module ready to be consumed by the wrap. First migration-prep seam-hardening step per DEC-175.
+2. **Build F.2 — TownMultiSelect → SlugMultiSelect rename (`cd8d700`):** Generalized Build E's reusable curated-multi-select chip component from town-specific naming to the broader slug pattern. Preparation for the multi-category use case in F.3 (subcategories are also slugs).
+3. **Build F.3 — Wire SlugMultiSelect into BusinessSettings + Directory pill filter patch + updateProfile wrap amendment (`bb76fbc`):** Multi-category support live end-to-end via `subcategories[]`. Directory pill filter patched to drive off the new structure. Wrap amended to add `updateProfile()` wrapping the `updateBusiness` server function (DEC-177 — write-path conformance, not just field-shape conformance — surfaced when initial wrap delegated to `base44.entities.Business.update()` while 29 owner-write call sites route through the server function gated by `PROFILE_ALLOWLIST`). Closes Build F.
+4. **Build G — Desk tile icon swap (`a2c46b5`):** HardHat → Briefcase. Cosmetic. The HardHat icon was archetype-leaky (read as Field Service) for what is now the universal Desk surface.
+5. **Build H — Workspace content centering on wide viewports (`9c3d080`):** Closes Phase 3. Same root cause as Build D (cockpit centering) but at the workspace-content layer.
+
+**Shipped to Spec-Repo (origin/main):**
+
+6. **Path alignment commit (`29351e4`):** All `~/Documents/LocalLane/` references in repo docs aligned to `~/Documents/GitHub/`. Five replacements in `audits/MEAL-PREP-READINESS-AUDIT.md`. Strikethrough historical reference to deleted `locallane-spec-repo` preserved as historical fact. **Shipped via Hyphae from the Mac mini — first Hyphae session run from the new primary machine.** Round-trip smoke test (commit on mini, push, pull on laptop) passed.
+7. **Phase 3 closeout docs commit (this session):** DECISIONS.md DEC-176 through DEC-181, STATUS-TRACKER updates, SEEDLING-TRACKER additions, ACTIVE-CONTEXT refresh, PROJECT-BRAIN multi-machine note, LAUNCH-CHECKLIST Phase 3 marks + Phase 5 additions.
+
+**Base44 schema fix applied by Doron (via agent prompts):**
+
+- **`Business.service_area`** field type changed from `string` to `array<string>` to match Build E's code-side restructure (DEC-174). First surfaced by Bari smoke-test 2026-04-25 — every owner save returned `422 "Error in field service_area: Input should be a valid string"`. Decision DEC-178 codifies pairing code-level schema changes with Base44 dashboard updates so this whole class of regression doesn't recur.
+- **`Business.categories`** field added in error during Build F Phase 1 verify; left in place pending Phase 5 cleanup (DEC-176). Field is permissive (`array<string>`, default `[]`) and costs nothing sitting empty. Multi-category writes flow through `subcategories[]` per DEC-055.
+
+**Infrastructure migration (today):**
+
+- **Mac mini** added as primary development machine alongside MacBook Pro 2017. Both machines now run identical setups: GitHub Desktop, Claude Desktop, Claude Code (Hyphae) v2.1.119, Node.js v24.15.0 with `~/.npm-global` prefix, SSH keys authenticated to github.com/withdoron.
+- **Repos moved** from `~/Documents/LocalLane/` to `~/Documents/GitHub/` on both machines (matches GitHub Desktop's default clone path).
+- **All four repos** (community-node, Spec-Repo, private, ephraim-games) on SSH remotes on both machines.
+- **Working discipline:** pull as the first action of any session, push after every commit. Already the Hyphae default cadence — now load-bearing for multi-machine.
+- **DEC-181** records the setup. Mac mini is primary (more powerful, eventual Clawbot host); MacBook Pro is secondary (mobility, field visits to Bari).
+
+**Decisions made:**
+
+- **DEC-176** Business.categories field added in error, left in place
+- **DEC-177** Schema-conformance audits include write-path conformance (extends DEC-167)
+- **DEC-178** Code-level schema changes paired with Base44 dashboard updates (extends DEC-093, DEC-167)
+- **DEC-179** Phase 3.5 Direct Doors deferred to post-migration (Bari has redumbrellaservices.com, no URL pressure)
+- **DEC-180** Phase 5 — Pre-migration cleanup added to roadmap between Phase 4.5 and Phase 6
+- **DEC-181** Multi-machine development setup (Mac mini primary, MacBook Pro secondary, paths aligned at `~/Documents/GitHub/`)
+
+**Strategic clarifications:**
+
+- **Phase 3.5 (Direct Doors) deferred to post-migration** per DEC-179. Bari's $500 retainer covers Field Service workflow + direct platform time, not public profile replacement. He already operates redumbrellaservices.com.
+- **New Phase 5 (Pre-Migration Cleanup) added** per DEC-180. Inserted between Phase 4.5 (Seedlings) and Phase 6 (Migration). Covers dead code removal, unused entity audit, archetype/main_category/sub_category_id consolidation into `subcategories[]`, walking-the-app cleanup findings.
+- **Payment infrastructure deferred to post-migration.** Membership gate (was Phase 5, DEC-155) and Stripe Connect (was Round 2) both move to the post-migration window. Cheaper to build payment once on Supabase+Vercel than to build it twice.
+
+**Field Service node assessment:**
+
+Bari is a paying user, multi-category classification working end-to-end after Build F. Node now considered **production-shaped** given paying-user dependency. Score nudged to ~95/100. Flag raised: NODE-LAB-MODEL.md (private repo) likely needs a phase-review note — Field Service may have crossed the seed → sprout → grow → thrive threshold with the paying-user signal. Not updated this session (NODE-LAB-MODEL is in private/, outside this Spec-Repo + community-node commit scope).
+
+**Carryover items (still pending):**
+
+- `community-node/docs/migration-research.md` cleanup (was supposed to be deleted post-DEC-175, still in main)
+- DECISIONS.md drift between Spec-Repo and community-node (pre-existing, dedicated session)
+- community-node `context/` doc files diverged from Spec-Repo (`ACTIVE-CONTEXT.md`, `STATUS-TRACKER.md`, `SESSION-LOG.md`, `PROJECT-BRAIN.md` all dated 2026-04-15) — same drift pattern as DECISIONS.md, dedicated session needed.
+- Field Service node phase review in NODE-LAB-MODEL.md (private repo, separate session).
+
+**Seedlings logged (this session):**
+
+- `legacyCategoryMapping` cleanup (`categoryData.jsx:229-240`, Phase 5 candidate)
+- `BusinessEditDrawer` derived-write pattern (`BusinessEditDrawer.jsx:75-98`, Phase 5 candidate)
+- HardHat string-icon in `workspaceTypes.js:232` (Phase 5 candidate when archetype-neutralizing)
+- Persistent Base44 SDK 404 console spam on every page load (root-cause investigation candidate)
+- Duplicate `DC` key React warning in Radix Select (likely state-code Select; separate cosmetic fix)
+
+**Phase position:**
+
+- **Round 1 Phase 3 closed.** All builds (1-patch, 2, B, C, D, E, F, G, H) shipped. Phase 3.5 deferred to post-migration.
+- **Phase 4 next.** Desk implementation rename + business-scoped rendering (DEC-160, DEC-156); plus reaffirmed scope: MyLaneSurface hook reordering, MyLaneDrillView latent bug fix, eslint-plugin-react-hooks exhaustive-deps enforcement, resurfacing buried surfaces per DEC-173.
+- **Pre-migration progression:** Phase 4 → Phase 4.5 (Seedlings: Admin Impersonation, post-migration welcome flow) → Phase 5 (pre-migration cleanup, NEW) → Phase 6 (Migration to Supabase + Vercel + Region foundation, Pattern C+ per DEC-175).
+
+**Multi-machine smoke test:**
+
+This is the first Hyphae session running from the Mac mini. The path-alignment commit (`29351e4` Spec-Repo) was created on the mini and pushed via SSH; pulling on the MacBook Pro would complete the round-trip smoke test. Closeout commit from this session is the second test of the same loop.
+
+**Ship-it timestamp:** 2026-04-25, evening. Session closed. Phase 3 closed. Ready for Phase 4.
 
 ---

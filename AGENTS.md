@@ -1,9 +1,9 @@
 # AGENTS.md — Universal AI Coding Agent Context
 
-> Read by any AI coding tool: OpenCode, Cursor, Copilot, Claude Code, or others.
+> Read by any AI coding tool: OpenCode, Copilot, Claude Code, or others.
 > Contains universal standards that apply regardless of which model or tool is in use.
-> Tool-specific conventions go in CLAUDE.md (Claude Code) or .cursorrules (Cursor).
-> Last updated: 2026-03-03
+> Tool-specific conventions go in CLAUDE.md (Claude Code).
+> Last updated: 2026-04-26 (Phase 4 warmup — context layer synced with Spec-Repo canonical)
 
 ---
 
@@ -19,13 +19,18 @@ For current state and priorities: see `context/ACTIVE-CONTEXT.md`
 ## Before Writing Any Code
 
 1. Read `context/ACTIVE-CONTEXT.md` — know what's in progress
-2. Read the relevant spec file for the feature you're building
-3. Check `DECISIONS.md` for constraints (DEC-001 through DEC-060+)
-4. Check `STYLE-GUIDE.md` for visual standards
-5. Check `ARCHITECTURE.md` for data patterns
-6. Check existing components before creating new ones
+2. Read `context/PROJECT-BRAIN.md` — orient on identity, philosophy, working style
+3. Read the relevant spec file for the feature you're building
+4. Check `DECISIONS.md` (community-node, DEC-092 onward) and `~/Documents/GitHub/Spec-Repo/DECISIONS.md` (DEC-001 through DEC-091) for constraints
+5. Check `~/Documents/GitHub/Spec-Repo/STYLE-GUIDE.md` for visual standards (Spec-Repo-only file)
+6. Check `~/Documents/GitHub/Spec-Repo/ARCHITECTURE.md` for data patterns (Spec-Repo-only file)
+7. Check existing components before creating new ones
 
 **Do NOT deviate from spec without flagging it.** If a change affects tier system, entity structure, or data model, stop and ask.
+
+**Multi-machine discipline (DEC-181):** Both Mac mini and MacBook Pro repos live at `~/Documents/GitHub/`. `git pull` is the first action of any session; push after every commit. Reference paths through `~/Documents/GitHub/...`, not machine-specific absolutes.
+
+**Schema conformance (DEC-167, DEC-177, DEC-178):** Code-level schema changes for Base44 entities must ship with paired Base44 prompts updating the dashboard schema. Audit the dashboard schema before any write-path change. Write-path conformance (server function / SDK wrap / agent write) is required, not just field-shape conformance.
 
 ---
 
@@ -68,7 +73,7 @@ ICONS:        text-amber-500 (emphasis) or text-white / text-slate-400 (default)
 
 **NEVER:** `bg-white`, `bg-blue-*`, `bg-green-*`, colorful icons, gradients, light backgrounds
 
-Full specification: `STYLE-GUIDE.md`
+Full specification: `~/Documents/GitHub/Spec-Repo/STYLE-GUIDE.md` (Spec-Repo-only).
 
 ---
 
@@ -166,4 +171,4 @@ Before committing:
 
 ---
 
-*This file is read by all AI coding tools. Keep it to universal standards only. Tool-specific context goes in CLAUDE.md or .cursorrules.*
+*This file is read by all AI coding tools. Keep it to universal standards only. Tool-specific context goes in CLAUDE.md.*

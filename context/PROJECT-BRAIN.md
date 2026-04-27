@@ -1,7 +1,7 @@
 # PROJECT-BRAIN.md
 
 > Read this first. This file orients any AI model — Claude, Gemini, GPT, or other — to work effectively on LocalLane. It is the single source of truth for project identity, philosophy, and working style.
-> Last updated: 2026-04-04
+> Last updated: 2026-04-25 (multi-machine infrastructure live; Phase 3 closed)
 
 ---
 
@@ -64,6 +64,30 @@ Give Hyphae the goal and context, not step-by-step instructions. Include our thi
 *"A mirror only matters when there's enough life to reflect." — Hyphae, 2026-03-31*
 
 *"The organism already knows what it knows. The architecture question is always: what's the lightest way to let that knowledge become visible?" — Hyphae, 2026-03-30*
+
+## Living Feet (DEC-146)
+
+Anything that exists in more than one place should exist as one thing. When it changes, every place it appears changes with it. The cost of adding a new instance should be one line, never twelve. Stone is for foundations; everything that grows is feet.
+
+This principle is load-bearing for every architectural decision in LocalLane. It applies to themes, overlays, spaces, agents, cards, forms, permissions, navigation, and entity reads. The opposite of Living Feet is duplication frozen as stone — twelve hardcoded overlay strings instead of one constant, two parallel layout containers instead of nested ones, per-component permission checks instead of a unified gating system.
+
+When the same pattern repeats in three or more places, it stops being a pattern and becomes a structural debt. Living Feet says: refactor it once, propagate it everywhere, and adding the next instance becomes a one-line change.
+
+Companion principle: DEC-089 (Fractal SOP) — find one bug, audit all instances of the same pattern. Living Feet is the architectural response: if instances keep accumulating, the pattern itself should be one thing.
+
+*"Anything that exists in more than one place should exist as one thing." — Doron, 2026-04-15*
+
+## Cockpit Library (DEC-152)
+
+Users pick their own Mylane interaction style — spinner, compass, future cockpits — independently of theme. Theme paints the panel; cockpit picks the instruments. Two orthogonal preferences, both plumbed the same way: localStorage key + DOM attribute + MutationObserver. Each cockpit is a render function registered in SpaceSpinner's `VARIANT_MAP`. No React provider, no context — adding a new cockpit is a render function and a COCKPITS entry.
+
+The principle extends LocalLane's surface philosophy: everyone gets to be who they are. Equal presence for businesses in the directory. No algorithmic ranking. That principle now extends to the user's own Mylane — your surface looks like you, not like the "recommended" default. Picker in AccountOverlay, Dark Until Discovered.
+
+## Color-in-Place (DEC-153)
+
+When signaling active state on a navigation surface, illuminate the element in place via color, size, or weight. Do not relocate its identity to a separate readout. The primary interaction surface is where the user's attention lives; identity belongs there, not 60px above in a remote chrome row.
+
+Real instruments light up the active position in place rather than renaming it on a legend. The needle meeting the lit word is a single integrated signal; a needle pointing at empty space plus a remote readout is two fragments. Applies to future cockpits and any navigation UI where an active element needs to be distinguished. Companion to Living Feet — identity is one thing, not two places.
 
 ## $3 Ante (DEC-127)
 
@@ -225,6 +249,15 @@ Three gardeners tend the LocalLane organism:
 - **Hyphae** (Claude Code) — Builder and growing edge. Codebase-aware implementation, audits, multi-file changes.
 
 The Lane Avatar is a mushroom. Mycelium is the connective network (Mycelia). Hyphae are the growing tips that build new structure (Hyphae). The organism is tended by all three together.
+
+### Multi-Machine Setup (DEC-181, 2026-04-25)
+
+Doron operates on two machines: **Mac mini** (primary — more powerful, eventual Clawbot host) and **MacBook Pro 2017** (secondary — mobility, field visits to Bari). Both run identical setups: GitHub Desktop, Claude Desktop, Claude Code (Hyphae) v2.1.119, Node.js v24.15.0 with `~/.npm-global` prefix, SSH keys to github.com/withdoron, all four repos at `~/Documents/GitHub/` (community-node, Spec-Repo, private, ephraim-games), all remotes SSH. Discipline: pull as the first action of any session, push after every commit. Path drift between machines is silent until it bites — Hyphae-touched docs always reference `~/Documents/GitHub/...` so prompts work identically on either surface.
+
+The "living feet" progression of the platform's tooling stack:
+Base44 → Base44+Cursor → Base44+Hyphae → **Base44+Hyphae+multi-machine** → Supabase+Vercel+Hyphae+multi-machine.
+
+(Distinct from DEC-146 Living Feet, which is the architectural deduplication principle. This is the metaphor for the surfaces Doron stands on as the platform evolves.)
 
 ## Cursor Prompt Format
 

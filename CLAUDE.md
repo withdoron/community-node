@@ -16,7 +16,7 @@ Build with care. Every line of code is a hypha extending the organism into new t
 > Read at the start of every Claude Code session.
 > Lean by design — uses @imports for details. Only what Claude cannot guess lives here.
 > Update this file when a mistake should never recur or a new convention is established.
-> Last updated: 2026-04-15
+> Last updated: 2026-04-26 (Phase 4 warmup — context layer synced with Spec-Repo canonical)
 
 ---
 
@@ -75,12 +75,25 @@ git add -A && git commit -m "descriptive message" && git push origin main
 
 ## Architecture & Patterns
 
-@ARCHITECTURE.md
 @DECISIONS.md
-@STYLE-GUIDE.md
-@.cursorrules
 
-For decisions DEC-001 through DEC-083, check DECISIONS.md before assuming behavior.
+DECISIONS.md (community-node copy) tracks DEC-092 onward. DEC-001 through DEC-091 live in Spec-Repo's DECISIONS.md (`~/Documents/GitHub/Spec-Repo/DECISIONS.md`) — read across both when researching prior architectural calls. ARCHITECTURE.md and STYLE-GUIDE.md are Spec-Repo-only files; reach across to that repo when needed. Cursor is retired (DEC-181 multi-machine setup) — `.cursorrules` is no longer maintained as a tool surface.
+
+## Multi-Machine Setup (DEC-181, 2026-04-25)
+
+Doron operates on two machines (Mac mini primary, MacBook Pro 2017 secondary). Both run identical setups: GitHub Desktop, Claude Desktop, Claude Code (Hyphae), Node.js v24.15.0, SSH keys to github.com/withdoron, all four repos at `~/Documents/GitHub/` (community-node, Spec-Repo, private, ephraim-games), all remotes SSH.
+
+**Session discipline (load-bearing):** `git pull` as the first action of any session. Push after every commit. Path drift between machines is silent until it bites — always reference `~/Documents/GitHub/...` paths, never machine-specific absolute paths or `~/Documents/LocalLane/` (that path is retired). See PROJECT-BRAIN.md "Multi-Machine Setup" section for the full setup contract.
+
+## Schema Conformance (DEC-167, DEC-177, DEC-178)
+
+Three rules that compound — break any one and write paths fail silently or at runtime.
+
+- **DEC-167 — Schema-conformance audit protocol.** Before shipping any change that writes to a Base44 entity, audit the actual dashboard schema for that entity. Don't write what the code expects — write what the dashboard accepts. Apply to new fields, renamed fields, type changes.
+- **DEC-177 — Write-path conformance, not just field-shape conformance.** It's not enough for the field shape to match the schema; the write path itself (server function, SDK wrap, agent write) must conform too. `updateProfile()` wraps the `updateBusiness` server function for exactly this reason.
+- **DEC-178 — Paired Base44 + code updates.** Code-level schema changes must ship with paired Base44 prompts that update the dashboard schema. The Build E `service_area` `string → array<string>` migration is the reference case: code change without the matching Base44 prompt would have written valid arrays into a string field and silently corrupted data.
+
+When a build touches entity fields, write the Base44 agent prompt first (per DEC-093), apply it, then ship the code. The code prompt notes "PRE-REQUISITE: Base44 entity changes have been applied" at the top.
 
 ---
 
@@ -326,7 +339,7 @@ NEVER:        bg-white, bg-blue-*, bg-green-*, colorful icons, gradients, hardco
 
 When modifying any file, convert remaining hardcoded color classes to semantic equivalents (DEC-132 organic migration).
 
-Full details: @STYLE-GUIDE.md
+Full details: `~/Documents/GitHub/Spec-Repo/STYLE-GUIDE.md` (Spec-Repo-only — not mirrored locally).
 
 ---
 
