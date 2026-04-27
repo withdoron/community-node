@@ -10,11 +10,12 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import {
-  Home, UtensilsCrossed, Briefcase, DollarSign, Users,
-  Store, Search, Music, Settings, LogOut, FileText,
-  Lock, Mail, Volume2, VolumeX, Building2, X, PanelRightOpen, FlaskConical, BookOpen, HelpCircle,
+  Store, Music, Settings, LogOut, FileText,
+  Lock, Mail, Volume2, VolumeX, X, PanelRightOpen, FlaskConical, BookOpen, HelpCircle,
   Compass,
 } from 'lucide-react';
+import { folderTree } from '@/config/folderTree';
+import { predicates as folderPredicates } from '@/config/folderPredicates';
 import ConfirmationCard from './ConfirmationCard';
 import DevLab from './DevLab';
 import MyLaneDrillView from './MyLaneDrillView';
@@ -45,30 +46,17 @@ const SupportPage = lazy(() => import('@/pages/Support'));
 const RecommendPage = lazy(() => import('@/pages/Recommend'));
 const NetworkPageComponent = lazy(() => import('@/pages/NetworkPage'));
 
-// Map workspace type IDs to spinner item config
-const SPACE_CONFIG = {
-  home:              { id: 'home',           label: 'Home',      icon: Home },
-  'meal-prep':       { id: 'meal-prep',      label: 'Kitchen',   icon: UtensilsCrossed },
-  'field-service':   { id: 'field-service',  label: 'Desk',      icon: Briefcase },
-  finance:           { id: 'finance',        label: 'Finances',  icon: DollarSign },
-  team:              { id: 'team',           label: 'Team',      icon: Users },
-  business:          { id: 'business',       label: 'Business',  icon: Store, dim: true },
-  discover:          { id: 'discover',       label: 'Discover',  icon: Search, dim: true },
-  'dev-lab':         { id: 'dev-lab',        label: 'Dev Lab',   icon: FlaskConical, dim: true },
-};
-
-function buildSpinnerItems(profiles, ownedBusinesses = [], userRole = null) {
-  const items = [SPACE_CONFIG.home];
-  if (profiles.mealPrepProfiles?.length > 0) items.push(SPACE_CONFIG['meal-prep']);
-  if (profiles.fieldServiceProfiles?.length > 0) items.push(SPACE_CONFIG['field-service']);
-  if (profiles.financeProfiles?.length > 0) items.push(SPACE_CONFIG.finance);
-  if (profiles.allTeams?.length > 0) items.push(SPACE_CONFIG.team);
-  if (ownedBusinesses.length > 0) items.push({ ...SPACE_CONFIG.business, dim: false });
-  if (profiles.propertyMgmtProfiles?.length > 0) items.push({ id: 'property-pulse', label: 'Property', icon: Building2 });
-  items.push(SPACE_CONFIG.discover);
-  // Admin-only: Dev Lab
-  if (userRole === 'admin') items.push(SPACE_CONFIG['dev-lab']);
-  return items;
+// Spinner items are derived from folderTree.js + folderPredicates.js. Adding
+// a new folder is a config entry, not an edit here (Phase 4.0, Living Feet).
+function buildSpinnerItems({ profiles, ownedBusinesses, currentUser }) {
+  const state = { currentUser, profiles, ownedBusinesses: ownedBusinesses || [] };
+  return folderTree
+    .filter((entry) => folderPredicates[entry.visible_when]?.(state))
+    .map((entry) => {
+      const item = { id: entry.id, label: entry.label, icon: entry.icon };
+      if ('dim' in entry) item.dim = entry.dim;
+      return item;
+    });
 }
 
 // Space the business-switcher tiles use while in switcher mode. Reuses the
@@ -554,7 +542,7 @@ export default function MyLaneSurface({
 
   // Build spinner items
   const spaceItems = useMemo(
-    () => buildSpinnerItems(profiles, ownedBusinesses, currentUser?.role),
+    () => buildSpinnerItems({ profiles, ownedBusinesses, currentUser }),
     [profiles, ownedBusinesses, currentUser?.role]
   );
 
