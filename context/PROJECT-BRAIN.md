@@ -1,7 +1,7 @@
 # PROJECT-BRAIN.md
 
 > Read this first. This file orients any AI model — Claude, Gemini, GPT, or other — to work effectively on LocalLane. It is the single source of truth for project identity, philosophy, and working style.
-> Last updated: 2026-04-25 (multi-machine infrastructure live; Phase 3 closed)
+> Last updated: 2026-04-26 (Cursor retired from canonical docs; DEC-182 single-source policy)
 
 ---
 
@@ -237,7 +237,7 @@ Reference STYLE-GUIDE.md for complete patterns and component specifications.
 - **Payments:** Stripe Connect
 - **Email:** IONOS (hello@locallane.app)
 - **Version Control:** GitHub Desktop
-- **AI Tools:** Claude.ai / Mycelia (strategy/planning), Claude Code / Hyphae (primary coding agent), OpenCode (backup coding agent with Gemini/GPT), Cursor IDE (visual editing)
+- **AI Tools:** Claude.ai / Mycelia (strategy/planning), Claude Code / Hyphae (primary coding agent), OpenCode (backup coding agent with Gemini/GPT)
 - **Memory Bridge:** SuperMemory MCP connector across all surfaces
 - **Organism Bridge:** Mycelia MCP Server on Cloudflare Workers (DEC-099) -- connects all Claude surfaces to Base44 via MCP protocol
 
@@ -255,24 +255,9 @@ The Lane Avatar is a mushroom. Mycelium is the connective network (Mycelia). Hyp
 Doron operates on two machines: **Mac mini** (primary — more powerful, eventual Clawbot host) and **MacBook Pro 2017** (secondary — mobility, field visits to Bari). Both run identical setups: GitHub Desktop, Claude Desktop, Claude Code (Hyphae) v2.1.119, Node.js v24.15.0 with `~/.npm-global` prefix, SSH keys to github.com/withdoron, all four repos at `~/Documents/GitHub/` (community-node, Spec-Repo, private, ephraim-games), all remotes SSH. Discipline: pull as the first action of any session, push after every commit. Path drift between machines is silent until it bites — Hyphae-touched docs always reference `~/Documents/GitHub/...` so prompts work identically on either surface.
 
 The "living feet" progression of the platform's tooling stack:
-Base44 → Base44+Cursor → Base44+Hyphae → **Base44+Hyphae+multi-machine** → Supabase+Vercel+Hyphae+multi-machine.
+Base44 → Base44+Hyphae → **Base44+Hyphae+multi-machine** → Supabase+Vercel+Hyphae+multi-machine.
 
 (Distinct from DEC-146 Living Feet, which is the architectural deduplication principle. This is the metaphor for the surfaces Doron stands on as the platform evolves.)
-
-## Cursor Prompt Format
-
-When generating prompts for Cursor or Claude Code, use this format:
-
-```
-GOAL: [What should be true after]
-WHERE: [File path(s)]
-[Instructions — numbered steps or FIND/REPLACE]
-CONSTRAINTS:
-- [What NOT to change]
-- Git commit message: "[message]"
-```
-
-One continuous copy-paste block. No extra explanation around it. No markdown code fences around structural content (tree diagrams, markdown). Only use code fences when the content IS code (.jsx, .css, etc.).
 
 ## Time-Sensitive Context
 
@@ -293,7 +278,6 @@ Key files to read before working:
 | STYLE-GUIDE.md | Gold Standard design system — colors, components, patterns |
 | ARCHITECTURE.md | Technical patterns, node architecture, Base44 patterns |
 | DECISIONS.md | All numbered decisions and their rationale |
-| .cursorrules | Component patterns and coding conventions |
 | STATUS-TRACKER.md | Comprehensive project status with session logs |
 | SEEDLING-TRACKER.md | All nodes, contacts, and growth status |
 | LAUNCH-CHECKLIST.md | Pre-pilot checklist items |
