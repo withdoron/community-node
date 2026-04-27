@@ -14,7 +14,7 @@ import {
   Lock, Mail, Volume2, VolumeX, X, PanelRightOpen, FlaskConical, BookOpen, HelpCircle,
   Compass,
 } from 'lucide-react';
-import { folderTree } from '@/config/folderTree';
+import { rootItems, folderItems, locateLeaf } from '@/config/folderTree';
 import { predicates as folderPredicates } from '@/config/folderPredicates';
 import ConfirmationCard from './ConfirmationCard';
 import DevLab from './DevLab';
@@ -48,15 +48,13 @@ const NetworkPageComponent = lazy(() => import('@/pages/NetworkPage'));
 
 // Spinner items are derived from folderTree.js + folderPredicates.js. Adding
 // a new folder is a config entry, not an edit here (Phase 4.0, Living Feet).
-function buildSpinnerItems({ profiles, ownedBusinesses, currentUser }) {
+// Phase 4.2a: items are level-aware — at root we show root folders; descended
+// into a static folder we show its children; descended into Businesses the
+// caller supplies dynamic items from ownedBusinesses (switcher mode).
+function buildSpinnerItems({ profiles, ownedBusinesses, currentUser, descendedFolderId }) {
   const state = { currentUser, profiles, ownedBusinesses: ownedBusinesses || [] };
-  return folderTree
-    .filter((entry) => folderPredicates[entry.visible_when]?.(state))
-    .map((entry) => {
-      const item = { id: entry.id, label: entry.label, icon: entry.icon };
-      if ('dim' in entry) item.dim = entry.dim;
-      return item;
-    });
+  if (descendedFolderId) return folderItems(descendedFolderId, state, folderPredicates);
+  return rootItems(state, folderPredicates);
 }
 
 // Space the business-switcher tiles use while in switcher mode. Reuses the
@@ -489,6 +487,9 @@ export default function MyLaneSurface({
   // tripping the TDZ — order of useState matters during the first render.
   const [switcherMode, setSwitcherMode] = useState(false);
   const [switcherFocusIdx, setSwitcherFocusIdx] = useState(0);
+  // Phase 4.2a — descent state for non-switcher folders (e.g., Personal).
+  // null = at root level. When set, the cockpit shows that folder's children.
+  const [descendedFolderId, setDescendedFolderId] = useState(null);
   const drillStartRef = useRef(null);
 
   const {
@@ -518,7 +519,7 @@ export default function MyLaneSurface({
     return () => window.removeEventListener('mylane-user-message', handler);
   }, [trackMessage]);
 
-  // Close overlay on Escape — unwind stack: Network/Recommend → BusinessProfile → base overlay → switcher
+  // Close overlay on Escape — unwind stack: Network/Recommend → BusinessProfile → base overlay → switcher → folder descent
   useEffect(() => {
     const handler = (e) => {
       if (e.key === 'Escape') {
@@ -526,12 +527,13 @@ export default function MyLaneSurface({
         if (overlayRecommend) { setOverlayRecommend(null); return; }
         if (overlayBusinessId) { setOverlayBusinessId(null); return; }
         if (activeOverlay) { setActiveOverlay(null); return; }
-        if (switcherMode) { setSwitcherMode(false); }
+        if (switcherMode) { setSwitcherMode(false); return; }
+        if (descendedFolderId) { setDescendedFolderId(null); setSpinnerIndex(0); }
       }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [activeOverlay, overlayBusinessId, overlayRecommend, overlayNetworkSlug, switcherMode]);
+  }, [activeOverlay, overlayBusinessId, overlayRecommend, overlayNetworkSlug, switcherMode, descendedFolderId]);
 
   // FrequencyMiniPlayer tap → open frequency overlay inside the shell
   useEffect(() => {
@@ -540,10 +542,10 @@ export default function MyLaneSurface({
     return () => window.removeEventListener('frequency-open-fullview', handler);
   }, []);
 
-  // Build spinner items
+  // Build spinner items for the current level (root or descended folder)
   const spaceItems = useMemo(
-    () => buildSpinnerItems({ profiles, ownedBusinesses, currentUser }),
-    [profiles, ownedBusinesses, currentUser?.role]
+    () => buildSpinnerItems({ profiles, ownedBusinesses, currentUser, descendedFolderId }),
+    [profiles, ownedBusinesses, currentUser?.role, descendedFolderId]
   );
 
   // ─── Business-switcher mode (DEC-168) ──────────────────────────────
@@ -579,13 +581,16 @@ export default function MyLaneSurface({
   //   - tapping a neighbor rotates the focus (does not commit)
   const handleSwitcherSelect = useCallback((idx) => {
     if (idx === switcherFocusIdx) {
-      // Commit: write active business, exit switcher, snap to Home. Spinner
-      // reforms with the new business's spaces; space-mode content re-renders
-      // because every consumer reads through useActiveBusiness (Living Feet).
+      // Commit: write active business, exit switcher, descend into Personal
+      // and snap to Home. Phase 4.2a — Home now lives under Personal, so the
+      // post-commit landing reaches it via descent rather than a flat index.
+      // Effective UX matches pre-4.2a (user lands on Home with new business
+      // active); navigation structure underneath reflects the folder tree.
       const target = ownedBusinesses[idx];
       if (target) setActiveBusiness(target.id);
       setSwitcherMode(false);
-      setSpinnerIndex(0); // Home = index 0 of spaceItems
+      setDescendedFolderId('personal');
+      setSpinnerIndex(0); // Home = index 0 of Personal's children
       setDrilledTab('home');
       setRenderedData(null);
     } else {
@@ -622,9 +627,64 @@ export default function MyLaneSurface({
   }, [spaceItems.length, handleSpinnerSelect]);
 
   const handleLogoClick = useCallback(() => {
+    // v4.1 §14.2: logo returns to root at any depth.
     setActiveOverlay(null);
+    setSwitcherMode(false);
+    setDescendedFolderId(null);
     handleSpinnerSelect(0);
   }, [handleSpinnerSelect]);
+
+  // Cross-folder navigation: locate a leaf id anywhere in the tree and
+  // navigate there, descending if necessary. Used by the agent message
+  // handler and the welcome-card "Go to <space>" button.
+  const navigateToId = useCallback((id) => {
+    const located = locateLeaf(id);
+    if (!located) return false;
+    setActiveOverlay(null);
+    setSwitcherMode(false);
+    setDescendedFolderId(located.folderId);
+    // spinnerIndex resolves against the new level on the next render —
+    // we look it up directly from the updated currentItems on next tick.
+    // Compute the target index now using the same predicates the renderer uses.
+    const state = { currentUser, profiles, ownedBusinesses };
+    const items = located.folderId
+      ? folderItems(located.folderId, state, folderPredicates)
+      : rootItems(state, folderPredicates);
+    const idx = items.findIndex((s) => s.id === id);
+    if (idx >= 0) setSpinnerIndex(idx);
+    setDrilledTab('home');
+    setRenderedData(null);
+    return true;
+  }, [currentUser, profiles, ownedBusinesses]);
+
+  // Phase 4.2a — center-tap descent gesture. SpaceSpinner already fires
+  // onCenterTap when the user taps the centered tile; we wire it to a
+  // descent action when the centered item is a folder.
+  const handleCenterTap = useCallback(() => {
+    const space = spaceItems[spinnerIndex];
+    if (!space || space.kind !== 'folder') return;
+    if (space.id === 'directory') { toggleOverlay(OV.DIR); return; }
+    if (space.id === 'events') { toggleOverlay(OV.EVT); return; }
+    if (space.id === 'businesses') {
+      // Reuses the existing DEC-168 switcher entry — descent into Businesses
+      // IS the lateral business picker. The pill-tap path also still works.
+      if (isMultiBusiness) enterSwitcher();
+      else if (ownedBusinesses[0]) {
+        // Single-owner case: descending commits the only business and lands
+        // on Personal/Home, mirroring the multi-owner commit flow.
+        setActiveBusiness(ownedBusinesses[0].id);
+        setDescendedFolderId('personal');
+        setSpinnerIndex(0);
+        setDrilledTab('home');
+      }
+      return;
+    }
+    // Generic static-folder descent (Personal, future folders).
+    setDescendedFolderId(space.id);
+    setSpinnerIndex(0);
+    setDrilledTab('home');
+    setRenderedData(null);
+  }, [spaceItems, spinnerIndex, toggleOverlay, isMultiBusiness, enterSwitcher, ownedBusinesses, setActiveBusiness]);
 
   // Agent messages
   const showRenderedData = useCallback((dataSpec) => { setRenderedData(dataSpec); }, []);
@@ -636,11 +696,12 @@ export default function MyLaneSurface({
     lastProcessedRef.current = msg.id;
     if (result.type === 'data') {
       showRenderedData({ entity: result.entity, workspace: result.workspace, data: result.data, displayHint: result.displayHint });
-    } else {
+    } else if (!navigateToId(result.workspace)) {
+      // Fallback: try the current level if locateLeaf misses (e.g. dynamic id)
       const targetIdx = spaceItems.findIndex((s) => s.id === result.workspace);
       if (targetIdx >= 0) handleSpinnerSelect(targetIdx);
     }
-  }, [spaceItems, handleSpinnerSelect, showRenderedData]);
+  }, [spaceItems, handleSpinnerSelect, showRenderedData, navigateToId]);
 
   useEffect(() => {
     if (agentMessageRef) agentMessageRef.current = handleAgentMessage;
@@ -658,12 +719,15 @@ export default function MyLaneSurface({
     'finance': 'finances', 'meal-prep': 'kitchen', 'business': 'business',
   };
 
-  // Navigate spinner to a space by ID (for welcome card)
+  // Navigate spinner to a space by ID (for welcome card). Crosses folders
+  // automatically — Phase 4.2a (Personal/Businesses now wrap leaves).
   const goToSpace = useCallback((spaceId) => {
-    const idx = spaceItems.findIndex((s) => s.id === spaceId);
-    if (idx >= 0) handleSpinnerSelect(idx);
+    if (!navigateToId(spaceId)) {
+      const idx = spaceItems.findIndex((s) => s.id === spaceId);
+      if (idx >= 0) handleSpinnerSelect(idx);
+    }
     setWelcomeData(null);
-  }, [spaceItems, handleSpinnerSelect]);
+  }, [navigateToId, spaceItems, handleSpinnerSelect]);
 
   // Render workspace content
   const renderContent = () => {
@@ -674,6 +738,12 @@ export default function MyLaneSurface({
       });
     }
     const space = currentSpace;
+    // Folders at non-leaf level render silence (v4.1 Section 8.1) — descent
+    // shows the folder's contents. Directory/Events open their existing
+    // overlays on center-tap; the surface beneath stays calm.
+    if (space?.kind === 'folder') {
+      return <div style={{ minHeight: 24 }} aria-hidden="true" />;
+    }
     if (space.id === 'home') {
       return (
         <>
@@ -873,58 +943,29 @@ export default function MyLaneSurface({
           </div>
         )}
         <div className="flex items-center" style={{ gap: 4 }}>
-          {/* Music / Directory / Events collapse while switching business —
-              header shows back + "operating as" + avatar only (DEC-168). */}
+          {/* Music icon — 44px tap zone. Phase 4.2a: Directory and Events
+              moved to the cockpit (folder positions in the spinner); their
+              header pills retired. Music remains as the Frequency Station
+              entry — a status glyph (now-playing pulse), not navigation. */}
           {!switcherMode && (
-            <>
-              {/* Music icon — 44px tap zone */}
-              <div
-                className="cursor-pointer relative flex items-center justify-center"
-                style={{ minWidth: 44, minHeight: 44 }}
-                onClick={() => toggleOverlay(OV.FREQ)}
-              >
-                <Music
-                  style={{ width: 14, height: 14, transition: 'color 0.2s' }}
-                  strokeWidth={1.5}
-                  color={activeOverlay === OV.FREQ ? 'var(--ll-accent)' : 'var(--ll-text-dim)'}
-                />
-                {frequencyPlaying && (
-                  <div style={{
-                    position: 'absolute', width: 6, height: 6, borderRadius: '50%',
-                    background: 'var(--ll-accent)', top: 6, right: 6,
-                    animation: 'fpulse 2s infinite',
-                  }} />
-                )}
-              </div>
-
-              {/* Directory — 44px tap zone */}
-              <div
-                className="cursor-pointer flex items-center justify-center"
-                style={{ minWidth: 44, minHeight: 44 }}
-                onClick={() => toggleOverlay(OV.DIR)}
-              >
-                <span style={{
-                  fontSize: 12, transition: 'color 0.2s',
-                  color: activeOverlay === OV.DIR ? 'var(--ll-accent)' : 'var(--ll-text-dim)',
-                }}>
-                  Directory
-                </span>
-              </div>
-
-              {/* Events — 44px tap zone */}
-              <div
-                className="cursor-pointer flex items-center justify-center"
-                style={{ minWidth: 44, minHeight: 44 }}
-                onClick={() => toggleOverlay(OV.EVT)}
-              >
-                <span style={{
-                  fontSize: 12, transition: 'color 0.2s',
-                  color: activeOverlay === OV.EVT ? 'var(--ll-accent)' : 'var(--ll-text-dim)',
-                }}>
-                  Events
-                </span>
-              </div>
-            </>
+            <div
+              className="cursor-pointer relative flex items-center justify-center"
+              style={{ minWidth: 44, minHeight: 44 }}
+              onClick={() => toggleOverlay(OV.FREQ)}
+            >
+              <Music
+                style={{ width: 14, height: 14, transition: 'color 0.2s' }}
+                strokeWidth={1.5}
+                color={activeOverlay === OV.FREQ ? 'var(--ll-accent)' : 'var(--ll-text-dim)'}
+              />
+              {frequencyPlaying && (
+                <div style={{
+                  position: 'absolute', width: 6, height: 6, borderRadius: '50%',
+                  background: 'var(--ll-accent)', top: 6, right: 6,
+                  animation: 'fpulse 2s infinite',
+                }} />
+              )}
+            </div>
           )}
 
           {/* Avatar — 44px tap zone, 36px visual circle */}
@@ -1151,6 +1192,7 @@ export default function MyLaneSurface({
               items={spaceItems}
               currentIndex={spinnerIndex}
               onSelect={handleSpinnerSelect}
+              onCenterTap={handleCenterTap}
             />
           )}
 

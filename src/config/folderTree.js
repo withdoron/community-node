@@ -18,12 +18,24 @@
 //   icon          lucide-react component reference
 //   kind          'folder' (descend-able) or 'leaf' (workspace at this level)
 //   visible_when  predicate name from folderPredicates.js
+//   children      optional — for folders with static children (e.g. Personal)
 //   dim           optional — preserves the spinner's dim/bright distinction
 //
-// Order reflects the order the spinner currently renders. Phase 4.0 captures
-// what's standing — universal/contextual root folders described in v4.1
-// (Directory, Events, Personal, Businesses, Admin, Playmaker, Networks)
-// arrive in Phase 4.2a / 4.2b / 4.6 as additional entries here.
+// Nesting representation: nested `children` arrays. Chosen over `parent_id`
+// because the tree shape is immediately readable (one glance shows the
+// hierarchy), and adding a child can't typo a parent reference. Predicates
+// apply at every level; helpers below filter recursively.
+//
+// Phase 4.2a (2026-04-27) — Directory, Events, Personal, Businesses join the
+// root level. Personal is the new home of the personal-flavored leaves
+// (home, finance, meal-prep, team, property-pulse, field-service desk).
+// Businesses replaces the singular `business` leaf as the descend point for
+// the existing DEC-168 switcher.
+//
+// Dynamic children (e.g. Businesses → ownedBusinesses) are NOT in this
+// file — they're computed at runtime in MyLaneSurface from useActiveBusiness.
+// `kind: 'folder'` here just declares descent-ability; what shows on descent
+// is decided by the renderer.
 
 import {
   Home,
@@ -35,16 +47,87 @@ import {
   Building2,
   Search,
   FlaskConical,
+  BookOpen,
+  Calendar,
+  User,
 } from 'lucide-react';
 
 export const folderTree = [
-  { id: 'home',           label: 'Home',     icon: Home,            kind: 'leaf', visible_when: 'always' },
-  { id: 'meal-prep',      label: 'Kitchen',  icon: UtensilsCrossed, kind: 'leaf', visible_when: 'has_meal_prep_profile' },
-  { id: 'field-service',  label: 'Desk',     icon: Briefcase,       kind: 'leaf', visible_when: 'has_field_service_profile' },
-  { id: 'finance',        label: 'Finances', icon: DollarSign,      kind: 'leaf', visible_when: 'has_finance_profile' },
-  { id: 'team',           label: 'Team',     icon: Users,           kind: 'leaf', visible_when: 'has_team_role' },
-  { id: 'business',       label: 'Business', icon: Store,           kind: 'leaf', visible_when: 'has_owned_business', dim: false },
-  { id: 'property-pulse', label: 'Property', icon: Building2,       kind: 'leaf', visible_when: 'has_property_management_profile' },
-  { id: 'discover',       label: 'Discover', icon: Search,          kind: 'leaf', visible_when: 'always', dim: true },
-  { id: 'dev-lab',        label: 'Dev Lab',  icon: FlaskConical,    kind: 'leaf', visible_when: 'is_admin', dim: true },
+  // Universal root folders (v4.1 §14.1)
+  { id: 'directory', label: 'Directory', icon: BookOpen, kind: 'folder', visible_when: 'always' },
+  { id: 'events',    label: 'Events',    icon: Calendar, kind: 'folder', visible_when: 'always' },
+  { id: 'personal',  label: 'Personal',  icon: User,     kind: 'folder', visible_when: 'always',
+    children: [
+      { id: 'home',           label: 'Home',     icon: Home,            kind: 'leaf', visible_when: 'always' },
+      { id: 'meal-prep',      label: 'Kitchen',  icon: UtensilsCrossed, kind: 'leaf', visible_when: 'has_meal_prep_profile' },
+      { id: 'field-service',  label: 'Desk',     icon: Briefcase,       kind: 'leaf', visible_when: 'has_field_service_profile' },
+      { id: 'finance',        label: 'Finances', icon: DollarSign,      kind: 'leaf', visible_when: 'has_finance_profile' },
+      { id: 'team',           label: 'Team',     icon: Users,           kind: 'leaf', visible_when: 'has_team_role' },
+      { id: 'property-pulse', label: 'Property', icon: Building2,       kind: 'leaf', visible_when: 'has_property_management_profile' },
+    ],
+  },
+  { id: 'businesses', label: 'Businesses', icon: Store, kind: 'folder', visible_when: 'has_owned_business' },
+  { id: 'discover',   label: 'Discover',   icon: Search, kind: 'leaf',  visible_when: 'always', dim: true },
+  { id: 'dev-lab',    label: 'Dev Lab',    icon: FlaskConical, kind: 'leaf', visible_when: 'is_admin', dim: true },
 ];
+
+// ─── Helpers ────────────────────────────────────────────────────────
+// Pure tree-walking utilities. State and predicates pass through; the
+// helpers themselves know nothing about user state.
+
+function passes(entry, state, predicates) {
+  return Boolean(predicates[entry.visible_when]?.(state));
+}
+
+function toItem(entry) {
+  const item = { id: entry.id, label: entry.label, icon: entry.icon, kind: entry.kind };
+  if ('dim' in entry) item.dim = entry.dim;
+  return item;
+}
+
+// Root-level cockpit items, filtered by predicates.
+export function rootItems(state, predicates) {
+  return folderTree.filter((e) => passes(e, state, predicates)).map(toItem);
+}
+
+// Static children of a folder by id, filtered by predicates. Returns []
+// when the folder has no static children (e.g., businesses — handled at
+// runtime by MyLaneSurface from ownedBusinesses).
+export function folderItems(folderId, state, predicates) {
+  const folder = folderTree.find((e) => e.id === folderId);
+  if (!folder?.children) return [];
+  return folder.children.filter((e) => passes(e, state, predicates)).map(toItem);
+}
+
+// Locate a leaf id anywhere in the static tree. Returns { folderId, id }
+// where folderId is null for root-level leaves, or the parent folder id
+// for nested leaves. Returns null if the id is not in the static tree
+// (e.g., a dynamic business id under Businesses).
+export function locateLeaf(id) {
+  for (const e of folderTree) {
+    if (e.id === id && e.kind === 'leaf') return { folderId: null, id };
+    if (e.children) {
+      const child = e.children.find((c) => c.id === id);
+      if (child) return { folderId: e.id, id };
+    }
+  }
+  return null;
+}
+
+// Flat list of every leaf in the tree that passes predicates. Used by
+// HomeFeed and similar surfaces that want every available workspace
+// regardless of which folder it lives under.
+export function allLeaves(state, predicates) {
+  const out = [];
+  for (const e of folderTree) {
+    if (passes(e, state, predicates)) {
+      if (e.kind === 'leaf') out.push(toItem(e));
+      if (e.children) {
+        for (const c of e.children) {
+          if (passes(c, state, predicates) && c.kind === 'leaf') out.push(toItem(c));
+        }
+      }
+    }
+  }
+  return out;
+}
