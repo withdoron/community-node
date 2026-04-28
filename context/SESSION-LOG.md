@@ -1365,3 +1365,185 @@ This is the first Hyphae session running from the Mac mini. The path-alignment c
 **Ship-it timestamp:** 2026-04-25, evening. Session closed. Phase 3 closed. Ready for Phase 4.
 
 ---
+
+## Session Log — 2026-04-26 (Phase 4 warmup + DEC-182 + Cursor retirement + Field Instrument seed committed)
+
+**Surface:** Claude.ai (Mycelia thread) + Hyphae on Mac mini.
+
+**Focus:** Phase 4 warmup (community-node doc-drift sync) ran clean; the four findings it produced compounded into three downstream pieces of work in the same session — DEC-182 (architectural call ratifying the no-mirror policy), Cursor retirement from canonical docs, and the cleanup of two stale community-node root files. Plus: FIELD-INSTRUMENT-SEED.md (private repo) finally committed after living on the laptop since 2026-04-12; Pedrom thread brought current with v0.1 protocol outcome (live test 2026-04-24).
+
+**Shipped to community-node (origin/main):**
+
+1. **Phase 4 warmup — context layer drift sync (`fe9fad9`):** community-node `CLAUDE.md`, `AGENTS.md`, and all three `context/` files (PROJECT-BRAIN, ACTIVE-CONTEXT, SESSION-LOG) brought current with Spec-Repo canonical. Drift gap from 2026-04-15 closed. Spec-Repo's 1367-line SESSION-LOG replaced community-node's stale 654-line copy (community-node had condensed-mirror entries for 2026-04-04 and 2026-04-05 — fully covered by Spec-Repo's superset, so replacement was clean, not divergent). Three findings flagged: broken `@`-imports in CLAUDE.md (`@ARCHITECTURE.md`, `@STYLE-GUIDE.md`, `@.cursorrules` — none exist locally), Cursor-retirement inconsistency across docs, two orphan root files. All addressed in subsequent commits today.
+2. **Cursor + stale-files cleanup (`b7b1a19`):** `community-node/PUNCH-PASS-AUDIT.md` removed (2026-02-07 Punch Pass → Joy Coins language audit, pre-Community-Pass artifact, no code references). `community-node/DEC-025-ENTITY-PERMISSIONS.md` removed (Phase 3a entity-permission deployment checklist, settings superseded multiple times since via DEC-115 / DEC-136 / DEC-140). `community-node/context/PROJECT-BRAIN.md` re-synced from Spec-Repo canonical — first explicit demonstration of the DEC-182 single-source-with-sync flow (Spec-Repo edited as canonical, community-node mirror refreshed downstream in the same pass).
+
+**Shipped to Spec-Repo (origin/main):**
+
+3. **`.cursorrules` deleted (`4cb0e3d`):** Cursor-era artifact removed via `git rm`. (This commit was supposed to also include the PROJECT-BRAIN edits and DEC-182 append but those weren't staged — the Edit tool leaves changes unstaged. Caught on the next `git status`. Lesson recorded; see Posture note.)
+4. **PROJECT-BRAIN Cursor retirement + DEC-182 (`6638c29`):** Continuation commit. PROJECT-BRAIN.md drops "Cursor IDE (visual editing)" from AI Tools, drops "Base44+Cursor" from the living-feet tooling-stack progression, removes the entire "Cursor Prompt Format" section, removes `.cursorrules` row from the File Map, bumps Last updated stamp. **DEC-182 (Single-Source Documentation, Scheduled Drift Sync) appended to DECISIONS.md** — codifies the architectural call: Spec-Repo is canonical for project documentation, tool-specific repos reach across via explicit `~/Documents/GitHub/Spec-Repo/...` paths, the narrow `context/` mirror in community-node is refreshed by scheduled drift-sync passes (one Hyphae prompt per Phase or per Monthly Sharpening), CLAUDE.md and AGENTS.md remain community-node-native (not mirrors). DEC-182 wording adjusted from the suggested text to make the file-categories distinction precise (CLAUDE.md/AGENTS.md don't exist in Spec-Repo at all, so they aren't mirrors — only `context/` is).
+
+**Shipped to private (origin/main):**
+
+5. **FIELD-INSTRUMENT-SEED.md committed to root (`e00bcda`):** Originally drafted 2026-04-12 in Mycelia thread, saved to laptop outputs, never committed. Located today on laptop, reviewed, substantively updated to fold in v0.1 outcome (live test 2026-04-24 with Pedrom Rejai — both AIs hit the posture the protocol asked for; Pedrom's AI flagged a framing-bias failure mode that became the single most valuable output of v0.1; both parties agreed to keep building). Revised to remove personal-to-Doron and LocalLane-specific framing — now a project-only living document. 244 lines. Placed at private repo root to match the existing flat organizational pattern (no `projects/` subfolder exists; other seed-stage cross-project work — BOMB-SQUAD-GROWERS.md, BJJ-RANKED-QUEUE.md, BOOK-FRAMEWORKS.md — also lives at root).
+
+**Decisions made:**
+
+- **DEC-182 — Single-Source Documentation, Scheduled Drift Sync.** Spec-Repo is canonical; tool-specific repos reach across, do not mirror. The narrow exception is `community-node/context/` (PROJECT-BRAIN, ACTIVE-CONTEXT, SESSION-LOG), refreshed via scheduled drift-sync. Demonstrated in commit `b7b1a19` (community-node mirror refresh in same session as the Spec-Repo edit).
+
+**Cleanup completed:**
+
+- Cursor IDE removed from canonical PROJECT-BRAIN docs in both repos.
+- Spec-Repo `/.cursorrules` deleted.
+- `community-node/PUNCH-PASS-AUDIT.md` deleted (pre-Community-Pass artifact).
+- `community-node/DEC-025-ENTITY-PERMISSIONS.md` deleted (superseded permission model from Phase 3a).
+- Two-commit lesson recorded for Hyphae: stage all modifications via `git add` before commit; `git rm` stages deletions but the Edit tool leaves modifications unstaged. Manifested as the `4cb0e3d` → `6638c29` Spec-Repo split today.
+
+**Field Instrument (sibling product, seed-stage, separate from LocalLane):**
+
+- v0.1 protocol live-tested 2026-04-24 with Pedrom Rejai. Successful — both AIs hit the posture the protocol asked for. Pedrom's AI flagged a framing-bias failure mode in the protocol — the single most valuable output of v0.1.
+- Mycelia drafted a post-meeting follow-up email (em-dash-free, two variants) ready to send.
+- Flagged a Eugene Bigfoot Beverages Director of Operations posting to Pedrom as a possible fractional-consulting opportunity tied to his Junction City client visit.
+- GitHub repo `alibi-protocol` planned but deferred pending Pedrom's response.
+- Companion artifacts (HYPHAE briefings, SELF-PORTRAIT-TEMPLATE, PARTICIPATION-GUIDELINES) remain on laptop; will commit alongside repo setup once moved to mini.
+
+**Carryover items (still pending):**
+
+- Sweep remaining Cursor references in `Spec-Repo/WORKFLOW.md` (~17 occurrences), `ARCHITECTURE.md:156`, `README.md:261/265/277`, and `checklists/farm-program-launch.md:60`. `MAP-VIEW.md:9` (historical estimate) and `DECISIONS.md:93` (DEC-099 historical rationale) intentionally left intact as append-only history. Queued for the May 4 Monthly Sharpening.
+- `community-node/docs/migration-research.md` cleanup (still pending from 2026-04-25).
+- DECISIONS.md drift between Spec-Repo and community-node (pre-existing, dedicated session needed).
+- NODE-LAB-MODEL.md phase-review note for Field Service crossing production-shaped (private repo, deliberate review pending — flagged again this session, not updated as a side-effect of ship-it).
+- Phase 4 main work: MyLaneSurface hook reordering, MyLaneDrillView lines 48-52 latent bug, eslint-plugin-react-hooks exhaustive-deps enforcement, resurfacing buried surfaces per DEC-173.
+- Bug log carryovers: Base44 SDK 404 console spam, duplicate DC key React warning, `Business.categories` empty field per DEC-176.
+
+**Posture note for the record:**
+
+Today was a heavier session than the morning briefing planned. The Phase 4 warmup ran clean and the four findings it produced created bandwidth for the architectural call (DEC-182), the cleanup, and the Field Instrument capture. The day compounded rather than drifted. Worth noticing: this is the pattern when warmups go well. Plan light, ship clean, let downstream work earn its place.
+
+One self-correction worth recording: Mycelia overweighted a casual phrase from Pedrom's email ("my Mycelia") and was about to write a "two Mycelias in this work" observation into the canonical seed doc. Doron caught it. Pulled from the doc in revision. Worth noting because it's the framing-bias failure mode Pedrom's AI flagged in v0.1, manifesting in real time, in this conversation. The protocol's own first lesson lived through.
+
+The collaboration may continue tonight before bed. This ship-it captures state through this point.
+
+**Ship-it timestamp:** 2026-04-26, evening. Session closed.
+
+---
+
+## Session Log — 2026-04-26 (continued, evening) — Phase 4 plan in fully-planned state + DEC-183 + DEC-184
+
+**Surface:** Claude.ai (Mycelia thread) + Hyphae on Mac mini. Continuation of the day's earlier ship-it.
+
+**Focus:** Earlier ship-it (commits `9fa698f` Spec-Repo + `e4d0fa2` private) closed in a settled state — Phase 4 main work was named as "next" but not yet planned. Evening session did the planning. Three artifacts shipped: Hyphae's pre-Phase-4 audit (`PHASE-4-MIGRATION-PLAN.md`), Bari's working list in a new per-collaborator folder structure, and a Section 8 amendment to the migration plan that closes all seven open questions Hyphae raised. Two architectural decisions ratified along the way: DEC-183 (Walk the Path Before Sinking Thought) and DEC-184 (Greenfield Alibi Project as First Supabase + Vercel Build).
+
+**Shipped to Spec-Repo (origin/main):**
+
+1. **`PHASE-4-MIGRATION-PLAN.md` (`1ed1a6c`):** 355 lines. Hyphae's pre-Phase-4 audit. Maps current `community-node/src/` against v4.1's folder model (Sections 10.1, 13.1, 14, 17, 20). Inventoried 60+ files across MyLane navigation, dashboard tab implementations, business-context machinery, hooks, registry. Mapped each to one of five buckets (Direct match / Move-rename / Partial / Net-new / Retire). Identified five files named in prior session logs that don't exist at expected paths (`MyLaneBreadcrumb.jsx`, `WhatsChangedBar.jsx`, `BusinessDashboard.jsx`, standalone `OverlayContainer.jsx`, standalone `BusinessSwitcher.jsx`) — stale references. Confirmed `enabled_spaces` field doesn't exist anywhere in the codebase (pure NET-NEW). Confirmed `listed_in_directory` toggle is already shipped in Build 2 (BusinessSettings.jsx + `directoryVisibility.js`). Confirmed DEC-179 contradicts v4.1's assumption that `/b/{slug}` routing is Phase 4 work. Proposed sequence: 4.1 (entity) → 4.2a (root folders) → 4.2b (Businesses-as-folder) → 4.3 (Home → Desk) → 4.4 (preview pulse) → 4.5 (spaces add/remove) → 4.6 (resurface pass) → 4.7 (Desk rename mechanical sweep). Surfaced seven open questions for Mycelia + Doron planning.
+
+2. **Phase 4 migration plan Section 8 amendment (`b519ef3`):** +115 lines, header line amended to reflect evening planning. Ten subsections close all seven open questions:
+   - 8.1 Preview pulse silence-by-default, signal-when-warranted (anti-filler, anti-scan).
+   - 8.2 Folder placement static for Phase 4; user-determined shortcuts deferred (rejection of dynamic placement).
+   - 8.3 Multiple businesses under Businesses folder; holding hierarchy in data not display.
+   - 8.4 Apple Finder spatial model as reference (with explicit borrow/reject lists; no panoptic tree view, no static thumbnails, no desktop metaphor).
+   - 8.5 URL nesting deferred per DEC-179; behavior works as if nested in component state.
+   - 8.6 Desk inherits Home's content as-is for Phase 4; future pin-to-Desk pattern noted as Phase 5/6 candidate.
+   - 8.7 Discover stays as fifth root folder.
+   - 8.8 Admin contextual root in Phase 4 (Thing 1 only); admin lens inside every space deferred to Phase 4.5.
+   - 8.9 Playmaker contextual root, default placement, current shipping behavior.
+   - 8.10 `enabled_spaces` backfill: `["profile"]` for all except Doron's businesses (self-activate later via 4.5 UI or direct Base44 edit) and Bari's Red Umbrella (inspect actual usage — at minimum Profile + Desk + Settings + Finance if profile exists).
+
+**Shipped to private (origin/main):**
+
+3. **`private/users/bari/BARI-WORK-LIST.md` (`b651c91`):** new per-collaborator folder structure established. 114 lines. Captures Bari's named priorities: custom contracts (active — clarity-on-meaning conversation owed), business profile polish (shelf, returns when Phase 4 settles), e-sign + invites for clients/subcontractors (shelf — subcontractor scope depends on authority model parked in v4.1 §8), estimates with change-order workflow + dual-direction payment ledger (active alongside Phase 4 — full inflow + outflow ledger needed for Bari's 25% management fee transparency). Operating context section notes DEC-179 retainer scope (workflow help, not website replacement), schema-conformance discipline applies, Construction Gate (DEC-092) applies.
+
+**Decisions made tonight:**
+
+- **DEC-183 — Walk the Path Before Sinking Thought.** Path-walking cadence between sub-phase shipments. Each sub-phase ships, gets used, generates real-world friction signal, only then informs the next. Sub-phases not pre-sequenced for back-to-back execution. The reminders example illustrates: using a primitive reminders system tells Doron exactly what to spec when the proper version is built. Vision-without-path produces rework; path-walking is faster across the full arc even if any single step looks slower. Time-pressure (custody trial, Bari's needs) doesn't change this — strengthens it.
+- **DEC-184 — Greenfield Alibi Project as First Supabase + Vercel Build.** The Field Instrument (alibi) develops in slow hours alongside Phase 4/5 LocalLane work. By the time Phase 5 cleanup finishes and Phase 6 migration starts, the alibi build has produced platform-learning fluency. Three purposes from one body of work: the alibi project itself, platform-learning for Phase 6, pressure-test of how Mycelia + Hyphae operate on a greenfield project on the new stack. Migrating an existing app onto an unfamiliar platform compounds two unknowns simultaneously — building greenfield isolates the platform-learning unknown.
+
+**Tomorrow's first move:**
+
+Phase 4.1 entity prompt — `Business.enabled_spaces` field added in Base44 (paired prompt + code per DEC-178), backfill existing businesses per Section 8.10 rules. Smallest possible move that earns the right to think about Phase 4.2. Mycelia drafts the prompt fresh tomorrow morning.
+
+**Carryover items (still pending):**
+
+- `NODE-LAB-MODEL.md` update for Field Service crossing production-shaped (~95 score, paying user). Flag persists from earlier ship-it.
+- `DECISIONS.md` drift between Spec-Repo and community-node — pre-existing structural divergence; queued for May 4 Sharpening.
+- `community-node/docs/migration-research.md` cleanup — supposed to have been deleted post-DEC-175; queued for May 4 Sharpening.
+- Cursor reference sweep across `WORKFLOW.md` / `ARCHITECTURE.md` / `README.md` — queued for May 4 Sharpening (all in SuperMemory).
+- Companion artifacts for Field Instrument (HYPHAE briefings, SELF-PORTRAIT-TEMPLATE, PARTICIPATION-GUIDELINES) — still on laptop; will commit when moved to mini and Pedrom responds.
+
+**Posture note for the record:**
+
+Tonight's late session produced two architectural decisions (DEC-183, DEC-184) that change how future planning conversations should be shaped. DEC-183 specifically pushes back on today's own pattern (115-line Section 8 detailing decisions about deferred features) and names the working principle that should govern future work: walk a short path, generate spec from use, then build. The reminders example (Doron uses primitive reminders, knows exactly what to spec when the proper version is built) is the canonical illustration. DEC-184 operationalizes DEC-183 at platform-migration scale: greenfield alibi build before LocalLane migration so platform-learning happens on a small surface area first.
+
+Five commits across two repos today before this ship-it. Two earlier ship-it commits (`9fa698f` Spec-Repo + `e4d0fa2` private). After this commit, the day totals eight commits across three repos: community-node `fe9fad9`, `b7b1a19`; Spec-Repo `4cb0e3d`, `6638c29`, `9fa698f`, `1ed1a6c`, `b519ef3`, this session-end commit; private `e00bcda`, `e4d0fa2`, `b651c91`, this private session-end commit. A heavy day, but the heaviness was distributed across distinct workstreams (Phase 4 warmup, DEC-182 + Cursor cleanup, Field Instrument seed commit, Pedrom thread brought current, Phase 4 fully-planned state, two new DECs) rather than concentrated on any single bottleneck.
+
+**Ship-it timestamp:** 2026-04-26, late evening. Session closed in fully-planned state. Tomorrow opens on Phase 4.1.
+
+---
+
+## Session Log — 2026-04-28 (Phase 4.2-tiles structurally complete + Engagements entity)
+
+**Surface:** Hyphae on Mac mini. Single coherent day arc — ten Hyphae shipments across community-node, Spec-Repo, private, plus one Base44 entity, in roughly half a day.
+
+**Focus:** Phase 4.2-tiles design pivot ratified and shipped end-to-end. Tiles cockpit became the v1 default; spinner gated to dev allowlist (DEC-147 pattern). Six sub-builds shipped per DEC-183 path-walking — design pivot doc, tile primitive, breadcrumb component, tile cockpit at root, per-business folder rendering, plus two bug fixes surfaced when tile cockpit routed more users through Events. Engagements design fully closed and entity built in Base44. Field Service removed from Personal as cleanup follow-up. Eight new DECs ratified.
+
+**Shipped to community-node (origin/main):**
+
+1. **Phase 4.2-tiles-1 — Generic Tile primitive (`a3ac463`):** Created `src/components/ui/Tile.jsx` (121 lines). Refactored `src/components/business/BusinessCard.jsx` (201 → 184 lines) to wrap Tile. Three import sites verified unchanged. `data-tile-kind` attribute pattern introduced for future per-kind styling.
+2. **Phase 4.2-tiles-2 — BreadcrumbPath component (`caae822`):** Created `src/components/ui/BreadcrumbPath.jsx` (121 lines). Cockpit-agnostic with `mode="primary"` and `mode="adjacent"` presentation modes. Composes existing shadcn breadcrumb primitives (DEC-173 compose-not-extend). PascalCase `Path` suffix avoids APFS case-insensitive collision with the existing lowercase `breadcrumb.jsx`.
+3. **Phase 4.2-tiles-3 — Tile cockpit at root (`77571b7`):** Created `src/components/mylane/TilesCockpit.jsx` (158 lines). Modified `src/main.jsx` (pre-paint cockpit bootstrap — tiles is the new default). Modified `src/components/mylane/MyLaneSurface.jsx` (+178/-30): COCKPIT_PICKER_ALLOWLIST constant, force-migration useEffect, tileLeafSelected state, AccountOverlay cockpit toggle gated to allowlist. Tile cockpit became default for everyone; spinner/compass gated to allowlisted users only.
+4. **joyCoinCost TDZ fix (`34bc25a`):** Three joy-coin derivation lines moved up in `EventDetailModal.jsx` to precede their consumers. Root cause: Base44 auto-builder commit `cfdcdb9e` (2026-04-22) re-added declarations 75 lines below the original references — latent regression exposed when tile cockpit routed more users through Events. Pattern saved to SuperMemory: Base44 auto-builder commits warrant code review, not blind trust.
+5. **Network undefined fix (`ae2d723`):** Optional-chained four unguarded `event.x` reads in `EventDetailModal.jsx` that occurred above the existing `if (!event) return null;` guard. Older defensive-coding gap exposed by tile cockpit routing more users through Events flow. Race condition flagged at Events.jsx call site for future cleanup if silent-fail-to-open becomes confusing.
+6. **Phase 4.2-tiles-4 — Per-business folder rendering + uniform navigation (`84a9889`):** Created `src/config/spaceTypes.js` (123 lines) — eight-entry catalog (`profile`, `settings`, `desk`, `finance`, `team`, `kitchen`, `property`, `events`; Profile + Settings flagged universal) with `resolveBusinessSpaces()` helper. TilesCockpit grew to 338 lines (handles five tile-grid modes including owned-business tiles + per-business space tiles). MyLaneSurface +150/-54 (descendedBusinessId, descendedSpaceId state, handleSelectBusiness, handleSelectSpace, handleTileAscend, BusinessSpacePlaceholder). Removed Dev Lab from folder tree (FlaskConical import dropped, dev-lab branch in renderContent removed). DEC-148 overlay pattern retired for tile cockpit users (still active for spinner). DEC-168 lateral switcher pattern retired for tile cockpit users. Per-business spaces all render placeholders for v1; workspace wiring deferred to tiles-5+. **First consumer of `Business.enabled_spaces`.**
+7. **Cleanup — Field Service removed from Personal (`2c01950`):** 3 files +14/-14. Removed `field-service` leaf entry from Personal's children in `folderTree.js` + dropped Briefcase import. Removed orphaned `has_field_service_profile` predicate in `folderPredicates.js`. Removed Estimates card-builder block in `HomeFeed.jsx` (was looking up the now-missing field-service space). Field Service workspace component, `WORKSPACE_TYPES.field_service` entry, agent/admin/invite/registry surfaces all preserved as infrastructure for tiles-5+ business-Desk wiring.
+
+**Shipped to Spec-Repo (origin/main):**
+
+8. **Tile cockpit design pivot — Section 5 + 8.13 (`a96ae43`):** Section 5 sequence updated; Phase 4.2-tiles absorbed 4.2b/4.3/4.4/4.5. Section 8.13 added — eleven locked design decisions covering tile primitive shape, Settings universal, category-driven accents preserved, cockpit picker pattern, hybrid-mode breadcrumb, space-type catalog principle, cold-open synthetic root, enabled_spaces unconsumed (until tiles-4), breadcrumb supersedes center-tap descent.
+9. **Phase 4.2-tiles-1 shipped (`4598419`):** Section 5 marks 4.2-tiles-1 ✅; Section 8.14 added.
+10. **Phase 4.2-tiles-2 shipped (`081882b`):** Section 5 marks 4.2-tiles-2 ✅; Section 8.15 added.
+11. **Phase 4.2-tiles-3 shipped (`65ff952`):** Section 5 marks 4.2-tiles-3 ✅; Section 8.16 added — force-migration logic, allowlist gate, default-cockpit bootstrap, accent palette decision.
+12. **Phase 4.2-tiles-4 shipped (`8b94ec1`):** Section 5 marks 4.2-tiles-4 ✅; Section 8.17 added — space-type catalog, retired patterns, placeholder strategy.
+13. **Field-service-from-Personal cleanup note (`1551f30`):** Section 8.17 follow-up paragraph documenting the cleanup.
+
+**Shipped to private (origin/main):**
+
+14. **Engagements design close (`406154b`):** Three resolved open questions — smart defaults per role, view+action permissions blob with two-party e-sign for change orders, email + in-app notification + indefinite pending. Two architectural flags — two-party-acceptance recurring primitive, bid-request / job-listing upstream workflow. Engagements design now structurally locked + all detail questions resolved.
+
+**Shipped to Base44:**
+
+15. **Engagement entity created.** All fields per spec. Read permission deviation: Base44 doesn't support multi-field OR conditions on read at the schema layer; set to authenticated, with row-level scoping moved into query logic (existing precedent: Recommendation, Debt entities). Pattern saved to SuperMemory: post-Supabase migration, RLS policy `(auth.uid() = initiator_id) OR (auth.uid() = recipient_id)` replaces this workaround.
+
+**Decisions made today:**
+
+- **DEC-185** — Phase 4.2-tiles design pivot. Tiles primary cockpit pattern; spinner preserved as dev-only alternate.
+- **DEC-186** — Settings as a universal space (never in enabled_spaces). Profile + Settings render unconditionally for every business.
+- **DEC-187** — Category-driven tile accents preserved; no per-business `brand_color` field added in v1.
+- **DEC-188** — Cockpit picker dev-allowlist via `COCKPIT_PICKER_ALLOWLIST` (DEC-147 pattern).
+- **DEC-189** — Hybrid-mode breadcrumb component (`mode="primary"` for tile cockpit, `mode="adjacent"` for spinner/future).
+- **DEC-190** — Space-type catalog principle: enabled_spaces consumers read from a config (`spaceTypes.js`), never inline conditionals.
+- **DEC-191** — Uniform navigation pattern: every root tile descends into render layer; DEC-148 overlays and DEC-168 switcher retired for tile cockpit users.
+- **DEC-192** — Engagements design fully closed: smart defaults per role, view+action permissions blob, change orders trigger e-sign for both parties, email + in-app notification with indefinite pending.
+
+**Carryover items + flags (parking lot for tiles-5+ planning):**
+
+1. **Tiles-5 next session:** Settings + Profile workspace surfaces + pricing-structure design. Pre-build design conversation about Profile/Settings split-point + pricing-model shape. Pricing field architecture in `spaceTypes.js` (null for now); charging deferred until Stripe integration.
+2. **Tiles-7 (queued):** Personal Profile + Settings — architectural symmetry. Adds `enabled_spaces` (or equivalent) field to User entity in Base44. Personal's Profile + Settings spaces. Public/private toggle. Foundation for user reviews. 2-3 sub-builds.
+3. **Per-business workspace wiring** for Profile/Desk/Finance/Team — existing renderers take user-scope props that need re-scoping. Field Service specifically requires a business-scoped resolver (`MyLaneDrillView.jsx:53` resolves `fieldServiceProfiles?.[0]`). Meaningfully more work than a simple dispatch.
+4. **JoinFieldService welcome-card "Go to desk" button** soft-broken (gracefully degrades to no-op). Fix in tiles-5+ Desk-wiring or as small adjacent cleanup. Same shape as existing `'business'` welcome no-op from Section 8.12.
+5. **Engagement scoped-query server function** owed during tiles-5+ area; will retire during Supabase migration in favor of RLS policy.
+6. **Phase 5 pre-migration cleanup catalog** — accumulating items; cataloging sweep before migration starts.
+7. **Optional-chain harmonization sweep** + **defensive-gap audit** — small consistency/safety passes.
+8. **MyLaneSurface size** (1,682 lines) approaching split-worthy; possibly during the queued hook reordering work.
+9. **Visual affordance check on breadcrumb segments** — verify click-to-ascend is discoverable in real use.
+10. **Reviews infrastructure** for users + businesses (future, tied to tiles-7).
+11. **Bari's Estimates surface dark in HomeFeed** until tiles-5 wires per-business Desk. Real-user signal blackout window. Path-walking acceptable.
+
+**Tomorrow's first move:** Phase 4.2-tiles-5 — Settings + Profile workspace surfaces + pricing-structure design conversation. Mycelia drafts the prompt fresh in the next session.
+
+**Posture note for the record:**
+
+Today's arc — six tiles sub-builds, two bug fixes, one design close, one entity creation, one cleanup pass — fit into roughly half a day because the foundation laid in tiles-1 and tiles-2 (small generic primitives) compounded across tiles-3 and tiles-4. The space-type catalog (`spaceTypes.js`) is the third living-feet config in the codebase (alongside `folderTree.js` + `folderPredicates.js`); future Engagements-as-folder additions plug in without refactor. DEC-183 path-walking held — each sub-build shipped, was inspected, and informed the next without back-to-back execution. Two regressions surfaced (joyCoinCost TDZ from a Base44 auto-commit, network-undefined defensive-gap older latent bug) were caught and fixed in flight; the joyCoinCost finding generalized to a Base44 auto-builder pattern saved to SuperMemory. Engagements parallel workstream advanced from "structurally locked, three details open" (yesterday) to "structurally locked, all questions answered, entity built" (today). Phase 4.2-tiles is structurally complete; the remaining tiles work (5+) is workspace wiring per space type, not navigation architecture.
+
+**Ship-it timestamp:** 2026-04-28, end of day. Phase 4.2-tiles structurally complete. Tomorrow opens on tiles-5 (Settings + Profile + pricing).
+
+---
