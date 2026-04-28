@@ -72,9 +72,21 @@ export default function BusinessProfileSpace({ business, currentUserId }) {
   const photosInputRef = useRef(null);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
 
+  // Re-seed form data when the business *identity* changes (id) or when the
+  // user toggles in/out of edit mode. Tying the effect to the full `business`
+  // reference is unsafe under high-frequency parent re-renders — React Query
+  // refetches (and other upstream cache touches) can swap the prop reference
+  // even when the underlying record is unchanged, which fires the effect on
+  // every render and produces an extra setState per render. That cascades
+  // visibly when the parent itself is re-rendering frequently. Pinning the
+  // dep to `business?.id` makes the effect react only to actual identity
+  // changes; the read view (outside edit mode) renders directly from the
+  // `business` prop, so field-level updates surface without needing a
+  // formData re-seed.
   useEffect(() => {
     if (!isEditing) setFormData(getInitialFormData(business));
-  }, [business, isEditing]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [business?.id, isEditing]);
 
   const isOwner = business?.owner_user_id === currentUserId;
 
