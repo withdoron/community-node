@@ -1,9 +1,9 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useCategories } from '@/hooks/useCategories';
 import { useConfig } from '@/hooks/useConfig';
+import Tile from '@/components/ui/Tile';
 
 /**
  * Category accent colors — muted tones that signal identity, not hierarchy.
@@ -71,6 +71,11 @@ export function resolveCategoryAccent(business, legacyCategoryMapping) {
  * DEC-060: Living Directory — Typographic business card with ambient life signals.
  * No images, logos, or cover photos. Equal visual weight for every business.
  * Category accent bar signals identity. Hover warmth signals aliveness.
+ *
+ * Phase 4.2-tiles-1 (2026-04-28): the visual shell extracted into the generic
+ * <Tile> primitive at src/components/ui/Tile.jsx. BusinessCard now resolves
+ * Business-specific data (category label, network chips, tier badge) and
+ * renders Business-specific decoration as Tile children.
  */
 export default function BusinessCard({ business, onBusinessClick, onNetworkClick }) {
   const navigate = useNavigate();
@@ -99,43 +104,21 @@ export default function BusinessCard({ business, onBusinessClick, onNetworkClick
     })
     .filter(Boolean);
 
-  const cardClass = cn(
-    "block rounded-lg p-5 cursor-pointer",
-    "bg-gradient-to-br from-secondary to-secondary/90",
-    "border border-border",
-    "hover:border-primary/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)]",
-    "hover:-translate-y-0.5",
-    "transition-all duration-300 ease-out",
-    "border-l-4",
-    accentColor
-  );
-
-  // When onBusinessClick is provided (inside Mylane shell), intercept navigation
-  const Wrapper = onBusinessClick
-    ? ({ children, ...rest }) => (
-        <div {...rest} onClick={(e) => { e.preventDefault(); onBusinessClick(business.id); }}>
-          {children}
-        </div>
-      )
-    : ({ children, ...rest }) => <Link to={profileUrl} {...rest}>{children}</Link>;
+  // Wrap Tile with the existing intercept-vs-link split — onBusinessClick wins
+  // (used inside the MyLane shell to open as overlay rather than navigate).
+  const tileProps = onBusinessClick
+    ? { onClick: (e) => { e.preventDefault(); onBusinessClick(business.id); } }
+    : { href: profileUrl };
 
   return (
-    <Wrapper
-      className={cardClass}
+    <Tile
+      label={business.name}
+      sublabel={categoryLabel || undefined}
+      accentClass={accentColor}
+      kind="business"
       data-vitality="neutral"
+      {...tileProps}
     >
-      {/* Business Name */}
-      <h3 className="text-lg font-semibold text-foreground line-clamp-1">
-        {business.name}
-      </h3>
-
-      {/* Category line */}
-      {categoryLabel && (
-        <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
-          {categoryLabel}
-        </p>
-      )}
-
       {/* Product tags */}
       {Array.isArray(business.product_tags) && business.product_tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-1.5">
@@ -196,6 +179,6 @@ export default function BusinessCard({ business, onBusinessClick, onNetworkClick
           {business.founding_member ? 'Founding Member' : 'Standard Member'}
         </p>
       )}
-    </Wrapper>
+    </Tile>
   );
 }
