@@ -17,6 +17,10 @@ import {
 import { rootItems, folderItems, locateLeaf } from '@/config/folderTree';
 import { predicates as folderPredicates } from '@/config/folderPredicates';
 import { SPACE_TYPES } from '@/config/spaceTypes';
+// Phase 4.2-tiles-5 — Profile and Settings space surfaces. Lazy so the
+// per-business cockpit doesn't pull these chunks until a tile is tapped.
+const BusinessProfileSpace = lazy(() => import('@/components/business/BusinessProfileSpace'));
+const BusinessSettingsSpace = lazy(() => import('@/components/business/BusinessSettingsSpace'));
 import ConfirmationCard from './ConfirmationCard';
 import DevLab from './DevLab';
 import MyLaneDrillView from './MyLaneDrillView';
@@ -1577,10 +1581,60 @@ export default function MyLaneSurface({
                    Otherwise: tile grid is the content (rendered above by
                    TilesCockpit); content area is null. */
                 descendedSpaceId ? (
-                  <BusinessSpacePlaceholder
-                    spaceId={descendedSpaceId}
-                    businessId={descendedBusinessId}
-                  />
+                  /* Per-business space dispatch (tiles-5). Profile and
+                     Settings have real surfaces now; everything else still
+                     renders the v1 placeholder until its real surface lands.
+                     Living-feet: this dispatch is the only place a space
+                     id is mapped to a renderer. Adding a future per-business
+                     space surface (Desk, Finance, Team) means one branch
+                     here plus its catalog status flip in spaceTypes.js. */
+                  (() => {
+                    const descendedBusiness = ownedBusinesses?.find(
+                      (b) => b.id === descendedBusinessId,
+                    ) || null;
+                    if (!descendedBusiness) {
+                      return (
+                        <BusinessSpacePlaceholder
+                          spaceId={descendedSpaceId}
+                          businessId={descendedBusinessId}
+                        />
+                      );
+                    }
+                    if (descendedSpaceId === 'profile') {
+                      return (
+                        <Suspense fallback={
+                          <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading…</div>
+                        }>
+                          <BusinessProfileSpace
+                            business={descendedBusiness}
+                            currentUserId={currentUser?.id}
+                          />
+                        </Suspense>
+                      );
+                    }
+                    if (descendedSpaceId === 'settings') {
+                      return (
+                        <Suspense fallback={
+                          <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading…</div>
+                        }>
+                          <BusinessSettingsSpace
+                            business={descendedBusiness}
+                            currentUserId={currentUser?.id}
+                            onAfterDelete={() => {
+                              setDescendedSpaceId(null);
+                              setDescendedBusinessId(null);
+                            }}
+                          />
+                        </Suspense>
+                      );
+                    }
+                    return (
+                      <BusinessSpacePlaceholder
+                        spaceId={descendedSpaceId}
+                        businessId={descendedBusinessId}
+                      />
+                    );
+                  })()
                 ) : descendedFolderId === 'directory' ? (
                   <Suspense fallback={
                     <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading…</div>

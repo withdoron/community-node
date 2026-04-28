@@ -19,6 +19,11 @@ const PROFILE_ALLOWLIST = [
   // Build B (2026-04-24) audited this list against BusinessSettings' new
   // editors (tagline, services[], photos[], accepts_*). All fields were
   // already allowlisted above; no additions were needed.
+  // Phase 4.2-tiles-5 (2026-04-28) — owner-managed space toggles + dual
+  // logo fields. `enabled_spaces` is the per-business spaces array (DEC-186);
+  // `document_logo_url` is the logo for estimates/invoices/contracts (kept
+  // separate from `logo_url` which is the directory-facing logo).
+  'enabled_spaces', 'document_logo_url',
 ];
 
 const ADMIN_EXTRA_ALLOWLIST = [
