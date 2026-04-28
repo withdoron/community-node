@@ -22,6 +22,7 @@ import MyLaneDrillView from './MyLaneDrillView';
 import WorkspaceErrorBoundary from '@/components/WorkspaceErrorBoundary';
 import useMyLaneState from './useMyLaneState';
 import SpaceSpinner from './SpaceSpinner';
+import TilesCockpit from './TilesCockpit';
 import HomeFeed from './HomeFeed';
 import DiscoverPosition from './DiscoverPosition';
 import { parseRenderInstruction } from './parseRenderInstruction';
@@ -34,6 +35,16 @@ import useBottomInset, { HEADER_HEIGHT, MINI_PLAYER_HEIGHT, COMMAND_BAR_HEIGHT }
 // R&D allowlist for Mylane AI agent. Manual Mylane is the default experience.
 // Add testers here as agent matures. Gate by email, not role or tier.
 const MYLANE_AGENT_ALLOWLIST = ['doron.bsg@gmail.com'];
+
+// R&D allowlist for cockpit picker (DEC-147). Tiles is the v1 default for
+// everyone; spinner and compass are kept available for allowlisted users
+// only. Non-allowlisted users see no cockpit toggle (no placeholder, no
+// "coming soon") and are force-migrated from spinner/compass to tiles on
+// the first load where their identity is known. Future: drop the gate when
+// tile cockpit is proven; possibly extract to a shared DEV_USER_ALLOWLIST
+// if a third allowlist constant lands (DEC-148 footnote — three is a
+// pattern).
+const COCKPIT_PICKER_ALLOWLIST = ['doron.bsg@gmail.com'];
 
 // Lazy-load overlay content — these are full page components rendered inline
 const DirectoryPage = lazy(() => import('@/pages/Directory'));
@@ -150,9 +161,13 @@ function AccountOverlay({ currentUser, onClose, onOpenOverlay }) {
   });
   const THEME_LABELS = { dark: 'Gold Standard', light: 'Cloud', fallout: 'Fallout' };
   const [currentCockpit, setCurrentCockpit] = useState(() => {
-    try { return localStorage.getItem('ll_cockpit') || 'spinner'; } catch { return 'spinner'; }
+    try { return localStorage.getItem('ll_cockpit') || 'tiles'; } catch { return 'tiles'; }
   });
-  const COCKPIT_LABELS = { spinner: 'Spinner', compass: 'Compass' };
+  // Phase 4.2-tiles-3 — three options for allowlisted users; non-allowlisted
+  // users don't see the toggle at all (DEC-147 — no placeholder, no
+  // "coming soon"). Tiles is the v1 default for everyone.
+  const COCKPIT_LABELS = { tiles: 'Tiles', spinner: 'Spinner', compass: 'Compass' };
+  const cockpitPickerEnabled = COCKPIT_PICKER_ALLOWLIST.includes(currentUser?.email);
   const [soundOn, setSoundOn] = useState(() => {
     try { return localStorage.getItem('mylane_sound') !== '0'; } catch { return true; }
   });
@@ -338,27 +353,33 @@ function AccountOverlay({ currentUser, onClose, onOpenOverlay }) {
             <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>{THEME_LABELS[currentTheme] || 'Gold Standard'}</div>
           </div>
         </div>
-        {/* Cockpit — the instrument you operate Mylane from. Theme paints the panel; cockpit picks the instruments. */}
-        <div
-          className="flex items-center gap-2.5 cursor-pointer rounded-lg"
-          style={{ padding: '10px 12px', transition: 'background 0.15s' }}
-          onClick={() => {
-            const COCKPITS = ['spinner', 'compass'];
-            const nextIdx = (COCKPITS.indexOf(currentCockpit) + 1) % COCKPITS.length;
-            const next = COCKPITS[nextIdx];
-            document.documentElement.setAttribute('data-cockpit', next);
-            try { localStorage.setItem('ll_cockpit', next); } catch {}
-            setCurrentCockpit(next);
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ll-bg-elevated)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-        >
-          <Compass style={{ width: 16, height: 16, color: 'var(--ll-text-dim)', flexShrink: 0 }} strokeWidth={1.5} />
-          <div>
-            <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)' }}>Cockpit</div>
-            <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>{COCKPIT_LABELS[currentCockpit] || 'Spinner'}</div>
+        {/* Cockpit — the instrument you operate Mylane from. Theme paints
+            the panel; cockpit picks the instruments. Phase 4.2-tiles-3:
+            gated to COCKPIT_PICKER_ALLOWLIST (DEC-147) — non-allowlisted
+            users never see the option. The cycle is tiles → spinner →
+            compass → tiles for allowlisted devs. */}
+        {cockpitPickerEnabled && (
+          <div
+            className="flex items-center gap-2.5 cursor-pointer rounded-lg"
+            style={{ padding: '10px 12px', transition: 'background 0.15s' }}
+            onClick={() => {
+              const COCKPITS = ['tiles', 'spinner', 'compass'];
+              const nextIdx = (COCKPITS.indexOf(currentCockpit) + 1) % COCKPITS.length;
+              const next = COCKPITS[nextIdx];
+              document.documentElement.setAttribute('data-cockpit', next);
+              try { localStorage.setItem('ll_cockpit', next); } catch {}
+              setCurrentCockpit(next);
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ll-bg-elevated)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            <Compass style={{ width: 16, height: 16, color: 'var(--ll-text-dim)', flexShrink: 0 }} strokeWidth={1.5} />
+            <div>
+              <div style={{ fontSize: 13, color: 'var(--ll-text-secondary)' }}>Cockpit</div>
+              <div style={{ fontSize: 10, color: 'var(--ll-text-ghost)' }}>{COCKPIT_LABELS[currentCockpit] || 'Tiles'}</div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div style={{ height: 1, background: 'var(--ll-border)', margin: '8px 0' }} />
@@ -490,7 +511,44 @@ export default function MyLaneSurface({
   // Phase 4.2a — descent state for non-switcher folders (e.g., Personal).
   // null = at root level. When set, the cockpit shows that folder's children.
   const [descendedFolderId, setDescendedFolderId] = useState(null);
+  // Phase 4.2-tiles-3 — leaf-selected state for tile cockpit. When true,
+  // the workspace renders below the tile cockpit (replacing the tile grid).
+  // Spinner and compass cockpits ignore this state — they always have a
+  // centered item driving renderContent().
+  const [tileLeafSelected, setTileLeafSelected] = useState(false);
   const drillStartRef = useRef(null);
+
+  // Phase 4.2-tiles-3 — cockpit detection. Mirrors SpaceSpinner's useCockpit
+  // (DEC-152: localStorage + data-cockpit attribute + MutationObserver, no
+  // React provider). Re-implemented locally to keep MyLaneSurface independent
+  // of SpaceSpinner internals. Default 'tiles' matches main.jsx's first-paint
+  // bootstrap (the new default for users with no stored preference).
+  const [currentCockpit, setCurrentCockpit] = useState(() => {
+    if (typeof document === 'undefined') return 'tiles';
+    return document.documentElement.getAttribute('data-cockpit') || 'tiles';
+  });
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setCurrentCockpit(document.documentElement.getAttribute('data-cockpit') || 'tiles');
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-cockpit'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Phase 4.2-tiles-3 — force-migrate non-allowlisted users away from
+  // spinner/compass. Runs once currentUser email is available; bumps anyone
+  // not on the allowlist who has 'spinner' or 'compass' in localStorage to
+  // 'tiles'. Allowlisted users keep their preference.
+  useEffect(() => {
+    if (!currentUser?.email) return;
+    if (COCKPIT_PICKER_ALLOWLIST.includes(currentUser.email)) return;
+    let stored;
+    try { stored = localStorage.getItem('ll_cockpit'); } catch {}
+    if (stored === 'spinner' || stored === 'compass') {
+      try { localStorage.setItem('ll_cockpit', 'tiles'); } catch {}
+      document.documentElement.setAttribute('data-cockpit', 'tiles');
+    }
+  }, [currentUser?.email]);
 
   const {
     trackCardTap,
@@ -528,12 +586,16 @@ export default function MyLaneSurface({
         if (overlayBusinessId) { setOverlayBusinessId(null); return; }
         if (activeOverlay) { setActiveOverlay(null); return; }
         if (switcherMode) { setSwitcherMode(false); return; }
+        // Phase 4.2-tiles-3: in tile cockpit a selected leaf unwinds before
+        // the descended folder does — Escape returns to the folder's tile
+        // grid first, then to root on a second tap.
+        if (tileLeafSelected) { setTileLeafSelected(false); setSpinnerIndex(0); return; }
         if (descendedFolderId) { setDescendedFolderId(null); setSpinnerIndex(0); }
       }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [activeOverlay, overlayBusinessId, overlayRecommend, overlayNetworkSlug, switcherMode, descendedFolderId]);
+  }, [activeOverlay, overlayBusinessId, overlayRecommend, overlayNetworkSlug, switcherMode, descendedFolderId, tileLeafSelected]);
 
   // FrequencyMiniPlayer tap → open frequency overlay inside the shell
   useEffect(() => {
@@ -631,6 +693,7 @@ export default function MyLaneSurface({
     setActiveOverlay(null);
     setSwitcherMode(false);
     setDescendedFolderId(null);
+    setTileLeafSelected(false); // Phase 4.2-tiles-3: also clear tile leaf
     handleSpinnerSelect(0);
   }, [handleSpinnerSelect]);
 
@@ -656,6 +719,64 @@ export default function MyLaneSurface({
     setRenderedData(null);
     return true;
   }, [currentUser, profiles, ownedBusinesses]);
+
+  // Phase 4.2-tiles-3 — tile cockpit handlers. Folder tile tap descends or
+  // opens the appropriate overlay/switcher; leaf tile tap selects the leaf
+  // (workspace renders below); breadcrumb segment tap ascends.
+  //
+  // Folder taps mirror handleCenterTap's special-case branches for
+  // directory/events/businesses (overlay open, switcher entry) so the tile
+  // cockpit handles those folders the same way the spinner does.
+  const handleTileFolderClick = useCallback((folderId) => {
+    if (folderId === 'directory') { toggleOverlay(OV.DIR); return; }
+    if (folderId === 'events') { toggleOverlay(OV.EVT); return; }
+    if (folderId === 'businesses') {
+      if (isMultiBusiness) enterSwitcher();
+      else if (ownedBusinesses[0]) {
+        setActiveBusiness(ownedBusinesses[0].id);
+        setDescendedFolderId('personal');
+        setSpinnerIndex(0);
+        setDrilledTab('home');
+        setTileLeafSelected(false);
+      }
+      return;
+    }
+    // Generic static-folder descent — Personal, future Admin/Networks/
+    // Engagements. Reset spinnerIndex to 0 (no leaf focused) and keep
+    // tileLeafSelected false so the tile grid (folder children) shows.
+    setDescendedFolderId(folderId);
+    setSpinnerIndex(0);
+    setDrilledTab('home');
+    setRenderedData(null);
+    setTileLeafSelected(false);
+  }, [toggleOverlay, isMultiBusiness, enterSwitcher, ownedBusinesses, setActiveBusiness]);
+
+  const handleTileLeafClick = useCallback((leaf, idx) => {
+    setSpinnerIndex(idx);
+    setDrilledTab('home');
+    setRenderedData(null);
+    setTileLeafSelected(true);
+    drillStartRef.current = Date.now();
+  }, []);
+
+  // Breadcrumb ascend. 'home' clears descent entirely (back to root).
+  // A folder id ascends back to that folder's tile grid (deselects any
+  // selected leaf without changing descendedFolderId).
+  const handleTileAscend = useCallback((targetId) => {
+    if (targetId === 'home') {
+      setDescendedFolderId(null);
+      setSpinnerIndex(0);
+      setTileLeafSelected(false);
+      setRenderedData(null);
+      return;
+    }
+    // Ancestor-folder tap (currently only meaningful when leaf is selected
+    // inside this folder — deselect the leaf to return to the folder's
+    // tile grid).
+    setSpinnerIndex(0);
+    setTileLeafSelected(false);
+    setRenderedData(null);
+  }, []);
 
   // Phase 4.2a — center-tap descent gesture. SpaceSpinner already fires
   // onCenterTap when the user taps the centered tile; we wire it to a
@@ -1176,11 +1297,23 @@ export default function MyLaneSurface({
           className={`mylane-content-area${agentEnabled && panelOpen ? ' panel-open' : ''}`}
           style={{ position: 'absolute', inset: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}
         >
-          {/* Horizontal Space Spinner — ALWAYS VISIBLE, centers on content width.
-              In switcher mode (DEC-168), the same spinner re-skins with the
-              user's owned businesses; the cockpit's visual language carries
-              forward — only the tile contents change. */}
-          {switcherMode ? (
+          {/* Cockpit selection — Phase 4.2-tiles-3.
+              - 'tiles' (default): TilesCockpit renders breadcrumb + tile grid;
+                spinner code path is bypassed entirely.
+              - 'spinner' / 'compass' (allowlisted only): existing SpaceSpinner
+                paths, including switcher mode (DEC-168) where the same spinner
+                re-skins with the user's owned businesses. */}
+          {currentCockpit === 'tiles' && !switcherMode ? (
+            <TilesCockpit
+              state={{ currentUser, profiles, ownedBusinesses }}
+              descendedFolderId={descendedFolderId}
+              tileLeafSelected={tileLeafSelected}
+              currentLeaf={tileLeafSelected ? currentSpace : null}
+              onDescendFolder={handleTileFolderClick}
+              onSelectLeaf={handleTileLeafClick}
+              onAscend={handleTileAscend}
+            />
+          ) : switcherMode ? (
             <SpaceSpinner
               items={businessItems}
               currentIndex={switcherFocusIdx}
@@ -1200,8 +1333,10 @@ export default function MyLaneSurface({
               the active space and (when the user owns 2+ businesses) carries
               a swap glyph that enters business-switcher mode. Single-business
               users see the same pill without interactivity — the affordance
-              is dark until there's something to switch between (DEC-117). */}
-          {!switcherMode && (
+              is dark until there's something to switch between (DEC-117).
+              Phase 4.2-tiles-3: hidden in tile cockpit (the breadcrumb is
+              already the path indicator; pill would duplicate). */}
+          {!switcherMode && currentCockpit !== 'tiles' && (
             <div className="flex justify-center" style={{ marginTop: 4, marginBottom: 4 }}>
               <button
                 type="button"
@@ -1334,6 +1469,11 @@ export default function MyLaneSurface({
                     Tap the center business to switch into it. Neighbors rotate the dial without committing.
                   </div>
                 </div>
+              ) : currentCockpit === 'tiles' && !tileLeafSelected ? (
+                /* Phase 4.2-tiles-3: in tile cockpit, the tile grid (above)
+                   IS the content until a leaf is selected. Workspace render
+                   only fires once a leaf tile has been tapped. */
+                null
               ) : renderContent()}
             </div>
           </div>

@@ -11,12 +11,18 @@ try {
   }
 } catch {}
 
-// Apply persisted cockpit before first paint (mirrors theme pattern)
+// Apply persisted cockpit before first paint (mirrors theme pattern).
+// Phase 4.2-tiles-3: tiles is the new default for users with no stored
+// preference. Force-migration of non-allowlisted users away from
+// spinner/compass happens in MyLaneSurface once currentUser is known
+// (user identity isn't available pre-paint).
 try {
-  const cockpit = localStorage.getItem('ll_cockpit');
-  if (cockpit && cockpit !== 'spinner') {
-    document.documentElement.setAttribute('data-cockpit', cockpit);
+  let cockpit = localStorage.getItem('ll_cockpit');
+  if (!cockpit) {
+    cockpit = 'tiles';
+    localStorage.setItem('ll_cockpit', cockpit);
   }
+  document.documentElement.setAttribute('data-cockpit', cockpit);
 } catch {}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
