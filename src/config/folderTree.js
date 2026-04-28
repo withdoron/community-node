@@ -46,7 +46,6 @@ import {
   Store,
   Building2,
   Search,
-  FlaskConical,
   BookOpen,
   Calendar,
   User,
@@ -68,7 +67,11 @@ export const folderTree = [
   },
   { id: 'businesses', label: 'Businesses', icon: Store, kind: 'folder', visible_when: 'has_owned_business' },
   { id: 'discover',   label: 'Discover',   icon: Search, kind: 'leaf',  visible_when: 'always', dim: true },
-  { id: 'dev-lab',    label: 'Dev Lab',    icon: FlaskConical, kind: 'leaf', visible_when: 'is_admin', dim: true },
+  // Phase 4.2-tiles-4 (2026-04-28): dev-lab removed from the folder tree.
+  // The DevLab component itself is still mounted by MyLaneSurface as the
+  // admin physics tuner toggle (gated by currentUser.role === 'admin') —
+  // unrelated to the folder tree. The is_admin predicate stays in the
+  // registry for any future contextual root that needs it.
 ];
 
 // ─── Helpers ────────────────────────────────────────────────────────

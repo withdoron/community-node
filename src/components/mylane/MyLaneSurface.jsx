@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { rootItems, folderItems, locateLeaf } from '@/config/folderTree';
 import { predicates as folderPredicates } from '@/config/folderPredicates';
+import { SPACE_TYPES } from '@/config/spaceTypes';
 import ConfirmationCard from './ConfirmationCard';
 import DevLab from './DevLab';
 import MyLaneDrillView from './MyLaneDrillView';
@@ -457,6 +458,45 @@ function AccountOverlay({ currentUser, onClose, onOpenOverlay }) {
   );
 }
 
+// ─── Phase 4.2-tiles-4 placeholder for per-business spaces ─────────
+// When a tile cockpit user descends into a business → space, we render
+// this placeholder until tiles-5+ wires real workspace surfaces per
+// space type. Profile/Desk/Finance/etc. each need careful per-business
+// profile-scoping work that's out of scope for tiles-4 (which is about
+// uniform navigation, not workspace migration). The placeholder is
+// honest — it tells the user the space exists, what it's for, and what
+// they can do today.
+function BusinessSpacePlaceholder({ spaceId, businessId }) {
+  // Lazy import via require-style pattern would couple this; pull from
+  // the catalog instead so labels stay one-source.
+  const meta = SPACE_TYPES[spaceId];
+  const label = meta?.label || spaceId;
+  const sublabel = meta?.sublabel || '';
+  return (
+    <div
+      style={{
+        margin: '24px auto', padding: '32px 24px', maxWidth: 480,
+        textAlign: 'center', background: 'var(--ll-bg-surface)',
+        border: '1px solid var(--ll-border)', borderRadius: 12,
+      }}
+    >
+      <div style={{ fontSize: 16, fontWeight: 500, color: 'var(--ll-text-primary)' }}>
+        {label}
+      </div>
+      {sublabel && (
+        <div style={{ fontSize: 12, color: 'var(--ll-text-dim)', marginTop: 4 }}>
+          {sublabel}
+        </div>
+      )}
+      <div style={{ fontSize: 11, color: 'var(--ll-text-ghost)', marginTop: 16, lineHeight: 1.5 }}>
+        This space surface arrives in a future build. The cockpit knows
+        you're inside the {label} space of this business — the workspace
+        rendering is on its way.
+      </div>
+    </div>
+  );
+}
+
 // ─── Main component ────────────────────────────────────────────────
 export default function MyLaneSurface({
   currentUser,
@@ -516,6 +556,19 @@ export default function MyLaneSurface({
   // Spinner and compass cockpits ignore this state — they always have a
   // centered item driving renderContent().
   const [tileLeafSelected, setTileLeafSelected] = useState(false);
+  // Phase 4.2-tiles-4 — per-business descent state for tile cockpit only.
+  //   descendedBusinessId  null at root or in personal/directory/events; set
+  //                        to a business id when the user has tapped a
+  //                        specific business tile inside Businesses.
+  //   descendedSpaceId     null when browsing a business's spaces tile
+  //                        grid; set to a SPACE_TYPES id when a space tile
+  //                        has been tapped (workspace or placeholder
+  //                        renders externally).
+  // The DEC-168 lateral switcher is no longer the entry path for tile
+  // cockpit users — the businesses tile grid IS the picker. The switcher
+  // state below stays untouched and is still used by the spinner cockpit.
+  const [descendedBusinessId, setDescendedBusinessId] = useState(null);
+  const [descendedSpaceId, setDescendedSpaceId] = useState(null);
   const drillStartRef = useRef(null);
 
   // Phase 4.2-tiles-3 — cockpit detection. Mirrors SpaceSpinner's useCockpit
@@ -586,16 +639,18 @@ export default function MyLaneSurface({
         if (overlayBusinessId) { setOverlayBusinessId(null); return; }
         if (activeOverlay) { setActiveOverlay(null); return; }
         if (switcherMode) { setSwitcherMode(false); return; }
-        // Phase 4.2-tiles-3: in tile cockpit a selected leaf unwinds before
-        // the descended folder does — Escape returns to the folder's tile
-        // grid first, then to root on a second tap.
+        // Phase 4.2-tiles-4: tile cockpit unwinds the descent stack one
+        // level at a time. Innermost first: space → business → leaf →
+        // folder → root. Each Escape press takes the user up one level.
+        if (descendedSpaceId) { setDescendedSpaceId(null); return; }
+        if (descendedBusinessId) { setDescendedBusinessId(null); return; }
         if (tileLeafSelected) { setTileLeafSelected(false); setSpinnerIndex(0); return; }
         if (descendedFolderId) { setDescendedFolderId(null); setSpinnerIndex(0); }
       }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [activeOverlay, overlayBusinessId, overlayRecommend, overlayNetworkSlug, switcherMode, descendedFolderId, tileLeafSelected]);
+  }, [activeOverlay, overlayBusinessId, overlayRecommend, overlayNetworkSlug, switcherMode, descendedFolderId, tileLeafSelected, descendedBusinessId, descendedSpaceId]);
 
   // FrequencyMiniPlayer tap → open frequency overlay inside the shell
   useEffect(() => {
@@ -693,7 +748,9 @@ export default function MyLaneSurface({
     setActiveOverlay(null);
     setSwitcherMode(false);
     setDescendedFolderId(null);
-    setTileLeafSelected(false); // Phase 4.2-tiles-3: also clear tile leaf
+    setTileLeafSelected(false); // Phase 4.2-tiles-3
+    setDescendedBusinessId(null); // Phase 4.2-tiles-4
+    setDescendedSpaceId(null);    // Phase 4.2-tiles-4
     handleSpinnerSelect(0);
   }, [handleSpinnerSelect]);
 
@@ -720,36 +777,28 @@ export default function MyLaneSurface({
     return true;
   }, [currentUser, profiles, ownedBusinesses]);
 
-  // Phase 4.2-tiles-3 — tile cockpit handlers. Folder tile tap descends or
-  // opens the appropriate overlay/switcher; leaf tile tap selects the leaf
-  // (workspace renders below); breadcrumb segment tap ascends.
+  // Phase 4.2-tiles-3/4 — tile cockpit handlers.
   //
-  // Folder taps mirror handleCenterTap's special-case branches for
-  // directory/events/businesses (overlay open, switcher entry) so the tile
-  // cockpit handles those folders the same way the spinner does.
+  // Phase 4.2-tiles-4: uniform descent. The DEC-148 overlay shortcut for
+  // Directory/Events and the DEC-168 lateral switcher for Businesses are
+  // BOTH retired here — tile cockpit users get a single descent shape:
+  // tap → set descent state → render breadcrumb + content. The overlay
+  // and switcher state machines remain in this file (untouched) and are
+  // still entered by the spinner cockpit's handleCenterTap below.
   const handleTileFolderClick = useCallback((folderId) => {
-    if (folderId === 'directory') { toggleOverlay(OV.DIR); return; }
-    if (folderId === 'events') { toggleOverlay(OV.EVT); return; }
-    if (folderId === 'businesses') {
-      if (isMultiBusiness) enterSwitcher();
-      else if (ownedBusinesses[0]) {
-        setActiveBusiness(ownedBusinesses[0].id);
-        setDescendedFolderId('personal');
-        setSpinnerIndex(0);
-        setDrilledTab('home');
-        setTileLeafSelected(false);
-      }
-      return;
-    }
-    // Generic static-folder descent — Personal, future Admin/Networks/
-    // Engagements. Reset spinnerIndex to 0 (no leaf focused) and keep
-    // tileLeafSelected false so the tile grid (folder children) shows.
+    // Generic descent for every root folder — Personal, Businesses,
+    // Directory, Events, future Admin/Networks/Engagements. Each case
+    // resolves later: Directory/Events render their page content
+    // externally (no tile grid); Businesses renders an owned-businesses
+    // tile grid; Personal renders its leaf children.
     setDescendedFolderId(folderId);
     setSpinnerIndex(0);
     setDrilledTab('home');
     setRenderedData(null);
     setTileLeafSelected(false);
-  }, [toggleOverlay, isMultiBusiness, enterSwitcher, ownedBusinesses, setActiveBusiness]);
+    setDescendedBusinessId(null);
+    setDescendedSpaceId(null);
+  }, []);
 
   const handleTileLeafClick = useCallback((leaf, idx) => {
     setSpinnerIndex(idx);
@@ -759,20 +808,61 @@ export default function MyLaneSurface({
     drillStartRef.current = Date.now();
   }, []);
 
-  // Breadcrumb ascend. 'home' clears descent entirely (back to root).
-  // A folder id ascends back to that folder's tile grid (deselects any
-  // selected leaf without changing descendedFolderId).
+  // Phase 4.2-tiles-4 — business descent. Selecting a business tile sets
+  // the operating-as context (mirrors what DEC-168 switcher commit did)
+  // AND descends to the per-business spaces tile grid. Both moves happen
+  // together — the tile-tap is the commit.
+  const handleSelectBusiness = useCallback((business) => {
+    if (!business?.id) return;
+    setActiveBusiness(business.id);
+    setDescendedBusinessId(business.id);
+    setDescendedSpaceId(null);
+    setRenderedData(null);
+    setTileLeafSelected(false);
+  }, [setActiveBusiness]);
+
+  // Phase 4.2-tiles-4 — space descent within a business. Sets the space
+  // id; whatever renders below resolves the workspace (or a placeholder
+  // for spaces not yet wired, e.g. Settings until tiles-5).
+  const handleSelectSpace = useCallback((spaceMeta) => {
+    if (!spaceMeta?.id) return;
+    setDescendedSpaceId(spaceMeta.id);
+    setDrilledTab('home');
+    setRenderedData(null);
+    drillStartRef.current = Date.now();
+  }, []);
+
+  // Breadcrumb ascend. Targets:
+  //   'home'                  — clear all descent, back to root
+  //   '<folderId>'            — back to folder grid (deselect leaf)
+  //   'businesses'            — back to owned-businesses grid (clear
+  //                             business + space)
+  //   'business:<id>'         — back to that business's spaces grid
+  //                             (clear space, keep business + folder)
   const handleTileAscend = useCallback((targetId) => {
     if (targetId === 'home') {
       setDescendedFolderId(null);
       setSpinnerIndex(0);
       setTileLeafSelected(false);
+      setDescendedBusinessId(null);
+      setDescendedSpaceId(null);
       setRenderedData(null);
       return;
     }
-    // Ancestor-folder tap (currently only meaningful when leaf is selected
-    // inside this folder — deselect the leaf to return to the folder's
-    // tile grid).
+    if (targetId === 'businesses') {
+      // Back to the owned-businesses grid — clear both business and space.
+      setDescendedBusinessId(null);
+      setDescendedSpaceId(null);
+      setRenderedData(null);
+      return;
+    }
+    if (typeof targetId === 'string' && targetId.startsWith('business:')) {
+      // Back to a specific business's spaces grid — clear only the space.
+      setDescendedSpaceId(null);
+      setRenderedData(null);
+      return;
+    }
+    // Personal-folder ancestor tap (deselect leaf, keep descent).
     setSpinnerIndex(0);
     setTileLeafSelected(false);
     setRenderedData(null);
@@ -920,21 +1010,10 @@ export default function MyLaneSurface({
     if (space.id === 'discover') {
       return <DiscoverPosition activeSpaceIds={activeSpaceIds} />;
     }
-    if (space.id === 'dev-lab') {
-      return (
-        <div style={{ padding: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            <FlaskConical style={{ width: 20, height: 20, color: 'hsl(var(--primary))' }} strokeWidth={1.5} />
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 600, color: 'hsl(var(--foreground))', margin: 0 }}>Dev Lab</h2>
-              <p style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', margin: 0 }}>
-                Physics tuner is above — use the flask button below the spinner
-              </p>
-            </div>
-          </div>
-        </div>
-      );
-    }
+    // Phase 4.2-tiles-4: 'dev-lab' branch removed alongside the
+    // folderTree.js dev-lab entry. The admin physics tuner is reachable
+    // via the flask button rendered separately below the cockpit (gated
+    // by currentUser.role === 'admin').
     return (
       <WorkspaceErrorBoundary workspace={space.label || space.id}>
         <MyLaneDrillView
@@ -1309,8 +1388,13 @@ export default function MyLaneSurface({
               descendedFolderId={descendedFolderId}
               tileLeafSelected={tileLeafSelected}
               currentLeaf={tileLeafSelected ? currentSpace : null}
+              descendedBusinessId={descendedBusinessId}
+              descendedSpaceId={descendedSpaceId}
+              ownedBusinesses={ownedBusinesses}
               onDescendFolder={handleTileFolderClick}
               onSelectLeaf={handleTileLeafClick}
+              onSelectBusiness={handleSelectBusiness}
+              onSelectSpace={handleSelectSpace}
               onAscend={handleTileAscend}
             />
           ) : switcherMode ? (
@@ -1469,11 +1553,53 @@ export default function MyLaneSurface({
                     Tap the center business to switch into it. Neighbors rotate the dial without committing.
                   </div>
                 </div>
-              ) : currentCockpit === 'tiles' && !tileLeafSelected ? (
-                /* Phase 4.2-tiles-3: in tile cockpit, the tile grid (above)
-                   IS the content until a leaf is selected. Workspace render
-                   only fires once a leaf tile has been tapped. */
-                null
+              ) : currentCockpit === 'tiles' ? (
+                /* Phase 4.2-tiles-4 — tile cockpit content dispatch.
+                   Mutually-exclusive cases; first match wins.
+
+                   Per-business space terminal: when descendedSpaceId is set,
+                   render a v1 placeholder. Real workspace wiring is tiles-5+
+                   work (each space type needs careful per-business scoping
+                   for its profile data). Settings will get its workspace
+                   surface in tiles-5 (BusinessSettings lifted out of the
+                   tabbed dashboard); the others follow.
+
+                   Directory/Events page reframe: descended into either,
+                   render the page content inline using the same
+                   .overlay-page-content wrapper class the OverlayContainer
+                   uses, so the existing CSS that suppresses page headers
+                   (the h1/breadcrumb) carries forward — DEC-173 resurface,
+                   no page rebuild.
+
+                   Personal-leaf workspace: existing renderContent() path
+                   (4.2-tiles-3 behaviour, unchanged).
+
+                   Otherwise: tile grid is the content (rendered above by
+                   TilesCockpit); content area is null. */
+                descendedSpaceId ? (
+                  <BusinessSpacePlaceholder
+                    spaceId={descendedSpaceId}
+                    businessId={descendedBusinessId}
+                  />
+                ) : descendedFolderId === 'directory' ? (
+                  <Suspense fallback={
+                    <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading…</div>
+                  }>
+                    <div className="overlay-page-content">
+                      <DirectoryPage onBusinessClick={(id) => setOverlayBusinessId(id)} onNetworkClick={(s) => setOverlayNetworkSlug(s)} />
+                    </div>
+                  </Suspense>
+                ) : descendedFolderId === 'events' ? (
+                  <Suspense fallback={
+                    <div style={{ textAlign: 'center', padding: 40, color: 'var(--ll-text-ghost)', fontSize: 12 }}>Loading…</div>
+                  }>
+                    <div className="overlay-page-content">
+                      <EventsPage />
+                    </div>
+                  </Suspense>
+                ) : tileLeafSelected ? (
+                  renderContent()
+                ) : null
               ) : renderContent()}
             </div>
           </div>
