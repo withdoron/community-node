@@ -17,6 +17,7 @@ import {
 import { rootItems, folderItems, locateLeaf } from '@/config/folderTree';
 import { predicates as folderPredicates } from '@/config/folderPredicates';
 import { SPACE_TYPES } from '@/config/spaceTypes';
+import { resolveBusinessFieldServiceProfile } from '@/utils/resolveBusinessFieldServiceProfile';
 // Phase 4.2-tiles-5 — Profile and Settings space surfaces. Lazy so the
 // per-business cockpit doesn't pull these chunks until a tile is tapped.
 const BusinessProfileSpace = lazy(() => import('@/components/business/BusinessProfileSpace'));
@@ -496,6 +497,39 @@ function BusinessSpacePlaceholder({ spaceId, businessId }) {
         This space surface arrives in a future build. The cockpit knows
         you're inside the {label} space of this business — the workspace
         rendering is on its way.
+      </div>
+    </div>
+  );
+}
+
+// ─── Phase 4.2-tiles-6 empty state for Desk without an FS profile ──
+// A business may have `desk` in enabled_spaces but no FieldServiceProfile
+// yet (newly-created business, or a business whose FS profile creation
+// failed/was skipped). The render path lands here in that case rather than
+// crashing FieldService components on null profile data. Honest, minimal:
+// what the space is, why it's quiet, and what the next hand-off is.
+function DeskEmptyState({ business }) {
+  const meta = SPACE_TYPES.desk;
+  const label = meta?.label || 'Desk';
+  return (
+    <div
+      style={{
+        margin: '24px auto', padding: '32px 24px', maxWidth: 480,
+        textAlign: 'center', background: 'var(--ll-bg-surface)',
+        border: '1px solid var(--ll-border)', borderRadius: 12,
+      }}
+    >
+      <div style={{ fontSize: 16, fontWeight: 500, color: 'var(--ll-text-primary)' }}>
+        Set up your {label}
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--ll-text-dim)', marginTop: 4 }}>
+        {business?.name || business?.business_name || 'Your business'}
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--ll-text-ghost)', marginTop: 16, lineHeight: 1.5 }}>
+        This business has {label} enabled but no workspace data yet. Setup
+        for new businesses lands in a follow-up build — for now, existing
+        businesses with a Field Service profile will see their workspace
+        here.
       </div>
     </div>
   );
@@ -1626,6 +1660,35 @@ export default function MyLaneSurface({
                             }}
                           />
                         </Suspense>
+                      );
+                    }
+                    // Phase 4.2-tiles-6 — Desk wires the existing Field
+                    // Service workspace under a business-scoped profile.
+                    // The personal-scope `[0]` resolver in MyLaneDrillView
+                    // (line 53) is reused intact: we simply hand it a
+                    // one-element array containing the business-scoped
+                    // profile. No changes to the workspace component itself
+                    // — just a different profile context.
+                    if (descendedSpaceId === 'desk') {
+                      const businessFSProfile = resolveBusinessFieldServiceProfile(
+                        descendedBusiness,
+                        fieldServiceProfiles,
+                      );
+                      if (!businessFSProfile) {
+                        return <DeskEmptyState business={descendedBusiness} />;
+                      }
+                      return (
+                        <WorkspaceErrorBoundary workspace="Desk">
+                          <MyLaneDrillView
+                            drilledView={{ workspace: 'field-service', tab: 'home' }}
+                            currentUser={currentUser}
+                            fieldServiceProfiles={[businessFSProfile]}
+                            financeProfiles={financeProfiles}
+                            allTeams={allTeams}
+                            propertyMgmtProfiles={propertyMgmtProfiles}
+                            mealPrepProfiles={mealPrepProfiles}
+                          />
+                        </WorkspaceErrorBoundary>
                       );
                     }
                     return (
