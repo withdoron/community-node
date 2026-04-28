@@ -91,6 +91,13 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
   }, [rsvpConfirmation, showNewsletterPrompt, onClose]);
 
   const maxPartySize = event?.max_party_size != null ? event.max_party_size : 10;
+  // Joy-coin derivations must precede totalCost / hasEnoughJoyCoins below
+  // (which read them). A Base44 auto-builder commit (cfdcdb9e, 2026-04-22)
+  // re-declared these further down the file, leaving the original
+  // references in TDZ. Restored ordering here.
+  const acceptsJoyCoins = event?.joy_coin_enabled;
+  const joyCoinCost = event?.joy_coin_cost ?? (acceptsJoyCoins ? Math.max(1, Math.round((event?.price || 0) / 10)) : 0);
+  const isJoyCoinEvent = acceptsJoyCoins && joyCoinCost > 0;
   const totalCost = joyCoinCost * partySize;
   const hasEnoughJoyCoins = !isJoyCoinEvent || joyCoinBalance >= totalCost;
 
@@ -160,15 +167,14 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
     ? event.network.charAt(0).toUpperCase() + event.network.slice(1).replace(/_/g, ' ')
     : '';
 
-  // Derived values — after all hooks
+  // Derived values — after all hooks. Joy-coin derivations live higher up
+  // (immediately after maxPartySize) because totalCost and hasEnoughJoyCoins
+  // depend on them — see the note there.
   const eventDate = event ? new Date(event.date || event.start_date) : new Date();
   const isPast = eventDate < new Date();
   const priceBadge = event ? getPriceBadge(event) : null;
   const isFree = event?.pricing_type === 'free';
   const isCancelled = event?.status === 'cancelled';
-  const acceptsJoyCoins = event?.joy_coin_enabled;
-  const joyCoinCost = event?.joy_coin_cost ?? (acceptsJoyCoins ? Math.max(1, Math.round((event?.price || 0) / 10)) : 0);
-  const isJoyCoinEvent = acceptsJoyCoins && joyCoinCost > 0;
 
   // Fetch spoke information if this is a spoke event
   const { data: spokeEvent } = useQuery({
