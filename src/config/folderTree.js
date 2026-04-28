@@ -40,7 +40,6 @@
 import {
   Home,
   UtensilsCrossed,
-  Briefcase,
   DollarSign,
   Users,
   Store,
@@ -59,7 +58,11 @@ export const folderTree = [
     children: [
       { id: 'home',           label: 'Home',     icon: Home,            kind: 'leaf', visible_when: 'always' },
       { id: 'meal-prep',      label: 'Kitchen',  icon: UtensilsCrossed, kind: 'leaf', visible_when: 'has_meal_prep_profile' },
-      { id: 'field-service',  label: 'Desk',     icon: Briefcase,       kind: 'leaf', visible_when: 'has_field_service_profile' },
+      // Phase 4.2-tiles-4 cleanup (2026-04-28): field-service (Desk) removed
+      // from Personal. Per Section 8.13's city/buildings metaphor, Desk is a
+      // business-district building — it lives inside each business via
+      // `enabled_spaces`, never under Personal. The has_field_service_profile
+      // predicate and the Briefcase icon import were dropped alongside.
       { id: 'finance',        label: 'Finances', icon: DollarSign,      kind: 'leaf', visible_when: 'has_finance_profile' },
       { id: 'team',           label: 'Team',     icon: Users,           kind: 'leaf', visible_when: 'has_team_role' },
       { id: 'property-pulse', label: 'Property', icon: Building2,       kind: 'leaf', visible_when: 'has_property_management_profile' },

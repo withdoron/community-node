@@ -37,8 +37,11 @@ export const predicates = {
   has_meal_prep_profile: ({ profiles }) =>
     len(profiles?.mealPrepProfiles) > 0,
 
-  has_field_service_profile: ({ profiles }) =>
-    len(profiles?.fieldServiceProfiles) > 0,
+  // Phase 4.2-tiles-4 cleanup (2026-04-28): has_field_service_profile
+  // dropped — its only consumer was the field-service leaf under Personal,
+  // which retired alongside it. Desk is now a business-only space (per
+  // Section 8.13's city/buildings metaphor) and renders via the SPACE_TYPES
+  // catalog when listed in a business's enabled_spaces.
 
   has_finance_profile: ({ profiles }) =>
     len(profiles?.financeProfiles) > 0,

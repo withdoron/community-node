@@ -154,16 +154,10 @@ function buildSpacesItems(profiles, spaceItems) {
     });
   }
 
-  const fsProfile = profiles.fieldServiceProfiles?.[0];
-  if (fsProfile) {
-    items.push({
-      title: 'Estimates',
-      subtitle: 'Review pending',
-      barColor: 'ac',
-      spaceIndex: findSpaceIndex(spaceItems, 'field-service'),
-      spaceName: 'Desk',
-    });
-  }
+  // Phase 4.2-tiles-4 cleanup (2026-04-28): the Estimates card-builder
+  // for the personal field-service leaf was removed alongside the leaf
+  // itself. Desk is now a business-only space; estimates surface inside
+  // a business's Desk space when tiles-5+ wires that workspace renderer.
 
   const mpProfile = profiles.mealPrepProfiles?.[0];
   if (mpProfile) {
