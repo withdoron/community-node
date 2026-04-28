@@ -1,0 +1,130 @@
+{
+  "name": "Engagement",
+  "type": "object",
+  "properties": {
+    "initiator_id": {
+      "type": "string",
+      "description": "FK to User \u2014 the user who created the engagement."
+    },
+    "initiator_business_id": {
+      "type": "string",
+      "description": "FK to Business \u2014 the business identity the initiator is operating as."
+    },
+    "recipient_id": {
+      "type": "string",
+      "description": "FK to User \u2014 the user being engaged with."
+    },
+    "recipient_business_id": {
+      "type": "string",
+      "description": "FK to Business. Null when recipient operates as an individual; set when recipient operates as a business."
+    },
+    "initiator_role": {
+      "type": "string",
+      "description": "Free-form role of the initiator (e.g. 'consultant', 'contractor', 'shop')."
+    },
+    "recipient_role": {
+      "type": "string",
+      "description": "Free-form role of the recipient (e.g. 'client', 'subcontractor', 'homeowner')."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "declined",
+        "withdrawn",
+        "archived"
+      ],
+      "default": "pending",
+      "description": "Lifecycle status of the engagement."
+    },
+    "initiator_acceptance": {
+      "type": "string",
+      "enum": [
+        "accepted",
+        "pending"
+      ],
+      "default": "accepted",
+      "description": "Creator implicitly accepts on creation."
+    },
+    "recipient_acceptance": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "declined"
+      ],
+      "default": "pending",
+      "description": "Recipient's acceptance state."
+    },
+    "project_id": {
+      "type": "string",
+      "description": "FK to Project. Null for project-less engagements (e.g. consulting retainers)."
+    },
+    "permissions": {
+      "type": "object",
+      "description": "Structured permissions object.",
+      "properties": {
+        "initiator_to_recipient": {
+          "type": "object",
+          "description": "What the recipient sees and can do, set by initiator."
+        },
+        "recipient_to_initiator": {
+          "type": "object",
+          "description": "Reserved for future Shape B graduation. Not user-editable in v1."
+        }
+      }
+    },
+    "title": {
+      "type": "string",
+      "description": "Display name for the engagement."
+    },
+    "description": {
+      "type": "string",
+      "description": "Free text context."
+    },
+    "created_by": {
+      "type": "string",
+      "description": "FK to User. Equals initiator_id in v1; reserved for future bid-request workflow."
+    },
+    "archived_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Set when status transitions to 'archived'."
+    }
+  },
+  "required": [
+    "initiator_id",
+    "initiator_business_id",
+    "recipient_id",
+    "initiator_role",
+    "recipient_role",
+    "status",
+    "initiator_acceptance",
+    "recipient_acceptance",
+    "title",
+    "created_by"
+  ],
+  "security": {
+    "read": {
+      "authenticated": true
+    },
+    "create": {
+      "authenticated": true
+    },
+    "update": {
+      "owner": true
+    },
+    "delete": {
+      "owner": true
+    }
+  },
+  "rls": {
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
