@@ -155,15 +155,21 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
     setSelectedMembers([]);
   }, [event?.id]);
 
-  // Network-only gate: show gate message if user cannot see this event
+  // Network-only gate: show gate message if user cannot see this event.
+  // Optional chaining on the leading `event` reads — the canonical
+  // null-event guard lives at `if (!event) return null;` below the
+  // spokeEvent useQuery (Rules of Hooks: the guard must come after the
+  // last hook). When event is undefined (e.g., Events.jsx mounts the
+  // modal with a stale expandedEventId that no longer matches any item),
+  // these short-circuits keep us crash-free until the guard takes over.
   const networkInterests = currentUser?.data?.network_interests ?? [];
-  const followsNetwork = event.network && Array.isArray(networkInterests) && networkInterests.includes(event.network);
+  const followsNetwork = event?.network && Array.isArray(networkInterests) && networkInterests.includes(event.network);
   const showNetworkGate =
-    event.network_only &&
+    event?.network_only &&
     event.network &&
     !isAppAdmin &&
     (!currentUser || !followsNetwork);
-  const networkDisplayName = event.network
+  const networkDisplayName = event?.network
     ? event.network.charAt(0).toUpperCase() + event.network.slice(1).replace(/_/g, ' ')
     : '';
 
@@ -187,7 +193,7 @@ export default function EventDetailModal({ event, isOpen, onClose }) {
       const spokes = await base44.entities.Spoke.filter({ spoke_id: spokeId });
       return spokes.length > 0 ? { ...spokeEvents[0], spokeName: spokes[0].organization_name } : spokeEvents[0];
     },
-    enabled: isOpen && !!event.id
+    enabled: isOpen && !!event?.id
   });
 
   if (!event) return null;
