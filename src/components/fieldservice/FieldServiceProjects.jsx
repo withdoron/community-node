@@ -29,16 +29,19 @@ function parseWorkers(val) {
   return [];
 }
 
+// Per-project sequential CO number — format CO-001, CO-002, ...
+// Reads any 3+ digit number out of existing change_order_number values for the
+// same project (handles legacy CO-2026-001 and bare CO-001 alike) and increments.
 function generateCONumber(existingCOs) {
-  const year = new Date().getFullYear();
-  const prefix = `CO-${year}-`;
   const seqs = (existingCOs || [])
     .map((co) => co.change_order_number || '')
-    .filter((n) => n.startsWith(prefix))
-    .map((n) => parseInt(n.replace(prefix, ''), 10))
+    .map((n) => {
+      const match = n.match(/(\d+)\s*$/);
+      return match ? parseInt(match[1], 10) : NaN;
+    })
     .filter((n) => !isNaN(n));
   const next = seqs.length > 0 ? Math.max(...seqs) + 1 : 1;
-  return `${prefix}${String(next).padStart(3, '0')}`;
+  return `CO-${String(next).padStart(3, '0')}`;
 }
 
 const INPUT_CLASS =
@@ -414,6 +417,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         line_items: { items: validItems },
         subtotal,
         total: subtotal,
+        // amount is the canonical net contract adjustment used by the
+        // FSProject.total_budget recompute. For COs without modifiers it
+        // equals subtotal; future modifier logic can diverge it from total.
+        amount: subtotal,
         status: 'draft',
         created_date: new Date().toISOString(),
       });
@@ -429,20 +436,77 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     onError: (err) => toast.error(err?.message || 'Failed to create change order'),
   });
 
+  // ─── CO signing flow (mirrors FSEstimate) ─────
+  const sendCOForSignature = async (co) => {
+    try {
+      const portalToken = co.portal_token || crypto.randomUUID();
+      await base44.entities.FSChangeOrder.update(co.id, {
+        status: 'awaiting_signature',
+        portal_token: portalToken,
+        portal_link_active: true,
+        sent_for_signature_at: new Date().toISOString(),
+      });
+      queryClient.invalidateQueries(['fs-change-orders', selectedProject?.id]);
+      const url = `${window.location.origin}/client-portal?workspace=${profile.id}&co=${co.id}&token=${portalToken}&sign=true`;
+      navigator.clipboard.writeText(url).then(
+        () => toast.success('Signing link copied! Share it with your client.'),
+        () => toast.success('Change order sent for signature (could not copy link)'),
+      );
+    } catch (err) {
+      toast.error(err?.message || 'Failed to send for signature');
+    }
+  };
+
+  const recallCO = async (co) => {
+    try {
+      await base44.entities.FSChangeOrder.update(co.id, {
+        status: 'draft',
+        portal_link_active: false,
+        recalled_at: new Date().toISOString(),
+      });
+      queryClient.invalidateQueries(['fs-change-orders', selectedProject?.id]);
+      toast.success('Change order recalled. You can edit and resend.');
+    } catch (err) {
+      toast.error(err?.message || 'Failed to recall change order');
+    }
+  };
+
+  const copyCOSigningLink = async (co) => {
+    if (!co.portal_token) {
+      return sendCOForSignature(co);
+    }
+    const url = `${window.location.origin}/client-portal?workspace=${profile.id}&co=${co.id}&token=${co.portal_token}&sign=true`;
+    navigator.clipboard.writeText(url).then(
+      () => toast.success('Link copied!'),
+      () => toast.error('Failed to copy link'),
+    );
+  };
+
+  // Recompute parent FSProject.total_budget from signed/accepted COs.
+  // amount is canonical (Phase 1 architectural primitive); falls back to total
+  // for legacy records that pre-date the amount field.
+  const recomputeProjectBudgetLocal = async (project, cos) => {
+    const originalBudget = parseFloat(project.original_budget || project.total_budget) || 0;
+    const counted = cos.filter((c) => c.status === 'signed' || c.status === 'accepted');
+    const adjustments = counted.reduce((sum, c) => {
+      const adj = c.amount !== undefined && c.amount !== null
+        ? parseFloat(c.amount)
+        : parseFloat(c.total) || 0;
+      return sum + (Number.isFinite(adj) ? adj : 0);
+    }, 0);
+    await base44.entities.FSProject.update(project.id, {
+      total_budget: originalBudget + adjustments,
+    });
+  };
+
   const acceptCOMutation = useMutation({
     mutationFn: async (co) => {
       await base44.entities.FSChangeOrder.update(co.id, {
         status: 'accepted',
         accepted_date: new Date().toISOString(),
       });
-      // Update project budget: original + all accepted COs
-      const allCOs = changeOrders.map((c) => c.id === co.id ? { ...c, status: 'accepted' } : c);
-      const coTotal = allCOs.filter((c) => c.status === 'accepted').reduce((s, c) => s + (parseFloat(c.total) || 0), 0);
-      const originalBudget = parseFloat(selectedProject.original_budget || selectedProject.total_budget) || 0;
-      await base44.entities.FSProject.update(selectedProject.id, {
-        total_budget: originalBudget + coTotal,
-        original_budget: originalBudget, // preserve original
-      });
+      const updated = changeOrders.map((c) => c.id === co.id ? { ...c, status: 'accepted' } : c);
+      await recomputeProjectBudgetLocal(selectedProject, updated);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['fs-change-orders', selectedProject?.id]);
@@ -943,10 +1007,15 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
             <p className="text-lg font-bold text-foreground">{budget > 0 ? fmt(budget) : '—'}</p>
             {/* Budget breakdown with change orders */}
             {(() => {
-              const acceptedCOs = changeOrders.filter((co) => co.status === 'accepted');
-              if (acceptedCOs.length === 0) return null;
+              const countedCOs = changeOrders.filter((co) => co.status === 'signed' || co.status === 'accepted');
+              if (countedCOs.length === 0) return null;
               const originalBudget = parseFloat(proj.original_budget || proj.total_budget) || 0;
-              const coTotal = acceptedCOs.reduce((s, co) => s + (parseFloat(co.total) || 0), 0);
+              const coTotal = countedCOs.reduce((s, co) => {
+                const adj = co.amount !== undefined && co.amount !== null
+                  ? parseFloat(co.amount)
+                  : parseFloat(co.total) || 0;
+                return s + (Number.isFinite(adj) ? adj : 0);
+              }, 0);
               return (
                 <div className="flex items-center gap-3 text-xs text-muted-foreground/70 mt-1">
                   <span>Original: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(originalBudget)}</span>
@@ -1224,9 +1293,28 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           {changeOrders.length > 0 && (
             <div className="divide-y divide-border">
               {changeOrders.map((co) => {
-                const coSc = co.status === 'accepted' ? 'bg-emerald-500/20 text-emerald-400' : co.status === 'sent' ? 'bg-primary/20 text-primary-hover' : 'bg-muted-foreground/20 text-muted-foreground';
+                const coSc =
+                  co.status === 'signed' || co.status === 'accepted'
+                    ? 'bg-emerald-500/20 text-emerald-400'
+                    : co.status === 'awaiting_signature'
+                      ? 'bg-primary/20 text-primary-hover'
+                      : co.status === 'sent'
+                        ? 'bg-primary/20 text-primary-hover'
+                        : co.status === 'declined'
+                          ? 'bg-rose-700/20 text-rose-400'
+                          : 'bg-muted-foreground/20 text-muted-foreground';
                 const coLineItems = (() => { const li = co.line_items; if (Array.isArray(li)) return li; if (li?.items) return li.items; return []; })();
                 const isExpanded = expandedCO === co.id;
+                const coAdjustment = co.amount !== undefined && co.amount !== null
+                  ? parseFloat(co.amount)
+                  : parseFloat(co.total) || 0;
+                const statusLabel =
+                  co.status === 'awaiting_signature' ? 'Awaiting Signature'
+                  : co.status === 'signed' ? 'Signed'
+                  : co.status === 'accepted' ? 'Accepted'
+                  : co.status === 'declined' ? 'Declined'
+                  : co.status === 'sent' ? 'Sent'
+                  : 'Draft';
                 return (
                   <div key={co.id} className="px-4 py-3">
                     <button type="button" onClick={() => setExpandedCO(isExpanded ? null : co.id)}
@@ -1234,12 +1322,12 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-foreground">{co.title || 'Change Order'}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${coSc}`}>{co.status || 'draft'}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${coSc}`}>{statusLabel}</span>
                         </div>
                         <p className="text-xs text-muted-foreground/70">{co.change_order_number}</p>
                       </div>
-                      <span className={`text-sm font-bold ${(parseFloat(co.total) || 0) >= 0 ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {(parseFloat(co.total) || 0) >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(co.total || 0)}
+                      <span className={`text-sm font-bold ${coAdjustment >= 0 ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {coAdjustment >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(coAdjustment)}
                       </span>
                     </button>
                     {isExpanded && (
@@ -1256,12 +1344,34 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                           </div>
                         )}
                         {co.status === 'draft' && (
-                          <div className="flex gap-2 pt-1">
+                          <div className="flex flex-wrap gap-3 pt-1">
+                            <button type="button" onClick={() => sendCOForSignature(co)}
+                              className="text-xs text-primary hover:text-primary-hover min-h-[44px]">
+                              Send for Signature
+                            </button>
                             <button type="button" onClick={() => acceptCOMutation.mutate(co)}
                               className="text-xs text-emerald-400 hover:text-emerald-300 min-h-[44px]">
-                              Accept & Update Budget
+                              Accept (skip signature)
                             </button>
                           </div>
+                        )}
+                        {co.status === 'awaiting_signature' && (
+                          <div className="flex flex-wrap gap-3 pt-1">
+                            <button type="button" onClick={() => copyCOSigningLink(co)}
+                              className="text-xs text-primary hover:text-primary-hover min-h-[44px]">
+                              Copy Signing Link
+                            </button>
+                            <button type="button" onClick={() => recallCO(co)}
+                              className="text-xs text-muted-foreground hover:text-foreground min-h-[44px]">
+                              Recall
+                            </button>
+                          </div>
+                        )}
+                        {co.status === 'signed' && co.signed_at && (
+                          <p className="text-xs text-emerald-400 pt-1">
+                            <Shield className="inline-block h-3 w-3 mr-1" />
+                            Signed {fmtDate(co.signed_at)}
+                          </p>
                         )}
                       </div>
                     )}

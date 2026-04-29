@@ -321,6 +321,242 @@ function EstimateSigningSection({ estimate, queryClient }) {
 }
 
 // ═══════════════════════════════════════════════════
+// Change Order View (Phase 1 Item 2c — lightweight signing surface)
+// Mirrors EstimatePortalView. Item 6 lands the polished CO blocks layout.
+// ═══════════════════════════════════════════════════
+
+function ChangeOrderPortalView({ coId, signMode = false, portalToken = null }) {
+  const queryClient = useQueryClient();
+  const { data: co, isLoading: coLoading } = useQuery({
+    queryKey: ['fs-public-co-view', coId],
+    queryFn: async () => {
+      const list = await base44.entities.FSChangeOrder.filter({ id: coId });
+      return Array.isArray(list) && list[0] ? list[0] : null;
+    },
+    enabled: !!coId,
+  });
+
+  const profileId = co?.workspace_id;
+  const { data: profile, isLoading: profLoading } = useQuery({
+    queryKey: ['fs-public-profile', profileId],
+    queryFn: async () => {
+      const list = await base44.entities.FieldServiceProfile.filter({ id: profileId });
+      return Array.isArray(list) && list[0] ? list[0] : null;
+    },
+    enabled: !!profileId,
+  });
+
+  const { data: project } = useQuery({
+    queryKey: ['fs-public-co-project', co?.project_id],
+    queryFn: async () => {
+      if (!co?.project_id) return null;
+      const list = await base44.entities.FSProject.filter({ id: co.project_id });
+      return Array.isArray(list) && list[0] ? list[0] : null;
+    },
+    enabled: !!co?.project_id,
+  });
+
+  if (coLoading || profLoading) return <PortalLoading />;
+  if (!co) return <PortalNotFound message="This change order link may be invalid or expired." />;
+
+  const brandColor = profile?.brand_color || '#f59e0b';
+  const businessName = profile?.business_name || profile?.workspace_name || 'this business';
+  const lineItems = parseJSON(co.line_items);
+  const STATUS_LABELS = {
+    draft: 'Draft', sent: 'Sent', awaiting_signature: 'Awaiting Signature',
+    accepted: 'Accepted', signed: 'Signed', declined: 'Declined',
+  };
+
+  const hasToken = !!portalToken;
+  const tokenValid = hasToken && co.portal_token === portalToken;
+  const linkActive = co.portal_link_active !== false;
+  const isRecalled = hasToken && !linkActive && co.status !== 'signed';
+  const alreadySigned = co.status === 'signed';
+  const canSign =
+    signMode && tokenValid && linkActive &&
+    (co.status === 'awaiting_signature' || co.status === 'sent') && !co.signature_data;
+
+  const adjustment = co.amount !== undefined && co.amount !== null
+    ? parseFloat(co.amount)
+    : parseFloat(co.total) || 0;
+
+  if (isRecalled) {
+    return (
+      <PortalShell>
+        <div className="max-w-3xl mx-auto bg-white rounded-xl overflow-hidden shadow-sm">
+          <PortalHeader profile={profile} brandColor={brandColor} />
+          <div className="px-6 sm:px-8 py-12 text-center">
+            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-4">
+              <ClipboardList className="h-6 w-6 text-orange-600" />
+            </div>
+            <h2 className="text-xl font-bold text-primary-foreground mb-2">Change Order Recalled</h2>
+            <p className="text-sm text-muted-foreground/70 max-w-md mx-auto">
+              This change order has been recalled by {businessName}. Please contact them for the updated version.
+            </p>
+          </div>
+          <PortalFooter />
+        </div>
+      </PortalShell>
+    );
+  }
+
+  if (hasToken && !tokenValid && !alreadySigned) {
+    return <PortalNotFound message="This change order link may be invalid or expired." />;
+  }
+
+  return (
+    <PortalShell>
+      <div className="max-w-3xl mx-auto bg-white rounded-xl overflow-hidden shadow-sm print:rounded-none print:shadow-none print:max-w-none">
+        <PortalHeader profile={profile} brandColor={brandColor} />
+
+        <div className="px-6 sm:px-8 py-6">
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-primary-foreground">{co.title || 'Change Order'}</h2>
+              {co.change_order_number && (
+                <p className="text-sm text-muted-foreground/70 mt-0.5">{co.change_order_number}</p>
+              )}
+              {project?.name && (
+                <p className="text-sm text-muted-foreground/70 mt-0.5">Project: {project.name}</p>
+              )}
+            </div>
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+              alreadySigned ? 'bg-emerald-100 text-emerald-700' :
+              (co.status === 'awaiting_signature' || co.status === 'sent') ? 'bg-amber-100 text-amber-700' :
+              co.status === 'declined' ? 'bg-rose-100 text-rose-700' :
+              'bg-slate-100 text-muted-foreground/50'
+            }`}>
+              {STATUS_LABELS[co.status] || co.status}
+            </span>
+          </div>
+
+          {co.description && (
+            <div className="bg-slate-50 rounded-lg p-4 mb-6">
+              <p className="text-xs text-muted-foreground/70 uppercase tracking-wider mb-1">Description</p>
+              <p className="text-sm text-primary-foreground whitespace-pre-line">{co.description}</p>
+            </div>
+          )}
+
+          {/* Line items */}
+          {lineItems.length > 0 && (
+            <div className="mb-6">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left">
+                    <th className="pb-2 text-muted-foreground/70 font-medium">Description</th>
+                    <th className="pb-2 text-muted-foreground/70 font-medium text-right">Qty</th>
+                    <th className="pb-2 text-muted-foreground/70 font-medium text-right">Unit Price</th>
+                    <th className="pb-2 text-muted-foreground/70 font-medium text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lineItems.map((item, i) => {
+                    const lineAmount = parseFloat(item.amount) || ((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0));
+                    return (
+                      <tr key={item.id || i} className="border-b border-slate-100">
+                        <td className="py-2 text-primary-foreground">{item.description || '—'}</td>
+                        <td className="py-2 text-muted-foreground/50 text-right">{item.quantity}</td>
+                        <td className="py-2 text-muted-foreground/50 text-right">{fmt(item.unit_price)}</td>
+                        <td className="py-2 text-primary-foreground font-medium text-right">{fmt(lineAmount)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Net adjustment */}
+          <div className="border-t border-border pt-4">
+            <div className="flex justify-between text-base font-bold">
+              <span>Net Contract Adjustment</span>
+              <span style={{ color: brandColor }}>
+                {adjustment >= 0 ? '+' : ''}{fmt(adjustment)}
+              </span>
+            </div>
+            {project?.original_budget !== undefined && project?.original_budget !== null && (
+              <p className="text-xs text-muted-foreground/70 mt-2">
+                This change order amends the original signed contract of{' '}
+                {fmt(parseFloat(project.original_budget) || 0)}.
+              </p>
+            )}
+          </div>
+
+          {/* Signature display (already signed) */}
+          {co.signature_data && (
+            <div className="mt-6 pt-4 border-t border-border">
+              <SignatureDisplay signatureData={co.signature_data} darkMode={false} />
+            </div>
+          )}
+
+          {alreadySigned && hasToken && (
+            <div className="mt-6 pt-4 border-t border-border text-center">
+              <p className="text-sm text-emerald-700 font-medium">This change order has already been signed.</p>
+            </div>
+          )}
+        </div>
+
+        {canSign && (
+          <div className="px-6 sm:px-8 pb-6">
+            <ChangeOrderSigningSection co={co} queryClient={queryClient} />
+          </div>
+        )}
+
+        {!signMode && (co.status === 'awaiting_signature' || co.status === 'sent') && !co.signature_data && (
+          <div className="px-6 sm:px-8 pb-6 text-center">
+            <p className="text-sm text-muted-foreground/70 italic">
+              {businessName} will send you a signing link when this change order is ready for your signature.
+            </p>
+          </div>
+        )}
+
+        <PortalFooter />
+      </div>
+    </PortalShell>
+  );
+}
+
+function ChangeOrderSigningSection({ co, queryClient }) {
+  const signMutation = useMutation({
+    mutationFn: async (signatureData) => {
+      await invokeUnauthenticated('signChangeOrder', {
+        change_order_id: co.id,
+        portal_token: co.portal_token,
+        signature_data: signatureData,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['fs-public-co-view']);
+    },
+    onError: (err) => {
+      console.error('Change order e-sign failed:', err);
+      toast.error('Could not save signature. Please try again.');
+    },
+  });
+
+  const adjustment = co.amount !== undefined && co.amount !== null
+    ? parseFloat(co.amount)
+    : parseFloat(co.total) || 0;
+
+  const docContent = [
+    co.title || 'Change Order',
+    co.change_order_number || '',
+    co.description || '',
+    `Net adjustment: ${adjustment}`,
+  ].join('\n');
+
+  return (
+    <SigningFlow
+      documentContent={docContent}
+      documentTitle={co.title || 'Change Order'}
+      onSign={(data) => signMutation.mutate(data)}
+      isSaving={signMutation.isPending}
+      darkMode={false}
+    />
+  );
+}
+
+// ═══════════════════════════════════════════════════
 // Document View (with portal_token validation + recall handling)
 // ═══════════════════════════════════════════════════
 
@@ -940,16 +1176,20 @@ export default function ClientPortal() {
   // Query param-based routing (new pattern)
   const estimateId = searchParams.get('estimate');
   const docId = searchParams.get('doc');
+  const coId = searchParams.get('co');
   const qsProjectId = searchParams.get('project');
   const signMode = searchParams.get('sign') === 'true';
   const portalToken = searchParams.get('token');
 
-  // Priority: estimate > doc > project (query params) > project (path params)
+  // Priority: estimate > doc > co > project (query params) > project (path params)
   if (estimateId) {
     return <EstimatePortalView estimateId={estimateId} signMode={signMode} />;
   }
   if (docId) {
     return <DocumentPortalView docId={docId} signMode={signMode} portalToken={portalToken} />;
+  }
+  if (coId) {
+    return <ChangeOrderPortalView coId={coId} signMode={signMode} portalToken={portalToken} />;
   }
   if (profileId && projectId) {
     return <ProjectPortalView profileId={profileId} projectId={projectId} />;
