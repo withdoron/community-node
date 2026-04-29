@@ -213,7 +213,7 @@ function calcTotals(items, overheadProfitPct, taxRate, otherAmount) {
 // ═══════════════════════════════════════════════════
 // Preview (client-facing branded estimate)
 // ═══════════════════════════════════════════════════
-function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onConvert, onSendForSignature, onRecall, onOwnerSign, projects, clients }) {
+function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onConvert, onSendForSignature, onRecall, onOwnerSign, projects, clients, features }) {
   const [showOwnerSign, setShowOwnerSign] = useState(false);
   const [ownerSigning, setOwnerSigning] = useState(false);
   const items = migrateLineItems(estimate.line_items, estimate.labor_estimate);
@@ -483,7 +483,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
               {showBreakdown && (
                 <>
                   <div className="flex justify-between"><span className="text-muted-foreground/70">Subtotal</span><span>{fmt(totals.subtotal)}</span></div>
-                  {(parseFloat(estimate.overhead_profit_pct) || 0) > 0 && (
+                  {features?.overhead_profit_enabled === true && (parseFloat(estimate.overhead_profit_pct) || 0) > 0 && (
                     <div className="flex justify-between"><span className="text-muted-foreground/70">O&P ({estimate.overhead_profit_pct}%)</span><span>{fmt(totals.opAmount)}</span></div>
                   )}
                   {(parseFloat(estimate.other_amount) || 0) > 0 && (
@@ -1038,23 +1038,27 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
             <span>Subtotal</span><span className="font-medium">{fmt(formTotals.subtotal)}</span>
           </div>
 
-          {/* O&P — always visible (important for insurance work) */}
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-foreground-soft">O&P (Overhead & Profit)</span>
-            <div className="flex items-center gap-1">
-              <input type="number"
-                className="w-20 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
-                value={formData.overhead_profit_pct} onChange={(e) => set('overhead_profit_pct', e.target.value)}
-                onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('overhead_profit_pct', ''); }}
-                onBlur={(e) => { if (e.target.value === '') set('overhead_profit_pct', 0); }}
-                min="0" max="100" step="0.5" />
-              <span className="text-muted-foreground">%</span>
-            </div>
-          </div>
-          {formTotals.opAmount > 0 && (
-            <div className="flex justify-between text-muted-foreground pl-4">
-              <span>O&P Amount</span><span>{fmt(formTotals.opAmount)}</span>
-            </div>
+          {/* O&P — gated on overhead_profit_enabled toggle (Settings → Workspace Features) */}
+          {features?.overhead_profit_enabled === true && (
+            <>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-foreground-soft">O&P (Overhead & Profit)</span>
+                <div className="flex items-center gap-1">
+                  <input type="number"
+                    className="w-20 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={formData.overhead_profit_pct} onChange={(e) => set('overhead_profit_pct', e.target.value)}
+                    onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('overhead_profit_pct', ''); }}
+                    onBlur={(e) => { if (e.target.value === '') set('overhead_profit_pct', 0); }}
+                    min="0" max="100" step="0.5" />
+                  <span className="text-muted-foreground">%</span>
+                </div>
+              </div>
+              {formTotals.opAmount > 0 && (
+                <div className="flex justify-between text-muted-foreground pl-4">
+                  <span>O&P Amount</span><span>{fmt(formTotals.opAmount)}</span>
+                </div>
+              )}
+            </>
           )}
 
           {/* Tax */}
@@ -1439,6 +1443,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
         }}
         projects={projects}
         clients={clients}
+        features={features}
       />
     );
   }
