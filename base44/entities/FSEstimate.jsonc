@@ -44,11 +44,13 @@
         "draft",
         "sent",
         "viewed",
+        "awaiting_signature",
+        "signed",
         "accepted",
         "declined",
         "expired"
       ],
-      "description": "Estimate status"
+      "description": "Estimate status. awaiting_signature + signed added 2026-04-29 to match the signing-flow code (signEstimate sets 'signed'; FieldServiceEstimates sets 'awaiting_signature' on Request Signature)."
     },
     "date": {
       "type": "string",
@@ -86,14 +88,10 @@
       "default": 0,
       "description": "Management fee percentage applied to subtotal"
     },
-    "tax_rate_pct": {
-      "type": "number",
-      "default": 0,
-      "description": "Tax rate percentage"
-    },
     "tax_rate": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "Tax rate percentage. Canonical (consolidated 2026-04-29 — tax_rate_pct removed; the codebase has always written tax_rate)."
     },
     "tax_amount": {
       "type": "number"

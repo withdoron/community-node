@@ -92,11 +92,6 @@
       "default": false,
       "description": "Controls whether the Overhead & Profit (O&P) percentage field appears on estimates"
     },
-    "xactimate_enabled": {
-      "type": "boolean",
-      "default": false,
-      "description": "Controls whether individual estimates can toggle into Xactimate formatting mode (trade categories, grouped subtotals for insurance submission)"
-    },
     "industry_preset": {
       "type": "string",
       "enum": [

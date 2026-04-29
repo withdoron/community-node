@@ -31,11 +31,12 @@
       "enum": [
         "draft",
         "sent",
+        "awaiting_signature",
         "signed",
         "archived"
       ],
       "default": "draft",
-      "description": "Document status"
+      "description": "Document status. awaiting_signature added 2026-04-29 to match the signing-flow code (FieldServiceDocuments sets it on Request Signature; signDocument server fn promotes it to 'signed'). Legacy 'sent' rows are normalized to awaiting_signature for display."
     },
     "sent_at": {
       "type": "string",
