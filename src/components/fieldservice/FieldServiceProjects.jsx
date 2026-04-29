@@ -104,6 +104,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
   const [showCOForm, setShowCOForm] = useState(false);
+  const [editingCOId, setEditingCOId] = useState(null); // null = creating; id = editing draft
   const [coForm, setCOForm] = useState({
     title: '',
     description: '',
@@ -121,6 +122,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
   };
 
   const openCOForm = () => {
+    setEditingCOId(null);
     setCOForm({
       title: '',
       description: '',
@@ -129,6 +131,41 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       tax_rate: parseEstimatePct(parentEstimate, 'tax_rate'),
       other_amount: 0,
     });
+    setShowCOForm(true);
+  };
+
+  // Open the same builder pre-populated with an existing draft CO's values.
+  // Edit is only available in 'draft' state — once a CO transitions to
+  // awaiting_signature / signed / accepted / declined it's locked.
+  const openEditCOForm = (co) => {
+    if (co.status !== 'draft') return;
+    const rawItems = co.line_items;
+    const items = Array.isArray(rawItems)
+      ? rawItems
+      : (rawItems?.items && Array.isArray(rawItems.items)) ? rawItems.items
+      : [];
+    const hydrated = items.length > 0
+      ? items.map((it) => ({
+          id: it.id || `co_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          category: it.category || 'materials',
+          trade_category_id: it.trade_category_id || '',
+          description: it.description || '',
+          quantity: it.quantity ?? 1,
+          unit_price: it.unit_price ?? 0,
+          amount: it.amount ?? 0,
+          sub_name: it.sub_name || '',
+        }))
+      : [makeItem()];
+    setEditingCOId(co.id);
+    setCOForm({
+      title: co.title || '',
+      description: co.description || '',
+      line_items: hydrated,
+      overhead_profit_pct: parseFloat(co.overhead_profit_pct) || 0,
+      tax_rate: parseFloat(co.tax_rate) || 0,
+      other_amount: parseFloat(co.other_amount) || 0,
+    });
+    setExpandedCO(null);
     setShowCOForm(true);
   };
 
@@ -437,7 +474,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     onError: (err) => toast.error(err?.message || 'Failed to update status'),
   });
 
-  const createCOMutation = useMutation({
+  // Save mutation — creates a new CO when editingCOId is null, updates the
+  // existing draft CO otherwise. Both paths recompute totals via the shared
+  // calcTotals so amount stays in sync with the form's grand total.
+  const saveCOMutation = useMutation({
     mutationFn: async () => {
       const validItems = (coForm.line_items || [])
         .filter((it) => (it.description || '').trim() || (parseFloat(it.unit_price) || 0) > 0)
@@ -451,12 +491,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         coForm.tax_rate,
         coForm.other_amount,
       );
-      return base44.entities.FSChangeOrder.create({
-        project_id: selectedProject.id,
-        estimate_id: selectedProject.estimate_id || null,
-        user_id: currentUser?.id,
-        workspace_id: profile?.id,
-        change_order_number: generateCONumber(changeOrders),
+      const payload = {
         title: coForm.title.trim(),
         description: coForm.description.trim(),
         line_items: { items: validItems },
@@ -469,16 +504,28 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         // amount is canonical for FSProject.total_budget recompute. It carries
         // the FULL grand total — line items + O&P + tax + other — so every
         // signed CO contributes its complete client-billed value to the
-        // parent project's contract total. (Phase 1 form-unification fix.)
+        // parent project's contract total.
         amount: totals.total,
+      };
+      if (editingCOId) {
+        return base44.entities.FSChangeOrder.update(editingCOId, payload);
+      }
+      return base44.entities.FSChangeOrder.create({
+        ...payload,
+        project_id: selectedProject.id,
+        estimate_id: selectedProject.estimate_id || null,
+        user_id: currentUser?.id,
+        workspace_id: profile?.id,
+        change_order_number: generateCONumber(changeOrders),
         status: 'draft',
         created_date: new Date().toISOString(),
       });
     },
-    onSuccess: () => {
+    onSuccess: (_saved, _vars, _ctx) => {
       queryClient.invalidateQueries({ queryKey: ['fs-change-orders', selectedProject?.id] });
-      toast.success('Change order created');
+      toast.success(editingCOId ? 'Change order updated' : 'Change order created');
       setShowCOForm(false);
+      setEditingCOId(null);
       setCOForm({
         title: '',
         description: '',
@@ -488,7 +535,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         other_amount: 0,
       });
     },
-    onError: (err) => toast.error(err?.message || 'Failed to create change order'),
+    onError: (err) => toast.error(err?.message || 'Failed to save change order'),
   });
 
   // ─── CO signing flow (mirrors FSEstimate) ─────
@@ -1266,6 +1313,9 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           {/* CO Form — mirrors FSEstimate builder shape */}
           {showCOForm && (
             <div className="px-4 pb-4 space-y-4 border-t border-border pt-3">
+              <p className="text-xs text-muted-foreground/70">
+                {editingCOId ? 'Editing draft change order' : 'New change order'}
+              </p>
               {/* Title + Description */}
               <div>
                 <label className="block text-foreground-soft text-sm font-medium mb-1">Title *</label>
@@ -1360,12 +1410,12 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
               </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t border-border">
-                <button type="button" onClick={() => setShowCOForm(false)}
+                <button type="button" onClick={() => { setShowCOForm(false); setEditingCOId(null); }}
                   className="px-3 py-2 rounded-lg border border-border text-foreground-soft hover:text-foreground text-sm min-h-[44px]">Cancel</button>
-                <button type="button" disabled={!coForm.title.trim() || createCOMutation.isPending}
-                  onClick={() => createCOMutation.mutate()}
+                <button type="button" disabled={!coForm.title.trim() || saveCOMutation.isPending}
+                  onClick={() => saveCOMutation.mutate()}
                   className="px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] disabled:opacity-50">
-                  {createCOMutation.isPending ? 'Saving...' : 'Save Draft'}
+                  {saveCOMutation.isPending ? 'Saving...' : (editingCOId ? 'Save Changes' : 'Save Draft')}
                 </button>
               </div>
             </div>
@@ -1452,6 +1502,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                         })()}
                         {co.status === 'draft' && (
                           <div className="flex flex-wrap gap-3 pt-1">
+                            <button type="button" onClick={() => openEditCOForm(co)}
+                              className="text-xs text-foreground-soft hover:text-primary min-h-[44px]">
+                              Edit
+                            </button>
                             <button type="button" onClick={() => sendCOForSignature(co)}
                               className="text-xs text-primary hover:text-primary-hover min-h-[44px]">
                               Send for Signature
