@@ -20,13 +20,14 @@
     },
     "change_order_number": {
       "type": "string",
-      "description": "e.g. CO-001"
+      "description": "Sequential change order number per project. Format: 'CO-001', 'CO-002', etc. Auto-incremented on creation by the application layer. Maps to co_number in the spec."
     },
     "title": {
       "type": "string"
     },
     "description": {
-      "type": "string"
+      "type": "string",
+      "description": "Narrative explanation of what this change order covers and why."
     },
     "line_items": {
       "type": "object",
@@ -41,20 +42,36 @@
       "type": "number",
       "default": 0
     },
+    "amount": {
+      "type": "number",
+      "description": "Net contract adjustment for this change order. Sum of line items. Can be negative for deductive scope reductions. Used by FSProject.total_budget recompute logic."
+    },
     "status": {
       "type": "string",
       "enum": [
         "draft",
         "sent",
         "accepted",
+        "awaiting_signature",
+        "signed",
         "declined"
       ],
-      "default": "draft"
+      "default": "draft",
+      "description": "The lifecycle state of this change order. Mirrors FSEstimate.status pattern. Transitions: draft \u2192 sent \u2192 awaiting_signature \u2192 signed | declined. Legacy 'accepted' value preserved for existing records."
     },
     "accepted_date": {
       "type": "string",
       "format": "date",
-      "description": "ISO date when change order was accepted"
+      "description": "ISO date when change order was accepted (legacy field)"
+    },
+    "signed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the client signed this change order. Set when status transitions to 'signed'. Null otherwise."
+    },
+    "signature_data": {
+      "type": "string",
+      "description": "JSON.stringify'd signature blob (per existing FSDocument pattern). Stored as text. Null until signing completes."
     }
   },
   "required": [

@@ -98,13 +98,18 @@
     "create": {
       "owner": true
     },
-    "update": true,
+    "update": {
+      "owner": true
+    },
     "delete": {
       "owner": true
     }
   },
   "rls": {
     "create": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
       "created_by": "{{user.email}}"
     },
     "delete": {
