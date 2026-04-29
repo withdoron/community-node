@@ -53,6 +53,7 @@ import {
   listAddableSpaces,
 } from '@/config/spaceTypes';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { ensureFieldServiceProfileForBusiness } from '@/utils/ensureFieldServiceProfileForBusiness';
 
 const TIER_CONFIG = {
   basic: {
@@ -103,9 +104,31 @@ export default function BusinessSettingsSpace({ business, currentUserId, onAfter
     },
   });
 
-  const handleAddSpace = (spaceId) => {
+  const handleAddSpace = async (spaceId) => {
     const current = Array.isArray(business?.enabled_spaces) ? business.enabled_spaces : [];
     if (current.includes(spaceId)) return;
+
+    // Desk needs a paired FieldServiceProfile to render a workspace. The
+    // tile-cockpit dispatch (MyLaneSurface.jsx) gates on that profile
+    // existing for this business — without it, the user lands on the
+    // DeskEmptyState placeholder. Add Space's contract is "lands me in a
+    // working space"; for desk that means initialize the profile here.
+    // Idempotent: helper returns the existing profile if one already
+    // matches business.id.
+    if (spaceId === 'desk') {
+      try {
+        await ensureFieldServiceProfileForBusiness({
+          business,
+          currentUser: { id: currentUserId },
+        });
+        queryClient.invalidateQueries({ queryKey: ['mylane-profiles-v2', currentUserId] });
+      } catch (err) {
+        console.error('[handleAddSpace] failed to initialize Desk profile', err);
+        toast.error('Could not set up Desk. Please try again.');
+        return;
+      }
+    }
+
     enabledSpacesMutation.mutate([...current, spaceId], {
       onSuccess: () => {
         invalidateBusiness();

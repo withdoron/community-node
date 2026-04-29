@@ -14,10 +14,12 @@ import {
   Lock, Mail, Volume2, VolumeX, X, PanelRightOpen, FlaskConical, BookOpen, HelpCircle,
   Compass,
 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { rootItems, folderItems, locateLeaf } from '@/config/folderTree';
 import { predicates as folderPredicates } from '@/config/folderPredicates';
 import { SPACE_TYPES } from '@/config/spaceTypes';
 import { resolveBusinessFieldServiceProfile } from '@/utils/resolveBusinessFieldServiceProfile';
+import { ensureFieldServiceProfileForBusiness } from '@/utils/ensureFieldServiceProfileForBusiness';
 // Phase 4.2-tiles-5 — Profile and Settings space surfaces. Lazy so the
 // per-business cockpit doesn't pull these chunks until a tile is tapped.
 const BusinessProfileSpace = lazy(() => import('@/components/business/BusinessProfileSpace'));
@@ -503,14 +505,34 @@ function BusinessSpacePlaceholder({ spaceId, businessId }) {
 }
 
 // ─── Phase 4.2-tiles-6 empty state for Desk without an FS profile ──
-// A business may have `desk` in enabled_spaces but no FieldServiceProfile
-// yet (newly-created business, or a business whose FS profile creation
-// failed/was skipped). The render path lands here in that case rather than
-// crashing FieldService components on null profile data. Honest, minimal:
-// what the space is, why it's quiet, and what the next hand-off is.
-function DeskEmptyState({ business }) {
+// Reachable when a business has `desk` in enabled_spaces but no
+// FieldServiceProfile resolves for that business. Two paths land here:
+//   (a) the business was created before Add Space was wired to initialize
+//       a profile (legacy / raw-entity-insert paths), or
+//   (b) profile creation failed during Add Space and we want a manual retry.
+// CTA calls the same helper Add Space uses, so the two paths converge on
+// one initialization step (Living Feet, DEC-146).
+function DeskEmptyState({ business, currentUser }) {
+  const queryClient = useQueryClient();
+  const [busy, setBusy] = useState(false);
   const meta = SPACE_TYPES.desk;
   const label = meta?.label || 'Desk';
+
+  const handleSetup = async () => {
+    if (!business?.id || !currentUser?.id || busy) return;
+    setBusy(true);
+    try {
+      await ensureFieldServiceProfileForBusiness({ business, currentUser });
+      queryClient.invalidateQueries({ queryKey: ['mylane-profiles-v2', currentUser.id] });
+      toast.success(`${label} ready`);
+    } catch (err) {
+      console.error('[DeskEmptyState] setup failed', err);
+      toast.error(`Could not set up ${label}. Please try again.`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div
       style={{
@@ -520,17 +542,30 @@ function DeskEmptyState({ business }) {
       }}
     >
       <div style={{ fontSize: 16, fontWeight: 500, color: 'var(--ll-text-primary)' }}>
-        Set up your {label}
+        {label} isn't connected yet
       </div>
       <div style={{ fontSize: 12, color: 'var(--ll-text-dim)', marginTop: 4 }}>
         {business?.name || business?.business_name || 'Your business'}
       </div>
       <div style={{ fontSize: 11, color: 'var(--ll-text-ghost)', marginTop: 16, lineHeight: 1.5 }}>
-        This business has {label} enabled but no workspace data yet. Setup
-        for new businesses lands in a follow-up build — for now, existing
-        businesses with a Field Service profile will see their workspace
-        here.
+        This business has {label} enabled, but no Field Service profile is
+        wired to it yet. Initialize one to start using projects, estimates,
+        documents, and the rest of the workspace.
       </div>
+      <button
+        type="button"
+        onClick={handleSetup}
+        disabled={busy || !currentUser?.id}
+        style={{
+          marginTop: 20, padding: '10px 20px', borderRadius: 8,
+          background: busy ? 'var(--ll-bg-surface-2)' : 'var(--ll-accent)',
+          color: busy ? 'var(--ll-text-dim)' : 'var(--ll-on-accent)',
+          border: 'none', fontSize: 13, fontWeight: 500,
+          cursor: busy ? 'default' : 'pointer',
+        }}
+      >
+        {busy ? `Setting up ${label}…` : `Set up ${label}`}
+      </button>
     </div>
   );
 }
@@ -1675,7 +1710,12 @@ export default function MyLaneSurface({
                         fieldServiceProfiles,
                       );
                       if (!businessFSProfile) {
-                        return <DeskEmptyState business={descendedBusiness} />;
+                        return (
+                          <DeskEmptyState
+                            business={descendedBusiness}
+                            currentUser={currentUser}
+                          />
+                        );
                       }
                       return (
                         <WorkspaceErrorBoundary workspace="Desk">
