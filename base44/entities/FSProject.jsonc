@@ -57,10 +57,11 @@
     },
     "original_budget": {
       "type": "number",
-      "description": "Original approved budget"
+      "description": "The signed contract amount at the moment the project was created from an accepted estimate. IMMUTABLE from the moment of project creation. Never modified for any reason \u2014 change orders extend the contract via FSChangeOrder, they do not modify this value. Application layer MUST NOT update this field after it has been set. (Immutability: Option C \u2014 convention-enforced.)"
     },
     "total_budget": {
-      "type": "number"
+      "type": "number",
+      "description": "Derived value. Equals original_budget + sum(FSChangeOrder.amount where status = 'signed' and project_id = this project). Recomputed automatically on every FSChangeOrder state change. Should not be edited manually."
     },
     "description": {
       "type": "string"
