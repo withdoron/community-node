@@ -33,6 +33,34 @@
       "format": "date",
       "description": "ISO date"
     },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "received",
+        "paid"
+      ],
+      "default": "received",
+      "description": "Indicates whether this payment was received from a party (e.g. client) or paid out to a party (e.g. subcontractor, vendor)."
+    },
+    "party_type": {
+      "type": "string",
+      "enum": [
+        "client",
+        "subcontractor",
+        "vendor",
+        "other"
+      ],
+      "default": "client",
+      "description": "The type of party involved in this payment."
+    },
+    "party_name": {
+      "type": "string",
+      "description": "Display name of the party. Denormalized for portability \u2014 even when party is a one-off vendor without an FSClient record."
+    },
+    "party_id": {
+      "type": "string",
+      "description": "FK reference to FSClient.id when party_type is 'client' and the client exists in the system. Null for subcontractor/vendor/other or for one-off clients."
+    },
     "method": {
       "type": "string",
       "enum": [
@@ -40,15 +68,21 @@
         "check",
         "card",
         "transfer",
+        "ach",
         "other"
       ],
-      "description": "Payment method"
+      "description": "Payment method used."
     },
     "check_number": {
       "type": "string"
     },
+    "reference": {
+      "type": "string",
+      "description": "Reference identifier (check number, ACH transaction ID, etc.)"
+    },
     "notes": {
-      "type": "string"
+      "type": "string",
+      "description": "Free-form notes about this payment."
     },
     "status": {
       "type": "string",
