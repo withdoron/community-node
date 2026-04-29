@@ -36,15 +36,37 @@
     },
     "subtotal": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "Sum of line items only (before O&P, tax, other)."
+    },
+    "overhead_profit_pct": {
+      "type": "number",
+      "default": 0,
+      "description": "Overhead & profit percentage applied to subtotal. Mirrors FSEstimate.overhead_profit_pct. Pre-filled from parent FSEstimate on CO create; editable per CO."
+    },
+    "tax_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Tax rate percentage applied after O&P + other. Mirrors FSEstimate.tax_rate."
+    },
+    "tax_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Computed tax amount."
+    },
+    "other_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Flat dollar addition before tax. Mirrors FSEstimate.other_amount."
     },
     "total": {
       "type": "number",
-      "default": 0
+      "default": 0,
+      "description": "Grand total = subtotal + O&P + other + tax. Equal to amount for CO records that pre-date the calculated-line additions split."
     },
     "amount": {
       "type": "number",
-      "description": "Net contract adjustment for this change order. Sum of line items. Can be negative for deductive scope reductions. Used by FSProject.total_budget recompute logic."
+      "description": "Canonical net contract adjustment for FSProject.total_budget recompute. Equals the full grand total (subtotal + O&P + other + tax), so the parent project's recomputed total reflects the full client-billed value of the CO. Can be negative for deductive scope reductions."
     },
     "status": {
       "type": "string",

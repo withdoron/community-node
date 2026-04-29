@@ -380,6 +380,19 @@ function ChangeOrderPortalView({ coId, signMode = false, portalToken = null }) {
     ? parseFloat(co.amount)
     : parseFloat(co.total) || 0;
 
+  // Privacy toggle — same FSProject.client_show_breakdown field the estimate
+  // portal honors. When false the client sees only descriptions and the grand
+  // total; when true they see line item amounts + the calculated breakdown.
+  const showBreakdown = project?.client_show_breakdown === true;
+  const subtotal = parseFloat(co.subtotal) || (Array.isArray(lineItems)
+    ? lineItems.reduce((s, it) => s + (parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0))), 0)
+    : 0);
+  const opPct = parseFloat(co.overhead_profit_pct) || 0;
+  const opAmount = subtotal * (opPct / 100);
+  const taxPct = parseFloat(co.tax_rate) || 0;
+  const taxAmount = parseFloat(co.tax_amount) || 0;
+  const otherAmount = parseFloat(co.other_amount) || 0;
+
   if (isRecalled) {
     return (
       <PortalShell>
@@ -437,8 +450,9 @@ function ChangeOrderPortalView({ coId, signMode = false, portalToken = null }) {
             </div>
           )}
 
-          {/* Line items */}
-          {lineItems.length > 0 && (
+          {/* Line items — full table when client_show_breakdown is true,
+              description-only list when toggled off (matches estimate portal). */}
+          {lineItems.length > 0 && showBreakdown && (
             <div className="mb-6">
               <table className="w-full text-sm">
                 <thead>
@@ -465,8 +479,39 @@ function ChangeOrderPortalView({ coId, signMode = false, portalToken = null }) {
               </table>
             </div>
           )}
+          {lineItems.length > 0 && !showBreakdown && (
+            <ul className="mb-6 list-disc list-inside text-sm text-primary-foreground space-y-1">
+              {lineItems.map((item, i) => (
+                <li key={item.id || i}>{item.description || '—'}</li>
+              ))}
+            </ul>
+          )}
 
-          {/* Net adjustment */}
+          {/* Calculated breakdown — only when contractor opted in */}
+          {showBreakdown && (opPct > 0 || taxPct > 0 || otherAmount > 0) && (
+            <div className="border-t border-border pt-3 mb-3 space-y-1 text-sm">
+              <div className="flex justify-between text-muted-foreground/70">
+                <span>Subtotal</span><span>{fmt(subtotal)}</span>
+              </div>
+              {opPct > 0 && (
+                <div className="flex justify-between text-muted-foreground/70">
+                  <span>O&P ({opPct}%)</span><span>{fmt(opAmount)}</span>
+                </div>
+              )}
+              {otherAmount > 0 && (
+                <div className="flex justify-between text-muted-foreground/70">
+                  <span>Other</span><span>{fmt(otherAmount)}</span>
+                </div>
+              )}
+              {taxPct > 0 && (
+                <div className="flex justify-between text-muted-foreground/70">
+                  <span>Tax ({taxPct}%)</span><span>{fmt(taxAmount)}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Net adjustment — always shown */}
           <div className="border-t border-border pt-4">
             <div className="flex justify-between text-base font-bold">
               <span>Net Contract Adjustment</span>

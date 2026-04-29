@@ -2,14 +2,15 @@ import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import VoiceInput from './VoiceInput';
 import ClientSelector from './ClientSelector';
+import LineItemsEditor from './LineItemsEditor';
 import FieldServiceTimeline from './FieldServiceTimeline';
 import FieldServicePayments from './FieldServicePayments';
 import FieldServicePermits from './FieldServicePermits';
 import FieldServicePhotoGallery from './FieldServicePhotoGallery';
 import FieldServiceClientPortal from './FieldServiceClientPortal';
 import FieldServiceClientDetail from './FieldServiceClientDetail';
+import { makeItem, calcTotals } from '@/utils/fsLineItems';
 import {
   FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save, X,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
@@ -103,10 +104,40 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
   const [showCOForm, setShowCOForm] = useState(false);
-  const [coTitle, setCOTitle] = useState('');
-  const [coDescription, setCODescription] = useState('');
-  const [coItems, setCOItems] = useState([{ id: `co_${Date.now()}`, category: 'materials', description: '', quantity: 1, unit_price: 0, amount: 0 }]);
+  const [coForm, setCOForm] = useState({
+    title: '',
+    description: '',
+    line_items: [makeItem()],
+    overhead_profit_pct: 0,
+    tax_rate: 0,
+    other_amount: 0,
+  });
   const [expandedCO, setExpandedCO] = useState(null);
+
+  // Pre-fill helper — reads a percentage from the parent estimate, falling back to 0.
+  const parseEstimatePct = (estimate, field) => {
+    const v = parseFloat(estimate?.[field]);
+    return Number.isFinite(v) ? v : 0;
+  };
+
+  const openCOForm = () => {
+    setCOForm({
+      title: '',
+      description: '',
+      line_items: [makeItem()],
+      overhead_profit_pct: parseEstimatePct(parentEstimate, 'overhead_profit_pct'),
+      tax_rate: parseEstimatePct(parentEstimate, 'tax_rate'),
+      other_amount: 0,
+    });
+    setShowCOForm(true);
+  };
+
+  const setCOField = (field, value) => setCOForm((prev) => ({ ...prev, [field]: value }));
+  const setCOLineItems = (items) => setCOForm((prev) => ({ ...prev, line_items: items }));
+  const coTotals = useMemo(
+    () => calcTotals(coForm.line_items, coForm.overhead_profit_pct, coForm.tax_rate, coForm.other_amount),
+    [coForm.line_items, coForm.overhead_profit_pct, coForm.tax_rate, coForm.other_amount],
+  );
 
   // ─── Query: All projects ────────────────────────
   const { data: projects = [], isLoading } = useQuery({
@@ -240,6 +271,9 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
   );
 
   // ─── Query: Estimate for selected project ─────
+  // The CO builder pre-fills its O&P / tax / other fields from this estimate
+  // (the project's source spine) so the contractor's most-common case is one
+  // tap. Per-CO override is just normal form editing.
   const { data: selectedEstimate } = useQuery({
     queryKey: ['fs-project-estimate', selectedProject?.estimate_id],
     queryFn: async () => {
@@ -251,6 +285,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     },
     enabled: !!selectedProject?.estimate_id,
   });
+  const parentEstimate = selectedEstimate;
 
   // ─── Query: Per-project materials & labor (matches Timeline pattern) ───
   const { data: projectMaterials = [] } = useQuery({
@@ -404,34 +439,54 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
 
   const createCOMutation = useMutation({
     mutationFn: async () => {
-      const validItems = coItems.filter((it) => it.description?.trim() || (parseFloat(it.amount) || 0) !== 0);
-      const subtotal = validItems.reduce((s, it) => s + (parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0))), 0);
+      const validItems = (coForm.line_items || [])
+        .filter((it) => (it.description || '').trim() || (parseFloat(it.unit_price) || 0) > 0)
+        .map((it) => ({
+          ...it,
+          amount: (parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0),
+        }));
+      const totals = calcTotals(
+        validItems,
+        coForm.overhead_profit_pct,
+        coForm.tax_rate,
+        coForm.other_amount,
+      );
       return base44.entities.FSChangeOrder.create({
         project_id: selectedProject.id,
         estimate_id: selectedProject.estimate_id || null,
         user_id: currentUser?.id,
         workspace_id: profile?.id,
         change_order_number: generateCONumber(changeOrders),
-        title: coTitle.trim(),
-        description: coDescription.trim(),
+        title: coForm.title.trim(),
+        description: coForm.description.trim(),
         line_items: { items: validItems },
-        subtotal,
-        total: subtotal,
-        // amount is the canonical net contract adjustment used by the
-        // FSProject.total_budget recompute. For COs without modifiers it
-        // equals subtotal; future modifier logic can diverge it from total.
-        amount: subtotal,
+        subtotal: totals.subtotal,
+        overhead_profit_pct: parseFloat(coForm.overhead_profit_pct) || 0,
+        tax_rate: parseFloat(coForm.tax_rate) || 0,
+        tax_amount: totals.taxAmount,
+        other_amount: parseFloat(coForm.other_amount) || 0,
+        total: totals.total,
+        // amount is canonical for FSProject.total_budget recompute. It carries
+        // the FULL grand total — line items + O&P + tax + other — so every
+        // signed CO contributes its complete client-billed value to the
+        // parent project's contract total. (Phase 1 form-unification fix.)
+        amount: totals.total,
         status: 'draft',
         created_date: new Date().toISOString(),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['fs-change-orders', selectedProject?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-change-orders', selectedProject?.id] });
       toast.success('Change order created');
       setShowCOForm(false);
-      setCOTitle('');
-      setCODescription('');
-      setCOItems([{ id: `co_${Date.now()}`, category: 'materials', description: '', quantity: 1, unit_price: 0, amount: 0 }]);
+      setCOForm({
+        title: '',
+        description: '',
+        line_items: [makeItem()],
+        overhead_profit_pct: parseEstimatePct(parentEstimate, 'overhead_profit_pct'),
+        tax_rate: parseEstimatePct(parentEstimate, 'tax_rate'),
+        other_amount: 0,
+      });
     },
     onError: (err) => toast.error(err?.message || 'Failed to create change order'),
   });
@@ -446,7 +501,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         portal_link_active: true,
         sent_for_signature_at: new Date().toISOString(),
       });
-      queryClient.invalidateQueries(['fs-change-orders', selectedProject?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-change-orders', selectedProject?.id] });
       const url = `${window.location.origin}/client-portal?workspace=${profile.id}&co=${co.id}&token=${portalToken}&sign=true`;
       navigator.clipboard.writeText(url).then(
         () => toast.success('Signing link copied! Share it with your client.'),
@@ -464,7 +519,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         portal_link_active: false,
         recalled_at: new Date().toISOString(),
       });
-      queryClient.invalidateQueries(['fs-change-orders', selectedProject?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-change-orders', selectedProject?.id] });
       toast.success('Change order recalled. You can edit and resend.');
     } catch (err) {
       toast.error(err?.message || 'Failed to recall change order');
@@ -509,8 +564,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       await recomputeProjectBudgetLocal(selectedProject, updated);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['fs-change-orders', selectedProject?.id]);
-      queryClient.invalidateQueries(['fs-projects', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-change-orders', selectedProject?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-projects', profile?.id] });
       toast.success('Change order accepted, budget updated');
     },
     onError: (err) => toast.error(err?.message || 'Failed to accept change order'),
@@ -1202,89 +1257,116 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
             <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">
               Change Orders {changeOrders.length > 0 && <span className="text-muted-foreground/70 ml-1">({changeOrders.length})</span>}
             </h3>
-            <button type="button" onClick={() => setShowCOForm((prev) => !prev)}
+            <button type="button" onClick={() => showCOForm ? setShowCOForm(false) : openCOForm()}
               className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover min-h-[44px]">
               <Plus className="h-4 w-4" /> New Change Order
             </button>
           </div>
 
-          {/* CO Form */}
+          {/* CO Form — mirrors FSEstimate builder shape */}
           {showCOForm && (
-            <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
-              <input type="text" value={coTitle} onChange={(e) => setCOTitle(e.target.value)}
-                className="w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder="What changed? e.g., Additional bathroom scope" />
-              <textarea value={coDescription} onChange={(e) => setCODescription(e.target.value)}
-                className="w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-h-[60px]"
-                placeholder="Why did it change?" rows={2} />
+            <div className="px-4 pb-4 space-y-4 border-t border-border pt-3">
+              {/* Title + Description */}
+              <div>
+                <label className="block text-foreground-soft text-sm font-medium mb-1">Title *</label>
+                <input type="text" value={coForm.title} onChange={(e) => setCOField('title', e.target.value)}
+                  className="w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="What changed? e.g., Additional bathroom scope" />
+              </div>
+              <div>
+                <label className="block text-foreground-soft text-sm font-medium mb-1">Description</label>
+                <textarea value={coForm.description} onChange={(e) => setCOField('description', e.target.value)}
+                  className="w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring min-h-[60px]"
+                  placeholder="Why did it change? (optional)" rows={2} />
+              </div>
 
-              {/* CO Line Items */}
-              {coItems.map((item, idx) => (
-                <div key={item.id} className="bg-secondary/50 rounded-lg p-3 space-y-2">
-                  <input type="text" value={item.description}
-                    onChange={(e) => {
-                      const next = [...coItems]; next[idx] = { ...next[idx], description: e.target.value }; setCOItems(next);
-                    }}
-                    className="w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                    placeholder="Description" />
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="text-xs text-muted-foreground/70">Qty</label>
-                      <input type="number" value={item.quantity}
-                        onChange={(e) => {
-                          const next = [...coItems]; const q = e.target.value; next[idx] = { ...next[idx], quantity: q, amount: (parseFloat(q) || 0) * (parseFloat(next[idx].unit_price) || 0) }; setCOItems(next);
-                        }}
-                        onFocus={(e) => { if (parseFloat(e.target.value) === 0) { const next = [...coItems]; next[idx] = { ...next[idx], quantity: '' }; setCOItems(next); } }}
-                        onBlur={(e) => { if (e.target.value === '') { const next = [...coItems]; next[idx] = { ...next[idx], quantity: 0 }; setCOItems(next); } }}
-                        className="w-full bg-secondary border border-border text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        min="0" step="any" />
+              {/* Line Items — shared editor (same component used by FSEstimate builder) */}
+              <div>
+                <h4 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider mb-2">Line Items</h4>
+                <LineItemsEditor items={coForm.line_items} onChange={setCOLineItems} />
+              </div>
+
+              {/* Summary — same math as FSEstimate */}
+              <div className="bg-secondary/30 border border-border rounded-lg p-3 space-y-2 text-sm">
+                <div className="flex justify-between text-foreground-soft">
+                  <span>Subtotal</span><span className="font-medium">{fmt(coTotals.subtotal)}</span>
+                </div>
+
+                {/* O&P — gated on overhead_profit_enabled feature flag, same as estimates */}
+                {features?.overhead_profit_enabled === true && (
+                  <>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-foreground-soft">O&P (Overhead & Profit)</span>
+                      <div className="flex items-center gap-1">
+                        <input type="number"
+                          className="w-20 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
+                          value={coForm.overhead_profit_pct}
+                          onChange={(e) => setCOField('overhead_profit_pct', e.target.value)}
+                          onFocus={(e) => { if (parseFloat(e.target.value) === 0) setCOField('overhead_profit_pct', ''); }}
+                          onBlur={(e) => { if (e.target.value === '') setCOField('overhead_profit_pct', 0); }}
+                          min="0" max="100" step="0.5" />
+                        <span className="text-muted-foreground">%</span>
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground/70">Unit Price</label>
-                      <input type="number" value={item.unit_price}
-                        onChange={(e) => {
-                          const next = [...coItems]; const p = e.target.value; next[idx] = { ...next[idx], unit_price: p, amount: (parseFloat(next[idx].quantity) || 0) * (parseFloat(p) || 0) }; setCOItems(next);
-                        }}
-                        onFocus={(e) => { if (parseFloat(e.target.value) === 0) { const next = [...coItems]; next[idx] = { ...next[idx], unit_price: '' }; setCOItems(next); } }}
-                        onBlur={(e) => { if (e.target.value === '') { const next = [...coItems]; next[idx] = { ...next[idx], unit_price: 0 }; setCOItems(next); } }}
-                        className="w-full bg-secondary border border-border text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        step="0.01" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground/70">Amount</label>
-                      <input type="number" value={item.amount}
-                        onChange={(e) => {
-                          const next = [...coItems]; next[idx] = { ...next[idx], amount: e.target.value }; setCOItems(next);
-                        }}
-                        onFocus={(e) => { if (parseFloat(e.target.value) === 0) { const next = [...coItems]; next[idx] = { ...next[idx], amount: '' }; setCOItems(next); } }}
-                        onBlur={(e) => { if (e.target.value === '') { const next = [...coItems]; next[idx] = { ...next[idx], amount: (parseFloat(next[idx].quantity) || 0) * (parseFloat(next[idx].unit_price) || 0) }; setCOItems(next); } }}
-                        className="w-full bg-secondary border border-border text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        step="0.01" />
-                    </div>
+                    {coTotals.opAmount > 0 && (
+                      <div className="flex justify-between text-muted-foreground pl-4">
+                        <span>O&P Amount</span><span>{fmt(coTotals.opAmount)}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-foreground-soft">Tax Rate</span>
+                  <div className="flex items-center gap-1">
+                    <input type="number"
+                      className="w-20 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
+                      value={coForm.tax_rate}
+                      onChange={(e) => setCOField('tax_rate', e.target.value)}
+                      onFocus={(e) => { if (parseFloat(e.target.value) === 0) setCOField('tax_rate', ''); }}
+                      onBlur={(e) => { if (e.target.value === '') setCOField('tax_rate', 0); }}
+                      min="0" max="100" step="0.1" />
+                    <span className="text-muted-foreground">%</span>
                   </div>
-                  {coItems.length > 1 && (
-                    <button type="button" onClick={() => setCOItems((prev) => prev.filter((_, i) => i !== idx))}
-                      className="text-xs text-muted-foreground/70 hover:text-primary">Remove</button>
-                  )}
                 </div>
-              ))}
+                {coTotals.taxAmount > 0 && (
+                  <div className="flex justify-between text-muted-foreground pl-4">
+                    <span>Tax Amount</span><span>{fmt(coTotals.taxAmount)}</span>
+                  </div>
+                )}
 
-              <button type="button" onClick={() => setCOItems((prev) => [...prev, { id: `co_${Date.now()}_${prev.length}`, category: 'materials', description: '', quantity: 1, unit_price: 0, amount: 0 }])}
-                className="flex items-center gap-1 text-sm text-primary hover:text-primary-hover min-h-[44px]">
-                <Plus className="h-4 w-4" /> Add Line Item
-              </button>
-
-              <div className="flex justify-between items-center pt-2 border-t border-border">
-                <span className="text-sm text-muted-foreground">Total: <span className="text-primary font-bold">{fmt(coItems.reduce((s, it) => s + (parseFloat(it.amount) || 0), 0))}</span></span>
-                <div className="flex gap-2">
-                  <button type="button" onClick={() => setShowCOForm(false)}
-                    className="px-3 py-2 rounded-lg border border-border text-foreground-soft hover:text-foreground text-sm min-h-[44px]">Cancel</button>
-                  <button type="button" disabled={!coTitle.trim() || createCOMutation.isPending}
-                    onClick={() => createCOMutation.mutate()}
-                    className="px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] disabled:opacity-50">
-                    {createCOMutation.isPending ? 'Saving...' : 'Save Draft'}
-                  </button>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-foreground-soft">Other</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-muted-foreground">$</span>
+                    <input type="number"
+                      className="w-24 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
+                      value={coForm.other_amount}
+                      onChange={(e) => setCOField('other_amount', e.target.value)}
+                      onFocus={(e) => { if (parseFloat(e.target.value) === 0) setCOField('other_amount', ''); }}
+                      onBlur={(e) => { if (e.target.value === '') setCOField('other_amount', 0); }}
+                      min="0" step="0.01" />
+                  </div>
                 </div>
+
+                <div className="flex justify-between text-base font-bold text-primary border-t border-border pt-2">
+                  <span>Total</span><span>{fmt(coTotals.total)}</span>
+                </div>
+                {parentEstimate && (coForm.overhead_profit_pct || coForm.tax_rate) ? (
+                  <p className="text-xs text-muted-foreground/70">
+                    Defaults pulled from this project's estimate. Override per CO above.
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-border">
+                <button type="button" onClick={() => setShowCOForm(false)}
+                  className="px-3 py-2 rounded-lg border border-border text-foreground-soft hover:text-foreground text-sm min-h-[44px]">Cancel</button>
+                <button type="button" disabled={!coForm.title.trim() || createCOMutation.isPending}
+                  onClick={() => createCOMutation.mutate()}
+                  className="px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] disabled:opacity-50">
+                  {createCOMutation.isPending ? 'Saving...' : 'Save Draft'}
+                </button>
               </div>
             </div>
           )}
@@ -1343,6 +1425,31 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                             ))}
                           </div>
                         )}
+                        {/* Calculated lines breakdown \u2014 mirrors estimate summary */}
+                        {(() => {
+                          const subtotal = parseFloat(co.subtotal) || coLineItems.reduce((s, it) => s + (parseFloat(it.amount) || 0), 0);
+                          const opPct = parseFloat(co.overhead_profit_pct) || 0;
+                          const taxPct = parseFloat(co.tax_rate) || 0;
+                          const taxAmt = parseFloat(co.tax_amount) || 0;
+                          const otherAmt = parseFloat(co.other_amount) || 0;
+                          const opAmt = subtotal * (opPct / 100);
+                          const hasBreakdown = opPct > 0 || taxPct > 0 || otherAmt > 0;
+                          if (!hasBreakdown) return null;
+                          return (
+                            <div className="border-t border-border pt-2 space-y-0.5 text-xs text-muted-foreground">
+                              <div className="flex justify-between"><span>Subtotal</span><span>{fmt(subtotal)}</span></div>
+                              {opPct > 0 && (
+                                <div className="flex justify-between"><span>O&P ({opPct}%)</span><span>{fmt(opAmt)}</span></div>
+                              )}
+                              {otherAmt > 0 && (
+                                <div className="flex justify-between"><span>Other</span><span>{fmt(otherAmt)}</span></div>
+                              )}
+                              {taxPct > 0 && (
+                                <div className="flex justify-between"><span>Tax ({taxPct}%)</span><span>{fmt(taxAmt)}</span></div>
+                              )}
+                            </div>
+                          );
+                        })()}
                         {co.status === 'draft' && (
                           <div className="flex flex-wrap gap-3 pt-1">
                             <button type="button" onClick={() => sendCOForSignature(co)}

@@ -2,13 +2,14 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import VoiceInput from './VoiceInput';
 import ClientSelector from './ClientSelector';
+import LineItemsEditor from './LineItemsEditor';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
+import { CATEGORY_MAP, makeItem, migrateLineItems, calcTotals } from '@/utils/fsLineItems';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   Search, Copy, FolderOpen, Send, Eye, Printer, X, DollarSign, Link2,
-  ChevronUp, ChevronDown, Lock, Shield, Check,
+  Lock, Shield, Check,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -48,17 +49,6 @@ const fmtDate = (d) => {
   } catch { return d; }
 };
 
-// ═══ Unified line item model ═══════════════════════
-
-const CATEGORIES = [
-  { value: 'materials',      label: 'Materials',      badge: 'bg-primary/20 text-primary-hover' },
-  { value: 'labor',          label: 'Labor',          badge: 'bg-sky-500/20 text-sky-400' },
-  { value: 'subcontractor',  label: 'Subcontractor',  badge: 'bg-violet-500/20 text-violet-400' },
-  { value: 'fee',            label: 'Fee',            badge: 'bg-muted-foreground/20 text-muted-foreground' },
-  { value: 'other',          label: 'Other',          badge: 'bg-surface/20 text-muted-foreground/70' },
-];
-const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.value, c]));
-
 // ═══ Trade categories for Xactimate format ═══════
 
 const DEFAULT_TRADE_CATEGORIES = [
@@ -73,17 +63,6 @@ function getTradeCategories(profile) {
   if (Array.isArray(tc) && tc.length > 0) return tc;
   if (tc && typeof tc === 'object' && Array.isArray(tc.items) && tc.items.length > 0) return tc.items;
   return DEFAULT_TRADE_CATEGORIES.map((name, i) => ({ id: `cat_${i}`, name, order: i }));
-}
-
-let _nextItemId = 1;
-function newItemId() { return `item_${Date.now()}_${_nextItemId++}`; }
-
-const EMPTY_UNIFIED_ITEM = {
-  id: '', category: 'materials', trade_category_id: '', description: '', quantity: 1, unit_price: 0, amount: 0, sub_name: '',
-};
-
-function makeItem(overrides) {
-  return { ...EMPTY_UNIFIED_ITEM, id: newItemId(), ...overrides };
 }
 
 const EMPTY_ESTIMATE = {
@@ -137,78 +116,7 @@ function generateEstimateNumber(existingEstimates) {
   return `${prefix}${String(next).padStart(3, '0')}`;
 }
 
-// ═══ Read-time migration: old format → unified ═════
-
-function parseJSON(val) {
-  if (Array.isArray(val)) return val;
-  if (val && typeof val === 'object' && Array.isArray(val.items)) return val.items;
-  if (typeof val === 'string') {
-    try { const p = JSON.parse(val); return Array.isArray(p) ? p : []; } catch { return []; }
-  }
-  return [];
-}
-
-/**
- * Migrate old separate line_items + labor_estimate to unified items.
- * New format: items have { id, category, description, quantity, unit_price, amount, sub_name }
- * Old materials format: { description, qty, unit, unit_cost }
- * Old labor format: { description, hours, rate }
- */
-function migrateLineItems(rawLineItems, rawLaborEstimate) {
-  const items = parseJSON(rawLineItems);
-  const labor = parseJSON(rawLaborEstimate);
-
-  // Check if already in unified format (first item has 'category' field)
-  if (items.length > 0 && items[0].category) {
-    return items.map((it) => ({
-      ...EMPTY_UNIFIED_ITEM,
-      ...it,
-      id: it.id || newItemId(),
-    }));
-  }
-
-  // Migrate old materials → unified
-  const migratedMaterials = items
-    .filter((it) => it.description || (parseFloat(it.unit_cost || it.unit_price) || 0) > 0)
-    .map((it) => makeItem({
-      category: 'materials',
-      description: it.description || '',
-      quantity: parseFloat(it.qty || it.quantity) || 1,
-      unit_price: parseFloat(it.unit_cost || it.unit_price) || 0,
-      amount: (parseFloat(it.qty || it.quantity) || 1) * (parseFloat(it.unit_cost || it.unit_price) || 0),
-    }));
-
-  // Migrate old labor → unified
-  const migratedLabor = labor
-    .filter((it) => it.description || (parseFloat(it.hours) || 0) > 0)
-    .map((it) => {
-      const hrs = parseFloat(it.hours) || 0;
-      const rate = parseFloat(it.rate) || 0;
-      return makeItem({
-        category: 'labor',
-        description: it.description || '',
-        quantity: hrs,
-        unit_price: rate,
-        amount: hrs * rate,
-      });
-    });
-
-  const merged = [...migratedMaterials, ...migratedLabor];
-  return merged.length > 0 ? merged : [makeItem()];
-}
-
-// ═══ Calc totals from unified items ════════════════
-
-function calcTotals(items, overheadProfitPct, taxRate, otherAmount) {
-  const subtotal = (items || []).reduce((s, it) => {
-    const amt = parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0));
-    return s + amt;
-  }, 0);
-  const opAmount = subtotal * ((parseFloat(overheadProfitPct) || 0) / 100);
-  const beforeTax = subtotal + opAmount + (parseFloat(otherAmount) || 0);
-  const taxAmount = beforeTax * ((parseFloat(taxRate) || 0) / 100);
-  return { subtotal, opAmount, beforeTax, taxAmount, total: beforeTax + taxAmount };
-}
+// Line item migration + calcTotals live in @/utils/fsLineItems (shared with FSChangeOrder).
 
 // ═══════════════════════════════════════════════════
 // Preview (client-facing branded estimate)
@@ -710,49 +618,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
 
   const set = (field, value) => setFormData((prev) => ({ ...prev, [field]: value }));
   const tradeCategories = getTradeCategories(profile);
-
-  // ─── Unified line item helpers ────────────────
-  const updateItem = (idx, field, value) => {
-    setFormData((prev) => {
-      const items = [...prev.line_items];
-      const updated = { ...items[idx], [field]: value };
-      // Auto-calc amount when qty or unit_price change (unless amount was directly edited)
-      if (field === 'quantity' || field === 'unit_price') {
-        updated.amount = (parseFloat(field === 'quantity' ? value : updated.quantity) || 0) *
-                         (parseFloat(field === 'unit_price' ? value : updated.unit_price) || 0);
-      }
-      items[idx] = updated;
-      return { ...prev, line_items: items };
-    });
-  };
-  const addItem = (category) => setFormData((prev) => ({
-    ...prev, line_items: [...prev.line_items, makeItem({ category: category || 'materials' })],
-  }));
-  const insertItemAfter = (idx) => {
-    const newItem = makeItem({ category: 'materials' });
-    setFormData((prev) => {
-      const items = [...prev.line_items];
-      items.splice(idx + 1, 0, newItem);
-      return { ...prev, line_items: items };
-    });
-    // Auto-focus the new item's description after render
-    requestAnimationFrame(() => {
-      const inputs = document.querySelectorAll('[data-line-item-desc]');
-      inputs[idx + 1]?.focus();
-    });
-  };
-  const removeItem = (idx) => setFormData((prev) => ({
-    ...prev, line_items: prev.line_items.length > 1 ? prev.line_items.filter((_, i) => i !== idx) : prev.line_items,
-  }));
-  const moveItem = (idx, dir) => {
-    setFormData((prev) => {
-      const items = [...prev.line_items];
-      const target = idx + dir;
-      if (target < 0 || target >= items.length) return prev;
-      [items[idx], items[target]] = [items[target], items[idx]];
-      return { ...prev, line_items: items };
-    });
-  };
+  const setLineItems = (items) => setFormData((prev) => ({ ...prev, line_items: items }));
 
   return (
     <div className="space-y-4 pb-8">
@@ -909,125 +775,12 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
       {/* ═══ Unified Line Items ═══ */}
       <div className="bg-card border border-border rounded-xl p-4 space-y-3">
         <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">Line Items</h3>
-
-        {formData.line_items.map((item, idx) => {
-          const cat = CATEGORY_MAP[item.category] || CATEGORY_MAP.materials;
-          const computedAmt = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
-          return (
-            <React.Fragment key={item.id || idx}>
-              <div className="bg-secondary/50 rounded-lg p-3 space-y-2">
-                {/* Row 1: category + description + voice + reorder + remove */}
-                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
-                  <select
-                    value={item.category || 'materials'}
-                    onChange={(e) => updateItem(idx, 'category', e.target.value)}
-                    className="bg-secondary border border-border text-foreground rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-w-[90px] min-h-[44px]"
-                  >
-                    {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                  </select>
-                  {formData.is_insurance_estimate && (
-                    <select
-                      value={item.trade_category_id || ''}
-                      onChange={(e) => updateItem(idx, 'trade_category_id', e.target.value)}
-                      className="bg-secondary border border-border text-foreground rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-ring min-w-[80px] max-w-[120px]"
-                    >
-                      <option value="">Trade</option>
-                      {tradeCategories.map((tc) => <option key={tc.id} value={tc.id}>{tc.name}</option>)}
-                    </select>
-                  )}
-                  <div className="flex-1">
-                    <input type="text" data-line-item-desc className={INPUT_CLASS} value={item.description}
-                      onChange={(e) => updateItem(idx, 'description', e.target.value)}
-                      placeholder="Description" />
-                  </div>
-                  <VoiceInput onTranscript={(t) => updateItem(idx, 'description', (item.description ? item.description + ' ' : '') + t)} />
-                  <div className="flex flex-col gap-0.5">
-                    <button type="button" onClick={() => moveItem(idx, -1)} disabled={idx === 0}
-                      className="text-muted-foreground/70 hover:text-primary disabled:opacity-30 p-0.5"><ChevronUp className="h-3.5 w-3.5" /></button>
-                    <button type="button" onClick={() => moveItem(idx, 1)} disabled={idx === formData.line_items.length - 1}
-                      className="text-muted-foreground/70 hover:text-primary disabled:opacity-30 p-0.5"><ChevronDown className="h-3.5 w-3.5" /></button>
-                  </div>
-                  {formData.line_items.length > 1 && (
-                    <button type="button" onClick={() => removeItem(idx)}
-                      className="p-2 text-muted-foreground/70 hover:text-primary min-h-[44px]">
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Sub name (only for subcontractor category) */}
-                {item.category === 'subcontractor' && (
-                  <div>
-                    <label className="text-xs text-muted-foreground/70">Sub Name</label>
-                    <input type="text" className={INPUT_CLASS} value={item.sub_name || ''}
-                      onChange={(e) => updateItem(idx, 'sub_name', e.target.value)}
-                      placeholder="e.g., Gastlin Gutters" />
-                  </div>
-                )}
-
-                {/* Row 2: qty, unit price, amount */}
-                <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                  <div>
-                    <label className="text-xs text-muted-foreground/70">Qty</label>
-                    <input type="number" className={INPUT_CLASS} value={item.quantity}
-                      onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
-                      onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateItem(idx, 'quantity', ''); }}
-                      onBlur={(e) => { if (e.target.value === '') updateItem(idx, 'quantity', 0); }}
-                      min="0" step="any" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground/70">Unit Price</label>
-                    <input type="number" className={INPUT_CLASS} value={item.unit_price}
-                      onChange={(e) => updateItem(idx, 'unit_price', e.target.value)}
-                      onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateItem(idx, 'unit_price', ''); }}
-                      onBlur={(e) => { if (e.target.value === '') updateItem(idx, 'unit_price', 0); }}
-                      min="0" step="0.01" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground/70">Amount</label>
-                    <div className={`${INPUT_CLASS} flex items-center justify-end bg-secondary/60 cursor-default`}>
-                      {fmt(computedAmt)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Insert-between button */}
-              <button
-                type="button"
-                onClick={() => insertItemAfter(idx)}
-                className="group flex items-center justify-center w-full py-1 -my-1"
-                title="Insert line item here"
-              >
-                <span className="flex-1 h-px bg-secondary group-hover:bg-primary/40 transition-colors" />
-                <span className="flex items-center justify-center h-6 w-6 rounded-full border border-border text-muted-foreground/50 group-hover:border-primary group-hover:text-primary transition-colors">
-                  <Plus className="h-3 w-3" />
-                </span>
-                <span className="flex-1 h-px bg-secondary group-hover:bg-primary/40 transition-colors" />
-              </button>
-            </React.Fragment>
-          );
-        })}
-
-        {/* Add buttons */}
-        <div className="flex gap-2 flex-wrap">
-          <button type="button" onClick={() => addItem('materials')}
-            className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover min-h-[44px]">
-            <Plus className="h-4 w-4" /> Add Line Item
-          </button>
-          <button type="button" onClick={() => addItem('labor')}
-            className="flex items-center gap-1.5 text-sm text-sky-400 hover:text-sky-300 min-h-[44px]">
-            <Plus className="h-4 w-4" /> Labor
-          </button>
-          <button type="button" onClick={() => addItem('subcontractor')}
-            className="flex items-center gap-1.5 text-sm text-violet-400 hover:text-violet-300 min-h-[44px]">
-            <Plus className="h-4 w-4" /> Subcontractor
-          </button>
-          <button type="button" onClick={() => addItem('fee')}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground-soft min-h-[44px]">
-            <Plus className="h-4 w-4" /> Fee
-          </button>
-        </div>
+        <LineItemsEditor
+          items={formData.line_items}
+          onChange={setLineItems}
+          tradeCategories={tradeCategories}
+          showTradeCategories={!!formData.is_insurance_estimate}
+        />
       </div>
 
       {/* ═══ Summary ═══ */}
