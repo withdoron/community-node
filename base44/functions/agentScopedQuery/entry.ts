@@ -1,3 +1,21 @@
+// agentScopedQuery — server-side scoped reads for the agent membrane.
+//
+// DEC-140 dependency (2026-04-29): SDK 0.8.23 does NOT bypass Creator Only RLS
+// via asServiceRole.list(). FS entities whose Read perm is "Creator Only" return
+// empty arrays from `entities[E].list()` even under asServiceRole, so any record
+// not created by the calling identity is invisible to this function.
+//
+// Resolution: FSEstimate, FSDocument, FSClient have Read = Authenticated Users
+// (no rls.read block). The membership/scope membrane is enforced HERE — by
+// resolving the user's profile and filtering child records on profile_id /
+// workspace_id. Mirrors readTeamData's pattern. Do not re-tighten entity-level
+// Read on these without rebuilding the read path.
+//
+// FS entities that remain Creator Only or open-Read are unaffected:
+//   - FSProject, FSChangeOrder, FSPayment, FSDailyLog, FSDailyPhoto,
+//     FSMaterialEntry, FSLaborEntry, FSPermit, FSDocumentTemplate (Read open)
+//   - (none Creator-Only-Read remain in the FS layer after DEC-140 adoption)
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 // Workspace → profile entity + user field

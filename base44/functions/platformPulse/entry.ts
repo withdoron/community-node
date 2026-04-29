@@ -1,3 +1,16 @@
+// platformPulse — Mycelia/MCP observation endpoint for organism vitals.
+//
+// DEC-140 dependency (2026-04-29): the `health`, `estimates`, and `documents`
+// actions all call `asServiceRole.entities.X.list()`. Pre-DEC-140-adoption,
+// FSEstimate and FSDocument had Read = Creator Only, which SDK 0.8.23 does NOT
+// let asServiceRole bypass — so `health.estimates` and `health.documents`
+// reported 0 even when records existed.
+//
+// After DEC-140 adoption (2026-04-29), Read = Authenticated on FSEstimate /
+// FSDocument / FSClient. asServiceRole.list() now returns the full set, and
+// these counts are honest. This function exposes platform-wide totals by
+// design (no per-user scoping) — that's the contract of the pulse endpoint.
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 Deno.serve(async (req) => {
