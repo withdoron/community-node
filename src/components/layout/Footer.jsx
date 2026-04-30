@@ -12,15 +12,15 @@ export default function Footer() {
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-    staleTime: 60 * 1000,
+    staleTime: 60 * 1000
   });
 
   const footerLinks = [
-    { label: 'Philosophy', href: '/Philosophy' },
-    { label: 'Terms', href: '/Terms' },
-    { label: 'Privacy', href: '/Privacy' },
-    { label: 'Support', href: '/Support' }
-  ];
+  { label: 'Philosophy', href: '/Philosophy' },
+  { label: 'Terms', href: '/Terms' },
+  { label: 'Privacy', href: '/Privacy' },
+  { label: 'Support', href: '/Support' }];
+
 
   const handleNewsletterSubmit = async (e) => {
     e.preventDefault();
@@ -51,7 +51,7 @@ export default function Footer() {
         source: 'footer',
         user_id: currentUser?.id || null,
         first_name: firstName,
-        is_active: true,
+        is_active: true
       });
 
       toast.success("You're in! Welcome to The Good News.");
@@ -75,21 +75,21 @@ export default function Footer() {
               e.preventDefault();
               handleNewsletterSubmit(e);
             }}
-            className="mt-3 flex flex-col sm:flex-row gap-0 max-w-md"
-          >
+            className="mt-3 flex flex-col sm:flex-row gap-0 max-w-md">
+            
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
               disabled={isSubmitting}
-              className="flex-1 min-w-0 bg-secondary border border-border rounded-t-lg rounded-b-none sm:rounded-r-none sm:rounded-l-lg px-3 py-2.5 text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none transition-colors disabled:opacity-50"
-            />
+              className="flex-1 min-w-0 bg-secondary border border-border rounded-t-lg rounded-b-none sm:rounded-r-none sm:rounded-l-lg px-3 py-2.5 text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none transition-colors disabled:opacity-50" />
+            
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="bg-primary hover:bg-primary-hover text-primary-foreground font-medium px-4 py-2.5 rounded-b-lg rounded-t-none sm:rounded-l-none sm:rounded-r-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+              disabled={isSubmitting} className="bg-primary text-[hsl(var(--secondary-foreground))] px-4 py-2.5 font-medium rounded-t-none hover:bg-primary-hover sm:rounded-l-none sm:rounded-r-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+
+              
               {isSubmitting ? '…' : 'Subscribe'}
             </button>
           </form>
@@ -105,31 +105,31 @@ export default function Footer() {
             <img
               src="/LocalLaneLogo.png"
               alt="Local Lane"
-              className="h-9 w-9 rounded-lg object-cover"
-            />
+              className="h-9 w-9 rounded-lg object-cover" />
+            
             <span className="text-foreground font-bold text-xl tracking-tight">Local Lane</span>
           </div>
 
           {/* Navigation Links */}
           <nav className="flex items-center gap-6">
             {footerLinks.map((link) =>
-              link.href.startsWith('mailto:') ? (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  className="text-muted-foreground hover:text-primary transition-colors duration-300 text-sm"
-                >
+            link.href.startsWith('mailto:') ?
+            <a
+              key={link.label}
+              href={link.href}
+              className="text-muted-foreground hover:text-primary transition-colors duration-300 text-sm">
+              
                   {link.label}
-                </a>
-              ) : (
-                <Link
-                  key={link.label}
-                  to={link.href}
-                  className="text-muted-foreground hover:text-primary transition-colors duration-300 text-sm"
-                >
+                </a> :
+
+            <Link
+              key={link.label}
+              to={link.href}
+              className="text-muted-foreground hover:text-primary transition-colors duration-300 text-sm">
+              
                   {link.label}
                 </Link>
-              )
+
             )}
           </nav>
         </div>
@@ -150,6 +150,6 @@ export default function Footer() {
           </p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>);
+
 }
