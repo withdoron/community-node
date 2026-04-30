@@ -87,7 +87,7 @@ export default function Footer() {
             
             <button
               type="submit"
-              disabled={isSubmitting} className="bg-primary text-[hsl(var(--secondary-foreground))] px-4 py-2.5 font-medium rounded-t-none hover:bg-primary-hover sm:rounded-l-none sm:rounded-r-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              disabled={isSubmitting} className="bg-primary text-[hsl(var(--background))] px-4 py-2.5 font-medium rounded-t-none hover:bg-primary-hover sm:rounded-l-none sm:rounded-r-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
 
               
               {isSubmitting ? '…' : 'Subscribe'}
