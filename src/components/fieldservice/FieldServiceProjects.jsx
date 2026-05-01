@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import ClientSelector from './ClientSelector';
 import LineItemsEditor from './LineItemsEditor';
 import CurrencyInput from './CurrencyInput';
+import VoiceInput from './VoiceInput';
 import FieldServiceTimeline from './FieldServiceTimeline';
 import FieldServicePayments from './FieldServicePayments';
 import FieldServicePermits from './FieldServicePermits';
