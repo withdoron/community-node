@@ -11,6 +11,7 @@ import FieldServicePhotoGallery from './FieldServicePhotoGallery';
 import FieldServiceClientPortal from './FieldServiceClientPortal';
 import FieldServiceClientDetail from './FieldServiceClientDetail';
 import { makeItem, calcTotals } from '@/utils/fsLineItems';
+import { useFSPayments, summarizePayments } from '@/hooks/useFSPayments';
 import {
   FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save, X,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
@@ -360,6 +361,13 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     },
     enabled: !!selectedId,
   });
+
+  // ─── Query: Payments (shared cache key with FieldServicePayments view) ─
+  const { data: projectPayments = [] } = useFSPayments(selectedId);
+  const paymentSummary = useMemo(
+    () => summarizePayments(projectPayments),
+    [projectPayments]
+  );
 
   // ─── Query: Change Orders ──────────────────────
   const { data: changeOrders = [] } = useQuery({
@@ -1102,6 +1110,60 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           </div>
         )}
 
+        {/* Financial header — Contract / Received / Paid Out / Net Cash.
+            Daily check-in view per FINANCIAL-WORKFLOW-SPEC. The existing
+            budget breakdown below stays — banner adds metrics, doesn't
+            replace what's there. */}
+        {(() => {
+          const contractTotal = parseFloat(proj.total_budget) || 0;
+          const received = paymentSummary.received;
+          const paidOut = paymentSummary.paid;
+          const netCash = paymentSummary.net;
+          const signedCOs = changeOrders.filter((co) => co.status === 'signed' || co.status === 'accepted');
+          const originalBudget = parseFloat(proj.original_budget || proj.total_budget) || 0;
+          const receivedPct = contractTotal > 0 ? Math.min(100, (received / contractTotal) * 100) : 0;
+          const netColor = netCash > 0
+            ? 'text-emerald-400'
+            : netCash < 0
+            ? 'text-red-400'
+            : 'text-foreground-soft';
+          return (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-card border border-border rounded-xl p-4">
+                <p className="text-xs text-muted-foreground mb-1">Contract Total</p>
+                <p className="text-xl font-bold text-foreground">{fmt(contractTotal)}</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">
+                  Original: {fmt(originalBudget)}
+                  {signedCOs.length > 0 && (
+                    <span className="text-primary-hover ml-1">+{signedCOs.length} CO</span>
+                  )}
+                </p>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-4">
+                <p className="text-xs text-muted-foreground mb-1">Received</p>
+                <p className="text-xl font-bold text-emerald-400">{fmt(received)}</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">
+                  {contractTotal > 0
+                    ? `${fmt(received)} of ${fmt(contractTotal)} (${Math.round(receivedPct)}%)`
+                    : 'Receipts on this project'}
+                </p>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-4">
+                <p className="text-xs text-muted-foreground mb-1">Paid Out</p>
+                <p className="text-xl font-bold text-primary">{fmt(paidOut)}</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Sub & vendor payments</p>
+              </div>
+              <div className="bg-card border border-border rounded-xl p-4">
+                <p className="text-xs text-muted-foreground mb-1">Net Cash</p>
+                <p className={`text-xl font-bold ${netColor}`}>
+                  {netCash > 0 ? '+' : ''}{fmt(netCash)}
+                </p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Receipts − payouts</p>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Budget & Spend */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-card border border-border rounded-xl p-4">
@@ -1161,19 +1223,39 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
 
         {/* Financial Ledger */}
         {(() => {
-          // Parse estimate line items by category for comparison
-          const estLineItems = selectedEstimate ? (() => {
-            const raw = selectedEstimate.line_items;
+          // Parse line items from a record's line_items field. Handles three
+          // shapes: a direct array, a nested {items: [...]} object, or a
+          // stringified JSON blob (legacy estimates).
+          const parseLineItems = (raw) => {
+            if (!raw) return [];
             const items = Array.isArray(raw) ? raw : (raw?.items || []);
-            if (typeof items[0] === 'string') try { return JSON.parse(items[0]); } catch { return []; }
+            if (typeof items[0] === 'string') {
+              try { return JSON.parse(items[0]); } catch { return []; }
+            }
             return items;
-          })() : [];
+          };
+
+          // Estimate spine + signed change orders both feed the Estimated
+          // column. After Item 2c, total_budget on the project recomputes from
+          // signed COs; the Estimated column needs the same composition so
+          // category-level rollups match the contract the contractor actually
+          // committed to.
+          const estLineItems = parseLineItems(selectedEstimate?.line_items);
 
           const estByCategory = {};
-          for (const it of estLineItems) {
+          const addLine = (it) => {
             const cat = it.category || 'materials';
             const amt = parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0));
             estByCategory[cat] = (estByCategory[cat] || 0) + amt;
+          };
+          for (const it of estLineItems) addLine(it);
+
+          // Layer in signed/accepted CO line items by category. Only counted
+          // COs (status === signed | accepted) — drafts and awaiting-signature
+          // don't move the contract.
+          const countedCOs = changeOrders.filter((co) => co.status === 'signed' || co.status === 'accepted');
+          for (const co of countedCOs) {
+            for (const it of parseLineItems(co.line_items)) addLine(it);
           }
 
           // Actual costs by category
@@ -1276,14 +1358,20 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           </div>
         )}
 
-        {/* Payments */}
+        {/* Payments — view-only; writes flow through the Log tab */}
         {features?.payments_enabled !== false && (
         <FieldServicePayments
           projectId={proj.id}
-          profileId={profile?.id}
-          currentUser={currentUser}
-          estimateTotal={selectedEstimate?.total || 0}
-          budgetTotal={proj.total_budget || 0}
+          onLogPayment={() => {
+            // Drop a project + type hint, then jump to the Log tab. Log reads
+            // fs-last-project on mount (existing behavior) and the type hint
+            // (new in Item 4) so the user lands ready to type.
+            try {
+              localStorage.setItem('fs-last-project', String(proj.id));
+              localStorage.setItem('fs-log-prefill-type', 'sub_payment');
+            } catch { /* ignore localStorage errors */ }
+            if (onNavigateTab) onNavigateTab('log');
+          }}
         />
         )}
 

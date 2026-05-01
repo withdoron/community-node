@@ -7,6 +7,7 @@ import VoiceInput from './VoiceInput';
 import {
   Camera, Plus, X, ClipboardList, Package, Users, Cloud,
   Loader2, Save, Trash2, FolderOpen, Receipt, ChevronDown, Pencil,
+  ArrowDownToLine, ArrowUpFromLine,
 } from 'lucide-react';
 
 const INPUT_CLASS =
@@ -17,6 +18,45 @@ const SECTION_HEADER_CLASS = 'text-lg font-bold text-foreground mb-3 flex items-
 const UNITS = ['each', 'ft', 'sq ft', 'board', 'roll', 'box', 'bag', 'gal'];
 const WEATHER_CHIPS = ['Sunny', 'Cloudy', 'Rain', 'Snow', 'Hot', 'Cold'];
 const LAST_PROJECT_KEY = 'fs-last-project';
+// Project Detail's "Log a payment" button drops a hint here so Log opens
+// pre-pointed at the right entry type. Read once on mount, then cleared.
+const PREFILL_TYPE_KEY = 'fs-log-prefill-type';
+
+// Universal capture surface — three entry types share one input. Daily Log is
+// the default; Sub Payment / Client Payment write FSPayment with the right
+// direction + party fields. Per FINANCIAL-WORKFLOW-SPEC §2.6.
+const LOG_TYPES = [
+  { id: 'daily',          label: 'Daily Log',      icon: ClipboardList,    description: 'Photos, materials, labor, work completed' },
+  { id: 'sub_payment',    label: 'Sub Payment',    icon: ArrowUpFromLine,  description: 'Payment paid out to a sub or vendor' },
+  { id: 'client_payment', label: 'Client Payment', icon: ArrowDownToLine,  description: 'Payment received from the client' },
+];
+
+const PAYMENT_METHODS = [
+  { value: '',         label: 'Method (optional)' },
+  { value: 'check',    label: 'Check' },
+  { value: 'cash',     label: 'Cash' },
+  { value: 'ach',      label: 'ACH' },
+  { value: 'card',     label: 'Card' },
+  { value: 'transfer', label: 'Transfer' },
+  { value: 'other',    label: 'Other' },
+];
+
+const PARTY_TYPES = [
+  { value: 'subcontractor', label: 'Subcontractor' },
+  { value: 'vendor',        label: 'Vendor' },
+  { value: 'other',         label: 'Other' },
+];
+
+const EMPTY_PAYMENT_FORM = {
+  amount: '',
+  method: '',
+  reference: '',
+  notes: '',
+  payee_name: '',
+  party_type: 'subcontractor',
+  receipt_file: null,
+  receipt_preview: null,
+};
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -58,6 +98,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
   });
 
   // ─── Form state ───────────────────────────────
+  const [logType, setLogType] = useState('daily'); // daily | sub_payment | client_payment
   const [projectId, setProjectId] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [dayNumber, setDayNumber] = useState('');
@@ -74,8 +115,14 @@ export default function FieldServiceLog({ profile, currentUser }) {
   // Labor
   const [labor, setLabor] = useState([]);
 
+  // Payment form (used when logType !== 'daily')
+  const [paymentForm, setPaymentForm] = useState(EMPTY_PAYMENT_FORM);
+  const paymentReceiptInputRef = useRef(null);
+
   const [saving, setSaving] = useState(false);
   const [editingLogId, setEditingLogId] = useState(null);
+
+  const isPaymentType = logType === 'sub_payment' || logType === 'client_payment';
 
   // Restore last project from localStorage
   useEffect(() => {
@@ -86,6 +133,17 @@ export default function FieldServiceLog({ profile, currentUser }) {
       setProjectId(String(projects[0].id));
     }
   }, [projects]);
+
+  // One-shot prefill: Project Detail's "Log a payment" button writes a type
+  // hint here so the user lands on the right form. Consume and clear so the
+  // hint can't outlive its trigger.
+  useEffect(() => {
+    const prefill = localStorage.getItem(PREFILL_TYPE_KEY);
+    if (prefill && LOG_TYPES.some((t) => t.id === prefill)) {
+      setLogType(prefill);
+      localStorage.removeItem(PREFILL_TYPE_KEY);
+    }
+  }, []);
 
   // Auto day number
   const { data: existingLogs = [] } = useQuery({
@@ -111,6 +169,13 @@ export default function FieldServiceLog({ profile, currentUser }) {
       setDayNumber('1');
     }
   }, [projectId, existingLogs]);
+
+  // Project record for payment metadata (client_id / client_name auto-resolve
+  // for Client Payment, project name for receipts, etc.)
+  const selectedProject = useMemo(
+    () => projects.find((p) => String(p.id) === String(projectId)) || null,
+    [projects, projectId]
+  );
 
   const allWorkers = useMemo(() => parseWorkers(profile?.workers_json), [profile?.workers_json]);
   // Show workers assigned to selected project first, fall back to all workers
@@ -296,6 +361,31 @@ export default function FieldServiceLog({ profile, currentUser }) {
     });
   };
 
+  // ─── Payment form helpers ─────────────────────
+  const setPaymentField = (field, value) =>
+    setPaymentForm((prev) => ({ ...prev, [field]: value }));
+
+  const handlePaymentReceipt = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const check = validateFile(file, {
+      acceptedTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
+    });
+    if (!check.valid) { toast.error(check.error); return; }
+    setPaymentForm((prev) => {
+      if (prev.receipt_preview) URL.revokeObjectURL(prev.receipt_preview);
+      return { ...prev, receipt_file: file, receipt_preview: URL.createObjectURL(file) };
+    });
+    e.target.value = '';
+  };
+
+  const clearPaymentReceipt = () => {
+    setPaymentForm((prev) => {
+      if (prev.receipt_preview) URL.revokeObjectURL(prev.receipt_preview);
+      return { ...prev, receipt_file: null, receipt_preview: null };
+    });
+  };
+
   // ─── Submit ───────────────────────────────────
   const handleSubmit = async () => {
     if (!projectId) {
@@ -304,6 +394,81 @@ export default function FieldServiceLog({ profile, currentUser }) {
     }
     if (!date) {
       toast.error('Date is required');
+      return;
+    }
+
+    // Payment paths (Sub Payment / Client Payment) — write FSPayment, not FSDailyLog.
+    if (isPaymentType) {
+      const amt = parseFloat(paymentForm.amount);
+      if (!Number.isFinite(amt) || amt <= 0) {
+        toast.error('Amount is required');
+        return;
+      }
+      if (logType === 'sub_payment' && !paymentForm.payee_name.trim()) {
+        toast.error('Payee name is required');
+        return;
+      }
+      if (logType === 'client_payment' && !selectedProject) {
+        toast.error('Project not found');
+        return;
+      }
+      setSaving(true);
+      try {
+        localStorage.setItem(LAST_PROJECT_KEY, projectId);
+
+        const isPaid = logType === 'sub_payment';
+        const partyName = isPaid
+          ? paymentForm.payee_name.trim()
+          : (selectedProject.client_name || 'Client');
+        const partyType = isPaid ? paymentForm.party_type : 'client';
+        const partyId = !isPaid ? (selectedProject.client_id || null) : null;
+
+        const payload = {
+          profile_id: profile.id,
+          user_id: currentUser?.id,
+          project_id: projectId,
+          // `type` is required by FSPayment schema. Phase 1 doesn't ask the
+          // user to pick a project-stage type for these flows, so we default
+          // to progress_payment — the most common case for both directions.
+          type: 'progress_payment',
+          amount: amt,
+          date,
+          direction: isPaid ? 'paid' : 'received',
+          party_type: partyType,
+          party_name: partyName,
+          party_id: partyId,
+          method: paymentForm.method || null,
+          reference: paymentForm.reference.trim() || null,
+          // Mirror reference into check_number for legacy summaries that still
+          // read it (existing FieldServicePayments list rendering).
+          check_number: paymentForm.method === 'check' ? (paymentForm.reference.trim() || null) : null,
+          notes: paymentForm.notes.trim() || null,
+          status: 'received',
+        };
+
+        if (paymentForm.receipt_file) {
+          try {
+            payload.receipt_photo = await uploadFile(paymentForm.receipt_file);
+          } catch (err) {
+            console.error('Receipt upload error:', err);
+          }
+        }
+
+        await base44.entities.FSPayment.create(payload);
+
+        queryClient.invalidateQueries({ queryKey: ['fs-payments', projectId] });
+        queryClient.invalidateQueries({ queryKey: ['fs-payments'] });
+
+        if (paymentForm.receipt_preview) URL.revokeObjectURL(paymentForm.receipt_preview);
+        setPaymentForm(EMPTY_PAYMENT_FORM);
+
+        toast.success(isPaid ? 'Sub payment logged' : 'Client payment logged');
+      } catch (err) {
+        console.error('Payment save error:', err);
+        toast.error(err?.message || 'Failed to save payment');
+      } finally {
+        setSaving(false);
+      }
       return;
     }
 
@@ -518,7 +683,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
 
   return (
     <div className="space-y-0 pb-24">
-      {editingLogId && (
+      {editingLogId && logType === 'daily' && (
         <div className="bg-primary/10 border border-primary/30 rounded-xl p-3 mb-4 flex items-center justify-between">
           <span className="text-sm text-primary font-medium">Editing log — {date}</span>
           <button type="button" onClick={cancelEditing}
@@ -526,8 +691,42 @@ export default function FieldServiceLog({ profile, currentUser }) {
         </div>
       )}
 
+      {/* Log Type Picker — universal capture surface (FINANCIAL-WORKFLOW-SPEC §2.6) */}
+      {!editingLogId && (
+        <div className={SECTION_CLASS}>
+          <div className={SECTION_HEADER_CLASS}>
+            <ClipboardList className="h-5 w-5 text-primary" />
+            What are you logging?
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {LOG_TYPES.map((t) => {
+              const Icon = t.icon;
+              const active = logType === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setLogType(t.id)}
+                  className={`flex items-start gap-2 p-3 rounded-lg border text-left transition-colors min-h-[64px] ${
+                    active
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border bg-secondary/50 hover:border-primary/40'
+                  }`}
+                >
+                  <Icon className={`h-4 w-4 mt-0.5 flex-shrink-0 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div className="min-w-0">
+                    <p className={`text-sm font-medium ${active ? 'text-foreground' : 'text-foreground-soft'}`}>{t.label}</p>
+                    <p className="text-xs text-muted-foreground/70 mt-0.5">{t.description}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Recent Logs for selected project */}
-      {projectId && existingLogs.length > 0 && !editingLogId && (
+      {logType === 'daily' && projectId && existingLogs.length > 0 && !editingLogId && (
         <div className={SECTION_CLASS}>
           <div className={SECTION_HEADER_CLASS}>
             <ClipboardList className="h-5 w-5 text-primary" />
@@ -613,20 +812,261 @@ export default function FieldServiceLog({ profile, currentUser }) {
                 className={INPUT_CLASS}
               />
             </div>
-            <div>
-              <label className={LABEL_CLASS}>Day #</label>
-              <input
-                type="text"
-                value={dayNumber}
-                onChange={(e) => setDayNumber(e.target.value)}
-                className={INPUT_CLASS}
-                placeholder="1"
-              />
-            </div>
+            {logType === 'daily' && (
+              <div>
+                <label className={LABEL_CLASS}>Day #</label>
+                <input
+                  type="text"
+                  value={dayNumber}
+                  onChange={(e) => setDayNumber(e.target.value)}
+                  className={INPUT_CLASS}
+                  placeholder="1"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
 
+      {/* ═══ Payment forms (Sub Payment / Client Payment) ═══════════════════ */}
+      {logType === 'sub_payment' && (
+        <div className={SECTION_CLASS}>
+          <div className={SECTION_HEADER_CLASS}>
+            <ArrowUpFromLine className="h-5 w-5 text-primary" />
+            Sub Payment
+            <span className="ml-auto text-xs font-normal text-muted-foreground/70">Paid out</span>
+          </div>
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="sm:col-span-2">
+                <label className={LABEL_CLASS}>Payee name *</label>
+                <div className="flex gap-2 items-start">
+                  <input
+                    type="text"
+                    value={paymentForm.payee_name}
+                    onChange={(e) => setPaymentField('payee_name', e.target.value)}
+                    className={INPUT_CLASS}
+                    placeholder="e.g. Crawford Door"
+                  />
+                  <VoiceInput onTranscript={(t) => setPaymentField('payee_name', t)} />
+                </div>
+              </div>
+              <div>
+                <label className={LABEL_CLASS}>Payee type</label>
+                <select
+                  value={paymentForm.party_type}
+                  onChange={(e) => setPaymentField('party_type', e.target.value)}
+                  className={INPUT_CLASS}
+                >
+                  {PARTY_TYPES.map((pt) => (
+                    <option key={pt.value} value={pt.value}>{pt.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={LABEL_CLASS}>Amount *</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={paymentForm.amount}
+                    onChange={(e) => setPaymentField('amount', e.target.value)}
+                    onFocus={(e) => { if (parseFloat(e.target.value) === 0) setPaymentField('amount', ''); }}
+                    onBlur={(e) => { if (e.target.value === '') setPaymentField('amount', 0); }}
+                    className={`${INPUT_CLASS} pl-7 text-lg font-bold`}
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className={LABEL_CLASS}>Method</label>
+                <select
+                  value={paymentForm.method}
+                  onChange={(e) => setPaymentField('method', e.target.value)}
+                  className={INPUT_CLASS}
+                >
+                  {PAYMENT_METHODS.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className={LABEL_CLASS}>Reference</label>
+                <input
+                  type="text"
+                  value={paymentForm.reference}
+                  onChange={(e) => setPaymentField('reference', e.target.value)}
+                  className={INPUT_CLASS}
+                  placeholder="Check #, ACH ID, etc."
+                />
+              </div>
+            </div>
+            <div>
+              <label className={LABEL_CLASS}>Notes</label>
+              <div className="flex gap-2 items-start">
+                <textarea
+                  value={paymentForm.notes}
+                  onChange={(e) => setPaymentField('notes', e.target.value)}
+                  rows={2}
+                  className={`${INPUT_CLASS} resize-y`}
+                  placeholder="Optional notes"
+                />
+                <VoiceInput
+                  onTranscript={(t) => setPaymentField('notes', (paymentForm.notes ? paymentForm.notes + ' ' : '') + t)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            {/* Receipt photo (optional) */}
+            <div>
+              <input
+                ref={paymentReceiptInputRef}
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={handlePaymentReceipt}
+                className="hidden"
+              />
+              {paymentForm.receipt_preview ? (
+                <div className="flex items-center gap-3 bg-secondary/50 rounded-lg p-3">
+                  {paymentForm.receipt_file?.type?.startsWith('image/') ? (
+                    <img src={paymentForm.receipt_preview} alt="Receipt" className="h-14 w-14 object-cover rounded border border-border" />
+                  ) : (
+                    <Receipt className="h-8 w-8 text-primary" />
+                  )}
+                  <span className="flex-1 text-sm text-foreground-soft truncate">{paymentForm.receipt_file?.name || 'Receipt'}</span>
+                  <button type="button" onClick={clearPaymentReceipt}
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground/70 hover:text-red-400">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => paymentReceiptInputRef.current?.click()}
+                  className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-xl py-3 text-muted-foreground hover:text-primary hover:border-primary/50 transition-colors min-h-[44px]"
+                >
+                  <Receipt className="h-4 w-4" />
+                  Add receipt (optional)
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {logType === 'client_payment' && (
+        <div className={SECTION_CLASS}>
+          <div className={SECTION_HEADER_CLASS}>
+            <ArrowDownToLine className="h-5 w-5 text-primary" />
+            Client Payment
+            <span className="ml-auto text-xs font-normal text-muted-foreground/70">Received</span>
+          </div>
+          {selectedProject?.client_name && (
+            <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 rounded-lg px-3 py-2">
+              <Users className="h-4 w-4" />
+              <span>From: <span className="text-foreground-soft font-medium">{selectedProject.client_name}</span></span>
+            </div>
+          )}
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className={LABEL_CLASS}>Amount *</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={paymentForm.amount}
+                    onChange={(e) => setPaymentField('amount', e.target.value)}
+                    onFocus={(e) => { if (parseFloat(e.target.value) === 0) setPaymentField('amount', ''); }}
+                    onBlur={(e) => { if (e.target.value === '') setPaymentField('amount', 0); }}
+                    className={`${INPUT_CLASS} pl-7 text-lg font-bold`}
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className={LABEL_CLASS}>Method</label>
+                <select
+                  value={paymentForm.method}
+                  onChange={(e) => setPaymentField('method', e.target.value)}
+                  className={INPUT_CLASS}
+                >
+                  {PAYMENT_METHODS.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className={LABEL_CLASS}>Reference</label>
+                <input
+                  type="text"
+                  value={paymentForm.reference}
+                  onChange={(e) => setPaymentField('reference', e.target.value)}
+                  className={INPUT_CLASS}
+                  placeholder="Check #, ACH ID, etc."
+                />
+              </div>
+            </div>
+            <div>
+              <label className={LABEL_CLASS}>Notes</label>
+              <div className="flex gap-2 items-start">
+                <textarea
+                  value={paymentForm.notes}
+                  onChange={(e) => setPaymentField('notes', e.target.value)}
+                  rows={2}
+                  className={`${INPUT_CLASS} resize-y`}
+                  placeholder="Optional notes"
+                />
+                <VoiceInput
+                  onTranscript={(t) => setPaymentField('notes', (paymentForm.notes ? paymentForm.notes + ' ' : '') + t)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+            {/* Receipt photo (optional) */}
+            <div>
+              <input
+                ref={paymentReceiptInputRef}
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={handlePaymentReceipt}
+                className="hidden"
+              />
+              {paymentForm.receipt_preview ? (
+                <div className="flex items-center gap-3 bg-secondary/50 rounded-lg p-3">
+                  {paymentForm.receipt_file?.type?.startsWith('image/') ? (
+                    <img src={paymentForm.receipt_preview} alt="Receipt" className="h-14 w-14 object-cover rounded border border-border" />
+                  ) : (
+                    <Receipt className="h-8 w-8 text-primary" />
+                  )}
+                  <span className="flex-1 text-sm text-foreground-soft truncate">{paymentForm.receipt_file?.name || 'Receipt'}</span>
+                  <button type="button" onClick={clearPaymentReceipt}
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground/70 hover:text-red-400">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => paymentReceiptInputRef.current?.click()}
+                  className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-xl py-3 text-muted-foreground hover:text-primary hover:border-primary/50 transition-colors min-h-[44px]"
+                >
+                  <Receipt className="h-4 w-4" />
+                  Add receipt (optional)
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Daily-log-only sections — Weather, Photos, Work, Materials, Labor, Notes, Day Summary */}
+      {logType === 'daily' && (
+      <>
       {/* Weather */}
       <div className={SECTION_CLASS}>
         <div className={SECTION_HEADER_CLASS}>
@@ -1005,8 +1445,10 @@ export default function FieldServiceLog({ profile, currentUser }) {
           </div>
         </div>
       )}
+      </>
+      )}
 
-      {editingLogId && (
+      {editingLogId && logType === 'daily' && (
         <div className="mb-4">
           <button
             type="button"
@@ -1028,9 +1470,11 @@ export default function FieldServiceLog({ profile, currentUser }) {
         >
           {saving ? (
             <><Loader2 className="h-5 w-5 animate-spin" /> {editingLogId ? 'Updating...' : 'Saving...'}</>
-          ) : (
-            <><Save className="h-5 w-5" /> {editingLogId ? 'Update Daily Log' : 'Save Daily Log'}</>
-          )}
+          ) : (() => {
+            if (logType === 'sub_payment') return <><Save className="h-5 w-5" /> Save Sub Payment</>;
+            if (logType === 'client_payment') return <><Save className="h-5 w-5" /> Save Client Payment</>;
+            return <><Save className="h-5 w-5" /> {editingLogId ? 'Update Daily Log' : 'Save Daily Log'}</>;
+          })()}
         </button>
       </div>
     </div>
