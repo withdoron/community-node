@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { WORKSPACE_TYPES, getBusinessTabs } from '@/config/workspaceTypes';
 import { useBusinessRevenue } from '@/hooks/useBusinessRevenue';
 import { useActiveBusiness } from '@/hooks/useActiveBusiness';
+import { getFeatures } from '@/utils/fsFeatures';
 import { toast } from 'sonner';
 
 // Map drill workspace names to WORKSPACE_TYPES keys
@@ -174,7 +175,11 @@ export default function MyLaneDrillView({
         onNavigateTab: setActiveTab,
         isOwner: fsIsOwner,
         workerRole: fsWorkerRole,
-        features: profile.features || {},
+        // Canonical: derive from profile.features_json with defaults applied
+        // and legacy insurance_work_enabled migrated. Was previously
+        // `profile.features || {}`, which read a non-existent key and made
+        // every === true gate silently fail (O&P, Xactimate).
+        features: getFeatures(profile),
       };
       break;
     case 'team': {

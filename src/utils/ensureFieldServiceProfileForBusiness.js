@@ -22,16 +22,7 @@
  * created records on the client SDK.
  */
 import { base44 } from '@/api/base44Client';
-
-const FEATURE_DEFAULTS = {
-  permits_enabled: true,
-  subs_enabled: true,
-  management_fees_enabled: false,
-  overhead_profit_enabled: false,
-  xactimate_enabled: false,
-  payments_enabled: true,
-  timeline_enabled: true,
-};
+import { FEATURE_DEFAULTS } from '@/utils/fsFeatures';
 
 function generateInviteCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';

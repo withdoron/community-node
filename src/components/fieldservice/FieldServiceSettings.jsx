@@ -21,6 +21,7 @@ import {
   ChevronDown, ChevronRight, HardHat, Users, FileText, Camera,
   Link2, RefreshCw, Copy, ToggleLeft, SlidersHorizontal, BookOpen,
 } from 'lucide-react';
+import { getFeatures } from '@/utils/fsFeatures';
 
 function formatPhone(value) {
   const digits = value.replace(/\D/g, '').slice(0, 10);
@@ -43,28 +44,8 @@ function generateInviteCode() {
   return code;
 }
 
-// ═══ Feature defaults ═══
-const FEATURE_DEFAULTS = {
-  permits_enabled: true,
-  subs_enabled: true,
-  management_fees_enabled: false,
-  overhead_profit_enabled: false,
-  xactimate_enabled: false,
-  payments_enabled: true,
-  timeline_enabled: true,
-};
-
-function getFeatures(profile) {
-  const f = profile?.features_json || {};
-  const merged = { ...FEATURE_DEFAULTS, ...f };
-  // Migrate old insurance_work_enabled → split into two toggles
-  if (f.insurance_work_enabled === true && !f.overhead_profit_enabled && !f.xactimate_enabled) {
-    merged.overhead_profit_enabled = true;
-    merged.xactimate_enabled = true;
-  }
-  delete merged.insurance_work_enabled;
-  return merged;
-}
+// Feature defaults + getFeatures live in @/utils/fsFeatures (Living Feet) so
+// the mount point in MyLaneDrillView and Settings share one derivation.
 
 const DEFAULT_TRADE_CATEGORIES = [
   'General Conditions', 'Demolition', 'Framing', 'Roofing', 'Siding & Exterior',
