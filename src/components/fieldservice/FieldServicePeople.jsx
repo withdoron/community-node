@@ -8,6 +8,7 @@ import {
   Phone, Mail, Shield, FolderOpen, Link2, Share2,
 } from 'lucide-react';
 import CurrencyInput from './CurrencyInput';
+import { invalidateFSProfiles } from '@/utils/fsFeatures';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -549,7 +550,7 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
         workers_json: { items: updatedPeople },
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
+      invalidateFSProfiles(queryClient, currentUser?.id);
     },
     onError: (err) => toast.error(err?.message || 'Failed to save'),
   });

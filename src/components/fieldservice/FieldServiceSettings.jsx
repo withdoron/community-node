@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -21,7 +21,8 @@ import {
   ChevronDown, ChevronRight, HardHat, Users, FileText, Camera,
   Link2, RefreshCw, Copy, ToggleLeft, SlidersHorizontal, BookOpen,
 } from 'lucide-react';
-import { getFeatures } from '@/utils/fsFeatures';
+import { getFeatures, invalidateFSProfiles } from '@/utils/fsFeatures';
+import { scrollToTopOf } from '@/utils/scrollToTop';
 import CurrencyInput from './CurrencyInput';
 
 function formatPhone(value) {
@@ -98,6 +99,22 @@ function Section({ icon: Icon, title, defaultOpen = false, children }) {
 export default function FieldServiceSettings({ profile, currentUser, onNavigateTab }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  // Root ref for the after-save scroll-to-top. The Mylane content area's
+  // scrollTop persists across rerenders, so a save action triggered from deep
+  // in the form (Workspace section near the bottom) leaves the user reading
+  // a toast they can't see because they're scrolled past it.
+  const rootRef = useRef(null);
+
+  // After-save side effect shared by every save mutation in this view:
+  // (1) invalidate the profile cache so the new write propagates back to
+  //     Settings on the next subscription (formerly invalidated the wrong
+  //     queryKey — `['fs-profiles']` matched no live query, so toggles
+  //     appeared to revert on tab return), and (2) scroll the surrounding
+  //     scroll container to the top so the success toast lands in view.
+  const afterSave = () => {
+    invalidateFSProfiles(queryClient, currentUser?.id);
+    scrollToTopOf(rootRef.current);
+  };
 
   // ─── Business Profile state ──────────────────────
   const [businessName, setBusinessName] = useState(profile?.business_name || '');
@@ -192,7 +209,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
         logo_url: logoUrl.trim() || null,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
+      afterSave();
       toast.success('Business profile saved');
     },
     onError: (err) => toast.error(err?.message || 'Failed to save'),
@@ -205,7 +222,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
         default_terms: defaultTerms,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
+      afterSave();
       toast.success('Default terms saved');
     },
     onError: (err) => toast.error(err?.message || 'Failed to save terms'),
@@ -218,7 +235,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
         phase_labels: { items: phases },
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
+      afterSave();
       toast.success('Photo phases saved');
     },
     onError: (err) => toast.error(err?.message || 'Failed to save phases'),
@@ -251,7 +268,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
         features_json: features,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
+      afterSave();
       toast.success('Feature settings saved');
     },
     onError: (err) => toast.error(err?.message || 'Failed to save features'),
@@ -264,7 +281,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
         trade_categories_json: { items: tradeCategories },
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
+      afterSave();
       toast.success('Trade categories saved');
     },
     onError: (err) => toast.error(err?.message || 'Failed to save trade categories'),
@@ -277,7 +294,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
         workspace_name: workspaceName.trim() || 'My Field Service',
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
+      afterSave();
       toast.success('Workspace name saved');
     },
     onError: (err) => toast.error(err?.message || 'Failed to save'),
@@ -294,7 +311,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
+      afterSave();
       toast.success('Workspace deleted');
       navigate(createPageUrl('MyLane'));
     },
@@ -306,7 +323,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
     : '—';
 
   return (
-    <div className="space-y-4">
+    <div ref={rootRef} className="space-y-4">
       {/* Section 0: Workspace Features */}
       <Section icon={SlidersHorizontal} title="Workspace Features" defaultOpen>
         <div className="space-y-4">
@@ -681,7 +698,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
                       const newCode = generateInviteCode();
                       try {
                         await base44.entities.FieldServiceProfile.update(profile.id, { invite_code: newCode });
-                        queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
+                        afterSave();
                         toast.success('Invite code regenerated. Old links will stop working.');
                       } catch (err) {
                         toast.error(err?.message || 'Failed to regenerate');
@@ -702,7 +719,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
                     const code = generateInviteCode();
                     try {
                       await base44.entities.FieldServiceProfile.update(profile.id, { invite_code: code });
-                      queryClient.invalidateQueries({ queryKey: ['fs-profiles'] });
+                      afterSave();
                       toast.success('Invite code generated!');
                     } catch (err) {
                       toast.error(err?.message || 'Failed to generate invite code');

@@ -52,3 +52,24 @@ export function getFeatures(profile) {
 export function isFeatureEnabled(profile, key) {
   return getFeatures(profile)[key] === true;
 }
+
+// FS profile cache key — single source of truth for invalidation.
+//
+// FieldServiceProfile records are loaded by the MyLane page via the
+// `getMyLaneProfiles` server function under queryKey `['mylane-profiles-v2',
+// userId]`. Settings + People used to invalidate `['fs-profiles']` after every
+// save — that key matched no live query, so the invalidate was a no-op and
+// the profile prop reaching Settings on remount was stale (toggles appeared
+// to revert). Living Feet (DEC-146): one helper, every save site uses it,
+// when the underlying cache key changes we update one line.
+export function invalidateFSProfiles(queryClient, userId) {
+  if (!queryClient) return;
+  // userId is part of the cache key. If we know it, scope the invalidation
+  // (faster — only marks the one key stale). Otherwise broad-invalidate by
+  // prefix and React Query handles the rest.
+  if (userId) {
+    queryClient.invalidateQueries({ queryKey: ['mylane-profiles-v2', userId] });
+  } else {
+    queryClient.invalidateQueries({ queryKey: ['mylane-profiles-v2'] });
+  }
+}

@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import VoiceInput from './VoiceInput';
 import CurrencyInput from './CurrencyInput';
+import { scrollToTopOf } from '@/utils/scrollToTop';
 import {
   Camera, Plus, X, ClipboardList, Package, Users, Cloud,
   Loader2, Save, Trash2, FolderOpen, Receipt, ChevronDown, Pencil,
@@ -87,20 +88,8 @@ export default function FieldServiceLog({ profile, currentUser }) {
   // Scroll-to-top on mount. The Mylane content area scroll position persists
   // across tab switches, so coming from Project Detail's "Log a payment"
   // button (which is deep in the page) lands the user at the bottom of the
-  // Log form. Walk up to the closest scrollable ancestor and reset.
-  useEffect(() => {
-    let el = rootRef.current?.parentElement;
-    while (el && el !== document.body) {
-      const overflowY = window.getComputedStyle(el).overflowY;
-      if (overflowY === 'auto' || overflowY === 'scroll') {
-        el.scrollTop = 0;
-        break;
-      }
-      el = el.parentElement;
-    }
-    // Belt and suspenders: also reset window scroll for non-overlay layouts.
-    if (typeof window !== 'undefined') window.scrollTo(0, 0);
-  }, []);
+  // Log form.
+  useEffect(() => { scrollToTopOf(rootRef.current); }, []);
 
   // ─── Queries ──────────────────────────────────
   const { data: projects = [] } = useQuery({
@@ -1233,15 +1222,12 @@ export default function FieldServiceLog({ profile, currentUser }) {
                             <option key={u} value={u}>{u}</option>
                           ))}
                         </select>
-                        <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground/70 text-sm pointer-events-none">$</span>
-                          <CurrencyInput
-                            value={mat.unit_cost}
-                            onChange={(v) => updateMaterial(idx, 'unit_cost', v)}
-                            className={`${INPUT_CLASS} pl-6`}
-                            placeholder="Cost"
-                          />
-                        </div>
+                        <CurrencyInput
+                          value={mat.unit_cost}
+                          onChange={(v) => updateMaterial(idx, 'unit_cost', v)}
+                          className={INPUT_CLASS}
+                          placeholder="Cost"
+                        />
                       </div>
                     </div>
                     <button
@@ -1350,13 +1336,16 @@ export default function FieldServiceLog({ profile, currentUser }) {
                           placeholder="Hours"
                         />
                         <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground/70 text-sm pointer-events-none">$/hr</span>
+                          {/* "/hr" suffix sits inside the input gutter; the
+                              "$" itself comes from the CurrencyInput's
+                              formatted display, no need for an outer prefix. */}
                           <CurrencyInput
                             value={lab.hourly_rate}
                             onChange={(v) => updateLabor(idx, 'hourly_rate', v)}
-                            className={`${INPUT_CLASS} pl-10`}
+                            className={`${INPUT_CLASS} pr-10`}
                             placeholder="Rate"
                           />
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/70 text-sm pointer-events-none">/hr</span>
                         </div>
                       </div>
                       <div className="flex gap-2">
