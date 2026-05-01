@@ -511,6 +511,16 @@ Eight flags in `FEATURE_DEFAULTS` (permits, subs, management_fees, overhead_prof
 
 `src/utils/scrollToTop.js` exports `scrollToTopOf(startEl)` — walks up to the closest scrollable ancestor (typically the Mylane content area) and resets `scrollTop = 0`, plus `window.scrollTo(0, 0)` as fallback. The Mylane content area's scroll position persists across tab switches and content swaps, so any "save then show toast" or "navigate from deep page into form" path that needs the user to see the top of the new content should call this. Used by Settings save mutations and FieldServiceLog mount.
 
+### Synthetic DOM verification is not production verification (2026-05-01)
+
+When fixing a bug whose surface is non-standard (iframe-wrapped, embedded, sandboxed), DO NOT claim the fix is verified based on a synthetic DOM check alone. The estimate PDF page-clipping bug was "fixed" on 2026-04-30 (commit `ca7e9df`) by verifying a `:has()` print-stylesheet selector against a synthetic DOM. The selector logic was correct in isolation but the production surface is Base44's Act-As-User editor preview, which renders the app inside a fixed-height iframe. `window.print()` from inside that iframe targets the parent document and clips our content to the iframe element's height — no inner @media print rule can fix it. Bug shipped, ate Doron's evening, fixed properly the next day with `printNode` (commit `e91b696`).
+
+**Rule:** When the rendering surface is non-standard, list out every realistic surface the user can actually test from (live URL, dev preview, Base44 Act-As preview, embedded widget, etc.) and confirm the fix is verified on at least one of them — or be explicit in the handoff that production verification is owed and what blocks it. "Verified against synthetic DOM" is honest signal only when the production surface IS a synthetic DOM.
+
+### printNode helper for iframe-isolated print (2026-05-01)
+
+`src/utils/printNode.js` exports `printNode(node, { title, extraCss })` — builds a fresh hidden iframe, copies parent stylesheets and the target node's HTML into it, then calls `iframe.contentWindow.print()`. Use this instead of `window.print()` for any "print this estimate / document / report" surface. Sidesteps the iframe-context bug above (Base44 editor preview, any embedded host) because the print pipeline targets only the inner document. Used by FieldServiceEstimates and FieldServiceDocuments. The `title` argument becomes the PDF filename; `extraCss` lets the caller layer print-specific overrides without touching component CSS.
+
 ---
 
 ## File Organization
