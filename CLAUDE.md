@@ -436,7 +436,7 @@ Always include `hover:bg-transparent` on outline buttons to override shadcn/ui B
 
 ### formatCurrency
 
-Use `Intl.NumberFormat` — never `.toFixed(2)`.
+Use `Intl.NumberFormat` — never `.toFixed(2)`. For currency *inputs*, use the canonical `CurrencyInput` component (see "CurrencyInput component" below) — don't reimplement format-on-blur or format-while-typing inline.
 
 ### Auth State: Single Source of Truth (2026-04-04)
 
@@ -465,6 +465,51 @@ Mylane agent instructions were fully rewritten. Mandatory 4-step protocol: Class
 ### Spec Review Protocol (2026-04-16, DEC-151)
 
 Before designing new architecture or protocols, get Hyphae's codebase review first. The review checks: does the infrastructure already exist? Do the assumptions about component APIs hold? Is there a lighter path? What's the smallest slice that produces visible improvement? This saved weeks on the Home Canvas spec — the existing TYPE 1 pipeline already did what the proposed TYPE 4 would have built.
+
+### React Query v5 invalidation: object form, never bare array (2026-04-30)
+
+`queryClient.invalidateQueries(['key'])` (bare-array form) is a **silent no-op in React Query v5**. The only correct shape is the object form:
+
+```javascript
+queryClient.invalidateQueries({ queryKey: ['key'] });
+```
+
+Bare-array form was valid in v4 and earlier; v5 dropped it without a runtime warning. Cost a Phase 1 invalidation bug across 5 sites (commit `e72e28c`) before the pattern was identified. Always use the object form.
+
+### FieldServiceProfile cache key: `['mylane-profiles-v2', userId]` (2026-04-30, DEC-196)
+
+The canonical FieldServiceProfile cache key is `['mylane-profiles-v2', userId]`. It's loaded by the `getMyLaneProfiles` server function in `pages/MyLane.jsx` (per DEC-130). **Do not invalidate `['fs-profiles']`** — that key matches no live query and is a silent no-op. Use the helper:
+
+```javascript
+import { invalidateFSProfiles } from '@/utils/fsFeatures';
+invalidateFSProfiles(queryClient, currentUser?.id);
+```
+
+When the underlying cache key changes again, only the helper updates. Living Feet (DEC-146) applied to cache invalidation.
+
+The narrower `['fs-profile']` (singular) cache used by FieldServiceHome's `guide_dismissed` toggle and one Settings invitee handler is a different cache and not part of this helper.
+
+### `features_json` is canonical for FieldServiceProfile feature flags (2026-04-30, DEC-194)
+
+The FieldServiceProfile entity carries both top-level boolean feature fields (deprecated) and a `features_json` blob (canonical). Read flags through:
+
+```javascript
+import { getFeatures, isFeatureEnabled } from '@/utils/fsFeatures';
+const features = getFeatures(profile);
+if (features.tax_enabled === true) { ... }
+// or
+if (isFeatureEnabled(profile, 'tax_enabled')) { ... }
+```
+
+Eight flags in `FEATURE_DEFAULTS` (permits, subs, management_fees, overhead_profit, xactimate, tax, payments, timeline). Five fee/insurance toggles default `false` (DEC-197); four standard infrastructure flags default `true`. Never read top-level boolean fields directly from the profile entity.
+
+### CurrencyInput component (2026-04-30, Living Feet DEC-146)
+
+`src/components/fieldservice/CurrencyInput.jsx` is the canonical input for any dollar-amount value. Format-while-typing with cursor management. Used at 10 sites (Unit Price, Other Amount, Hourly Rate, Total Budget, Sub/Client Payment amount, Material unit cost, Labor rate, CO Other Amount). The `$` is part of the formatted display — do NOT add an external `$` prefix span next to the input. Pass `onChange` as `(cleanedString) => void` — receives sanitized digits-and-dot only.
+
+### scrollToTopOf helper (2026-04-30, Living Feet DEC-146)
+
+`src/utils/scrollToTop.js` exports `scrollToTopOf(startEl)` — walks up to the closest scrollable ancestor (typically the Mylane content area) and resets `scrollTop = 0`, plus `window.scrollTo(0, 0)` as fallback. The Mylane content area's scroll position persists across tab switches and content swaps, so any "save then show toast" or "navigate from deep page into form" path that needs the user to see the top of the new content should call this. Used by Settings save mutations and FieldServiceLog mount.
 
 ---
 
