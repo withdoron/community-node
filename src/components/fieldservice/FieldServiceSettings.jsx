@@ -314,6 +314,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
           {[
             { key: 'permits_enabled', label: 'Permits & Inspections', desc: 'Track building permits, inspection logs, and eBuild links' },
             { key: 'subs_enabled', label: 'Subcontractor Tracking', desc: 'Add subs to estimates, assign to projects, track in People tab' },
+            { key: 'management_fees_enabled', label: 'Management Fee', desc: 'Add a management fee percentage line to estimates and change orders. Common for general contractors charging to manage the project.' },
             { key: 'overhead_profit_enabled', label: 'Overhead & Profit (O&P)', desc: 'Add an O&P percentage line to estimates for insurance work' },
             { key: 'xactimate_enabled', label: 'Xactimate Formatting', desc: 'Group estimate line items by trade category in Xactimate style' },
             { key: 'payments_enabled', label: 'Payment Tracking', desc: 'Track payments received per project' },

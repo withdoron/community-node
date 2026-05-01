@@ -94,24 +94,41 @@ export function migrateLineItems(rawLineItems, rawLaborEstimate) {
  * calcTotals — pure math for line items + percentage-based calculated
  * additions. Identical math on FSEstimate and FSChangeOrder.
  *
- * subtotal      = sum of line item amounts
- * opAmount      = subtotal * (overheadProfitPct / 100)
- * beforeTax     = subtotal + opAmount + otherAmount
- * taxAmount     = beforeTax * (taxRate / 100)
- * total         = beforeTax + taxAmount  (the full client-billed grand total)
+ * subtotal           = sum of line item amounts
+ * managementFeeAmount = subtotal * (managementFeePct / 100)   [if mgmt fee enabled]
+ * opAmount           = subtotal * (overheadProfitPct / 100)   [if O&P enabled]
+ * beforeTax          = subtotal + managementFeeAmount + opAmount + otherAmount
+ * taxAmount          = beforeTax * (taxRate / 100)
+ * total              = beforeTax + taxAmount  (the full client-billed grand total)
+ *
+ * Management Fee and O&P both calculate against subtotal-only — neither stacks
+ * on the other. Display order: Subtotal → Management Fee → O&P → Other → Tax →
+ * Total. Management Fee precedes O&P because for GCs charging it (Bari's mode)
+ * it's the primary line; O&P is the secondary insurance-work concept.
  *
  * For FSChangeOrder, this `total` is the value written to both `total` and
  * `amount` — `amount` is canonical for FSProject.total_budget recompute, so
- * the recompute correctly captures O&P, tax, and other lines, not just the
- * line items subtotal.
+ * the recompute correctly captures management fee, O&P, tax, and other lines,
+ * not just the line items subtotal.
+ *
+ * Backward compatible: managementFeePct is the optional 5th argument and
+ * defaults to 0. Existing callers that pass only 4 args get unchanged math.
  */
-export function calcTotals(items, overheadProfitPct, taxRate, otherAmount) {
+export function calcTotals(items, overheadProfitPct, taxRate, otherAmount, managementFeePct) {
   const subtotal = (items || []).reduce((s, it) => {
     const amt = parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0));
     return s + amt;
   }, 0);
+  const managementFeeAmount = subtotal * ((parseFloat(managementFeePct) || 0) / 100);
   const opAmount = subtotal * ((parseFloat(overheadProfitPct) || 0) / 100);
-  const beforeTax = subtotal + opAmount + (parseFloat(otherAmount) || 0);
+  const beforeTax = subtotal + managementFeeAmount + opAmount + (parseFloat(otherAmount) || 0);
   const taxAmount = beforeTax * ((parseFloat(taxRate) || 0) / 100);
-  return { subtotal, opAmount, beforeTax, taxAmount, total: beforeTax + taxAmount };
+  return {
+    subtotal,
+    managementFeeAmount,
+    opAmount,
+    beforeTax,
+    taxAmount,
+    total: beforeTax + taxAmount,
+  };
 }

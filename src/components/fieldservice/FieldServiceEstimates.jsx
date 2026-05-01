@@ -69,7 +69,7 @@ const EMPTY_ESTIMATE = {
   title: '', client_id: '', client_name: '', client_email: '', client_phone: '', client_address: '',
   project_id: '', date: '', valid_until: '',
   line_items: [makeItem()],
-  overhead_profit_pct: 0, tax_rate: 0, other_amount: 0,
+  management_fee_pct: 0, overhead_profit_pct: 0, tax_rate: 0, other_amount: 0,
   payment_terms: '', prepared_by: '',
   terms: '', notes: '',
   client_show_breakdown: false,
@@ -125,7 +125,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
   const [showOwnerSign, setShowOwnerSign] = useState(false);
   const [ownerSigning, setOwnerSigning] = useState(false);
   const items = migrateLineItems(estimate.line_items, estimate.labor_estimate);
-  const totals = calcTotals(items, estimate.overhead_profit_pct, estimate.tax_rate, estimate.other_amount);
+  const totals = calcTotals(items, estimate.overhead_profit_pct, estimate.tax_rate, estimate.other_amount, estimate.management_fee_pct);
   const brandColor = profile?.brand_color || '#f59e0b';
   const showBreakdown = estimate.client_show_breakdown === true;
   const isInsurance = estimate.is_insurance_estimate === true;
@@ -391,6 +391,9 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
               {showBreakdown && (
                 <>
                   <div className="flex justify-between"><span className="text-muted-foreground/70">Subtotal</span><span>{fmt(totals.subtotal)}</span></div>
+                  {features?.management_fees_enabled === true && (parseFloat(estimate.management_fee_pct) || 0) > 0 && (
+                    <div className="flex justify-between"><span className="text-muted-foreground/70">Management Fee ({estimate.management_fee_pct}%)</span><span>{fmt(totals.managementFeeAmount)}</span></div>
+                  )}
                   {features?.overhead_profit_enabled === true && (parseFloat(estimate.overhead_profit_pct) || 0) > 0 && (
                     <div className="flex justify-between"><span className="text-muted-foreground/70">O&P ({estimate.overhead_profit_pct}%)</span><span>{fmt(totals.opAmount)}</span></div>
                   )}
@@ -527,8 +530,8 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
   const [formData, setFormData] = useState(initialData);
 
   const formTotals = useMemo(
-    () => calcTotals(formData.line_items, formData.overhead_profit_pct, formData.tax_rate, formData.other_amount),
-    [formData.line_items, formData.overhead_profit_pct, formData.tax_rate, formData.other_amount]
+    () => calcTotals(formData.line_items, formData.overhead_profit_pct, formData.tax_rate, formData.other_amount, formData.management_fee_pct),
+    [formData.line_items, formData.overhead_profit_pct, formData.tax_rate, formData.other_amount, formData.management_fee_pct]
   );
 
   const saveMutation = useMutation({
@@ -539,7 +542,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           ...it,
           amount: (parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0),
         }));
-      const totals = calcTotals(validItems, formData.overhead_profit_pct, formData.tax_rate, formData.other_amount);
+      const totals = calcTotals(validItems, formData.overhead_profit_pct, formData.tax_rate, formData.other_amount, formData.management_fee_pct);
 
       // Sync inline client fields from live FSClient data (source of truth)
       let cName = formData.client_name;
@@ -577,6 +580,8 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         tax_amount: totals.taxAmount,
         total: totals.total,
         overhead_profit_pct: parseFloat(formData.overhead_profit_pct) || 0,
+        management_fee_pct: parseFloat(formData.management_fee_pct) || 0,
+        management_fee_amount: totals.managementFeeAmount,
         other_amount: parseFloat(formData.other_amount) || 0,
         terms: formData.terms,
         notes: formData.notes,
@@ -790,6 +795,31 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           <div className="flex justify-between text-foreground-soft">
             <span>Subtotal</span><span className="font-medium">{fmt(formTotals.subtotal)}</span>
           </div>
+
+          {/* Management Fee — gated on management_fees_enabled (Settings → Workspace Features).
+              Calculates against subtotal-only, same basis as O&P; the two never stack on each other.
+              Display order: Subtotal → Management Fee → O&P → Tax → Other → Total. */}
+          {features?.management_fees_enabled === true && (
+            <>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-foreground-soft">Management Fee</span>
+                <div className="flex items-center gap-1">
+                  <input type="number"
+                    className="w-20 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={formData.management_fee_pct} onChange={(e) => set('management_fee_pct', e.target.value)}
+                    onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('management_fee_pct', ''); }}
+                    onBlur={(e) => { if (e.target.value === '') set('management_fee_pct', 0); }}
+                    min="0" max="100" step="0.5" />
+                  <span className="text-muted-foreground">%</span>
+                </div>
+              </div>
+              {formTotals.managementFeeAmount > 0 && (
+                <div className="flex justify-between text-muted-foreground pl-4">
+                  <span>Management Fee Amount</span><span>{fmt(formTotals.managementFeeAmount)}</span>
+                </div>
+              )}
+            </>
+          )}
 
           {/* O&P — gated on overhead_profit_enabled toggle (Settings → Workspace Features) */}
           {features?.overhead_profit_enabled === true && (
@@ -1125,6 +1155,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       date: est.date || new Date().toISOString().split('T')[0],
       valid_until: est.valid_until || '',
       line_items: items,
+      management_fee_pct: est.management_fee_pct || 0,
       overhead_profit_pct: est.overhead_profit_pct || 0,
       tax_rate: est.tax_rate || 0,
       other_amount: est.other_amount || 0,
@@ -1151,6 +1182,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       project_id: '', date: new Date().toISOString().split('T')[0],
       valid_until: validUntil.toISOString().split('T')[0],
       line_items: items,
+      management_fee_pct: est.management_fee_pct || 0,
       overhead_profit_pct: est.overhead_profit_pct || 0,
       tax_rate: est.tax_rate || 0,
       other_amount: est.other_amount || 0,

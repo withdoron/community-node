@@ -81,6 +81,25 @@ function parsePhaseLabels(val) {
 export default function FieldServiceLog({ profile, currentUser }) {
   const queryClient = useQueryClient();
   const photoInputRef = useRef(null);
+  const rootRef = useRef(null);
+
+  // Scroll-to-top on mount. The Mylane content area scroll position persists
+  // across tab switches, so coming from Project Detail's "Log a payment"
+  // button (which is deep in the page) lands the user at the bottom of the
+  // Log form. Walk up to the closest scrollable ancestor and reset.
+  useEffect(() => {
+    let el = rootRef.current?.parentElement;
+    while (el && el !== document.body) {
+      const overflowY = window.getComputedStyle(el).overflowY;
+      if (overflowY === 'auto' || overflowY === 'scroll') {
+        el.scrollTop = 0;
+        break;
+      }
+      el = el.parentElement;
+    }
+    // Belt and suspenders: also reset window scroll for non-overlay layouts.
+    if (typeof window !== 'undefined') window.scrollTo(0, 0);
+  }, []);
 
   // ─── Queries ──────────────────────────────────
   const { data: projects = [] } = useQuery({
@@ -682,7 +701,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
   }, 0);
 
   return (
-    <div className="space-y-0 pb-24">
+    <div ref={rootRef} className="space-y-0 pb-24">
       {editingLogId && logType === 'daily' && (
         <div className="bg-primary/10 border border-primary/30 rounded-xl p-3 mb-4 flex items-center justify-between">
           <span className="text-sm text-primary font-medium">Editing log — {date}</span>

@@ -387,6 +387,8 @@ function ChangeOrderPortalView({ coId, signMode = false, portalToken = null }) {
   const subtotal = parseFloat(co.subtotal) || (Array.isArray(lineItems)
     ? lineItems.reduce((s, it) => s + (parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0))), 0)
     : 0);
+  const mfPct = parseFloat(co.management_fee_pct) || 0;
+  const mfAmount = parseFloat(co.management_fee_amount) || (subtotal * (mfPct / 100));
   const opPct = parseFloat(co.overhead_profit_pct) || 0;
   const opAmount = subtotal * (opPct / 100);
   const taxPct = parseFloat(co.tax_rate) || 0;
@@ -488,11 +490,16 @@ function ChangeOrderPortalView({ coId, signMode = false, portalToken = null }) {
           )}
 
           {/* Calculated breakdown — only when contractor opted in */}
-          {showBreakdown && (opPct > 0 || taxPct > 0 || otherAmount > 0) && (
+          {showBreakdown && (mfPct > 0 || opPct > 0 || taxPct > 0 || otherAmount > 0) && (
             <div className="border-t border-border pt-3 mb-3 space-y-1 text-sm">
               <div className="flex justify-between text-muted-foreground/70">
                 <span>Subtotal</span><span>{fmt(subtotal)}</span>
               </div>
+              {mfPct > 0 && (
+                <div className="flex justify-between text-muted-foreground/70">
+                  <span>Management Fee ({mfPct}%)</span><span>{fmt(mfAmount)}</span>
+                </div>
+              )}
               {opPct > 0 && (
                 <div className="flex justify-between text-muted-foreground/70">
                   <span>O&P ({opPct}%)</span><span>{fmt(opAmount)}</span>
