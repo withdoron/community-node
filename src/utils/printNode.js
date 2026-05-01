@@ -1,0 +1,103 @@
+/**
+ * Print a DOM subtree in isolation from the parent document.
+ *
+ * window.print() called from inside an embedded iframe (e.g. Base44's
+ * Act-As-User preview at /apps/{id}/editor/preview) targets the parent
+ * document. The parent renders our app as a fixed-height embedded element,
+ * so the print pipeline clips anything past that element's height to a
+ * single page — no @media print rule inside the inner document can fix it.
+ *
+ * Pattern: build a fresh HTML document inside a hidden iframe with copies
+ * of the parent's stylesheets, then call iframe.contentWindow.print().
+ * That print call targets only the inner iframe's document — no parent
+ * chrome, no embedded-frame height constraint, full pagination.
+ */
+export function printNode(node, { title, extraCss = '' } = {}) {
+  if (!node || typeof window === 'undefined') return false;
+
+  // Vite ships <link rel="stylesheet"> in prod and inline <style> tags in dev.
+  // Copy both so Tailwind + component styles apply in the new document.
+  const styleHTML = Array.from(
+    document.querySelectorAll('style, link[rel="stylesheet"]')
+  )
+    .map((el) => {
+      if (el.tagName === 'LINK') {
+        return `<link rel="stylesheet" href="${el.href}">`;
+      }
+      return el.outerHTML;
+    })
+    .join('\n');
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base href="${window.location.origin}/">
+  <title>${escapeHtml(title || 'Document')}</title>
+  ${styleHTML}
+  <style>
+    @page { margin: 0.5in; size: letter; }
+    html, body { background: white !important; margin: 0; padding: 0; }
+    .print-avoid-break { page-break-inside: avoid; }
+    ${extraCss}
+  </style>
+</head>
+<body>${node.outerHTML}</body>
+</html>`;
+
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('aria-hidden', 'true');
+  iframe.style.cssText =
+    'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (!doc) {
+    iframe.remove();
+    return false;
+  }
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  const trigger = () => {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('printNode: print failed', err);
+    }
+    // Print dialog is async; removing the iframe too early closes the dialog.
+    setTimeout(() => iframe.remove(), 2000);
+  };
+
+  // document.write doesn't reliably fire iframe onload, and <link rel="stylesheet">
+  // copies need network. Wait for fonts.ready (proxy for "stylesheets applied")
+  // with a hard cap so we don't hang if no fonts are pending.
+  const waitAndPrint = () => {
+    const fontsReady = doc.fonts ? doc.fonts.ready : Promise.resolve();
+    Promise.race([
+      fontsReady,
+      new Promise((r) => setTimeout(r, 600)),
+    ]).then(() => setTimeout(trigger, 50));
+  };
+
+  if (doc.readyState === 'complete') {
+    waitAndPrint();
+  } else {
+    iframe.onload = waitAndPrint;
+    // Belt-and-suspenders fallback if onload never fires.
+    setTimeout(waitAndPrint, 1000);
+  }
+
+  return true;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+  );
+}

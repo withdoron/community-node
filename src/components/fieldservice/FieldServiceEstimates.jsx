@@ -7,6 +7,7 @@ import LineItemsEditor from './LineItemsEditor';
 import CurrencyInput from './CurrencyInput';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { CATEGORY_MAP, makeItem, migrateLineItems, calcTotals } from '@/utils/fsLineItems';
+import { printNode } from '@/utils/printNode';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   Search, Copy, FolderOpen, Send, Eye, Printer, X, DollarSign, Link2,
@@ -169,16 +170,19 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
         </button>
         <div className="flex gap-2 flex-wrap">
           <button type="button" onClick={() => {
-              // Browsers default the PDF filename to <title>. Set the title and
-              // call print synchronously — the previous setTimeout(100) wrapper
-              // left a window where re-renders or platform scripts reset the
-              // title before the dialog opened, so files saved as the workspace
-              // name instead of the estimate reference.
-              const previous = document.title;
+              // Print via an isolated hidden iframe rather than window.print() on
+              // the parent document. Inside Base44's Act-As-User editor preview the
+              // app renders inside a fixed-height iframe; window.print() on that
+              // outer document clips our content to the iframe element's height
+              // (single page, ~14 line items). Routing print through a fresh
+              // document sidesteps the parent-frame constraint entirely.
+              const node = document.querySelector('.estimate-print-area');
               const ref = estimate.estimate_number || `id-${(estimate.id || '').slice(0, 8)}`;
-              document.title = `Estimate-${ref}`;
-              window.print();
-              setTimeout(() => { document.title = previous; }, 1000);
+              const ok = printNode(node, {
+                title: `Estimate-${ref}`,
+                extraCss: `.estimate-print-area { font-size: ${isInsurance ? '9pt' : '10pt'}; }`,
+              });
+              if (!ok) toast.error('Could not open print preview.');
             }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-foreground-soft hover:text-primary hover:border-primary transition-colors text-sm min-h-[44px]">
             <Printer className="h-4 w-4" /> Print / PDF

@@ -16,6 +16,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
+import { printNode } from '@/utils/printNode';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   Search, Eye, Printer, X, Copy, Send, Archive, Shield,
@@ -614,7 +615,18 @@ function DocumentDetail({
               <Check className="h-3.5 w-3.5" /> Owner Signed
             </span>
           )}
-          <button type="button" onClick={() => window.print()}
+          <button type="button" onClick={() => {
+              // Isolate via printNode so this works inside Base44's Act-As-User
+              // preview iframe (window.print() on the parent doc clips to iframe
+              // element height, single page).
+              const node = document.querySelector('.doc-print-area');
+              const ref = doc.title || `id-${(doc.id || '').slice(0, 8)}`;
+              const ok = printNode(node, {
+                title: `Document-${ref}`,
+                extraCss: `@page { margin: 0.75in; size: letter; } .doc-print-area * { color: #111827 !important; }`,
+              });
+              if (!ok) toast.error('Could not open print preview.');
+            }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground-soft hover:bg-transparent text-xs min-h-[44px] transition-colors">
             <Printer className="h-3.5 w-3.5" /> Print
           </button>
