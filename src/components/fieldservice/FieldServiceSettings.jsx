@@ -22,6 +22,7 @@ import {
   Link2, RefreshCw, Copy, ToggleLeft, SlidersHorizontal, BookOpen,
 } from 'lucide-react';
 import { getFeatures } from '@/utils/fsFeatures';
+import CurrencyInput from './CurrencyInput';
 
 function formatPhone(value) {
   const digits = value.replace(/\D/g, '').slice(0, 10);
@@ -317,6 +318,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
             { key: 'management_fees_enabled', label: 'Management Fee', desc: 'Add a management fee percentage line to estimates and change orders. Common for general contractors charging to manage the project.' },
             { key: 'overhead_profit_enabled', label: 'Overhead & Profit (O&P)', desc: 'Add an O&P percentage line to estimates for insurance work' },
             { key: 'xactimate_enabled', label: 'Xactimate Formatting', desc: 'Group estimate line items by trade category in Xactimate style' },
+            { key: 'tax_enabled', label: 'Sales Tax', desc: 'Add a sales tax line to estimates and change orders. Useful for contractors in tax states (most US states except Oregon, Alaska, Delaware, Montana, New Hampshire).' },
             { key: 'payments_enabled', label: 'Payment Tracking', desc: 'Track payments received per project' },
             { key: 'timeline_enabled', label: 'Project Timeline', desc: 'Chronological view of project activity' },
           ].map(({ key, label, desc }) => (
@@ -535,17 +537,12 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
             </div>
             <div>
               <Label className="text-muted-foreground">Default hourly rate</Label>
-              <div className="relative mt-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
+              <div className="mt-1">
+                <CurrencyInput
+                  showPrefix
                   value={hourlyRate}
-                  onChange={(e) => setHourlyRate(e.target.value)}
-                  onFocus={(e) => { if (parseFloat(e.target.value) === 0) setHourlyRate(''); }}
-                  onBlur={(e) => { if (e.target.value === '') setHourlyRate('0'); }}
-                  className="pl-7 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
+                  onChange={(v) => setHourlyRate(v)}
+                  className="flex h-10 w-full rounded-md border border-input bg-secondary border-border px-3 py-2 text-sm text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
             </div>

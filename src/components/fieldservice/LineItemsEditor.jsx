@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronUp, ChevronDown, X, Plus } from 'lucide-react';
 import VoiceInput from './VoiceInput';
+import CurrencyInput from './CurrencyInput';
 import { CATEGORIES, CATEGORY_MAP, makeItem } from '@/utils/fsLineItems';
 
 /**
@@ -140,11 +141,8 @@ export default function LineItemsEditor({
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground/70">Unit Price</label>
-                  <input type="number" className={INPUT_CLASS} value={item.unit_price}
-                    onChange={(e) => updateItem(idx, 'unit_price', e.target.value)}
-                    onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateItem(idx, 'unit_price', ''); }}
-                    onBlur={(e) => { if (e.target.value === '') updateItem(idx, 'unit_price', 0); }}
-                    min="0" step="0.01" />
+                  <CurrencyInput className={INPUT_CLASS} value={item.unit_price}
+                    onChange={(v) => updateItem(idx, 'unit_price', v)} />
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground/70">Amount</label>

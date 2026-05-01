@@ -22,6 +22,9 @@ export const FEATURE_DEFAULTS = {
   management_fees_enabled: false,
   overhead_profit_enabled: false,
   xactimate_enabled: false,
+  // Tax defaults off — most Oregon contractors (LocalLane's primary market) don't
+  // collect sales tax. Contractors in tax states opt in via Settings.
+  tax_enabled: false,
   payments_enabled: true,
   timeline_enabled: true,
 };

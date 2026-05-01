@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import ClientSelector from './ClientSelector';
 import LineItemsEditor from './LineItemsEditor';
+import CurrencyInput from './CurrencyInput';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { CATEGORY_MAP, makeItem, migrateLineItems, calcTotals } from '@/utils/fsLineItems';
 import {
@@ -167,7 +168,18 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
         <div className="flex gap-2 flex-wrap">
-          <button type="button" onClick={() => window.print()}
+          <button type="button" onClick={() => {
+              // Browsers default the PDF filename to <title>. Replace the generic
+              // page title with the estimate reference for the duration of print
+              // so contractors save Estimate-EST-2026-001.pdf, not the workspace name.
+              const previous = document.title;
+              const ref = estimate.estimate_number || `id-${(estimate.id || '').slice(0, 8)}`;
+              document.title = `Estimate-${ref}`;
+              setTimeout(() => {
+                window.print();
+                setTimeout(() => { document.title = previous; }, 1000);
+              }, 100);
+            }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-foreground-soft hover:text-primary hover:border-primary transition-colors text-sm min-h-[44px]">
             <Printer className="h-4 w-4" /> Print / PDF
           </button>
@@ -400,7 +412,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
                   {(parseFloat(estimate.other_amount) || 0) > 0 && (
                     <div className="flex justify-between"><span className="text-muted-foreground/70">Other</span><span>{fmt(estimate.other_amount)}</span></div>
                   )}
-                  {(parseFloat(estimate.tax_rate) || 0) > 0 && (
+                  {features?.tax_enabled === true && (parseFloat(estimate.tax_rate) || 0) > 0 && (
                     <div className="flex justify-between"><span className="text-muted-foreground/70">Tax ({estimate.tax_rate}%)</span><span>{fmt(totals.taxAmount)}</span></div>
                   )}
                 </>
@@ -844,37 +856,39 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
             </>
           )}
 
-          {/* Tax */}
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-foreground-soft">Tax Rate</span>
-            <div className="flex items-center gap-1">
-              <input type="number"
-                className="w-20 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
-                value={formData.tax_rate} onChange={(e) => set('tax_rate', e.target.value)}
-                onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('tax_rate', ''); }}
-                onBlur={(e) => { if (e.target.value === '') set('tax_rate', 0); }}
-                min="0" max="100" step="0.1" />
-              <span className="text-muted-foreground">%</span>
-            </div>
-          </div>
-          {formTotals.taxAmount > 0 && (
-            <div className="flex justify-between text-muted-foreground pl-4">
-              <span>Tax Amount</span><span>{fmt(formTotals.taxAmount)}</span>
-            </div>
+          {/* Tax — gated on tax_enabled feature flag (Settings → Workspace Features).
+              Defaults off; Oregon contractors don't see Tax until they opt in. */}
+          {features?.tax_enabled === true && (
+            <>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-foreground-soft">Tax Rate</span>
+                <div className="flex items-center gap-1">
+                  <input type="number"
+                    className="w-20 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={formData.tax_rate} onChange={(e) => set('tax_rate', e.target.value)}
+                    onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('tax_rate', ''); }}
+                    onBlur={(e) => { if (e.target.value === '') set('tax_rate', 0); }}
+                    min="0" max="100" step="0.1" />
+                  <span className="text-muted-foreground">%</span>
+                </div>
+              </div>
+              {formTotals.taxAmount > 0 && (
+                <div className="flex justify-between text-muted-foreground pl-4">
+                  <span>Tax Amount</span><span>{fmt(formTotals.taxAmount)}</span>
+                </div>
+              )}
+            </>
           )}
 
           {/* Other */}
           <div className="flex items-center justify-between gap-4">
             <span className="text-foreground-soft">Other</span>
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">$</span>
-              <input type="number"
-                className="w-24 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
-                value={formData.other_amount} onChange={(e) => set('other_amount', e.target.value)}
-                onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('other_amount', ''); }}
-                onBlur={(e) => { if (e.target.value === '') set('other_amount', 0); }}
-                min="0" step="0.01" />
-            </div>
+            <CurrencyInput
+              showPrefix
+              className="w-32 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
+              value={formData.other_amount}
+              onChange={(v) => set('other_amount', v)}
+            />
           </div>
 
           <div className="flex justify-between text-lg font-bold text-primary border-t border-border pt-2">
@@ -920,8 +934,14 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         </div>
       </div>
 
-      {/* Actions */}
+      {/* Actions — mirrors the CO form pattern: Cancel on the left, primary actions on the right. */}
       <div className="flex gap-3 sticky bottom-0 bg-background py-3 -mx-1 px-1">
+        <button type="button"
+          onClick={onDone}
+          disabled={saveMutation.isPending}
+          className="px-6 py-3 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-transparent transition-colors min-h-[44px] disabled:opacity-50">
+          Cancel
+        </button>
         <button type="button"
           disabled={!formData.title.trim() || saveMutation.isPending}
           onClick={() => saveMutation.mutate({ status: 'draft' })}

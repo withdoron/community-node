@@ -7,6 +7,7 @@ import {
   ChevronDown, ChevronRight, HardHat, Briefcase, User,
   Phone, Mail, Shield, FolderOpen, Link2, Share2,
 } from 'lucide-react';
+import CurrencyInput from './CurrencyInput';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -356,20 +357,13 @@ function PersonModal({ person, activeProjects, onSave, onCancel, isSaving }) {
         {form.role === 'worker' && (
           <div>
             <label className="block text-sm text-muted-foreground mb-1">Hourly rate</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70">$</span>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={form.hourly_rate}
-                onChange={(e) => set('hourly_rate', e.target.value)}
-                onFocus={(e) => { if (parseFloat(e.target.value) === 0) set('hourly_rate', ''); }}
-                onBlur={(e) => { if (e.target.value === '') set('hourly_rate', '0'); }}
-                className={`${INPUT_CLASS} pl-7`}
-                placeholder="0.00"
-              />
-            </div>
+            <CurrencyInput
+              showPrefix
+              value={form.hourly_rate}
+              onChange={(v) => set('hourly_rate', v)}
+              className={INPUT_CLASS}
+              placeholder="0.00"
+            />
           </div>
         )}
 

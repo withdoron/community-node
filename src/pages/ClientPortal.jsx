@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Loader2, Printer, Camera, Shield, X, FileText, ClipboardList } from 'lucide-react';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
+import { getFeatures } from '@/utils/fsFeatures';
 import { toast } from 'sonner';
 
 /**
@@ -140,9 +141,11 @@ function EstimatePortalView({ estimateId, signMode = false }) {
   const brandColor = profile?.brand_color || '#f59e0b';
   const lineItems = parseJSON(estimate.line_items);
   const STATUS_LABELS = { draft: 'Draft', sent: 'Sent', awaiting_signature: 'Awaiting Signature', viewed: 'Viewed', accepted: 'Accepted', signed: 'Signed', declined: 'Declined' };
+  const features = getFeatures(profile);
+  const printRef = estimate.estimate_number || `id-${(estimate.id || '').slice(0, 8)}`;
 
   return (
-    <PortalShell>
+    <PortalShell printTitle={`Estimate-${printRef}`}>
       <div className="max-w-3xl mx-auto bg-white rounded-xl overflow-hidden shadow-sm print:rounded-none print:shadow-none print:max-w-none">
         <PortalHeader profile={profile} brandColor={brandColor} />
 
@@ -216,7 +219,7 @@ function EstimatePortalView({ estimateId, signMode = false }) {
                 <span className="font-medium">{fmt(estimate.subtotal)}</span>
               </div>
             )}
-            {estimate.tax_amount > 0 && (
+            {features.tax_enabled === true && estimate.tax_amount > 0 && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground/70">Tax ({estimate.tax_rate}%)</span>
                 <span className="font-medium">{fmt(estimate.tax_amount)}</span>
@@ -394,10 +397,13 @@ function ChangeOrderPortalView({ coId, signMode = false, portalToken = null }) {
   const taxPct = parseFloat(co.tax_rate) || 0;
   const taxAmount = parseFloat(co.tax_amount) || 0;
   const otherAmount = parseFloat(co.other_amount) || 0;
+  const features = getFeatures(profile);
+  const taxVisible = features.tax_enabled === true && taxPct > 0;
+  const coPrintTitle = `ChangeOrder-${co.change_order_number || `id-${(co.id || '').slice(0, 8)}`}`;
 
   if (isRecalled) {
     return (
-      <PortalShell>
+      <PortalShell printTitle={coPrintTitle}>
         <div className="max-w-3xl mx-auto bg-white rounded-xl overflow-hidden shadow-sm">
           <PortalHeader profile={profile} brandColor={brandColor} />
           <div className="px-6 sm:px-8 py-12 text-center">
@@ -420,7 +426,7 @@ function ChangeOrderPortalView({ coId, signMode = false, portalToken = null }) {
   }
 
   return (
-    <PortalShell>
+    <PortalShell printTitle={coPrintTitle}>
       <div className="max-w-3xl mx-auto bg-white rounded-xl overflow-hidden shadow-sm print:rounded-none print:shadow-none print:max-w-none">
         <PortalHeader profile={profile} brandColor={brandColor} />
 
@@ -490,7 +496,7 @@ function ChangeOrderPortalView({ coId, signMode = false, portalToken = null }) {
           )}
 
           {/* Calculated breakdown — only when contractor opted in */}
-          {showBreakdown && (mfPct > 0 || opPct > 0 || taxPct > 0 || otherAmount > 0) && (
+          {showBreakdown && (mfPct > 0 || opPct > 0 || taxVisible || otherAmount > 0) && (
             <div className="border-t border-border pt-3 mb-3 space-y-1 text-sm">
               <div className="flex justify-between text-muted-foreground/70">
                 <span>Subtotal</span><span>{fmt(subtotal)}</span>
@@ -510,7 +516,7 @@ function ChangeOrderPortalView({ coId, signMode = false, portalToken = null }) {
                   <span>Other</span><span>{fmt(otherAmount)}</span>
                 </div>
               )}
-              {taxPct > 0 && (
+              {taxVisible && (
                 <div className="flex justify-between text-muted-foreground/70">
                   <span>Tax ({taxPct}%)</span><span>{fmt(taxAmount)}</span>
                 </div>
@@ -1166,7 +1172,24 @@ function ProjectPortalView({ profileId: pathProfileId, projectId: pathProjectId 
 // Shared UI
 // ═══════════════════════════════════════════════════
 
-function PortalShell({ children }) {
+function PortalShell({ children, printTitle = null }) {
+  // PDF filename defaults to <title>. When the parent passes a printTitle (e.g.
+  // `Estimate-EST-2026-001`) we swap document.title for the duration of print
+  // so contractors save Estimate-EST-2026-001.pdf instead of the generic page
+  // title. Restore on a delay since browser print is async.
+  const handlePrint = () => {
+    if (!printTitle) {
+      window.print();
+      return;
+    }
+    const previous = document.title;
+    document.title = printTitle;
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => { document.title = previous; }, 1000);
+    }, 100);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <style>{`@media print {
@@ -1176,7 +1199,7 @@ function PortalShell({ children }) {
 
       {/* Print button */}
       <div className="max-w-3xl mx-auto px-4 py-4 flex justify-end print:hidden">
-        <button type="button" onClick={() => window.print()}
+        <button type="button" onClick={handlePrint}
           className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-muted-foreground/50 hover:text-primary-foreground transition-colors text-sm">
           <Printer className="h-4 w-4" /> Print
         </button>

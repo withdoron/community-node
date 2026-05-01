@@ -4,6 +4,7 @@ import { validateFile } from '@/utils/fileValidation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import VoiceInput from './VoiceInput';
+import CurrencyInput from './CurrencyInput';
 import {
   Camera, Plus, X, ClipboardList, Package, Users, Cloud,
   Loader2, Save, Trash2, FolderOpen, Receipt, ChevronDown, Pencil,
@@ -884,20 +885,13 @@ export default function FieldServiceLog({ profile, currentUser }) {
               </div>
               <div>
                 <label className={LABEL_CLASS}>Amount *</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70">$</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={paymentForm.amount}
-                    onChange={(e) => setPaymentField('amount', e.target.value)}
-                    onFocus={(e) => { if (parseFloat(e.target.value) === 0) setPaymentField('amount', ''); }}
-                    onBlur={(e) => { if (e.target.value === '') setPaymentField('amount', 0); }}
-                    className={`${INPUT_CLASS} pl-7 text-lg font-bold`}
-                    placeholder="0.00"
-                  />
-                </div>
+                <CurrencyInput
+                  showPrefix
+                  value={paymentForm.amount}
+                  onChange={(v) => setPaymentField('amount', v)}
+                  className={`${INPUT_CLASS} text-lg font-bold`}
+                  placeholder="0.00"
+                />
               </div>
               <div>
                 <label className={LABEL_CLASS}>Method</label>
@@ -992,20 +986,13 @@ export default function FieldServiceLog({ profile, currentUser }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={LABEL_CLASS}>Amount *</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70">$</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={paymentForm.amount}
-                    onChange={(e) => setPaymentField('amount', e.target.value)}
-                    onFocus={(e) => { if (parseFloat(e.target.value) === 0) setPaymentField('amount', ''); }}
-                    onBlur={(e) => { if (e.target.value === '') setPaymentField('amount', 0); }}
-                    className={`${INPUT_CLASS} pl-7 text-lg font-bold`}
-                    placeholder="0.00"
-                  />
-                </div>
+                <CurrencyInput
+                  showPrefix
+                  value={paymentForm.amount}
+                  onChange={(v) => setPaymentField('amount', v)}
+                  className={`${INPUT_CLASS} text-lg font-bold`}
+                  placeholder="0.00"
+                />
               </div>
               <div>
                 <label className={LABEL_CLASS}>Method</label>
@@ -1247,15 +1234,10 @@ export default function FieldServiceLog({ profile, currentUser }) {
                           ))}
                         </select>
                         <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground/70 text-sm">$</span>
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground/70 text-sm pointer-events-none">$</span>
+                          <CurrencyInput
                             value={mat.unit_cost}
-                            onChange={(e) => updateMaterial(idx, 'unit_cost', e.target.value)}
-                            onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateMaterial(idx, 'unit_cost', ''); }}
-                            onBlur={(e) => { if (e.target.value === '') updateMaterial(idx, 'unit_cost', 0); }}
+                            onChange={(v) => updateMaterial(idx, 'unit_cost', v)}
                             className={`${INPUT_CLASS} pl-6`}
                             placeholder="Cost"
                           />
@@ -1368,15 +1350,10 @@ export default function FieldServiceLog({ profile, currentUser }) {
                           placeholder="Hours"
                         />
                         <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground/70 text-sm">$/hr</span>
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground/70 text-sm pointer-events-none">$/hr</span>
+                          <CurrencyInput
                             value={lab.hourly_rate}
-                            onChange={(e) => updateLabor(idx, 'hourly_rate', e.target.value)}
-                            onFocus={(e) => { if (parseFloat(e.target.value) === 0) updateLabor(idx, 'hourly_rate', ''); }}
-                            onBlur={(e) => { if (e.target.value === '') updateLabor(idx, 'hourly_rate', 0); }}
+                            onChange={(v) => updateLabor(idx, 'hourly_rate', v)}
                             className={`${INPUT_CLASS} pl-10`}
                             placeholder="Rate"
                           />

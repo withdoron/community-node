@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import ClientSelector from './ClientSelector';
 import LineItemsEditor from './LineItemsEditor';
+import CurrencyInput from './CurrencyInput';
 import FieldServiceTimeline from './FieldServiceTimeline';
 import FieldServicePayments from './FieldServicePayments';
 import FieldServicePermits from './FieldServicePermits';
@@ -16,7 +17,18 @@ import {
   FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save, X,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
   Eye, Camera, Shield, Copy, User, Users, LayoutList, Phone, HardHat, Briefcase,
+  Ban, AlertTriangle,
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 /** Budget bar color: amber shades only — no red. */
 function budgetBarColor(pct) {
@@ -116,6 +128,13 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     other_amount: 0,
   });
   const [expandedCO, setExpandedCO] = useState(null);
+  // Dialog state for CO Delete (drafts) and CO Void (signed/accepted).
+  // Two separate dialogs because the friction levels are different — drafts
+  // get one click, signed COs get a typed confirmation.
+  const [deleteCOTarget, setDeleteCOTarget] = useState(null);
+  const [voidCOTarget, setVoidCOTarget] = useState(null);
+  const [voidConfirmText, setVoidConfirmText] = useState('');
+  const [voidReason, setVoidReason] = useState('');
 
   // Pre-fill helper — reads a percentage from the parent estimate, falling back to 0.
   const parseEstimatePct = (estimate, field) => {
@@ -633,6 +652,48 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     onError: (err) => toast.error(err?.message || 'Failed to accept change order'),
   });
 
+  // Delete a draft CO. Drafts have no legal weight — hard-delete client-side.
+  // Only available on `status === 'draft'` (UI-gated). Signed/accepted COs use
+  // voidCOMutation instead.
+  const deleteCOMutation = useMutation({
+    mutationFn: async (co) => {
+      await base44.entities.FSChangeOrder.delete(co.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fs-change-orders', selectedProject?.id] });
+      toast.success('Draft change order deleted');
+      setDeleteCOTarget(null);
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to delete change order'),
+  });
+
+  // Void a signed/accepted CO via the server function. The function marks the
+  // CO voided + recomputes FSProject.total_budget excluding the voided record
+  // (mirrors signChangeOrder's pattern but inverted). Per FINANCIAL-WORKFLOW-SPEC
+  // §2.1+§2.4: signed COs are legal artifacts — we preserve the record, just
+  // exclude it from the active contract math.
+  const voidCOMutation = useMutation({
+    mutationFn: async ({ co, reason }) => {
+      const result = await base44.functions.invoke('voidChangeOrder', {
+        change_order_id: co.id,
+        reason: reason || null,
+      });
+      // base44.functions.invoke returns the Axios wrapper — actual payload at .data
+      const payload = result?.data;
+      if (payload?.error) throw new Error(payload.error);
+      return payload;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fs-change-orders', selectedProject?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-projects', profile?.id] });
+      toast.success('Change order voided, budget updated');
+      setVoidCOTarget(null);
+      setVoidConfirmText('');
+      setVoidReason('');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to void change order'),
+  });
+
   // ─── Helpers ──────────────────────────────────
   const openCreateForm = () => {
     setFormData(EMPTY_PROJECT);
@@ -896,20 +957,13 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           {/* Budget */}
           <div>
             <label className={LABEL_CLASS}>Total budget</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70">$</span>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.total_budget}
-                onChange={(e) => setField('total_budget', e.target.value)}
-                onFocus={(e) => { if (parseFloat(e.target.value) === 0) setField('total_budget', ''); }}
-                onBlur={(e) => { if (e.target.value === '') setField('total_budget', 0); }}
-                className={`${INPUT_CLASS} pl-7`}
-                placeholder="0.00"
-              />
-            </div>
+            <CurrencyInput
+              showPrefix
+              value={formData.total_budget}
+              onChange={(v) => setField('total_budget', v)}
+              className={INPUT_CLASS}
+              placeholder="0.00"
+            />
           </div>
 
           {/* Notes */}
@@ -1486,37 +1540,38 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                   </>
                 )}
 
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-foreground-soft">Tax Rate</span>
-                  <div className="flex items-center gap-1">
-                    <input type="number"
-                      className="w-20 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
-                      value={coForm.tax_rate}
-                      onChange={(e) => setCOField('tax_rate', e.target.value)}
-                      onFocus={(e) => { if (parseFloat(e.target.value) === 0) setCOField('tax_rate', ''); }}
-                      onBlur={(e) => { if (e.target.value === '') setCOField('tax_rate', 0); }}
-                      min="0" max="100" step="0.1" />
-                    <span className="text-muted-foreground">%</span>
-                  </div>
-                </div>
-                {coTotals.taxAmount > 0 && (
-                  <div className="flex justify-between text-muted-foreground pl-4">
-                    <span>Tax Amount</span><span>{fmt(coTotals.taxAmount)}</span>
-                  </div>
+                {/* Tax — gated on tax_enabled feature flag (Settings → Workspace Features). */}
+                {features?.tax_enabled === true && (
+                  <>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-foreground-soft">Tax Rate</span>
+                      <div className="flex items-center gap-1">
+                        <input type="number"
+                          className="w-20 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
+                          value={coForm.tax_rate}
+                          onChange={(e) => setCOField('tax_rate', e.target.value)}
+                          onFocus={(e) => { if (parseFloat(e.target.value) === 0) setCOField('tax_rate', ''); }}
+                          onBlur={(e) => { if (e.target.value === '') setCOField('tax_rate', 0); }}
+                          min="0" max="100" step="0.1" />
+                        <span className="text-muted-foreground">%</span>
+                      </div>
+                    </div>
+                    {coTotals.taxAmount > 0 && (
+                      <div className="flex justify-between text-muted-foreground pl-4">
+                        <span>Tax Amount</span><span>{fmt(coTotals.taxAmount)}</span>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-foreground-soft">Other</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-muted-foreground">$</span>
-                    <input type="number"
-                      className="w-24 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
-                      value={coForm.other_amount}
-                      onChange={(e) => setCOField('other_amount', e.target.value)}
-                      onFocus={(e) => { if (parseFloat(e.target.value) === 0) setCOField('other_amount', ''); }}
-                      onBlur={(e) => { if (e.target.value === '') setCOField('other_amount', 0); }}
-                      min="0" step="0.01" />
-                  </div>
+                  <CurrencyInput
+                    showPrefix
+                    className="w-32 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={coForm.other_amount}
+                    onChange={(v) => setCOField('other_amount', v)}
+                  />
                 </div>
 
                 <div className="flex justify-between text-base font-bold text-primary border-t border-border pt-2">
@@ -1545,16 +1600,19 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           {changeOrders.length > 0 && (
             <div className="divide-y divide-border">
               {changeOrders.map((co) => {
+                const isVoided = co.status === 'voided';
                 const coSc =
-                  co.status === 'signed' || co.status === 'accepted'
-                    ? 'bg-emerald-500/20 text-emerald-400'
-                    : co.status === 'awaiting_signature'
-                      ? 'bg-primary/20 text-primary-hover'
-                      : co.status === 'sent'
+                  isVoided
+                    ? 'bg-muted-foreground/20 text-muted-foreground/70'
+                    : co.status === 'signed' || co.status === 'accepted'
+                      ? 'bg-emerald-500/20 text-emerald-400'
+                      : co.status === 'awaiting_signature'
                         ? 'bg-primary/20 text-primary-hover'
-                        : co.status === 'declined'
-                          ? 'bg-rose-700/20 text-rose-400'
-                          : 'bg-muted-foreground/20 text-muted-foreground';
+                        : co.status === 'sent'
+                          ? 'bg-primary/20 text-primary-hover'
+                          : co.status === 'declined'
+                            ? 'bg-rose-700/20 text-rose-400'
+                            : 'bg-muted-foreground/20 text-muted-foreground';
                 const coLineItems = (() => { const li = co.line_items; if (Array.isArray(li)) return li; if (li?.items) return li.items; return []; })();
                 const isExpanded = expandedCO === co.id;
                 const coAdjustment = co.amount !== undefined && co.amount !== null
@@ -1565,20 +1623,27 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                   : co.status === 'signed' ? 'Signed'
                   : co.status === 'accepted' ? 'Accepted'
                   : co.status === 'declined' ? 'Declined'
+                  : co.status === 'voided' ? 'Voided'
                   : co.status === 'sent' ? 'Sent'
                   : 'Draft';
+                // Voided COs render struck-through — the contractor sees "this
+                // happened, then was undone" instead of the record disappearing.
+                const titleClass = isVoided ? 'line-through text-muted-foreground/60' : 'text-foreground';
+                const amountClass = isVoided
+                  ? 'line-through text-muted-foreground/50'
+                  : (coAdjustment >= 0 ? 'text-primary' : 'text-muted-foreground');
                 return (
                   <div key={co.id} className="px-4 py-3">
                     <button type="button" onClick={() => setExpandedCO(isExpanded ? null : co.id)}
                       className="w-full flex items-center justify-between text-left min-h-[44px]">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-foreground">{co.title || 'Change Order'}</span>
+                          <span className={`text-sm font-medium ${titleClass}`}>{co.title || 'Change Order'}</span>
                           <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${coSc}`}>{statusLabel}</span>
                         </div>
                         <p className="text-xs text-muted-foreground/70">{co.change_order_number}</p>
                       </div>
-                      <span className={`text-sm font-bold ${coAdjustment >= 0 ? 'text-primary' : 'text-muted-foreground'}`}>
+                      <span className={`text-sm font-bold ${amountClass}`}>
                         {coAdjustment >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(coAdjustment)}
                       </span>
                     </button>
@@ -1605,7 +1670,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                           const otherAmt = parseFloat(co.other_amount) || 0;
                           const mfAmt = subtotal * (mfPct / 100);
                           const opAmt = subtotal * (opPct / 100);
-                          const hasBreakdown = mfPct > 0 || opPct > 0 || taxPct > 0 || otherAmt > 0;
+                          const taxVisible = features?.tax_enabled === true && taxPct > 0;
+                          const hasBreakdown = mfPct > 0 || opPct > 0 || taxVisible || otherAmt > 0;
                           if (!hasBreakdown) return null;
                           return (
                             <div className="border-t border-border pt-2 space-y-0.5 text-xs text-muted-foreground">
@@ -1619,7 +1685,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                               {otherAmt > 0 && (
                                 <div className="flex justify-between"><span>Other</span><span>{fmt(otherAmt)}</span></div>
                               )}
-                              {taxPct > 0 && (
+                              {taxVisible && (
                                 <div className="flex justify-between"><span>Tax ({taxPct}%)</span><span>{fmt(taxAmt)}</span></div>
                               )}
                             </div>
@@ -1639,6 +1705,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                               className="text-xs text-emerald-400 hover:text-emerald-300 min-h-[44px]">
                               Accept (skip signature)
                             </button>
+                            <button type="button" onClick={() => setDeleteCOTarget(co)}
+                              className="text-xs text-rose-400 hover:text-rose-300 min-h-[44px]">
+                              Delete
+                            </button>
                           </div>
                         )}
                         {co.status === 'awaiting_signature' && (
@@ -1653,10 +1723,25 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                             </button>
                           </div>
                         )}
-                        {co.status === 'signed' && co.signed_at && (
-                          <p className="text-xs text-emerald-400 pt-1">
-                            <Shield className="inline-block h-3 w-3 mr-1" />
-                            Signed {fmtDate(co.signed_at)}
+                        {(co.status === 'signed' || co.status === 'accepted') && (
+                          <div className="flex flex-wrap gap-3 pt-1 items-center">
+                            {co.status === 'signed' && co.signed_at && (
+                              <p className="text-xs text-emerald-400">
+                                <Shield className="inline-block h-3 w-3 mr-1" />
+                                Signed {fmtDate(co.signed_at)}
+                              </p>
+                            )}
+                            <button type="button" onClick={() => { setVoidCOTarget(co); setVoidConfirmText(''); setVoidReason(''); }}
+                              className="text-xs text-rose-400 hover:text-rose-300 min-h-[44px] flex items-center gap-1">
+                              <Ban className="h-3 w-3" /> Void
+                            </button>
+                          </div>
+                        )}
+                        {isVoided && (
+                          <p className="text-xs text-muted-foreground/70 pt-1">
+                            <Ban className="inline-block h-3 w-3 mr-1" />
+                            Voided{co.voided_at ? ` ${fmtDate(co.voided_at)}` : ''}
+                            {co.voided_reason ? ` — ${co.voided_reason}` : ''}
                           </p>
                         )}
                       </div>
@@ -1827,6 +1912,84 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
             <img src={lightboxPhoto} alt="" className="max-h-[85vh] max-w-full object-contain rounded-lg" />
           </div>
         )}
+
+        {/* Delete Draft CO Confirmation — single-step. Drafts have no legal weight. */}
+        <AlertDialog open={!!deleteCOTarget} onOpenChange={(open) => { if (!open) setDeleteCOTarget(null); }}>
+          <AlertDialogContent className="bg-card border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-foreground">Delete this draft change order?</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                {deleteCOTarget?.title || 'This change order'} will be permanently removed. Drafts haven't been sent to the client, so nothing else changes.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-transparent border-border text-foreground-soft hover:bg-secondary">
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteCOTarget && deleteCOMutation.mutate(deleteCOTarget)}
+                disabled={deleteCOMutation.isPending}
+                className="bg-rose-600 hover:bg-rose-500 text-foreground disabled:opacity-50"
+              >
+                {deleteCOMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Delete'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Void Signed/Accepted CO Confirmation — two-step. The CO stays in the
+            record for audit but is excluded from contract math. Friction is
+            proportional to consequence: typed confirmation matches the workspace
+            delete pattern in FieldServiceSettings. */}
+        <AlertDialog open={!!voidCOTarget} onOpenChange={(open) => { if (!open) { setVoidCOTarget(null); setVoidConfirmText(''); setVoidReason(''); } }}>
+          <AlertDialogContent className="bg-card border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-foreground flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-rose-400" />
+                Void this change order?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                {voidCOTarget?.title || 'This change order'} ({voidCOTarget?.change_order_number}) will remain in the record for audit purposes but will not count toward the project budget. The client will see it as voided.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-muted-foreground/70 uppercase tracking-wider">Reason (optional)</label>
+                <input
+                  type="text"
+                  value={voidReason}
+                  onChange={(e) => setVoidReason(e.target.value)}
+                  className="mt-1 w-full bg-secondary border border-border text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="e.g., scope changed, client request"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground/70 uppercase tracking-wider">
+                  Type <span className="text-rose-400 font-mono">VOID</span> to confirm
+                </label>
+                <input
+                  type="text"
+                  value={voidConfirmText}
+                  onChange={(e) => setVoidConfirmText(e.target.value)}
+                  className="mt-1 w-full bg-secondary border border-border text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  placeholder='Type "VOID"'
+                />
+              </div>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-transparent border-border text-foreground-soft hover:bg-secondary">
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => voidCOTarget && voidCOMutation.mutate({ co: voidCOTarget, reason: voidReason })}
+                disabled={voidConfirmText !== 'VOID' || voidCOMutation.isPending}
+                className="bg-rose-600 hover:bg-rose-500 text-foreground disabled:opacity-50"
+              >
+                {voidCOMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Void Change Order'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }
