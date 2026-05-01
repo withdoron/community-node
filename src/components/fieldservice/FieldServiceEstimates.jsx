@@ -169,16 +169,16 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
         </button>
         <div className="flex gap-2 flex-wrap">
           <button type="button" onClick={() => {
-              // Browsers default the PDF filename to <title>. Replace the generic
-              // page title with the estimate reference for the duration of print
-              // so contractors save Estimate-EST-2026-001.pdf, not the workspace name.
+              // Browsers default the PDF filename to <title>. Set the title and
+              // call print synchronously — the previous setTimeout(100) wrapper
+              // left a window where re-renders or platform scripts reset the
+              // title before the dialog opened, so files saved as the workspace
+              // name instead of the estimate reference.
               const previous = document.title;
               const ref = estimate.estimate_number || `id-${(estimate.id || '').slice(0, 8)}`;
               document.title = `Estimate-${ref}`;
-              setTimeout(() => {
-                window.print();
-                setTimeout(() => { document.title = previous; }, 1000);
-              }, 100);
+              window.print();
+              setTimeout(() => { document.title = previous; }, 1000);
             }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-foreground-soft hover:text-primary hover:border-primary transition-colors text-sm min-h-[44px]">
             <Printer className="h-4 w-4" /> Print / PDF
@@ -252,11 +252,18 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
       {/* Printable estimate */}
       <div className="estimate-print-area bg-white text-primary-foreground rounded-xl border border-border shadow-sm p-6 sm:p-8 print:p-6 print:shadow-none print:rounded-none print:border-none">
         <style>{`@media print {
-          body * { visibility: hidden !important; }
-          .estimate-print-area, .estimate-print-area * { visibility: visible !important; }
-          .estimate-print-area { position: absolute; top: 0; left: 0; width: 100%; font-size: ${isInsurance ? '9pt' : '10pt'}; }
-          @page { margin: 0.5in; size: letter; }
+          /* Hide every element that isn't the print area, an ancestor of it, or a descendant of it. */
+          /* The previous visibility:hidden + position:absolute pattern collapsed multi-page content */
+          /* to page 1 because absolutely-positioned blocks don't paginate. */
+          body :not(:has(.estimate-print-area)):not(.estimate-print-area):not(.estimate-print-area *) {
+            display: none !important;
+          }
           body { background: white !important; margin: 0; padding: 0; }
+          /* overflow-x-auto on line item wrappers resolves to overflow:auto on both axes per spec, */
+          /* which clips tall tables to a single page in print. Force visible across the print tree. */
+          .estimate-print-area, .estimate-print-area * { overflow: visible !important; }
+          .estimate-print-area { font-size: ${isInsurance ? '9pt' : '10pt'}; }
+          @page { margin: 0.5in; size: letter; }
           .print-avoid-break { page-break-inside: avoid; }
           .print-break-before { page-break-before: auto; }
         }`}</style>

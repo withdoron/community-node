@@ -629,10 +629,16 @@ function DocumentDetail({
 
       {/* Print styles */}
       <style>{`@media print {
-        nav, .app-header, .print\\:hidden, [class*="sidebar"] { display: none !important; }
+        /* Same containment shape as the estimate print stylesheet — hide everything that isn't */
+        /* the print area, an ancestor of it, or a descendant of it. The prior position:absolute */
+        /* on .doc-print-area collapsed multi-page documents to page 1 because absolutely- */
+        /* positioned blocks don't paginate. */
+        body :not(:has(.doc-print-area)):not(.doc-print-area):not(.doc-print-area *) {
+          display: none !important;
+        }
         @page { margin: 0.75in; size: letter; }
         body { background: white !important; margin: 0; padding: 0; }
-        .doc-print-area { position: absolute; top: 0; left: 0; width: 100%; }
+        .doc-print-area, .doc-print-area * { overflow: visible !important; }
         .doc-print-area * { color: #111827 !important; }
       }`}</style>
 
