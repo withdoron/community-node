@@ -33,10 +33,23 @@ export default function MyLaneDrillView({
   mealPrepProfiles = [],
 }) {
   const [activeTab, setActiveTab] = useState(drilledView.tab || 'home');
+  // Bumped on tap-on-active to force-remount the inner tab component, which
+  // resets its internal view state (e.g. Projects list/detail/form, Estimates
+  // list/preview/form). Standard mobile-app behavior — tapping the tab you're
+  // already in returns you to that tab's home.
+  const [tabResetKey, setTabResetKey] = useState(0);
   // Sync tab when parent changes drilledView.tab (e.g., TYPE 1 RENDER with view param)
   useEffect(() => {
     if (drilledView.tab) setActiveTab(drilledView.tab);
   }, [drilledView.tab]);
+
+  const handleTabClick = (tabId) => {
+    if (tabId === activeTab) {
+      setTabResetKey((k) => k + 1);
+    } else {
+      setActiveTab(tabId);
+    }
+  };
   const [checkInEvent, setCheckInEvent] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -249,7 +262,7 @@ export default function MyLaneDrillView({
             <button
               key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabClick(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 text-sm whitespace-nowrap transition-colors min-h-[44px] ${
                 isActive
                   ? 'text-primary border-b-2 border-primary font-semibold'
@@ -263,8 +276,8 @@ export default function MyLaneDrillView({
         })}
       </div>
 
-      {/* Tab content */}
-      <TabComponent {...props} />
+      {/* Tab content. Key includes tabResetKey so tap-on-active remounts. */}
+      <TabComponent key={`${activeTab}-${tabResetKey}`} {...props} />
     </div>
   );
 }

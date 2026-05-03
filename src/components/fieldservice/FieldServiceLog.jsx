@@ -650,12 +650,20 @@ export default function FieldServiceLog({ profile, currentUser }) {
         toast.success('Daily log saved');
       }
 
-      // Invalidate queries
+      // Invalidate queries. The all-* keys back the project list view; the
+      // per-project keys back the project detail view's "Spent" rollup
+      // (FieldServiceProjects.jsx queries fs-project-materials / fs-project-labor
+      // by selectedId). Without invalidating those, a log saved from the Log
+      // tab leaves the detail view's totals stale until React Query's 5-minute
+      // staleTime expires or the user fully unmounts/remounts the view.
       queryClient.invalidateQueries({ queryKey: ['fs-daily-logs-all'] });
       queryClient.invalidateQueries({ queryKey: ['fs-materials-all'] });
       queryClient.invalidateQueries({ queryKey: ['fs-labor-all'] });
       queryClient.invalidateQueries({ queryKey: ['fs-recent-logs'] });
       queryClient.invalidateQueries({ queryKey: ['fs-logs-for-project'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-materials'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-labor'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-photos'] });
 
       // Cleanup previews
       photos.forEach((p) => { if (p.preview) URL.revokeObjectURL(p.preview); });

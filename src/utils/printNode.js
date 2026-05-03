@@ -59,6 +59,21 @@ export function printNode(node, { title, extraCss = '' } = {}) {
   doc.open();
   doc.write(html);
   doc.close();
+  // Set title via JS as well as via <title> tag — in deep-nested iframes
+  // (Base44 editor top → app preview iframe → printNode iframe) Chrome's
+  // "Save as PDF" filename source is inconsistent. Setting the title via
+  // JS after document.close() guarantees it's applied before print fires.
+  if (title) doc.title = title;
+
+  // Swap the parent (app) document.title to the target as well. If Chrome's
+  // print pipeline reads the host document's title rather than the iframe's
+  // for the suggested filename (observed in Base44's nested iframe context),
+  // this covers it. Restore on a delay since the print dialog is async.
+  const previousParentTitle = document.title;
+  if (title) document.title = title;
+  const restoreParentTitle = () => {
+    if (document.title === title) document.title = previousParentTitle;
+  };
 
   const trigger = () => {
     try {
@@ -68,8 +83,12 @@ export function printNode(node, { title, extraCss = '' } = {}) {
       // eslint-disable-next-line no-console
       console.error('printNode: print failed', err);
     }
-    // Print dialog is async; removing the iframe too early closes the dialog.
-    setTimeout(() => iframe.remove(), 2000);
+    // Print dialog is async; removing the iframe too early closes the dialog,
+    // and restoring the parent title too early changes the filename mid-flight.
+    setTimeout(() => {
+      iframe.remove();
+      restoreParentTitle();
+    }, 2000);
   };
 
   // document.write doesn't reliably fire iframe onload, and <link rel="stylesheet">
