@@ -531,6 +531,33 @@ When the same entity is queried under two cache keys — a list-level `['fs-mate
 
 `MyLaneDrillView` is the platform's single workspace tab nav. Its tab buttons honor the standard mobile-app expectation: tapping a tab you're already on returns you to that tab's home. Implementation is a `tabResetKey` integer that bumps on tap-on-active and threads into the rendered `TabComponent`'s `key` prop, force-remounting the inner component so its internal `view` state (Projects list/detail/form, Estimates list/preview/form, etc.) resets. If a future workspace component needs to *survive* tap-on-active for some reason (background process, unsaved-edit guard), opt out by intercepting via the component's own logic — don't change the tab nav's contract.
 
+### Required-field UX: canonical pattern for every form (2026-05-03)
+
+Every required field on every user-facing form must be marked with `*` in its label AND validated client-side with a human message before the request hits Base44. Without both, the user gets a raw schema error like `Error in field tasks_completed: Input should be a valid string` — that's a developer message leaking through where a user message belongs (commit `bdd90e4` audit found this on Daily Log, Estimate, Document Template, Permit Inspection, and Change Order).
+
+**Pattern (use exactly this shape for every new form):**
+
+```jsx
+<label className={LABEL_CLASS}>Field Name *</label>
+<input ... />
+```
+
+```js
+const handleSubmit = () => {
+  if (!field.trim()) {
+    toast.error('Please <verb> the <thing>');
+    return;
+  }
+  // ...
+};
+```
+
+Notes: literal `*` in the label text, space before. Use `LABEL_CLASS` (the shared constant, not an ad-hoc className). Toast message is action-oriented ("Please describe the work completed") — never the raw schema field name. Save button `disabled` state is defense-in-depth on top of the toast guard, not a substitute. For mutations that throw, the existing `onError: (err) => toast.error(err.message)` pattern pipes thrown messages straight to the user — throw the user-facing string directly, no `Failed: ` prefix in the throw.
+
+Wizard-shape forms (multi-step, gated progression) use step-gating instead of asterisks — the wizard cannot advance without the required pick. Don't bolt `*` onto wizard step headers; the gating IS the signal.
+
+A shared `<RequiredField>` wrapper or `validateForm(formData, schema)` utility was considered and declined — forms differ enough (conditional fields, wizards, multi-mode submit paths) that a one-size-fits-all wrapper would constrain more than help. The pattern above is short enough to copy inline. Revisit if a future form's validation list exceeds ~6 fields and gets unwieldy.
+
 ---
 
 ## File Organization
