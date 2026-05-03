@@ -1165,6 +1165,14 @@ function TemplateEditor({ template, onSave, onCancel, isSaving }) {
   const [content, setContent] = useState(template?.content || '');
 
   const handleSave = () => {
+    if (!title.trim()) {
+      toast.error('Please enter a template title');
+      return;
+    }
+    if (!content.trim()) {
+      toast.error('Please add template content');
+      return;
+    }
     onSave({
       ...(template ? { id: template.id } : {}),
       title,
@@ -1186,7 +1194,7 @@ function TemplateEditor({ template, onSave, onCancel, isSaving }) {
       <div className="bg-card border border-border rounded-xl p-4 space-y-4">
         <h3 className="text-base font-semibold text-foreground">{isNew ? 'Create Custom Template' : 'Edit Template'}</h3>
         <div>
-          <label className={LABEL_CLASS}>Title</label>
+          <label className={LABEL_CLASS}>Title *</label>
           <input type="text" className={INPUT_CLASS} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Final Lien Waiver" />
         </div>
         <div>
@@ -1202,7 +1210,7 @@ function TemplateEditor({ template, onSave, onCancel, isSaving }) {
           <input type="text" className={INPUT_CLASS} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description of this template" />
         </div>
         <div>
-          <label className={LABEL_CLASS}>Content</label>
+          <label className={LABEL_CLASS}>Content *</label>
           <p className="text-xs text-muted-foreground/70 mb-1">
             Use {'{{field_name}}'} for merge fields. Available: client_name, client_address, project_name, project_address, company_name, license_number, date, estimate_total, etc.
           </p>

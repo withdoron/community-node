@@ -648,6 +648,18 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
   const tradeCategories = getTradeCategories(profile);
   const setLineItems = (items) => setFormData((prev) => ({ ...prev, line_items: items }));
 
+  // FSEstimate.title is required at the entity level. The save buttons are
+  // disabled when title is empty, but autofill or programmatic submission
+  // could bypass that — toast a human message instead of letting Base44's
+  // raw schema error reach the user.
+  const handleSave = (status, opts = {}) => {
+    if (!formData.title.trim()) {
+      toast.error('Please enter an estimate title');
+      return;
+    }
+    saveMutation.mutate({ status, ...opts });
+  };
+
   return (
     <div className="space-y-4 pb-8">
       <button type="button" onClick={onDone}
@@ -955,14 +967,14 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         </button>
         <button type="button"
           disabled={!formData.title.trim() || saveMutation.isPending}
-          onClick={() => saveMutation.mutate({ status: 'draft' })}
+          onClick={() => handleSave('draft')}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-primary text-primary hover:bg-primary/10 transition-colors text-sm font-medium min-h-[44px] disabled:opacity-50 disabled:pointer-events-none">
           {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save Draft
         </button>
         <button type="button"
           disabled={!formData.title.trim() || saveMutation.isPending}
-          onClick={() => saveMutation.mutate({ status: 'sent', _copyLink: true })}
+          onClick={() => handleSave('sent', { _copyLink: true })}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors text-sm min-h-[44px] disabled:opacity-50 disabled:pointer-events-none">
           {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
           Save & Copy Link

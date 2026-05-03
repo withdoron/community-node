@@ -65,6 +65,9 @@ function PermitCard({ permit, profileId, projectId }) {
 
   const addInspection = useMutation({
     mutationFn: async () => {
+      if (!inspectionData.type.trim()) {
+        throw new Error('Inspection type is required');
+      }
       const updated = [...inspections, { ...inspectionData, id: Date.now() }];
       return base44.entities.FSPermit.update(permit.id, {
         inspections: { items: updated },
@@ -325,7 +328,7 @@ function PermitCard({ permit, profileId, projectId }) {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs text-muted-foreground/70">Type</label>
+                    <label className="text-xs text-muted-foreground/70">Type *</label>
                     <input type="text" className={INPUT_CLASS} value={inspectionData.type}
                       onChange={(e) => setInsp('type', e.target.value)} placeholder="e.g., Framing" />
                   </div>

@@ -510,6 +510,13 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
   // calcTotals so amount stays in sync with the form's grand total.
   const saveCOMutation = useMutation({
     mutationFn: async () => {
+      if (!coForm.title.trim()) {
+        // FSChangeOrder.title is required at the entity level; the save button
+        // is also disabled when title is empty, but throw explicitly so an
+        // unexpected click path surfaces a human message instead of a Base44
+        // schema error.
+        throw new Error('Please enter a change order title');
+      }
       const validItems = (coForm.line_items || [])
         .filter((it) => (it.description || '').trim() || (parseFloat(it.unit_price) || 0) > 0)
         .map((it) => ({

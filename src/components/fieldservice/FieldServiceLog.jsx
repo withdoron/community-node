@@ -405,6 +405,12 @@ export default function FieldServiceLog({ profile, currentUser }) {
       toast.error('Date is required');
       return;
     }
+    if (logType === 'daily' && !tasksText.trim()) {
+      // FSDailyLog.tasks_completed is required at the entity level. Without
+      // this guard the user gets a raw schema error from Base44.
+      toast.error('Please describe the work completed');
+      return;
+    }
 
     // Payment paths (Sub Payment / Client Payment) — write FSPayment, not FSDailyLog.
     if (isPaymentType) {
@@ -1164,7 +1170,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
       <div className={SECTION_CLASS}>
         <div className={SECTION_HEADER_CLASS}>
           <ClipboardList className="h-5 w-5 text-primary" />
-          Work Completed
+          Work Completed *
         </div>
         <div className="flex gap-2 items-start">
           <textarea
