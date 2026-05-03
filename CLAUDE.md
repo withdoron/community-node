@@ -521,6 +521,16 @@ When fixing a bug whose surface is non-standard (iframe-wrapped, embedded, sandb
 
 `src/utils/printNode.js` exports `printNode(node, { title, extraCss })` — builds a fresh hidden iframe, copies parent stylesheets and the target node's HTML into it, then calls `iframe.contentWindow.print()`. Use this instead of `window.print()` for any "print this estimate / document / report" surface. Sidesteps the iframe-context bug above (Base44 editor preview, any embedded host) because the print pipeline targets only the inner document. Used by FieldServiceEstimates and FieldServiceDocuments. The `title` argument becomes the PDF filename; `extraCss` lets the caller layer print-specific overrides without touching component CSS.
 
+For the filename specifically, `printNode` sets the title in three places (iframe `<title>` tag, iframe `document.title` via JS after `document.close()`, and the parent app's `document.title` for the print duration). Chrome's filename source in deep-nested iframes is inconsistent across versions; setting all three covers every angle we can reach. The cross-origin top-level document (Base44 editor) is unreachable; if Chrome reads that for the filename, no in-app fix exists short of switching to `window.open()`.
+
+### List/detail query-key pairs travel together for invalidation (2026-05-03)
+
+When the same entity is queried under two cache keys — a list-level `['fs-materials-all', profile.id]` and a detail-level `['fs-project-materials', selectedId]`, for example — every mutation that writes to that entity must invalidate BOTH keys or one view will silently drift stale. Cost a Phase-1 dogfooding bug (commit `cb26d4e`): `FSLog` save invalidated only the all-* keys, leaving the project detail view's "Spent" rollup stale until React Query's 5-minute `staleTime` expired. The pattern surfaces anywhere we split a list query from a per-id detail query for performance — assume the pair exists and invalidate both. If a third surface starts reading the same entity through a third key, that's the moment to extract a `invalidateMaterials(queryClient, profileId, projectId?)` helper (Living Feet DEC-146).
+
+### Tab nav: tap-on-active resets the inner component (2026-05-03)
+
+`MyLaneDrillView` is the platform's single workspace tab nav. Its tab buttons honor the standard mobile-app expectation: tapping a tab you're already on returns you to that tab's home. Implementation is a `tabResetKey` integer that bumps on tap-on-active and threads into the rendered `TabComponent`'s `key` prop, force-remounting the inner component so its internal `view` state (Projects list/detail/form, Estimates list/preview/form, etc.) resets. If a future workspace component needs to *survive* tap-on-active for some reason (background process, unsaved-edit guard), opt out by intercepting via the component's own logic — don't change the tab nav's contract.
+
 ---
 
 ## File Organization
