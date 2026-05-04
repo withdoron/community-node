@@ -647,3 +647,51 @@ Gate at the highest reasonable level (parent that mounts the feature, not each s
 **Status:** Active. Containment Sessions A+B+C shipped 2026-04-15.
 
 ---
+
+> **Mirror gap notice (2026-05-04):** Entries below jump from DEC-148 to DEC-198. The community-node DECISIONS.md mirror has known drift between DEC-149 and DEC-197 — those entries live in the canonical `Spec-Repo/platform/DECISIONS.md`. The four entries below were added by the 2026-05-04 ship-it (commit ref TBD) so the most recent decisions are present in the mirror. Full backfill is outside this ship-it's scope; queued as a separate cleanup pass.
+
+### DEC-198: printNode Helper as Canonical Print Mechanism in Iframe-Wrapped Surfaces (2026-05-01)
+
+**Date:** 2026-05-01
+**Decision:** All "print this DOM subtree" surfaces route through a shared utility, `printNode(node, { title, extraCss })` (`src/utils/printNode.js`, shipped in commit `e91b696`). The utility builds a fresh hidden iframe inside the calling document, copies the parent's stylesheets and the target node's HTML into it via `document.write`, then calls `iframe.contentWindow.print()` — which targets only the inner iframe's document, sidestepping the parent-frame constraint that clips content to the iframe element's height in embedded hosts (Base44 Act-As-User editor preview). Filename support: title is set in three reachable places (iframe `<title>` tag, iframe `document.title` via JS after `document.close()`, and the parent app's `document.title` swapped for the print duration with restoration on a 2-second delay) because Chrome's filename source in deep-nested iframes is inconsistent.
+**Status:** Active. Consumed by `FieldServiceEstimates.jsx` and `FieldServiceDocuments.jsx`. `FieldServiceReport.jsx` still uses direct `window.print()` (low-risk surface); migrate when next touched. Lesson saved to `CLAUDE.md` as "synthetic DOM verification is not production verification" — when the rendering surface is non-standard, the fix must be verified against at least one realistic surface before claiming completion.
+**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md`.
+
+---
+
+### DEC-199: List/Detail Query-Key Invalidation Pairs Travel Together (2026-05-03)
+
+**Date:** 2026-05-03
+**Decision:** When the same entity is queried under two cache keys — a list-level `['fs-X-all', profile.id]` and a detail-level `['fs-project-X', selectedId]` — every mutation that writes to that entity must invalidate BOTH keys. The pair is structural; treat it as one logical invalidation. Implemented for FSLog: invalidation list now includes `fs-daily-logs-all`, `fs-materials-all`, `fs-labor-all`, `fs-recent-logs`, `fs-logs-for-project`, `fs-project-materials`, `fs-project-labor`, `fs-project-photos`. If a third surface starts reading the same entity through a third key, extract a `invalidateMaterials(queryClient, profileId, projectId?)` helper (Living Feet DEC-146 pattern, mirroring DEC-196's `invalidateFSProfiles`).
+**Companion:** DEC-196 (cache invalidation must target the subscriber's actual queryKey) — DEC-196 is the right form of invalidation; DEC-199 is every key the subscribers use. Together they close both common React Query invalidation traps.
+**Status:** Active. Implemented in commit `cb26d4e` for FSLog. Suspected same gap in Estimate `saveMutation` (DEC-196 family) + FSChangeOrder mutations — flagged for follow-up sweep.
+**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md`.
+
+---
+
+### DEC-200: Required-Field UX Standard — Asterisk + Client-Side Toast, No Schema Errors (2026-05-03)
+
+**Date:** 2026-05-03
+**Decision:** Every required field on every user-facing form must be marked with `*` in its label and validated client-side with a human-readable toast before any Base44 call. Canonical pattern:
+
+```jsx
+<label className={LABEL_CLASS}>Field Name *</label>
+```
+```js
+if (!field.trim()) { toast.error('Please <verb> the <thing>'); return; }
+```
+
+Save-button `disabled` state remains as defense in depth, not a substitute. For mutations: `throw new Error('Please <verb> the <thing>')` and let `onError: (err) => toast.error(err.message)` pipe it through. Wizard-shape forms use step-gating (gating IS the signal). A shared `<RequiredField>` wrapper / `validateForm()` utility was considered and explicitly declined — forms differ enough that the inline pattern is short enough to copy without abstraction overhead. Revisit only if a single form's validation list exceeds ~6 fields.
+**Status:** Active. Six fields fixed across five forms in commit `bdd90e4` (Daily Log `tasks_completed`, Estimate `title`, Document Template `title` + `content`, Permit Inspection `type`, Change Order `title`). Pattern documented in `CLAUDE.md`.
+**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md`.
+
+---
+
+### DEC-201: Stewardship Space as Strategic Principle — Future Workspace, Steward-Mediated Pricing (2026-05-04)
+
+**Date:** 2026-05-04
+**Decision:** Stewardship is captured as a strategic principle, not a build commitment. A Steward is a real person in a real community who uses LocalLane for their own work and serves as the local contact, support person, and gardener for other businesses in their geography. The Stewardship Space is a future first-class workspace alongside Field Service / Recess / Harvest / Creative Alliance / Gathering Circle. Pricing is steward-mediated: the platform sets the frequency (membership economics, steward's cut, structural floor), stewards play the music (price for their own clients within their own network). Stewards pay the standard $9/mo Community Pass + $9/mo Stewardship workspace = $18/mo. Compensation tied to active circulation: a steward who stops cultivating stops earning, businesses are reabsorbed into the network. **No passive income from stewardship.**
+**Status:** Strategic principle, not a build commitment. Full spec at `Spec-Repo/spaces/stewardship/STEWARDSHIP-SPACE.md`. Build sequencing: post-Phase 6 Supabase migration; pre-migration Doron-as-steward runs the role informally with Bari and Dan.
+**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md` + spec at `Spec-Repo/spaces/stewardship/STEWARDSHIP-SPACE.md`.
+
+---
