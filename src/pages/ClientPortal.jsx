@@ -293,7 +293,7 @@ function EstimateSigningSection({ estimate, queryClient }) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['fs-public-estimate-view']);
+      queryClient.invalidateQueries({ queryKey: ['fs-public-estimate-view'] });
     },
     onError: (err) => {
       console.error('Estimate e-sign failed:', err);
@@ -584,7 +584,7 @@ function ChangeOrderSigningSection({ co, queryClient }) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['fs-public-co-view']);
+      queryClient.invalidateQueries({ queryKey: ['fs-public-co-view'] });
     },
     onError: (err) => {
       console.error('Change order e-sign failed:', err);
@@ -770,7 +770,7 @@ function DocumentSigningSection({ doc, profile, queryClient }) {
     onSuccess: (signatureData) => {
       setSignatureResult(signatureData);
       setSignedSuccessfully(true);
-      queryClient.invalidateQueries(['fs-public-doc-view']);
+      queryClient.invalidateQueries({ queryKey: ['fs-public-doc-view'] });
     },
     onError: (err) => {
       console.error('Document e-sign failed:', err);

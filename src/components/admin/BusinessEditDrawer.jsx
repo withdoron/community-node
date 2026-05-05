@@ -241,7 +241,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-businesses']);
+      queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
       setHasChanges(false);
       toast.success('Business updated successfully');
       onClose();
@@ -267,7 +267,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
     onSuccess: (url) => {
       setUploadedLogoUrl(url);
       updateField('logo_url', url);
-      queryClient.invalidateQueries(['admin-businesses']);
+      queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
       toast.success('Logo uploaded successfully');
     },
     onError: () => {
@@ -396,7 +396,7 @@ export default function BusinessEditDrawer({ business, open, onClose, adminEmail
       return foundUser;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-businesses']);
+      queryClient.invalidateQueries({ queryKey: ['admin-businesses'] });
       toast.success('Owner linked successfully');
     },
     onError: (error) => {

@@ -613,7 +613,7 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
         zip_code: newClient.zip_code.trim() || null,
         status: 'active',
       });
-      queryClient.invalidateQueries(['fs-clients', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-clients', profile?.id] });
       setNewClient({ name: '', email: '', phone: '', company_name: '', address: '', city: '', state: '', zip_code: '' });
       setShowAddClient(false);
       toast.success('Client added');

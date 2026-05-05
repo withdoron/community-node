@@ -102,9 +102,9 @@ export default function Recommend({ businessId: businessIdProp, initialMode } = 
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['existing-nod', businessId]);
-      queryClient.invalidateQueries(['business', businessId]);
-      queryClient.invalidateQueries(['recommendations', businessId]);
+      queryClient.invalidateQueries({ queryKey: ['existing-nod', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['business', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['recommendations', businessId] });
       setMode('nod-done');
     }
   });
@@ -128,9 +128,9 @@ export default function Recommend({ businessId: businessIdProp, initialMode } = 
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['existing-nod', businessId]);
-      queryClient.invalidateQueries(['business', businessId]);
-      queryClient.invalidateQueries(['recommendations', businessId]);
+      queryClient.invalidateQueries({ queryKey: ['existing-nod', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['business', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['recommendations', businessId] });
     }
   });
 
@@ -175,9 +175,9 @@ export default function Recommend({ businessId: businessIdProp, initialMode } = 
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['existing-nod', businessId]);
-      queryClient.invalidateQueries(['business', businessId]);
-      queryClient.invalidateQueries(['recommendations', businessId]);
+      queryClient.invalidateQueries({ queryKey: ['existing-nod', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['business', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['recommendations', businessId] });
       setMode('story-done');
     }
   });
@@ -213,9 +213,9 @@ export default function Recommend({ businessId: businessIdProp, initialMode } = 
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['business', businessId]);
-      queryClient.invalidateQueries(['recommendations', businessId]);
-      queryClient.invalidateQueries(['existing-vouch', businessId]);
+      queryClient.invalidateQueries({ queryKey: ['business', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['recommendations', businessId] });
+      queryClient.invalidateQueries({ queryKey: ['existing-vouch', businessId] });
       setMode('vouch-done');
     }
   });

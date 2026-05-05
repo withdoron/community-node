@@ -96,7 +96,11 @@ export default function FieldServiceClientDetail({
   const updateMutation = useMutation({
     mutationFn: (data) => base44.entities.FSClient.update(clientId, data),
     onSuccess: () => {
+      // FSClient subscribers: per-id ['fs-client', clientId] (this view) + list
+      // ['fs-clients', profileId] (Clients tab, ClientSelector, multiple list
+      // surfaces). Detail-view edits must refresh the list too (DEC-199).
       queryClient.invalidateQueries({ queryKey: ['fs-client', clientId] });
+      queryClient.invalidateQueries({ queryKey: ['fs-clients'] });
       toast.success('Client updated');
       setEditing(false);
     },

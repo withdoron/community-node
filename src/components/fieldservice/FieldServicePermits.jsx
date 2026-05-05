@@ -74,7 +74,7 @@ function PermitCard({ permit, profileId, projectId }) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['fs-permits', projectId]);
+      queryClient.invalidateQueries({ queryKey: ['fs-permits', projectId] });
       toast.success('Inspection logged');
       setShowInspectionForm(false);
       setInspectionData({ ...EMPTY_INSPECTION, date: new Date().toISOString().split('T')[0] });
@@ -85,7 +85,7 @@ function PermitCard({ permit, profileId, projectId }) {
   const updatePermit = useMutation({
     mutationFn: async (data) => base44.entities.FSPermit.update(permit.id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['fs-permits', projectId]);
+      queryClient.invalidateQueries({ queryKey: ['fs-permits', projectId] });
       toast.success('Permit updated');
       setEditing(false);
     },
@@ -408,7 +408,7 @@ export default function FieldServicePermits({ projectId, profileId, currentUser 
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['fs-permits', projectId]);
+      queryClient.invalidateQueries({ queryKey: ['fs-permits', projectId] });
       toast.success('Permit added');
       setShowForm(false);
       setFormData(EMPTY_PERMIT);

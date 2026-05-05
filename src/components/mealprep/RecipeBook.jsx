@@ -116,7 +116,7 @@ function RecipeBook({ profile, currentUser }) {
       if (selectedRecipe?.id === id) {
         setSelectedRecipe((prev) => ({ ...prev, is_favorite: !current }));
       }
-      queryClient.invalidateQueries(['recipes']);
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
     },
     onError: () => toast.error('Failed to update favorite'),
   });
@@ -140,7 +140,7 @@ function RecipeBook({ profile, currentUser }) {
       );
       setSelectedRecipe(null);
       setConfirmDelete(null);
-      queryClient.invalidateQueries(['recipes']);
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
       toast.success('Recipe deleted');
     },
     onError: () => {

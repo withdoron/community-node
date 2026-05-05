@@ -181,7 +181,7 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
       queryClient.setQueryData(['fs-profile', profile?.id], (old) =>
         old ? { ...old, guide_dismissed: true } : old
       );
-      queryClient.invalidateQueries(['fs-profile']);
+      queryClient.invalidateQueries({ queryKey: ['fs-profile'] });
     },
     onError: (err) => console.error('Guide dismiss failed:', err),
   });

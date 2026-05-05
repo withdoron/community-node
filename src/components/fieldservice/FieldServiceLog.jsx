@@ -471,8 +471,12 @@ export default function FieldServiceLog({ profile, currentUser }) {
 
         await base44.entities.FSPayment.create(payload);
 
+        // FSPayment subscribers: per-project ['fs-payments', projectId] in
+        // FieldServiceClientPortal + ['fs-payments-all', profile.id] in
+        // FieldServiceHome. Both must invalidate or one view drifts stale.
         queryClient.invalidateQueries({ queryKey: ['fs-payments', projectId] });
         queryClient.invalidateQueries({ queryKey: ['fs-payments'] });
+        queryClient.invalidateQueries({ queryKey: ['fs-payments-all'] });
 
         if (paymentForm.receipt_preview) URL.revokeObjectURL(paymentForm.receipt_preview);
         setPaymentForm(EMPTY_PAYMENT_FORM);
@@ -670,6 +674,18 @@ export default function FieldServiceLog({ profile, currentUser }) {
       queryClient.invalidateQueries({ queryKey: ['fs-project-materials'] });
       queryClient.invalidateQueries({ queryKey: ['fs-project-labor'] });
       queryClient.invalidateQueries({ queryKey: ['fs-project-photos'] });
+      // Timeline view (FieldServiceTimeline.jsx) has its own per-project keys
+      // for logs/materials/labor/photos; client portal (FieldServiceClientPortal)
+      // has its own per-project view of the same data. Both must invalidate
+      // alongside the contractor-internal keys above (DEC-199).
+      queryClient.invalidateQueries({ queryKey: ['fs-timeline-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-timeline-materials'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-timeline-labor'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-timeline-photos'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-photos'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-portal-materials'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-portal-labor'] });
 
       // Cleanup previews
       photos.forEach((p) => { if (p.preview) URL.revokeObjectURL(p.preview); });

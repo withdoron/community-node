@@ -1378,7 +1378,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
       try {
         const result = await base44.functions.invoke('initializeWorkspace', params);
         if (result?.templates_created > 0) {
-          queryClient.invalidateQueries(['fs-doc-templates', profile.id]);
+          queryClient.invalidateQueries({ queryKey: ['fs-doc-templates', profile.id] });
           toast.success(`${result.templates_created} document template${result.templates_created > 1 ? 's' : ''} added`);
         }
       } catch (err) {
@@ -1394,7 +1394,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
   const createDocMutation = useMutation({
     mutationFn: (data) => base44.entities.FSDocument.create(data),
     onSuccess: (newDoc) => {
-      queryClient.invalidateQueries(['fs-documents', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-documents', profile?.id] });
       toast.success('Document saved as draft');
       setSelectedDoc(newDoc);
       setView('detail');
@@ -1405,7 +1405,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
   const updateDocMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.FSDocument.update(id, data),
     onSuccess: (updatedDoc) => {
-      queryClient.invalidateQueries(['fs-documents', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-documents', profile?.id] });
       toast.success('Document updated');
       if (selectedDoc) setSelectedDoc({ ...selectedDoc, ...updatedDoc });
     },
@@ -1415,7 +1415,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
   const deleteDocMutation = useMutation({
     mutationFn: (id) => base44.entities.FSDocument.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['fs-documents', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-documents', profile?.id] });
       toast.success('Document deleted');
       setView('list');
       setSelectedDoc(null);
@@ -1450,7 +1450,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
   const deleteTemplateMutation = useMutation({
     mutationFn: (id) => base44.entities.FSDocumentTemplate.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['fs-doc-templates', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-doc-templates', profile?.id] });
       toast.success('Template deleted');
       setDeleteConfirm(null);
     },
@@ -1471,7 +1471,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
         sent_for_signature_at: new Date().toISOString(),
       });
       await navigator.clipboard.writeText(link);
-      queryClient.invalidateQueries(['fs-documents', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-documents', profile?.id] });
       toast.success('Link copied! Share it with your client to sign.');
       // Update selected doc if viewing detail
       if (selectedDoc?.id === doc.id) {
@@ -1508,7 +1508,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
         portal_link_active: false,
         recalled_at: new Date().toISOString(),
       });
-      queryClient.invalidateQueries(['fs-documents', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-documents', profile?.id] });
       toast.success('Document recalled. You can edit and resend.');
       if (selectedDoc?.id === recallDoc.id) {
         setSelectedDoc({
@@ -1632,7 +1632,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
         isSaving={createDocMutation.isPending}
         onSave={(data) => createDocMutation.mutate(data)}
         onCancel={() => { setView('list'); setInitialTemplate(null); }}
-        onClientCreated={() => queryClient.invalidateQueries(['fs-clients', profile?.id])}
+        onClientCreated={() => queryClient.invalidateQueries({ queryKey: ['fs-clients', profile?.id] })}
         initialTemplate={initialTemplate}
       />
     );

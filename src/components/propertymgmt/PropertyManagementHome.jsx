@@ -196,7 +196,7 @@ export default function PropertyManagementHome({ profile, currentUser, onNavigat
           ? old.map((p) => (p.id === profile?.id ? { ...p, guide_dismissed: true } : p))
           : old
       );
-      queryClient.invalidateQueries(['pm-profiles']);
+      queryClient.invalidateQueries({ queryKey: ['pm-profiles'] });
     },
     onError: (err) => console.error('Guide dismiss failed:', err),
   });

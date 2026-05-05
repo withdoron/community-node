@@ -55,7 +55,7 @@ export default function AdminConcernsPanel() {
       await adminUpdateConcern(id, updates);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-concerns']);
+      queryClient.invalidateQueries({ queryKey: ['admin-concerns'] });
       setSelectedConcern(null);
       setAdminNotes('');
     }

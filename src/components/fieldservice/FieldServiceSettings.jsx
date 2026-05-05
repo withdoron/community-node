@@ -889,7 +889,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
                     queryClient.setQueryData(['fs-profile', profile?.id], (old) =>
                       old ? { ...old, guide_dismissed: !newVal } : old
                     );
-                    queryClient.invalidateQueries(['fs-profile']);
+                    queryClient.invalidateQueries({ queryKey: ['fs-profile'] });
                     toast.success(newVal ? 'Guide hidden' : 'Guide restored — check your Home tab');
                   } catch {
                     toast.error('Could not update guide setting');

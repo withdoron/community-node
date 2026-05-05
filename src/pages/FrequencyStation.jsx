@@ -502,8 +502,8 @@ function EditSeedForm({ seed, onCancel, onSaved }) {
     },
     onSuccess: () => {
       toast.success('Seed updated');
-      queryClient.invalidateQueries(['frequency-my-seeds']);
-      queryClient.invalidateQueries(['frequency-queue']);
+      queryClient.invalidateQueries({ queryKey: ['frequency-my-seeds'] });
+      queryClient.invalidateQueries({ queryKey: ['frequency-queue'] });
       onSaved?.();
     },
     onError: () => toast.error('Could not save changes'),
@@ -612,9 +612,9 @@ function MySeedsTab({ user, onEditDraft }) {
     mutationFn: (id) => base44.entities.FSFrequencySubmission.delete(id),
     onSuccess: () => {
       toast.success('Seed withdrawn');
-      queryClient.invalidateQueries(['frequency-my-seeds']);
-      queryClient.invalidateQueries(['frequency-queue']);
-      queryClient.invalidateQueries(['frequency-unseen-count']);
+      queryClient.invalidateQueries({ queryKey: ['frequency-my-seeds'] });
+      queryClient.invalidateQueries({ queryKey: ['frequency-queue'] });
+      queryClient.invalidateQueries({ queryKey: ['frequency-unseen-count'] });
     },
     onError: () => toast.error('Could not withdraw seed'),
   });

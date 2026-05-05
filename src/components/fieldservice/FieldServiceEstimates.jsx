@@ -626,7 +626,16 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
       return base44.entities.FSEstimate.create(payload);
     },
     onSuccess: (saved, vars) => {
-      queryClient.invalidateQueries(['fs-estimates', profile?.id]);
+      // FSEstimate subscribers: list ['fs-estimates', profileId] + per-client
+      // ['fs-client-estimates', clientId] (Client Detail) + per-estimate
+      // ['fs-client-estimate', estimateId] (Client Portal) + per-estimate
+      // ['fs-project-estimate', estimateId] (Project Detail). Invalidating the
+      // bare prefix matches all id-suffixed keys (DEC-199 list/detail pair).
+      // Same four-key set repeats at every FSEstimate mutation site below.
+      queryClient.invalidateQueries({ queryKey: ['fs-estimates', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimates'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimate'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-estimate'] });
       if (vars.status === 'sent' && vars._copyLink) {
         const estId = saved?.id || editingId;
         const token = vars.portal_token || saved?.portal_token || '';
@@ -1057,7 +1066,10 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.FSEstimate.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['fs-estimates', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-estimates', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimates'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimate'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-estimate'] });
       toast.success('Estimate deleted');
       setDeleteConfirm(null);
     },
@@ -1089,8 +1101,13 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       return project;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['fs-estimates', profile?.id]);
-      queryClient.invalidateQueries(['fs-projects', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-estimates', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimates'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimate'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-estimate'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-projects', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-projects'] });
       toast.success('Project created from estimate');
       setConvertConfirm(null);
     },
@@ -1108,7 +1125,10 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
         portal_link_active: true,
         sent_for_signature_at: new Date().toISOString(),
       });
-      queryClient.invalidateQueries(['fs-estimates', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-estimates', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimates'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimate'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-estimate'] });
       // Copy the portal link to clipboard
       const url = `${window.location.origin}/client-portal?workspace=${profile.id}&estimate=${est.id}&token=${portalToken}`;
       navigator.clipboard.writeText(url).then(
@@ -1128,7 +1148,10 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
         portal_link_active: true,
         sent_for_signature_at: new Date().toISOString(),
       });
-      queryClient.invalidateQueries(['fs-estimates', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-estimates', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimates'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimate'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-estimate'] });
       // Build signing link (includes sign=true)
       const url = `${window.location.origin}/client-portal?workspace=${profile.id}&estimate=${est.id}&token=${portalToken}&sign=true`;
       navigator.clipboard.writeText(url).then(
@@ -1145,7 +1168,10 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
         portal_link_active: false,
         recalled_at: new Date().toISOString(),
       });
-      queryClient.invalidateQueries(['fs-estimates', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-estimates', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimates'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimate'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-estimate'] });
       toast.success('Estimate recalled. You can edit and resend.');
     } catch (err) { toast.error(err?.message || 'Failed to recall'); }
   };
@@ -1166,7 +1192,10 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
   const reopenEstimate = async (est) => {
     try {
       await base44.entities.FSEstimate.update(est.id, { status: 'sent' });
-      queryClient.invalidateQueries(['fs-estimates', profile?.id]);
+      queryClient.invalidateQueries({ queryKey: ['fs-estimates', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimates'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimate'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-estimate'] });
       toast.success('Estimate reopened for editing');
     } catch (err) { toast.error(err?.message || 'Failed to reopen'); }
   };
@@ -1266,7 +1295,10 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
             owner_signature_data: JSON.stringify(sigData),
             owner_signed_at: sigData.signed_at,
           });
-          queryClient.invalidateQueries(['fs-estimates', profile?.id]);
+          queryClient.invalidateQueries({ queryKey: ['fs-estimates', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimates'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-estimate'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-estimate'] });
           toast.success('Owner signature saved');
         }}
         projects={projects}

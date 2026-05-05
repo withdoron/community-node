@@ -41,7 +41,7 @@ export default function ClientSelector({
       return created;
     },
     onSuccess: (newClient) => {
-      queryClient.invalidateQueries(['fs-clients', profileId]);
+      queryClient.invalidateQueries({ queryKey: ['fs-clients', profileId] });
       toast.success('Client created');
       setForm(EMPTY_FORM);
       setShowCreate(false);

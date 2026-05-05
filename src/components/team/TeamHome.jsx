@@ -189,7 +189,7 @@ export default function TeamHome({ team, members = [], onNavigateTab, onCopyInvi
           ? old.map((t) => (t.id === team?.id ? { ...t, guide_dismissed: true } : t))
           : old
       );
-      queryClient.invalidateQueries(['dashboard-teams']);
+      queryClient.invalidateQueries({ queryKey: ['dashboard-teams'] });
     },
     onError: (err) => console.error('Guide dismiss failed:', err),
   });

@@ -45,8 +45,8 @@ export default function DashboardHome({
           ? old.map((b) => (b.id === business?.id ? { ...b, guide_dismissed: true } : b))
           : old
       );
-      queryClient.invalidateQueries(['ownedBusinesses']);
-      queryClient.invalidateQueries(['staffBusinesses']);
+      queryClient.invalidateQueries({ queryKey: ['ownedBusinesses'] });
+      queryClient.invalidateQueries({ queryKey: ['staffBusinesses'] });
     },
     onError: (err) => console.error('Guide dismiss failed:', err),
   });

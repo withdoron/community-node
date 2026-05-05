@@ -450,6 +450,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     },
     onSuccess: (created) => {
       queryClient.invalidateQueries({ queryKey: ['fs-projects'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-projects'] });
       toast.success('Project created');
       setView('detail');
       setSelectedId(created.id);
@@ -476,6 +478,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fs-projects'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-projects'] });
       toast.success('Project updated');
       setView('detail');
       setFormData(EMPTY_PROJECT);
@@ -488,6 +492,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     mutationFn: (id) => base44.entities.FSProject.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fs-projects'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-projects'] });
       toast.success('Project deleted');
       setView('list');
       setSelectedId(null);
@@ -500,6 +506,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     mutationFn: ({ id, status }) => base44.entities.FSProject.update(id, { status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fs-projects'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-projects'] });
       toast.success('Status updated');
     },
     onError: (err) => toast.error(err?.message || 'Failed to update status'),
@@ -655,6 +663,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fs-change-orders', selectedProject?.id] });
       queryClient.invalidateQueries({ queryKey: ['fs-projects', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-projects'] });
       toast.success('Change order accepted, budget updated');
     },
     onError: (err) => toast.error(err?.message || 'Failed to accept change order'),
@@ -694,6 +704,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fs-change-orders', selectedProject?.id] });
       queryClient.invalidateQueries({ queryKey: ['fs-projects', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-client-projects'] });
       toast.success('Change order voided, budget updated');
       setVoidCOTarget(null);
       setVoidConfirmText('');

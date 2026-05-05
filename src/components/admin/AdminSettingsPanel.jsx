@@ -68,7 +68,7 @@ export default function AdminSettingsPanel() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-settings']);
+      queryClient.invalidateQueries({ queryKey: ['admin-settings'] });
       setHasChanges(false);
       toast.success('Settings saved successfully');
     },

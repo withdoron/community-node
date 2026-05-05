@@ -255,7 +255,7 @@ export default function FinanceHome({ profile, currentUser, onNavigateTab }) {
           ? old.map((p) => (p.id === profile?.id ? { ...p, guide_dismissed: true } : p))
           : old
       );
-      queryClient.invalidateQueries(['finance-profiles']);
+      queryClient.invalidateQueries({ queryKey: ['finance-profiles'] });
     },
     onError: (err) => console.error('Guide dismiss failed:', err),
   });
