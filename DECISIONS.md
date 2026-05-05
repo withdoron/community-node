@@ -44,6 +44,18 @@
 
 **Implementation:** Documented in CLAUDE.md Base44 SDK Quirks section.
 
+### DEC-095 Amendment (2026-04-23) — security.update is only half of the fix
+
+**Context:** Phase 2 production migration surfaced a deeper layer. First `--apply` completed steps 1-4 then 500'd at step 5 with "Permission denied for update operation on FieldServiceProfile entity" — after Base44 had already flipped `security.update` to `true` ("No restrictions"). Investigating revealed a separate `rls` block on the entity with `"update": {"created_by": "{{user.email}}"}` that the service role identity doesn't satisfy.
+
+**Amendment:** `security.update: true` alone is **not sufficient** for `asServiceRole` writes when an entity also carries an `rls.update` rule. The `rls.update` key must be removed entirely, not relaxed. Both layers — top-level `security` AND row-level `rls` — must be opened in parallel for the write to land.
+
+**Reference pattern:** FSDocument (post-original-DEC-095) has `security.update: {"owner": true}` AND its `rls` block contains only `read` and `delete` keys — no `update`. That's the shape to match.
+
+**Fix path during Phase 2:** removed the `"update"` key from FieldServiceProfile.rls entirely; User entity had no `rls` block so `security.update: true` was sufficient there.
+
+**Status:** Active — two-layer permission model is now the working understanding.
+
 ---
 
 ## DEC-096: Request Signature Is One Action (2026-03-27)
@@ -422,65 +434,130 @@
 **Context:** Hyphae's credit analysis projected league scale (100 users, 20 active daily) would consume ~23,550 integration credits/month against a 10k limit. The bottleneck is page loads (~17 integration credits each from 6+ separate entity queries), not agent conversations.
 **Decision:** Before onboarding Randy's league, optimize page load queries: (1) Combine 6 profile queries into one getMyLaneProfiles(userId) server function (6→1 credits per load). (2) Aggressive React Query staleTime (5-minute cache). (3) Lazy-load card data via IntersectionObserver. Target: ~5 integration credits per page load. This drops monthly integration to ~6,000 at league scale — within the 10k plan limit.
 **Rationale:** The current plan ($50/month) supports 100 users if optimized. Without optimization, we'd need to upgrade Base44 plan (higher cost) or throttle features (worse experience). The optimization preserves the $3 ante economics: 100 x $3 = $300 revenue vs $50 Base44 cost.
-**Status:** Active — must ship before Randy league rollout
+**Status:** Active — priority revised from URGENT to MEDIUM (see audit note below)
+
+**Credit Audit Update (2026-04-03):** Base44 support ticket (App ID 69308d4dd5ee90afc9b011d3, filed 2026-04-02) clarified that integration credits are consumed by specific built-in integrations (LLM, SendEmail, UploadFile, GenerateImage, AI agents, automations) — NOT by entity CRUD operations (.list(), .filter(), .create(), .update()). Doron's credit balance held steady despite heavy entity querying all day, corroborating this. Code audit confirmed: of 35 server functions, only 1 (handleEventCancellation) calls a paid integration (SendEmail). All others are pure entity CRUD.
+
+This means the 23,550 integration credits/month projection was based on incorrect assumptions about entity read costs. Actual integration credit consumption at league scale is estimated at ~1,460/month (primarily agent messages + file uploads), well within the 10k plan limit.
+
+**The optimization is still valuable** for two non-credit reasons: (1) Rate limits — 12+ simultaneous entity queries trigger 429 errors, which getMyLaneProfiles consolidation directly fixes. (2) Performance — fewer requests means faster page loads on mobile. But it is no longer a credit-cost emergency. Awaiting Base44 human team response on entity API rate limit numbers (pending as of 2026-04-03).
 
 ---
 
-### DEC-131: MyLane Spinner Navigation (2026-04-01)
+### DEC-131: MyLane Spinner Navigation
 
 **Date:** 2026-04-01
-**Context:** Card grid navigation doesn't give the app identity or handle workspace growth. After two rounds of Hyphae consultation and mockup design sessions.
-**Decision:** Replace card grid with horizontal gallery-style spinner (SpaceSpinner). Home has tabbed vertical spinner (Attention | This week | Spaces). BusinessDashboard retired — business workspace renders through MyLaneDrillView. Artwork mockups mandatory in BUILD-PROTOCOL Phase 4.
-**Rationale:** Spinner gives distinct identity, handles growth, embodies Dark Until Explored, enables future auto-mode.
-**Status:** Active — built
+**Context:** MyLane replaced BusinessDashboard as the sole authenticated surface, but the card grid navigation doesn't give the app a clear identity or handle the growing number of workspaces well. After two rounds of consultation with Hyphae, iterative mockup design sessions, and big-picture architecture discussion, we're replacing the card grid with a spinner-based navigation model.
+
+**Decision:** Replace MyLaneSurface's card grid with a horizontal gallery-style spinner (SpaceSpinner). The drill-through rendering pattern is unchanged -- only the selector UI changes. BusinessDashboard is retired in the same build. Artwork mockups become a mandatory step in BUILD-PROTOCOL.md Phase 4 before any UI build.
+
+**Layout:**
+- Header: Logo (tap = Home), Frequency Station (amber music icon, UI shell), Directory, Events, Settings gear
+- Horizontal Space Spinner: always visible, gallery-style picker. Center = 42px amber border, adjacent = 30px, far = 22px opacity 15%. 320ms cubic-bezier transition. Fade edges. Audio sine tick (440 + index*60 Hz). Touch swipe with 20px delta threshold.
+- Home Position: Three tabs (Attention | This week | Spaces) each feeding a vertical spinner. Center scale 1.0, adjacent 0.93/0.45 opacity, far 0.86/0.12. Audio tick (300 + index*35 Hz).
+- Attention: urgent (red) + action needed (amber). This week: scheduled (blue) + life (green). Spaces: quick-glance stats. Calm state: "All clear."
+- Space Positions: consistent structure via MyLaneDrillView (unchanged).
+- Discover Position: available spaces + invite key input.
+- Copilot: mushroom icon + input, always docked bottom.
+
+**Design Principles:**
+- Two spinners, two axes: horizontal (spaces), vertical (priorities within Home)
+- Dark Until Explored: zero-state = Home + Discover only
+- Dynamic and game-like, never static
+- Audio feedback on both spinners
+- Every element earns its place
+
+**BusinessDashboard Retirement:** Removed from pages.config.js. Business workspace renders through MyLaneDrillView with full scope (revenue, events, RSVP, archetype tabs, delete support).
+
+**Rationale:** The spinner gives the app a distinct identity, handles workspace growth gracefully, embodies Dark Until Explored, and enables future auto-mode. Two spinners, two axes, one consistent interaction model.
+
+**Status:** Active -- approved and built
 
 ---
 
-### DEC-132: Semantic Tailwind Migration Rule (2026-04-02)
+### DEC-132: Semantic Tailwind Migration Rule (UPDATED 2026-04-02)
 
 **Date:** 2026-04-02
-**Context:** Theme propagation shipped — 146 lines of CSS override 2,870 Tailwind utility classes across 35 workspace files. This works but uses !important on every override. The clean long-term solution is for workspace components to use semantic Tailwind classes (bg-card, text-foreground) that resolve through CSS variables, not hardcoded classes (bg-slate-900, text-white) that require override layers.
-**Decision:** When modifying any workspace file for any reason, convert hardcoded color classes to semantic equivalents before committing. Don't do a bulk migration — let it happen organically as files are touched. This way every file gets gradually cleaner without a risky big-bang rewrite.
-**Rationale:** The !important override layer works but is fragile. Each workspace file touched for features gets one step closer to clean theming. Organic migration > risky bulk rewrite.
-**Status:** Active — ongoing
+**Original:** Organic migration — convert files as you touch them.
+**Updated (2026-04-02):** Migration COMPLETE. 208 files migrated in commit a0e4710. 3 new tokens added (foreground-soft, surface, primary-hover). 146-line !important override block removed. Cloud and Fallout themes restructured into clean single-selector variable blocks. New rule: ALL new code must use semantic tokens. No literal color classes (bg-slate-*, text-white, border-slate-*) in workspace files. Client-facing pages (ClientPortal, SigningFlow, estimates print) are exempt — they use intentional literal light-mode classes. Status colors (emerald, red, blue) kept literal across all themes.
+**Status:** Complete — maintain going forward
+
+---
+
+### DEC-133: Mylane Intelligence Tiers (2026-04-02)
+
+**Date:** 2026-04-02
+**Context:** Base44 agent messages cost ~3 integration credits each. Entity queries and server functions are free. Direct API calls with own key via backend functions are also free (confirmed by Base44 support).
+**Decision:** Three-tier intelligence architecture for Mylane:
+- **Tier 1 (Client-side):** Chip taps and known patterns render directly from cached React Query data. Zero cost. Instant response.
+- **Tier 2 (Server function):** Data queries that need fresh data hit agentScopedQuery server functions. Zero credits. Sub-second response.
+- **Tier 3 (LLM reasoning):** Complex cross-space queries, write actions, synthesis. Currently uses Base44 built-in agents (~3 credits/message). Future: migrate to direct Anthropic API calls in backend functions (zero Base44 credits, ~$0.003/question via Haiku 4.5).
+**Tier mapping:** Free/$9 plan = Tier 1 + 2 only. $18 plan = all three tiers.
+**Rationale:** Charge for intelligence, not access. The free tier gets a fast, responsive Mylane that answers from data. The paid tier gets a thinking partner that reasons across spaces. The upgrade sells itself — users see what Mylane can do at Tier 1-2 and want the deeper capability.
+**Status:** Active — architecture to be built incrementally
+
+---
+
+### DEC-134: Spinner Physics — Friction + Mass, Not Spring (2026-04-03)
+
+**Date:** 2026-04-03
+**Context:** Built JS spring physics (mass-stiffness-damping model) for the 3D spinner. Doron tested extensively on iPhone: "I don't like bounce or spring. I want mass and friction. Not a toy, but a tool — something with substance." He intuitively turned mass to 0.3 and friction to 20 to kill the spring. The spring model was fundamentally wrong for a navigation dial — springs inherently oscillate, and trying to critically-damp them to prevent oscillation is fighting the math.
+**Decision:** Remove spring equation entirely. Replace with friction + mass deceleration model. Two knobs per theme (mass, friction) instead of four (stiffness, damping, mass, friction). Two modes on release: ratchet (slow drag, zero animation, instant lock) and momentum (fast flick, friction deceleration). No bounce, no oscillation, no overshoot. Every frame shows a valid resting position. The spinner is a heavy rotary dial with detents, not a bouncy toy.
+**Per-theme values:** Gold Standard: mass 1.0, friction 0.08. Cloud: mass 1.5, friction 0.06. Fallout: mass 1.0, friction 0.05.
+**Design principle:** "Not a toy, but a tool. Something with substance."
+**Status:** Active — shipped in 96ef772 and 0543a15
+
+---
+
+### DEC-135: Themes as Game Modes (2026-04-03)
+
+**Date:** 2026-04-03
+**Context:** Building per-theme spinner physics revealed that themes can be more than visual. Each theme can have different physics, different spinner variants, and potentially different interaction patterns.
+**Decision:** Themes are game modes, not just color schemes. Each theme gets: (1) its own visual rendering (semantic tokens, CRT effects, etc.), (2) its own spinner variant (drum for Fallout, cover flow for Gold Standard/Cloud), (3) its own physics personality (mass, friction values), (4) potentially its own audio character and interaction patterns. Adding a new theme means defining a complete sensory experience, not just swapping colors. The variant architecture (render function strategy pattern with THEME_VARIANT and THEME_PHYSICS maps) supports this cleanly.
+**Current themes:** Gold Standard (dark, premium, precise), Cloud (light, warm, unhurried), Fallout (CRT, mechanical, loose).
+**Future themes:** Elderly/Garden (simple, large text, high contrast), potential per-subdomain themes (fallout.locallane.app).
+**Status:** Active — architecture supports it, new themes are additive
 
 ---
 
 ### DEC-136: Creator Only as Default Entity Permission (2026-04-04)
 
 **Date:** 2026-04-04
-**Context:** Full audit found FSClient, FSDocument, FSEstimate had public read, exposing PII and portal tokens. 6 Critical issues, 3 were entity permission holes.
-**Decision:** Entity permissions default to Creator Only. Server functions with `asServiceRole` handle authorized cross-user access. Entity-level permissions are the last line of defense. New entities start Creator Only and open up only with explicit justification.
-**Status:** Active — 9 entities locked down
+**Context:** Full application audit found FSClient, FSDocument, FSEstimate had public read (Authenticated Users), exposing Bari's client PII and portal tokens to any authenticated user. Team entities similarly exposed. The audit scored the app 68/100 with 6 Critical issues, 3 of which were entity permission holes.
+**Decision:** Entity permissions default to Creator Only for read, create, update, delete. Server functions with `asServiceRole` handle all authorized cross-user access (agentScopedQuery, manageTeamPlay, signDocument, etc.). Entity-level permissions are the last line of defense — they must be restrictive, not permissive. When creating new entities, start Creator Only and open up only with explicit justification.
+**Rationale:** Entity permissions in Base44 are the layer that can't be bypassed by client-side code. Any authenticated user can call `base44.entities.X.list()` from the browser console. If the entity has Authenticated Users read, all records are exposed. Server functions enforce proper scoping — the entity layer should be the backstop, not the gateway.
+**Status:** Active — 9 entities locked down in this session
 
 ---
 
 ### DEC-137: Feedback Flows Through Companion (2026-04-04)
 
 **Date:** 2026-04-04
-**Context:** Two parallel feedback systems (FeedbackLog + ServiceFeedback). Bari's 14+ feedback items were verbal, never reached data layer.
-**Decision:** All feedback flows through MyLane companion. "Have feedback?" chip on all 8 space positions. ServiceFeedback is the sole entity. No confirmation card for feedback — effortless, not bureaucratic. FeedbackLog retired.
-**Status:** Active — floating button removed, ServiceFeedback is sole path
+**Context:** Two parallel feedback systems existed: FeedbackLog (standalone floating button, dead-end data) and ServiceFeedback (agent-created, visible to Mycelia pulse). Bari's 14+ feedback items were verbal relay — they never reached any entity. The floating feedback button was redundant where agent chat exists.
+**Decision:** All user feedback flows through the Mylane companion agent, not standalone buttons. "Have feedback?" quick-action chip on all 8 space positions. MyLane writes to ServiceFeedback entity directly. No confirmation card for feedback — it should feel effortless, not bureaucratic. FeedbackLog entity retired. The agent IS the feedback channel.
+**Rationale:** DEC-104 already said "bug button hides in agent-enabled workspaces." This extends it: the button is gone everywhere. The companion knows the context (which space, what the user was doing) and can ask one clarifying question before writing the feedback. A floating button captures isolated complaints. A companion captures contextual feedback.
+**Status:** Active — floating button removed, chip added, ServiceFeedback is sole feedback entity
 
 ---
 
 ### DEC-138: Founding Gardener — Earned Status, Not Signup Bonus (2026-04-04)
 
 **Date:** 2026-04-04
-**Context:** platformPulse gardener observation revealed 22 users, 6 active, 16 dormant. Engagement highly concentrated.
-**Decision:** Founding Gardener is earned, not given. Weighted score: spaces (10), feedback (5), weeks active (3), content (2), participation (1). Personally assigned by Doron. Mycelia observes via gardener pulse; Doron observes from the field.
-**Status:** Active — gardener observation live via MCP
+**Context:** platformPulse gardener observation revealed: 22 users, 6 active, 16 dormant. Engagement is highly concentrated — Doron (52), Bari (13), Natasha (13, pure organic signup). The question arose: how do early supporters get recognized? Should "Founding Gardener" be automatic for early signups?
+**Decision:** Founding Gardener is earned, not given. Criteria: spaces created, feedback contributed, networks invited into, weeks active. It is personally assigned by Doron after observation — not a first-come signup bonus. Mycelia can surface candidates via the gardener pulse. The organism observes from within (MCP data); Doron observes from the field (relationships, conversations). Both signals matter.
+**Rationale:** "Free carries little value." Signing up is not gardening. Bari is a Founding Gardener because he gave 14+ feedback items and tested every feature. The 16 dormant accounts from the early signup push are not gardeners — they planted nothing. The status must mean something real.
+**Status:** Active — gardener observation live via platformPulse + MCP
 
 ---
 
 ### DEC-139: Server-Authoritative Identity on Agent Writes (2026-04-05)
 
 **Date:** 2026-04-05
-**Context:** MyLane agent wrote `user_id: "special-user"` as literal string into MylaneNote. LLM interpreted instruction as placeholder token. Record persisted but invisible (query by real user_id found nothing).
-**Decision:** Identity fields (`user_id`, `owner_id`) are set exclusively by agentScopedWrite from server-resolved auth context. Null-check guard removed — server always wins. Query/write asymmetry: queries need user_id for scoping, writes forbid it.
-**Cross-references:** Extends DEC-115 (three-gate enforcement) with identity stamping gate. Complements DEC-136 (Creator Only permissions).
-**Affected:** ServiceFeedback, Recommendation, MylaneNote, plus `workspace === 'platform'` catch-all.
-**Status:** Active — shipped, pending Base44 publish
+**Context:** MylaneNote reminder loop field test revealed MyLane agent wrote `user_id: "special-user"` as a literal string — the LLM interpreted the instruction "pass the authenticated user's ID from your context" as a placeholder token. Record persisted but was invisible (query filtered by real user_id, found nothing). The `agentScopedWrite` function had a `writeData[fk] == null` guard that preserved whatever the agent passed — if the agent sent a non-null string, the server-known value was never applied.
+**Decision:** Identity fields (`user_id`, `owner_id`) are set exclusively by `agentScopedWrite` from server-resolved auth context. The null-check guard is removed for these fields — the server always wins, unconditionally. The query/write asymmetry is explicit: queries require `user_id` from the agent (to scope reads via agentScopedQuery), writes forbid it (server stamps from `auth.me()` or validated MCP fallback). This is defense in depth against LLM placeholder-token interpretation errors.
+**Cross-references:** Extends DEC-115 (agentScopedWrite three-gate enforcement) with a fourth gate: identity stamping. Complements DEC-136 (Creator Only default permissions) — entity permissions are the last defense, server-authoritative identity is the second-to-last.
+**Affected entities:** ServiceFeedback, Recommendation, MylaneNote (fkField: `user_id`), plus blanket `workspace === 'platform'` catch-all for future platform entities. No entities currently use `owner_id` as FK field — that branch is defensive.
+**Status:** Active — shipped in community-node, pending Base44 publish
 
 ---
 
@@ -507,12 +584,8 @@
 ### DEC-142: Frequency Station Pip-Boy Radio Model + Canonicalized Taxonomies (2026-04-10)
 
 **Date:** 2026-04-10
-**Context:** Frequency Station audit revealed: FrequencyProvider mounted inside MyLane (audio dies on navigation), page components ran their own `<audio>` elements (three players fighting), no MediaSession API (no lock-screen controls), no persistent mini-player. Status and mood taxonomies diverged between spec and code.
-**Decision:** Three changes:
-1. **Pip-Boy Radio model:** FrequencyProvider lifted to App.jsx root (wraps all routes). Single `<audio playsInline>` element. Page components are pure UI — read state from `useFrequency()`, no local audio tags. Persistent floating mini-player at bottom of every screen. MediaSession API for lock-screen controls (play/pause/skip/seekto). localStorage persists current song + position.
-2. **Canonicalized taxonomies (code wins):** Mood tags: `fire, water, earth, air, storm, custom` (elemental, not emotional). Status lifecycle: `submitted, in_progress, released, archived` (matches code, not spec's longer list). Spec updated to match.
-3. **FrequencyArtist confirmed as real entity** for Build 2 (not just a "future possibility seed"). Artist-scoped library, `artist_id` on FrequencySong, and song creation form are the next build after Pip-Boy radio lands.
-**Cross-references:** Updates FREQUENCY-STATION-SPEC.md (private). Extends DEC-102 (Creative Engine).
+**Context:** Frequency Station audit found audio architecture fragmented: provider scoped to MyLane (audio dies on navigation), multiple local `<audio>` elements competing, no MediaSession/lock-screen integration. Status and mood taxonomies diverged between spec and code.
+**Decision:** (1) Pip-Boy radio: provider at app root, single `<audio playsInline>`, MediaSession API, persistent mini-player, localStorage song persistence. (2) Taxonomies canonicalized to match code: moods `fire/water/earth/air/storm/custom`, statuses `submitted/in_progress/released/archived`. (3) FrequencyArtist confirmed as planned entity for Build 2. Full details in FREQUENCY-STATION-SPEC.md (private).
 **Status:** Active — Build 1 shipped
 
 ---
@@ -520,17 +593,8 @@
 ### DEC-143: Frequency Station Build 2 — Studio, Library, Ownership Model (2026-04-10)
 
 **Date:** 2026-04-10
-**Context:** Build 1 shipped the radio (background playback, MediaSession, mini-player). Build 2 adds the studio: ownership, library, rich submissions, and admin transform workflow.
-**Decision:** Five architectural changes:
-1. **Ownership model:** `owner_user_id` and `is_public` on FrequencySong. Every song has an owner. Owner toggles public/private. Listen tab shows only `is_public === true`. My Library shows owner's songs.
-2. **Submission wizard:** Multi-step form (words → sound → details) collecting title, raw_text, mood (dynamic FrequencyMood entity), style_genre, vocal_style, tempo_feel, reference_artist, dedication. Replaces old single-form SubmitTab.
-3. **Admin workbench:** Suno copy-paste boxes (Lyrics + Styles) assembled from submission fields. "Deliver to submitter" creates FrequencySong owned by submitter + FrequencyNotification. Marked as temporary path toward Frequency Agent.
-4. **FrequencyArtist entity:** user_id, name, bio, avatar_url. One per user. Created from My Library tab. Used for credit display and lock-screen metadata.
-5. **Dynamic FrequencyMood:** Moods loaded from entity (name, icon, color, is_active). No more hardcoded lists.
-**New entities:** FrequencyArtist, FrequencyMood, FrequencyNotification.
-**New fields on FrequencySong:** owner_user_id, is_public, artist_id, source_submission_id.
-**New fields on FSFrequencySubmission:** title, mood_id, style_genre, vocal_style, tempo_feel, reference_artist.
-**Cross-references:** Updates FREQUENCY-STATION-SPEC.md (private). Extends DEC-142.
+**Context:** Build 1 shipped background playback. Build 2 adds studio: ownership, library, rich submissions, admin transform workflow.
+**Decision:** (1) Ownership model: `owner_user_id` + `is_public` on FrequencySong. Listen tab filters by is_public. (2) Multi-step submission wizard with dynamic FrequencyMood entity. (3) Admin workbench with Suno copy-paste boxes + delivery-to-submitter. (4) FrequencyArtist entity for identity. (5) FrequencyNotification for in-app delivery alerts. Full details in FREQUENCY-STATION-SPEC.md (private).
 **Status:** Active — Build 2 shipped
 
 ---
@@ -538,26 +602,18 @@
 ### DEC-144: Frequency Station RLS Loosening + Client-Side Scoping Pattern (2026-04-10)
 
 **Date:** 2026-04-10
-**Context:** FSFrequencySubmission.Read and FrequencyNotification.Read were set to `owner` (RLS: created_by == user.email). Admin workbench couldn't see other users' submissions; notification recipients couldn't read admin-created notifications. FSFrequencySubmission.Update also blocked admin status changes on other users' records.
-**Decision:** Three changes:
-1. **RLS loosened:** FSFrequencySubmission.Read, FSFrequencySubmission.Update, and FrequencyNotification.Read changed from owner to authenticated.
-2. **Client-side scoping enforces isolation:** MySeedsTab filters by `user_id === currentUser.id`. NotificationBell filters by `user_id === currentUser.id`. AdminWorkbench shows all (admin-only tab gated by `isAdmin`).
-3. **Base44 agent discussion mode default:** Base44 agent stays in discussion mode by default (extends DEC-093). Action mode only for entity creation, field additions, permission changes, and server function work. Prevents accidental schema drift.
-**Rationale:** RLS on cross-user entities blocks core workflows (admin can't manage submissions, recipients can't read notifications). Matches the existing pattern on FrequencySong.Update (No Restrictions for server function compatibility). Trades database-level isolation for application-level isolation. Tighten with dedicated server functions if strict isolation becomes a requirement.
-**Cross-references:** Extends DEC-093 (Base44 entity management), DEC-136 (Creator Only default), DEC-140 (same RLS loosening pattern used for team entities).
+**Context:** FSFrequencySubmission.Read and FrequencyNotification.Read were set to `owner` (RLS: created_by == user.email). This blocked admin workbench from seeing other users' submissions and blocked notification recipients from reading admin-created notifications. FSFrequencySubmission.Update also blocked admin status changes.
+**Decision:** (1) FSFrequencySubmission.Read, FSFrequencySubmission.Update, and FrequencyNotification.Read loosened from owner to authenticated. (2) Client-side scoping enforces ownership and admin visibility: MySeedsTab filters by user_id, NotificationBell filters by user_id, AdminWorkbench shows all (admin-only tab). (3) Base44 agent defaults to discussion mode (extends DEC-093); action mode only for entity/permission/server-function work.
+**Rationale:** RLS on cross-user entities blocks core workflows. Client-side scoping is the pragmatic choice. Tighten later with server functions if needed.
 **Status:** Active
 
 ---
 
-### DEC-145: Payload-First Debugging + Single-Owner Hooks + FrequencyLibraryContext Planned (2026-04-11)
+### DEC-145: Payload-First Debugging + Single-Owner Hooks (2026-04-11)
 
 **Date:** 2026-04-11
-**Context:** Three-layer debug chain on Frequency Station favorites/queue: (1) stale closure theory led to ref-based hook hardening — correct as defensive measure but didn't fix the bug, (2) ERR_CONNECTION_CLOSED traced to duplicate hook instances racing concurrent Base44 creates — fixed by single-owner pattern, (3) FSFrequencyPlaylist 422 traced to `track_ids: '[]'` (string instead of array) — the actual root cause all along. Two hours spent on architecture theories before 10 seconds of payload inspection revealed a type mismatch.
-**Decision:** Three changes:
-1. **Payload-first debugging rule (extends DEC-141):** When a Base44 entity operation fails (422, 400, ERR_CONNECTION_CLOSED, or silent non-persist), the first diagnostic step is: log the exact payload immediately before `.create()` or `.update()`. Compare every field name, type, and value against the Base44 entity schema. The bug is almost always wrong JS type (string where array expected), wrong field name, or null where string expected. Do not theorize about React state until the payload is confirmed correct.
-2. **Single-owner hook pattern:** When a custom hook manages Base44 entity state (CRUD operations), call it in exactly one component (the highest common ancestor). Pass results as props to children. Never instantiate the same hook in a parent and child simultaneously — duplicate instances cause concurrent Base44 writes that trigger ERR_CONNECTION_CLOSED.
-3. **FrequencyLibraryContext planned:** The single-owner pattern works but creates prop drilling (10+ props from FrequencyStation to MyLibrary). Next touch of this area should wrap favorites + queue state in a `FrequencyLibraryContext` provider. One provider, any consumer, no prop drilling, no races.
-**Cross-references:** Extends DEC-141 (runtime logging before theorizing), DEC-144 (client-side scoping).
+**Context:** Three-layer debug chain: stale closures (defensive fix, not the bug) → duplicate hook instances racing (single-owner fix) → FSFrequencyPlaylist track_ids string-not-array (the actual 422). Two hours on architecture theories before 10 seconds of payload inspection found the type mismatch.
+**Decision:** (1) Payload-first debugging: when Base44 ops fail, log the payload and compare to schema before theorizing about React. (2) Single-owner hooks: call entity-managing hooks in exactly one component, pass as props. (3) FrequencyLibraryContext planned to replace prop drilling.
 **Status:** Active
 
 ---
@@ -648,86 +704,638 @@ Gate at the highest reasonable level (parent that mounts the feature, not each s
 
 ---
 
-> **Mirror gap notice (2026-05-04):** Entries below jump from DEC-148 to DEC-198. The community-node DECISIONS.md mirror has known drift between DEC-149 and DEC-197 — those entries live in the canonical `Spec-Repo/platform/DECISIONS.md`. The four entries below were added by the 2026-05-04 ship-it (commit ref TBD) so the most recent decisions are present in the mirror. Full backfill is outside this ship-it's scope; queued as a separate cleanup pass.
+### DEC-149: Mylane Agent v2 — Mandatory Protocol Architecture (2026-04-16)
+
+**Date:** 2026-04-16
+**Context:** v1 Mylane instructions allowed the agent to say "Done" without calling tools (hallucination). MCP testing confirmed: agent responded "Saved" for a reminder but never invoked agentScopedWrite. Record did not exist. Vercel AGENTS.md research validated: passive context (mandatory rules in instructions) beats on-demand retrieval (hoping the agent picks the right tool).
+**Decision:** Full instruction rewrite with mandatory 4-step protocol: (1) Classify intent, (2) Execute via tool call, (3) Verify result by querying back, (4) Respond to user. "Never lie" rule: saying "Done" without calling the tool is explicitly a lie. Failure protocol: honest failure reporting + ServiceFeedback logging with source "mylane-supervisor" + suggest manual path. Removed all 26 individual entity tools (104 permissions) — 2 backend functions remain (agentScopedQuery + agentScopedWrite). Fewer tools = more reliable.
+**Rationale:** Mandatory protocol eliminates the hallucination class of bugs entirely. Verification step catches silent write failures. Failure logging creates an audit trail. Tool reduction reduces the LLM's decision space.
+**Status:** Active — v2 is the live instruction set
+
+---
+
+### DEC-150: Smart Routing — TYPE 1 for Views, TYPE 2 for Novel Queries (2026-04-16)
+
+**Date:** 2026-04-16
+**Context:** TYPE 2 RENDER_DATA renders raw entity records as cards showing every field (including created_by, updated_date, etc.). Home Canvas spec proposed a new TYPE 4 RENDER_CANVAS to mount real workspace components. Hyphae's review found: no component accepts raw data as props — they all self-fetch from workspace profiles. Building TYPE 4 was unnecessary.
+**Decision:** Update Mylane classification to emit TYPE 1 RENDER (workspace drill via MyLaneDrillView) for "show me" queries instead of TYPE 2 RENDER_DATA. TYPE 1 mounts the real workspace component with full drill-through and interactivity — zero code changes needed, instruction change only. TYPE 2 reserved for genuinely novel queries where no workspace view exists (with HIDDEN_FIELDS filter for clean display). Quick answers (counts, dates, amounts) stay as brief text responses.
+**Rationale:** The fastest path to real components on the Home canvas is teaching the agent to navigate, not building a new rendering pipeline. One redundant query (agent queries to confirm data exists, component re-queries to display) is irrelevant at our scale.
+**Status:** Active
+
+---
+
+### DEC-151: Spec Review Protocol — Review Before Architecting (2026-04-16)
+
+**Date:** 2026-04-16
+**Context:** Home Canvas Rendering spec proposed TYPE 4 RENDER_CANVAS with 5 implementation phases. Hyphae's codebase review found the spec's core assumption was wrong: no component accepts raw data as props. The existing TYPE 1 → MyLaneDrillView pipeline already does what TYPE 4 proposed. The review saved weeks of unnecessary work.
+**Decision:** Before building any new architecture or protocol, get Hyphae's codebase review first. The review should check: (1) Does the infrastructure already exist? (2) Do the assumptions about component APIs hold? (3) Is there a lighter path using existing patterns? (4) What's the smallest slice that produces visible improvement? Write the spec, but treat it as a hypothesis until Hyphae validates it against the codebase.
+**Rationale:** Mycelia and Doron design from vision and user need. Hyphae sees what actually exists in the code. The gap between "what we think the code does" and "what the code actually does" is where wasted work lives. Ten minutes of review saves days of building the wrong thing.
+**Status:** Active — process rule
+
+---
+
+### DEC-152: Cockpit Library Pattern (2026-04-17)
+
+**Date:** 2026-04-17
+**Context:** Spinner UX felt off. Doron proposed letting users choose their Mylane interaction style (spinner, compass, future cockpits) independently of theme, with a growth path similar to how themes grow. Initial vision assumed a ChromeProvider React context. Hyphae's codebase review found no ThemeProvider exists — themes work via localStorage + data-theme attribute + CSS variables, a pattern that works for styling but does not transfer to component-level swaps. Also found SpaceSpinner already contained a VARIANT_MAP with three render functions ({flat, drum, coverFlow}) selected by a THEME_VARIANT mapping — a chrome-like mechanism already coupled to theme.
+**Decision:** Cockpits are a library, not a feature flag. Each cockpit is a render function registered in SpaceSpinner's VARIANT_MAP. User preference is stored in `ll_cockpit` localStorage with a `data-cockpit` DOM attribute, applied pre-paint in main.jsx to prevent FOUC. A `useCockpit()` hook mirrors the existing DIY `useTheme()` (MutationObserver on the attribute). A `resolveVariant()` function picks variant from (cockpit, theme, reduced-motion) — spinner cockpit preserves the old THEME_VARIANT logic unchanged, compass cockpit routes to `renderCompass`. No React provider, no context, no server-persisted preference. Growth path: add new cockpit by registering a render function and a COCKPITS entry — no provider, no context, no migration required until we hit three+ cockpits.
+**Rationale:** Applies Living Feet (DEC-146) by turning theme-coupled variant selection into cockpit-decoupled variant selection — the VARIANT_MAP scaffolding was already there, just coupled to the wrong axis. Avoids over-architecture per the "two is coincidence, three is a pattern" principle from DEC-148. Matches existing theme plumbing conventions so the organism stays coherent across preference types. The cockpit contract is enforced by the shared drag/pointer handling in SpaceSpinner — each cockpit render function is pure (items, currentIndex, opts) → JSX.
+**Status:** Active — shipped c44bb21 (library + compass), b4d187e (polish v1), ad04eb1 (polish v2)
+
+---
+
+### DEC-153: Color-in-Place Over Out-of-Band Readout (2026-04-17)
+
+**Date:** 2026-04-17
+**Context:** Compass v1 (b4d187e) removed the active station from the strip to avoid duplication with the chrome row. Implementation was correct by one reading of "one voice per piece of information." Field test revealed the needle now terminated in empty space and the user's eye had to travel ~60px up to the chrome row to see which station was active. Doron: "It breaks where the eye goes. I don't mind the color changing to show the space we are aimed at, but the position itself shouldn't change."
+**Decision:** When signaling active state on a navigation surface, illuminate the element in place via color/size/weight — do not relocate its identity to a separate readout. The primary interaction surface is where the user's attention lives during use; keep identity there. Chrome rows and readout bars become framing or affordance cues, not identity displays. Applied in ad04eb1: active station on the compass strip renders in `hsl(var(--primary))` at 11px weight 500, bearing in `hsl(var(--primary) / 0.75)` at 8px. Chrome row is now framing only — `BEARING` label left, live degrees right, empty center. Strip carries identity.
+**Rationale:** Real instruments illuminate the active position in place rather than relocating labels. The needle meeting the lit word is a single integrated signal; a needle pointing at empty space plus a remote readout is two fragments. Applies to future cockpits (tiled launcher, single-letter chrome, etc.) and any navigation UI where an active element needs to be distinguished. Companion to DEC-146 (Living Feet) — identity is one thing, not two places.
+**Status:** Active — applied in ad04eb1
+
+---
+
+### DEC-154: Iterate on the Live Surface (2026-04-17)
+
+**Date:** 2026-04-17
+**Context:** Three-iteration arc on compass (build → remove-active → restore-active-with-color). Each iteration was internally consistent but the correct answer only became obvious after seeing the previous version in the device. Spec ambiguity in items 1 and 2 of the polish-v1 prompt turned out to be genuine design tension — neither interpretation was wrong, but only one was right for the user's eye-flow, and that only surfaced through field test.
+**Decision:** Favor short build cycles with live device feedback over attempts to spec every visual decision upfront. Spec ambiguity in visual work is often genuine design tension that resolves only through embodied experience. Mycelia/Doron write specs that capture intent and principles; Hyphae flags ambiguity in the debrief but doesn't block on it; field test closes the loop. The rhythm is: spec → build → look → adjust, not spec → debate → spec → build.
+**Rationale:** Validated by the compass arc. Each iteration took minutes; field-test feedback took one message; total time was less than debating the spec would have taken. Matches Doron's natural rhythm of "build, look, adjust." Codified so future cockpits and visual work follow the same cadence.
+**Status:** Active — process rule
+
+---
+
+### DEC-155: Per-Entity $9 Membership Model With LocalLane Exemption (2026-04-23)
+
+**Date:** 2026-04-23
+**Context:** Architecture v4 → v4.1 closure conversation. DEC-115 (pre-v4) charged a single ante per user. v4.1 recognizes that each entity with a public face (person OR business) benefits independently from the platform and should therefore carry its own ante. LocalLane-the-brand is the obvious exception: charging itself is circular.
+**Decision:** Every LocalLane entity — user personal account (if public) or public-facing business — pays $9/month from its own books. LocalLane-the-brand is exempt (`Business.subscription_exempt: true`, set during Phase 2) because charging itself is circular. Hidden holding entities (Mycelia, LLC — `listed_in_directory: false`) don't count; they have no public presence. Network memberships (Recess Pass at $45/mo, etc.) are separate from the platform ante — those are paid to the operating business, not the platform. Doron's personal total under this model: $36/mo ($9 personal user page + $9 each for TCA, Recess, Consulting once Consulting is created via onboarding).
+**Rationale:** Matches the organism principle of circulation: each living entity contributes what keeps it alive. Holding companies are scaffolding, not organs — they don't circulate. The brand ante being waived is the one concession necessary for the model to work without recursion. Clean replacement for DEC-115 — no grandfathering, no partial migration.
+**Status:** Active — supersedes DEC-115 in full. Billing implementation is Round 2 Stripe Connect work.
+
+---
+
+### DEC-156: Business-as-Scoped-Peer, Not Nested Container (2026-04-23)
+
+**Date:** 2026-04-23
+**Context:** v4 briefly explored physically nesting workspace tools (Desk, Clients, Finance, Events) under a Business entity as child records. Phase 2 review revealed this would require: (a) migrating every FS/Finance/PM record to a child collection, (b) rewriting every scoped query, (c) handling cross-business views differently. The same UX can be achieved with a filter.
+**Decision:** Tools stay top-level entities. Each gains a `business_id` field (or uses an existing FK that resolves to a business). When a user enters a business context, every tool's query adds a `business_id` filter. Same UX as nested containers — appearing to drill into a business shows only that business's records — without the migration cost or the query-rewrite cost.
+**Rationale:** Living Feet (DEC-146 in community-node DECISIONS.md) applied to architecture: don't build two places when one place with a filter achieves the same thing. The `business_id` field lands in Phase 1 (schema) and the switcher reads it in Phase 3. Cheaper to build, cheaper to change, cheaper to audit.
+**Status:** Active — Phase 1 laid the foundation (FS family has `business_id`). Phase 3 (business switcher) wires the filter at the UI layer.
+
+---
+
+### DEC-157: Networks Unified Architecture (2026-04-23)
+
+**Date:** 2026-04-23
+**Context:** Recess, Runhub NW, and Harvest each evolved with different implementations and configurations. Maintaining three parallel architectures would fight the fractal principle (what's true of one space is true of all).
+**Decision:** All networks run on one architecture with three configurable settings: **cost** (free / paid), **access** (public / private / hybrid), **discovery mode** (list / map / events). Every network is operated by a business (the parent Business record handles billing, staff, settings). Recess (paid / hybrid / list), Runhub NW (free / public / events), Harvest (free / public / map) all run on the same infrastructure with different configurations.
+**Rationale:** Matches the DEC-136 pattern for entity permissions (one default, exceptions at the function level) and the DEC-140 pattern for team-scoped reads (one server function, every entity). One architecture with three axes replaces three architectures with hardcoded differences.
+**Status:** Active — target for a future dedicated build. Current state: Harvest and Recess have separate implementations; unification is tech-debt paydown.
+
+---
+
+### DEC-158: Users as First-Class Entities With Optional Public Pages (2026-04-23)
+
+**Date:** 2026-04-23
+**Context:** Several use cases surfaced that don't fit the "business" shape: a yoga teacher offering classes under her own name, a weed-puller doing ad-hoc yardwork, a fractional-leadership consultant offering advisory services. Forcing these through a Business entity creates an awkward "business named after me" pattern.
+**Decision:** Users gain first-class status with optional public pages. Each user can toggle a public page on/off (default off). Public user pages have bio, location, reviews/vouches — same shape as Business directory listings. Public pages cost $9/mo, matching the DEC-155 per-entity model. Private users stay free. The pattern lets a person operate on the platform as themselves without inventing a fake business name.
+**Rationale:** The garden has room for people who don't want to be a business but do want to be findable. "Yoga teacher Jane" and "Jane's Yoga Studio LLC" serve different mental models. Forcing one into the other loses meaning. First-class users close the gap without adding a new entity type.
+**Status:** Active — schema field `page_public_toggle` shipped in Phase 1 (default `false`). UI + billing wiring comes with Round 2.
+
+---
+
+### DEC-159: Legacy User Grace Period Pattern (2026-04-23)
+
+**Date:** 2026-04-23
+**Context:** Bari and Dan exist in production from before DEC-155 pricing landed. Charging them on day-one of billing would be unfair. Equally, pre-setting a specific `legacy_grace_until` date during development is meaningless — no clock can tick when there's no gate.
+**Decision:** Two fields on User: `is_legacy_user` (Boolean, default false) and `legacy_grace_until` (ISO datetime, nullable). Phase 2 sets `is_legacy_user: true` for pre-v4 users with real activity (Bari today; Dan on sign-in; any future discoveries). `legacy_grace_until` stays null. When Round 2 billing goes live, a one-shot migration walks all `is_legacy_user: true` users and sets `legacy_grace_until = billing_live_date + 30 days`. Fair 30-day runway starting the day the gate turns on.
+**Rationale:** Flipping a boolean now is trivial and reversible. Setting a specific date now would drift as billing-live date slips. Separating "who qualifies for grace" from "when does their grace end" keeps the two concerns independent.
+**Status:** Active — Bari flagged in Phase 2. Dan not flagged (no User record yet). Grace clock activation lives in Round 2.
+
+---
+
+### DEC-160: Desk Rename (2026-04-23)
+
+**Date:** 2026-04-23
+**Context:** "Field Service" is a domain-specific label from the original Bari pilot. As the tool generalizes to other archetypes (contractor, jobsite work, property maintenance, one-off handyman), the name becomes narrower than the tool actually is. The tool is now a general-purpose work-management surface.
+**Decision:** Field Service / Jobsite tool renames to **Desk** when it moves into the business dashboard (Phase 4). Universal work-management tool for any archetype — contractor, handyman, property manager, freelancer. Rename communicated **in person** to Bari and Dan; no in-app notice needed at current user scale.
+**Rationale:** Name the tool for what it does, not the domain it started in. "Desk" reads as "your work surface" — it scales to every archetype that manages clients, projects, documents, and invoices.
+**Status:** Active — rename happens in Phase 4 alongside business-scoped rendering. Until then, code and UI keep the "FieldService" identifier to avoid churn during Phase 2/3 transitions.
+
+---
+
+### DEC-161: Living Tiles, Not Photos (2026-04-23)
+
+**Date:** 2026-04-23
+**Context:** Public directory listings and user pages were trending toward photo-heavy profile cards. Photos are static and age poorly — they don't reflect current activity, current offerings, current rhythm. The directory started to look like a frozen catalog instead of a living garden.
+**Decision:** Public representations surface as compact **living tiles** showing current status — what's happening now, what's available this week, the pulse of the entity — not photo-heavy profiles. Depth (photos, story, full bio) reveals on drill-in. The first read is "what is this entity doing right now?" not "what does this entity look like?"
+**Rationale:** Matches Dark Until Explored (DEC-117) and the Organism principle. A garden isn't a museum; the interesting thing is what's growing today. Tiles update continuously from the entity's own data — no manual refresh of a "profile photo." Photos become one signal among many, not the entire frontage.
+**Status:** Active — design principle for Phase 3 business switcher UI, directory v2, user public pages. Existing photo-heavy UIs convert organically per DEC-132 pattern.
+
+---
+
+### DEC-162: Base44 Agent Working Agreement (2026-04-23)
+
+**Date:** 2026-04-23
+**Context:** Multiple sessions surfaced the same pattern: Base44's agent, when applying schema or permission changes, auto-runs lint-fixes on unrelated files and pushes them to main as part of the same commit. The Phase 1 schema commit included 8 pre-existing component lint fixes as a side effect; the Phase 2 permission changes pulled in 13+ more. The commit messages are uninformative ("File changes"), making post-hoc scope review hard.
+**Decision:** All Base44 agent prompts follow this pattern:
+- Grant **explicit permission to apply directly** for scoped changes (not discussion mode — that slows scoped work without preventing overreach).
+- Require a **structured four-category confirmation** in the agent's response:
+  - (a) **Scoped change applied** — what was asked for, now done.
+  - (b) **Files read but not modified** — files the agent opened to understand context.
+  - (c) **Out-of-scope observations** — issues noticed in other files.
+  - (d) **Files consciously not touched** — explicitly NOT fixed, despite noticing issues.
+- **Report-don't-fix is a standing rule** — Base44 must surface observations in category (c), not silently roll them into the commit.
+**Rationale:** Base44's auto-lint-fix reflex is a feature, not a bug, in day-to-day development. But during schema changes it overrides explicit scope constraints and pollutes commit history. The four-category confirmation turns the implicit "I also fixed these 8 things" into an explicit "here are 8 things I noticed — do you want me to fix them?" That restores scope control without losing the benefit of a pair of extra eyes.
+**Status:** Active — start using in every Base44 prompt from Phase 3 onward. Extends DEC-093 (Base44 entity changes via agent prompt) and DEC-144 (Base44 agent discussion mode default).
+
+---
+
+### DEC-163: Two-Tier Template Architecture — System + Business-Scoped User-Owned (2026-04-23)
+
+**Date:** 2026-04-23
+**Context:** FSDocumentTemplate shipped in Phase 4 (DEC-085) as a single-tier entity: LocalLane seeded 4 Oregon lien templates per workspace and users could add custom templates via "+ Custom." No distinction between LocalLane-authored value-add and user-authored private contracts. Bari needed to load his attorney-drafted General Construction Contract and Subcontractor Agreement; they are his IP, not platform templates, and must not leak to other contractors.
+**Decision:** FSDocumentTemplate gets a `business_id` field (optional, FK→Business). Two tiers result:
+- **System templates:** `business_id: null`. LocalLane-drafted research. Visible to all FS users. Receive a lightweight legal disclaimer in the preview modal and as a footer on generated documents.
+- **Business-scoped templates:** `business_id` set to owning Business. Private to users with access to that business. No disclaimer — user's content, user's responsibility.
+
+Client-side partition per DEC-140 pattern (Read is authenticated; scoping enforced in frontend filter). Two-section UI on the Documents tab: "{{BUSINESS NAME}} TEMPLATES" above "DOCUMENT TEMPLATES" system section. Empty-state CTA opens the existing TemplateEditor. The 4 existing system templates are NOT migrated — they keep `profile_id` set and `business_id: null`.
+**Rationale:** Respects user IP: Bari's contracts stay private to Red Umbrella. Preserves LocalLane's value-add: the 4 lien templates remain the default starting point for any new contractor. Scoping at the Business level (not FSProfile) means multi-user businesses work: if Red Umbrella adds a second FSProfile, both see the same templates.
+**Status:** Active. Two templates loaded for Red Umbrella (`69ea7974c5f30ff25c860702`, `69ea797533163127a73aeef3`) — Bari-prep session 2026-04-23.
+
+---
+
+### DEC-164: Business-First Branding Composition in FS Document Rendering (2026-04-23)
+
+**Date:** 2026-04-23
+**Context:** The FSDocumentTemplate renderer composited branding from FSProfile only (company_name, owner_name, license_number, phone, email, website). Logo and banner URLs — stored on the Business record — never reached the document. Generated lien notices had no visible logo. For Bari's contracts, which reference his Red Umbrella branding in multiple sections, this was a correctness gap.
+**Decision:** `buildMergeData(profile, business, client, project, estimate)` reads from the Business record first, with FSProfile as fallback. New merge fields added: `{{business_name}}`, `{{business_phone}}`, `{{business_email}}`, `{{business_website}}`, `{{business_address}}`, `{{business_city}}`, `{{business_state}}`, `{{business_zip_code}}`, `{{business_full_address}}`, `{{business_logo_url}}`, `{{business_banner_url}}`, `{{business_license_number}}`, `{{business_tagline}}`, `{{owner_signature_name}}`, `{{owner_signature_email}}`, `{{owner_signature_phone}}`. Legacy `{{company_*}}` fields preserved and sourced from the same Business-first chain. `DocumentDetail` and the preview modal render a branded letterhead (logo + name + tagline) at the top of the rendered document.
+**Rationale:** Branding is a Business-level concern, not a workspace-level concern. FSProfile is a tool for field service operations; Business is the entity customers recognize. Pulling branding from Business keeps the contractor's identity consistent across multiple workspaces (Field Service, future Finance, future PM). Fallback chain to FSProfile preserves backward compatibility for profiles that predate the Phase 2 migration linking them to a Business.
+**Status:** Active. Shipped as part of Bari-prep session 2026-04-23. Extends DEC-163.
+
+---
+
+### DEC-165: Template Preview Before Commit (2026-04-23)
+
+**Date:** 2026-04-23
+**Context:** Prior document creation flow required a contractor to walk through the full 3-step wizard (client → template → content) before seeing the rendered template body. A contractor couldn't read the language of a lien notice or Bari couldn't preview his own contract without committing to a client + template selection. Reading legal language before filling in details is how real humans work with contracts.
+**Decision:** Every template card (system + user-owned, in both the main Documents tab templates section and inside the create flow's template step) becomes click-to-preview. Clicking opens a modal that:
+- Composites business branding from the viewer's Business record (logo + name + tagline at the top)
+- Renders per-client merge fields as visible bracketed placeholders: `[Client Name]`, `[Scope of Work]`, `[Subcontractor Name]`, etc.
+- Shows the legal disclaimer banner for system templates
+- Offers two CTAs: "Close" exits, "Use this Template" proceeds to the existing CreateDocumentFlow with the template pre-selected (new `initialTemplate` prop)
+- Closes on Escape key and backdrop click
+
+Document creation from the modal's "Use this Template" routes to the existing flow — the wizard is unchanged, only gated by preview confirmation.
+**Rationale:** Preview is how contracts work in the real world. It adds zero friction to the happy path (click card → preview → click "Use this Template" → same wizard) and eliminates a dark pattern (committing to a template before seeing its content). The bracketed-placeholder pattern makes the variable parts legible — the contractor sees exactly what will be filled in during creation.
+**Status:** Active. Shipped in Bari-prep session 2026-04-23.
+
+---
+
+### DEC-166: Bari-Prep User-Template Provisioning via Admin Migration Path (2026-04-23)
+
+**Date:** 2026-04-23
+**Context:** Bari paid an attorney to draft his Red Umbrella General Construction Contract and Subcontractor Agreement. The contracts are his IP. He needed them loaded into his workspace before the 2026-04-24 morning meeting so he could read them into real jobs. Having him paste thousands of characters of contract language into the "+ Custom" TemplateEditor during a meeting is bad UX and error-prone.
+**Decision:** Bari's two templates were loaded programmatically via a one-shot Node migration script (`src/scripts/migrations/load-bari-templates.js`) using a new `create_fs_document_template` action on the existing `migrationHelpers` server function. Pattern matches Phase 2 migration: shared-secret auth, `asServiceRole` write, idempotent on `business_id + title`, AuditLog row per create. Asset source files live at `base44-prompts/assets/bari-red-umbrella-construction-contract.md` and `bari-red-umbrella-subcontract.md` — complete with implementer-facing metadata headers and typo annotations preserved for repo documentation; the loader strips both (metadata header + italic `*(Note: ...)*` annotations) before writing so the server-stored content is clean contract body only.
+**Rationale:** Admin-provisioned user templates as a pattern applies beyond Bari. Any contractor who has existing attorney-drafted contracts will have this same need; asking them to paste contract bodies into a UI is wrong. The migration path is the cleanest surface — auditable, idempotent, reviewable.
+
+**Known limitation:** `rls.update: { created_by: "{{user.email}}" }` on FSDocumentTemplate means Bari cannot edit these templates via his client — the service role is the creator. Workaround documented: Bari creates a fresh copy via "+ Custom" if he wants to modify the language. Not blocking for tomorrow's meeting (use case is read-and-sign, not edit).
+
+**Source verbatim preservation:** Bari's typos are preserved in the rendered templates — Section 6 appears twice in the construction contract, Section 15 of the subcontract reads "fifteen percent (25%)", Section 21 has duplicate 21.2, Section 22 is missing 22.4. These are his language and get flagged in conversation with him, not silently corrected.
+**Status:** Active. Both templates loaded (`69ea7974c5f30ff25c860702` — General Construction Contract, `69ea797533163127a73aeef3` — Subcontractor Agreement). AuditLog rows `69ea7974395160c0cb100bf6` and `69ea7975450b88cc171192ba` written.
+
+---
+
+### DEC-167: Write-Mutation Schema-Conformance Audit Protocol (2026-04-23)
+
+**Date:** 2026-04-23
+**Context:** During the Bari-prep dogfood, a Template save via "+ Custom" returned `Failed to save template: Error in field merge_fields: Input should be a valid list`. Root cause: `TemplateEditor.handleSave` was wrapping the merge-fields array in `JSON.stringify(...)` before write, but the FSDocumentTemplate entity declares `merge_fields` as `type: array`. The bug was introduced in Phase 4 (DEC-085 era, commit 6ce2faa) and stayed dormant for months because:
+- System templates seed via `initializeWorkspace` which passes arrays natively
+- Bari's templates loaded via the migration script which passes arrays natively
+- No user had walked the "+ Custom" UI against live Base44 validation between Phase 4 and today
+
+The Bari-prep session added `business_id` to the template write path and audited the added field for correctness — but did not re-audit the full existing payload against the entity schema. The regression was not a Track A change; it was a dormant bug surfaced by the post-ship dogfood.
+**Decision:** Any session that modifies a write mutation — even tangentially — runs a schema-conformance audit on the **entire payload**, not just the diff. The audit is:
+1. Read the target entity's schema (jsonc reference or live Base44 definition).
+2. For each field the frontend sends, confirm the JS type matches the declared Base44 type.
+3. If the session has no path to a live-authenticated dev session (e.g., preview environment is unauthenticated), explicitly flag "save-path not live-tested" in the post-build report so the dogfood walkthrough is the first live-tested run.
+
+This protocol would have caught the `merge_fields` bug: the loop would have noted `JSON.stringify(...)` produces a string, the schema declares an array, mismatch, fix.
+**Rationale:** The gap that let the bug survive was not a coding error — the author of the Phase 4 code made a judgment call that turned out wrong. The gap is that no subsequent session that touched the write path audited for schema conformance. Making the audit explicit (not implicit) means future sessions will catch the mismatch even if they didn't author the line.
+**Related seedling:** "Shared Base44 entity schema validator module" — lifting the entity schemas into a TypeScript module that auto-validates write payloads would eliminate the class of bug entirely. Current protocol is process-based; future hardening is tooling-based. See SEEDLING-TRACKER.md (private).
+
+Links to Living Feet (DEC-146): the schema definition is "stone" (one source in Base44), but the payload shape is duplicated at every write site (currently feet). The schema-conformance audit is a process-level mitigation for this duplication. Derivation from a shared validator module is the architectural mitigation.
+**Status:** Active. Applies to all write-mutation sessions starting now. Extends DEC-140 (readTeamData as security boundary), DEC-141 (runtime logging before theorizing), DEC-145 (payload-first debugging).
+
+---
+
+### DEC-168: Business-Switcher Is a Cockpit Native (2026-04-23)
+
+**Date:** 2026-04-23
+**Context:** Phase 3 Build 1 introduces multi-business switching. Two shapes were considered: a settings-level preference ("pick your default business"), or a cockpit-native affordance that reshapes the current cockpit without a separate UI. The Bari-prep dogfood already showed the seam — `MyLaneDrillView` picked `businessProfiles?.[0]` to decide which business the business-space rendered, which only held for single-business users. Settings-level switching would have papered over the seam without addressing the deeper architectural question: whose job is business-depth navigation?
+**Decision:** Every cockpit renders its own business-depth navigation using its native visual language. Spinner renders it as a nested switcher spinner accessed by tapping the space-name pill. Bearing and future cockpits will render business-depth in their own vocabulary (TBD). Single-business users see no switcher affordance regardless of cockpit. The switcher is not a user-selectable option — it is the cockpit's natural response to `ownedBusinesses.length >= 2`. This extends the principle from the Cockpits and Themes architecture note ("new spaces are designed structurally once, then rendered per cockpit") — we apply the same principle to business-depth navigation.
+**Implementation:** `useActiveBusiness()` is the single source of truth (`{ activeBusiness, setActiveBusiness, ownedBusinesses, isMultiBusiness }`), backed by `localStorage` key `locallane.activeBusinessId` and validated against the live owned list. Every consumer reads through the hook — `MyLaneDrillView`, `MyLaneSurface`, and any future business-scoped view. `localStorage` is UI convenience only; server actions resolve business context server-side per DEC-139.
+**Rationale:** Business-depth is a scope signal, not a preference. Treating it as a preference buries it in Settings where users never find it, and adds weight to every new cockpit that inherits the preference UI. Treating it as a cockpit native means each cockpit owns how it reveals the switch — Spinner gets a nested spinner, Bearing (when built) picks its own vocabulary — and the depth principle generalizes without a central UI bottleneck. Living Feet (DEC-146): one `useActiveBusiness` hook; every consumer reads through it; adding Bearing's business-depth rendering later is rendering-only work, not a hook redesign.
+**Status:** Active. Spinner implementation shipped in Phase 3 Build 1. Bearing cockpit implementation deferred to whichever session next touches Bearing — leave a TODO at the Bearing entry point so the next gardener picks it up.
+
+---
+
+### DEC-169: Folder Architecture (2026-04-24)
+
+**Date:** 2026-04-24
+**Context:** Phase 3 Build 1 shipped a flat-spinner model (one row of space tiles at the surface). As businesses accumulate their own spaces and the user surface fills with universal + contextual folders (Directory, Events, Personal, Businesses, Admin, Playmaker, Networks), a single flat spinner does not scale. The question is whether to build yet another bespoke navigation shape or recognize that cockpits are already folder renderers in disguise.
+**Decision:** Cockpits render folders at each depth. Root folders are universal (Directory, Events, Personal, Businesses) plus contextual (Playmaker, Networks, Admin — appearing based on user state). Inside each root folder, the tree continues — Businesses contains your businesses, each business contains its spaces, etc. Workspace renders only at the leaf. Above the leaf, the cockpit shows sub-folders with a preview pulse below. Living feet: the folder tree is queried against user state, not hardcoded.
+**Rationale:** A single data shape (a tree) carries all navigation. The cockpit's job becomes "render the current folder" — the same job at every depth. Adding a new space type, a new contextual folder, or a new cockpit style is a rendering concern, not a navigation redesign. This also makes the switcher (DEC-168) structurally consistent: it is the cockpit dissolving laterally across a folder's siblings rather than descending into one.
+**Status:** Active. Related: DEC-155 (scoped-peer), DEC-117 (dark-until-explored), DEC-146 (living feet), DEC-168 (cockpit-native switcher). Effective: Phase 4 implementation.
+
+---
+
+### DEC-170: Home Collapses Into Desk Inside a Business (2026-04-24)
+
+**Date:** 2026-04-24
+**Context:** Early MyLane had a "Home" tile at the surface that served both as the user's landing surface and as an implicit stand-in for a business's landing surface when one was selected. As the folder architecture (DEC-169) separates Personal scope from Business scope, the double meaning breaks — Home belongs to the user, not the business.
+**Decision:** There is no separate "Home" space inside a business. Desk is the home of business work. The current flat cockpit's Home tile is obsolete as a business-scope space; a user-scope Home tile lives inside Personal.
+**Rationale:** A space should mean one thing in each scope. "Home" made sense when scope was implicit; once Personal and Business scopes are explicit (DEC-169), Home is only a Personal concept. Desk is where the operator goes to see client activity, projects, and logs — the operational center — which is what "home inside a business" was gesturing at.
+**Status:** Active. Effective: Phase 4 implementation.
+
+---
+
+### DEC-171: Direct Doors Are Path-Based for Round 1 (2026-04-24)
+
+**Date:** 2026-04-24
+**Context:** Every business (and eventually user, network, event, region) needs an addressable URL that works as both a public-facing surface and an authenticated entry for operators. Subdomains (`red-umbrella.locallane.app`) are the ideal shape — DEC-121's "subdomain-as-hypha" growth model points there. But Base44's current infrastructure does not support wildcard subdomains. A Round 1 implementation has to work on what exists, not on what is promised.
+**Decision:** Base44 does not support wildcard subdomains. Direct-door URLs use path prefixes: `/b/{slug}` for businesses, with analogous patterns for users, networks, events, and regions as those scopes ship. Custom domains per-business are supported for Round 2+ (white-glove config in R2, self-service in R4+). URL is the primary source of scope for `useActiveBusiness` and related; localStorage is fallback persistence.
+**Rationale:** Paths ship today without infrastructure blocking. The `/b/{slug}` form is canonical and survives the eventual subdomain migration — both resolve to the same business entity. Making URL the primary scope source (with localStorage as fallback) means a direct door like `/b/red-umbrella/desk` works for anyone, even a user who was mid-flow in another business; the URL overrides the stored preference because URLs are explicit intent.
+**Status:** Active. Effective: Phase 3.5 implementation. Related: DEC-155, DEC-168.
+
+---
+
+### DEC-172: Region as First-Class Entity with Lifecycle States (2026-04-24)
+
+**Date:** 2026-04-24
+**Context:** Round 1 today has one community — Lane County, Oregon. As LocalLane grows, each new community must be able to join at its own pace without a platform rebuild. Treating region as a filter on address strings makes growth fragile (addresses change, spellings vary, borders blur). Treating region as a first-class entity from the start means the data model already carries the seam for every downstream concern: region-scoped directories, regional leads, eventual federation.
+**Decision:** Region is an entity with `name`, `slug`, `state`, `founded_date`, `region_lead_user_id`, `is_active`, `lifecycle_state` (seed / sprouting / established). Every user, business, event has `region_id`. Users in unfounded regions become seeds of those regions — "carried in the wind" growth. Phase 6 implements the entity + backfill (single region: Lane County); Phase 8+ adds cross-region UI and regional leads; Phase 10+ enables federation.
+**Rationale:** The lifecycle states (seed / sprouting / established) make it safe to let a region exist before it has activity — the platform doesn't turn away a visitor from an unfounded community, it plants their interest as a seed. The data shape also supports the ten-year arc: every record already tagged with `region_id` can be peeled off to a regional instance without rewrite. Region leads are an instance of the authority model parked in Section 8, scoped to region — not a separate concept.
+**Status:** Active. Effective: Phase 6 implementation. Related: DEC-115 (legacy grace), DEC-146 (living feet), the authority model parked at Section 8 of `LOCALLANE-CORE-ARCHITECTURE-v4-1.md`.
+
+---
+
+### DEC-173: Resurface Before Rebuild (2026-04-24)
+
+**Date:** 2026-04-24
+**Context:** LocalLane has accumulated useful surfaces during iteration that got buried as the architecture evolved — a persistent feedback affordance that used to hover bottom-right, an admin panel that used to live at `/Admin`, helpful empty-state copy that used to guide new users, keyboard shortcuts that used to work. "We used to have this" is a signal that the work already exists somewhere in the codebase or git history; rebuilding from scratch discards that work.
+**Decision:** When a previously-built surface is needed in the current architecture, the first action is to find the existing component in the codebase and wire it into the current structure. Rebuilding from scratch is the last resort, taken only if the original is genuinely lost (not findable in code or git history).
+**Rationale:** Preserves accumulated design intent — the original surface was built with specific UX decisions, copy choices, edge cases handled. Respects the work already done. Catches buried capabilities before they become forgotten entirely. Operationally: Hyphae's first step on any "we used to have X" prompt is `grep` + `git log --follow`; rebuild is last resort. Applies across all future phases, not scoped to any specific one — a standing rule.
+**Status:** Active. Applies across all future phases, not scoped to any specific phase. Related: DEC-146 (Living Feet — don't duplicate what already exists as one thing).
+
+---
+
+### DEC-174: `service_area` is `array<slug>` on Business (2026-04-24)
+
+**Date:** 2026-04-24
+**Context:** Until Build E, `service_area` on Business was a freeform string ("Eugene/Springfield area," "Lane County," "Eugene area"). Different owners produced structurally identical service ranges in unsearchable spellings. The Directory had no clean way to filter or search on coverage. DEC-155 (per-entity $9 model) and the directory becoming the platform front-door make searchable structure on coverage non-optional.
+**Decision:** `service_area` is now `array<slug>` on the Business entity. Slugs come from a curated Lane County town list (`src/config/laneCountyTowns.js` — 21 incorporated cities + notable unincorporated communities, each carrying `{slug, display_name, region_slug: 'lane-county'}` for forward compatibility with the Phase 6 Region/Town entities per DEC-172). The structured editor (`TownMultiSelect.jsx`) is universal across archetypes — no longer gated to `service_provider`. Legacy string values are preserved verbatim on existing records and rendered read-only on the public profile with an owner-only "(legacy)" annotation; the Settings editor shows the legacy string above the multi-select with "Pick the towns below to update." The first time an owner saves a structured selection, the array overwrites the legacy string. No backfill script — owner-initiated migration only.
+**Rationale:** Forward-compatible with the Phase 6 Region/Town promotion (DEC-172) — when towns become first-class entities, the `array<slug>` shape becomes `array<id>` with no Business-side schema change. Curated source list eliminates the spelling-drift class of bug. Universal across archetypes per Doron's call: contractors, caterers, mobile groomers, house cleaners, farmers, art studios all have valid coverage declarations. Editorial, not geographic — a business *declares* where it operates; address doesn't constrain it. Legacy preservation respects existing records without a fragile auto-migration.
+**Status:** Active. Implementation: Build E commit `7c21c3e` (community-node). `service_area` was already in `PROFILE_ALLOWLIST`; no server-side changes required. Related: DEC-155 (structure beats freeform for searchable directory data), DEC-161 (living tiles), DEC-172 (region as first-class entity), DEC-146 (living feet — one curated source for the town list).
+
+---
+
+### DEC-175: Migration Plan — Pattern C+ at Phase 6 (2026-04-24)
+
+**Date:** 2026-04-24
+**Context:** Migration research at `community-node/docs/migration-research.md` (commit `78fc8c7`) evaluated five patterns for moving LocalLane off Base44 onto Supabase + Vercel. Base44 has known constraints — auto-push to main with uninformative messages (DEC-162), agent auto-lint-fixes outside scope, publish blocker still open (escalation `95a004a0`), and `asServiceRole` does not bypass Creator Only RLS reliably (DEC-095 amendment, DEC-140). The platform is functional for Phase 3-5 work but the friction compounds. Phase 6 already opens the database for Region foundation backfill (DEC-172); migrating then bundles two fragility events into one.
+**Decision:** **Pattern C+ — build to prepare on Base44, migrate at Phase 6 combined with Region backfill.** Specifically:
+- **Trigger:** Phase 6 backfill window. One fragility cost, not two.
+- **Target stack:** Supabase + Vercel.
+- **Sandbox during construction:** `lanecountyrecess.com`. `locallane.app` continues running on Base44 until the migration switches over.
+- **AI plan:** retire all 8 Base44 agents at migration. Build a single warm-presence companion fresh, designed from Bari's "AI tour guide" framing — softer, fewer agents, more presence — rather than porting the eight existing agents (each carrying hardcoded entity-name vocabulary that wouldn't survive a schema port).
+- **Seam hardening through Phases 4-5:** no new direct CRUD anywhere. Build F bundles the Base44 SDK wrap into `src/api/`, with the multi-category build as first consumer validating the wrapper shape. At migration time, `src/api/` is the single replacement layer.
+- **No backfill script for legacy data shapes** beyond what each phase already carries. Existing `service_area` strings, existing Phase 2 carryover fields, etc. all migrate as-is.
+**Rationale:** Two migrations cost twice. Phase 6 already disturbs the database. The companion redesign is owed independently (Bari's framing makes the case more convincing than the existing eight-agent split), and combining it with the migration removes a future "now we port agents too" delay. The sandbox on `lanecountyrecess.com` lets us verify behavior on real domain shape (DEC-171 path-based doors, eventual custom domains in Round 2+) without risking the production tenant. SDK wrap into `src/api/` is migration insurance that pays off in Phase 4-5 anyway by enforcing one entity-access pattern.
+**Status:** Active. Migration window: Phase 6. Reference: `community-node/docs/migration-research.md` (commit `78fc8c7`; flagged for cleanup — was supposed to be deleted post-decision per its own ephemeral note). Related: DEC-095 amendment, DEC-115 (publish blocker), DEC-140 (asServiceRole RLS), DEC-162 (Base44 working agreement), DEC-167 (schema-conformance audit), DEC-172 (Region as trigger), DEC-146 (Living Feet — `src/api/` is the one place entity access lives after Build F).
+
+---
+
+### DEC-176: Business.categories Field Added in Error, Left in Place (2026-04-25)
+
+**Date:** 2026-04-25
+**Context:** During Build F Phase 1 verify (2026-04-25), Mycelia fired a Base44 agent prompt to add a `categories: array<string>` field to the Business entity before Hyphae's verify report could complete. The verify pass then surfaced that the codebase already had `subcategories: array<string>` working under DEC-055, making the new `categories` field redundant.
+**Decision:** Leave the empty `categories` field in place rather than fire a second Base44 prompt to remove it. Field is permissive (`array<string>`, default `[]`, no enum) and costs nothing sitting empty.
+**Rationale:** Removing it would burn another Base44 agent round-trip and another auto-push cycle for zero functional gain. An empty optional field is cheaper than the change risk of re-touching the schema. Multi-category writes flow through `subcategories[]` per DEC-055; nothing reads or writes `categories`.
+**Status:** Active. Candidate for Phase 5 schema consolidation. Related: DEC-055 (subcategories), DEC-180 (Phase 5 cleanup).
+
+---
+
+### DEC-177: Schema-Conformance Audits Include Write-Path Conformance (2026-04-25)
+
+**Date:** 2026-04-25
+**Context:** DEC-167 established schema-conformance audits before assuming Base44 entity behavior. Build F Phase 3 verify (2026-04-25) surfaced that this discipline must include write-path conformance — not just field-shape conformance. Hyphae's Phase 1 wrap delegated to `base44.entities.Business.update()` while the codebase routes 29 owner-write call sites through the `updateBusiness` server function (which gates writes via `PROFILE_ALLOWLIST` per DEC-025). Wrap had to be amended in Phase 3 to add `updateProfile()` wrapping the server function call.
+**Decision:** Going forward, schema-conformance audits answer three questions: (1) what is the field shape, (2) what is the write path (entity SDK vs. server function), (3) what allowlists/permissions gate the write path.
+**Rationale:** Field-shape conformance alone misses the security and gating layer. A wrap that bypasses the server function bypasses `PROFILE_ALLOWLIST` and any future write-time validation. Codifying the three-question audit before any wrap or migration prevents that whole class of regression.
+**Status:** Active. Extends DEC-167. Related: DEC-025 (PROFILE_ALLOWLIST), DEC-146 (Living Feet — one write path per entity).
+
+---
+
+### DEC-178: Code-Level Schema Changes Paired with Base44 Dashboard Updates (2026-04-25)
+
+**Date:** 2026-04-25
+**Context:** Build E (commit `7c21c3e`, 2026-04-24) shipped `service_area` as `array<slug>` in code, and DEC-174 documented this as the canonical shape, but the Base44 dashboard entity schema was never updated to match. Field stayed as `string` while code wrote arrays. Result: every owner save returned `422 "Error in field service_area: Input should be a valid string"`. First surfaced by Bari smoke-test 2026-04-25. Fixed via Base44 agent prompt to change field type to `array<string>`.
+**Decision:** Any DEC that documents a Business field shape change MUST include a paired Base44 agent prompt that updates the actual schema, fired and published before code that depends on the new shape ships to a real user.
+**Rationale:** The `.jsonc` file in code is not source of truth — the Base44 dashboard is. A code-side shape change without the dashboard counterpart is a guaranteed save-time 422 the first time a real user hits the path. Pairing the two artifacts at decision time means the schema and code ship together, not in two separate sessions where the second one is forgotten.
+**Status:** Active. Related: DEC-167 (schema-conformance audit), DEC-174 (`service_area` shape), DEC-093 (Base44 entity changes via agent prompts).
+
+---
+
+### DEC-179: Phase 3.5 Direct Doors Deferred to Post-Migration (2026-04-25)
+
+**Date:** 2026-04-25
+**Context:** Bari Swartz's $500/mo retainer covers Doron's time helping him with Field Service workflow (contracts, estimates, current Excel flow plus the new LocalLane flow), NOT replacement of his public website. Bari already operates redumbrellaservices.com and is not under farmers market URL pressure. Phase 3.5 (path-based routing for `/b/{slug}`, public profile rendering, react-helmet meta tags) is therefore deferable to post-migration without breaking Bari's expectations.
+**Decision:** Defer Phase 3.5 (Direct Doors per DEC-171) to post-migration. Bari remains listed in the LocalLane directory (already shipped via Build F). Field Service node maturation is the priority for Bari-specific value.
+**Rationale:** Direct Doors are most valuable when there's a public-facing URL pressure point — and Bari doesn't have one. Building a public profile renderer + path routing on Base44 only to rebuild it on Supabase+Vercel post-migration is two builds for one outcome. Better to ship it once, on the post-migration stack, when the next paying user with a real URL need surfaces.
+**Status:** Active. Phase 3.5 moves out of the pre-migration phase queue. Related: DEC-171 (path-based direct doors), DEC-175 (Pattern C+ migration plan).
+
+---
+
+### DEC-180: Phase 5 — Pre-Migration Cleanup (2026-04-25)
+
+**Date:** 2026-04-25
+**Context:** With Phase 3 closed and the migration window resolved at Phase 6 (DEC-175), the pre-migration backlog has accumulated dead code, vestigial patterns, and dormant entities that would each translate into wasted Supabase migration work. Migrating a dormant entity requires Supabase schema, RLS policies, indexes, and a migration script — pure waste if no live code reads or writes it.
+**Decision:** Insert a new **Phase 5: Pre-Migration Cleanup** into the roadmap, between Phase 4.5 (Seedlings) and Phase 6 (Migration to Supabase + Vercel). Phase 5 covers:
+- (a) **Dead code removal** — `legacyCategoryMapping` in `categoryData.jsx:229-240` (pre-DEC-055 IDs); `BusinessEditDrawer` derived-write pattern at `BusinessEditDrawer.jsx:75-98` (vestigial after Build F.3's Directory patch); the unused `Business.categories` field per DEC-176.
+- (b) **Unused entity audit** — every entity to be migrated to Supabase requires Supabase schema, RLS policies, indexes, migration script.
+- (c) **Architectural consolidation** — legacy `category` field finally retired; archetype + main_category + sub_category_id shape consolidated into `subcategories[]` (Hyphae's "Option 3 future" from Build F verify).
+- (d) **Walking-the-app cleanup findings** from Doron's separate notes-taking session.
+**Rationale:** Cheaper to delete pre-migration than port-then-delete. The migration window is already a fragility event (DEC-175); arriving at it with a clean codebase halves the surface area being migrated and removes the "do we still use this?" uncertainty from every entity migration question.
+**Status:** Active. Effective: Phase 5 implementation. Related: DEC-055 (subcategories), DEC-175 (migration plan), DEC-176 (categories field), DEC-146 (Living Feet).
+
+---
+
+### DEC-181: Multi-Machine Development Setup (2026-04-25)
+
+**Date:** 2026-04-25
+**Context:** Doron added a Mac mini as a second development machine on 2026-04-25, alongside the existing MacBook Pro 2017. Path drift between machines is a special class of pain — silent until it bites mid-session. To prevent this, both machines run identical setups: GitHub Desktop, Claude Desktop, Claude Code (Hyphae) v2.1.119, Node.js v24.15.0 with `~/.npm-global` prefix, SSH keys authenticated to github.com/withdoron. All four repos cloned at `~/Documents/GitHub/` on both machines: community-node, Spec-Repo, private, ephraim-games. All remotes use SSH.
+**Decision:** Treat Mac mini as primary (more powerful, eventual Clawbot host) and MacBook Pro as secondary (mobility, field visits to Bari, etc.). Working discipline: pull as the first action of any session, push after every commit (Hyphae default cadence — already standard, now load-bearing for multi-machine). All Hyphae-touched docs reference paths as `~/Documents/GitHub/...` so prompts work identically on either surface.
+**Rationale:** Two surfaces beats one for both resilience (laptop dies, mini still has the work) and reach (field visits with the laptop, deep work on the mini). The cost is discipline around pull/push cadence — but that cadence already exists, so the marginal cost is zero. Path alignment was completed today (Spec-Repo commit `29351e4`) before this DEC; first Hyphae session run from the mini doubled as the round-trip smoke test.
+**Status:** Active. Related: future Clawbot work (Mac mini host), DEC-146 (Living Feet — one path convention across surfaces).
+
+---
+
+### DEC-182: Single-Source Documentation, Scheduled Drift Sync (2026-04-26)
+
+**Date:** 2026-04-26
+**Context:** Phase 4 warmup (community-node commit `fe9fad9`, 2026-04-26 morning) revealed that community-node was carrying its own copies of `context/PROJECT-BRAIN.md`, `context/ACTIVE-CONTEXT.md`, and `context/SESSION-LOG.md` that had drifted ~10 days behind Spec-Repo canonical (community-node copies dated 2026-04-15 / 04-04 / ~04-05; Spec-Repo at 2026-04-25 Phase 3 closeout). The same audit also surfaced broken `@`-imports in `community-node/CLAUDE.md` pointing at files that exist only in Spec-Repo (`ARCHITECTURE.md`, `STYLE-GUIDE.md`, `.cursorrules`). Two paths forward: mirror those reference docs into community-node so every @-import resolves locally, or accept cross-repo reads as the convention and keep community-node lean.
+**Decision:** Spec-Repo is the canonical home for all project documentation. Tool-specific repos (community-node today, future tool repos) do not mirror reference docs — they reach across via explicit `~/Documents/GitHub/Spec-Repo/...` paths. The single, narrow exception is the `context/` directory (`PROJECT-BRAIN.md`, `ACTIVE-CONTEXT.md`, `SESSION-LOG.md`), which is mirrored into `community-node/context/` as a lean read-only copy. The mirror is refreshed by scheduled drift-sync passes (typically one Hyphae prompt per Phase or per Monthly Sharpening) — the mirror never edits ahead of canonical. `community-node/CLAUDE.md` and `community-node/AGENTS.md` are NOT mirrors; they are community-node-native, tool-specific files with no Spec-Repo equivalent. All other reference docs (`ARCHITECTURE.md`, `STYLE-GUIDE.md`, `BUILD-PROTOCOL.md`, full `DECISIONS.md`, `STATUS-TRACKER.md`, etc.) live in Spec-Repo only and are read on demand via cross-repo paths.
+**Rationale:** Mirrors create drift surfaces — every duplicated file is a future audit finding, and the cleanup tax compounds. Single-source-with-sync trades a small amount of cross-repo path friction for a much smaller cognitive surface. The `context/` directory earns its mirror because Hyphae sessions starting cold inside `community-node/` need at-hand orientation (PROJECT-BRAIN, ACTIVE-CONTEXT, SESSION-LOG) without the latency of a cross-repo reach every session. The other reference docs are read on-demand, not session-startup, so cross-repo reads are fine. Drift-sync cadence (once per Phase) is the maintenance cost; we accept it knowingly. This DEC ratifies what the Phase 4 warmup did empirically and locks in the rule.
+**Status:** Active. Demonstrated in companion community-node commit (re-syncs `context/PROJECT-BRAIN.md` from this Spec-Repo edit + removes two stale orphaned docs).
+
+---
+
+### DEC-183: Walk the Path Before Sinking Thought (2026-04-26)
+
+**Date:** 2026-04-26
+**Context:** Today's planning conversation produced a 115-line Section 8 amendment to `PHASE-4-MIGRATION-PLAN.md` detailing decisions about features that won't ship for weeks. Most of the decisions ended up being deferrals — don't build preview pulse, don't build shortcuts, don't build URL nesting, don't redesign Desk yet. Doron flagged a working principle that emerged: don't build vision without walking a short distance of the path; if we build without dogfooding, we sink thought. The reminders example (using a primitive reminders system, finding specific frictions, knowing exactly what to spec when the time comes) demonstrates the principle in practice.
+**Decision:** Phase 4 (and future phases) ships in path-walking cadence. Each sub-phase ships, gets used, generates real-world friction signal, and only then informs the next sub-phase's spec. Sub-phases are not pre-sequenced for back-to-back execution. Smaller steps, used between, are better than large planned blocks shipped sequentially. This applies broadly: any feature whose specification depends on what real users (including Doron himself) actually need from it should ship a primitive version, get used, and earn its real spec from that use.
+**Rationale:** Vision-without-path produces rework. The cost of guessing a feature's shape is paid twice: once to build the wrong version, once to rebuild the right one. The cost of shipping a primitive version and learning from it is paid once. Time-pressure (custody trial, Bari's needs, Saturday Market window) does not change this — it strengthens it. Path-walking is faster across the full arc, even if any single step looks slower.
+**Status:** Active. Applied immediately to Phase 4 cadence. Tomorrow's first move (Phase 4.1) is the smallest possible move that earns the right to think about Phase 4.2.
+
+---
+
+### DEC-184: Greenfield Alibi Project as First Supabase + Vercel Build (2026-04-26)
+
+**Date:** 2026-04-26
+**Context:** DEC-175 set the migration to Supabase + Vercel as Phase 6 work, with sandbox on `lanecountyrecess.com`. Tonight Doron raised the question of whether the first work on the new stack should be the LocalLane migration itself or the field instrument (alibi) project, which is currently seed-stage and has no infrastructure. Argument for migration first: it's the necessary work for LocalLane's scale ceiling. Argument for alibi first: greenfield is a different mental shape than migration, blast radius is small (two users), the project shape exercises the right parts of Supabase + Vercel (Postgres + RLS + Next.js + edge functions), Pedrom is the right collaborator for a greenfield experiment, and it operationalizes DEC-183 (walk a short path before sinking thought into the larger one).
+**Decision:** The greenfield alibi project is the first build on Supabase + Vercel. It develops in slow hours alongside Phase 4 and Phase 5 LocalLane work, not as a blocking phase. By the time Phase 5 cleanup finishes and Phase 6 migration starts, the alibi build has produced platform-learning fluency that informs the LocalLane migration meaningfully. This serves three purposes from one body of work: the alibi project itself, platform learning for Phase 6, and a pressure-test of how Mycelia + Hyphae operate on a greenfield project on the new stack.
+**Rationale:** Migrating an existing app onto an unfamiliar platform compounds two unknowns simultaneously — the platform itself plus the migration mechanics. Building greenfield on the new platform isolates the platform-learning unknown. The alibi project's posture is already "slow-compounding, develop in slow hours" per its seed doc; aligning it with platform-learning value is fitting rather than additive. This also gives Pedrom a real product to participate in while the relationship is still slow-compounding rather than waiting on a future formal ask.
+**Status:** Active. Aligned with `FIELD-INSTRUMENT-SEED.md`'s posture and DEC-175's Phase 6 timing.
+
+---
+
+### DEC-185: Phase 4.2-tiles Design Pivot — Tiles as Primary Cockpit (2026-04-28)
+
+**Date:** 2026-04-28
+**Context:** Phase 4.2a shipped (2026-04-27 afternoon) introduced folder-vs-leaf rendering on the spinner cockpit. Smoke testing surfaced three real frictions: (1) the pill-switcher's contextual meaning shifted confusingly with depth — clicking the "finances" pill entered business switcher mode anywhere it appeared; (2) folder-centered positions rendered to silence below the cockpit (Section 8.1) — philosophically clean but felt empty in real use; (3) the "what's inside this folder" question doesn't have a natural spinner answer — the spinner gives one centered thing, a folder is many things. The pre-build investigation (2026-04-27 evening) confirmed the existing primitives (Tile shape inside BusinessCard, shadcn breadcrumb) could compose into a tile cockpit cleanly without rebuilding what already existed.
+**Decision:** Tiles become the primary cockpit pattern. The spinner is preserved as a selectable alternate cockpit gated behind `COCKPIT_PICKER_ALLOWLIST` (DEC-147 R&D allowlist pattern, codified separately as DEC-188). Phase 4.2-tiles absorbs the original 4.2b (Businesses-as-folder), 4.3 (Home → Desk collapse), 4.4 (Preview pulse), and 4.5 (Spaces add/remove UI) into a unified six-step sub-build sequence. Each ships separately per DEC-183 path-walking. Section 8.13 of `PHASE-4-MIGRATION-PLAN.md` captures the eleven load-bearing design decisions (tile primitive shape, Settings universal, category-driven accents preserved, cockpit picker pattern, hybrid-mode breadcrumb, space-type catalog principle, cold-open synthetic root, breadcrumb supersedes center-tap descent, etc.).
+**Rationale:** The spinner's "one centered thing" model fights the "folder of many things" navigation question. Tiles answer it natively — a grid is a folder is a grid. The spinner cockpit retains its identity-distinctive role for users who prefer it (DEC-152 cockpit library pattern); tiles don't replace, they become the primary surface most users see. Six smaller sub-builds shipped via path-walking generate friction signal that informs the next, vs. one large pre-sequenced refactor. The tile cockpit specifically enables uniform navigation (DEC-191) — every root tile descends into the render layer with breadcrumb above — which the spinner can't structurally do.
+**Status:** Active. Tiles-1 through tiles-4 shipped 2026-04-28 (community-node `a3ac463`, `caae822`, `77571b7`, `84a9889`; Spec-Repo `a96ae43`, `4598419`, `081882b`, `65ff952`, `8b94ec1`). Cleanup pass (`2c01950` community-node, `1551f30` Spec-Repo) removed Field Service from Personal as the city/buildings architectural metaphor required. Tiles-5 next (Settings + Profile workspace surfaces + pricing-structure design).
+
+---
+
+### DEC-186: Settings as a Universal Space (2026-04-28)
+
+**Date:** 2026-04-28
+**Context:** Phase 4.1 added `Business.enabled_spaces: array<string>` for opt-in space activation. The pre-build investigation surfaced the question of whether Settings (and Profile) should be listed in `enabled_spaces` or guaranteed as universal. Per Section 8.10's backfill, Bari's `enabled_spaces` is `["profile", "desk", "settings"]` and most others are `["profile"]`. A business with no Settings space would be unreachable — no way to edit its name, toggle directory listing, or delete itself.
+**Decision:** Profile and Settings are universal — they render unconditionally for every business regardless of `enabled_spaces`. They are listed in the SPACE_TYPES catalog with `universal: true` and never added to `enabled_spaces` in any backfill; their presence is guaranteed by composition in `resolveBusinessSpaces()`. `enabled_spaces` means "additional opt-in spaces" only.
+**Rationale:** Settings + Profile are part of what *being a business in LocalLane* means, not a feature flag. The 4.5 Add/Remove Space UI manages only the opt-in subset, simpler to think about. Backfill logic stays minimal — adding a new Business doesn't need to remember to set Profile + Settings in `enabled_spaces`. Defensive: a stale Base44 record without Settings still gets a Settings tile.
+**Status:** Active. Implemented in `src/config/spaceTypes.js` (Phase 4.2-tiles-4) with `universal: true` flag on the `profile` and `settings` entries. The `resolveBusinessSpaces()` helper unions universal entries with `enabled_spaces` and dedupes.
+
+---
+
+### DEC-187: Category-Driven Tile Accents Preserved — No Per-Business Brand Color in v1 (2026-04-28)
+
+**Date:** 2026-04-28
+**Context:** Phase 4.2-tiles needed accent-color decisions for tiles. The existing Directory tile (BusinessCard) uses a category-derived accent via `resolveCategoryAccent(business)` (DEC-060) — colors keyed on `main_category` slug. The pre-build investigation considered introducing a per-business `brand_color` field for personalized accents.
+**Decision:** v1 preserves the category-driven accent pattern. No `brand_color` field added to Business. Owned-business tiles in tile cockpit reuse `resolveCategoryAccent` for visual continuity with Directory. Folder tiles (Directory, Events, Personal, Businesses, Discover) get hardcoded accents in `TilesCockpit.jsx`'s FOLDER_ACCENTS map, drawn from the same `border-l-{color}-700` palette. Per-business space tiles get their accents from the SPACE_TYPES catalog (DEC-190).
+**Rationale:** Adding `brand_color` is a Base44 schema change (DEC-178 paired update) plus settings UI plus a backfill plus owner-personalization design — meaningful scope outside tiles-4. The category palette already serves "category at a glance," which is a real design property. Path-walking surfaces whether per-business personalization is worth the work; if so, additive later (one new optional field on Business + a Settings color picker, no migration of accent code paths).
+**Status:** Active. Revisit if path-walking surfaces a real owner-personalization need.
+
+---
+
+### DEC-188: Cockpit Picker Dev-Allowlist via COCKPIT_PICKER_ALLOWLIST (2026-04-28)
+
+**Date:** 2026-04-28
+**Context:** Tiles cockpit became the v1 default for everyone (DEC-185). Spinner and compass cockpits are preserved per DEC-152 but were no longer the default. The pre-build investigation considered three patterns for handling the cockpit-picker UI: (1) full picker visible to all users with three options; (2) picker hidden entirely; (3) picker gated to a dev allowlist mirroring the existing `MYLANE_AGENT_ALLOWLIST`.
+**Decision:** Pattern 3. New constant `COCKPIT_PICKER_ALLOWLIST = ['doron.bsg@gmail.com']` in `MyLaneSurface.jsx`, paralleling the existing `MYLANE_AGENT_ALLOWLIST`. Gates the AccountOverlay's cockpit toggle row — non-allowlisted users see no toggle (DEC-147 — no placeholder, no "coming soon"). Force-migration `useEffect` in MyLaneSurface mount overwrites localStorage from spinner/compass to tiles for non-allowlisted users; allowlisted users keep their preference. The toggle cycle is `tiles → spinner → compass → tiles` for allowlisted users.
+**Rationale:** Tiles cockpit needs to prove out before the spinner/compass options become user-visible. Hiding the toggle keeps the v1 surface clean while preserving developer access to alternate cockpits for testing. Pattern matches DEC-147 R&D allowlist convention. When tiles is proven, drop the gate; the option becomes user-visible without code changes beyond removing the conditional. DEC-148 footnote: if a third allowlist constant lands, extract to a shared `DEV_USER_ALLOWLIST`.
+**Status:** Active. Implemented Phase 4.2-tiles-3 (`77571b7` community-node).
+
+---
+
+### DEC-189: Hybrid-Mode Breadcrumb Component (2026-04-28)
+
+**Date:** 2026-04-28
+**Context:** The tile cockpit needs a path indicator showing folder descent. The spinner cockpit could also benefit from a path indicator for nested-folder support. Two design questions: (a) build cockpit-specific breadcrumb components, or one shared component with mode-driven sizing? (b) build from scratch or compose the existing shadcn breadcrumb primitive set in `src/components/ui/breadcrumb.jsx`?
+**Decision:** One cockpit-agnostic `BreadcrumbPath` component with two presentation modes via `mode` prop: `"primary"` for tile cockpit (large segments, prominent position where the spinner area was) and `"adjacent"` for spinner cockpit and future cockpits (smaller, supporting affordance). Both modes share the same warm-on-hover pill family — same data, same logic, different visual weight per cockpit. The component composes the existing shadcn breadcrumb primitives (DEC-173 resurface) for a11y wrapping (`<nav aria-label>`, `<ol>`, `<li>`, `aria-current="page"`); overrides shadcn's default classes for LocalLane's pill language. The file is named `BreadcrumbPath.jsx` (not `Breadcrumb.jsx`) to avoid case-insensitive APFS collision with the existing lowercase `breadcrumb.jsx`.
+**Rationale:** Future cockpits inherit the breadcrumb for free by mounting it in either mode. The compose-not-extend pattern preserves the shadcn primitives' a11y semantics while wrapping them in the LocalLane visual language. Mirrors the `ConfirmDialog`/`alert-dialog` precedent — opinionated wrapper alongside primitive set.
+**Status:** Active. Shipped Phase 4.2-tiles-2 as `src/components/ui/BreadcrumbPath.jsx` (`caae822` community-node). Currently consumed only by TilesCockpit in `mode="primary"`. The spinner cockpit could mount it `mode="adjacent"` if Doron toggles to spinner and wants nested-folder breadcrumbing.
+
+---
+
+### DEC-190: Space-Type Catalog Principle (2026-04-28)
+
+**Date:** 2026-04-28
+**Context:** Phase 4.2-tiles-4 became the first consumer of `Business.enabled_spaces`. The renderer needed a way to map space-type strings (as stored in the array — `'profile'`, `'settings'`, `'desk'`, etc.) to tile metadata (label, sublabel, accent class, eventual workspace renderer reference). The pre-build investigation identified that this is the same living-feet pattern as `folderTree.js`, `folderPredicates.js`, `VARIANT_MAP`, `WORKSPACE_TYPES` — config-driven dispatch over inline conditionals.
+**Decision:** Any consumer of `enabled_spaces` (or analogous space-type fields on other entities) reads space metadata from a single config catalog (`src/config/spaceTypes.js`), never from inline conditionals in the renderer. Each catalog entry maps a space-type id to its tile metadata + universal flag (DEC-186) + (eventually) workspace renderer reference. Adding a new space type means one config entry. The companion helper `resolveBusinessSpaces(business)` unions universal entries with the business's `enabled_spaces` and dedupes.
+**Rationale:** Same living-feet pattern as the four other config-driven dispatches in the codebase (folderTree, folderPredicates, VARIANT_MAP, WORKSPACE_TYPES). Inline `if (spaceId === 'profile')` chains don't scale and don't compose; config does both. The catalog is also where the universal-vs-opt-in distinction lives (DEC-186), so Settings/Profile semantics are one source of truth. Future Engagements-as-folder, per-business event spaces, etc. plug in via additional catalog entries without renderer changes.
+**Status:** Active. First catalog has eight entries (`profile`, `settings`, `desk`, `finance`, `team`, `kitchen`, `property`, `events`); `profile` and `settings` flagged universal. Workspace renderer references deferred until tiles-5+ wires per-business workspace surfaces (each space type needs careful per-business profile-scoping; not a one-line dispatch).
+
+---
+
+### DEC-191: Uniform Navigation Pattern — DEC-148/DEC-168 Retired for Tile Users (2026-04-28)
+
+**Date:** 2026-04-28
+**Context:** Tile cockpit's tiles-3 ship preserved the DEC-148 overlay shortcut for Directory/Events and the DEC-168 lateral switcher for Businesses as transitional special-cases. Tiles-4's smoke testing confirmed the design philosophy: every tile descent should work the same way. No special cases. The render layer is location-aware; whatever's at the current location renders there.
+**Decision:** For tile cockpit users, the DEC-148 overlay pattern and DEC-168 lateral switcher pattern are retired. Tile-tap on Directory/Events descends and renders the page content inline (using the same `.overlay-page-content` wrapper class so existing page-header suppression carries forward — DEC-173 resurface, no page rebuild). Tile-tap on Businesses descends to a tile grid of owned businesses (each rendered as a generic `<Tile>` with category accent via `resolveCategoryAccent`); tap a business to commit operating-as context (mirrors DEC-168 commit logic exactly via `setActiveBusiness`) AND descend into that business's spaces tile grid. Spinner cockpit users (allowlisted) keep both patterns — `handleCenterTap` still triggers `OV.DIR`/`OV.EVT` overlays and `enterSwitcher`. The DEC-148 overlay machinery and DEC-168 switcher state remain in MyLaneSurface unchanged; only the tile cockpit's tile-tap handlers stop triggering them.
+**Rationale:** Uniform navigation = predictable navigation. The render layer carries the breadcrumb + content; every tile descends the same way. Tiles can do uniform descent because the grid handles "many things at this level" naturally; the spinner cannot do uniform descent because its model is "one centered thing." Preserving both patterns for spinner users keeps DEC-152 cockpit-library decoupling intact — each cockpit retains its own descent vocabulary. The split is honest: each cockpit's affordances match its visual model.
+**Status:** Active. Implemented Phase 4.2-tiles-4 (`84a9889` community-node). Spinner cockpit's preservation verified by inspection: `handleCenterTap` in `MyLaneSurface.jsx` still routes Directory/Events through overlays and Businesses through `enterSwitcher`. Allowlisted users who toggle to spinner reproduce all prior behavior.
+
+---
+
+### DEC-192: Engagements Design Fully Closed (2026-04-28)
+
+**Date:** 2026-04-28
+**Context:** Engagements concept seeded 2026-04-26 evening, structurally locked 2026-04-27 morning with three open detail questions deferred (permissions blob granularity, project-level authorship, acceptance and notification flow). Pre-build investigation (2026-04-28 morning) addressed all three plus surfaced two architectural patterns worth flagging for future. Engagement entity built in Base44 the same day.
+**Decision:** Three detail questions resolved (full text in `private/users/bari/ENGAGEMENTS-DESIGN-NOTES.md` Section "Resolved Open Questions"):
+1. **Permissions blob granularity:** Smart defaults per `recipient_role`. Setting role to `"client"` auto-populates a default permissions blob with the standard client view; setting role to `"subcontractor"` populates a different default. The override surface exists in the schema but no UI exposes it in v1. The role string carries semantic meaning.
+2. **Project-level authorship:** The `permissions.initiator_to_recipient` blob encodes both view permissions AND action permissions in one structured object. View permissions = what the recipient *sees*; action permissions = what they *can do* (sign estimate, approve change order, log time). Change orders specifically trigger e-sign for both initiator and recipient — same two-party state machine as engagement acceptance.
+3. **Acceptance and notification flow:** Email + in-app notification (no SMS in v1). Pending engagement appears in recipient's Engagements folder with a muted-state visual + accept/decline buttons; sits indefinitely (no auto-decline). Initiator can withdraw (`status: withdrawn`); recipient can decline (`status: declined`, historical record preserved); re-invitation creates a new record.
+
+Two architectural patterns flagged for future (out of scope for v1):
+- **Two-party acceptance as a recurring primitive** — engagement acceptance, change order approval, project completion sign-off all share the same shape. Don't extract until a third or fourth instance lands; name the pattern so the extraction case becomes obvious. Likely shape: `TwoPartyAction` primitive (initiator + recipient + state + initiator_signoff + recipient_signoff + history).
+- **Bid-request / job-listing workflow** — the inverse direction (homeowner posts a need, contractors apply, homeowner picks one). Lives upstream of Engagement; v1 schema's `created_by` may differ from `initiator_id` in some cases (the listing-poster created the situation, but the chosen contractor is the engagement's initiator). v1 schema shouldn't preclude this entry path.
+**Rationale:** Closes the design state of Engagements so the entity build can proceed without waiting on additional planning. v1 ships smart defaults that serve the common case; override surface accommodates the edge case when someone asks for it. The two flagged architectural patterns are named not built — DEC-183 path-walking applies (don't pre-build the abstraction; ship the concrete cases first, extract when the pattern repeats three times).
+**Status:** Active — design fully locked. Engagement entity created in Base44 (2026-04-28; one Read permission deviation: Base44 doesn't support multi-field OR conditions on read at the schema layer, so set to authenticated with row-level scoping moved to query logic — existing precedent: Recommendation, Debt entities). Pattern saved: post-Supabase migration, RLS policy `(auth.uid() = initiator_id) OR (auth.uid() = recipient_id)` replaces this workaround. First live instance (Doron-Bari retainer) pending entity availability + UI build. Engagements remains a parallel workstream not yet integrated into Phase 4 sequencing. Engagement scoped-query server function owed during tiles-5+ area; will retire during Supabase migration in favor of RLS.
+
+---
+
+### DEC-193: FSChangeOrder `total` vs `amount` — Display vs Canonical Recompute Field (2026-04-30)
+
+**Date:** 2026-04-30
+**Context:** Phase 1 Item 2c (CO math + signing flow + total_budget recompute) needed a single canonical number for the parent project's `total_budget` recompute formula `original_budget + sum(signed COs)`. The CO entity carries two number fields that look superficially similar: `total` (sum of CO line items, the working number used for display in the CO list) and `amount` (the canonical net contract adjustment). For early COs without calculated lines or modifiers the two values are equal; once Management Fee, O&P, Tax, or Other modifiers land on a CO, they diverge — `total` is the line-items-only sum, `amount` is the full grand total the client is billed.
+**Decision:** `signChangeOrder` (and `voidChangeOrder` after DEC-197) reads `amount` for the recompute, never `total`. `amount` is the canonical net contract adjustment; `total` is the working/display line-items sum. Code that contributes a CO to FSProject.total_budget must use `amount` (with a `parseFloat(c.total) || 0` fallback for legacy records that pre-date the `amount` field). Code that displays "the CO totals" in the UI may use either depending on what's communicated; the CO list inline breakdown uses `amount` because that's what the client sees billed.
+**Rationale:** Conflating the two would cause silent under-billing once a CO with O&P/Tax modifiers gets signed — the parent project's contract total would grow by the line-items subtotal, missing the modifier amounts. Splitting them named the distinction so future code can't accidentally reach for the wrong field. The fallback to `total` for legacy records preserves backward compatibility without a migration.
+**Status:** Active. Implemented in `signChangeOrder/entry.ts` and `voidChangeOrder/entry.ts` (Phase 1, 2026-04-30). Client-side recompute helpers in `FieldServiceProjects.jsx` mirror the same field choice.
+
+---
+
+### DEC-194: `features_json` as the Canonical FieldServiceProfile Feature Flag Store (2026-04-30)
+
+**Date:** 2026-04-30
+**Context:** Phase 1 wiring fix (commit `3c218d4`) traced a class of "feature toggle silently doesn't work" bugs to a single root cause: the FieldServiceProfile entity carries both top-level boolean fields (`overhead_profit_enabled`, `insurance_work_enabled`, `xactimate_enabled`, etc.) AND a `features_json` blob, and different code paths read different sources. The mount point (`MyLaneDrillView.jsx:177`) was reading `profile.features` (a key that doesn't exist on the entity at all), so every `=== true` gate against a default-off flag silently failed. Default-on flags appeared to work because `!== false` against `undefined` is true — both broken, only the default-off ones surfaced.
+**Decision:** `features_json` is the single source of truth for FieldServiceProfile feature flags. All reads go through `getFeatures(profile)` (`src/utils/fsFeatures.js`), which merges `features_json` with `FEATURE_DEFAULTS` and migrates the legacy `insurance_work_enabled` flag into the modern `overhead_profit_enabled` + `xactimate_enabled` pair. Top-level legacy boolean fields on the entity (`overhead_profit_enabled`, `insurance_work_enabled`, `xactimate_enabled`, `management_fees_enabled`, etc.) are deprecated — present in the schema for backward compatibility but never read or written. An optional Base44 cleanup prompt is staged at `community-node/base44-prompts/PHASE-1-DEPRECATE-LEGACY-FEATURE-FLAGS.md` for a future schema sweep.
+**Rationale:** Two parallel storage shapes for the same concept guarantees drift. Funneling reads through one helper means new flags (Sales Tax in Phase 1, future ones in later phases) only need to be added to `FEATURE_DEFAULTS` once; every consumer picks them up. The asymmetric failure pattern (default-off broken, default-on appearing-to-work) is the kind of bug that hides until you happen to flip the right toggle — funneling reads through a defaulted helper makes that whole class of bug structurally impossible.
+**Status:** Active. `getFeatures()` is the read path; `FieldServiceProfile.update({ features_json: {...} })` is the write path. Eight flags in FEATURE_DEFAULTS as of 2026-04-30 (permits, subs, management_fees, overhead_profit, xactimate, tax, payments, timeline).
+
+---
+
+### DEC-195: Management Fee Distinct from O&P — Two First-Class Features, Subtotal Basis, Never Stack (2026-04-30)
+
+**Date:** 2026-04-30
+**Context:** Phase 1 Item 6 (commit `db138bf`) untangled a long-standing conflation. The existing O&P (Overhead & Profit) toggle is correctly named for insurance-scope work — Xactimate-style estimates where O&P is a recognized markup category. But contractors like Bari (general contractors who sub everything out and charge a percentage to manage the project) had been using O&P as a workaround for a missing Management Fee feature. The two billing intents are distinct: O&P is the insurance-recognized markup on a damage estimate; Management Fee is the GC's transparent percentage on top of actuals.
+**Decision:** Management Fee and O&P are two first-class, independent features. Each has its own toggle in Settings (both default off, see DEC-197), its own percentage field on FSEstimate and FSChangeOrder (`management_fee_pct`, `overhead_profit_pct`), its own computed amount field (`management_fee_amount`, `overhead_profit_amount`), and its own line in every render surface (Estimate Preview, CO list, Client Portal CO blocks). Both calculate against subtotal-only (the line-items sum) — neither stacks on the other or on Tax. The display order across all surfaces is fixed: **Subtotal → Management Fee → O&P → Other → Tax → Total**. Management Fee precedes O&P because for GCs (the more common case in Eugene's local market) it's the primary line; O&P is the insurance-work overlay.
+**Rationale:** Conflating the two forced contractors to pick the wrong toggle name to do their actual billing math, and forced the spec to either over-load O&P with a generic-percentage meaning or pretend GC management billing didn't exist. Splitting them honors how each business actually runs (Bari's 25% management fee is a transparency feature — see `private/spaces/field-service/FINANCIAL-WORKFLOW-INTENT.md` §2; insurance-scope O&P is an industry-standard markup with different semantics). Both subtotal-only basis means the math is predictable and never ambiguous about whether a fee is computed on top of another fee.
+**Status:** Active. Implemented across `calcTotals()`, FSEstimate builder, FSChangeOrder builder, EstimatePreview render, CO list inline breakdown, ClientPortal CO render. Display order verified consistent across all five surfaces.
+
+---
+
+### DEC-196: Cache Invalidation Must Target the Subscriber's Actual queryKey (2026-04-30)
+
+**Date:** 2026-04-30
+**Context:** Phase 1 polish bundle dogfood (commit `317950e`) surfaced a silent-no-op bug: Settings (and FieldServicePeople) invalidated `['fs-profiles']` after every save, but the FieldServiceProfile records actually live in the React Query cache under `['mylane-profiles-v2', userId]` (loaded by the `getMyLaneProfiles` server function per DEC-130). React Query's `invalidateQueries` is a no-op when no live query subscribes to the key being invalidated — so the profile prop reaching Settings on remount was always pre-save, and toggles appeared to revert. Bug had been latent since the original Settings was written; only became visible under rapid-iteration testing because the actual cache had a 5-minute `staleTime` (DEC-130) that masked the issue when users left enough time between save and re-visit.
+**Decision:** Cache invalidation must target the queryKey the live subscriber actually uses. When more than one site invalidates the same logical cache (10 sites for FieldServiceProfile in Phase 1), wrap the invalidation in a single named helper that owns the canonical key (`invalidateFSProfiles(queryClient, userId)` in `src/utils/fsFeatures.js`). When the underlying subscriber's queryKey changes, only the helper updates — every consumer follows. This is Living Feet (DEC-146) applied to cache invalidation: one source of truth for the cache key, every save site references it.
+**Rationale:** Cache keys drift quietly. The original `['fs-profiles']` key matched a previous query shape that was refactored away (DEC-130 collapsed multiple profile queries into one server function call under a new key) without sweeping the invalidation sites — the keys silently diverged and the invalidations turned into no-ops. Naming the helper makes future drift impossible to commit accidentally; a renamed cache key forces an audit of the helper's one definition. The 5-min staleTime making the bug semi-self-healing is also a lesson: invalidation bugs hide behind reasonable cache freshness defaults until users iterate fast enough to outpace the natural refresh.
+**Status:** Active. `invalidateFSProfiles` helper introduced in commit `317950e`; 10 invalidation sites updated across `FieldServiceSettings.jsx` (9 mutations + 2 onClick handlers) and `FieldServicePeople.jsx`. The narrower `['fs-profile']` (singular) cache used by FieldServiceHome's `guide_dismissed` toggle and one Settings invitee handler is intentionally separate and not part of this helper — flagged for a separate audit pass.
+
+---
+
+### DEC-197: Fee/Insurance Toggles Default Off — Opt-In Only, No Industry-Preset Auto-Defaults (2026-04-30)
+
+**Date:** 2026-04-30
+**Context:** Phase 1 added five fee/insurance-related feature toggles — Management Fee (DEC-195), O&P, Insurance Work (Xactimate), Sales Tax. Each could plausibly be defaulted on for businesses matching certain industry profiles (e.g., insurance restoration → Xactimate on, GCs in Eugene → Management Fee on). The pre-build conversation considered building smart industry-preset defaults that infer toggles from a contractor's `archetype` or `categories[]`.
+**Decision:** All fee/insurance toggles default `false` on new FieldServiceProfile records. Contractors opt in explicitly via Settings → Workspace Features. No industry-preset auto-defaults; no location-based heuristics (e.g., Sales Tax does not auto-on for non-Oregon contractors). This applies to: `management_fees_enabled`, `overhead_profit_enabled`, `xactimate_enabled`, `tax_enabled`, and `insurance_work_enabled` (legacy, deprecated). The four standard infrastructure flags — `permits_enabled`, `subs_enabled`, `payments_enabled`, `timeline_enabled` — default `true` because they're visibility-only, not billing-shape-changing.
+**Rationale:** Wrong defaults on billing-shape toggles cause real client-facing damage — a tax line appearing on an Oregon contractor's estimate looks unprofessional; an O&P percentage appearing on a non-insurance estimate raises questions about why it's there. Opt-in defaults guarantee no toggle is on without the contractor knowing it's on. Smart industry presets are tempting but coupling billing behavior to inferred archetype creates surprise; explicit per-toggle activation respects the contractor's actual setup over an algorithm's guess. This is also the easier-to-explain semantic — "off until you turn it on" is one rule for all five toggles.
+**Status:** Active. Implemented in `FEATURE_DEFAULTS` (`src/utils/fsFeatures.js`). New profile creation does not seed any of the five fee/insurance toggles; the contractor sees them all off in Settings on first visit.
+
+---
 
 ### DEC-198: printNode Helper as Canonical Print Mechanism in Iframe-Wrapped Surfaces (2026-05-01)
 
 **Date:** 2026-05-01
-**Decision:** All "print this DOM subtree" surfaces route through a shared utility, `printNode(node, { title, extraCss })` (`src/utils/printNode.js`, shipped in commit `e91b696`). The utility builds a fresh hidden iframe inside the calling document, copies the parent's stylesheets and the target node's HTML into it via `document.write`, then calls `iframe.contentWindow.print()` — which targets only the inner iframe's document, sidestepping the parent-frame constraint that clips content to the iframe element's height in embedded hosts (Base44 Act-As-User editor preview). Filename support: title is set in three reachable places (iframe `<title>` tag, iframe `document.title` via JS after `document.close()`, and the parent app's `document.title` swapped for the print duration with restoration on a 2-second delay) because Chrome's filename source in deep-nested iframes is inconsistent.
-**Status:** Active. Consumed by `FieldServiceEstimates.jsx` and `FieldServiceDocuments.jsx`. `FieldServiceReport.jsx` still uses direct `window.print()` (low-risk surface); migrate when next touched. Lesson saved to `CLAUDE.md` as "synthetic DOM verification is not production verification" — when the rendering surface is non-standard, the fix must be verified against at least one realistic surface before claiming completion.
-**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md`.
+**Context:** Doron dogfooding Bari's Patricia Heath estimate (~30 line items) inside Base44's Act-As-User editor preview surface (`app.base44.com/apps/{id}/editor/preview`) hit a PDF page-clipping bug: the print rendered ~14 line items on page 1 with the browser indicator showing 1/1, no further pages. First fix attempt (`ca7e9df`) added a `:has()`-based `@media print` stylesheet verified against a synthetic DOM — that fix was correct in isolation but failed in production because Base44's editor renders the published app inside a fixed-height iframe, and `window.print()` from inside that iframe targets the parent document, clipping our content to the iframe element's height regardless of inner @media print rules. The synthetic DOM verification missed this because the synthetic surface IS the standalone DOM — the verification path was structurally identical to localhost, never the production iframe context.
+**Decision:** All "print this DOM subtree" surfaces route through a shared utility, `printNode(node, { title, extraCss })` (`src/utils/printNode.js`, shipped in commit `e91b696`). The utility builds a fresh hidden iframe inside the calling document, copies the parent's stylesheets and the target node's HTML into it via `document.write`, then calls `iframe.contentWindow.print()` — which targets only the inner iframe's document. No parent chrome involvement, no embedded-frame height constraint, full pagination. Direct `window.print()` calls are reserved for surfaces that print the full current document (none currently in Field Service). Filename support: `printNode` sets the title in three reachable places (iframe `<title>` tag, iframe `document.title` via JS after `document.close()`, and the parent app's `document.title` swapped for the print duration with restoration on a 2-second delay) because Chrome's filename source in deep-nested iframes (Base44 top → app preview iframe → printNode iframe) is inconsistent and falls back to a parent-frame title in some Chrome versions.
+**Rationale:** The iframe-context bug is structural, not stylistic — no inner CSS can reach across the parent's print pipeline boundary. A library-based solution (html2pdf, jsPDF + html2canvas) would also work but adds bundle weight and introduces a second rendering pipeline that can drift from the on-screen render. The hidden-iframe pattern adds zero runtime dependencies, reuses the on-screen stylesheets verbatim, and survives every host environment we care about (Base44 editor preview, locallane.app live, lanecountyrecess.com sandbox post-migration). The cross-origin top-level document (Base44 editor) remains unreachable for title-setting; if Chrome reads that for the filename, only `window.open()` would fix it (with popup-blocker risk inside Base44's sandboxed iframe). Triple-title-set covers every reachable angle.
+**Status:** Active. `printNode` consumed by `FieldServiceEstimates.jsx` (Estimate PDF) and `FieldServiceDocuments.jsx` (FSDocument print path). `FieldServiceReport.jsx` still uses direct `window.print()` (low-risk surface — opens in its own tab, not an Act-As preview); migrate when next touched. Lesson saved to `community-node/CLAUDE.md` as "synthetic DOM verification is not production verification" — when the rendering surface is non-standard (iframe-wrapped, embedded, sandboxed), the fix must be verified against at least one realistic surface before claiming completion, or the handoff must explicitly flag that production verification is owed.
 
 ---
 
 ### DEC-199: List/Detail Query-Key Invalidation Pairs Travel Together (2026-05-03)
 
 **Date:** 2026-05-03
-**Decision:** When the same entity is queried under two cache keys — a list-level `['fs-X-all', profile.id]` and a detail-level `['fs-project-X', selectedId]` — every mutation that writes to that entity must invalidate BOTH keys. The pair is structural; treat it as one logical invalidation. Implemented for FSLog: invalidation list now includes `fs-daily-logs-all`, `fs-materials-all`, `fs-labor-all`, `fs-recent-logs`, `fs-logs-for-project`, `fs-project-materials`, `fs-project-labor`, `fs-project-photos`. If a third surface starts reading the same entity through a third key, extract a `invalidateMaterials(queryClient, profileId, projectId?)` helper (Living Feet DEC-146 pattern, mirroring DEC-196's `invalidateFSProfiles`).
-**Companion:** DEC-196 (cache invalidation must target the subscriber's actual queryKey) — DEC-196 is the right form of invalidation; DEC-199 is every key the subscribers use. Together they close both common React Query invalidation traps.
-**Status:** Active. Implemented in commit `cb26d4e` for FSLog. Suspected same gap in Estimate `saveMutation` (DEC-196 family) + FSChangeOrder mutations — flagged for follow-up sweep.
-**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md`.
+**Context:** Doron dogfooding logged time + materials against a project from FieldServiceLog and observed a delay before the project's Detail view "Spent" rollup updated. Investigation found the FSLog mutation invalidated `['fs-materials-all', profile.id]` and `['fs-labor-all', profile.id]` (the all-* keys backing the project LIST view) but not `['fs-project-materials', selectedId]` or `['fs-project-labor', selectedId]` (the per-id keys backing the project DETAIL view's `projectSpent` rollup). Per-project keys were never marked stale; the user saw old totals until React Query's 5-minute default `staleTime` (DEC-130) expired or the view fully unmounted/remounted. Symptom "first save updated, second didn't, eventually caught up" was a coincidence — both saves were equally invalidation-incomplete; the user only saw fresh data when `staleTime` happened to expire on a re-mount.
+**Decision:** When the same entity is queried under two cache keys — a list-level `['fs-X-all', profile.id]` and a detail-level `['fs-project-X', selectedId]`, for example — every mutation that writes to that entity must invalidate BOTH keys. The pair is structural; treat it as one logical invalidation, not two. Implemented for FSLog: invalidation list now includes `fs-daily-logs-all`, `fs-materials-all`, `fs-labor-all`, `fs-recent-logs`, `fs-logs-for-project`, `fs-project-materials`, `fs-project-labor`, `fs-project-photos`. If a third surface starts reading the same entity through a third key, that's the moment to extract a `invalidateMaterials(queryClient, profileId, projectId?)` helper (Living Feet DEC-146 pattern, mirroring DEC-196's `invalidateFSProfiles`).
+**Rationale:** Splitting a list query from a per-id detail query is a normal performance optimization — the detail view doesn't need every record across the workspace, just the ones for the open project. The split is invisible to mutation handlers if the only test surface is the list view (which is what most one-shot dogfood tests touch). The detail-view drift surfaces only in extended use, by which time the symptom looks like a render race or a memoization bug rather than what it actually is — a missing key. Codifying the pair-travel rule means the next time we split a query for performance, the invalidation gap is closed by default rather than discovered later. Companion to DEC-196 (cache invalidation must target the subscriber's actual queryKey) — DEC-196 is "the right form of invalidation"; DEC-199 is "every key the subscribers use." Together they close both common React Query invalidation traps.
+**Status:** Active. Implemented in commit `cb26d4e` for FSLog. Same shape suspected in Estimate `saveMutation` (uses bare-array `invalidateQueries(['fs-estimates', ...])` form which is also a silent no-op per DEC-196) and FSChangeOrder mutations (per-project `['fs-change-orders', selectedProject?.id]` may not be invalidated by all CO write paths) — flagged as follow-up sweep, not closed in this commit.
 
 ---
 
 ### DEC-200: Required-Field UX Standard — Asterisk + Client-Side Toast, No Schema Errors (2026-05-03)
 
 **Date:** 2026-05-03
-**Decision:** Every required field on every user-facing form must be marked with `*` in its label and validated client-side with a human-readable toast before any Base44 call. Canonical pattern:
+**Context:** Doron dogfooding the Daily Log form left the "What was completed" textarea empty and clicked save; the surface returned a raw Base44 schema error: `Error in field tasks_completed: Input should be a valid string`. The field is required at the FSDailyLog entity level but the UI didn't mark it with `*` and didn't validate before submit, so the schema rejection surfaced as a developer-style toast instead of a user-readable message. Audit across all Field Service forms (Daily Log, Sub Payment, Client Payment, Estimate, Document Template, Document, Permit Inspection, Project, Change Order, ClientSelector, People) found five active gaps where a required entity field had neither asterisk nor client-side validation, or had only a `disabled` button state with no toast guard.
+**Decision:** Every required field on every user-facing form must be marked with `*` in its label and validated client-side with a human-readable toast before any Base44 call. The canonical pattern (use exactly this shape):
 
 ```jsx
 <label className={LABEL_CLASS}>Field Name *</label>
+<input ... />
 ```
 ```js
-if (!field.trim()) { toast.error('Please <verb> the <thing>'); return; }
+if (!field.trim()) {
+  toast.error('Please <verb> the <thing>');
+  return;
+}
 ```
 
-Save-button `disabled` state remains as defense in depth, not a substitute. For mutations: `throw new Error('Please <verb> the <thing>')` and let `onError: (err) => toast.error(err.message)` pipe it through. Wizard-shape forms use step-gating (gating IS the signal). A shared `<RequiredField>` wrapper / `validateForm()` utility was considered and explicitly declined — forms differ enough that the inline pattern is short enough to copy without abstraction overhead. Revisit only if a single form's validation list exceeds ~6 fields.
-**Status:** Active. Six fields fixed across five forms in commit `bdd90e4` (Daily Log `tasks_completed`, Estimate `title`, Document Template `title` + `content`, Permit Inspection `type`, Change Order `title`). Pattern documented in `CLAUDE.md`.
-**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md`.
+Notes: literal `*` in label text with single space before; `LABEL_CLASS` is the shared constant per form file; toast message is action-oriented ("Please describe the work completed") never raw schema field name; save-button `disabled` state remains as defense in depth, not a substitute for the toast guard. For mutations that throw, `throw new Error('Please <verb> the <thing>')` and let the existing `onError: (err) => toast.error(err.message)` pipe the message straight through. Wizard-shape forms (multi-step gated progression, like the Document creation wizard) use step-gating instead of asterisks — gating IS the signal; do not bolt asterisks onto wizard step headers.
+**Rationale:** Schema errors are developer messages; the user should never see the database field name. The asterisk convention already existed on Project + Date in the Daily Log and on most other required fields — the gap was inconsistency, not absence. A shared `<RequiredField>` wrapper or `validateForm(formData, schema)` utility was considered and explicitly declined: forms differ enough (conditional fields, wizards, multi-mode submit paths) that a one-size-fits-all wrapper would constrain more than it helps. The inline pattern is short enough to copy without abstraction overhead. Revisit only if a single form's validation list exceeds ~6 fields and gets unwieldy.
+**Status:** Active. Six fields fixed across five forms in commit `bdd90e4` (Daily Log `tasks_completed`, Estimate `title`, Document Template `title` + `content`, Permit Inspection `type`, Change Order `title`). Pattern documented in `community-node/CLAUDE.md`. Already-correct forms (Sub Payment, Client Payment, ClientSelector inline-create, People, Project create/edit, Documents inline-add-client) verified untouched. Permit edit/inspection labels using non-canonical `text-xs text-muted-foreground/70` className flagged as visual-consistency follow-up — not a required-field gap (underlying selects have valid defaults), so left for next touch.
 
 ---
 
 ### DEC-201: Stewardship Space as Strategic Principle — Future Workspace, Steward-Mediated Pricing (2026-05-04)
 
 **Date:** 2026-05-04
-**Decision:** Stewardship is captured as a strategic principle, not a build commitment. A Steward is a real person in a real community who uses LocalLane for their own work and serves as the local contact, support person, and gardener for other businesses in their geography. The Stewardship Space is a future first-class workspace alongside Field Service / Recess / Harvest / Creative Alliance / Gathering Circle. Pricing is steward-mediated: the platform sets the frequency (membership economics, steward's cut, structural floor), stewards play the music (price for their own clients within their own network). Stewards pay the standard $9/mo Community Pass + $9/mo Stewardship workspace = $18/mo. Compensation tied to active circulation: a steward who stops cultivating stops earning, businesses are reabsorbed into the network. **No passive income from stewardship.**
-**Status:** Strategic principle, not a build commitment. Full spec at `Spec-Repo/spaces/stewardship/STEWARDSHIP-SPACE.md`. Build sequencing: post-Phase 6 Supabase migration; pre-migration Doron-as-steward runs the role informally with Bari and Dan.
-**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md` + spec at `Spec-Repo/spaces/stewardship/STEWARDSHIP-SPACE.md`.
+**Context:** Conversation between Doron and Mycelia on 2026-05-04 crystallized the Steward role and Stewardship Space architecture as a load-bearing structural principle for the platform. Originated from "personal contact person idea" while Doron was working with Bari and Dan as the platform's first dogfood-paying users. The role names what's already happening informally — Doron is each user's local contact — and projects what scaling that pattern looks like when the platform serves more communities than Doron can personally support.
+**Decision:** Stewardship is captured as a strategic principle, not a build commitment. A Steward is a real person in a real community who uses LocalLane for their own work and serves as the local contact, support person, and gardener for other businesses in their geography. Stewards are not employees, not customer-service reps, not contractors — they are nodes in the same network they support. The Stewardship Space is a future first-class workspace on LocalLane (alongside Field Service, Recess, Harvest Network, Creative Alliance, Gathering Circle) where stewards manage their network, log check-ins and custom project work, and earn from the businesses they cultivate. Pricing is steward-mediated: the platform sets the frequency (membership economics, steward's cut, structural floor), stewards play the music (price for their own clients within their own network). Stewards pay the standard $9/mo Community Pass + $9/mo Stewardship workspace = $18/mo (no platform-side exemption). Compensation tied to active circulation: a steward who stops cultivating stops earning, businesses are reabsorbed into the network. **No passive income from stewardship.**
+**Rationale:** The role formalizes a pattern Doron is already running in miniature. It addresses three structural questions at once: (1) how does pricing scale beyond Doron's per-business attention without becoming opaque (steward-mediated within structural bounds, gardener meetings as transparency layer); (2) how does the platform expand into new geographies without corporate strategy (stewards emerge from the soil; communities with stewards are LocalLane communities, others are not yet); (3) how does the TCA-to-business pipeline produce ongoing income that complements craft learning (a 14-year-old running an egg business who has been logging on LocalLane for a year may have deeper platform mastery than most adults — and that mastery is monetizable through stewardship). Three operational tensions named for future sessions: pricing cannot be Doron-negotiated business-by-business (bottleneck); transparency between businesses matters (Chamber of Commerce moment); steward earning a percentage of dynamic pricing introduces incentive risk (mitigated by gardener meetings + aggregate platform-layer visibility). Tensions don't have to be resolved before launching the role — they have to be **named and watched** as the role evolves.
+**Status:** Strategic principle, not a build commitment. Full spec at `Spec-Repo/spaces/stewardship/STEWARDSHIP-SPACE.md` (entity model sketch, agent shape, hierarchy of visibility, custom project work loop, eight open questions for future PRICING-ECONOMICS sessions). Cross-references: `private/PRICING-ECONOMICS.md` (economic model, will be updated to reflect steward-mediated pricing), `Spec-Repo/context/PROJECT-BRAIN.md` (fractal principles), TCA spec (developmental pipeline). Build sequencing: Stewardship Space comes after the Phase 6 Supabase migration; pre-migration the role can run informally with Doron-as-steward serving Bari and Dan, with the role's structural shape captured in the spec so when implementation starts the architectural decisions are already settled.
 
 ---
 
 ### DEC-202: React Query Invalidation Sweep — Bare-Array Form Banned, List/Detail Key Pairs Travel Together (2026-05-04)
 
 **Date:** 2026-05-04
-**Decision:** Platform-wide audit (commit `60ebb11`) closed 56 silent bare-array `invalidateQueries(['key'])` calls across 21 files (every one a no-op in React Query v5) and 6 mutation surfaces missing per-id detail keys their subscribers depended on. Bare-array form canonically banned; always use object form `invalidateQueries({ queryKey: ['key'] })`. When a mutation writes an entity queried under both list-level and per-id detail keys, every subscriber's key must be in the mutation's invalidation list. Bare-prefix invalidation matches all id-suffixed subscribers — use when the mutation handler doesn't have easy access to a specific id. Three sub-rules captured in `CLAUDE.md` extending DEC-199: audit cadence, list-vs-detail asymmetry, bare-prefix invalidation pattern.
-**Status:** Active. Sweep shipped at `60ebb11`; CLAUDE.md sub-lessons at `e7bd500`. Two follow-ups deferred: shared invalidation helpers refactor and query-key naming drift cleanup.
-**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md`.
+**Context:** Two earlier DECs in the same family — DEC-196 (cache invalidation must target the subscriber's actual queryKey) and DEC-199 (list/detail query-key pairs travel together) — established the right form and the right coverage rules separately. Doron's general dogfooding observation that "lots of places across the site need a refresh after creation" suggested the gaps weren't isolated. Hyphae ran a platform-wide audit (commit `60ebb11`): every `useMutation` across all `src/` files cross-referenced against every `useQuery` subscriber. Found 56 bare-array `invalidateQueries(['key'])` calls across 21 files (every one a silent no-op in v5) and 6 mutation surfaces missing per-id detail keys. Fixed all of them in one sweep.
+**Decision:** The bare-array form `queryClient.invalidateQueries(['key'])` is canonically banned. Always use the object form `queryClient.invalidateQueries({ queryKey: ['key'] })`. When a mutation writes an entity that is queried under both list-level and per-id detail keys, every subscriber's key must be in the mutation's invalidation list. Bare-prefix invalidation matches all id-suffixed subscribers — `invalidateQueries({ queryKey: ['fs-X'] })` covers `['fs-X', anyId]` without enumerating ids; use this when the mutation handler doesn't have easy access to a specific id. Three sub-rules captured in `community-node/CLAUDE.md` extending the existing DEC-199 entry: (a) audit cadence — when adding a new `useQuery` that subscribes to an existing entity, grep every `useMutation` that writes it and add the new key to each invalidation list; (b) list-vs-detail asymmetry — list mutations usually only need to invalidate the list, detail mutations almost always need to invalidate the list too; (c) bare-prefix invalidation is the right shape for "all id-suffixed subscribers."
+**Rationale:** Silent failure is the worst failure. Bare-array invalidation in v5 doesn't error — it just does nothing, leaving the user to blame their internet, then themselves, then eventually the platform. Long-standing complaints (estimates list not refreshing, recommendations not appearing on profile, frequency seeds not showing in My Seeds) all traced to the same trap. The platform-wide sweep restored refresh-on-save trust universally; the rule banning the form prevents recurrence.
+**Status:** Active. Sweep shipped at commit `60ebb11`; CLAUDE.md sub-lessons at `e7bd500`. Two follow-ups explicitly deferred to separate commits: shared invalidation helpers (`src/utils/fsInvalidations.js` with `invalidateEstimates`, `invalidateProjects`, `invalidateLogs` — Living Feet candidate, four-key set repeats 8x at FSEstimate alone) and query-key naming drift cleanup (some keys profile-scoped, some bare prefix-only, some mixed; `['fs-payments', projectId]` vs `['fs-payments-all']` inconsistency; three names for "photos for one project" across surfaces).
 
 ---
 
 ### DEC-203: Two-World Architecture as Foundational Principle (2026-05-04)
 
 **Date:** 2026-05-04
-**Decision:** LocalLane organizes economic life across two distinct worlds with a deliberate bridge between them. Inside the organism: relational rules — plain-language understanding documents, fees as pricing-structure allocations, sovereignty preserved by structural design. Outside the organism: the world's rules — legal language, insurance, licensing, tax compliance, enforceable contracts. The bridge: honest translation, no confusion of layers. Captured as a top-level foundational principle in `Spec-Repo/context/PROJECT-BRAIN.md` alongside Circulation Over Extraction and Dark Until Explored. Theologically grounded ("as within so without," Luke 17:21, mustard seed parable, many-rooms image). Decision filter for every future build: where does this operate (inside / bridge / outside)? Are the appropriate rules being used? Is sovereignty preserved? Is circulation maintained?
-**Status:** Active. Foundational. Stewardship Space (DEC-201) and Nursery Model (DEC-204) rest explicitly on this principle.
-**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md` + `Spec-Repo/context/PROJECT-BRAIN.md`.
+**Context:** Conversation between Doron and Mycelia on 2026-05-04 evening (following the morning's Stewardship Space conversation) crystallized a principle that had been implicit across multiple earlier decisions but never named at the foundational level. The principle surfaced explicitly while working through Gina's emerging charcuterie business (three inbound wedding inquiries from Instagram, no marketing spend) — specifically, the question of how Mycelia LLC could support Gina structurally without either (a) imposing internal trust-based logic on external counterparties (insurance, licensing, venue contracts) or (b) importing the world's adversarial logic into the Mycelia-Gina relationship (equity grabs, defensive lawyering, fee extraction). Naming the principle resolved the design question and unlocked the Nursery Model (DEC-204).
+**Decision:** LocalLane organizes economic life across two distinct worlds with a deliberate bridge between them. **Inside the organism:** the rules are relational. Plain-language understanding documents, not legal contracts. Trust as substrate. Fees as pricing-structure allocations into the price the end client pays, not adversarial billings between participants. Sovereignty preserved by structural design. **Outside the organism:** the rules are the world's. Legal language, insurance, licensing, tax compliance, enforceable contracts. The organism does not pretend the outside world's rules don't exist; it puts on the appropriate armor at the boundary and takes it off again on the inside. **The bridge:** honest translation between, no confusion of layers. The same business participates in all three layers without confusion because the layers are structurally distinct. The principle is captured in `Spec-Repo/context/PROJECT-BRAIN.md` as a top-level foundational principle alongside Circulation Over Extraction and Dark Until Explored.
+**Rationale:** Most mission-driven organizations fail at one of two failure modes — they try to convert the outside into the inside (mission collapse via boundary failure: uninsured operations, undocumented commitments, predatory exposure), or they let the outside corrupt the inside (mission collapse via internal capture: equity-grabbing contracts with their own people, defensive lawyering between trusted participants, extractive fee structures). The two-world architecture prevents both by being explicit. The principle is theologically grounded in "as within so without" (Hermetic correspondence), "the kingdom of God is within you" (Luke 17:21), the mustard seed parable (Matthew 13:31-32), and Christ's "many rooms" image (John 14:2) — what is rightly ordered inside reproduces itself outside, in the world's terms, without losing its essential character. This is the deep "why" beneath every other architectural decision; pricing models, agent architectures, space designs, role definitions, and business structures all flow from it.
+**Status:** Active. Foundational. Named explicitly as a decision filter for every future build: where does this operate (inside / bridge / outside)? Are the appropriate rules being used? Is sovereignty preserved? Is circulation maintained? If a proposed feature violates the two-world distinction, that is structural drift and should be corrected before shipping. Cross-references: `STEWARDSHIP-SPACE.md` (stewards relate through plain-language understanding inside; their formal entity and insurance operate at the bridge), `NURSERY-MODEL.md` (nursery participants operate under Mycelia LLC's DBA inside, while carrying the world's required protections at the bridge), `PRICING-ECONOMICS.md` (fees as pricing-structure allocations rather than adversarial billings is the practical mechanism), TCA spec (developmental introduction to the two-world architecture).
 
 ---
 
 ### DEC-204: Nursery Model — Mycelia LLC as Sovereign Nursery for Life-Aligned Businesses (2026-05-04)
 
 **Date:** 2026-05-04
-**Decision:** Mycelia LLC operates as a sovereign nursery for life-aligned businesses. The nursery holds a business while it is structurally vulnerable and supports it until it can hold itself. At that point, the business is **transplanted** — graduates to its own legal structure, owned and operated by its founder, while remaining connected through the LocalLane platform and friendship. Core principles: sovereignty preserved by structural design (participant's clients/brand/recipes/photos are theirs full stop); plain-language understanding rather than legal contract inside the organism; fees as pricing-structure allocations not adversarial billings; market-rate everything (gifts create obligation, market-rate transactions create freedom); contractors not employees; transplant as goal not exit. First adult-tier participant: Gina's emerging charcuterie business. Companion to DEC-201 (Stewardship): Nursery operates at the business-formation layer, Stewardship at the platform-support layer.
-**Status:** Strategic principle, not a build commitment. Full spec at `Spec-Repo/spaces/nursery/NURSERY-MODEL.md`. Build sequencing: post-Phase 6 Supabase migration; pre-migration the model runs informally with Gina.
-**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md` + spec at `Spec-Repo/spaces/nursery/NURSERY-MODEL.md`.
+**Context:** Three patterns in Doron's existing work pointed toward formalizing a nursery model: TCA students running micro-businesses (already nursery-stage at the developmental edge), Travis at NW OG Farm (partnership-shaped relationship with Mycelia for LCFM booth + TCA employer of record), and Gina's emerging charcuterie business (first adult-tier case — three inbound wedding inquiries from Instagram, no marketing spend, real craft, aligned goals, constraint pattern that nursery support directly solves). Without a model, each of these required ad-hoc decisions that didn't scale beyond Doron's personal attention.
+**Decision:** Mycelia LLC operates as a sovereign nursery for life-aligned businesses. The nursery holds a business while it is structurally vulnerable — too early to support its own legal entity, banking, licensing complexity, and capital needs — and supports it until it can hold itself. At that point, the business is **transplanted**: it graduates to its own legal structure, owned and operated by its founder, while remaining connected to the LocalLane mycelium through the platform, ongoing consultation if desired, and friendship. Core principles: (1) **sovereignty preserved by structural design** — the participant's clients, brand, recipes, photos, social presence, reputation are theirs full stop; Mycelia has no claim ever; if they walk, they walk with everything that's theirs; (2) **plain-language understanding, not legal contract** inside the organism; world's rules at the bridge and outside; (3) **fees as pricing-structure allocations** — Mycelia consulting fee + LocalLane platform fee + kitchen rental + helper labor + capital repayment all baked into the participant's pricing model, paid by their end clients; circulation, not extraction; (4) **market-rate everything** — gifts create obligation, market-rate transactions create freedom; no hidden subsidies, no friendship-discount distortions; (5) **contractors not employees** — helpers are 1099, consistent with sovereignty principle and the practical reality of event-based work; (6) **transplant is the goal, not exit** — when the participant signals readiness, Mycelia supports the transition; the dependency dissolves, the connection persists. Full spec at `Spec-Repo/spaces/nursery/NURSERY-MODEL.md`.
+**Rationale:** Standard incubators take equity, push for scale, optimize for exit. The Mycelia nursery takes no equity, optimizes for the participant's actual life-aligned goals, and treats transplant — not exit — as the success outcome. This is a direct application of the Two-World Architecture (DEC-203): inside, the relationship is trust-based and sovereign-by-design; at the bridge, the participant carries insurance and licensing in their own name; outside, the world's rules apply when serving non-organism counterparties. The nursery names what's already happening informally with TCA micro-businesses and partnership-shaped support arrangements, and projects it forward as the structural template for future participants. Companion to DEC-201 (Stewardship): Nursery operates at the business-formation layer, Stewardship operates at the platform-support layer; both serve the same structural purpose — sovereign people supported by the organism, sustained through circulation, related through plain-language understanding.
+**Status:** Strategic principle, not a build commitment. Build sequencing: post-Phase 6 Supabase migration; pre-migration the model runs informally with Gina as the first adult-tier nursery participant. Selection criteria captured: real demand exists already (ideally without marketing spend); genuine craft or skill that produces something distinctive; clear personal goal alignment; constraint pattern that nursery support actually solves; relational fit and trust foundation; skin in the game. Eight open questions queued for the focused nursery launch session before Gina's first event lands (capital allocation budget, plain-language understanding template, consulting fee rate, backup commercial kitchens if church kitchen doesn't pan out, transplant readiness checklist, nursery-to-stewardship transition shape, TCA-to-nursery inheritance pattern, selection-process documentation).
 
 ---
 
 ### DEC-205: Mycelia as Its Own Bank for Nursery Participants — Explicit Capital Allocation Budget (2026-05-04)
 
 **Date:** 2026-05-04
-**Decision:** Mycelia LLC allocates capital to nursery-stage businesses with true potential. Capital deployment that earns through the consulting fee + platform fee + ongoing relationship while bearing real downside risk (capital advanced may not be recovered if the business doesn't reach transplant or chooses to walk). Not equity investment. Not gifts. **Explicit annual capital allocation budget** must be set, sized based on Mycelia's available cash position, expected number of nursery participants, average advance size per participant (varies by industry), and risk-adjusted recovery timeline. Capital advances repaid from event revenue per terms agreed in the plain-language understanding (typically a percentage of each event's revenue until the advance is recovered). The exact dollar amount is not specified — that's a decision for the focused nursery launch session before Gina's first event lands. The principle is firm: **explicit budget, not ad-hoc allocations.**
-**Status:** Active principle, dollar amount pending. Capital deployment occurs against this budget, tracked through Mycelia LLC's accounting; recovery flows through participant pricing-structure allocations.
-**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md` + `Spec-Repo/spaces/nursery/NURSERY-MODEL.md` §Economics.
+**Context:** Captured during the same Nursery Model conversation (DEC-204). Without an explicit capital allocation budget, every nursery participant becomes a one-off financial decision and Mycelia's overall risk exposure across the nursery is unclear. The pattern of Mycelia advancing capital ad-hoc to nursery participants would either become Doron's bottleneck or drift into informal "I'll help if I have it" decisions that obscure the platform's actual capacity to support multiple participants.
+**Decision:** Mycelia LLC allocates capital to nursery-stage businesses with true potential as **capital deployment that earns through the consulting fee, platform fee, and ongoing relationship**, while bearing real downside risk (capital advanced may not be recovered if the business doesn't reach transplant or chooses to walk). This is not equity investment in the standard sense, and it is not gifts. Capital advances are repaid from event revenue per terms agreed in the plain-language understanding (typically a percentage of each event's revenue until the advance is recovered). Mycelia bears the downside risk because Mycelia chose to take it. **An explicit annual budget for nursery capital advances must be set**, sized based on Mycelia's available cash position, number of nursery participants reasonably expected in the year, average advance size per participant (varies by industry — a charcuterie business needs less than a manufacturing business), and expected recovery timeline and risk-adjusted recovery rate. The exact dollar number is not specified at this DEC's level — it's a decision for the focused thinking session before launching the model. The principle is firm: **explicit budget, not ad-hoc allocations.**
+**Rationale:** Doron's framing: "We are our own bank and investors. We should allocate funds for this purpose." Every other piece of the nursery model is structural; capital allocation needs to be too. Without a budget, the Mycelia-as-bank role drifts from intentional structural support into ad-hoc rescues, which is both unsustainable for Mycelia and inconsistent with the market-rate-everything principle (DEC-204) that respects the participant's dignity. An explicit budget makes Mycelia's risk legible (to Doron, to Mycelia's accountant, eventually to any participant who wants to understand the structure they're operating in), and bounds the platform's exposure so multiple participants can be supported in parallel rather than in series.
+**Status:** Active principle, dollar amount pending. Budget-setting is on the agenda for the focused nursery launch session before Gina's first event lands. Capital deployment occurs against this budget, tracked through Mycelia LLC's accounting; recovery flows through the participant's pricing-structure allocations. Cross-reference: `NURSERY-MODEL.md` §Economics (Capital allocation budget); paired with DEC-201 (Stewardship Space) which uses a different economic model — stewards earn from the businesses they cultivate, not from capital deployment.
 
 ---

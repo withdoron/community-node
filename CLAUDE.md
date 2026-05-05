@@ -85,6 +85,34 @@ Doron operates on two machines (Mac mini primary, MacBook Pro 2017 secondary). B
 
 **Session discipline (load-bearing):** `git pull` as the first action of any session. Push after every commit. Path drift between machines is silent until it bites — always reference `~/Documents/GitHub/...` paths, never machine-specific absolute paths or `~/Documents/LocalLane/` (that path is retired). See PROJECT-BRAIN.md "Multi-Machine Setup" section for the full setup contract.
 
+## Mirror-Sync Discipline (DEC-182, 2026-05-05)
+
+Several docs intentionally exist in both Spec-Repo (canonical) and community-node (mirror). When a ship-it commit updates one of them, it MUST update both in the same commit. **Sync both or sync neither.** Drift is silent — entries land in canonical, the mirror falls behind, and the gap compounds across ship-its until a focused backfill is required (the May 5 mirror-sync backfill closed a 50+ DEC drift this way).
+
+**Currently mirrored docs (canonical → mirror):**
+
+| Spec-Repo (canonical) | community-node (mirror) |
+|---|---|
+| `platform/DECISIONS.md` | `DECISIONS.md` |
+| `platform/STATUS-TRACKER.md` | `STATUS-TRACKER.md` |
+| `platform/SEEDLING-TRACKER.md` | `SEEDLING-TRACKER.md` |
+| `platform/BUILD-PROTOCOL.md` | `BUILD-PROTOCOL.md` |
+| `platform/checklists/LAUNCH-CHECKLIST.md` | `checklists/LAUNCH-CHECKLIST.md` |
+| `context/PROJECT-BRAIN.md` | `context/PROJECT-BRAIN.md` |
+| `context/ACTIVE-CONTEXT.md` | `context/ACTIVE-CONTEXT.md` |
+| `context/SESSION-LOG.md` | `context/SESSION-LOG.md` |
+
+**Intentionally one-sided (do NOT mirror):**
+
+- `Spec-Repo/context/SHIP-IT-PROMPT.md` — Spec-Repo only (template lives at canonical).
+- `Spec-Repo/platform/ARCHITECTURE.md`, `STYLE-GUIDE.md`, `MISSION-VISION-VALUES.md`, etc. — Spec-Repo-only architectural references; community-node points to them but does not mirror.
+- `Spec-Repo/spaces/*/...` — strategic space specs are Spec-Repo only (Stewardship, Nursery, etc.).
+- `community-node/CLAUDE.md` — community-node only (the harness's persistent instruction file).
+- `community-node/AGENTS.md` — community-node only.
+- `community-node/README.md` — community-node only (package README, distinct from Spec-Repo's docs README).
+
+**The rule for ship-it commits:** if the commit touches any cell in the canonical column above, the corresponding cell in the mirror column must be touched in the same commit. The simplest mechanic is a `cp` from canonical to mirror at the end of the doc-update step, then commit both repos. If the rule would require additional fix-up (because the mirror has reverse-divergent content the canonical doesn't), pause and flag the divergence rather than silently overwriting.
+
 ## Schema Conformance (DEC-167, DEC-177, DEC-178)
 
 Three rules that compound — break any one and write paths fail silently or at runtime.
