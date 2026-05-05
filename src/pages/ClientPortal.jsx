@@ -144,6 +144,25 @@ function EstimatePortalView({ estimateId, signMode = false }) {
   const features = getFeatures(profile);
   const printRef = estimate.estimate_number || `id-${(estimate.id || '').slice(0, 8)}`;
 
+  // Totals breakdown — mirrors EstimatePreview/PDF and the CO ClientPortal view
+  // (DEC-203 Two-World Architecture: clients on the signing surface see the
+  // same honest math the contractor sees). Privacy via client_show_breakdown:
+  // when false, only the grand total renders; when true, the full row-by-row
+  // breakdown shows. Stored _amount fields are preferred when present, with a
+  // pct × subtotal fallback for backwards compat with records saved before
+  // the amount fields existed (O&P never had a stored amount, computed live).
+  const subtotal = parseFloat(estimate.subtotal) || 0;
+  const mfPct = parseFloat(estimate.management_fee_pct) || 0;
+  const mfAmount = parseFloat(estimate.management_fee_amount) || (subtotal * (mfPct / 100));
+  const ifPct = parseFloat(estimate.insurance_fee_pct) || 0;
+  const ifAmount = parseFloat(estimate.insurance_fee_amount) || (subtotal * (ifPct / 100));
+  const opPct = parseFloat(estimate.overhead_profit_pct) || 0;
+  const opAmount = subtotal * (opPct / 100);
+  const otherAmount = parseFloat(estimate.other_amount) || 0;
+  const taxPct = parseFloat(estimate.tax_rate) || 0;
+  const taxAmount = parseFloat(estimate.tax_amount) || 0;
+  const showBreakdown = estimate.client_show_breakdown === true;
+
   return (
     <PortalShell printTitle={`Estimate-${printRef}`}>
       <div className="max-w-3xl mx-auto bg-white rounded-xl overflow-hidden shadow-sm print:rounded-none print:shadow-none print:max-w-none">
@@ -211,19 +230,50 @@ function EstimatePortalView({ estimateId, signMode = false }) {
             </div>
           )}
 
-          {/* Totals */}
+          {/* Totals — full breakdown when client_show_breakdown is true,
+              grand total only when false. Display order matches EstimatePreview
+              and the PDF: Subtotal → Management Fee → Insurance Fee → O&P →
+              Other → Tax → Total. */}
           <div className="border-t border-border pt-4 space-y-1 text-sm">
-            {estimate.subtotal > 0 && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground/70">Subtotal</span>
-                <span className="font-medium">{fmt(estimate.subtotal)}</span>
-              </div>
-            )}
-            {features.tax_enabled === true && estimate.tax_amount > 0 && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground/70">Tax ({estimate.tax_rate}%)</span>
-                <span className="font-medium">{fmt(estimate.tax_amount)}</span>
-              </div>
+            {showBreakdown && (
+              <>
+                {subtotal > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground/70">Subtotal</span>
+                    <span className="font-medium">{fmt(subtotal)}</span>
+                  </div>
+                )}
+                {features.management_fees_enabled === true && mfPct > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground/70">Management Fee ({mfPct}%)</span>
+                    <span className="font-medium">{fmt(mfAmount)}</span>
+                  </div>
+                )}
+                {features.insurance_fee_enabled === true && ifPct > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground/70">Insurance Fee ({ifPct}%)</span>
+                    <span className="font-medium">{fmt(ifAmount)}</span>
+                  </div>
+                )}
+                {features.overhead_profit_enabled === true && opPct > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground/70">O&P ({opPct}%)</span>
+                    <span className="font-medium">{fmt(opAmount)}</span>
+                  </div>
+                )}
+                {otherAmount > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground/70">Other</span>
+                    <span className="font-medium">{fmt(otherAmount)}</span>
+                  </div>
+                )}
+                {features.tax_enabled === true && taxAmount > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground/70">Tax ({taxPct}%)</span>
+                    <span className="font-medium">{fmt(taxAmount)}</span>
+                  </div>
+                )}
+              </>
             )}
             <div className="flex justify-between text-base font-bold pt-2 border-t border-border">
               <span>Total</span>
