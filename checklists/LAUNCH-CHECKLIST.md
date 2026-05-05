@@ -32,7 +32,9 @@
 - [x] **Tab nav tap-on-active reset** (2026-05-03, `cb26d4e`) — `MyLaneDrillView` `tabResetKey`; one change covers all workspaces. Verified by Doron 2026-05-04.
 - [x] **Required-field UX audit + fixes (DEC-200)** (2026-05-03, `bdd90e4`) — six fields fixed across five forms; canonical `*` + client-side toast pattern; no Base44 schema errors leak to user. Verified by Doron 2026-05-04.
 - [x] **Bari's Patricia Heath estimate (EST-2026-005) entered, multi-page PDF generates correctly, ready for pre-send cleanup** (2026-05-04)
-- [ ] Estimate invalidation sweep (DEC-196 + DEC-199 family) — covers FieldServiceEstimates `saveMutation` bare-array `invalidateQueries` + per-project FSChangeOrder key gap
+- [x] **Platform-wide invalidation sweep (DEC-202)** (2026-05-04 evening, `60ebb11` + `e7bd500`) — 56 bare-array silent no-ops fixed across 21 files; 6 list/detail coverage gaps closed; refresh-on-save restored universally. Most egregious bug fixed: Recommend.jsx had 12 silent invalidations. Pending Doron's verification of the eight surface checks in Base44 Act-As-User preview.
+- [ ] Shared invalidation helpers refactor — Living Feet candidate; `src/utils/fsInvalidations.js` with `invalidateEstimates`, `invalidateProjects`, `invalidateLogs`. Separate refactor commit.
+- [ ] Query-key naming drift cleanup — three inconsistencies worth standardizing (profile-scoped vs bare prefix; `['fs-payments', projectId]` vs `['fs-payments-all']`; three names for "photos for one project").
 - [ ] Insurance toggle as % (held for Doron thinking)
 - [ ] Hourly rate verification
 - [ ] Estimate Types expansion (Base44 + Hyphae prompts queued)

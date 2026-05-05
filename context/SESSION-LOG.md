@@ -1765,3 +1765,78 @@ The May 1–3 window is the first sustained dogfood-driven fix arc since Phase 1
 **Ship-it timestamp:** 2026-05-04, end of day. Phase 1 dogfood-verified end-to-end. Tomorrow's first move: Estimate invalidation sweep (DEC-199 + DEC-196 family).
 
 ---
+
+## Session Log — 2026-05-04 (evening) (Platform-wide invalidation sweep + Two-World Architecture + Nursery Model spec)
+
+**Surface:** Hyphae on Mac mini (sweep); Mycelia in Claude.ai chat (strategic conversations).
+
+**Focus:** Single coherent evening arc — a platform-wide query-invalidation audit closed Doron's long-standing dogfood complaints about "lots of places need a refresh after creation," and two extended strategic conversations crystallized the foundational Two-World Architecture principle and the Nursery Model spec. The morning's Stewardship Space spec and the evening's Nursery Model are now companion specs resting on the same foundational principle.
+
+**Shipped to community-node (origin/main):**
+
+1. **Platform-wide invalidation sweep (`60ebb11`):** Audit cross-referenced every `useMutation` in the codebase against every `useQuery` subscriber. Two trap families fixed in one sweep — (a) **bare-array form** — 56 calls across 21 files using `invalidateQueries(['key'])` (silent no-op in React Query v5 per DEC-196). All converted to object form `invalidateQueries({ queryKey: ['key'] })`. Touches FS, admin, dashboard, team, finance, mealprep, propertymgmt, ClientPortal, FrequencyStation, Recommend. (b) **Coverage gap** — six FS mutation surfaces missing per-id detail keys their subscribers depended on. FSEstimate (8 mutation sites) was invalidating only the list key; added per-client + per-estimate + per-project bare-prefix keys. FSClient detail-view update was missing list invalidation. FSProject CRUD (4 sites) + CO sign/void (2 sites) + estimate convert-to-project all missing per-id detail and per-client keys. FSPayment write missing dashboard `fs-payments-all`. FSDailyLog/Material/Labor/Photo write missing timeline-view + client-portal subscribers. Most egregious bug restored: `Recommend.jsx` had 12 silent invalidations — every Nod/Vouch/Recommendation save was a silent no-op until this commit.
+2. **CLAUDE.md sub-lessons (`e7bd500`):** Three sub-rules extending the existing DEC-199 entry — audit cadence (when adding a new useQuery, grep every useMutation that writes the entity); list-vs-detail asymmetry (list mutations usually skip detail invalidations; detail mutations almost always need to invalidate the list too — most "didn't refresh" reports come from this direction); bare-prefix invalidation pattern (`['fs-X']` matches all `['fs-X', anyId]` subscribers — use when the mutation handler doesn't have easy access to a specific id).
+
+**Shipped to Spec-Repo (this commit):**
+
+3. **`spaces/nursery/NURSERY-MODEL.md`** — new file, full Nursery Model spec. Companion to `spaces/stewardship/STEWARDSHIP-SPACE.md` (committed earlier today at `e0e89ca`).
+4. **`context/PROJECT-BRAIN.md`** — Two-World Architecture section added as a top-level foundational principle, placed immediately after Circulation Over Extraction (the natural sibling — both name foundational economic shape; DEC-203 references the placement). The principle is theologically grounded ("as within so without," kingdom-of-God-within-you, mustard seed parable, many-rooms image) and structurally precise. Names what was implicit across multiple earlier decisions but never formalized at the foundational level.
+5. **`platform/DECISIONS.md`** — DEC-202 through DEC-205 appended.
+6. **`context/ACTIVE-CONTEXT.md`** — refreshed to reflect platform-wide refresh-on-save restored + two new strategic principles captured.
+7. **`context/SESSION-LOG.md`** — this entry.
+8. **`platform/STATUS-TRACKER.md`** — Session Log row appended; Field Service node status reflects the invalidation sweep.
+9. **`platform/checklists/LAUNCH-CHECKLIST.md`** — invalidation sweep items checked off.
+
+**Mirrored to community-node (this commit):**
+
+10. **`context/PROJECT-BRAIN.md`** — synced from Spec-Repo canonical (full overwrite, includes the Two-World Architecture addition).
+11. **`context/ACTIVE-CONTEXT.md`** — synced.
+12. **`context/SESSION-LOG.md`** — synced.
+13. **`DECISIONS.md`** — DEC-202 through DEC-205 appended (mirror gap between DEC-148 and DEC-198 still pre-existing; the five most-recent DECs (198–205) are now present in the mirror).
+
+**Strategic conversations that produced the new specs:**
+
+- **Two-World Architecture conversation:** surfaced explicitly while working through Gina's emerging charcuterie business — specifically, how Mycelia LLC could support Gina structurally without either (a) imposing internal trust-based logic on external counterparties (insurance, licensing, venue contracts) or (b) importing the world's adversarial logic into the Mycelia-Gina relationship (equity grabs, defensive lawyering, fee extraction). Naming the principle resolved the design question and unlocked the Nursery Model. The principle is theologically grounded in "as within so without" (Hermetic correspondence) and "the kingdom of God is within you" (Luke 17:21), with the mustard seed parable and Christ's "many rooms" image as the architectural picture. Captured at DEC-203 + PROJECT-BRAIN.md.
+
+- **Nursery Model conversation:** prompted by Doron mentioning three wedding inquiries to Gina from her Instagram and asking about pricing strategy. Crystallized through extended strategic exchanges. Mycelia LLC operates as a sovereign nursery for life-aligned businesses; transplant rather than exit is the goal; market-rate fee allocations rather than gifts; contractors not employees; explicit capital allocation budget. The church kitchen possibility (TCA's prospective home location has a large commercial kitchen) is a near-term parallel track — if licensable, it gives the church real income, gives nursery participants affordable kitchen access, and embodies the "teach a man to fish" principle Doron holds. Captured at DEC-204 + DEC-205 + NURSERY-MODEL.md.
+
+**Decisions ratified today (evening):**
+
+- **DEC-202** — React Query invalidation sweep complete; bare-array form canonically banned; list/detail key pairs travel together as standard.
+- **DEC-203** — Two-World Architecture as foundational principle. Inside the organism: plain-language understanding, fee allocations, sovereignty-preserved. Outside: legal contracts, insurance, regulatory compliance. Bridge: honest translation, no confusion of layers.
+- **DEC-204** — Nursery Model strategic principle. Mycelia LLC as sovereign nursery; transplant rather than exit; market-rate everything; contractors not employees; sovereignty preserved by structural design.
+- **DEC-205** — Mycelia as its own bank for nursery participants. Capital advances from explicit annual budget; recovered via revenue-percentage agreements; downside risk borne by Mycelia per nursery agreement.
+
+**Items needing Doron's verification in Base44 Act-As-User preview (from the invalidation sweep):**
+
+- Estimates create/edit/send-for-signature → confirm immediate refresh, no manual reload.
+- Client edit from detail view → confirm Clients tab list shows changes without reload.
+- Change Order sign/void → confirm `total_budget` recomputes everywhere displayed.
+- Convert estimate to project → confirm both surfaces update.
+- Payment logging → confirm dashboard Net Cash + Project Detail Paid Out both update immediately.
+- Recommendations (Recommend.jsx) → confirm Nod/Vouch badges appear without reload (longest-standing silent bug — 12 invalidations in one file).
+- Frequency Station → confirm submitted seed appears in My Seeds without reload.
+- Admin Business edits → confirm list updates without reload.
+
+**Open follow-ups carried forward (not closed in this commit):**
+
+1. **Shared invalidation helpers** (`src/utils/fsInvalidations.js` with `invalidateEstimates`, `invalidateProjects`, `invalidateLogs`) — strong Living Feet candidate; four-key set repeats 8x at FSEstimate alone. Refactor commits and bug-fix commits should be separate.
+2. **Query-key naming drift** — three inconsistencies worth standardizing: profile-scoped vs bare key forms; `['fs-payments', projectId]` vs `['fs-payments-all']` naming inconsistency; three names for "photos for one project" (`fs-client-photos`, `fs-project-photos`, `fs-timeline-photos`). Document for now, restructure later.
+3. **Estimate Types expansion** (Base44 + Hyphae prompts queued) — `fixed_price` / `flat_fee` / `time_and_materials` enum + 4 supporting fields.
+4. **Insurance toggle as %** — held for Doron thinking.
+5. **Hourly rate verification** — confirm FSDailyLog labor rate reads from the right setting.
+6. **PDF formatting polish** — dedicated session.
+7. **Documents UX session** — Doron's question about whether Documents should require a client.
+8. **Log → Project surface architecture with line-item attribution** — Phase 2 milestone.
+9. **Dan Sikes logo Gemini variants** — separate workstream.
+10. **`FieldServiceReport.jsx` printNode migration** — low risk; do when next touched.
+11. **Permit edit/inspection labels** — convert `text-xs text-muted-foreground/70` to `LABEL_CLASS` for visual consistency.
+12. **community-node DECISIONS.md drift** between DEC-148 and DEC-198 — pre-existing.
+
+**Posture note for the record:**
+
+Today (2026-05-04) was a structural day — the invalidation sweep closed a class of long-running bugs that touched nearly every surface (Frequency, Recommend, Admin, Estimates, Projects, Documents, Permits all had silent invalidations); the morning's Stewardship Space and the evening's Nursery Model named two structural roles that were happening informally; and the Two-World Architecture principle that landed in the evening surfaced after the Nursery work made it impossible to ignore. The architectural picture is now: a foundational principle (Two-World), two role-specific spaces resting on it (Stewardship at the platform-support layer, Nursery at the business-formation layer), and explicit capital allocation discipline (DEC-205) for the bank-and-investor function Mycelia LLC takes on with nursery participants. The "as within so without" framing names what every other architectural decision has been groping toward.
+
+**Ship-it timestamp:** 2026-05-04, end of day (evening). Phase 1 dogfood-verified + invalidation sweep complete. Two new strategic principles captured. Tomorrow's first move: spot-check the eight invalidation-sweep verification items in Base44 Act-As-User preview, then return to the open queue (Estimate Types, Insurance toggle thinking, etc.).
+
+---

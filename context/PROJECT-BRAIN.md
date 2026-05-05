@@ -21,6 +21,26 @@ This isn't decoration. It's the design principle: every feature should make the 
 
 The foundational philosophy. Users earn visibility through community engagement, not paid promotion. Revenue sharing flows to businesses based on actual participation. Joy Coins (the platform's engagement currency) reward real community activity. No ads. No algorithmic manipulation. No pay-to-play.
 
+## The Two-World Architecture (DEC-203)
+
+LocalLane organizes economic life across two distinct worlds, with a deliberate bridge between them.
+
+**Inside the organism**, the rules are relational. People relate through plain-language understanding documents, not legal contracts. Trust is the substrate. Costs and fees are not adversarial billings between participants — they are allocations into the pricing structure that the end client pays. Every part that contributes to producing value receives sustenance from the same flow. This is circulation, not extraction.
+
+**Outside the organism**, the rules are the world's. Legal language, insurance, licensing, tax compliance, and enforceable contracts apply because non-organism counterparties operate in that frame. Crossing the boundary requires the protections the world requires. The organism does not pretend the outside world's rules don't exist; it puts on the appropriate armor at the boundary and takes it off again on the inside.
+
+The bridge between the two worlds is honest and necessary. Inside is not utopia; outside is not enemy. Both are real, both are operated in, and the distinction between them is structural — not aspirational.
+
+**Why the distinction matters.** Most mission-driven organizations fail at one of two failure modes: (1) they try to convert the outside into the inside — imposing internal trust-based logic on external counterparties, producing naïveté at the boundary, uninsured operations, undocumented commitments, vulnerability to predatory actors who recognize the trust as exploitable. Mission collapse via boundary failure. (2) They let the outside corrupt the inside — importing the world's adversarial logic into their own ranks, equity-grabbing contracts with their own people, defensive lawyering between trusted participants, fee structures that extract from the people the mission claims to serve. Mission collapse via internal capture. The two-world architecture prevents both by being explicit: **inside operates one way, outside operates another way, and we honor the bridge between them without confusing the two.**
+
+**In practice.** Inside: plain-language understanding documents govern relationships. Fees are pricing-structure allocations, not adversarial billings. Sovereignty is preserved by structural design. Transplant — not exit — is the goal. At the bridge: legal contracts, certificates of insurance, licensing, tax compliance, written client terms. Outside: counterparty agreements use the world's language without softening; insurance and regulatory compliance are operational costs baked into pricing, not improvised when something goes wrong.
+
+**Theological grounding.** "As within so without" (the Hermetic principle of correspondence) and "the kingdom of God is within you" (Luke 17:21) name the same structural insight from different traditions: what is rightly ordered inside reproduces itself outside, in the world's terms, without losing its essential character. The mustard seed parable (Matthew 13:31-32) is structurally precise for what the organism is doing — something planted small, in soil already prepared, that becomes shelter for many. Christ "preparing a place with many rooms" (John 14:2) is the architectural image: many spaces under one roof, each hosting a different kind of life, all connected, none in hierarchy of value.
+
+**The decision filter.** When designing any new feature, role, or relationship, the two-world question applies: where does this operate (inside / bridge / outside)? Are the appropriate rules being used (plain-language inside, legal language outside, translated between at the boundary)? Is sovereignty preserved? Is circulation maintained? If a proposed feature, contract, fee structure, or role violates the two-world distinction — for example, by importing legal-contract logic into trust-based participant relationships, or by leaving boundary operations under-protected — that is structural drift and should be corrected before shipping.
+
+This is the deep "why" beneath every other architectural decision. Pricing models, agent architectures, space designs, role definitions, business structures all flow from this principle. Stewardship and Nursery (companion specs) both rest explicitly on it.
+
 ## Dark Until Explored (DEC-117)
 
 The app only illuminates what the user has entered through. Everything else exists but stays dark — not locked, not hidden, just quiet. Features light up through real connections and organic discovery. Spaces dim when unused but never turn off. The organism remembers. Entry point determines first lit room.

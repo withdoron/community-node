@@ -695,3 +695,39 @@ Save-button `disabled` state remains as defense in depth, not a substitute. For 
 **Reference:** Full context in `Spec-Repo/platform/DECISIONS.md` + spec at `Spec-Repo/spaces/stewardship/STEWARDSHIP-SPACE.md`.
 
 ---
+
+### DEC-202: React Query Invalidation Sweep — Bare-Array Form Banned, List/Detail Key Pairs Travel Together (2026-05-04)
+
+**Date:** 2026-05-04
+**Decision:** Platform-wide audit (commit `60ebb11`) closed 56 silent bare-array `invalidateQueries(['key'])` calls across 21 files (every one a no-op in React Query v5) and 6 mutation surfaces missing per-id detail keys their subscribers depended on. Bare-array form canonically banned; always use object form `invalidateQueries({ queryKey: ['key'] })`. When a mutation writes an entity queried under both list-level and per-id detail keys, every subscriber's key must be in the mutation's invalidation list. Bare-prefix invalidation matches all id-suffixed subscribers — use when the mutation handler doesn't have easy access to a specific id. Three sub-rules captured in `CLAUDE.md` extending DEC-199: audit cadence, list-vs-detail asymmetry, bare-prefix invalidation pattern.
+**Status:** Active. Sweep shipped at `60ebb11`; CLAUDE.md sub-lessons at `e7bd500`. Two follow-ups deferred: shared invalidation helpers refactor and query-key naming drift cleanup.
+**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md`.
+
+---
+
+### DEC-203: Two-World Architecture as Foundational Principle (2026-05-04)
+
+**Date:** 2026-05-04
+**Decision:** LocalLane organizes economic life across two distinct worlds with a deliberate bridge between them. Inside the organism: relational rules — plain-language understanding documents, fees as pricing-structure allocations, sovereignty preserved by structural design. Outside the organism: the world's rules — legal language, insurance, licensing, tax compliance, enforceable contracts. The bridge: honest translation, no confusion of layers. Captured as a top-level foundational principle in `Spec-Repo/context/PROJECT-BRAIN.md` alongside Circulation Over Extraction and Dark Until Explored. Theologically grounded ("as within so without," Luke 17:21, mustard seed parable, many-rooms image). Decision filter for every future build: where does this operate (inside / bridge / outside)? Are the appropriate rules being used? Is sovereignty preserved? Is circulation maintained?
+**Status:** Active. Foundational. Stewardship Space (DEC-201) and Nursery Model (DEC-204) rest explicitly on this principle.
+**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md` + `Spec-Repo/context/PROJECT-BRAIN.md`.
+
+---
+
+### DEC-204: Nursery Model — Mycelia LLC as Sovereign Nursery for Life-Aligned Businesses (2026-05-04)
+
+**Date:** 2026-05-04
+**Decision:** Mycelia LLC operates as a sovereign nursery for life-aligned businesses. The nursery holds a business while it is structurally vulnerable and supports it until it can hold itself. At that point, the business is **transplanted** — graduates to its own legal structure, owned and operated by its founder, while remaining connected through the LocalLane platform and friendship. Core principles: sovereignty preserved by structural design (participant's clients/brand/recipes/photos are theirs full stop); plain-language understanding rather than legal contract inside the organism; fees as pricing-structure allocations not adversarial billings; market-rate everything (gifts create obligation, market-rate transactions create freedom); contractors not employees; transplant as goal not exit. First adult-tier participant: Gina's emerging charcuterie business. Companion to DEC-201 (Stewardship): Nursery operates at the business-formation layer, Stewardship at the platform-support layer.
+**Status:** Strategic principle, not a build commitment. Full spec at `Spec-Repo/spaces/nursery/NURSERY-MODEL.md`. Build sequencing: post-Phase 6 Supabase migration; pre-migration the model runs informally with Gina.
+**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md` + spec at `Spec-Repo/spaces/nursery/NURSERY-MODEL.md`.
+
+---
+
+### DEC-205: Mycelia as Its Own Bank for Nursery Participants — Explicit Capital Allocation Budget (2026-05-04)
+
+**Date:** 2026-05-04
+**Decision:** Mycelia LLC allocates capital to nursery-stage businesses with true potential. Capital deployment that earns through the consulting fee + platform fee + ongoing relationship while bearing real downside risk (capital advanced may not be recovered if the business doesn't reach transplant or chooses to walk). Not equity investment. Not gifts. **Explicit annual capital allocation budget** must be set, sized based on Mycelia's available cash position, expected number of nursery participants, average advance size per participant (varies by industry), and risk-adjusted recovery timeline. Capital advances repaid from event revenue per terms agreed in the plain-language understanding (typically a percentage of each event's revenue until the advance is recovered). The exact dollar amount is not specified — that's a decision for the focused nursery launch session before Gina's first event lands. The principle is firm: **explicit budget, not ad-hoc allocations.**
+**Status:** Active principle, dollar amount pending. Capital deployment occurs against this budget, tracked through Mycelia LLC's accounting; recovery flows through participant pricing-structure allocations.
+**Reference:** Full context in `Spec-Repo/platform/DECISIONS.md` + `Spec-Repo/spaces/nursery/NURSERY-MODEL.md` §Economics.
+
+---
