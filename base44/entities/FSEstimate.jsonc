@@ -50,7 +50,7 @@
         "declined",
         "expired"
       ],
-      "description": "Estimate status. awaiting_signature + signed added 2026-04-29 to match the signing-flow code (signEstimate sets 'signed'; FieldServiceEstimates sets 'awaiting_signature' on Request Signature)."
+      "description": "Estimate status. awaiting_signature + signed added 2026-04-29 to match the signing-flow code."
     },
     "date": {
       "type": "string",
@@ -88,10 +88,19 @@
       "default": 0,
       "description": "Management fee percentage applied to subtotal"
     },
+    "insurance_fee_pct": {
+      "type": "number",
+      "default": 0,
+      "description": "Insurance fee percentage applied to subtotal. Calculates against subtotal-only (does not stack on Management Fee or O&P). Manually entered by the contractor based on their annual insurance allocation."
+    },
+    "insurance_fee_amount": {
+      "type": "number",
+      "description": "Calculated insurance fee amount. Derived from subtotal \u00d7 insurance_fee_pct."
+    },
     "tax_rate": {
       "type": "number",
       "default": 0,
-      "description": "Tax rate percentage. Canonical (consolidated 2026-04-29 — tax_rate_pct removed; the codebase has always written tax_rate)."
+      "description": "Tax rate percentage. Canonical (consolidated 2026-04-29 \u2014 tax_rate_pct removed; the codebase has always written tax_rate)."
     },
     "tax_amount": {
       "type": "number"

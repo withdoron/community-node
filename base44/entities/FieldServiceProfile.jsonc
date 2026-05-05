@@ -92,6 +92,11 @@
       "default": false,
       "description": "Controls whether the Overhead & Profit (O&P) percentage field appears on estimates"
     },
+    "insurance_fee_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "When enabled, estimates and change orders include an Insurance Fee field that applies a manual percentage markup to subtotal."
+    },
     "industry_preset": {
       "type": "string",
       "enum": [
@@ -156,9 +161,6 @@
   },
   "rls": {
     "create": {
-      "created_by": "{{user.email}}"
-    },
-    "update": {
       "created_by": "{{user.email}}"
     },
     "delete": {
