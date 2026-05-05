@@ -94,38 +94,44 @@ export function migrateLineItems(rawLineItems, rawLaborEstimate) {
  * calcTotals — pure math for line items + percentage-based calculated
  * additions. Identical math on FSEstimate and FSChangeOrder.
  *
- * subtotal           = sum of line item amounts
+ * subtotal            = sum of line item amounts
  * managementFeeAmount = subtotal * (managementFeePct / 100)   [if mgmt fee enabled]
- * opAmount           = subtotal * (overheadProfitPct / 100)   [if O&P enabled]
- * beforeTax          = subtotal + managementFeeAmount + opAmount + otherAmount
- * taxAmount          = beforeTax * (taxRate / 100)
- * total              = beforeTax + taxAmount  (the full client-billed grand total)
+ * insuranceFeeAmount  = subtotal * (insuranceFeePct / 100)    [if insurance fee enabled]
+ * opAmount            = subtotal * (overheadProfitPct / 100)  [if O&P enabled]
+ * beforeTax           = subtotal + managementFeeAmount + insuranceFeeAmount + opAmount + otherAmount
+ * taxAmount           = beforeTax * (taxRate / 100)
+ * total               = beforeTax + taxAmount  (the full client-billed grand total)
  *
- * Management Fee and O&P both calculate against subtotal-only — neither stacks
- * on the other. Display order: Subtotal → Management Fee → O&P → Other → Tax →
- * Total. Management Fee precedes O&P because for GCs charging it (Bari's mode)
- * it's the primary line; O&P is the secondary insurance-work concept.
+ * Management Fee, Insurance Fee, and O&P all calculate against subtotal-only —
+ * none of them stack on the others. Display order: Subtotal → Management Fee →
+ * Insurance Fee → O&P → Other → Tax → Total. Insurance Fee sits between
+ * Management Fee and O&P because for GCs charging both, the management fee is
+ * the primary GC line, the insurance fee is the cost-allocation line for the
+ * contractor's annual coverage, and O&P is the insurance-work overlay.
  *
  * For FSChangeOrder, this `total` is the value written to both `total` and
  * `amount` — `amount` is canonical for FSProject.total_budget recompute, so
- * the recompute correctly captures management fee, O&P, tax, and other lines,
- * not just the line items subtotal.
+ * the recompute correctly captures management fee, insurance fee, O&P, tax,
+ * and other lines, not just the line items subtotal.
  *
- * Backward compatible: managementFeePct is the optional 5th argument and
- * defaults to 0. Existing callers that pass only 4 args get unchanged math.
+ * Backward compatible: managementFeePct is the optional 5th argument,
+ * insuranceFeePct is the optional 6th — both default to 0. Existing callers
+ * that pass fewer args get unchanged math.
  */
-export function calcTotals(items, overheadProfitPct, taxRate, otherAmount, managementFeePct) {
+export function calcTotals(items, overheadProfitPct, taxRate, otherAmount, managementFeePct, insuranceFeePct) {
   const subtotal = (items || []).reduce((s, it) => {
     const amt = parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0));
     return s + amt;
   }, 0);
   const managementFeeAmount = subtotal * ((parseFloat(managementFeePct) || 0) / 100);
+  const insuranceFeeAmount = subtotal * ((parseFloat(insuranceFeePct) || 0) / 100);
   const opAmount = subtotal * ((parseFloat(overheadProfitPct) || 0) / 100);
-  const beforeTax = subtotal + managementFeeAmount + opAmount + (parseFloat(otherAmount) || 0);
+  const beforeTax = subtotal + managementFeeAmount + insuranceFeeAmount + opAmount + (parseFloat(otherAmount) || 0);
   const taxAmount = beforeTax * ((parseFloat(taxRate) || 0) / 100);
   return {
     subtotal,
     managementFeeAmount,
+    insuranceFeeAmount,
     opAmount,
     beforeTax,
     taxAmount,

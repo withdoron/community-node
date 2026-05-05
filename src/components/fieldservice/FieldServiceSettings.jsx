@@ -333,6 +333,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
             { key: 'permits_enabled', label: 'Permits & Inspections', desc: 'Track building permits, inspection logs, and eBuild links' },
             { key: 'subs_enabled', label: 'Subcontractor Tracking', desc: 'Add subs to estimates, assign to projects, track in People tab' },
             { key: 'management_fees_enabled', label: 'Management Fee', desc: 'Add a management fee percentage line to estimates and change orders. Common for general contractors charging to manage the project.' },
+            { key: 'insurance_fee_enabled', label: 'Insurance Fee', desc: 'Add an insurance fee percentage line to estimates and change orders. Useful for allocating annual insurance premiums across each job. Independent of the Xactimate format toggle.' },
             { key: 'overhead_profit_enabled', label: 'Overhead & Profit (O&P)', desc: 'Add an O&P percentage line to estimates for insurance work' },
             { key: 'xactimate_enabled', label: 'Xactimate Formatting', desc: 'Group estimate line items by trade category in Xactimate style' },
             { key: 'tax_enabled', label: 'Sales Tax', desc: 'Add a sales tax line to estimates and change orders. Useful for contractors in tax states (most US states except Oregon, Alaska, Delaware, Montana, New Hampshire).' },

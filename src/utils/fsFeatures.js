@@ -20,6 +20,7 @@ export const FEATURE_DEFAULTS = {
   permits_enabled: true,
   subs_enabled: true,
   management_fees_enabled: false,
+  insurance_fee_enabled: false,
   overhead_profit_enabled: false,
   xactimate_enabled: false,
   // Tax defaults off — most Oregon contractors (LocalLane's primary market) don't

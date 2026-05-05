@@ -124,6 +124,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     description: '',
     line_items: [makeItem()],
     management_fee_pct: 0,
+    insurance_fee_pct: 0,
     overhead_profit_pct: 0,
     tax_rate: 0,
     other_amount: 0,
@@ -150,6 +151,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       description: '',
       line_items: [makeItem()],
       management_fee_pct: parseEstimatePct(parentEstimate, 'management_fee_pct'),
+      insurance_fee_pct: parseEstimatePct(parentEstimate, 'insurance_fee_pct'),
       overhead_profit_pct: parseEstimatePct(parentEstimate, 'overhead_profit_pct'),
       tax_rate: parseEstimatePct(parentEstimate, 'tax_rate'),
       other_amount: 0,
@@ -185,6 +187,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       description: co.description || '',
       line_items: hydrated,
       management_fee_pct: parseFloat(co.management_fee_pct) || 0,
+      insurance_fee_pct: parseFloat(co.insurance_fee_pct) || 0,
       overhead_profit_pct: parseFloat(co.overhead_profit_pct) || 0,
       tax_rate: parseFloat(co.tax_rate) || 0,
       other_amount: parseFloat(co.other_amount) || 0,
@@ -196,8 +199,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
   const setCOField = (field, value) => setCOForm((prev) => ({ ...prev, [field]: value }));
   const setCOLineItems = (items) => setCOForm((prev) => ({ ...prev, line_items: items }));
   const coTotals = useMemo(
-    () => calcTotals(coForm.line_items, coForm.overhead_profit_pct, coForm.tax_rate, coForm.other_amount, coForm.management_fee_pct),
-    [coForm.line_items, coForm.overhead_profit_pct, coForm.tax_rate, coForm.other_amount, coForm.management_fee_pct],
+    () => calcTotals(coForm.line_items, coForm.overhead_profit_pct, coForm.tax_rate, coForm.other_amount, coForm.management_fee_pct, coForm.insurance_fee_pct),
+    [coForm.line_items, coForm.overhead_profit_pct, coForm.tax_rate, coForm.other_amount, coForm.management_fee_pct, coForm.insurance_fee_pct],
   );
 
   // ─── Query: All projects ────────────────────────
@@ -537,6 +540,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         coForm.tax_rate,
         coForm.other_amount,
         coForm.management_fee_pct,
+        coForm.insurance_fee_pct,
       );
       const payload = {
         title: coForm.title.trim(),
@@ -545,15 +549,17 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         subtotal: totals.subtotal,
         management_fee_pct: parseFloat(coForm.management_fee_pct) || 0,
         management_fee_amount: totals.managementFeeAmount,
+        insurance_fee_pct: parseFloat(coForm.insurance_fee_pct) || 0,
+        insurance_fee_amount: totals.insuranceFeeAmount,
         overhead_profit_pct: parseFloat(coForm.overhead_profit_pct) || 0,
         tax_rate: parseFloat(coForm.tax_rate) || 0,
         tax_amount: totals.taxAmount,
         other_amount: parseFloat(coForm.other_amount) || 0,
         total: totals.total,
         // amount is canonical for FSProject.total_budget recompute. It carries
-        // the FULL grand total — line items + management fee + O&P + tax +
-        // other — so every signed CO contributes its complete client-billed
-        // value to the parent project's contract total.
+        // the FULL grand total — line items + management fee + insurance fee +
+        // O&P + tax + other — so every signed CO contributes its complete
+        // client-billed value to the parent project's contract total.
         amount: totals.total,
       };
       if (editingCOId) {
@@ -580,6 +586,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         description: '',
         line_items: [makeItem()],
         management_fee_pct: parseEstimatePct(parentEstimate, 'management_fee_pct'),
+        insurance_fee_pct: parseEstimatePct(parentEstimate, 'insurance_fee_pct'),
         overhead_profit_pct: parseEstimatePct(parentEstimate, 'overhead_profit_pct'),
         tax_rate: parseEstimatePct(parentEstimate, 'tax_rate'),
         other_amount: 0,
@@ -1512,7 +1519,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                 </div>
 
                 {/* Management Fee — gated on management_fees_enabled feature flag, same as estimates.
-                    Calculates against subtotal-only; never stacks on O&P. */}
+                    Calculates against subtotal-only; never stacks on Insurance Fee or O&P. */}
                 {features?.management_fees_enabled === true && (
                   <>
                     <div className="flex items-center justify-between gap-4">
@@ -1531,6 +1538,32 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                     {coTotals.managementFeeAmount > 0 && (
                       <div className="flex justify-between text-muted-foreground pl-4">
                         <span>Management Fee Amount</span><span>{fmt(coTotals.managementFeeAmount)}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Insurance Fee — gated on insurance_fee_enabled feature flag, same as estimates.
+                    Manual % entry of the contractor's annual insurance allocation, applied to subtotal-only.
+                    Inherits from parent estimate on CO create; editable per CO. */}
+                {features?.insurance_fee_enabled === true && (
+                  <>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-foreground-soft">Insurance Fee</span>
+                      <div className="flex items-center gap-1">
+                        <input type="number"
+                          className="w-20 bg-secondary border border-border text-foreground rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-2 focus:ring-ring"
+                          value={coForm.insurance_fee_pct}
+                          onChange={(e) => setCOField('insurance_fee_pct', e.target.value)}
+                          onFocus={(e) => { if (parseFloat(e.target.value) === 0) setCOField('insurance_fee_pct', ''); }}
+                          onBlur={(e) => { if (e.target.value === '') setCOField('insurance_fee_pct', 0); }}
+                          min="0" max="100" step="0.5" />
+                        <span className="text-muted-foreground">%</span>
+                      </div>
+                    </div>
+                    {coTotals.insuranceFeeAmount > 0 && (
+                      <div className="flex justify-between text-muted-foreground pl-4">
+                        <span>Insurance Fee Amount</span><span>{fmt(coTotals.insuranceFeeAmount)}</span>
                       </div>
                     )}
                   </>
@@ -1597,7 +1630,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                 <div className="flex justify-between text-base font-bold text-primary border-t border-border pt-2">
                   <span>Total</span><span>{fmt(coTotals.total)}</span>
                 </div>
-                {parentEstimate && (coForm.management_fee_pct || coForm.overhead_profit_pct || coForm.tax_rate) ? (
+                {parentEstimate && (coForm.management_fee_pct || coForm.insurance_fee_pct || coForm.overhead_profit_pct || coForm.tax_rate) ? (
                   <p className="text-xs text-muted-foreground/70">
                     Defaults pulled from this project's estimate. Override per CO above.
                   </p>
@@ -1684,20 +1717,25 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                         {(() => {
                           const subtotal = parseFloat(co.subtotal) || coLineItems.reduce((s, it) => s + (parseFloat(it.amount) || 0), 0);
                           const mfPct = parseFloat(co.management_fee_pct) || 0;
+                          const ifPct = parseFloat(co.insurance_fee_pct) || 0;
                           const opPct = parseFloat(co.overhead_profit_pct) || 0;
                           const taxPct = parseFloat(co.tax_rate) || 0;
                           const taxAmt = parseFloat(co.tax_amount) || 0;
                           const otherAmt = parseFloat(co.other_amount) || 0;
                           const mfAmt = subtotal * (mfPct / 100);
+                          const ifAmt = subtotal * (ifPct / 100);
                           const opAmt = subtotal * (opPct / 100);
                           const taxVisible = features?.tax_enabled === true && taxPct > 0;
-                          const hasBreakdown = mfPct > 0 || opPct > 0 || taxVisible || otherAmt > 0;
+                          const hasBreakdown = mfPct > 0 || ifPct > 0 || opPct > 0 || taxVisible || otherAmt > 0;
                           if (!hasBreakdown) return null;
                           return (
                             <div className="border-t border-border pt-2 space-y-0.5 text-xs text-muted-foreground">
                               <div className="flex justify-between"><span>Subtotal</span><span>{fmt(subtotal)}</span></div>
                               {mfPct > 0 && (
                                 <div className="flex justify-between"><span>Management Fee ({mfPct}%)</span><span>{fmt(mfAmt)}</span></div>
+                              )}
+                              {ifPct > 0 && (
+                                <div className="flex justify-between"><span>Insurance Fee ({ifPct}%)</span><span>{fmt(ifAmt)}</span></div>
                               )}
                               {opPct > 0 && (
                                 <div className="flex justify-between"><span>O&P ({opPct}%)</span><span>{fmt(opAmt)}</span></div>
