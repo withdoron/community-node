@@ -1711,13 +1711,29 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
             </span>
           )}
         </h2>
-        <button
-          type="button"
-          onClick={() => setView('create')}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] transition-colors"
-        >
-          <Plus className="h-4 w-4" /> New Document
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Templates — promoted to peer button alongside New Document. The
+              templates surface is the source of every document, so it earns
+              equal visual weight (Doron field-trip dogfood, 2026-05-05). */}
+          <button
+            type="button"
+            onClick={() => setShowTemplates(!showTemplates)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold text-sm min-h-[44px] transition-colors ${
+              showTemplates
+                ? 'bg-secondary text-primary-hover border border-primary/30'
+                : 'border border-border text-foreground-soft hover:border-primary/40 hover:bg-secondary'
+            }`}
+          >
+            <FolderOpen className="h-4 w-4" /> Templates
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('create')}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] transition-colors"
+          >
+            <Plus className="h-4 w-4" /> New Document
+          </button>
+        </div>
       </div>
 
       {/* Filters row */}
@@ -1749,17 +1765,6 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
           </button>
           Show Archived
         </label>
-
-        {/* Templates toggle */}
-        <button
-          type="button"
-          onClick={() => setShowTemplates(!showTemplates)}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium min-h-[44px] transition-colors ml-auto ${
-            showTemplates ? 'bg-secondary text-primary-hover border border-primary/30' : 'text-muted-foreground/70 hover:text-foreground-soft'
-          }`}
-        >
-          <FolderOpen className="h-3.5 w-3.5" /> Templates
-        </button>
       </div>
 
       {/* Templates section (collapsible) — two-section split by ownership */}
@@ -1862,14 +1867,24 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
           <p className="text-muted-foreground/50 text-xs">Go to the People tab to add your first client.</p>
         </div>
       ) : groupedDocs.length === 0 ? (
-        /* No documents state */
+        /* No documents state — empty states should help, not just describe.
+            CTA opens the Templates section so the user lands on the next action. */
         <div className="text-center py-12">
           <FileText className="h-10 w-10 text-slate-700 mx-auto mb-3" />
-          <p className="text-muted-foreground text-sm">
-            {documents.length === 0
-              ? 'No documents yet. Create your first document from a template.'
-              : 'No documents match your current filters.'}
-          </p>
+          {documents.length === 0 ? (
+            <>
+              <p className="text-muted-foreground text-sm mb-4">No documents yet.</p>
+              <button
+                type="button"
+                onClick={() => setShowTemplates(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm min-h-[44px] transition-colors"
+              >
+                <FolderOpen className="h-4 w-4" /> Browse Templates
+              </button>
+            </>
+          ) : (
+            <p className="text-muted-foreground text-sm">No documents match your current filters.</p>
+          )}
         </div>
       ) : (
         /* Client-grouped document list */

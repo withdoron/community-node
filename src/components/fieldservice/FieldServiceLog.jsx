@@ -130,6 +130,12 @@ export default function FieldServiceLog({ profile, currentUser }) {
 
   const [saving, setSaving] = useState(false);
   const [editingLogId, setEditingLogId] = useState(null);
+  // Recent Logs panel defaults to collapsed — every Log tab open should land
+  // on the entry form, not require scrolling past N previous logs to reach it.
+  // Doron's morning dogfood (2026-05-05) flagged this. Precursor to the larger
+  // Log → Project surface architecture work (LOG-LINE-ITEM-ATTRIBUTION-PROPOSAL).
+  // Per-session expand state only — fresh page load defaults to collapsed.
+  const [recentLogsCollapsed, setRecentLogsCollapsed] = useState(true);
 
   const isPaymentType = logType === 'sub_payment' || logType === 'client_payment';
 
@@ -764,56 +770,71 @@ export default function FieldServiceLog({ profile, currentUser }) {
         </div>
       )}
 
-      {/* Recent Logs for selected project */}
+      {/* Recent Logs for selected project — collapsible, defaults collapsed.
+          Tap header to expand. Per-session preference; fresh page load resets
+          to collapsed so the entry form is always the landing surface. */}
       {logType === 'daily' && projectId && existingLogs.length > 0 && !editingLogId && (
         <div className={SECTION_CLASS}>
-          <div className={SECTION_HEADER_CLASS}>
-            <ClipboardList className="h-5 w-5 text-primary" />
-            Recent Logs
-          </div>
-          <div className="space-y-2">
-            {[...existingLogs]
-              .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
-              .slice(0, 5)
-              .map((log) => {
-                const tasks = (() => {
-                  const t = log.tasks_completed;
-                  if (!t) return '';
-                  if (Array.isArray(t)) return t.join(', ');
-                  if (typeof t === 'string') {
-                    const s = t.trim();
-                    if (s.startsWith('[')) {
-                      try { const p = JSON.parse(s); return Array.isArray(p) ? p.join(', ') : s; }
-                      catch { return s; }
+          <button
+            type="button"
+            onClick={() => setRecentLogsCollapsed((v) => !v)}
+            className={`${SECTION_HEADER_CLASS} w-full flex items-center justify-between min-h-[44px] cursor-pointer`}
+            aria-expanded={!recentLogsCollapsed}
+          >
+            <span className="flex items-center gap-2">
+              <ClipboardList className="h-5 w-5 text-primary" />
+              <span>Recent Logs</span>
+              <span className="text-sm text-muted-foreground/70 font-normal">({existingLogs.length})</span>
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 text-muted-foreground transition-transform ${recentLogsCollapsed ? '-rotate-90' : ''}`}
+            />
+          </button>
+          {!recentLogsCollapsed && (
+            <div className="space-y-2 mt-3">
+              {[...existingLogs]
+                .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+                .slice(0, 5)
+                .map((log) => {
+                  const tasks = (() => {
+                    const t = log.tasks_completed;
+                    if (!t) return '';
+                    if (Array.isArray(t)) return t.join(', ');
+                    if (typeof t === 'string') {
+                      const s = t.trim();
+                      if (s.startsWith('[')) {
+                        try { const p = JSON.parse(s); return Array.isArray(p) ? p.join(', ') : s; }
+                        catch { return s; }
+                      }
+                      return s;
                     }
-                    return s;
-                  }
-                  return '';
-                })();
-                return (
-                  <div key={log.id} className="flex items-center gap-3 bg-secondary/50 rounded-lg p-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-xs text-muted-foreground/70">
-                          {log.date ? new Date(log.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
-                        </span>
-                        {log.day_number && (
-                          <span className="text-xs text-muted-foreground/70">Day {String(log.day_number).replace('Day ', '')}</span>
-                        )}
+                    return '';
+                  })();
+                  return (
+                    <div key={log.id} className="flex items-center gap-3 bg-secondary/50 rounded-lg p-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-xs text-muted-foreground/70">
+                            {log.date ? new Date(log.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
+                          </span>
+                          {log.day_number && (
+                            <span className="text-xs text-muted-foreground/70">Day {String(log.day_number).replace('Day ', '')}</span>
+                          )}
+                        </div>
+                        {tasks && <p className="text-sm text-foreground-soft truncate">{tasks}</p>}
                       </div>
-                      {tasks && <p className="text-sm text-foreground-soft truncate">{tasks}</p>}
+                      <button
+                        type="button"
+                        onClick={() => loadLogForEditing(log)}
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => loadLogForEditing(log)}
-                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                  </div>
-                );
-              })}
-          </div>
+                  );
+                })}
+            </div>
+          )}
         </div>
       )}
 

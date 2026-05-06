@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { HardHat, FolderOpen, ClipboardList, FileText, DollarSign, Users, Briefcase } from 'lucide-react';
@@ -190,35 +190,65 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     dismissGuide.mutate();
   }, [dismissGuide]);
 
-  // Smart completion: detect which guide steps are done
+  // Smart completion: detect which guide steps are done from real entity data.
+  // 'settings' detection is forgiving — any signal that the contractor has
+  // personalized the workspace counts (business_name, owner_name, custom
+  // workspace_name distinct from the "My Field Service" default, logo, brand
+  // color, license number, hourly rate, or workers configured). Earlier the
+  // check required business_name specifically, which under-reported completion
+  // for contractors who set workspace_name + owner_name but skipped the
+  // separate business_name field.
   const completedSteps = useMemo(() => {
     const done = [];
-    // 'settings' — complete if workspace has a custom name
-    if (profile?.business_name && profile.business_name.trim().length > 0) {
-      done.push('settings');
-    }
-    // 'client' — complete if at least 1 client exists
-    if (fsClients.length > 0) {
-      done.push('client');
-    }
-    // 'estimate' — complete if at least 1 estimate exists
-    if (estimates.length > 0) {
-      done.push('estimate');
-    }
-    // 'documents' — complete if at least 1 document exists
-    if (fsDocuments.length > 0) {
-      done.push('documents');
-    }
-    // 'log' — complete if at least 1 log exists
-    if (recentLogs.length > 0) {
-      done.push('log');
-    }
+    const wsName = (profile?.workspace_name || '').trim();
+    const wsCustomized = wsName.length > 0 && wsName !== 'My Field Service';
+    const workersCount = (() => {
+      const w = profile?.workers_json;
+      const arr = Array.isArray(w) ? w : (w && typeof w === 'object' && Array.isArray(w.items)) ? w.items : [];
+      return arr.length;
+    })();
+    const settingsTouched =
+      (profile?.business_name && profile.business_name.trim().length > 0) ||
+      (profile?.owner_name && profile.owner_name.trim().length > 0) ||
+      wsCustomized ||
+      !!profile?.logo_url ||
+      !!profile?.brand_color ||
+      (profile?.license_number && profile.license_number.trim().length > 0) ||
+      (parseFloat(profile?.hourly_rate) || 0) > 0 ||
+      workersCount > 0;
+    if (settingsTouched) done.push('settings');
+    if (fsClients.length > 0) done.push('client');
+    if (estimates.length > 0) done.push('estimate');
+    if (fsDocuments.length > 0) done.push('documents');
+    if (recentLogs.length > 0) done.push('log');
     return done;
-  }, [profile?.business_name, fsClients.length, estimates.length, fsDocuments.length, recentLogs.length]);
+  }, [
+    profile?.business_name, profile?.owner_name, profile?.workspace_name,
+    profile?.logo_url, profile?.brand_color, profile?.license_number,
+    profile?.hourly_rate, profile?.workers_json,
+    fsClients.length, estimates.length, fsDocuments.length, recentLogs.length,
+  ]);
+
+  // Auto-dismiss the guide once all five steps are detected complete. The
+  // contractor has already done the work; the guide has nothing left to point
+  // at. Single-fire — once dismissed, the persistent flag keeps it gone.
+  // Guard with !dismissGuide.isPending so we don't double-fire while the
+  // first mutation is in flight.
+  useEffect(() => {
+    if (
+      !guideDismissed &&
+      !dismissGuide.isPending &&
+      completedSteps.length === 5
+    ) {
+      dismissGuide.mutate();
+    }
+  }, [guideDismissed, completedSteps.length, dismissGuide]);
 
   return (
     <div className="space-y-6">
-      {/* Workspace Guide — inline walkthrough for new users */}
+      {/* Workspace Guide — inline walkthrough for new users.
+          Auto-dismisses once all five steps are complete (see useEffect above).
+          Manually re-enable from Settings → Workspace Guide toggle. */}
       {!guideDismissed && (
         <WorkspaceGuide
           workspaceType="field_service"

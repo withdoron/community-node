@@ -15,11 +15,21 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/s
 import { Store, User, LogOut, Shield, Calendar, Menu, Sparkles, Settings } from "lucide-react";
 import Footer from '@/components/layout/Footer';
 import { useRole } from '@/hooks/useRole';
+import useBottomInset from '@/hooks/useBottomInset';
 
 
 export default function Layout({ children, currentPageName: currentPageNameProp }) {
   const location = useLocation();
   const currentPageName = currentPageNameProp ?? location.pathname?.replace(/^\//, '').split('?')[0]?.split('/')[0] ?? '';
+
+  // Reserve space for the FrequencyMiniPlayer (fixed at bottom of viewport,
+  // mounted in App.jsx). Without this, every route through Layout has its
+  // bottom content overlapped by the player when a song is loaded. MyLane has
+  // its own bottom-inset handling on the workspace content frame; this covers
+  // every other route (Frequency, Directory, Events, Settings standalone, etc.)
+  // Living Feet (DEC-146): one hook, every Layout-routed page benefits.
+  // agentEnabled is false here — the CommandBar is MyLane-specific.
+  const bottomInset = useBottomInset(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -273,7 +283,7 @@ export default function Layout({ children, currentPageName: currentPageNameProp 
       </header>
       )} {/* end !isPublicHome header */}
 
-      <main>{children}</main>
+      <main style={{ paddingBottom: bottomInset }}>{children}</main>
 
       {/* Footer hidden on MyLane — surface fills edge to edge */}
       {currentPageName !== 'MyLane' && <Footer />}
