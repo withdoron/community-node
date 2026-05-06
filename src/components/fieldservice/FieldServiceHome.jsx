@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { HardHat, FolderOpen, ClipboardList, FileText, DollarSign, Users, Briefcase } from 'lucide-react';
 import WorkspaceGuide from '@/components/workspaces/WorkspaceGuide';
+import { invalidateFSProfiles } from '@/utils/fsFeatures';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -178,10 +179,14 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
       await base44.entities.FieldServiceProfile.update(profile.id, { guide_dismissed: true });
     },
     onSuccess: () => {
-      queryClient.setQueryData(['fs-profile', profile?.id], (old) =>
-        old ? { ...old, guide_dismissed: true } : old
-      );
-      queryClient.invalidateQueries({ queryKey: ['fs-profile'] });
+      // The `profile` prop reaches FieldServiceHome via MyLane's
+      // getMyLaneProfiles server function, cached under
+      // `['mylane-profiles-v2', userId]` (DEC-196). The previous bare
+      // `['fs-profile']` key matched no live query, so the dismiss UI never
+      // updated until React Query's 5-min staleTime expired or a hard reload
+      // pulled fresh data. invalidateFSProfiles() centralizes the canonical
+      // key so the next cache-key change touches one helper, not 10 sites.
+      invalidateFSProfiles(queryClient, currentUser?.id);
     },
     onError: (err) => console.error('Guide dismiss failed:', err),
   });

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import VoiceInput from './VoiceInput';
 import CurrencyInput from './CurrencyInput';
 import { scrollToTopOf } from '@/utils/scrollToTop';
+import useBottomInset from '@/hooks/useBottomInset';
 import {
   Camera, Plus, X, ClipboardList, Package, Users, Cloud,
   Loader2, Save, Trash2, FolderOpen, Receipt, ChevronDown, Pencil,
@@ -84,6 +85,13 @@ export default function FieldServiceLog({ profile, currentUser }) {
   const queryClient = useQueryClient();
   const photoInputRef = useRef(null);
   const rootRef = useRef(null);
+  // Bottom inset for the FrequencyMiniPlayer (which fixes itself to the
+  // viewport bottom at z-9998). The save button below lives at the same
+  // viewport edge with z-20, so without compensation the mini-player covers
+  // it visually. Living Feet (DEC-146) — same hook Layout.jsx uses; one
+  // source of truth for "how much bottom space is the player taking."
+  // CommandBar isn't shown on FS tabs, so agentEnabled is false here.
+  const bottomInset = useBottomInset(false);
 
   // Scroll-to-top on mount. The Mylane content area scroll position persists
   // across tab switches, so coming from Project Detail's "Log a payment"
@@ -727,7 +735,10 @@ export default function FieldServiceLog({ profile, currentUser }) {
   }, 0);
 
   return (
-    <div ref={rootRef} className="space-y-0 pb-24">
+    // pb-24 (96px) clears the fixed Save Button below; bottomInset (54 when a
+    // song is loaded + station enabled, 0 otherwise) adds extra space so
+    // content scrolls above the mini-player too.
+    <div ref={rootRef} className="space-y-0" style={{ paddingBottom: 96 + bottomInset }}>
       {editingLogId && logType === 'daily' && (
         <div className="bg-primary/10 border border-primary/30 rounded-xl p-3 mb-4 flex items-center justify-between">
           <span className="text-sm text-primary font-medium">Editing log — {date}</span>
@@ -1496,8 +1507,13 @@ export default function FieldServiceLog({ profile, currentUser }) {
         </div>
       )}
 
-      {/* Save Button — sticky at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border p-4 z-20">
+      {/* Save Button — fixed at viewport bottom. Sits ABOVE the FrequencyMiniPlayer
+          (which is z-9998, this is z-20). Without the bottomInset offset, the
+          player would visually cover the bottom 54px of the save bar. */}
+      <div
+        className="fixed left-0 right-0 bg-background/95 backdrop-blur border-t border-border p-4 z-20"
+        style={{ bottom: bottomInset }}
+      >
         <button
           type="button"
           onClick={handleSubmit}
