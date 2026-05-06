@@ -28,8 +28,22 @@ export function printNode(node, { title, extraCss = '' } = {}) {
     })
     .join('\n');
 
+  // Carry the parent's <html> attributes (data-theme, data-cockpit, lang, dir,
+  // class) into the print iframe. Without this, theme-scoped CSS variables
+  // fall back to :root defaults — which in this codebase resolve to the dark
+  // theme via `:root, [data-theme="dark"] { ... }` (index.css). For an
+  // unauthenticated estimate PDF rendered against the light theme, the
+  // mismatch shifts every semantic token (muted-foreground, border, primary-
+  // foreground) to its dark-theme value, faded against the white card background.
+  // Copying the attribute restores parity between the on-screen preview and
+  // the printed document.
+  const parentHtml = document.documentElement;
+  const htmlAttrs = Array.from(parentHtml.attributes)
+    .map((a) => `${a.name}="${escapeHtml(a.value)}"`)
+    .join(' ');
+
   const html = `<!DOCTYPE html>
-<html>
+<html ${htmlAttrs}>
 <head>
   <meta charset="utf-8">
   <base href="${window.location.origin}/">
@@ -38,6 +52,14 @@ export function printNode(node, { title, extraCss = '' } = {}) {
   <style>
     @page { margin: 0.5in; size: letter; }
     html, body { background: white !important; margin: 0; padding: 0; }
+    /* Force browser to honor background colors and gradients in print output.
+       Without this, Chrome/Safari strip card fills (bg-slate-50, etc.) by
+       default — which collapses every styled card to plain white, losing
+       the visual hierarchy the on-screen preview carries. */
+    *, *::before, *::after {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
     .print-avoid-break { page-break-inside: avoid; }
     ${extraCss}
   </style>

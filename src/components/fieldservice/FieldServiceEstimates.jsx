@@ -272,8 +272,11 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
           .print-break-before { page-break-before: auto; }
         }`}</style>
 
-        {/* Contractor header */}
-        <div className="flex justify-between items-start mb-8 pb-6 bg-slate-50 -mx-6 -mt-6 sm:-mx-8 sm:-mt-8 px-6 sm:px-8 pt-6 sm:pt-8 rounded-t-xl print:rounded-none print:bg-white" style={{ borderBottom: `3px solid ${brandColor}` }}>
+        {/* Contractor header — bg-slate-50 carries through print thanks to
+            print-color-adjust:exact set in printNode. The previous
+            print:bg-white override flattened the header band; removing it
+            restores the visual hierarchy the on-screen preview shows. */}
+        <div className="flex justify-between items-start mb-8 pb-6 bg-slate-50 -mx-6 -mt-6 sm:-mx-8 sm:-mt-8 px-6 sm:px-8 pt-6 sm:pt-8 rounded-t-xl print:rounded-none" style={{ borderBottom: `3px solid ${brandColor}` }}>
           <div className="flex items-center gap-4">
             {profile?.logo_url && (
               <img src={profile.logo_url} alt={profile?.business_name || ''} className="max-h-16 max-w-[200px] object-contain" />
@@ -308,7 +311,10 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
             </div>
           </div>
           {clientName && (
-            <div className="bg-slate-50 rounded-lg p-4 print:bg-white print:border print:border-border">
+            // Customer card preserves its bg-slate-50 fill in print (the
+            // previous print:bg-white + print:border replacement collapsed
+            // the styled card to a thin-bordered plain box).
+            <div className="bg-slate-50 rounded-lg p-4">
               <p className="text-xs text-muted-foreground/70 uppercase tracking-wider mb-1">Customer</p>
               <p className="font-semibold">{clientName}</p>
               {clientAddress && <p className="text-sm text-muted-foreground/50">{clientAddress}</p>}
