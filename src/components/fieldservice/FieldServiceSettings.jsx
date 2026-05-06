@@ -887,10 +887,14 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
                   const newVal = !profile?.guide_dismissed;
                   try {
                     await base44.entities.FieldServiceProfile.update(profile.id, { guide_dismissed: !newVal });
-                    queryClient.setQueryData(['fs-profile', profile?.id], (old) =>
-                      old ? { ...old, guide_dismissed: !newVal } : old
-                    );
-                    queryClient.invalidateQueries({ queryKey: ['fs-profile'] });
+                    // DEC-196: profile reaches Settings via MyLane's
+                    // getMyLaneProfiles cached as ['mylane-profiles-v2', userId].
+                    // Previous setQueryData + invalidateQueries on
+                    // ['fs-profile'] / ['fs-profile', profile?.id] targeted
+                    // cache keys no live query subscribed to — silent no-op,
+                    // toggle and Home tab both stayed stale until reload.
+                    // Mirrors the dismiss-side fix in FieldServiceHome.jsx.
+                    invalidateFSProfiles(queryClient, currentUser?.id);
                     toast.success(newVal ? 'Guide hidden' : 'Guide restored — check your Home tab');
                   } catch {
                     toast.error('Could not update guide setting');
