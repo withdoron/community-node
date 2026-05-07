@@ -152,7 +152,21 @@ export function printNode(node, { title, extraCss = '' } = {}) {
   // document.write doesn't reliably fire iframe onload, and <link rel="stylesheet">
   // copies need network. Wait for fonts.ready (proxy for "stylesheets applied")
   // with a hard cap so we don't hang if no fonts are pending.
+  //
+  // Idempotency guard: when readyState !== 'complete' we set BOTH iframe.onload
+  // AND a 1s belt-and-suspenders setTimeout. In production both paths reliably
+  // fire — onload typically resolves within a few hundred ms, then the timeout
+  // arrives a second time and calls trigger() twice, surfacing two print
+  // dialogs back-to-back (Bari + Patricia would each see the dialog open,
+  // close, then immediately reopen — confusing especially on mobile). The
+  // fallback was added because document.write doesn't reliably fire onload,
+  // but in the cases where onload DOES fire it doesn't suppress the timeout.
+  // `triggered` flips on the first arrival; whichever scheduling path arrives
+  // second is a no-op.
+  let triggered = false;
   const waitAndPrint = () => {
+    if (triggered) return;
+    triggered = true;
     const fontsReady = doc.fonts ? doc.fonts.ready : Promise.resolve();
     Promise.race([
       fontsReady,
@@ -164,7 +178,8 @@ export function printNode(node, { title, extraCss = '' } = {}) {
     waitAndPrint();
   } else {
     iframe.onload = waitAndPrint;
-    // Belt-and-suspenders fallback if onload never fires.
+    // Belt-and-suspenders fallback if onload never fires. Idempotent via
+    // the `triggered` guard above — second caller no-ops.
     setTimeout(waitAndPrint, 1000);
   }
 
