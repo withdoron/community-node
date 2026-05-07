@@ -263,28 +263,40 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
         />
       )}
 
-      {/* Stats Bar */}
+      {/* Stats Bar — every tile is a navigation surface. The two existing
+          clickable tiles (Estimates, Team) set the pattern; the four others
+          (Clients, Active Projects, This Month, Received) follow. Money tiles
+          (This Month, Received) route to the Log tab — the universal capture
+          surface where Daily Log + Sub Payment + Client Payment all live. */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-        <div className="bg-card border border-border rounded-xl p-4">
+        <button
+          type="button"
+          onClick={() => onNavigateTab?.('people')}
+          className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors min-h-[44px]"
+        >
           <div className="flex items-center gap-2 mb-2">
             <Users className="h-4 w-4 text-primary" />
             <span className="text-xs text-muted-foreground">Clients</span>
           </div>
           <p className="text-2xl font-bold text-foreground">{activeClients.length}</p>
-        </div>
+        </button>
 
-        <div className="bg-card border border-border rounded-xl p-4">
+        <button
+          type="button"
+          onClick={() => onNavigateTab?.('projects')}
+          className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors min-h-[44px]"
+        >
           <div className="flex items-center gap-2 mb-2">
             <FolderOpen className="h-4 w-4 text-primary" />
             <span className="text-xs text-muted-foreground">Active Projects</span>
           </div>
           <p className="text-2xl font-bold text-foreground">{activeProjects.length}</p>
-        </div>
+        </button>
 
         <button
           type="button"
           onClick={() => onNavigateTab?.('estimates')}
-          className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors"
+          className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors min-h-[44px]"
         >
           <div className="flex items-center gap-2 mb-2">
             <FileText className="h-4 w-4 text-primary" />
@@ -296,26 +308,34 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
           )}
         </button>
 
-        <div className="bg-card border border-border rounded-xl p-4">
+        <button
+          type="button"
+          onClick={() => onNavigateTab?.('log')}
+          className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors min-h-[44px]"
+        >
           <div className="flex items-center gap-2 mb-2">
             <HardHat className="h-4 w-4 text-primary" />
             <span className="text-xs text-muted-foreground">This Month</span>
           </div>
           <p className="text-2xl font-bold text-primary">{fmt(monthTotal)}</p>
-        </div>
+        </button>
 
-        <div className="bg-card border border-border rounded-xl p-4">
+        <button
+          type="button"
+          onClick={() => onNavigateTab?.('log')}
+          className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors min-h-[44px]"
+        >
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="h-4 w-4 text-primary" />
             <span className="text-xs text-muted-foreground">Received</span>
           </div>
           <p className="text-2xl font-bold text-emerald-400">{fmt(paymentsReceived)}</p>
-        </div>
+        </button>
 
         <button
           type="button"
           onClick={() => onNavigateTab?.('people')}
-          className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors"
+          className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors min-h-[44px]"
         >
           <div className="flex items-center gap-2 mb-2">
             <Briefcase className="h-4 w-4 text-primary" />
