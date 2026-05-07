@@ -71,6 +71,8 @@ LocalLane — community-first platform in Eugene, Oregon. Base44 backend, React/
 git add -A && git commit -m "descriptive message" && git push origin main
 ```
 
+**No debrief without a commit hash.** The shape is always: build → commit → push → debrief with hash. Every build debrief must include the commit hash(es) of the work it describes so Doron can find them in Base44 App History for the publish workaround. If for any reason the work hasn't been pushed when the debrief lands, the debrief leads with that fact ("⚠ work not yet committed") rather than burying it. Uncommitted work surprising Doron in GitHub Desktop is a process bug — surface it, don't hide it.
+
 ---
 
 ## Architecture & Patterns
