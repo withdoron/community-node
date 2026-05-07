@@ -12,6 +12,7 @@ import FieldServicePermits from './FieldServicePermits';
 import FieldServicePhotoGallery from './FieldServicePhotoGallery';
 import FieldServiceClientPortal from './FieldServiceClientPortal';
 import FieldServiceClientDetail from './FieldServiceClientDetail';
+import ProjectTileDrillIn from './ProjectTileDrillIn';
 import { makeItem, calcTotals } from '@/utils/fsLineItems';
 import { useFSPayments, summarizePayments } from '@/hooks/useFSPayments';
 import {
@@ -137,6 +138,9 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
   const [voidCOTarget, setVoidCOTarget] = useState(null);
   const [voidConfirmText, setVoidConfirmText] = useState('');
   const [voidReason, setVoidReason] = useState('');
+  // Tile drill-in: which tile's source records are being audited.
+  // null = closed, otherwise one of: 'contract' | 'received' | 'paid' | 'net' | 'spent' | 'remaining' | 'logs'.
+  const [drillIn, setDrillIn] = useState(null);
 
   // Pre-fill helper — reads a percentage from the parent estimate, falling back to 0.
   const parseEstimatePct = (estimate, field) => {
@@ -1038,10 +1042,51 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
   if (view === 'detail' && selectedProject) {
     const proj = selectedProject;
     const spent = projectSpent || spendByProject[proj.id] || 0;
-    const budget = proj.total_budget || 0;
-    const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
     const logCount = logCountByProject[proj.id] || 0;
     const statusObj = STATUS_OPTIONS.find((s) => s.value === proj.status) || STATUS_OPTIONS[0];
+
+    // Derived Contract Total — read from the linked estimate + signed/accepted
+    // CO amounts at render time, not from FSProject.total_budget. The stored
+    // field is fragile: convertMutation never wrote `original_budget`, and the
+    // recompute path in signChangeOrder/voidChangeOrder uses `total_budget` as
+    // its own fallback for `originalBudget`, which drifts after sign+void
+    // cycles. Bari's project (linked $900 estimate) shows $0 because of this.
+    // Derivation heals existing bad data without a backfill — every render
+    // recomputes from the source of truth (the estimate + signed COs).
+    const signedCOs = (changeOrders || []).filter(
+      (co) => co.status === 'signed' || co.status === 'accepted'
+    );
+    const signedCOAdjustments = signedCOs.reduce((sum, co) => {
+      const adj = co.amount !== undefined && co.amount !== null
+        ? parseFloat(co.amount)
+        : parseFloat(co.total) || 0;
+      return sum + (Number.isFinite(adj) ? adj : 0);
+    }, 0);
+    const linkedEstimateTotal = selectedEstimate
+      ? parseFloat(selectedEstimate.total) || 0
+      : 0;
+    const storedOriginal = parseFloat(proj.original_budget);
+    const storedTotal = parseFloat(proj.total_budget);
+    // Original = the contract value at moment of project creation. Source-of-
+    // truth chain: stored original_budget (DEC-193's intent) → linked estimate
+    // total → stored total_budget. The middle fallback heals the legacy gap
+    // where convertMutation skipped writing original_budget.
+    const originalContract = Number.isFinite(storedOriginal) && storedOriginal > 0
+      ? storedOriginal
+      : selectedEstimate
+        ? linkedEstimateTotal
+        : Number.isFinite(storedTotal) ? storedTotal : 0;
+    // Contract Total = original + signed COs. When no estimate is linked
+    // (manually-created project), fall back to the stored total_budget so we
+    // don't regress those projects.
+    const contractTotal = selectedEstimate
+      ? linkedEstimateTotal + signedCOAdjustments
+      : (Number.isFinite(storedTotal) ? storedTotal : 0) + signedCOAdjustments;
+    // Budget tile + remaining/progress bar follow the derived contract total
+    // so the two financial banners stay consistent. They were both reading
+    // proj.total_budget — same broken source.
+    const budget = contractTotal;
+    const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
 
     const projectLogs = dailyLogs
       .filter((l) => l.project_id === proj.id)
@@ -1052,6 +1097,218 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     const clientName = liveClient?.name || proj.client_name;
     const clientPhone = liveClient?.phone || proj.client_phone;
     const clientEmail = liveClient?.email || proj.client_email;
+
+    // ─── Drill-in row builders ──────────────────────────────────────────
+    // Each tile reveals its source records on click. One slide-over component
+    // (ProjectTileDrillIn), seven row sets — one per drillable tile. Living
+    // Feet at the modal layer: same shell, different rows. Derived tiles
+    // (Net Cash, Remaining) pass `math` JSX instead of `rows` so the user
+    // sees the calculation with each input clickable to drill into its source.
+    const settledPayments = (projectPayments || []).filter(
+      (p) => p.status === 'received' || p.status === 'cleared'
+    );
+    const receivedPayments = settledPayments.filter((p) => p.direction === 'received');
+    const paidPayments = settledPayments.filter((p) => p.direction === 'paid');
+
+    const contractRows = [];
+    if (selectedEstimate) {
+      contractRows.push({
+        key: `est-${selectedEstimate.id}`,
+        primary: selectedEstimate.title || `Estimate ${selectedEstimate.estimate_number || ''}`.trim() || 'Estimate',
+        secondary: `${selectedEstimate.estimate_number || 'Estimate'}${selectedEstimate.date ? ` · ${fmtDate(selectedEstimate.date)}` : ''} · Original contract`,
+        amount: fmt(linkedEstimateTotal),
+        amountClass: 'text-foreground',
+      });
+    } else if (originalContract > 0) {
+      contractRows.push({
+        key: 'manual-original',
+        primary: 'Original budget',
+        secondary: 'Manually entered (no linked estimate)',
+        amount: fmt(originalContract),
+        amountClass: 'text-foreground',
+      });
+    }
+    signedCOs.forEach((co) => {
+      const adj = co.amount !== undefined && co.amount !== null
+        ? parseFloat(co.amount)
+        : parseFloat(co.total) || 0;
+      contractRows.push({
+        key: `co-${co.id}`,
+        primary: co.title || `Change Order ${co.change_order_number || ''}`.trim() || 'Change Order',
+        secondary: `${co.change_order_number || 'CO'} · ${co.status === 'accepted' ? 'Accepted' : 'Signed'}${co.signed_at ? ` ${fmtDate(co.signed_at)}` : ''}`,
+        amount: `${adj >= 0 ? '+' : ''}${fmt(adj)}`,
+        amountClass: 'text-primary-hover',
+      });
+    });
+
+    const receivedRows = receivedPayments.map((p) => ({
+      key: `pay-${p.id}`,
+      primary: p.party_name || 'Payment received',
+      secondary: `${p.date ? fmtDate(p.date) : ''}${p.payment_method ? ` · ${p.payment_method}` : ''}${p.reference_number ? ` · #${p.reference_number}` : ''}`.replace(/^ · /, ''),
+      amount: fmt(parseFloat(p.amount) || 0),
+      amountClass: 'text-emerald-400',
+    }));
+
+    const paidRows = paidPayments.map((p) => ({
+      key: `pay-${p.id}`,
+      primary: p.party_name || `Paid to ${p.party_type || 'party'}`,
+      secondary: `${p.date ? fmtDate(p.date) : ''}${p.payment_method ? ` · ${p.payment_method}` : ''}${p.reference_number ? ` · #${p.reference_number}` : ''}`.replace(/^ · /, ''),
+      amount: fmt(parseFloat(p.amount) || 0),
+      amountClass: 'text-primary',
+    }));
+
+    // Spent = materials + labor (cost lines from FSDailyLog children). Per
+    // FINANCIAL-WORKFLOW intent, FSPayment(paid) records may belong here too;
+    // that's a separate architectural conversation (Log-Line-Item Attribution
+    // proposal, awaiting Doron's sign-off). For now mirror the existing tile
+    // math exactly so the drill-in total matches the tile.
+    const spentRows = [];
+    projectMaterials.forEach((m) => {
+      const qty = parseFloat(m.quantity) || 0;
+      const unitCost = parseFloat(m.unit_cost) || 0;
+      const cost = parseFloat(m.total_cost) || (qty * unitCost);
+      spentRows.push({
+        key: `mat-${m.id}`,
+        primary: m.description || 'Material',
+        secondary: `Material${qty ? ` · ${qty}${m.unit ? ' ' + m.unit : ''}` : ''}${unitCost ? ` × ${fmt(unitCost)}` : ''}`,
+        amount: fmt(cost),
+        amountClass: 'text-primary',
+      });
+    });
+    projectLabor.forEach((l) => {
+      const hours = parseFloat(l.hours) || 0;
+      const cost = parseFloat(l.total_cost) || 0;
+      spentRows.push({
+        key: `lab-${l.id}`,
+        primary: l.description || 'Labor',
+        secondary: `Labor${hours ? ` · ${hours} hr` : ''}`,
+        amount: fmt(cost),
+        amountClass: 'text-primary',
+      });
+    });
+
+    const logRows = projectLogs.map((l) => ({
+      key: `log-${l.id}`,
+      primary: l.tasks_completed || 'Daily log',
+      secondary: l.date ? fmtDate(l.date) : '',
+      amount: l.weather || '',
+      amountClass: 'text-muted-foreground',
+    }));
+
+    // Math JSX for derived tiles. Each input is a button that re-targets
+    // the drill-in to that input's tile — transparency by navigation.
+    const MathInput = ({ label, value, target, valueClass }) => (
+      <button
+        type="button"
+        onClick={() => setDrillIn(target)}
+        className="flex items-center gap-2 hover:bg-secondary/40 rounded-lg px-2 py-1 -mx-2 transition-colors text-left"
+      >
+        <span className="text-sm text-muted-foreground">{label}</span>
+        <span className={`text-sm font-semibold ${valueClass || 'text-foreground'}`}>{value}</span>
+      </button>
+    );
+
+    const netMath = (
+      <div className="space-y-3">
+        <p className="text-sm text-muted-foreground">
+          Net Cash is the difference between what came in and what went out on this project.
+        </p>
+        <div className="bg-secondary/30 rounded-lg p-4 space-y-2">
+          <MathInput label="Received" value={fmt(paymentSummary.received)} target="received" valueClass="text-emerald-400" />
+          <div className="flex items-center gap-2 px-2 text-muted-foreground">
+            <span>−</span>
+          </div>
+          <MathInput label="Paid Out" value={fmt(paymentSummary.paid)} target="paid" valueClass="text-primary" />
+          <div className="flex items-center gap-2 px-2 pt-2 border-t border-border">
+            <span className="text-sm font-semibold text-foreground-soft">=</span>
+            <span className={`text-sm font-bold ${paymentSummary.net > 0 ? 'text-emerald-400' : paymentSummary.net < 0 ? 'text-red-400' : 'text-foreground'}`}>
+              {paymentSummary.net > 0 ? '+' : ''}{fmt(paymentSummary.net)}
+            </span>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Tap Received or Paid Out to see the underlying payments.
+        </p>
+      </div>
+    );
+
+    const remainingMath = (
+      <div className="space-y-3">
+        <p className="text-sm text-muted-foreground">
+          Remaining is the contract value still left to spend against current cost lines (materials and labor).
+        </p>
+        <div className="bg-secondary/30 rounded-lg p-4 space-y-2">
+          <MathInput label="Budget" value={budget > 0 ? fmt(budget) : '—'} target="contract" />
+          <div className="flex items-center gap-2 px-2 text-muted-foreground">
+            <span>−</span>
+          </div>
+          <MathInput label="Spent" value={fmt(spent)} target="spent" valueClass="text-primary" />
+          <div className="flex items-center gap-2 px-2 pt-2 border-t border-border">
+            <span className="text-sm font-semibold text-foreground-soft">=</span>
+            <span className={`text-sm font-bold ${budget > 0 && spent > budget ? 'text-red-400' : 'text-foreground'}`}>
+              {budget > 0 ? fmt(budget - spent) : '—'}
+            </span>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Tap Budget or Spent to see the underlying records.
+        </p>
+      </div>
+    );
+
+    const drillConfig = {
+      contract: {
+        title: 'Contract Total',
+        subtitle: selectedEstimate
+          ? 'Linked estimate + signed change orders'
+          : 'Manually-entered budget + signed change orders',
+        total: fmt(contractTotal),
+        rows: contractRows,
+        emptyMessage: 'No estimate or signed change orders yet.',
+      },
+      received: {
+        title: 'Received',
+        subtitle: 'Settled payments coming in (received or cleared)',
+        total: fmt(paymentSummary.received),
+        rows: receivedRows,
+        emptyMessage: 'No received payments yet.',
+        footer: 'Pending payments are not counted until status flips to received or cleared.',
+      },
+      paid: {
+        title: 'Paid Out',
+        subtitle: 'Settled payments going out (subs, vendors, refunds)',
+        total: fmt(paymentSummary.paid),
+        rows: paidRows,
+        emptyMessage: 'No outgoing payments yet.',
+      },
+      net: {
+        title: 'Net Cash',
+        subtitle: 'Received minus Paid Out on this project',
+        total: `${paymentSummary.net > 0 ? '+' : ''}${fmt(paymentSummary.net)}`,
+        math: netMath,
+      },
+      spent: {
+        title: 'Spent',
+        subtitle: 'Materials and labor logged against this project',
+        total: fmt(spent),
+        rows: spentRows,
+        emptyMessage: 'No materials or labor logged yet.',
+      },
+      remaining: {
+        title: 'Remaining',
+        subtitle: 'Contract budget minus spent cost lines',
+        total: budget > 0 ? fmt(budget - spent) : '—',
+        math: remainingMath,
+      },
+      logs: {
+        title: 'Daily Logs',
+        subtitle: `${logCount} log${logCount === 1 ? '' : 's'} on this project`,
+        total: undefined,
+        rows: logRows,
+        emptyMessage: 'No daily logs yet.',
+      },
+    };
+    const drillCurrent = drillIn ? drillConfig[drillIn] : null;
 
     return (
       <div className="space-y-4">
@@ -1201,14 +1458,12 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         {/* Financial header — Contract / Received / Paid Out / Net Cash.
             Daily check-in view per FINANCIAL-WORKFLOW-SPEC. The existing
             budget breakdown below stays — banner adds metrics, doesn't
-            replace what's there. */}
+            replace what's there. Tiles are clickable for source-record audit
+            (transparency through navigation — every number reveals its inputs). */}
         {(() => {
-          const contractTotal = parseFloat(proj.total_budget) || 0;
           const received = paymentSummary.received;
           const paidOut = paymentSummary.paid;
           const netCash = paymentSummary.net;
-          const signedCOs = changeOrders.filter((co) => co.status === 'signed' || co.status === 'accepted');
-          const originalBudget = parseFloat(proj.original_budget || proj.total_budget) || 0;
           const receivedPct = contractTotal > 0 ? Math.min(100, (received / contractTotal) * 100) : 0;
           const netColor = netCash > 0
             ? 'text-emerald-400'
@@ -1217,17 +1472,25 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
             : 'text-foreground-soft';
           return (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="bg-card border border-border rounded-xl p-4">
+              <button
+                type="button"
+                onClick={() => setDrillIn('contract')}
+                className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 hover:bg-secondary/40 transition-colors min-h-[44px]"
+              >
                 <p className="text-xs text-muted-foreground mb-1">Contract Total</p>
                 <p className="text-xl font-bold text-foreground">{fmt(contractTotal)}</p>
                 <p className="text-xs text-muted-foreground/70 mt-1">
-                  Original: {fmt(originalBudget)}
+                  Original: {fmt(originalContract)}
                   {signedCOs.length > 0 && (
                     <span className="text-primary-hover ml-1">+{signedCOs.length} CO</span>
                   )}
                 </p>
-              </div>
-              <div className="bg-card border border-border rounded-xl p-4">
+              </button>
+              <button
+                type="button"
+                onClick={() => setDrillIn('received')}
+                className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 hover:bg-secondary/40 transition-colors min-h-[44px]"
+              >
                 <p className="text-xs text-muted-foreground mb-1">Received</p>
                 <p className="text-xl font-bold text-emerald-400">{fmt(received)}</p>
                 <p className="text-xs text-muted-foreground/70 mt-1">
@@ -1235,62 +1498,74 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                     ? `${fmt(received)} of ${fmt(contractTotal)} (${Math.round(receivedPct)}%)`
                     : 'Receipts on this project'}
                 </p>
-              </div>
-              <div className="bg-card border border-border rounded-xl p-4">
+              </button>
+              <button
+                type="button"
+                onClick={() => setDrillIn('paid')}
+                className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 hover:bg-secondary/40 transition-colors min-h-[44px]"
+              >
                 <p className="text-xs text-muted-foreground mb-1">Paid Out</p>
                 <p className="text-xl font-bold text-primary">{fmt(paidOut)}</p>
                 <p className="text-xs text-muted-foreground/70 mt-1">Sub & vendor payments</p>
-              </div>
-              <div className="bg-card border border-border rounded-xl p-4">
+              </button>
+              <button
+                type="button"
+                onClick={() => setDrillIn('net')}
+                className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 hover:bg-secondary/40 transition-colors min-h-[44px]"
+              >
                 <p className="text-xs text-muted-foreground mb-1">Net Cash</p>
                 <p className={`text-xl font-bold ${netColor}`}>
                   {netCash > 0 ? '+' : ''}{fmt(netCash)}
                 </p>
                 <p className="text-xs text-muted-foreground/70 mt-1">Receipts − payouts</p>
-              </div>
+              </button>
             </div>
           );
         })()}
 
-        {/* Budget & Spend */}
+        {/* Budget & Spend — clickable tiles for source-record audit. */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-card border border-border rounded-xl p-4">
+          <button
+            type="button"
+            onClick={() => setDrillIn('contract')}
+            className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 hover:bg-secondary/40 transition-colors min-h-[44px]"
+          >
             <p className="text-xs text-muted-foreground mb-1">Budget</p>
             <p className="text-lg font-bold text-foreground">{budget > 0 ? fmt(budget) : '—'}</p>
-            {/* Budget breakdown with change orders */}
-            {(() => {
-              const countedCOs = changeOrders.filter((co) => co.status === 'signed' || co.status === 'accepted');
-              if (countedCOs.length === 0) return null;
-              const originalBudget = parseFloat(proj.original_budget || proj.total_budget) || 0;
-              const coTotal = countedCOs.reduce((s, co) => {
-                const adj = co.amount !== undefined && co.amount !== null
-                  ? parseFloat(co.amount)
-                  : parseFloat(co.total) || 0;
-                return s + (Number.isFinite(adj) ? adj : 0);
-              }, 0);
-              return (
-                <div className="flex items-center gap-3 text-xs text-muted-foreground/70 mt-1">
-                  <span>Original: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(originalBudget)}</span>
-                  <span>|</span>
-                  <span className="text-primary-hover">COs: {coTotal >= 0 ? '+' : ''}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(coTotal)}</span>
-                </div>
-              );
-            })()}
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4">
+            {signedCOs.length > 0 && (
+              <div className="flex items-center gap-3 text-xs text-muted-foreground/70 mt-1">
+                <span>Original: {fmt(originalContract)}</span>
+                <span>|</span>
+                <span className="text-primary-hover">COs: {signedCOAdjustments >= 0 ? '+' : ''}{fmt(signedCOAdjustments)}</span>
+              </div>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setDrillIn('spent')}
+            className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 hover:bg-secondary/40 transition-colors min-h-[44px]"
+          >
             <p className="text-xs text-muted-foreground mb-1">Spent</p>
             <p className="text-lg font-bold text-primary">{fmt(spent)}</p>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4">
+          </button>
+          <button
+            type="button"
+            onClick={() => setDrillIn('remaining')}
+            className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 hover:bg-secondary/40 transition-colors min-h-[44px]"
+          >
             <p className="text-xs text-muted-foreground mb-1">Remaining</p>
             <p className={`text-lg font-bold ${budget > 0 && spent > budget ? 'text-red-400' : 'text-foreground'}`}>
               {budget > 0 ? fmt(budget - spent) : '—'}
             </p>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4">
+          </button>
+          <button
+            type="button"
+            onClick={() => setDrillIn('logs')}
+            className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 hover:bg-secondary/40 transition-colors min-h-[44px]"
+          >
             <p className="text-xs text-muted-foreground mb-1">Daily Logs</p>
             <p className="text-lg font-bold text-foreground">{logCount}</p>
-          </div>
+          </button>
         </div>
 
         {/* Budget Progress */}
@@ -2048,6 +2323,20 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Tile drill-in modal — single component for every tile, mounted
+            at the detail-view root so it overlays the whole project page. */}
+        <ProjectTileDrillIn
+          open={!!drillIn}
+          onClose={() => setDrillIn(null)}
+          title={drillCurrent?.title}
+          subtitle={drillCurrent?.subtitle}
+          total={drillCurrent?.total}
+          rows={drillCurrent?.rows}
+          math={drillCurrent?.math}
+          emptyMessage={drillCurrent?.emptyMessage}
+          footer={drillCurrent?.footer}
+        />
       </div>
     );
   }
