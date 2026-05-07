@@ -7,6 +7,7 @@ import VoiceInput from './VoiceInput';
 import CurrencyInput from './CurrencyInput';
 import { scrollToTopOf } from '@/utils/scrollToTop';
 import useBottomInset from '@/hooks/useBottomInset';
+import { useProjectLinkedEstimates, deriveProjectClient } from '@/hooks/useProjectLinkedEstimates';
 import {
   Camera, Plus, X, ClipboardList, Package, Users, Cloud,
   Loader2, Save, Trash2, FolderOpen, Receipt, ChevronDown, Pencil,
@@ -225,6 +226,17 @@ export default function FieldServiceLog({ profile, currentUser }) {
   const selectedProject = useMemo(
     () => projects.find((p) => String(p.id) === String(projectId)) || null,
     [projects, projectId]
+  );
+
+  // Empty-field link derivation for project↔estimate↔client. When a project
+  // has no direct client_id but the linked estimate does, fill the gap at
+  // read time. See useProjectLinkedEstimates for the chain rules. Used by
+  // the project picker dropdown labels, the Client Payment "From" line, and
+  // the FSPayment payload's party_name + party_id resolution below.
+  const { projectIdToEstimate } = useProjectLinkedEstimates(profile?.id);
+  const selectedProjectClient = useMemo(
+    () => deriveProjectClient(selectedProject, projectIdToEstimate),
+    [selectedProject, projectIdToEstimate]
   );
 
   const allWorkers = useMemo(() => parseWorkers(profile?.workers_json), [profile?.workers_json]);
@@ -475,9 +487,11 @@ export default function FieldServiceLog({ profile, currentUser }) {
         const isPaid = logType === 'sub_payment';
         const partyName = isPaid
           ? paymentForm.payee_name.trim()
-          : (selectedProject.client_name || 'Client');
+          : (selectedProjectClient.clientName || selectedProject.client_name || 'Client');
         const partyType = isPaid ? paymentForm.party_type : 'client';
-        const partyId = !isPaid ? (selectedProject.client_id || null) : null;
+        const partyId = !isPaid
+          ? (selectedProject.client_id || selectedProjectClient.clientId || null)
+          : null;
 
         const payload = {
           profile_id: profile.id,
@@ -892,11 +906,14 @@ export default function FieldServiceLog({ profile, currentUser }) {
               className={INPUT_CLASS}
             >
               <option value="">Select project...</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}{p.client_name ? ` — ${p.client_name}` : ''}
-                </option>
-              ))}
+              {projects.map((p) => {
+                const derivedName = deriveProjectClient(p, projectIdToEstimate).clientName;
+                return (
+                  <option key={p.id} value={p.id}>
+                    {p.name}{derivedName ? ` — ${derivedName}` : ''}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -1054,10 +1071,10 @@ export default function FieldServiceLog({ profile, currentUser }) {
             Client Payment
             <span className="ml-auto text-xs font-normal text-muted-foreground/70">Received</span>
           </div>
-          {selectedProject?.client_name && (
+          {selectedProjectClient.clientName && (
             <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 rounded-lg px-3 py-2">
               <Users className="h-4 w-4" />
-              <span>From: <span className="text-foreground-soft font-medium">{selectedProject.client_name}</span></span>
+              <span>From: <span className="text-foreground-soft font-medium">{selectedProjectClient.clientName}</span></span>
             </div>
           )}
           <div className="space-y-3">

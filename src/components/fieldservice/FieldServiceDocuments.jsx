@@ -17,6 +17,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { printNode } from '@/utils/printNode';
+import { buildProjectIdToEstimateMap, deriveProjectClient } from '@/hooks/useProjectLinkedEstimates';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   Search, Eye, Printer, X, Copy, Send, Archive, Shield,
@@ -789,10 +790,23 @@ function CreateDocumentFlow({ profile, business, currentUser, templates, clients
     );
   }, [clients, clientSearch]);
 
-  const filteredProjects = useMemo(() =>
-    clientId ? projects.filter((p) => p.client_id === clientId) : [],
-    [projects, clientId]
+  // Empty-field link derivation for the project picker. A project that has
+  // no direct client_id but is linked to an estimate carrying client_id
+  // should still appear under that client when the user filters by it
+  // (Test Project pattern). Build the map from the estimates already in
+  // scope — reuses the shared dedup rule from useProjectLinkedEstimates.
+  const projectIdToEstimate = useMemo(
+    () => buildProjectIdToEstimateMap(estimates),
+    [estimates]
   );
+  const filteredProjects = useMemo(() => {
+    if (!clientId) return [];
+    return projects.filter((p) => {
+      if (p.client_id === clientId) return true;
+      const derivedId = deriveProjectClient(p, projectIdToEstimate).clientId;
+      return derivedId === clientId;
+    });
+  }, [projects, clientId, projectIdToEstimate]);
 
   const selectedProject = useMemo(() => projects.find((p) => p.id === projectId), [projects, projectId]);
 

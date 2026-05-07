@@ -15,6 +15,7 @@ import FieldServiceClientDetail from './FieldServiceClientDetail';
 import ProjectTileDrillIn from './ProjectTileDrillIn';
 import { makeItem, calcTotals } from '@/utils/fsLineItems';
 import { useFSPayments, summarizePayments } from '@/hooks/useFSPayments';
+import { useProjectLinkedEstimates, deriveProjectClient } from '@/hooks/useProjectLinkedEstimates';
 import {
   FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save, X,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
@@ -220,25 +221,13 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     enabled: !!profile?.id,
   });
 
-  // ─── Query: All estimates (workspace-wide) ─────
-  // Needed by the list grouping derivation below: a project without its own
-  // client_id can derive its grouping client from a linked estimate's
-  // client_id. This is the same chain the per-project Contract Total
-  // derivation uses (`2111d11`), lifted to workspace scope so the list
-  // grouping doesn't need N+1 lookups. Bare-prefix `['fs-estimates']`
-  // invalidations elsewhere (FieldServiceEstimates mutations) cascade here
-  // automatically per DEC-202.
-  const { data: workspaceEstimates = [] } = useQuery({
-    queryKey: ['fs-estimates', profile?.id],
-    queryFn: async () => {
-      if (!profile?.id) return [];
-      try {
-        const list = await base44.entities.FSEstimate.filter({ profile_id: profile.id });
-        return Array.isArray(list) ? list : list ? [list] : [];
-      } catch { return []; }
-    },
-    enabled: !!profile?.id,
-  });
+  // ─── Workspace-wide estimates + project_id → estimate map ─────
+  // Empty-field link derivation (5f35c0f → this commit's sweep). Lifted to
+  // a shared hook once 3+ surfaces (this file's grouping/header/cards/drill-
+  // in subtitles, FSLog project picker, FSDocument project filter) needed
+  // the same lookup. See src/hooks/useProjectLinkedEstimates.js for the
+  // multi-estimate dedup rule + invalidation contract.
+  const { projectIdToEstimate } = useProjectLinkedEstimates(profile?.id);
 
   // ─── Query: Log counts per project ─────────────
   const { data: dailyLogs = [] } = useQuery({
@@ -332,52 +321,19 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     return [...list].sort((a, b) => (b.created_date || '').localeCompare(a.created_date || ''));
   }, [projects, filter, searchTerm]);
 
-  // project_id → linked estimate. Used by the grouping fallback below when a
-  // project has no direct client_id but its linked estimate does. Multi-
-  // estimate edge case: prefer the most-recently-created estimate that
-  // carries a client_id — duplicates of the original (Test Project ←
-  // EST-2026-003 was duplicated from EST-2026-002) inherit the source's
-  // client, so any of them resolves to the same client; if they ever
-  // diverge, the most recent reflects the contractor's latest intent.
-  const projectIdToEstimate = useMemo(() => {
-    const map = {};
-    [...workspaceEstimates]
-      .sort((a, b) => (a.created_date || '').localeCompare(b.created_date || ''))
-      .forEach((e) => {
-        if (!e.project_id) return;
-        if (!e.client_id && map[e.project_id]) return;
-        map[e.project_id] = e;
-      });
-    return map;
-  }, [workspaceEstimates]);
-
-  // Group projects by client. Derivation chain when bucketing a project:
-  //   1. project.client_id (explicit user choice — sacred, always wins)
-  //   2. linkedEstimate.client_id (transitive derivation through the link
-  //      established in `2111d11`'s bidirectional fix — fills the gap when
-  //      the project was created standalone and an estimate was linked from
-  //      the estimate's edit form, which never wrote project.client_id)
-  //   3. project.client_name (denormalized inline label, no FK)
-  //   4. linkedEstimate.client_name (same denormalized label via the link)
-  //   5. 'Unassigned' (truly orphaned)
-  // Pure read-time derivation — no auto-write to FSProject. If a contractor
-  // later sets project.client_id explicitly, that overrides the derived
-  // value automatically because the chain checks the direct field first.
+  // Group projects by client. Derivation per project goes through the shared
+  // deriveProjectClient chain (project.client_id → linkedEstimate.client_id →
+  // denormalized inline labels). See useProjectLinkedEstimates.js for the
+  // chain rules and DEC-148 extraction rationale.
   const groupedProjects = useMemo(() => {
     const groups = {};
     filteredProjects.forEach((p) => {
-      const linkedEst = projectIdToEstimate[p.id];
-      const derivedClientId = p.client_id || linkedEst?.client_id || null;
-      const key = derivedClientId || '__unassigned__';
+      const { clientId, clientName } = deriveProjectClient(p, projectIdToEstimate, clientMap);
+      const key = clientId || '__unassigned__';
       if (!groups[key]) {
-        const client = derivedClientId ? clientMap[derivedClientId] : null;
         groups[key] = {
-          clientId: derivedClientId,
-          clientName:
-            client?.name ||
-            p.client_name ||
-            linkedEst?.client_name ||
-            'Unassigned',
+          clientId,
+          clientName: clientName || 'Unassigned',
           projects: [],
         };
       }
@@ -1169,9 +1125,19 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       .filter((l) => l.project_id === proj.id)
       .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
-    // Live client data from FSClient (source of truth), fallback to inline copies
-    const liveClient = proj.client_id ? clientMap[proj.client_id] : null;
-    const clientName = liveClient?.name || proj.client_name;
+    // Live client data from FSClient (source of truth), then inline copies,
+    // then derived from the linked estimate (Test Project pattern: standalone
+    // project + estimate linked from estimate-edit form ⇒ project.client_id
+    // is null but the estimate carries the client). Phone/email derive too —
+    // contractor adds the linked estimate's client contact info, project
+    // detail surfaces it without forcing a manual copy. See deriveProjectClient
+    // for the source-of-truth chain.
+    const derived = deriveProjectClient(proj, projectIdToEstimate, clientMap);
+    const linkedEstClient = derived.source === 'estimate' && derived.clientId
+      ? clientMap[derived.clientId]
+      : null;
+    const liveClient = proj.client_id ? clientMap[proj.client_id] : linkedEstClient;
+    const clientName = derived.clientName;
     const clientPhone = liveClient?.phone || proj.client_phone;
     const clientEmail = liveClient?.email || proj.client_email;
 
@@ -1374,19 +1340,28 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       </div>
     );
 
+    // Project + client context for drill-in modal subtitles. Surfaces the
+    // derived client name so users auditing a tile in a generically-named
+    // project ("Test Project", "Site A") can confirm at a glance which
+    // contract context they're looking at. Falls back to project-only when
+    // no client info is available.
+    const drillContext = clientName
+      ? `${proj.name} · ${clientName}`
+      : proj.name;
+
     const drillConfig = {
       contract: {
         title: 'Contract Total',
         subtitle: selectedEstimate
-          ? 'Linked estimate + signed change orders'
-          : 'Manually-entered budget + signed change orders',
+          ? `${drillContext} · Linked estimate + signed change orders`
+          : `${drillContext} · Manually-entered budget + signed change orders`,
         total: fmt(contractTotal),
         rows: contractRows,
         emptyMessage: 'No estimate or signed change orders yet.',
       },
       received: {
         title: 'Received',
-        subtitle: 'Settled payments coming in (received or cleared)',
+        subtitle: `${drillContext} · Settled payments coming in (received or cleared)`,
         total: fmt(paymentSummary.received),
         rows: receivedRows,
         emptyMessage: 'No received payments yet.',
@@ -1394,33 +1369,33 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       },
       paid: {
         title: 'Paid Out',
-        subtitle: 'Settled payments going out (subs, vendors, refunds)',
+        subtitle: `${drillContext} · Settled payments going out (subs, vendors, refunds)`,
         total: fmt(paymentSummary.paid),
         rows: paidRows,
         emptyMessage: 'No outgoing payments yet.',
       },
       net: {
         title: 'Net Cash',
-        subtitle: 'Received minus Paid Out on this project',
+        subtitle: `${drillContext} · Received minus Paid Out`,
         total: `${paymentSummary.net > 0 ? '+' : ''}${fmt(paymentSummary.net)}`,
         math: netMath,
       },
       spent: {
         title: 'Spent',
-        subtitle: 'Materials and labor logged against this project',
+        subtitle: `${drillContext} · Materials and labor logged against this project`,
         total: fmt(spent),
         rows: spentRows,
         emptyMessage: 'No materials or labor logged yet.',
       },
       remaining: {
         title: 'Remaining',
-        subtitle: 'Contract budget minus spent cost lines',
+        subtitle: `${drillContext} · Contract budget minus spent cost lines`,
         total: budget > 0 ? fmt(budget - spent) : '—',
         math: remainingMath,
       },
       logs: {
         title: 'Daily Logs',
-        subtitle: `${logCount} log${logCount === 1 ? '' : 's'} on this project`,
+        subtitle: `${drillContext} · ${logCount} log${logCount === 1 ? '' : 's'}`,
         total: undefined,
         rows: logRows,
         emptyMessage: 'No daily logs yet.',
@@ -1444,10 +1419,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
             <div className="min-w-0 flex-1">
               <h2 className="text-xl font-bold text-foreground">{proj.name}</h2>
               {clientName && (
-                proj.client_id ? (
+                derived.clientId ? (
                   <button
                     type="button"
-                    onClick={() => { setClientDetailId(proj.client_id); setView('client_detail'); }}
+                    onClick={() => { setClientDetailId(derived.clientId); setView('client_detail'); }}
                     className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover mt-1 transition-colors"
                   >
                     <User className="h-3.5 w-3.5" /> {clientName}
@@ -2620,6 +2595,10 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
             const budget = proj.total_budget || 0;
             const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
             const logs = logCountByProject[proj.id] || 0;
+            // Same chain as the grouped view's bucket label so flat cards
+            // surface the linked estimate's client when project.client_name
+            // is empty (Test Project pattern).
+            const flatClientName = deriveProjectClient(proj, projectIdToEstimate, clientMap).clientName;
 
             return (
               <button
@@ -2631,8 +2610,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                 <div className="flex items-start justify-between mb-2">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-foreground truncate">{proj.name}</p>
-                    {proj.client_name && (
-                      <p className="text-xs text-muted-foreground truncate">{proj.client_name}</p>
+                    {flatClientName && (
+                      <p className="text-xs text-muted-foreground truncate">{flatClientName}</p>
                     )}
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusObj.color} flex-shrink-0 ml-2`}>
