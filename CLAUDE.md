@@ -594,6 +594,30 @@ Wizard-shape forms (multi-step, gated progression) use step-gating instead of as
 
 A shared `<RequiredField>` wrapper or `validateForm(formData, schema)` utility was considered and declined — forms differ enough (conditional fields, wizards, multi-mode submit paths) that a one-size-fits-all wrapper would constrain more than help. The pattern above is short enough to copy inline. Revisit if a future form's validation list exceeds ~6 fields and gets unwieldy.
 
+### Empty-field derivation through links (2026-05-07)
+
+When an entity field is empty AND a linked entity carries the same logical value, **derive at the consuming surface**. Direct field always wins (explicit user intent is sacred); empty field falls through to the linked entity's value; only truly orphaned records show "unset." Do NOT auto-write the derived value back to the empty record on link save — that creates drift if links change later. Pure read-time derivation: storage stays clean, derivation stays current.
+
+**Three-instance threshold met (DEC-148).** Same shape applied at:
+- Contract Total derivation (`e950fd5`) — project's contract reads from linked estimate + signed COs at render time, not stored `total_budget`.
+- Bidirectional link query (`2111d11`) — project's `selectedEstimate` lookup queries by `estimate.project_id` (the inverse), works regardless of which side wrote the link.
+- List grouping client (`5f35c0f`) — projects without `client_id` group under their linked estimate's client.
+- Sweep across remaining sibling surfaces (`2aaef46`) — Project Detail header, flat list cards, drill-in modal subtitles, FSLog project picker + Client Payment "From" line, FSDocument project filter all chain through `deriveProjectClient` from `src/hooks/useProjectLinkedEstimates.js`.
+
+**The shared shape** is `src/hooks/useProjectLinkedEstimates.js`:
+```js
+const { projectIdToEstimate } = useProjectLinkedEstimates(profile?.id);
+const { clientId, clientName, source } = deriveProjectClient(project, projectIdToEstimate, clientMap);
+// source: 'project' | 'estimate' | 'inline' | null — lets the consumer
+// decide whether to render a clickable link (only safe with an actual id).
+```
+
+For consumers that already have a workspace-wide estimates list in scope, `buildProjectIdToEstimateMap(estimates)` builds the same map without re-querying.
+
+**Multi-record dedup rule** (when more than one linked entity could win): prefer the most-recently-created entry that carries the value, but never downgrade a useful entry to a less-useful one (skip null-value upgrades). Codified once in the hook so all consumers inherit the same behavior.
+
+**Same shape applies to other entity link chains** beyond project↔estimate — worth auditing when next touching: team↔workspace member visibility, sub/vendor records ↔ FSPeople inline copies, FSPayment.party_name ↔ FSClient lookup when `client_id` is null. Don't pre-extend the principle without a named gap; the rule is the principle, not the specific helper.
+
 ---
 
 ## File Organization
