@@ -68,7 +68,7 @@ export function printNode(node, { title, extraCss = '' } = {}) {
        picks up a print-readable dark gray automatically (Living Feet — one
        source of truth, every consumer follows). Applied across all theme
        attributes since the iframe inherits the parent's data-theme.
-       Pushed to gray-800 (was gray-700 in v1) — `text-muted-foreground/50`
+       Pushed to gray-800 (was gray-700 in v1) — "text-muted-foreground/50"
        customer-card secondary lines were still washed out at the v1 base.
        50% alpha over white is inherently mid-gray no matter how dark the
        source, so the alpha-strip rule below is the structural fix; the
@@ -82,12 +82,12 @@ export function printNode(node, { title, extraCss = '' } = {}) {
       --foreground-soft: 217 19% 20%;  /* between gray-800 and gray-700 ~ #2a3441 */
     }
     /* Alpha modifiers (text-muted-foreground/50, /70, etc.) compile to
-       `hsl(var(--muted-foreground) / 0.5)`. On dark theme they create
+       "hsl(var(--muted-foreground) / 0.5)". On dark theme they create
        elegant subtle hierarchy on screen; on white paper the multiplication
        produces washed-out mid-gray that loses readability regardless of
        how dark the base variable is. In print there's no benefit to alpha-
        layered hierarchy — the base color carries enough weight on its own.
-       Strip the alpha so every `text-muted-foreground/<n>` consumer renders
+       Strip the alpha so every "text-muted-foreground/<n>" consumer renders
        at the full base color, matching the no-alpha consumers. Same for
        text-foreground-soft variants. */
     [class*="text-muted-foreground/"] {
