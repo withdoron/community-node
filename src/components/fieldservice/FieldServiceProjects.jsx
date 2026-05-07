@@ -342,16 +342,36 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
   // The CO builder pre-fills its O&P / tax / other fields from this estimate
   // (the project's source spine) so the contractor's most-common case is one
   // tap. Per-CO override is just normal form editing.
+  //
+  // Bidirectional link integrity: there are two ways an estimate ends up linked
+  // to a project — convertMutation (project created from estimate, writes BOTH
+  // sides) and the estimate edit form's "Link to project" select (writes only
+  // estimate.project_id). The previous query gated on selectedProject.estimate_id
+  // which only covered the convertMutation path; manually-linked projects came
+  // back null, the contract total derivation fell through to storedTotal, and
+  // the project showed Contract Total $0 (Test Project regression).
+  // Read-side single source of truth: query estimates by project_id pointing
+  // back at us. That field is set by both link flows, so this single lookup
+  // handles both directions without requiring bidirectional writes. Falls back
+  // to the legacy project.estimate_id path for any pre-existing record where
+  // the inverse wasn't backfilled.
   const { data: selectedEstimate } = useQuery({
-    queryKey: ['fs-project-estimate', selectedProject?.estimate_id],
+    queryKey: ['fs-project-estimate', selectedProject?.id, selectedProject?.estimate_id],
     queryFn: async () => {
-      if (!selectedProject?.estimate_id) return null;
+      if (!selectedProject?.id) return null;
       try {
-        const list = await base44.entities.FSEstimate.filter({ id: selectedProject.estimate_id });
-        return Array.isArray(list) && list[0] ? list[0] : null;
+        const byProject = await base44.entities.FSEstimate.filter({ project_id: selectedProject.id });
+        const linked = Array.isArray(byProject) ? byProject : byProject ? [byProject] : [];
+        if (linked[0]) return linked[0];
+        if (selectedProject.estimate_id) {
+          const byId = await base44.entities.FSEstimate.filter({ id: selectedProject.estimate_id });
+          const idList = Array.isArray(byId) ? byId : byId ? [byId] : [];
+          return idList[0] || null;
+        }
+        return null;
       } catch { return null; }
     },
-    enabled: !!selectedProject?.estimate_id,
+    enabled: !!selectedProject?.id,
   });
   const parentEstimate = selectedEstimate;
 
