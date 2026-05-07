@@ -60,6 +60,21 @@ export function printNode(node, { title, extraCss = '' } = {}) {
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
+    /* Print-fidelity: muted text variables are calibrated for screen contrast
+       against dark/light theme backgrounds. On white paper they translate to
+       washed-out gray that loses readability — field labels, metadata, totals
+       labels, and footer copy all blur into the page. Override at the variable
+       level so every consumer of text-muted-foreground / text-foreground-soft
+       picks up a print-readable dark gray automatically (Living Feet — one
+       source of truth, every consumer follows). Applied across all theme
+       attributes since the iframe inherits the parent's data-theme. */
+    :root,
+    [data-theme="dark"],
+    [data-theme="light"],
+    [data-theme="fallout"] {
+      --muted-foreground: 220 13% 26%; /* gray-700 ~ #374151 */
+      --foreground-soft: 217 19% 27%;  /* slate-700 ~ #334155 */
+    }
     .print-avoid-break { page-break-inside: avoid; }
     ${extraCss}
   </style>
