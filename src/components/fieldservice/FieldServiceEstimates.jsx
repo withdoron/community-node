@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -1056,6 +1056,21 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
     },
     enabled: !!profile?.id,
   });
+
+  // One-shot prefill: tile drill-in row click on a Contract Total estimate
+  // row (Project Detail) writes the target estimate id here, navigates to
+  // the Estimates tab, and we open that estimate's preview on mount.
+  // Same consume-and-clear semantics as PREFILL_TYPE_KEY in FieldServiceLog.
+  useEffect(() => {
+    const prefillId = localStorage.getItem('fs-estimate-prefill-id');
+    if (!prefillId) return;
+    localStorage.removeItem('fs-estimate-prefill-id');
+    const found = estimates.find((e) => e.id === prefillId);
+    if (found) {
+      setPreviewEstimate(found);
+      setView('preview');
+    }
+  }, [estimates]);
 
   // ─── Query: Projects for linking ────────────────
   const { data: projects = [] } = useQuery({

@@ -24,6 +24,11 @@ const LAST_PROJECT_KEY = 'fs-last-project';
 // Project Detail's "Log a payment" button drops a hint here so Log opens
 // pre-pointed at the right entry type. Read once on mount, then cleared.
 const PREFILL_TYPE_KEY = 'fs-log-prefill-type';
+// Per-row drill-into-source navigation from Project Detail's tile drill-in
+// modals: clicking a Daily Log / Material / Labor row writes the parent
+// FSDailyLog id here, navigates to the Log tab, and we open that log for
+// editing on mount. Same one-shot consume-and-clear semantics.
+const PREFILL_LOG_ID_KEY = 'fs-log-prefill-log-id';
 
 // Universal capture surface — three entry types share one input. Daily Log is
 // the default; Sub Payment / Client Payment write FSPayment with the right
@@ -167,6 +172,28 @@ export default function FieldServiceLog({ profile, currentUser }) {
       localStorage.removeItem(PREFILL_TYPE_KEY);
     }
   }, []);
+
+  // One-shot prefill: tile drill-in row click (Daily Log / Material / Labor)
+  // writes the parent FSDailyLog id here. Fetch fresh and load into the form
+  // so the user lands on edit, not create. Consume-and-clear so a stale id
+  // can't outlive its trigger across tab switches.
+  useEffect(() => {
+    const logId = localStorage.getItem(PREFILL_LOG_ID_KEY);
+    if (!logId) return;
+    localStorage.removeItem(PREFILL_LOG_ID_KEY);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await base44.entities.FSDailyLog.filter({ id: logId });
+        const log = Array.isArray(res) ? res[0] : res;
+        if (!cancelled && log) await loadLogForEditing(log);
+      } catch {
+        // best-effort: if the fetch fails the user lands on the Log home,
+        // which is still a reasonable destination.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto day number
   const { data: existingLogs = [] } = useQuery({

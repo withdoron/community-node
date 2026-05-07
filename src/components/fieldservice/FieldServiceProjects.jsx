@@ -1124,6 +1124,31 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     // Feet at the modal layer: same shell, different rows. Derived tiles
     // (Net Cash, Remaining) pass `math` JSX instead of `rows` so the user
     // sees the calculation with each input clickable to drill into its source.
+    //
+    // Per-row navigation: row.onClick closes the modal and routes to the
+    // source record's edit/detail view. Cross-tab navigation reuses the
+    // localStorage-prefill pattern established by FieldServiceLog's
+    // PREFILL_TYPE_KEY — the receiving tab consumes the prefill on mount.
+    // Payment rows + CO rows stay on Project Detail (no tab switch needed —
+    // payments render in the Recent Payments section below the tiles, COs in
+    // the COs section). Estimate row + Daily Log / Material / Labor rows
+    // navigate to Estimates and Log tabs respectively, prefilling the target
+    // record so the user lands directly on its edit/preview.
+    const goToEstimatePreview = (estId) => {
+      if (estId) localStorage.setItem('fs-estimate-prefill-id', estId);
+      setDrillIn(null);
+      onNavigateTab?.('estimates');
+    };
+    const goToLogForRecord = (logId) => {
+      if (logId) localStorage.setItem('fs-log-prefill-log-id', logId);
+      setDrillIn(null);
+      onNavigateTab?.('log');
+    };
+    const goToCOOnPage = (coId) => {
+      setExpandedCO(coId || null);
+      setDrillIn(null);
+    };
+
     const settledPayments = (projectPayments || []).filter(
       (p) => p.status === 'received' || p.status === 'cleared'
     );
@@ -1138,6 +1163,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         secondary: `${selectedEstimate.estimate_number || 'Estimate'}${selectedEstimate.date ? ` · ${fmtDate(selectedEstimate.date)}` : ''} · Original contract`,
         amount: fmt(linkedEstimateTotal),
         amountClass: 'text-foreground',
+        onClick: () => goToEstimatePreview(selectedEstimate.id),
       });
     } else if (originalContract > 0) {
       contractRows.push({
@@ -1146,6 +1172,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         secondary: 'Manually entered (no linked estimate)',
         amount: fmt(originalContract),
         amountClass: 'text-foreground',
+        // Manual entry has no linked record to drill into; non-clickable row.
       });
     }
     signedCOs.forEach((co) => {
@@ -1158,15 +1185,23 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         secondary: `${co.change_order_number || 'CO'} · ${co.status === 'accepted' ? 'Accepted' : 'Signed'}${co.signed_at ? ` ${fmtDate(co.signed_at)}` : ''}`,
         amount: `${adj >= 0 ? '+' : ''}${fmt(adj)}`,
         amountClass: 'text-primary-hover',
+        onClick: () => goToCOOnPage(co.id),
       });
     });
 
+    // FSPayment edit form doesn't exist in this build — payments are create-
+    // only via the Log tab's universal capture surface (FINANCIAL-WORKFLOW
+    // §2.6). Row click closes the modal so the user sees the Recent Payments
+    // section that already renders below the tiles on Project Detail. When
+    // FSPayment edit lands as a separate build, swap onClose for a prefill
+    // navigate per the goToLogForRecord shape above.
     const receivedRows = receivedPayments.map((p) => ({
       key: `pay-${p.id}`,
       primary: p.party_name || 'Payment received',
       secondary: `${p.date ? fmtDate(p.date) : ''}${p.payment_method ? ` · ${p.payment_method}` : ''}${p.reference_number ? ` · #${p.reference_number}` : ''}`.replace(/^ · /, ''),
       amount: fmt(parseFloat(p.amount) || 0),
       amountClass: 'text-emerald-400',
+      onClick: () => setDrillIn(null),
     }));
 
     const paidRows = paidPayments.map((p) => ({
@@ -1175,6 +1210,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       secondary: `${p.date ? fmtDate(p.date) : ''}${p.payment_method ? ` · ${p.payment_method}` : ''}${p.reference_number ? ` · #${p.reference_number}` : ''}`.replace(/^ · /, ''),
       amount: fmt(parseFloat(p.amount) || 0),
       amountClass: 'text-primary',
+      onClick: () => setDrillIn(null),
     }));
 
     // Spent = materials + labor (cost lines from FSDailyLog children). Per
@@ -1182,6 +1218,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     // that's a separate architectural conversation (Log-Line-Item Attribution
     // proposal, awaiting Doron's sign-off). For now mirror the existing tile
     // math exactly so the drill-in total matches the tile.
+    // Click navigates to the parent FSDailyLog (the canonical edit surface
+    // for materials and labor — they're entered via the daily log form).
     const spentRows = [];
     projectMaterials.forEach((m) => {
       const qty = parseFloat(m.quantity) || 0;
@@ -1193,6 +1231,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         secondary: `Material${qty ? ` · ${qty}${m.unit ? ' ' + m.unit : ''}` : ''}${unitCost ? ` × ${fmt(unitCost)}` : ''}`,
         amount: fmt(cost),
         amountClass: 'text-primary',
+        onClick: m.daily_log_id ? () => goToLogForRecord(m.daily_log_id) : undefined,
       });
     });
     projectLabor.forEach((l) => {
@@ -1204,6 +1243,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         secondary: `Labor${hours ? ` · ${hours} hr` : ''}`,
         amount: fmt(cost),
         amountClass: 'text-primary',
+        onClick: l.daily_log_id ? () => goToLogForRecord(l.daily_log_id) : undefined,
       });
     });
 
@@ -1213,6 +1253,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       secondary: l.date ? fmtDate(l.date) : '',
       amount: l.weather || '',
       amountClass: 'text-muted-foreground',
+      onClick: () => goToLogForRecord(l.id),
     }));
 
     // Math JSX for derived tiles. Each input is a button that re-targets
