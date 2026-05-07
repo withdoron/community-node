@@ -220,6 +220,26 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     enabled: !!profile?.id,
   });
 
+  // ─── Query: All estimates (workspace-wide) ─────
+  // Needed by the list grouping derivation below: a project without its own
+  // client_id can derive its grouping client from a linked estimate's
+  // client_id. This is the same chain the per-project Contract Total
+  // derivation uses (`2111d11`), lifted to workspace scope so the list
+  // grouping doesn't need N+1 lookups. Bare-prefix `['fs-estimates']`
+  // invalidations elsewhere (FieldServiceEstimates mutations) cascade here
+  // automatically per DEC-202.
+  const { data: workspaceEstimates = [] } = useQuery({
+    queryKey: ['fs-estimates', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      try {
+        const list = await base44.entities.FSEstimate.filter({ profile_id: profile.id });
+        return Array.isArray(list) ? list : list ? [list] : [];
+      } catch { return []; }
+    },
+    enabled: !!profile?.id,
+  });
+
   // ─── Query: Log counts per project ─────────────
   const { data: dailyLogs = [] } = useQuery({
     queryKey: ['fs-daily-logs-all', profile?.id],
@@ -312,15 +332,52 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     return [...list].sort((a, b) => (b.created_date || '').localeCompare(a.created_date || ''));
   }, [projects, filter, searchTerm]);
 
+  // project_id → linked estimate. Used by the grouping fallback below when a
+  // project has no direct client_id but its linked estimate does. Multi-
+  // estimate edge case: prefer the most-recently-created estimate that
+  // carries a client_id — duplicates of the original (Test Project ←
+  // EST-2026-003 was duplicated from EST-2026-002) inherit the source's
+  // client, so any of them resolves to the same client; if they ever
+  // diverge, the most recent reflects the contractor's latest intent.
+  const projectIdToEstimate = useMemo(() => {
+    const map = {};
+    [...workspaceEstimates]
+      .sort((a, b) => (a.created_date || '').localeCompare(b.created_date || ''))
+      .forEach((e) => {
+        if (!e.project_id) return;
+        if (!e.client_id && map[e.project_id]) return;
+        map[e.project_id] = e;
+      });
+    return map;
+  }, [workspaceEstimates]);
+
+  // Group projects by client. Derivation chain when bucketing a project:
+  //   1. project.client_id (explicit user choice — sacred, always wins)
+  //   2. linkedEstimate.client_id (transitive derivation through the link
+  //      established in `2111d11`'s bidirectional fix — fills the gap when
+  //      the project was created standalone and an estimate was linked from
+  //      the estimate's edit form, which never wrote project.client_id)
+  //   3. project.client_name (denormalized inline label, no FK)
+  //   4. linkedEstimate.client_name (same denormalized label via the link)
+  //   5. 'Unassigned' (truly orphaned)
+  // Pure read-time derivation — no auto-write to FSProject. If a contractor
+  // later sets project.client_id explicitly, that overrides the derived
+  // value automatically because the chain checks the direct field first.
   const groupedProjects = useMemo(() => {
     const groups = {};
     filteredProjects.forEach((p) => {
-      const key = p.client_id || '__unassigned__';
+      const linkedEst = projectIdToEstimate[p.id];
+      const derivedClientId = p.client_id || linkedEst?.client_id || null;
+      const key = derivedClientId || '__unassigned__';
       if (!groups[key]) {
-        const client = p.client_id ? clientMap[p.client_id] : null;
+        const client = derivedClientId ? clientMap[derivedClientId] : null;
         groups[key] = {
-          clientId: p.client_id || null,
-          clientName: client?.name || p.client_name || 'Unassigned',
+          clientId: derivedClientId,
+          clientName:
+            client?.name ||
+            p.client_name ||
+            linkedEst?.client_name ||
+            'Unassigned',
           projects: [],
         };
       }
@@ -331,7 +388,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       if (b.clientId === null) return -1;
       return a.clientName.localeCompare(b.clientName);
     });
-  }, [filteredProjects, clientMap]);
+  }, [filteredProjects, clientMap, projectIdToEstimate]);
 
   const selectedProject = useMemo(
     () => projects.find((p) => p.id === selectedId),
