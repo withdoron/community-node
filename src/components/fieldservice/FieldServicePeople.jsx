@@ -4,13 +4,28 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   Users, Plus, Pencil, Trash2, Save, X, Loader2,
-  ChevronDown, ChevronRight, HardHat, Briefcase, User,
+  ChevronDown, ChevronRight, HardHat, Briefcase, Truck, User,
   Phone, Mail, Shield, FolderOpen, Link2, Share2,
 } from 'lucide-react';
 import CurrencyInput from './CurrencyInput';
 import { invalidateFSProfiles } from '@/utils/fsFeatures';
-import { ROLE_BADGES } from '@/utils/fsWorkersRoles';
+import { ROLE_BADGES, WORKERS_ROLES, getRoleConfig } from '@/utils/fsWorkersRoles';
+import { getTradeCategories } from '@/utils/fsTradeCategories';
 import { useWorkspacePeople } from '@/hooks/useWorkspacePeople';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+// Sentinel for the primary-trade picker's "no primary trade" option.
+// Radix Select disallows empty-string values; round-trip this sentinel to/
+// from '' at the I/O boundary so the underlying workers_json shape is
+// unchanged (primary_trade_id stays '' when no trade is set). Mirrors the
+// NO_TRADE_VALUE pattern in LineItemsEditor.
+const NO_PRIMARY_TRADE_VALUE = '__no_primary_trade__';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -33,6 +48,7 @@ const EMPTY_PERSON = {
   phone: '',
   email: '',
   business_name: '',
+  primary_trade_id: '',
   hourly_rate: '',
   notes: '',
   assigned_projects: [],
@@ -221,15 +237,23 @@ function ClientCard({ client, projectCount, onView }) {
 // ═══════════════════════════════════════════════════
 // Add/Edit Person Modal (full-screen on mobile)
 // ═══════════════════════════════════════════════════
-function PersonModal({ person, activeProjects, onSave, onCancel, isSaving }) {
+function PersonModal({ person, activeProjects, profile, onSave, onCancel, isSaving }) {
   const [form, setForm] = useState(() => ({
     ...EMPTY_PERSON,
     ...(person || {}),
     hourly_rate: person?.hourly_rate?.toString() || '',
     assigned_projects: person?.assigned_projects || [],
+    primary_trade_id: person?.primary_trade_id || '',
   }));
   const isEdit = person != null && typeof person._editIndex === 'number' && person._editIndex >= 0;
   const set = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
+  const config = getRoleConfig(form.role);
+
+  // Workspace's CURRENT trade_categories_json — primary_trade_id references
+  // this list, NOT a per-estimate snapshot. When the line item's snapshot
+  // doesn't contain a matching category at Phase 2.5 derivation time, the
+  // line soft-fails to Unallocated.
+  const tradeCategories = useMemo(() => getTradeCategories(profile), [profile]);
 
   const toggleProject = (pid) => {
     setForm((prev) => {
@@ -253,8 +277,13 @@ function PersonModal({ person, activeProjects, onSave, onCancel, isSaving }) {
       name: form.name.trim(),
       phone: form.phone.trim(),
       email: form.email.trim(),
-      business_name: form.business_name?.trim() || '',
-      hourly_rate: parseFloat(form.hourly_rate) || 0,
+      // Drop business_name / primary_trade_id / hourly_rate / assigned_projects
+      // when the role config disallows them — keeps stored records clean if
+      // a person's role changes worker → vendor (or vice versa) post-save.
+      business_name: config.hasBusinessName ? (form.business_name?.trim() || '') : '',
+      primary_trade_id: config.hasPrimaryTradeId ? (form.primary_trade_id || '') : '',
+      hourly_rate: config.hasHourlyRate ? (parseFloat(form.hourly_rate) || 0) : 0,
+      assigned_projects: config.hasAssignedProjects ? (form.assigned_projects || []) : [],
       notes: form.notes?.trim() || '',
       user_id: person?.user_id || null,
     });
@@ -290,21 +319,23 @@ function PersonModal({ person, activeProjects, onSave, onCancel, isSaving }) {
           />
         </div>
 
-        {/* Role */}
+        {/* Role — shadcn Select driven by WORKERS_ROLES (Phase 2.3 vendor added) */}
         <div>
           <label className="block text-sm text-muted-foreground mb-1">Role</label>
-          <select
-            value={form.role}
-            onChange={(e) => set('role', e.target.value)}
-            className={INPUT_CLASS}
-          >
-            <option value="worker">Worker</option>
-            <option value="subcontractor">Subcontractor</option>
-          </select>
+          <Select value={form.role} onValueChange={(value) => set('role', value)}>
+            <SelectTrigger className="w-full bg-secondary border-border text-foreground min-h-[44px] focus:ring-ring">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {WORKERS_ROLES.map((r) => (
+                <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Business name (subs only — vendor support comes in Phase 2.3 UI extension) */}
-        {form.role === 'subcontractor' && (
+        {/* Business name — subs + vendors per config.hasBusinessName */}
+        {config.hasBusinessName && (
           <div>
             <label className="block text-sm text-muted-foreground mb-1">Business name</label>
             <input
@@ -314,6 +345,32 @@ function PersonModal({ person, activeProjects, onSave, onCancel, isSaving }) {
               className={INPUT_CLASS}
               placeholder="Business or DBA name"
             />
+          </div>
+        )}
+
+        {/* Primary trade — subs + vendors per config.hasPrimaryTradeId.
+            References workspace's CURRENT trade_categories_json (not snapshot);
+            Phase 2.5 derivation soft-fails when an estimate's snapshot doesn't
+            contain a matching category. Sentinel pattern mirrors LineItemsEditor. */}
+        {config.hasPrimaryTradeId && (
+          <div>
+            <label className="block text-sm text-muted-foreground mb-1">Primary trade</label>
+            <Select
+              value={form.primary_trade_id || NO_PRIMARY_TRADE_VALUE}
+              onValueChange={(value) =>
+                set('primary_trade_id', value === NO_PRIMARY_TRADE_VALUE ? '' : value)
+              }
+            >
+              <SelectTrigger className="w-full bg-secondary border-border text-foreground min-h-[44px] focus:ring-ring">
+                <SelectValue placeholder="— No primary trade —" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_PRIMARY_TRADE_VALUE}>— No primary trade —</SelectItem>
+                {tradeCategories.map((tc) => (
+                  <SelectItem key={tc.id} value={tc.id}>{tc.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
 
@@ -341,8 +398,8 @@ function PersonModal({ person, activeProjects, onSave, onCancel, isSaving }) {
           />
         </div>
 
-        {/* Hourly Rate (workers only) */}
-        {form.role === 'worker' && (
+        {/* Hourly Rate — workers only per config.hasHourlyRate */}
+        {config.hasHourlyRate && (
           <div>
             <label className="block text-sm text-muted-foreground mb-1">Hourly rate</label>
             <CurrencyInput
@@ -367,8 +424,9 @@ function PersonModal({ person, activeProjects, onSave, onCancel, isSaving }) {
           />
         </div>
 
-        {/* Project Assignment */}
-        {activeProjects.length > 0 && (
+        {/* Project Assignment — workers + subs per config.hasAssignedProjects;
+            vendors are reference-only (Phase 2.3) and never assigned to projects. */}
+        {config.hasAssignedProjects && activeProjects.length > 0 && (
           <div>
             <label className="block text-sm text-muted-foreground mb-2">Assigned projects</label>
             <div className="space-y-2">
@@ -478,6 +536,7 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
   const { allPeople: people } = useWorkspacePeople(profile);
   const { people: workers } = useWorkspacePeople(profile, 'worker');
   const { people: subs } = useWorkspacePeople(profile, 'subcontractor');
+  const { people: vendors } = useWorkspacePeople(profile, 'vendor');
 
   // ─── Query: Projects ─────────────────────────────
   const { data: projects = [] } = useQuery({
@@ -698,6 +757,31 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
               </div>
             )}
           </Section>
+
+          {/* Vendors Section (Phase 2.3) — reference-only records used by the
+              Phase 2.4 SubVendorPicker to autocomplete vendor names on
+              estimates and payment forms. Vendors are not assigned to
+              projects and have no platform access. */}
+          <Section icon={Truck} title="Vendors" count={vendors.length} onAdd={() => openAdd('vendor')} addLabel="Add Vendor">
+            {vendors.length === 0 ? (
+              <p className="text-sm text-muted-foreground/70 py-2">
+                No vendors yet. Add a vendor to autocomplete on estimates and payments.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {vendors.map((v, idx) => (
+                  <PersonCard
+                    key={`vendor-${idx}`}
+                    person={v}
+                    projectMap={projectMap}
+                    onEdit={() => openEdit(v)}
+                    onRemove={() => setDeleteTarget(v)}
+                    /* No onShareInvite — vendors have no platform access. */
+                  />
+                ))}
+              </div>
+            )}
+          </Section>
         </>
       )}
 
@@ -819,6 +903,12 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
                 </p>
               </div>
               <div className="bg-card/50 rounded-lg p-3">
+                <p className="text-sm font-medium text-fuchsia-400">Vendor</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Reference-only — used to autocomplete vendor names on payment forms and estimates. No platform access; no invite link.
+                </p>
+              </div>
+              <div className="bg-card/50 rounded-lg p-3">
                 <p className="text-sm font-medium text-emerald-400">Client</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Branded portal view via shareable link. Can see project status, photos, and updates. Read-only.
@@ -837,6 +927,7 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
         <PersonModal
           person={editingPerson}
           activeProjects={activeProjects}
+          profile={profile}
           onSave={handleSavePerson}
           onCancel={() => { setShowModal(false); setEditingPerson(null); }}
           isSaving={savePeople.isPending}
