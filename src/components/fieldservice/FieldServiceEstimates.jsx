@@ -295,6 +295,12 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
           @page { margin: 0.5in; size: letter; }
           .print-avoid-break { page-break-inside: avoid; }
           .print-break-before { page-break-before: auto; }
+          /* Trade-group headers (h4) should not orphan at the bottom of a page
+             with their first row landing on the next page. Applies after the
+             trade-group wrapper drops page-break-inside: avoid (large groups
+             like Patricia's 30-item UNALLOCATED would otherwise force the
+             entire group onto page 2, eating page 1's available space). */
+          .estimate-print-area h4 { page-break-after: avoid; break-after: avoid; }
         }`}</style>
 
         {/* Contractor header — bg-slate-50 carries through print thanks to
@@ -360,7 +366,16 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
                 {groupedByTrade.map(([tradeId, group]) => {
                   const catSubtotal = group.items.reduce((s, it) => s + (parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0))), 0);
                   return (
-                    <div key={tradeId} className="print-avoid-break">
+                    /* No print-avoid-break on the group wrapper: large groups
+                       (Patricia's UNALLOCATED has 30 items, taller than a full
+                       page) would force the engine to push the entire group
+                       to page 2, leaving page 1 with ~70% whitespace. The
+                       group flows naturally; .estimate-print-area h4's
+                       page-break-after:avoid in the @media print rule keeps
+                       the trade header attached to its first row. tfoot
+                       (subtotal) follows the last row via standard table
+                       semantics. */
+                    <div key={tradeId}>
                       <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-1 pb-1 border-b" style={{ borderColor: brandColor }}>
                         {group.tc.name}
                       </h4>
