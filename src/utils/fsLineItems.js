@@ -12,6 +12,8 @@
  * feeds FSProject.total_budget on signing.
  */
 
+import { parseWrappedArray } from '@/utils/wrapShape';
+
 export const CATEGORIES = [
   { value: 'materials', label: 'Materials', badge: 'bg-primary/20 text-primary-hover' },
   { value: 'labor', label: 'Labor', badge: 'bg-sky-500/20 text-sky-400' },
@@ -36,23 +38,14 @@ export function makeItem(overrides) {
   return { ...EMPTY_UNIFIED_ITEM, id: newItemId(), ...overrides };
 }
 
-function parseJSON(val) {
-  if (Array.isArray(val)) return val;
-  if (val && typeof val === 'object' && Array.isArray(val.items)) return val.items;
-  if (typeof val === 'string') {
-    try { const p = JSON.parse(val); return Array.isArray(p) ? p : []; } catch { return []; }
-  }
-  return [];
-}
-
 /**
  * Read-time migration. Old materials shape {description, qty, unit_cost} +
  * separate labor shape {description, hours, rate} → unified items.
  * If items already carry a `category` field, they're already unified.
  */
 export function migrateLineItems(rawLineItems, rawLaborEstimate) {
-  const items = parseJSON(rawLineItems);
-  const labor = parseJSON(rawLaborEstimate);
+  const items = parseWrappedArray(rawLineItems);
+  const labor = parseWrappedArray(rawLaborEstimate);
 
   if (items.length > 0 && items[0].category) {
     return items.map((it) => ({

@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import CurrencyInput from './CurrencyInput';
 import { invalidateFSProfiles } from '@/utils/fsFeatures';
+import { ROLE_BADGES } from '@/utils/fsWorkersRoles';
+import { useWorkspacePeople } from '@/hooks/useWorkspacePeople';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -22,23 +24,8 @@ function formatPhone(value) {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 
-function parseWorkers(val) {
-  if (Array.isArray(val)) return val;
-  if (val && typeof val === 'object' && Array.isArray(val.items)) return val.items;
-  if (typeof val === 'string') {
-    try { const p = JSON.parse(val); return Array.isArray(p) ? p : []; }
-    catch { return []; }
-  }
-  return [];
-}
-
 const INPUT_CLASS =
   'w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent min-h-[44px]';
-
-const ROLE_BADGES = {
-  worker: { label: 'Worker', className: 'bg-primary/20 text-primary-hover' },
-  subcontractor: { label: 'Sub', className: 'bg-sky-500/20 text-sky-400' },
-};
 
 const EMPTY_PERSON = {
   name: '',
@@ -487,10 +474,10 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
   const [showAddClient, setShowAddClient] = useState(false);
   const [newClient, setNewClient] = useState({ name: '', email: '', phone: '', company_name: '', address: '', city: '', state: '', zip_code: '' });
 
-  // ─── Parse workers from profile ──────────────────
-  const people = useMemo(() => parseWorkers(profile?.workers_json), [profile?.workers_json]);
-  const workers = useMemo(() => people.filter((p) => p.role === 'worker' || !p.role), [people]);
-  const subs = useMemo(() => people.filter((p) => p.role === 'subcontractor'), [people]);
+  // ─── Parse workers from profile (via useWorkspacePeople hook) ─────
+  const { allPeople: people } = useWorkspacePeople(profile);
+  const { people: workers } = useWorkspacePeople(profile, 'worker');
+  const { people: subs } = useWorkspacePeople(profile, 'subcontractor');
 
   // ─── Query: Projects ─────────────────────────────
   const { data: projects = [] } = useQuery({
