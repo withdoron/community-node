@@ -3,6 +3,20 @@ import { ChevronUp, ChevronDown, X, Plus } from 'lucide-react';
 import VoiceInput from './VoiceInput';
 import CurrencyInput from './CurrencyInput';
 import { CATEGORIES, CATEGORY_MAP, makeItem } from '@/utils/fsLineItems';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+// Sentinel for the trade picker's "no trade" option. Radix Select disallows
+// empty-string values; we round-trip this sentinel to/from '' at the I/O
+// boundary so the underlying line-item shape is unchanged (trade_category_id
+// stays '' for unallocated, matching the existing render-side fallback that
+// floats untagged items into the Unallocated bucket).
+const NO_TRADE_VALUE = '__no_trade__';
 
 /**
  * LineItemsEditor — shared line-items editor used by FSEstimate builder and
@@ -32,6 +46,7 @@ export default function LineItemsEditor({
   tradeCategories = [],
   showTradeCategories = false,
   addCategories = ['materials', 'labor', 'subcontractor', 'fee'],
+  disabled = false,
 }) {
   const updateItem = (idx, field, value) => {
     const next = [...items];
@@ -84,22 +99,38 @@ export default function LineItemsEditor({
           <React.Fragment key={item.id || idx}>
             <div className="bg-secondary/50 rounded-lg p-3 space-y-2">
               <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
-                <select
+                <Select
                   value={item.category || 'materials'}
-                  onChange={(e) => updateItem(idx, 'category', e.target.value)}
-                  className="bg-secondary border border-border text-foreground rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring min-w-[90px] min-h-[44px]"
+                  onValueChange={(value) => updateItem(idx, 'category', value)}
+                  disabled={disabled}
                 >
-                  {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                </select>
+                  <SelectTrigger className="bg-secondary border-border text-foreground min-w-[110px] h-auto py-2 text-sm focus:ring-ring">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((c) => (
+                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {showTradeCategories && (
-                  <select
-                    value={item.trade_category_id || ''}
-                    onChange={(e) => updateItem(idx, 'trade_category_id', e.target.value)}
-                    className="bg-secondary border border-border text-foreground rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-ring min-w-[80px] max-w-[120px]"
+                  <Select
+                    value={item.trade_category_id || NO_TRADE_VALUE}
+                    onValueChange={(value) =>
+                      updateItem(idx, 'trade_category_id', value === NO_TRADE_VALUE ? '' : value)
+                    }
+                    disabled={disabled}
                   >
-                    <option value="">Trade</option>
-                    {tradeCategories.map((tc) => <option key={tc.id} value={tc.id}>{tc.name}</option>)}
-                  </select>
+                    <SelectTrigger className="bg-secondary border-border text-foreground min-w-[110px] max-w-[160px] h-auto py-2 text-xs focus:ring-ring">
+                      <SelectValue placeholder="Trade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NO_TRADE_VALUE}>Trade — Unallocated</SelectItem>
+                      {tradeCategories.map((tc) => (
+                        <SelectItem key={tc.id} value={tc.id}>{tc.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 )}
                 <div className="flex-1">
                   <input type="text" data-line-item-desc className={INPUT_CLASS} value={item.description}
