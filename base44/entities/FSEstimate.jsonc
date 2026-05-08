@@ -138,7 +138,7 @@
     },
     "taxonomy_preset_id": {
       "type": "string",
-      "description": "Slug of the taxonomy preset this estimate uses. Valid values: bari_general_contractor, csi_masterformat, simple_three_bucket, service_provider_hourly, or null on legacy estimates pre-Phase 2.2. Defaults from FieldServiceProfile.default_taxonomy_preset_id at estimate creation."
+      "description": "Slug of the taxonomy preset this estimate uses. Valid values: general_contractor, csi_masterformat, simple_three_bucket, service_provider_hourly, or null on legacy estimates pre-Phase 2.2. Defaults from FieldServiceProfile.default_taxonomy_preset_id at estimate creation."
     },
     "trade_categories_snapshot": {
       "type": "object",
