@@ -6,7 +6,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { Loader2, Printer, Camera, Shield, X, FileText, ClipboardList } from 'lucide-react';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { getFeatures } from '@/utils/fsFeatures';
-import { getTradeCategories } from '@/utils/fsTradeCategories';
+import { getEstimateTradeCategories } from '@/utils/fsTradeCategories';
 import { isEstimateLocked } from '@/utils/fsEstimateLifecycle';
 import { toast } from 'sonner';
 
@@ -137,21 +137,22 @@ function EstimatePortalView({ estimateId, signMode = false }) {
     enabled: !!profileId,
   });
 
-  // Trade-grouped render mirrors EstimatePreview (Phase 2.1, DEC-206 platform
-  // default). When flat_layout=true, the existing flat table renders. When
-  // false (default), line items group by trade with per-group subtotals;
-  // untagged items collect under "Unallocated" at the top. Two-World
-  // Architecture (DEC-203) — clients see the same honest grouping the
-  // contractor sees in EstimatePreview.
+  // Trade-grouped render mirrors EstimatePreview (DEC-206 platform default,
+  // Phase 2.2 per-estimate snapshot). When group_by_trade is false, the flat
+  // table renders. When true (default for new estimates), line items group by
+  // trade with per-group subtotals; untagged items collect under "Unallocated"
+  // at the top. Two-World Architecture (DEC-203) — clients see the same honest
+  // grouping the contractor sees in EstimatePreview.
   //
   // Hooks must run on every render in stable order (Rules of Hooks), so the
   // useMemo calls and their derived dependencies sit above the early returns
-  // for loading / not-found states. parseJSON returns [] on undefined input,
-  // getTradeCategories falls back to the default 18-trade seed when profile
-  // is undefined — both safe during the first render before queries resolve.
+  // for loading / not-found states. parseJSON returns [] on undefined input;
+  // getEstimateTradeCategories reads the per-estimate snapshot first and falls
+  // back to the workspace working list — both safe during the first render
+  // before queries resolve.
   const lineItems = estimate ? parseJSON(estimate.line_items) : [];
-  const isFlatLayout = estimate?.flat_layout === true;
-  const tradeCategories = getTradeCategories(profile);
+  const isFlatLayout = estimate?.group_by_trade === false;
+  const tradeCategories = getEstimateTradeCategories(estimate, profile);
   const tradeCatMap = useMemo(
     () => Object.fromEntries(tradeCategories.map((tc) => [tc.id, tc])),
     [tradeCategories]
@@ -241,7 +242,7 @@ function EstimatePortalView({ estimateId, signMode = false }) {
             </div>
           )}
 
-          {/* Line items — trade-grouped (default) or flat per estimate.flat_layout */}
+          {/* Line items — trade-grouped (default) or flat per estimate.group_by_trade */}
           {lineItems.length > 0 && (
             <div className="mb-6">
               {!isFlatLayout && groupedByTrade ? (
@@ -283,7 +284,7 @@ function EstimatePortalView({ estimateId, signMode = false }) {
                   })}
                 </div>
               ) : (
-                /* ─── Standard flat table (flat_layout=true) ─── */
+                /* ─── Standard flat table (group_by_trade=false) ─── */
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border text-left">

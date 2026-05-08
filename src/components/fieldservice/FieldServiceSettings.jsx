@@ -22,6 +22,7 @@ import {
   Link2, RefreshCw, Copy, ToggleLeft, SlidersHorizontal, BookOpen,
 } from 'lucide-react';
 import { getFeatures, invalidateFSProfiles } from '@/utils/fsFeatures';
+import { TRADE_TAXONOMY_PRESETS } from '@/utils/tradeTaxonomyPresets';
 import { scrollToTopOf } from '@/utils/scrollToTop';
 import CurrencyInput from './CurrencyInput';
 
@@ -166,6 +167,14 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
   });
   const [newTradeCat, setNewTradeCat] = useState('');
 
+  // ─── Default taxonomy preset state ─────────────
+  // Phase 2.2: workspace's default preset for new estimates. Each new estimate
+  // freezes its categories from this preset at creation time. Existing estimates
+  // are unaffected by changes to this setting.
+  const [defaultPresetId, setDefaultPresetId] = useState(
+    profile?.default_taxonomy_preset_id || ''
+  );
+
   // Sync from profile if it changes
   useEffect(() => {
     if (profile) {
@@ -189,6 +198,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
       setFeatures(getFeatures(profile));
       const tc = parseTradeCategories(profile.trade_categories_json);
       setTradeCategories(tc.length > 0 ? tc : seedTradeCategories());
+      setDefaultPresetId(profile.default_taxonomy_preset_id || '');
     }
   }, [profile]);
 
@@ -287,6 +297,19 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
     onError: (err) => toast.error(err?.message || 'Failed to save trade categories'),
   });
 
+  // ─── Save Default Taxonomy Preset (auto-save on change) ─────
+  const saveDefaultPreset = useMutation({
+    mutationFn: (presetId) =>
+      base44.entities.FieldServiceProfile.update(profile.id, {
+        default_taxonomy_preset_id: presetId || null,
+      }),
+    onSuccess: () => {
+      afterSave();
+      toast.success('Default trade taxonomy saved');
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to save default taxonomy'),
+  });
+
   // ─── Save Workspace Name ─────────────────────────
   const saveWorkspaceName = useMutation({
     mutationFn: () =>
@@ -371,12 +394,47 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
         </div>
       </Section>
 
-      {/* Section: Trade Categories — only when insurance feature is on */}
-      {features.xactimate_enabled && (
-        <Section icon={FileText} title="Trade Categories">
+      {/* Section: Default Trade Taxonomy (Phase 2.2)
+          Workspace's default preset — applied to NEW estimates at creation time.
+          Each estimate freezes its own snapshot, so changing this setting does
+          NOT affect existing estimates. The four presets are hardcoded; future
+          direction is platform-admin-managed. */}
+      <Section icon={FileText} title="Default Trade Taxonomy">
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Defaults for new estimates. Each estimate can override.
+          </p>
+          <select
+            value={defaultPresetId}
+            onChange={(e) => {
+              const next = e.target.value;
+              setDefaultPresetId(next);
+              saveDefaultPreset.mutate(next);
+            }}
+            disabled={saveDefaultPreset.isPending}
+            className="w-full bg-secondary border border-border text-foreground rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="">— No default (use Trade Categories list below) —</option>
+            {TRADE_TAXONOMY_PRESETS.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} ({p.trade_count} {p.trade_count === 1 ? 'category' : 'categories'})
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground">
+            Existing estimates keep their frozen taxonomy. Only new estimates draw from this default.
+          </p>
+        </div>
+      </Section>
+
+      {/* Section: Trade Categories — workspace's editable working list.
+          Used as fallback when an estimate has no preset snapshot (legacy
+          pre-Phase 2.2). Decoupled from xactimate_enabled per Phase 2.2 — every
+          workspace can edit its working list regardless of the Xactimate flag. */}
+      <Section icon={FileText} title="Trade Categories">
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Categories used to organize line items on insurance estimates. Drag to reorder.
+              Workspace working list. Used for legacy estimates without a preset snapshot, and as the fallback when no default taxonomy is set above. Drag to reorder.
             </p>
 
             {tradeCategories.length > 0 && (
@@ -480,8 +538,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
               </Button>
             </div>
           </div>
-        </Section>
-      )}
+      </Section>
 
       {/* Section 1: Business Profile */}
       <Section icon={HardHat} title="Business Profile" defaultOpen>

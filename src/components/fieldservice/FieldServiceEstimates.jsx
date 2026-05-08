@@ -7,9 +7,11 @@ import LineItemsEditor from './LineItemsEditor';
 import CurrencyInput from './CurrencyInput';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { CATEGORY_MAP, makeItem, migrateLineItems, calcTotals } from '@/utils/fsLineItems';
-import { getTradeCategories } from '@/utils/fsTradeCategories';
+import { getTradeCategories, getEstimateTradeCategories } from '@/utils/fsTradeCategories';
+import { TRADE_TAXONOMY_PRESETS, resolvePresetById } from '@/utils/tradeTaxonomyPresets';
 import { isEstimateLocked } from '@/utils/fsEstimateLifecycle';
 import { printNode } from '@/utils/printNode';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   Search, Copy, FolderOpen, Send, Eye, Printer, X, DollarSign, Link2,
@@ -65,7 +67,14 @@ const EMPTY_ESTIMATE = {
   payment_terms: '', prepared_by: '',
   terms: '', notes: '',
   client_show_breakdown: false,
-  flat_layout: false,
+  // Phase 2.2: trade-grouping is the default (renamed from flat_layout=false
+  // with semantic inversion). taxonomy_preset_id + trade_categories_snapshot
+  // populated at creation time from the workspace's default preset (see
+  // openNewEstimate); null here so the form starts empty.
+  group_by_trade: true,
+  taxonomy_preset_id: null,
+  trade_categories_snapshot: null,
+  show_csi_codes: false,
 };
 
 const PAYMENT_TERMS_OPTIONS = [
@@ -120,15 +129,17 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
   const totals = calcTotals(items, estimate.overhead_profit_pct, estimate.tax_rate, estimate.other_amount, estimate.management_fee_pct, estimate.insurance_fee_pct);
   const brandColor = profile?.brand_color || '#f59e0b';
   const showBreakdown = estimate.client_show_breakdown === true;
-  // flat_layout=false (default for new estimates) → trade-grouped render.
-  // flat_layout=true → single flat table. Renamed from is_insurance_estimate
-  // 2026-05-08 with semantic inversion (Phase 2.1, DEC-206 platform default).
-  const isFlatLayout = estimate.flat_layout === true;
-  const tradeCategories = getTradeCategories(profile);
+  // group_by_trade=true (default for new estimates) → trade-grouped render.
+  // group_by_trade=false → single flat table. Renamed from flat_layout
+  // 2026-05-08 (Phase 2.2) with semantic inversion via migration.
+  const isFlatLayout = estimate.group_by_trade === false;
+  // Snapshot first (per-estimate frozen taxonomy), workspace fallback for
+  // legacy estimates pre-backfill (Phase 2.2 architecture).
+  const tradeCategories = getEstimateTradeCategories(estimate, profile);
   const hasOwnerSig = !!estimate.owner_signature_data;
   const tradeCatMap = Object.fromEntries(tradeCategories.map((tc) => [tc.id, tc]));
 
-  // Group items by trade category. Renders when flat_layout is false (the
+  // Group items by trade category. Renders when group_by_trade is true (the
   // platform default). Untagged items (trade_category_id empty OR pointing
   // at a deleted trade) collect under a distinct "Unallocated" bucket at
   // order -1 — floats to the top of the grouped view, prompting the
@@ -628,7 +639,10 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         notes: formData.notes,
         status: status || 'draft',
         client_show_breakdown: formData.client_show_breakdown === true,
-        flat_layout: formData.flat_layout === true,
+        group_by_trade: formData.group_by_trade !== false,
+        taxonomy_preset_id: formData.taxonomy_preset_id || null,
+        trade_categories_snapshot: formData.trade_categories_snapshot || null,
+        show_csi_codes: formData.show_csi_codes === true,
       };
       if (status === 'sent') {
         payload.sent_at = new Date().toISOString();
@@ -672,8 +686,57 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
   });
 
   const set = (field, value) => setFormData((prev) => ({ ...prev, [field]: value }));
-  const tradeCategories = getTradeCategories(profile);
+  // Editor reads trade categories through the snapshot-aware helper. formData
+  // carries the in-flight snapshot — preset-pick mutations write directly to
+  // formData.trade_categories_snapshot, so the picker takes effect immediately
+  // for the LineItemsEditor's category dropdown without waiting for save.
+  const tradeCategories = getEstimateTradeCategories(formData, profile);
   const setLineItems = (items) => setFormData((prev) => ({ ...prev, line_items: items }));
+
+  // Source estimate (for status-derived lock check). Editor is normally
+  // unreachable for accepted/signed estimates per list-view gating, but the
+  // lock here is defense-in-depth — picker + toggle become read-only display
+  // if a locked estimate ever ends up in the editor.
+  const sourceEstimate = useMemo(
+    () => (editingId ? (estimates || []).find((e) => e.id === editingId) : null),
+    [editingId, estimates]
+  );
+  const isLocked = isEstimateLocked(sourceEstimate);
+
+  // Preset-change confirmation. When the user picks a different preset on a
+  // draft/sent estimate, count line items whose trade_category_id won't exist
+  // in the new preset's categories. Lines with stale references render under
+  // Unallocated — the existing sentinel handling makes this safe; we just
+  // surface the count so the contractor knows what's about to happen. No
+  // auto-mapping (DEC-206 derivation discipline).
+  const [pendingPreset, setPendingPreset] = useState(null);
+  const requestPresetChange = (newPresetId) => {
+    if (!newPresetId || newPresetId === formData.taxonomy_preset_id) return;
+    setPendingPreset(newPresetId);
+  };
+  const applyPresetChange = () => {
+    const preset = resolvePresetById(pendingPreset);
+    if (!preset) {
+      setPendingPreset(null);
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      taxonomy_preset_id: preset.id,
+      trade_categories_snapshot: preset.categories,
+    }));
+    setPendingPreset(null);
+  };
+  const pendingPresetMeta = useMemo(() => {
+    if (!pendingPreset) return null;
+    const newPreset = resolvePresetById(pendingPreset);
+    if (!newPreset) return null;
+    const newIds = new Set(newPreset.categories.map((c) => c.id));
+    const staleCount = (formData.line_items || [])
+      .filter((it) => it.trade_category_id && !newIds.has(it.trade_category_id))
+      .length;
+    return { preset: newPreset, staleCount };
+  }, [pendingPreset, formData.line_items]);
 
   // FSEstimate.title is required at the entity level. The save buttons are
   // disabled when title is empty, but autofill or programmatic submission
@@ -816,34 +879,55 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         </div>
       </div>
 
-      {/* ═══ Flat Layout Toggle — render line items as a single flat table ═══
-          Trade-grouped is the platform default (DEC-206, 2026-05-08, Phase 2.1).
-          This toggle lets a contractor opt OUT of grouping for a specific
-          estimate. Gated by xactimate_enabled because workspaces without
-          Xactimate enabled don't have the trade-categories editor surfaced
-          in Settings — even though they still get grouping by default,
-          the per-estimate toggle is reserved for the Xactimate-aware flow. */}
-      {features?.xactimate_enabled === true && (
-        <div className="bg-card border border-border rounded-xl p-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm text-foreground">Flat layout</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Render line items as a single table, without trade groups</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => set('flat_layout', !formData.flat_layout)}
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
-                formData.flat_layout ? 'bg-primary' : 'bg-surface'
-              }`}
-            >
-              <span className={`inline-block h-4 w-4 rounded-full bg-slate-100 transition-transform ${
-                formData.flat_layout ? 'translate-x-6' : 'translate-x-1'
-              }`} />
-            </button>
-          </div>
+      {/* ═══ Trade Taxonomy panel ═══
+          Phase 2.2: per-estimate snapshot architecture. The preset picker
+          freezes the estimate's category list at preset-pick time; the toggle
+          chooses grouped vs flat render. Both controls visible regardless of
+          xactimate_enabled (Phase 2.2 decoupling). Locked when the estimate
+          is accepted or signed (isEstimateLocked, defense in depth — list
+          view normally prevents editor entry on locked estimates). */}
+      <div className="bg-card border border-border rounded-xl p-4 space-y-4">
+        <div>
+          <label className={LABEL_CLASS}>Trade taxonomy</label>
+          <select
+            value={formData.taxonomy_preset_id || ''}
+            onChange={(e) => requestPresetChange(e.target.value)}
+            disabled={isLocked}
+            className={`${INPUT_CLASS} disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            <option value="" disabled>Select a preset…</option>
+            {TRADE_TAXONOMY_PRESETS.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} ({p.trade_count})
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground mt-1">
+            Categories are frozen on this estimate. Each estimate can override the workspace default.
+          </p>
         </div>
-      )}
+
+        <div className="flex items-center justify-between gap-4 pt-3 border-t border-border">
+          <div>
+            <p className="text-sm text-foreground">Group by trade</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Show line items grouped by trade with per-trade subtotals. Toggle off for a simple flat list.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => !isLocked && set('group_by_trade', !formData.group_by_trade)}
+            disabled={isLocked}
+            className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              formData.group_by_trade ? 'bg-primary' : 'bg-surface'
+            }`}
+          >
+            <span className={`inline-block h-4 w-4 rounded-full bg-slate-100 transition-transform ${
+              formData.group_by_trade ? 'translate-x-6' : 'translate-x-1'
+            }`} />
+          </button>
+        </div>
+      </div>
 
       {/* ═══ Unified Line Items ═══ */}
       <div className="bg-card border border-border rounded-xl p-4 space-y-3">
@@ -852,7 +936,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           items={formData.line_items}
           onChange={setLineItems}
           tradeCategories={tradeCategories}
-          showTradeCategories={!formData.flat_layout}
+          showTradeCategories={formData.group_by_trade !== false}
         />
       </div>
 
@@ -1038,6 +1122,25 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           Save & Copy Link
         </button>
       </div>
+
+      {/* Preset-change confirmation. Shows when the user picks a different
+          taxonomy preset; surfaces how many existing line items will fall to
+          Unallocated under the new preset (no auto-mapping per DEC-206). */}
+      <ConfirmDialog
+        open={pendingPreset !== null}
+        onOpenChange={(open) => { if (!open) setPendingPreset(null); }}
+        title={pendingPresetMeta ? `Change to ${pendingPresetMeta.preset.name}?` : 'Change preset?'}
+        description={
+          pendingPresetMeta
+            ? (pendingPresetMeta.staleCount > 0
+                ? `${pendingPresetMeta.staleCount} line ${pendingPresetMeta.staleCount === 1 ? 'item is' : 'items are'} tagged to trades that don't exist in the new preset. They'll move to Unallocated after applying.`
+                : 'No line items will move to Unallocated. The new categories take effect immediately.')
+            : ''
+        }
+        confirmLabel="Apply preset"
+        cancelLabel="Cancel"
+        onConfirm={applyPresetChange}
+      />
     </div>
   );
 }
@@ -1268,6 +1371,11 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
   const openNewEstimate = useCallback(() => {
     const validUntil = new Date();
     validUntil.setDate(validUntil.getDate() + 30);
+    // Resolve workspace's default taxonomy preset (Phase 2.2). When set, the
+    // estimate freezes its categories at creation time — the snapshot is the
+    // load-bearing render shape, so workspace setting changes after this point
+    // do not retroactively touch the estimate.
+    const defaultPreset = resolvePresetById(profile?.default_taxonomy_preset_id);
     setFormInitial({
       ...EMPTY_ESTIMATE,
       line_items: [makeItem()],
@@ -1275,10 +1383,12 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       prepared_by: profile?.owner_name || '',
       date: new Date().toISOString().split('T')[0],
       valid_until: validUntil.toISOString().split('T')[0],
+      taxonomy_preset_id: defaultPreset?.id || null,
+      trade_categories_snapshot: defaultPreset ? defaultPreset.categories : null,
     });
     setEditingId(null);
     setView('form');
-  }, [profile?.default_terms]);
+  }, [profile?.default_terms, profile?.owner_name, profile?.default_taxonomy_preset_id]);
 
   const openEditEstimate = useCallback((est) => {
     const items = migrateLineItems(est.line_items, est.labor_estimate);
@@ -1300,7 +1410,12 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       prepared_by: est.prepared_by || '',
       terms: est.terms || '', notes: est.notes || '',
       client_show_breakdown: est.client_show_breakdown === true,
-      flat_layout: est.flat_layout === true,
+      // group_by_trade default true preserves the platform default for legacy
+      // estimates where the field is undefined; existing values pass through.
+      group_by_trade: est.group_by_trade !== false,
+      taxonomy_preset_id: est.taxonomy_preset_id || null,
+      trade_categories_snapshot: est.trade_categories_snapshot || null,
+      show_csi_codes: est.show_csi_codes === true,
     });
     setEditingId(est.id);
     setView('form');
@@ -1328,7 +1443,13 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       prepared_by: est.prepared_by || '',
       terms: est.terms || '', notes: est.notes || '',
       client_show_breakdown: false,
-      flat_layout: est.flat_layout === true,
+      // Duplicate copies the source's taxonomy. User mental model: "same
+      // shape as the original." If the contractor wants a different preset,
+      // they can change it in the editor (or create a new estimate instead).
+      group_by_trade: est.group_by_trade !== false,
+      taxonomy_preset_id: est.taxonomy_preset_id || null,
+      trade_categories_snapshot: est.trade_categories_snapshot || null,
+      show_csi_codes: est.show_csi_codes === true,
     });
     setEditingId(null);
     setView('form');
