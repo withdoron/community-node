@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid JSON in request body' }, { status: 400 });
     }
 
-    const { invite_code, worker_name } = body;
+    const { invite_code, worker_name, worker_id } = body;
 
     if (!invite_code || typeof invite_code !== 'string') {
       return Response.json({ error: 'invite_code is required' }, { status: 400 });
@@ -50,11 +50,21 @@ Deno.serve(async (req) => {
       workers = (wj as Record<string, unknown>).items as Array<Record<string, unknown>>;
     }
 
-    // Step 3: Find matching worker by name (case-insensitive, trimmed)
+    // Step 3: Find matching worker. Phase 2.4 added stable ids to workers_json
+    // items — match by id first when the caller passes one, fall back to
+    // case-insensitive name match for legacy invite flows that only know
+    // the name. Additive: existing flows keep working.
+    const targetId = typeof worker_id === 'string' ? worker_id.trim() : '';
     const targetName = (worker_name as string).trim().toLowerCase();
-    const matchIndex = workers.findIndex(
-      (w) => typeof w.name === 'string' && w.name.trim().toLowerCase() === targetName
-    );
+    let matchIndex = -1;
+    if (targetId) {
+      matchIndex = workers.findIndex((w) => w.id === targetId);
+    }
+    if (matchIndex < 0) {
+      matchIndex = workers.findIndex(
+        (w) => typeof w.name === 'string' && w.name.trim().toLowerCase() === targetName
+      );
+    }
 
     if (matchIndex < 0) {
       return Response.json({ error: 'Your name was not found on the roster. Ask the workspace owner to add you first.' }, { status: 404 });

@@ -974,6 +974,168 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ─── add_workers_json_ids ────────────────────────────────────
+    // Phase 2.4 §0a: backfill stable `id` field on every item in every
+    // FieldServiceProfile.workers_json blob. Architecture proposal Approach A
+    // included `id: string` in the post-2.3 data shape; Phase 2.3
+    // implementation overlooked it. Phase 2.4 picker writes `sub_person_id`
+    // (line items) and `party_id` (FSPayment, sub/vendor branch) — both
+    // require stable ids on workers_json items to be reliable.
+    //
+    // Per item: if `id` is missing OR empty string, assign a fresh id using
+    // the `worker_${ts}_${counter}` pattern. Items that already have an id
+    // are left untouched (in case a future quick-add wrote one between this
+    // migration's dry-run and apply windows).
+    //
+    // Idempotency: each profile gets one AuditLog row with action
+    // 'workers_json_ids_backfilled'. On re-run, the action skips profiles
+    // already migrated. Profiles with no workers_json or empty arrays still
+    // write an AuditLog row to mark them migrated.
+    if (action === 'add_workers_json_ids') {
+      const all = await entities.FieldServiceProfile.list();
+      const records = (Array.isArray(all) ? all : []) as Record<string, unknown>[];
+
+      const priorAudits = await entities.AuditLog.filter({
+        action: 'workers_json_ids_backfilled',
+      });
+      const migratedIds = new Set(
+        ((Array.isArray(priorAudits) ? priorAudits : []) as Record<string, unknown>[])
+          .map((a) => a.entity_id as string)
+      );
+
+      const toMigrate = records.filter((r) => !migratedIds.has(r.id as string));
+
+      // Inline parser — mirrors src/utils/wrapShape.js parseWrappedArray.
+      // Same convention as Phase 2.3 migrate_company_name_to_business_name.
+      function parseItems(value: unknown): Record<string, unknown>[] {
+        if (Array.isArray(value)) return value as Record<string, unknown>[];
+        if (typeof value === 'string') {
+          try {
+            return parseItems(JSON.parse(value));
+          } catch {
+            return [];
+          }
+        }
+        if (
+          value &&
+          typeof value === 'object' &&
+          Array.isArray((value as { items?: unknown[] }).items)
+        ) {
+          return (value as { items: Record<string, unknown>[] }).items;
+        }
+        return [];
+      }
+
+      // Server-side id generator. Mirrors src/utils/fsWorkersRoles.js
+      // newWorkerId() but the counter is per-request rather than per-session
+      // (no shared module state on the server).
+      let serverCounter = 1;
+      const makeId = () => `worker_${Date.now()}_${serverCounter++}`;
+
+      function migrateItems(items: Record<string, unknown>[]): {
+        next: Record<string, unknown>[];
+        assignedCount: number;
+      } {
+        let assignedCount = 0;
+        const next = items.map((item) => {
+          const existingId = item.id;
+          if (typeof existingId === 'string' && existingId.trim() !== '') {
+            return item;
+          }
+          assignedCount += 1;
+          return { ...item, id: makeId() };
+        });
+        return { next, assignedCount };
+      }
+
+      const planned: Array<{
+        profile_id: string;
+        workspace_name: unknown;
+        items_count: number;
+        assigned_count: number;
+        sample_assignment: { name: unknown; id: string } | null;
+      }> = [];
+      let totalAssigned = 0;
+
+      for (const r of toMigrate) {
+        const items = parseItems(r.workers_json);
+        const { next, assignedCount } = migrateItems(items);
+        totalAssigned += assignedCount;
+        const firstAssignedIdx = items.findIndex(
+          (it) => typeof it.id !== 'string' || (it.id as string).trim() === ''
+        );
+        const sampleAssignment =
+          firstAssignedIdx >= 0
+            ? {
+                name: items[firstAssignedIdx].name,
+                id: next[firstAssignedIdx].id as string,
+              }
+            : null;
+        planned.push({
+          profile_id: r.id as string,
+          workspace_name: r.workspace_name,
+          items_count: items.length,
+          assigned_count: assignedCount,
+          sample_assignment: sampleAssignment,
+        });
+      }
+
+      if (dryRun) {
+        return Response.json({
+          success: true,
+          dry_run: true,
+          planned: {
+            entity_type: 'FieldServiceProfile',
+            action: 'workers_json_ids_backfilled',
+            scanned: records.length,
+            already_migrated: records.length - toMigrate.length,
+            will_migrate: toMigrate.length,
+            total_items_assigned: totalAssigned,
+            sample: planned.slice(0, 10),
+          },
+        });
+      }
+
+      const results: Array<{ id: string; audit_log_id: string; assigned: number }> = [];
+      for (let i = 0; i < toMigrate.length; i++) {
+        const r = toMigrate[i];
+        const meta = planned[i];
+        const items = parseItems(r.workers_json);
+        const { next, assignedCount } = migrateItems(items);
+        const id = r.id as string;
+        await entities.FieldServiceProfile.update(id, {
+          workers_json: { items: next },
+        });
+        const audit = await writeAudit(base44, {
+          entity_type: 'FieldServiceProfile',
+          entity_id: id,
+          action: 'workers_json_ids_backfilled',
+          old_value: {
+            workers_json_size: meta.items_count,
+            sample_pre_assignment: meta.sample_assignment
+              ? { name: meta.sample_assignment.name }
+              : null,
+          },
+          new_value: {
+            workers_json_size: meta.items_count,
+            assigned_count: assignedCount,
+            sample_post_assignment: meta.sample_assignment,
+          },
+          source: 'migration',
+        });
+        results.push({ id, audit_log_id: audit.id as string, assigned: assignedCount });
+      }
+
+      return Response.json({
+        success: true,
+        scanned: records.length,
+        migrated: results.length,
+        already_migrated_skipped: records.length - toMigrate.length,
+        total_items_assigned: results.reduce((s, r) => s + r.assigned, 0),
+        audit_log_ids: results.map((r) => r.audit_log_id),
+      });
+    }
+
     return Response.json({ error: `Unknown action: ${String(action)}` }, { status: 400 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

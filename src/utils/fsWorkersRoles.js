@@ -73,3 +73,19 @@ export const ROLE_BADGES = Object.fromEntries(
     { label: r.badgeLabel, className: r.badgeClass },
   ])
 );
+
+/**
+ * Stable-id generator for workers_json items. Mirrors the newItemId pattern
+ * in src/utils/fsLineItems.js — `worker_${ts}_${counter}` is unique within a
+ * single client session and across sessions because Date.now() advances.
+ *
+ * Phase 2.4 added stable ids to workers_json items so line items
+ * (sub_person_id) and FSPayment (party_id) can carry stable references.
+ * Items existed without ids prior to Phase 2.4 — the
+ * migrate-add-workers-json-ids.js one-shot backfilled existing records;
+ * PersonModal's quick-add flow generates ids for new records.
+ */
+let _nextWorkerId = 1;
+export function newWorkerId() {
+  return `worker_${Date.now()}_${_nextWorkerId++}`;
+}

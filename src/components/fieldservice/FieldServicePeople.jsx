@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import CurrencyInput from './CurrencyInput';
 import { invalidateFSProfiles } from '@/utils/fsFeatures';
-import { ROLE_BADGES, WORKERS_ROLES, getRoleConfig } from '@/utils/fsWorkersRoles';
+import { ROLE_BADGES, WORKERS_ROLES, getRoleConfig, newWorkerId } from '@/utils/fsWorkersRoles';
 import { getTradeCategories } from '@/utils/fsTradeCategories';
 import { useWorkspacePeople } from '@/hooks/useWorkspacePeople';
 import {
@@ -43,6 +43,7 @@ const INPUT_CLASS =
   'w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent min-h-[44px]';
 
 const EMPTY_PERSON = {
+  id: '',
   name: '',
   role: 'worker',
   phone: '',
@@ -604,14 +605,16 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
   const handleSavePerson = (personData) => {
     const updated = [...people];
     if (editingPerson?._editIndex != null && editingPerson._editIndex >= 0) {
-      // Edit existing
+      // Edit existing — preserve existing id (set by §0a backfill or quick-add)
       updated[editingPerson._editIndex] = {
         ...updated[editingPerson._editIndex],
         ...personData,
       };
     } else {
-      // Add new
-      updated.push(personData);
+      // Add new — generate stable id (Phase 2.4 §0a). Records added pre-Phase
+      // 2.4 had their ids backfilled by migrate-add-workers-json-ids; new
+      // records get fresh ids client-side.
+      updated.push({ ...personData, id: personData.id || newWorkerId() });
     }
     savePeople.mutate(updated, {
       onSuccess: () => {
