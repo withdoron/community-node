@@ -1840,3 +1840,136 @@ Today (2026-05-04) was a structural day — the invalidation sweep closed a clas
 **Ship-it timestamp:** 2026-05-04, end of day (evening). Phase 1 dogfood-verified + invalidation sweep complete. Two new strategic principles captured. Tomorrow's first move: spot-check the eight invalidation-sweep verification items in Base44 Act-As-User preview, then return to the open queue (Estimate Types, Insurance toggle thinking, etc.).
 
 ---
+
+## Session Log — 2026-05-07 (Bari-focused dogfood loop + empty-field derivation discipline + Phase 2 architectural investigation)
+
+**Surface:** Hyphae on Mac mini (build commits across the day) + a parallel Hyphae session on Mac mini (Phase 2 architectural investigation, no code shipped). Mycelia in Claude.ai chat for strategic ordering, prompt drafting, and ship-it.
+
+**Focus:** A heavy Bari-focused dogfood day. Strategic shift mid-session from "stop platform work for migration" to "fix Bari's experience first, migrate after." That pivot held through the day and produced fourteen feature/fix commits, two CLAUDE.md discipline additions, and a Phase 2 architectural investigation completed in parallel (output landing at `Spec-Repo/spaces/field-service/PHASE-2-UNIFIED-ARCHITECTURE-PROPOSAL.md`, awaiting Doron's review tomorrow morning).
+
+**The day's arc:** PDF darkness polish (variable-layer overrides) → Contract Total derivation + drillable tiles + new ProjectTileDrillIn component → empty-field link derivation surfaced as a pattern through three primary commits → swept across five sibling surfaces with `useProjectLinkedEstimates` hook extracted → codified in CLAUDE.md as a load-bearing platform discipline → Documents section on Project Detail (entity-rollup family + four prefill keys = DEC-148 threshold met) → payment drill-in scroll-and-flash on Recent Payments (corrected memory drift on FINANCIAL-WORKFLOW-SPEC §2.6 — FSPayment and FSDailyLog are siblings, not parent-child). Two process-discipline rules added inline: no-debrief-without-commit-hash (after Hyphae shipped morning's work without committing) and the empty-field derivation principle itself.
+
+**Shipped to community-node (origin/main):**
+
+1. **`488973e`** — First-pass PDF font darkness via variable-level overrides for `--muted-foreground` and `--foreground-soft` in printNode. Living Feet at the variable layer — change one CSS variable, every consumer benefits.
+2. **`e950fd5`** — Contract Total derivation (read-time from linked estimate, not stored field) + drillable tiles + new `ProjectTileDrillIn.jsx` component. First instance of empty-field derivation through links.
+3. **`f55975c`** — V2 PDF darkness — alpha-modifier handling via `[class*="text-muted-foreground/"]` attribute selector.
+4. **`ed75cdf`** — Single print dialog fix — idempotency guard (`let triggered = false`) in `waitAndPrint` to prevent both onload and timeout fallback firing.
+5. **`3328c79`** — Syntax error repair — backticks → double quotes inside CSS comments inside JS template literal in printNode. Lesson: run a build/syntax check before pushing when touching code-as-string territory.
+6. **`82503b0`** — CLAUDE.md discipline rule: no debrief without commit hash. Added after morning's work shipped without commit, surfacing in GitHub Desktop instead of debrief.
+7. **`2111d11`** — Bidirectional estimate-project link in Contract Total derivation — query `estimate.project_id` for both link directions. Second instance of empty-field derivation.
+8. **`72dc441`** — Home tab tile navigation — 4 of 6 tiles wired up to navigate to relevant space.
+9. **`18a9ecc`** — Per-row drill-into-source navigation — localStorage prefill pattern; honest navigation > pretend navigation seedling captured (the FSPayment edit form gap is real but not tonight's scope).
+10. **`5f35c0f`** — Projects list grouping derives client from linked estimate when `project.client_id` is empty. Third instance of empty-field derivation — DEC-148 threshold met.
+11. **`2aaef46`** — Empty-field link derivation sweep across 5 sibling surfaces (Project Detail header, flat list cards, drill-in modal subtitles, FSLog project picker + Client Payment "From" line, FSDocument project filter). `useProjectLinkedEstimates.js` hook extracted as the canonical helper; `deriveProjectClient` companion function.
+12. **`a11ae64`** — CLAUDE.md codification: "Empty-field derivation through links" pattern. Direct field always wins; empty falls through to the linked entity; pure read-time, no auto-write back.
+13. **`193f4e8`** — Documents section on Project Detail. Same entity-rollup family as Permits, Change Orders, Recent Payments. Two new prefill keys (`fs-document-prefill-id`, `fs-document-prefill-project-id`) bring the localStorage prefill family to four uses — DEC-148 threshold crossed for `useConsumePrefill` hook extraction. CreateDocumentFlow gains `initialClientId`/`initialProjectId` props seeded from Project Detail's "+ Add Document" button. DEC-199 list/detail invalidation pair on five FSDocument mutation sites (bare-prefix `['fs-documents-by-project']` covers every mounted Project Detail subscriber).
+14. **`fae9b01`** — Payment drill-in rows scroll-and-flash on Recent Payments. Hyphae caught a memory drift in Mycelia's prompt — the prompt cited FINANCIAL-WORKFLOW-SPEC §2.6 to justify "payments live inside daily logs," but the spec actually says the opposite ("Underlying entities remain distinct... unification is in the input surface, not the data model"). FSPayment has no `daily_log_id` field; Sub Payment / Client Payment write only an FSPayment record without creating a parent FSDailyLog. Hyphae pushed back before writing code. Option B shipped: row click closes modal, scrolls Recent Payments section into view, briefly rings the matching row. Honest navigation to the surface where payments actually live, no edit-form constraint violation.
+
+**Phase 2 architectural investigation (parallel session, not yet committed):**
+
+15. **`Spec-Repo/spaces/field-service/PHASE-2-UNIFIED-ARCHITECTURE-PROPOSAL.md`** — written 2026-05-07 evening by parallel Hyphae session. Output of HYPHAE-PHASE-2-UNIFIED-ARCHITECTURE-INVESTIGATION. Scope: trade-grouped collapsible estimates as platform default + subs/vendors as queryable People with autocomplete on every entry surface. Three approaches proposed (A: Light Promotion + Sub Picker, B: FSPerson Entity + Trade Library, C: Trade Promotion Only). Recommendation: Approach A. Twelve open questions for Doron, five being load-bearing for the approach choice. Three structural framing pushbacks Hyphae surfaced against the prompt's framing: (a) trade-grouping is half-built not greenfield (already gated behind `is_insurance_estimate=true` with `trade_categories_json`, `trade_category_id` on line items, EstimatePreview groups by trade, Settings has full taxonomy CRUD); (b) "existing People model" doesn't exist — workers and subs are JSON blob entries on `workers_json`, vendors have no storage at all, no FSPerson entity exists; (c) `sub_name` already wired today (LineItemsEditor → FSEstimate.line_items → render). **Status:** uncommitted in Spec-Repo working tree, hand-merged when Doron signs off. Build prompts come AFTER sign-off, not before.
+
+**Shipped to Spec-Repo (this commit):**
+
+16. **`platform/DECISIONS.md`** — DEC-206 through DEC-214 appended. Nine new decisions covering today's architectural patterns and process discipline.
+17. **`context/ACTIVE-CONTEXT.md`** — refreshed to reflect Bari's platform in solid dogfood-ready shape, Patricia's hand-signature workaround in motion, Phase 2 investigation awaiting sign-off, migration deferred per today's strategic decision.
+18. **`context/SESSION-LOG.md`** — this entry.
+19. **`platform/STATUS-TRACKER.md`** — Session row appended with the day's commits and Phase 2 handoff status.
+20. **`platform/checklists/LAUNCH-CHECKLIST.md`** — items resolved by today's commits checked off; new items surfaced (estimate lifecycle gating, drift visibility question, FSPayment edit deferral, Documents architecture inversion) added.
+
+**Mirrored to community-node (this commit):**
+
+21. **`context/PROJECT-BRAIN.md`** — synced from Spec-Repo canonical (no foundational changes today, but kept in sync per DEC-182).
+22. **`context/ACTIVE-CONTEXT.md`** — synced.
+23. **`context/SESSION-LOG.md`** — synced.
+
+**Architectural patterns established (load-bearing for future builds):**
+
+1. **Living Feet at the variable layer** (`488973e` / `f55975c`) — change one CSS variable, every consumer benefits. Print-fidelity discipline now canonical (DEC-210).
+2. **Empty-field derivation through links** (`e950fd5` / `2111d11` / `5f35c0f` + sweep at `2aaef46` + codification at `a11ae64`) — three-instance threshold met (DEC-148), pattern formalized as DEC-206. Same shape applies to other entity link chains for future audit (team↔workspace, sub↔FSPeople, FSPayment.party_name↔FSClient).
+3. **localStorage cross-tab prefill** (`18a9ecc` / `193f4e8`) — canonical for navigation between tabs that unmount/remount. Four uses now (`fs-log-prefill-type`, `fs-log-prefill-log-id`, `fs-estimate-prefill-id`, plus today's `fs-document-prefill-id` + `fs-document-prefill-project-id`). DEC-148 threshold met. `useConsumePrefill` hook extraction queued.
+4. **Idempotency guard for belt-and-suspenders scheduling** (`ed75cdf`) — `let triggered = false; if (triggered) return; triggered = true;` pattern for any scheduling with parallel paths.
+5. **Honest navigation > pretend navigation** (`18a9ecc` / `fae9b01`, DEC-209) — when destination action isn't supported, no navigation is more honest than half-navigation. When honest navigation IS available (scroll-and-highlight to existing on-page section), do that instead of closing the modal silently.
+6. **Entity rollup section pattern on Project Detail** — Recent Payments / Permits / Change Orders / Documents (`193f4e8`) all share the same shape. Four instances now, ready for `<RecordSection>` primitive extraction.
+7. **Drill-in navigator helper family** — `goToEstimatePreview`, `goToLogForRecord`, `goToCOOnPage`, `goToPaymentRow` (`fae9b01`), plus existing `onLogPayment`. Five instances, ready for `useDrillInNavigators` hook extraction.
+
+**Process discipline learnings:**
+
+- **No-debrief-without-commit-hash (DEC-208).** Hyphae shipped morning's work without committing — Doron found three uncommitted files in GitHub Desktop. Discipline rule added to CLAUDE.md inline (`82503b0`). Future debriefs lead with commit hash; uncommitted work surfaces explicitly with "⚠ work not yet committed" rather than buried.
+- **Spec citation re-verification (DEC-212).** Tonight's Item 2 prompt cited FINANCIAL-WORKFLOW-SPEC §2.6 to justify "payments live inside daily logs" — but the spec says the opposite. Hyphae caught the drift before writing code. Going forward, when citing a spec in a Hyphae prompt, Mycelia re-reads the relevant section rather than relying on memory. Spec Review Protocol (DEC-151) extends to spec citations, not just codebase audits.
+- **Time-logging for AI build sessions starts now (DEC-211).** Mycelia's hour estimates have been calibrated to human-engineer-hours, not Hyphae-hours. Today: what was framed as "2-4 weeks of Phase 2 build" Hyphae's investigation revealed is days of work. What was scoped as "1.5 hours tonight" became 14 commits across the day. Estimates without data are noise. Going forward, log per session: start time, end time, commit count, complexity tag, scope-expansion flag. After 4-6 weeks of data, real estimates become possible.
+- **Hyphae syntax error in `f55975c`** shipped without local build check — backticks inside CSS comments inside a JS template literal broke parser. Repaired in `3328c79`. Seedling: run a build/syntax check before pushing when touching code-as-string territory.
+
+**Strategic decisions ratified today:**
+
+- **DEC-206** — Empty-field derivation through links (formalized as platform discipline).
+- **DEC-207** — Migration deferred pending Bari reliability + Phase 2 architectural sign-off (strategic ordering).
+- **DEC-208** — No-debrief-without-commit-hash (process discipline).
+- **DEC-209** — Honest navigation > pretend navigation (UI principle).
+- **DEC-210** — Print-fidelity discipline at the variable layer (Living Feet for print CSS).
+- **DEC-211** — Time-logging for AI build sessions (calibration discipline).
+- **DEC-212** — Spec citation re-verification (extends DEC-151).
+- **DEC-213** — Documents architecture inversion (live where used; flat list dissolves).
+- **DEC-214** — FSPayment edit capability deferred to Phase 2 financial-layer architecture.
+
+**Items needing Doron's verification in Base44 Act-As-User preview (today's commits):**
+
+- **PDF darkness end-to-end** — open Bari's Patricia Heath estimate, generate PDF, confirm muted-foreground and foreground-soft text are darker than before, no alpha-modifier classes leak through pale.
+- **Contract Total derivation** — open a project linked to a signed estimate; confirm Contract Total tile reads the estimate's signed total + signed COs, not the stored `total_budget` field.
+- **Drillable tiles** — tap each of the financial header tiles (Contract / Received / Paid Out / Net Cash); confirm drill-in modal opens with the right rows + math; tap math input on derived tiles re-targets drill-in.
+- **Bidirectional link derivation** — open a project with `client_id` empty but linked-estimate's `client_id` set; confirm client name shows on Project Detail header, list cards, drill-in subtitles. Also test the inverse direction (project linked from estimate not estimate linked from project).
+- **Documents section on Project Detail** — open Test Project, confirm Documents section visible between Permits and Photo Gallery; document card click navigates to Documents tab detail view; "+ Add Document" navigates to create flow with project + derived client pre-selected; empty-state copy renders cleanly when no documents linked.
+- **Payment drill-in scroll-and-flash** — tap Received tile → tap any payment row → modal closes, Recent Payments section scrolls into view, matching row briefly rings primary-gold for ~1.5s. Same on Paid Out drill-in. Net Cash math input → re-target to Received works.
+- **Mobile viewport** — exercise all of the above at phone width; confirm 44px tap targets preserved.
+
+**Phase 2 architectural review handoff:**
+
+Tomorrow morning Doron reviews `Spec-Repo/spaces/field-service/PHASE-2-UNIFIED-ARCHITECTURE-PROPOSAL.md` and signs off. Five open questions are load-bearing for the approach choice:
+
+1. Approach A vs B vs C (recommendation: A — Light Promotion + Sub Picker).
+2. Trade taxonomy presets — three proposed (Bari General Contractor 13-trade / CSI MasterFormat 16-division / Simple Three-Bucket); possibly add fourth for service_provider workspaces.
+3. CSI codes optional or absent (recommendation: optional, off by default).
+4. Patricia's existing data after default flip — auto-categorize, heuristic + review, or leave Unallocated (recommendation: Unallocated).
+5. Markup modes — defer per-trade and per-line markup to Phase 3 (recommendation: defer).
+
+After sign-off, focused Phase 2 build prompts come from Mycelia in subsequent sessions.
+
+**Open follow-ups carried forward (not closed in this commit):**
+
+Small wins (likely <1 Hyphae session each):
+1. **Client Detail Documents section** — same pattern as Project Detail Documents (`193f4e8`), different scope key (per DEC-213 inversion direction).
+2. **`useConsumePrefill` hook extraction** — four uses now, DEC-148 threshold met.
+3. **`<RecordSection>` primitive extraction** — four entity-rollup sections share the shape.
+4. **`useDrillInNavigators` hook extraction** — five `goToX` helpers in the family.
+5. **`src/utils/fsInvalidations.js` helper file** (Known Issue #18 in ACTIVE-CONTEXT) — `invalidateEstimates`, `invalidateProjects`, `invalidateLogs`, plus today's `invalidateDocuments`.
+6. **DEC-193 backfill consideration** — one-shot migrationHelpers script to write `original_budget` from linked estimate (restore immutable-snapshot semantics for legal correctness).
+
+Medium architectural (likely 1-2 Hyphae sessions each):
+7. **Estimate edit lifecycle gating** — discipline conversation: when does an estimate become read-only? How is Change Order workflow surfaced as the proper edit path post-signing? Doron's surfacing: "we don't want someone saving changes to a signed and approved estimate."
+8. **Documents tab restructuring (DEC-213 second half)** — convert from flat global list to inbox + templates + search, with documents living where they're used. Project Detail section landed in `193f4e8`; Client Detail section + tab restructuring queued.
+9. **Cross-entity link chain audit** — team↔workspace, sub↔FSPeople, FSPayment.party_name↔FSClient (per DEC-206's "same shape applies elsewhere" footnote).
+
+Phase 2 (post-architectural sign-off, multi-session):
+10. **Trade-grouped collapsible estimates as platform default** — flip `is_insurance_estimate` → `flat_layout` rename + invert; three taxonomy presets.
+11. **Sub picker on workers_json** — autocomplete for subs/vendors with `business_name`, `primary_trade_id`.
+12. **Empty-field derivation: line item trade derives from linked sub's primary trade** (extends DEC-206 to a fourth surface).
+
+Phase 3+ (real architectural conversations needed first):
+13. **FSPayment edit capability** — tied to Log-Line-Item Attribution Proposal sign-off, Spent redefinition, returns/refunds (DEC-214).
+14. **8 open questions on Log-Line-Item Attribution Proposal** — Doron sign-off pending (May 5).
+15. **Returns and refunds** — gated on financial-layer expansion.
+16. **Client Communication tab on Project Detail (and ClientPortal)** — Bari's surfaced need: photos, voice messages, decisions, change requests captured per-project, bidirectional with client. Substantial new feature, deserves its own investigation prompt before any build.
+17. **Light-theme `--primary-foreground` collision with bg-white wrapper** — latent bug for any future light-theme user printing.
+18. **`FieldServiceReport.jsx` printNode migration** (Known Issue #17) — migrate when next touched.
+19. **Drift visibility question** — when derivation works perfectly, contractors don't realize their records have empty fields. Visible "derived from estimate" badge or auto-backfill on first view. Conversation when contractor confusion surfaces.
+
+**Posture note for the record:**
+
+Today (2026-05-07) was about closing the loop on Bari's experience before any architectural pivot. Patricia signed Bari's $182K ADU contract on the platform (via PDF + hand-signature workaround for the unauthenticated-client signing bug). Every commit today made Bari's surface a step more reliable. The strategic shift from "stop and migrate" to "fix Bari first" was validated through-line: by end of day, the Phase 2 architecture investigation had also produced a defensible recommendation, Hyphae had pushed back on three framing assumptions in Mycelia's prompt (Spec Review Protocol DEC-151 working as designed), and the empty-field derivation pattern had crossed the three-instance threshold + been formally codified. The day's process discipline additions (DEC-208 commit-hash, DEC-211 time-logging, DEC-212 spec re-verification) are all corrections to drift that surfaced during the day — not retroactive cleanup, but real-time tightening. The Phase 2 proposal sits in the working tree pending tomorrow morning's review.
+
+**Active paying members: 1 (Bari, $500/mo retainer).** First adult-tier nursery participant pending: Gina.
+
+**Ship-it timestamp:** 2026-05-07, end of day. Bari's platform in solid dogfood-ready shape. Patricia signing via PDF workaround. Phase 2 architectural proposal awaiting Doron's review tomorrow morning. Migration deferred per DEC-207. Tomorrow's first move: review the Phase 2 proposal, answer the five open questions, then build prompts for the recommended approach.
+
+---
