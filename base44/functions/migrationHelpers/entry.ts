@@ -789,6 +789,191 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ─── migrate_company_name_to_business_name ────────────────────
+    // Phase 2.3: rename `company_name` → `business_name` on every item in
+    // every FieldServiceProfile.workers_json blob. Subcontractor records
+    // populated `company_name` historically; Phase 2.3 makes `business_name`
+    // the canonical field reused across subcontractor + vendor roles.
+    //
+    // Scope:
+    //   - Reads every FieldServiceProfile.
+    //   - Parses workers_json across all three legacy shapes (bare array,
+    //     {items: [...]} wrap, JSON-string).
+    //   - Per item: if `company_name` exists, copy its value to
+    //     `business_name` (only if `business_name` doesn't already carry a
+    //     non-empty value — preserves any post-rename UI writes), then
+    //     remove `company_name`.
+    //   - Re-wraps and writes back.
+    //
+    // Idempotency: each profile gets one AuditLog row with action
+    // 'company_name_renamed_to_business_name'. On re-run, the action skips
+    // profiles already migrated. Profiles with no workers_json or empty
+    // arrays still write an AuditLog row to mark them migrated (cheap;
+    // prevents re-scan).
+    //
+    // Edge cases:
+    //   - Profile has workers_json missing/null → AuditLog written, items=0.
+    //   - Item has both company_name AND business_name → preserve
+    //     business_name's existing value, drop company_name.
+    //   - Item has company_name = '' (empty string) → migrate as null
+    //     business_name (drop the empty company_name; don't add an empty
+    //     business_name).
+    if (action === 'migrate_company_name_to_business_name') {
+      const all = await entities.FieldServiceProfile.list();
+      const records = (Array.isArray(all) ? all : []) as Record<string, unknown>[];
+
+      const priorAudits = await entities.AuditLog.filter({
+        action: 'company_name_renamed_to_business_name',
+      });
+      const migratedIds = new Set(
+        ((Array.isArray(priorAudits) ? priorAudits : []) as Record<string, unknown>[])
+          .map((a) => a.entity_id as string)
+      );
+
+      const toMigrate = records.filter((r) => !migratedIds.has(r.id as string));
+
+      // Inline parse — mirrors src/utils/wrapShape.js parseWrappedArray.
+      // Deno function and frontend can't share the helper; kept in lockstep
+      // by docstring + co-review at touch time.
+      function parseItems(value: unknown): Record<string, unknown>[] {
+        if (Array.isArray(value)) return value as Record<string, unknown>[];
+        if (typeof value === 'string') {
+          try {
+            return parseItems(JSON.parse(value));
+          } catch {
+            return [];
+          }
+        }
+        if (
+          value &&
+          typeof value === 'object' &&
+          Array.isArray((value as { items?: unknown[] }).items)
+        ) {
+          return (value as { items: Record<string, unknown>[] }).items;
+        }
+        return [];
+      }
+
+      // Plan + execute helper. Returns the migrated items + a count of how
+      // many were actually changed (had company_name to rename).
+      function migrateItems(items: Record<string, unknown>[]): {
+        next: Record<string, unknown>[];
+        changedCount: number;
+      } {
+        let changedCount = 0;
+        const next = items.map((item) => {
+          if (!('company_name' in item)) return item;
+          const companyName = item.company_name;
+          const existingBusinessName = item.business_name;
+          // Drop company_name from the new shape.
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { company_name: _drop, ...rest } = item as {
+            company_name?: unknown;
+            business_name?: unknown;
+            [k: string]: unknown;
+          };
+          changedCount += 1;
+          // Preserve any existing non-empty business_name; otherwise pull
+          // company_name into business_name (skip when the value is an
+          // empty string — write null only for explicit non-falsy values).
+          const hasExistingBusiness =
+            typeof existingBusinessName === 'string' && existingBusinessName.trim() !== '';
+          if (hasExistingBusiness) {
+            return rest;
+          }
+          if (typeof companyName === 'string' && companyName.trim() !== '') {
+            return { ...rest, business_name: companyName };
+          }
+          return rest;
+        });
+        return { next, changedCount };
+      }
+
+      const planned: Array<{
+        profile_id: string;
+        workspace_name: unknown;
+        items_count: number;
+        changed_count: number;
+        sample_change: { before: unknown; after: unknown } | null;
+      }> = [];
+      let totalChanged = 0;
+
+      for (const r of toMigrate) {
+        const items = parseItems(r.workers_json);
+        const { next, changedCount } = migrateItems(items);
+        totalChanged += changedCount;
+        const firstChangeIdx = items.findIndex(
+          (it) => 'company_name' in it && it.company_name
+        );
+        const sampleChange =
+          firstChangeIdx >= 0
+            ? {
+                before: { company_name: items[firstChangeIdx].company_name },
+                after: { business_name: next[firstChangeIdx].business_name ?? null },
+              }
+            : null;
+        planned.push({
+          profile_id: r.id as string,
+          workspace_name: r.workspace_name,
+          items_count: items.length,
+          changed_count: changedCount,
+          sample_change: sampleChange,
+        });
+      }
+
+      if (dryRun) {
+        return Response.json({
+          success: true,
+          dry_run: true,
+          planned: {
+            entity_type: 'FieldServiceProfile',
+            action: 'company_name_renamed_to_business_name',
+            scanned: records.length,
+            already_migrated: records.length - toMigrate.length,
+            will_migrate: toMigrate.length,
+            total_items_changed: totalChanged,
+            sample: planned.slice(0, 10),
+          },
+        });
+      }
+
+      const results: Array<{ id: string; audit_log_id: string; changed: number }> = [];
+      for (let i = 0; i < toMigrate.length; i++) {
+        const r = toMigrate[i];
+        const meta = planned[i];
+        const items = parseItems(r.workers_json);
+        const { next, changedCount } = migrateItems(items);
+        const id = r.id as string;
+        await entities.FieldServiceProfile.update(id, {
+          workers_json: { items: next },
+        });
+        const audit = await writeAudit(base44, {
+          entity_type: 'FieldServiceProfile',
+          entity_id: id,
+          action: 'company_name_renamed_to_business_name',
+          old_value: {
+            workers_json_size: meta.items_count,
+            sample_change: meta.sample_change,
+          },
+          new_value: {
+            workers_json_size: meta.items_count,
+            renamed_count: changedCount,
+          },
+          source: 'migration',
+        });
+        results.push({ id, audit_log_id: audit.id as string, changed: changedCount });
+      }
+
+      return Response.json({
+        success: true,
+        scanned: records.length,
+        migrated: results.length,
+        already_migrated_skipped: records.length - toMigrate.length,
+        total_items_renamed: results.reduce((s, r) => s + r.changed, 0),
+        audit_log_ids: results.map((r) => r.audit_log_id),
+      });
+    }
+
     return Response.json({ error: `Unknown action: ${String(action)}` }, { status: 400 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
