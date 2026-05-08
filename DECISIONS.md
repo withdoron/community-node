@@ -1339,3 +1339,143 @@ Notes: literal `*` in label text with single space before; `LABEL_CLASS` is the 
 **Status:** Active principle, dollar amount pending. Budget-setting is on the agenda for the focused nursery launch session before Gina's first event lands. Capital deployment occurs against this budget, tracked through Mycelia LLC's accounting; recovery flows through the participant's pricing-structure allocations. Cross-reference: `NURSERY-MODEL.md` §Economics (Capital allocation budget); paired with DEC-201 (Stewardship Space) which uses a different economic model — stewards earn from the businesses they cultivate, not from capital deployment.
 
 ---
+### DEC-206: Empty-Field Derivation Through Links (2026-05-07)
+
+**Date:** 2026-05-07
+**Context:** Bari-focused dogfood loop on 2026-05-07 surfaced the same shape three times: Contract Total derivation reading from a linked estimate when `total_budget` was empty (`e950fd5`); bidirectional estimate-project link query when one direction had no FK (`2111d11`); projects list grouping deriving client from linked estimate when `project.client_id` was empty (`5f35c0f`). Three-instance threshold met (DEC-148). Sweep across five sibling surfaces (`2aaef46`) extracted `useProjectLinkedEstimates.js` hook + `deriveProjectClient` companion as canonical helpers. CLAUDE.md codification at `a11ae64`.
+**Decision:** When an entity field is empty AND a linked entity carries the same logical value, **derive at the consuming surface**. Direct field always wins (explicit user intent is sacred). Empty field falls through to the linked entity's value. Truly orphaned records show "unset." **Do NOT auto-write the derived value back to the empty record on link save** — that creates drift if links change later. Pure read-time derivation: storage stays clean, derivation stays current. Multi-record dedup rule (when more than one linked entity could win): prefer most-recently-created entry that carries the value, never downgrade a useful entry to a less-useful one (skip null-value upgrades).
+**Rationale:** Anything else creates a class of subtle bugs where a stale stored field disagrees with the current truth from the linked entity. Read-time derivation never goes stale; the helper is the single source of truth for the chain rules; new consumers inherit dedup behavior automatically. Same shape applies to other entity link chains worth auditing when next touching: team↔workspace member visibility, sub/vendor records ↔ FSPeople inline copies, FSPayment.party_name ↔ FSClient lookup when `client_id` is null. Don't pre-extend the principle without a named gap; the rule is the principle, not the specific helper.
+**Status:** Active. Codified in CLAUDE.md (`a11ae64`). Cross-references: DEC-148 (three-instance threshold), DEC-146 (Living Feet — one helper, every consumer reads through it).
+
+---
+
+### DEC-207: Migration Deferred Pending Bari Reliability + Phase 2 Architectural Sign-Off (2026-05-07)
+
+**Date:** 2026-05-07
+**Context:** Mid-session pivot on 2026-05-07 from "stop platform work, focus on Phase 6 Supabase migration" to "fix Bari's experience first, migrate after." The trigger: Patricia Heath's $182K signed ADU contract is live on the platform via Bari, and every dogfood-surfaced gap (PDF darkness, Contract Total derivation, empty-field link drift, Documents missing from Project Detail, payment row navigation confusion) is a real friction point for an active paying user. Migration timing is fluid (Phase 6 per DEC-175); contractor trust is real-time.
+**Decision:** Phase 6 Supabase + Vercel migration is deferred until (a) Bari's platform experience is reliable end-to-end (no recurring dogfood-surfaced gaps within a normal contractor workflow), AND (b) the Phase 2 architectural proposal (`Spec-Repo/spaces/field-service/PHASE-2-UNIFIED-ARCHITECTURE-PROPOSAL.md`) is signed off by Doron. Phase 2 architectural work on Base44 is intentional, not phase-discipline drift. Today's work is portable — variable-layer print discipline, empty-field derivation, localStorage prefill, entity-rollup section pattern, idempotency guard, honest navigation — all translate to any stack. Patterns established now compound across migration; deferred patterns deferred.
+**Rationale:** Migration is a fragility event. Migrating an unreliable platform produces an unreliable platform on a new stack, plus the migration risk on top. Stabilizing Bari's experience pre-migration shrinks both the pre-migration friction (real users get reliability now) and the post-migration friction (the new stack inherits a tested architecture, not a bug list). The Phase 2 architectural sign-off gate prevents migrating prematurely with structural decisions still open (Trade-grouped estimates default, Subs/Vendors as People entity model, FSPayment edit capability, Documents architecture inversion are all live conversations). Migrating before sign-off would lock those choices to whatever Base44-shaped state happens to exist at migration time.
+**Status:** Active. Supersedes the implicit "Phase 6 next" reading of DEC-175 timing — Phase 6 still triggers at the Region foundation backfill window (DEC-172), but now also gated on Bari reliability + Phase 2 sign-off.
+
+---
+
+### DEC-208: No Debrief Without Commit Hash (2026-05-07)
+
+**Date:** 2026-05-07
+**Context:** Hyphae shipped morning's Bari-focused work (PDF darkness fixes, Contract Total derivation) without committing — Doron found three uncommitted files in GitHub Desktop after expecting them to be live for verification. Cost a verification cycle. The pattern was: build → debrief mentions "shipped" → no commit → next session starts with a working-tree surprise.
+**Decision:** Every Hyphae build debrief must include the commit hash(es) of the work it describes. Build → commit → push → debrief with hash. If for any reason the work hasn't been pushed when the debrief lands, the debrief leads with that fact ("⚠ work not yet committed") rather than burying it. Uncommitted work surprising Doron in GitHub Desktop is a process bug — surface it, don't hide it.
+**Rationale:** "Shipped" without a commit hash is ambiguous — Hyphae may mean "the code is written and works locally" while Doron parses it as "the code is in main, ready to verify in Base44 Act-As-User preview." Requiring a commit hash forces the discipline that the build is in the system of record before the debrief lands. The cost of pausing to commit is small; the cost of a missed verification cycle is hours.
+**Status:** Active. Codified in CLAUDE.md (`82503b0`).
+
+---
+
+### DEC-209: Honest Navigation > Pretend Navigation (2026-05-07)
+
+**Date:** 2026-05-07
+**Context:** Two surfaces on 2026-05-07 hit the same architectural choice. (1) Per-row drill-in navigation (`18a9ecc`) — clicking a row in a financial drill-in modal needs to go *somewhere*, but for FSPayment rows there was no edit form to navigate to. Hyphae's seedling: "FSPayment edit form doesn't exist; row click closes the modal so the user lands on the Recent Payments section that's already rendering on Project Detail." (2) Tonight's payment scroll-and-flash (`fae9b01`) — the build prompt asked Hyphae to navigate payment rows to "the parent daily log that contains the payment," but the data model has FSPayment as a sibling of FSDailyLog, not a child. Hyphae caught the memory drift in Mycelia's spec citation before writing code.
+**Decision:** When clicking an interactive element implies "show me where this came from / take me to the edit surface," the navigation must LAND on a surface where the implied context is visible. **No navigation is more honest than half-navigation.** When a destination action genuinely isn't supported (no edit form exists, no parent record exists), close the modal cleanly rather than route to a broken target — and capture the gap as a seedling. When honest navigation IS available (scroll-and-highlight to an existing on-page section like Recent Payments), take it instead of closing the modal silently — the user's eye lands on the record they navigated to, the navigation feels grounded, and no fake architecture is built to support a pretend destination.
+**Rationale:** Pretend navigation creates two costs: a confusing UX (the user doesn't understand what happened), and structural debt (the architecture pretends a relationship exists that the data model doesn't support). The 2026-05-07 payment-row case made this acute — the prompt's stated parent-log relationship doesn't exist; building it would have either been a silent no-op (the fallback case fires for every payment) or required fabricating a parent-log link the codebase doesn't have. Either way, more bug than feature. Scroll-and-flash to the actual on-page section is honest because Recent Payments IS where payments live; the user lands on the surface they expected to see, no architectural lying involved.
+**Status:** Active. Cross-references: DEC-148 derivation discipline (the same "direct field always wins" principle applied to navigation targets — the actual edit surface always wins; only fall back to scroll-and-highlight when no edit surface exists).
+
+---
+
+### DEC-210: Print-Fidelity Discipline at the Variable Layer (2026-05-07)
+
+**Date:** 2026-05-07
+**Context:** Bari surfaced PDF font darkness as a Patricia-readiness issue 2026-05-07 morning — the legal contract PDF was readable but contractor-soft, with `text-muted-foreground` and `text-foreground-soft` rendering pale enough on print to feel unprofessional. First-pass fix (`488973e`) overrode the CSS variables `--muted-foreground` and `--foreground-soft` inside `printNode`'s injected stylesheet. V2 darkness fix (`f55975c`) extended this with `[class*="text-muted-foreground/"]` attribute selector to handle alpha-modifier classes (`text-muted-foreground/70`, etc.) that Tailwind compiles to `color: oklch(... / 70%)` and don't pick up the variable override.
+**Decision:** When fixing print-rendering issues that affect more than one consumer (multiple components, multiple Tailwind utility classes, multiple themes), **change the CSS variable, not the consumers**. Living Feet (DEC-146) applied to print CSS — one variable override in `printNode`'s extraCss propagates to every component that reads that variable. For alpha-modifier classes that bypass the variable layer, use attribute selectors (`[class*="text-X/"]`) to catch them at the print boundary. Do not patch each component's print-specific CSS individually.
+**Rationale:** Print rendering touches every component that reads a color variable. Patching components individually means every new component is a new patch surface, every new theme variant is a new audit pass, every Tailwind alpha-modifier class is a new bug. Variable-layer overrides + attribute-selector catch-alls give a single point of control: change the print theme by editing `printNode`'s extraCss, every consumer follows. This is the same discipline as DEC-132 (semantic Tailwind migration) but applied to the print boundary specifically.
+**Status:** Active. Cross-references: DEC-198 (printNode helper), DEC-146 (Living Feet), DEC-132 (semantic tokens). Carries forward as a known issue: light-theme `--primary-foreground` collision with bg-white wrapper is a latent bug for any future light-theme user printing — variable-layer fix already in place but not exercised against light theme yet.
+
+---
+
+### DEC-211: Time-Logging for AI Build Sessions (2026-05-07)
+
+**Date:** 2026-05-07
+**Context:** Two calibration failures surfaced on 2026-05-07. (1) The Phase 2 architectural investigation Mycelia framed as "2-4 weeks of build" Hyphae's audit revealed is days of work on Base44 (trade-grouping infrastructure already half-built behind `is_insurance_estimate=true`; the People entity needs creating, but the picker is the only genuinely-greenfield component). (2) Tonight's "1.5-hour polish" became a 14-commit day across the full session, with two new CLAUDE.md disciplines and a parallel architectural investigation. Mycelia's hour estimates have been calibrated to human-engineer-hours, not Hyphae-hours; estimates without data are noise.
+**Decision:** Going forward, log per Hyphae session: (a) session start time (when prompt is handed to Hyphae); (b) session end time (when she debriefs); (c) commit count produced; (d) rough complexity tag (polish / build / architecture / investigation); (e) whether scope expanded mid-session and by how much. Mycelia hedges time estimates and acknowledges calibration is in progress until ~4-6 weeks of data exists. After that window, real estimates become possible. The data layer is observational, not a contract — Hyphae doesn't optimize for "matching the estimate"; Mycelia learns from the data what realistic Hyphae-cadence looks like across different complexity classes.
+**Rationale:** AI build sessions don't behave like human-engineer sessions. The compounding factor is volatile: tight scoped builds run faster than human-equivalent (a polish bundle in 30 minutes vs an afternoon); architectural investigations may run longer (an audit of 8 surfaces + 3 alternative approaches + 12 open questions takes Hyphae the time it takes). Estimating without data produces noise that erodes trust in the estimating process. Logging produces the calibration substrate. Refusing to estimate until data exists is dishonest in a different direction (operational planning needs ranges); hedging while data accumulates is the honest middle path.
+**Status:** Active. Operational data lives in Mycelia's working notes (private repo) until enough exists to publish a calibration table.
+
+---
+
+### DEC-212: Spec Citation Re-Verification (Extension of DEC-151) (2026-05-07)
+
+**Date:** 2026-05-07
+**Context:** Tonight's Item 2 prompt (HYPHAE-PROJECT-DOCUMENTS-AND-RECEIVED-ROW-NAV) cited FINANCIAL-WORKFLOW-SPEC §2.6 to justify "payments live inside daily logs" — the prompt's framing assumed FSPayment is a child of FSDailyLog with a `daily_log_id` field. Hyphae's audit found the data model has FSPayment as a sibling entity (no `daily_log_id`, no parent-child relationship in the create path), and §2.6 of the spec actually says the opposite: "Underlying entities remain distinct... unification is in the input surface, not the data model." The drift was in Mycelia's memory of the spec, not in the spec itself. Hyphae caught it before writing code, surfaced it transparently, and shipped Option B (scroll-and-flash) instead of pretending the parent-log relationship existed.
+**Decision:** Extend Spec Review Protocol (DEC-151) to spec citations, not just codebase audits. When citing a spec section in a Hyphae prompt to justify a build decision, Mycelia re-reads the relevant section from canonical (`Spec-Repo/`) rather than relying on memory. Memory drift on architectural specs accumulates fast — the financial-layer spec is dense, the Stewardship/Nursery specs are recent, and the Two-World Architecture principle is foundational. The cost of re-reading is small (a paragraph or three); the cost of citing the spec in the wrong direction is a build that contradicts the architecture it claims to follow.
+**Rationale:** DEC-151 already established that Hyphae's codebase audit beats Mycelia's mental model when the gap surfaces. The corollary for spec content is the same shape: the canonical text beats the memory. Hyphae's pushback on the §2.6 citation was the protocol working as designed — she read the section, found the contradiction, surfaced it. Codifying re-verification at the prompt-writing stage closes the loop one step earlier.
+**Status:** Active. Operational rule for Mycelia.
+
+---
+
+### DEC-213: Documents Architecture Inversion — Live Where Used (2026-05-07)
+
+**Date:** 2026-05-07
+**Context:** Surfaced through two threads on 2026-05-07. (1) Doron's dogfood: he created an FSDocument linked to Test Project (the document save path correctly populated `project_id`), but Project Detail had no Documents section to surface it — the document existed but was unfindable from the project context. Fixed in `193f4e8`. (2) The broader insight: documents are not a flat global list; they're context records that belong to the project, the client, the estimate, the change order they pertain to. The Documents tab as a flat list is a global-bucket pattern that doesn't match how contractors think.
+**Decision:** Documents live where they're used. Each context-bearing surface (Project Detail, Client Detail, eventually CO and estimate previews) gains a Documents section that queries FSDocument by the relevant FK (`project_id`, `client_id`, etc.). The Documents tab transforms from a flat global list into an inbox + templates + search surface — for documents not yet contextualized, for templates browsing, for cross-project search. Same pattern as the entity-rollup family (Permits, Change Orders, Recent Payments) — query by FK, render as card list, click navigates to detail. Migration is incremental: Project Detail Documents section landed in `193f4e8`; Client Detail section + Documents tab restructuring queued.
+**Rationale:** A flat global list scales to dozens of documents. Bari's Patricia ADU project alone will produce a dozen documents across its lifecycle (contract, lien notices, change orders, completion certificates, releases). Multiplied across projects, the flat list becomes scrolling-bingo. The "live where used" pattern matches contractor workflow — when a contractor thinks about a document, they think about which project or client it's for, not which slot in the global list. This also creates a cleaner mental model for client-facing surfaces (ClientPortal Project view will eventually show "documents for this project" without showing the contractor's full document inbox).
+**Status:** Active — Project Detail section landed (`193f4e8`). Client Detail Documents section queued. Documents tab restructuring queued for Phase 2 architectural conversation. Cross-references: DEC-206 derivation discipline (when a document has `client_id` empty but `project.client_id` exists, derivation through the project link applies), DEC-146 (Living Feet — same entity-rollup section pattern across all surfaces).
+
+---
+
+### DEC-214: FSPayment Edit Capability Deferred to Phase 2 Financial-Layer Architecture (2026-05-07)
+
+**Date:** 2026-05-07
+**Context:** Surfaced when tonight's Item 2 build prompt asked Hyphae to navigate payment rows to "the parent daily log that contains the payment." Hyphae's audit found two structural problems: (1) FSPayment has no `daily_log_id` field per `community-node/base44/entities/FSPayment.jsonc`; (2) FieldServiceLog's Sub Payment / Client Payment branch writes only an FSPayment record without creating a parent FSDailyLog (`FieldServiceLog.jsx:527`). The "honest navigation" target the prompt named doesn't exist in the data model. The deeper gap: FSPayment is currently create-only via the Log tab; there is no edit form. Tonight's polish (Option B, `fae9b01`) ships scroll-and-flash to Recent Payments — addresses the user-felt confusion without violating the no-edit-form constraint and without faking architecture.
+**Decision:** FSPayment edit capability is deferred to the Phase 2 financial-layer architectural conversation, not built as a one-off polish. The pieces interlock with multiple unresolved decisions: (a) Log-Line-Item Attribution Proposal Option B adds `line_item_id` to FSPayment — edit form would need to handle that field's introduction; (b) Spent semantic redefinition (whether FSPayment(paid) contributes to projectSpent rollup) affects what the edit form shows in context; (c) Returns / refunds need either a new entity or repurposed FSPayment with `direction` flip — edit form would need to enforce/explain that semantic; (d) DEC-193 immutability semantics on signed contracts may need to extend to "received payments after a certain status point" (cleared) — edit form behavior on cleared payments is a separate decision. Don't build the edit form as a Phase 2 polish; it's load-bearing for several adjacent decisions.
+**Rationale:** Building FSPayment edit form in isolation would lock decisions on Spent semantics, returns/refunds shape, and immutability gates that should be made coherently. The 2026-05-07 patch (`fae9b01`) addresses the immediate UX confusion (drill-in row click feels like nothing happened) honestly via scroll-and-flash; the architectural conversation happens at Phase 2 financial-layer sign-off when the surrounding decisions are all on the table.
+**Status:** Active deferral. Cross-references: Log-Line-Item Attribution Proposal (`Spec-Repo/spaces/field-service/LOG-LINE-ITEM-ATTRIBUTION-PROPOSAL.md`, May 5, 8 open Qs awaiting Doron sign-off), DEC-209 honest navigation, DEC-193 CO immutability semantics. Note: this gap is **not** covered by the Phase 2 Unified Architecture Proposal (May 7) — that proposal scopes trade-grouping + Subs-as-People; FSPayment edit is its own conversation under the broader financial-layer umbrella.
+
+---
+
+### DEC-215: `rls.update` Must Be Absent on Entities Receiving `asServiceRole` Writes — Structural Rule (2026-05-08)
+
+**Date:** 2026-05-08
+**Status:** Active. Promoted from DEC-095 amendment (originally FieldServiceProfile-specific quirk discovered 2026-04-23).
+**Context:** Phase 2.1's `migrate-flat-layout-inversion` script failed on `--apply` with "Permission denied for update operation on FSEstimate entity" — even after `security.update` was widened to `true` and the app published twice. Hyphae's audit (2026-05-08, ~08:18–08:32 PT) traced the block to FSEstimate's `rls.update` key (`{ created_by: "{{user.email}}" }`) which `asServiceRole` identity does not satisfy. Same root cause shape as the FieldServiceProfile failure documented in DEC-095 amendment (2026-04-23); same fix shape — REMOVE the `rls.update` key entirely, not relax it. With three live entities now confirmed (FieldServiceProfile, FSEstimate, plus Business which has always had rls.update absent and serves as the working comparable for `reparentBusiness`), the pattern crosses the three-instance threshold (DEC-148 derivation discipline) and gets promoted from a per-entity workaround to a structural rule.
+
+**Decision:** When a Base44 entity needs to receive writes via `asServiceRole` (one-shot migrations like `migrationHelpers`, server functions like `signEstimate`, `reparentBusiness`, `updateBusiness`, etc.), the entity's `rls.update` key MUST be **absent** from the `rls` block. Setting it to `true`, removing the inner `created_by` constraint, or any other relaxation is reportedly insufficient in SDK 0.8.23 — **key absence is load-bearing**. The two layers (top-level `security.update` + row-level `rls.update`) are SEPARABLE: `security.update` can be tightened to `{ owner: true }` for production access control; `rls.update` must remain absent. **Do not re-add `rls.update`** as part of any post-migration restore — re-adding it silently re-breaks every `asServiceRole` write that targets the entity.
+
+**Rationale:** The error message "Permission denied for update operation on X entity" surfaces from Base44's RLS layer, not the entity-level security layer. `asServiceRole` reliably bypasses entity-level security checks but does NOT reliably bypass `rls.update` rules in SDK 0.8.23 (DEC-136 already documented this for the read direction; this DEC extends it to writes). Removing the key is the only confirmed fix — confirmed empirically across two distinct entities (FieldServiceProfile in 2026-04-23 + FSEstimate in 2026-05-08), with Business as a working third comparable that has always had the absent-key shape. Code patterns are identical across `reparentBusiness`, `signEstimate`, and `migrationHelpers` (all three use `base44.asServiceRole.entities.X.update(...)`); the only structural difference is the target entity's rls block.
+
+**Operational rule:**
+
+For any Base44 entity:
+- `security.update: { owner: true }` is fine for production access control. This is the right default.
+- `rls.update` must be ABSENT (not relaxed) if `asServiceRole` ever needs to write to that entity.
+- These two layers are independent. Restoring `security.update` to creator-only after a migration is fine; re-adding `rls.update` is dangerous and must not happen.
+
+**Pre-migration audit pattern.** Before any migration script that writes to a new entity, verify:
+
+```bash
+cat base44/entities/<EntityName>.jsonc | grep -A 10 '"rls"'
+```
+
+If `rls.update` is present, removing it is a prerequisite. Code alone won't fix it. (Future Living Feet candidate at four entities: `pre-migration-rls-audit.js <entity-name>` script reporting green/red on the rls.update key.)
+
+**What this protects:**
+- One-shot migration scripts touching the entity
+- Server functions performing `asServiceRole` writes (e.g., `signEstimate` — which was structurally broken on FSEstimate before the 2026-05-08 fix; same root cause as Patricia's signing-flow workaround in Known Issue #22)
+- Any cross-user write the platform legitimately needs to perform without impersonating a specific user
+
+**What this does NOT compromise:**
+- Entity-level access control still works via `security.update: { owner: true }`
+- RLS scoping for `read`, `create`, `delete` still works — only the `update` rule is omitted
+- Creator-scoped row-level identity is still preserved at the data layer (`created_by` field stays set on every record)
+
+**Three-instance evidence:**
+
+1. **FieldServiceProfile** — Phase 2 production migration (2026-04-23), DEC-095 amendment fix. `rls.update` removed; migration unblocked.
+2. **FSEstimate** — Phase 2.1 migration + Patricia signing-flow (2026-05-08), this DEC. `rls.update` removed; migration unblocked AND Known Issue #22 structurally resolved as side-effect.
+3. **Business** — has always had `rls.update` absent. `reparentBusiness` writes succeed despite `security.update: { owner: true }` because the RLS layer has no `update` rule to satisfy. Working comparable; confirms the structural rule.
+
+**Companion to DEC-095, DEC-136, DEC-139, DEC-140.** This sits alongside the broader Base44 `asServiceRole` patterns:
+- **DEC-095 amendment** — the original FieldServiceProfile-specific finding, now generalized.
+- **DEC-136** — `asServiceRole` does not bypass "Creator Only" Update permissions on reads, only RLS scoping (in some cases).
+- **DEC-139** — server-authoritative identity on agent writes.
+- **DEC-140** — `readPersonData` server function pattern (membrane-at-function-level).
+
+This DEC names the structural rule that emerges from the combination — for writes via `asServiceRole`, **the rls.update key must be absent**.
+
+---

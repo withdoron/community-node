@@ -330,6 +330,10 @@ Despite Base44 documentation stating `asServiceRole` bypasses RLS, in practice (
 
 **Note:** This contradicts DEC-095 (which documented the same behavior for Update permissions) and DEC-136 (which set Creator Only as default). DEC-136 remains the default for personal workspace entities. Team-scoped entities use Authenticated Users Read + server function scoping.
 
+### `rls.update` Must Be Absent on Entities Receiving `asServiceRole` Writes (DEC-215, 2026-05-08)
+
+When `asServiceRole` writes are involved (one-shot migrations, server functions like `signEstimate`, `reparentBusiness`, `migrationHelpers`), the entity's `rls.update` key must be **absent** from the rls block. Setting it to `true` or relaxing the inner constraint is reportedly insufficient in SDK 0.8.23 — **key absence is load-bearing**. Restoring `security.update` to `{ owner: true }` after a migration is fine; **do not re-add `rls.update`** as part of any post-migration cleanup, because re-adding silently re-breaks every `asServiceRole` write that targets the entity. Three-instance evidence: FieldServiceProfile (fixed 2026-04-23), FSEstimate (fixed 2026-05-08, also resolved Patricia signing-flow KI #22), Business (always had it absent — working comparable). Pre-migration audit pattern: `cat base44/entities/<EntityName>.jsonc | grep -A 10 '"rls"'` — if `rls.update` is present, removing it is a prerequisite. See `Spec-Repo/platform/DECISIONS.md` DEC-215 for full rationale.
+
 ---
 
 ## Tier System

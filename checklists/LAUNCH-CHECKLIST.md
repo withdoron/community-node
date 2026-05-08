@@ -202,19 +202,52 @@
 6. [x] **Required-field UX audit + fixes (DEC-200)** (2026-05-03, `bdd90e4`) — six fields fixed across five forms (Daily Log `tasks_completed`, Estimate `title`, Document Template `title` + `content`, Permit Inspection `type`, Change Order `title`); canonical `*` + client-side toast pattern; no Base44 schema errors leak to user. Verified by Doron 2026-05-04.
 7. [x] **Bari's Patricia Heath estimate entered, multi-page PDF generates correctly, ready for pre-send cleanup** (2026-05-04)
 8. [x] **Platform-wide invalidation sweep (DEC-202)** (2026-05-04 evening, `60ebb11` + `e7bd500`) — 56 bare-array silent no-ops fixed across 21 files; 6 FS list/detail coverage gaps closed; refresh-on-save restored universally. Most egregious bug fixed: Recommend.jsx had 12 silent invalidations. Pending Doron's verification of the eight surface checks in Base44 Act-As-User preview (Estimates create/edit, Client detail edit, CO sign/void, Convert estimate to project, Payment logging, Recommendations, Frequency Station seeds, Admin business edits).
-9. [ ] **Shared invalidation helpers refactor** (Living Feet candidate; `src/utils/fsInvalidations.js` with `invalidateEstimates`, `invalidateProjects`, `invalidateLogs`). Separate refactor commit, not bundled with bug-fix.
-10. [ ] **Query-key naming drift cleanup** — three inconsistencies worth standardizing (profile-scoped vs bare prefix; `['fs-payments', projectId]` vs `['fs-payments-all']`; three names for "photos for one project").
-9. [ ] **Insurance toggle as %** — held for Doron thinking
-10. [ ] **Hourly rate verification** — confirm FSDailyLog labor rate reads from the right setting
-11. [ ] **Estimate Types expansion** (Base44 + Hyphae prompts queued) — `fixed_price` / `flat_fee` / `time_and_materials` enum + 4 supporting fields
-12. [ ] **PDF formatting polish** (dedicated session) — currently functional but not styled to brand
-13. [ ] **Documents UX session** — Doron's question about whether Documents should require a client (held)
-14. [ ] **Log → Project surface architecture with line-item attribution** — Phase 2 milestone
-15. [ ] **`FieldServiceReport.jsx` printNode migration** — low risk (its own tab, not Act-As preview), but should migrate for consistency
-16. [ ] **Permit edit/inspection labels** — convert `text-xs text-muted-foreground/70` to `LABEL_CLASS` for visual consistency
-17. [ ] Permits library enhancement (seedling, Phase 2)
-18. [ ] E-sign hardening (deferred — email magic link auth when real risk surfaces)
-19. [ ] Deeper dogfood across the four-metric financial header during real project lifecycle
+9. [x] **PDF font darkness end-to-end (DEC-210)** (2026-05-07, `488973e` + `f55975c` + `3328c79`) — variable-layer overrides for `--muted-foreground` and `--foreground-soft`; alpha-modifier handling via `[class*="text-muted-foreground/"]` attribute selector; syntax repair for backticks-in-CSS-comments-in-template-literal. Print-fidelity discipline now canonical at the variable layer.
+10. [x] **Single print dialog idempotency** (2026-05-07, `ed75cdf`) — `let triggered = false` guard in `waitAndPrint` prevents both onload and timeout fallback from firing. Pattern: any belt-and-suspenders scheduling with parallel paths needs the guard.
+11. [x] **Contract Total derivation from linked estimate (DEC-206)** (2026-05-07, `e950fd5`) — Project Detail Contract Total tile reads from linked estimate's signed total + signed COs at render time, not stored `total_budget`. First instance of empty-field derivation through links.
+12. [x] **Drillable tiles + ProjectTileDrillIn.jsx** (2026-05-07, `e950fd5`) — every financial header tile reveals its source records; one slide-over component, seven row sets; Living Feet at the modal layer. Per-row navigation reuses localStorage-prefill pattern.
+13. [x] **Bidirectional estimate-project link (DEC-206)** (2026-05-07, `2111d11`) — query `estimate.project_id` for both link directions; resolves regardless of which side wrote the link. Second instance of empty-field derivation.
+14. [x] **Home tab tile navigation** (2026-05-07, `72dc441`) — 4 of 6 tiles wired up to navigate to relevant space; remaining 2 surfaces queued.
+15. [x] **Per-row drill-into-source navigation (DEC-209 seedling)** (2026-05-07, `18a9ecc`) — localStorage prefill pattern; honest navigation > pretend navigation seedling captured. FSPayment edit form gap surfaced (now DEC-214 deferred).
+16. [x] **Projects list grouping derives client from linked estimate (DEC-206)** (2026-05-07, `5f35c0f`) — third instance, threshold met.
+17. [x] **Empty-field derivation sweep across 5 sibling surfaces (DEC-206)** (2026-05-07, `2aaef46`) — `useProjectLinkedEstimates.js` hook + `deriveProjectClient` companion extracted; Project Detail header, flat list cards, drill-in modal subtitles, FSLog project picker + Client Payment "From" line, FSDocument project filter all chain through the helper. Codified in CLAUDE.md (`a11ae64`).
+18. [x] **Documents section on Project Detail (DEC-213)** (2026-05-07, `193f4e8`) — entity-rollup family member; query FSDocument by `project_id`; click navigates via `fs-document-prefill-id`; "+ Add Document" navigates with `fs-document-prefill-project-id` + derived client; DEC-199 list/detail invalidation pair on five FSDocument mutation sites.
+19. [x] **Payment drill-in scroll-and-flash on Recent Payments (DEC-209)** (2026-05-07, `fae9b01`) — modal closes, Recent Payments section scrolls into view, matching row rings primary-gold ~1.5s. Hyphae caught memory drift in spec citation before writing code (DEC-212 working as designed). FSPayment edit form remains deferred (DEC-214).
+20. [x] **No-debrief-without-commit-hash discipline (DEC-208)** (2026-05-07, `82503b0`) — codified in CLAUDE.md after morning's work shipped without commit.
+21. [x] **Empty-field derivation principle codified (DEC-206)** (2026-05-07, `a11ae64`) — CLAUDE.md addition; same shape applies to other entity link chains for future audit.
+22. [x] **Verify 2026-05-07 commits in Base44 Act-As-User preview** (PDF darkness, Contract Total derivation, drillable tiles, link derivation, Documents section, payment scroll-and-flash) — verified end of day 2026-05-07.
+23. [x] **Phase 2 architectural sign-off** (`Spec-Repo/spaces/field-service/PHASE-2-UNIFIED-ARCHITECTURE-PROPOSAL.md`) — APPROVED 2026-05-08, Approach A locked (Light Promotion + Sub Picker), all 12 open questions answered. Sign-off committed at `67b11df` (Spec-Repo). Phase 2.1 build began immediately after.
+24. [ ] **Estimate edit lifecycle gating discipline** (NEW, surfaced 2026-05-07) — when does an estimate become read-only? Per Doron: "we don't want someone saving changes to a signed and approved estimate." Worth promoting to a full lifecycle gate on the Edit button itself.
+25. [x] **Patricia signing-flow bug — STRUCTURALLY UNBLOCKED 2026-05-08** as side-effect of DEC-215 (`rls.update` removed from FSEstimate). Same root cause as the Phase 2.1 migration block. signEstimate server function should now succeed. Verification on a non-Patricia test estimate still pending; PDF + hand-signature workaround retires after that confirmation.
+25a. [x] **Phase 2.1 — trade-grouping default flip + Unallocated bucket** (2026-05-08, `6c3573f` + `4996051` + `cecec99`) — `is_insurance_estimate` → `flat_layout` rename + invert across 9 sites; new estimates default to trade-grouped; sentinel-keyed Unallocated bucket renders for untagged line items at top of grouped view; `getTradeCategories` extracted to `src/utils/fsTradeCategories.js` (Living Feet, second consumer ClientPortal). End-to-end verified via Act-As-User as Bari: Patricia EST-2026-005 renders flat by default; toggle off → Unallocated with all 30 lines; tag Framing → splits into own group; total $182,013.69 unchanged.
+25b. [x] **Phase 2.1 — `migrate-flat-layout-inversion` ran cleanly** (2026-05-08, post DEC-215 fix) — 5 FSEstimate records inverted, 5 AuditLog rows written, idempotency confirmed via re-run. Migration secret retired post-Phase-2.1 (single-use protocol honored).
+25c. [x] **DEC-215 ratified** — `rls.update` must be absent on entities receiving `asServiceRole` writes. Promoted from DEC-095 amendment to structural rule with three-instance evidence (FieldServiceProfile + FSEstimate + Business). Critical safety rail: do not re-add `rls.update` as part of any future restore.
+25d. [x] **ClientPortal Rules of Hooks compliance** (2026-05-08, `cecec99`) — useMemo calls moved above early returns; `npm run build` exits 0; second instance of "Base44 as production-correctness gate" pattern (after `f55975c`/`3328c79` template-literal syntax 2026-05-07).
+25e. [ ] **Patricia signing-flow regression check** (NEW, follows from 25 + DEC-215) — verify in-platform signing on a non-Patricia test estimate before retiring the PDF + hand-signature workaround for KI #22.
+25f. [ ] **Phase 2.2 — taxonomy presets** (next, the four locked answers Q3) — Bari General Contractor 13-trade, CSI MasterFormat 16-division, Simple Three-Bucket, Service Provider — Hourly. Seam at `src/utils/fsTradeCategories.js`. Settings preset picker + "Reset to preset" action.
+26. [ ] **Drift visibility question** (NEW, 2026-05-07) — when derivation works perfectly, contractors don't realize their records have empty fields. Visible "derived from estimate" badge or auto-backfill on first view. Conversation when contractor confusion surfaces.
+27. [ ] **Client Detail Documents section** (NEW, Phase 2 of DEC-213 inversion).
+28. [ ] **Documents tab restructuring** (NEW, Phase 2 of DEC-213; flat list → inbox + templates + search).
+29. [ ] **`useConsumePrefill` hook extraction** (NEW, DEC-148 threshold met with four uses).
+30. [ ] **`<RecordSection>` primitive extraction** (NEW, four-instance threshold).
+31. [ ] **`useDrillInNavigators` hook extraction** (NEW, five-instance threshold).
+32. [ ] **`src/utils/fsInvalidations.js` helper file** (Living Feet candidate; `invalidateEstimates`, `invalidateProjects`, `invalidateLogs`, `invalidateDocuments`). Separate refactor commit.
+33. [ ] **Query-key naming drift cleanup** — three inconsistencies worth standardizing.
+34. [ ] **DEC-193 backfill consideration** (NEW, 2026-05-07) — one-shot migrationHelpers script to write `original_budget` from linked estimate.
+35. [ ] **FSPayment edit capability (DEC-214 deferred)** — tied to Log-Line-Item Attribution Proposal sign-off + Spent semantic redefinition + returns/refunds. Phase 2 financial-layer architectural conversation.
+36. [ ] **Light-theme `--primary-foreground` collision** (NEW, 2026-05-07) — latent bug for any future light-theme user printing.
+37. [ ] **Insurance toggle as %** — held for Doron thinking
+38. [ ] **Hourly rate verification** — confirm FSDailyLog labor rate reads from the right setting
+39. [ ] **Estimate Types expansion** (Base44 + Hyphae prompts queued) — `fixed_price` / `flat_fee` / `time_and_materials` enum + 4 supporting fields
+40. [ ] **PDF formatting polish** (dedicated session) — currently functional but not styled to brand
+41. [ ] **Documents UX session** — Doron's question about whether Documents should require a client (held)
+42. [ ] **Log → Project surface architecture with line-item attribution** — Phase 2 milestone (Log-Line-Item Attribution Proposal sign-off pending; 8 open questions)
+43. [ ] **`FieldServiceReport.jsx` printNode migration** — low risk (its own tab, not Act-As preview), but should migrate for consistency
+44. [ ] **Permit edit/inspection labels** — convert `text-xs text-muted-foreground/70` to `LABEL_CLASS` for visual consistency
+45. [ ] **Client Communication tab on Project Detail (and ClientPortal)** (NEW, Bari's surfaced need 2026-05-07) — photos, voice messages, decisions, change requests captured per-project, bidirectional with client. Substantial new feature, deserves its own investigation prompt before any build.
+46. [ ] Permits library enhancement (seedling, Phase 2)
+47. [ ] E-sign hardening (deferred — email magic link auth when real risk surfaces)
+48. [ ] Deeper dogfood across the four-metric financial header during real project lifecycle
 
 **MyLane navigation track (Phase 4.2-tiles, parallel workstream):**
 
