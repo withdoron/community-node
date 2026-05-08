@@ -202,7 +202,7 @@
       "owner": true
     },
     "update": {
-      "owner": true
+      "authenticated": true
     },
     "delete": {
       "owner": true
