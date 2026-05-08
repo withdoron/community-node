@@ -987,6 +987,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           tradeCategories={tradeCategories}
           showTradeCategories={formData.group_by_trade !== false}
           disabled={isLocked}
+          profile={profile}
         />
       </div>
 

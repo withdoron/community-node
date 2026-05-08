@@ -2,6 +2,7 @@ import React from 'react';
 import { ChevronUp, ChevronDown, X, Plus } from 'lucide-react';
 import VoiceInput from './VoiceInput';
 import CurrencyInput from './CurrencyInput';
+import SubVendorPicker from './SubVendorPicker';
 import { CATEGORIES, CATEGORY_MAP, makeItem } from '@/utils/fsLineItems';
 import {
   Select,
@@ -29,6 +30,9 @@ const NO_TRADE_VALUE = '__no_trade__';
  *   tradeCategories — array used for the trade category dropdown (insurance only)
  *   showTradeCategories — boolean; show the trade dropdown per row
  *   addCategories   — array of category values to render as add buttons (defaults to all four)
+ *   profile         — workspace profile (Phase 2.4: required for SubVendorPicker
+ *                     subcontractor line items; null on legacy callers degrades
+ *                     gracefully — picker hidden, falls back to fallbackText display)
  *
  * The editor enforces at least one item: removeItem only removes when more
  * than one item is present.
@@ -47,18 +51,22 @@ export default function LineItemsEditor({
   showTradeCategories = false,
   addCategories = ['materials', 'labor', 'subcontractor', 'fee'],
   disabled = false,
+  profile = null,
 }) {
-  const updateItem = (idx, field, value) => {
+  // Multi-field update — required for SubVendorPicker dual-write
+  // (sub_person_id + sub_name in one onChange). Single-field updateItem
+  // is a thin wrapper around this.
+  const updateItemFields = (idx, partial) => {
     const next = [...items];
-    const updated = { ...next[idx], [field]: value };
-    if (field === 'quantity' || field === 'unit_price') {
+    const updated = { ...next[idx], ...partial };
+    if ('quantity' in partial || 'unit_price' in partial) {
       updated.amount =
-        (parseFloat(field === 'quantity' ? value : updated.quantity) || 0) *
-        (parseFloat(field === 'unit_price' ? value : updated.unit_price) || 0);
+        (parseFloat(updated.quantity) || 0) * (parseFloat(updated.unit_price) || 0);
     }
     next[idx] = updated;
     onChange(next);
   };
+  const updateItem = (idx, field, value) => updateItemFields(idx, { [field]: value });
   const addItem = (category) => onChange([...items, makeItem({ category: category || 'materials' })]);
   const insertItemAfter = (idx) => {
     const newItem = makeItem({ category: 'materials' });
@@ -161,10 +169,28 @@ export default function LineItemsEditor({
 
               {item.category === 'subcontractor' && (
                 <div>
-                  <label className="text-xs text-muted-foreground/70">Sub Name</label>
-                  <input type="text" className={INPUT_CLASS} value={item.sub_name || ''}
-                    onChange={(e) => updateItem(idx, 'sub_name', e.target.value)}
-                    placeholder="e.g., Gastlin Gutters" />
+                  <label className="text-xs text-muted-foreground/70">Sub</label>
+                  {profile ? (
+                    <SubVendorPicker
+                      profile={profile}
+                      value={item.sub_person_id}
+                      fallbackText={item.sub_name}
+                      role="subcontractor"
+                      disabled={disabled}
+                      onChange={(person) =>
+                        updateItemFields(idx, {
+                          sub_person_id: person?.id || '',
+                          sub_name: person?.name || '',
+                        })
+                      }
+                    />
+                  ) : (
+                    /* Legacy fallback when caller hasn't threaded profile yet —
+                       preserves the original text-input behavior. */
+                    <input type="text" className={INPUT_CLASS} value={item.sub_name || ''}
+                      onChange={(e) => updateItem(idx, 'sub_name', e.target.value)}
+                      placeholder="e.g., Gastlin Gutters" />
+                  )}
                 </div>
               )}
 

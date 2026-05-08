@@ -2000,7 +2000,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
               {/* Line Items — shared editor (same component used by FSEstimate builder) */}
               <div>
                 <h4 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider mb-2">Line Items</h4>
-                <LineItemsEditor items={coForm.line_items} onChange={setCOLineItems} />
+                <LineItemsEditor items={coForm.line_items} onChange={setCOLineItems} profile={profile} />
               </div>
 
               {/* Summary — same math as FSEstimate */}

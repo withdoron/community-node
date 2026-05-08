@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import VoiceInput from './VoiceInput';
 import CurrencyInput from './CurrencyInput';
+import SubVendorPicker from './SubVendorPicker';
 import { scrollToTopOf } from '@/utils/scrollToTop';
 import useBottomInset from '@/hooks/useBottomInset';
 import { useProjectLinkedEstimates, deriveProjectClient } from '@/hooks/useProjectLinkedEstimates';
@@ -62,6 +63,7 @@ const EMPTY_PAYMENT_FORM = {
   reference: '',
   notes: '',
   payee_name: '',
+  party_id: '',           // Phase 2.4: workers_json id when picker selects a sub/vendor
   party_type: 'subcontractor',
   receipt_file: null,
   receipt_preview: null,
@@ -489,9 +491,13 @@ export default function FieldServiceLog({ profile, currentUser }) {
           ? paymentForm.payee_name.trim()
           : (selectedProjectClient.clientName || selectedProject.client_name || 'Client');
         const partyType = isPaid ? paymentForm.party_type : 'client';
-        const partyId = !isPaid
-          ? (selectedProject.client_id || selectedProjectClient.clientId || null)
-          : null;
+        // Phase 2.4: party_id semantic broadened. When isPaid (sub_payment),
+        // references the workers_json item id from SubVendorPicker. When
+        // received (client_payment), references FSClient.id. Field-shape
+        // unchanged; description-only Base44 update tracks the new semantic.
+        const partyId = isPaid
+          ? (paymentForm.party_id || null)
+          : (selectedProject.client_id || selectedProjectClient.clientId || null);
 
         const payload = {
           profile_id: profile.id,
@@ -954,17 +960,26 @@ export default function FieldServiceLog({ profile, currentUser }) {
           <div className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2">
-                <label className={LABEL_CLASS}>Payee name *</label>
-                <div className="flex gap-2 items-start">
-                  <input
-                    type="text"
-                    value={paymentForm.payee_name}
-                    onChange={(e) => setPaymentField('payee_name', e.target.value)}
-                    className={INPUT_CLASS}
-                    placeholder="e.g. Crawford Door"
-                  />
-                  <VoiceInput onTranscript={(t) => setPaymentField('payee_name', t)} />
-                </div>
+                <label className={LABEL_CLASS}>Payee *</label>
+                <SubVendorPicker
+                  profile={profile}
+                  value={paymentForm.party_id}
+                  fallbackText={paymentForm.payee_name}
+                  role={['subcontractor', 'vendor']}
+                  placeholder="Pick a sub or vendor…"
+                  onChange={(person) => {
+                    // Dual-write: party_id (workers_json id) + payee_name (local
+                    // form variable, mapped to party_name on FSPayment write).
+                    // Auto-update party_type to match the picked person's role
+                    // — small UX nicety; the user can still override after.
+                    setPaymentForm((prev) => ({
+                      ...prev,
+                      party_id: person?.id || '',
+                      payee_name: person?.name || '',
+                      party_type: person?.role === 'vendor' ? 'vendor' : 'subcontractor',
+                    }));
+                  }}
+                />
               </div>
               <div>
                 <label className={LABEL_CLASS}>Payee type</label>
