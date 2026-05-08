@@ -136,19 +136,20 @@ function EstimatePortalView({ estimateId, signMode = false }) {
     enabled: !!profileId,
   });
 
-  if (estLoading || profLoading) return <PortalLoading />;
-  if (!estimate) return <PortalNotFound message="This estimate link may be invalid or expired." />;
-
-  const brandColor = profile?.brand_color || '#f59e0b';
-  const lineItems = parseJSON(estimate.line_items);
-
   // Trade-grouped render mirrors EstimatePreview (Phase 2.1, DEC-206 platform
   // default). When flat_layout=true, the existing flat table renders. When
   // false (default), line items group by trade with per-group subtotals;
   // untagged items collect under "Unallocated" at the top. Two-World
   // Architecture (DEC-203) — clients see the same honest grouping the
   // contractor sees in EstimatePreview.
-  const isFlatLayout = estimate.flat_layout === true;
+  //
+  // Hooks must run on every render in stable order (Rules of Hooks), so the
+  // useMemo calls and their derived dependencies sit above the early returns
+  // for loading / not-found states. parseJSON returns [] on undefined input,
+  // getTradeCategories falls back to the default 18-trade seed when profile
+  // is undefined — both safe during the first render before queries resolve.
+  const lineItems = estimate ? parseJSON(estimate.line_items) : [];
+  const isFlatLayout = estimate?.flat_layout === true;
   const tradeCategories = getTradeCategories(profile);
   const tradeCatMap = useMemo(
     () => Object.fromEntries(tradeCategories.map((tc) => [tc.id, tc])),
@@ -173,6 +174,11 @@ function EstimatePortalView({ estimateId, signMode = false }) {
     return Array.from(groups.entries())
       .sort((a, b) => (a[1].tc.order ?? 999) - (b[1].tc.order ?? 999));
   }, [isFlatLayout, lineItems, tradeCatMap]);
+
+  if (estLoading || profLoading) return <PortalLoading />;
+  if (!estimate) return <PortalNotFound message="This estimate link may be invalid or expired." />;
+
+  const brandColor = profile?.brand_color || '#f59e0b';
   const STATUS_LABELS = { draft: 'Draft', sent: 'Sent', awaiting_signature: 'Awaiting Signature', viewed: 'Viewed', accepted: 'Accepted', signed: 'Signed', declined: 'Declined' };
   const features = getFeatures(profile);
   const printRef = estimate.estimate_number || `id-${(estimate.id || '').slice(0, 8)}`;
