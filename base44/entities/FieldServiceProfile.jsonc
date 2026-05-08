@@ -108,6 +108,10 @@
       "default": "general_contractor",
       "description": "Controls default feature toggle configuration, field labels, and document template seeding. DEC-090."
     },
+    "default_taxonomy_preset_id": {
+      "type": "string",
+      "description": "Slug of the workspace's default taxonomy preset for new estimates. Valid values: bari_general_contractor, csi_masterformat, simple_three_bucket, service_provider_hourly. Null = no default; estimates fall back to the workspace's trade_categories_json working list."
+    },
     "guide_dismissed": {
       "type": "boolean",
       "default": false,

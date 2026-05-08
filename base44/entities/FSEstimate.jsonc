@@ -131,10 +131,23 @@
       "type": "string",
       "description": "Name of the person who prepared the estimate"
     },
-    "flat_layout": {
+    "group_by_trade": {
       "type": "boolean",
       "default": false,
-      "description": "When true, line items render as a single flat table. When false (default), line items render trade-grouped with per-trade subtotals plus an Unallocated bucket for line items without a trade tag. Renamed from is_insurance_estimate on 2026-05-08 with semantic inversion as part of Phase 2.1 \u2014 trade-grouping is now the platform default per DEC-206."
+      "description": "When true, line items render grouped by trade with per-trade subtotals plus an Unallocated bucket for line items without a trade tag. When false, line items render as a single flat table. Renamed from flat_layout on 2026-05-08 with semantic inversion as part of Phase 2.2. Default value preserved at false; values will be inverted by Phase 2.2 migration script #1 after rename."
+    },
+    "taxonomy_preset_id": {
+      "type": "string",
+      "description": "Slug of the taxonomy preset this estimate uses. Valid values: bari_general_contractor, csi_masterformat, simple_three_bucket, service_provider_hourly, or null on legacy estimates pre-Phase 2.2. Defaults from FieldServiceProfile.default_taxonomy_preset_id at estimate creation."
+    },
+    "trade_categories_snapshot": {
+      "type": "object",
+      "description": "Frozen array of trade category objects at preset-pick time. Shape: [{ id, name, order }, ...]. Always written as resolved array shape \u2014 never the legacy { items: [...] } wrap. Renders authoritatively for this estimate; workspace's trade_categories_json is fallback only when this is null (legacy estimates pre-Phase 2.2 backfill migration). Declared as object to match existing trade_categories_json declaration pattern."
+    },
+    "show_csi_codes": {
+      "type": "boolean",
+      "default": false,
+      "description": "Per-estimate toggle for displaying CSI division codes on rendered estimate. Architecture-open for Phase 2 \u00a713 Q4 future render path. Field exists; render path NOT built in Phase 2.2."
     },
     "client_show_breakdown": {
       "type": "boolean",
