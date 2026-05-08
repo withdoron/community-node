@@ -641,7 +641,13 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         client_show_breakdown: formData.client_show_breakdown === true,
         group_by_trade: formData.group_by_trade !== false,
         taxonomy_preset_id: formData.taxonomy_preset_id || null,
-        trade_categories_snapshot: formData.trade_categories_snapshot || null,
+        // trade_categories_snapshot is type 'object' in Base44 — wrap raw arrays
+        // in {items: [...]} at the storage boundary (same convention as
+        // line_items, trade_categories_json, phase_labels). formData stays as
+        // a raw array internally; helper reads tolerate both shapes.
+        trade_categories_snapshot: Array.isArray(formData.trade_categories_snapshot)
+          ? { items: formData.trade_categories_snapshot }
+          : (formData.trade_categories_snapshot || null),
         show_csi_codes: formData.show_csi_codes === true,
       };
       if (status === 'sent') {

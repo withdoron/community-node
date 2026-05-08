@@ -755,7 +755,14 @@ Deno.serve(async (req) => {
         const profile = profileById.get(r.profile_id as string)!;
         const { categories, usedDefault } = resolveTradeCategories(profile.trade_categories_json);
         const id = r.id as string;
-        await entities.FSEstimate.update(id, { trade_categories_snapshot: categories });
+        // Base44 declares trade_categories_snapshot as type 'object' (dictionary),
+        // not array. Same convention as line_items, trade_categories_json,
+        // phase_labels — the {items: [...]} wrap is load-bearing at the storage
+        // layer. Render helpers (getEstimateTradeCategories) accept both shapes
+        // already, so frontend reads stay tolerant.
+        await entities.FSEstimate.update(id, {
+          trade_categories_snapshot: { items: categories },
+        });
         const audit = await writeAudit(base44, {
           entity_type: 'FSEstimate',
           entity_id: id,
