@@ -53,7 +53,11 @@ export default function FieldServicePayments({ projectId, onLogPayment }) {
   const renderRow = (p) => {
     const sc = STATUS_CONFIG[p.status] || STATUS_CONFIG.pending;
     return (
-      <div key={p.id} className="bg-secondary/50 rounded-lg p-3 flex items-center gap-3">
+      <div
+        key={p.id}
+        data-payment-id={p.id}
+        className="bg-secondary/50 rounded-lg p-3 flex items-center gap-3 transition-shadow duration-300"
+      >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
             {p.party_name && (
@@ -75,7 +79,7 @@ export default function FieldServicePayments({ projectId, onLogPayment }) {
   };
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+    <div id="fs-project-payments" className="bg-card border border-border rounded-xl p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-primary" />

@@ -1234,17 +1234,40 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
 
     // FSPayment edit form doesn't exist in this build — payments are create-
     // only via the Log tab's universal capture surface (FINANCIAL-WORKFLOW
-    // §2.6). Row click closes the modal so the user sees the Recent Payments
-    // section that already renders below the tiles on Project Detail. When
-    // FSPayment edit lands as a separate build, swap onClose for a prefill
-    // navigate per the goToLogForRecord shape above.
+    // §2.6 — Log is the universal *input surface*; underlying entities stay
+    // distinct, so FSPayment is NOT a child of FSDailyLog). Row click closes
+    // the modal, scrolls the Recent Payments section into view, and briefly
+    // rings the matching row so the user sees what they navigated to. The
+    // honest navigation target — an FSPayment edit form — is its own
+    // architectural conversation tied to financial-layer Phase 2 work
+    // (Log-Line-Item Attribution Proposal sign-off, Spent semantic
+    // redefinition, returns/refunds), not tonight's polish.
+    const goToPaymentRow = (paymentId) => {
+      setDrillIn(null);
+      // Two RAFs: first lets the modal unmount + Recent Payments DOM settle,
+      // second runs after layout so scrollIntoView lands on the right offset.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        try {
+          const section = document.getElementById('fs-project-payments');
+          if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const row = document.querySelector(`[data-payment-id="${paymentId}"]`);
+          if (row) {
+            row.classList.add('ring-2', 'ring-primary', 'shadow-lg');
+            setTimeout(() => {
+              row.classList.remove('ring-2', 'ring-primary', 'shadow-lg');
+            }, 1500);
+          }
+        } catch { /* DOM not ready or selector escape failed — silent no-op */ }
+      }));
+    };
+
     const receivedRows = receivedPayments.map((p) => ({
       key: `pay-${p.id}`,
       primary: p.party_name || 'Payment received',
       secondary: `${p.date ? fmtDate(p.date) : ''}${p.payment_method ? ` · ${p.payment_method}` : ''}${p.reference_number ? ` · #${p.reference_number}` : ''}`.replace(/^ · /, ''),
       amount: fmt(parseFloat(p.amount) || 0),
       amountClass: 'text-emerald-400',
-      onClick: () => setDrillIn(null),
+      onClick: () => goToPaymentRow(p.id),
     }));
 
     const paidRows = paidPayments.map((p) => ({
@@ -1253,7 +1276,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       secondary: `${p.date ? fmtDate(p.date) : ''}${p.payment_method ? ` · ${p.payment_method}` : ''}${p.reference_number ? ` · #${p.reference_number}` : ''}`.replace(/^ · /, ''),
       amount: fmt(parseFloat(p.amount) || 0),
       amountClass: 'text-primary',
-      onClick: () => setDrillIn(null),
+      onClick: () => goToPaymentRow(p.id),
     }));
 
     // Spent = materials + labor (cost lines from FSDailyLog children). Per
