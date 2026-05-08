@@ -1339,6 +1339,7 @@ Notes: literal `*` in label text with single space before; `LABEL_CLASS` is the 
 **Status:** Active principle, dollar amount pending. Budget-setting is on the agenda for the focused nursery launch session before Gina's first event lands. Capital deployment occurs against this budget, tracked through Mycelia LLC's accounting; recovery flows through the participant's pricing-structure allocations. Cross-reference: `NURSERY-MODEL.md` §Economics (Capital allocation budget); paired with DEC-201 (Stewardship Space) which uses a different economic model — stewards earn from the businesses they cultivate, not from capital deployment.
 
 ---
+
 ### DEC-206: Empty-Field Derivation Through Links (2026-05-07)
 
 **Date:** 2026-05-07
@@ -1477,5 +1478,106 @@ If `rls.update` is present, removing it is a prerequisite. Code alone won't fix 
 - **DEC-140** — `readPersonData` server function pattern (membrane-at-function-level).
 
 This DEC names the structural rule that emerges from the combination — for writes via `asServiceRole`, **the rls.update key must be absent**.
+
+---
+
+### DEC-216: Base44 `object`-Typed Array Fields Require `{items: [...]}` Wrap at Write Boundary (2026-05-08)
+
+**Date:** 2026-05-08
+**Status:** Active. Promoted from DEC-216 candidate seedling, accumulated through Phase 2.2 + 2.3 + 2.4.
+
+**Context:** Base44 entity fields declared as type `object` accept arbitrary JSON, and the load-bearing storage convention for array-shaped values is the wrap form `{ items: [...] }`. The wrap was implicit through five entity fields before being structurally named. The trigger event was Phase 2.2's `trade_categories_snapshot` backfill — first attempt wrote raw arrays, Base44 rejected the write at validation, fix landed in commit `49c0bfb` by re-wrapping. With five live instances now confirmed across line_items, trade_categories_json, trade_categories_snapshot, workers_json, and phase_labels, the pattern crosses the three-instance threshold (DEC-148) and gets promoted from accumulated convention to a structural rule.
+
+**Decision:** When a Base44 entity field is declared as type `object` and the data shape is logically an array (line items, trade categories, workers, taxonomy presets, phase labels, etc.), the **write boundary MUST use the dictionary wrap pattern**: `{ items: [...] }`. Reads tolerate multiple shapes (bare array, dictionary wrap, JSON string) for forward/backward compatibility, but writes are strict.
+
+**Five-instance evidence:**
+
+1. **`line_items`** — FSEstimate, FSChangeOrder, FSDailyLog all use `{items: [...]}` wrap at write
+2. **`trade_categories_json`** — FieldServiceProfile (Phase 2.1 / 2.2) uses `{items: [...]}` wrap at write
+3. **`trade_categories_snapshot`** — FSEstimate (Phase 2.2) — initially shipped with raw array write; failed Base44 validation; corrected with wrap (commit `49c0bfb`)
+4. **`workers_json`** — FieldServiceProfile (Phase 2.3) uses `{items: [...]}` wrap at write
+5. **`phase_labels`** — uses `{items: [...]}` wrap
+
+**Operational rule:** For any Base44 entity field declared as type `object`:
+
+- **Read path:** use `parseWrappedArray(value)` helper (`src/utils/wrapShape.js`, Phase 2.3 §1) — tolerates bare-array, `{items: [...]}` wrap, and JSON-string-of-array shapes
+- **Write path:** ALWAYS wrap as `{ items: [...] }` before writing to Base44. Never write raw arrays.
+
+**What this protects:**
+- Migration scripts that update array-shaped fields via `asServiceRole`
+- Server functions that perform writes to these entities
+- Future feature additions that consume or modify array-shaped data
+
+**What this does NOT compromise:**
+- Field-level access control still works
+- Read-time tolerance preserves backward compatibility with legacy data shapes
+- Helper-mediated reads abstract the multi-shape complexity from consumer code
+
+**Companion to DEC-095, DEC-136, DEC-167, DEC-178, DEC-215.** This sits alongside the broader Base44 patterns:
+
+- **DEC-167** — schema-conformance discipline (verify field types match Base44 declarations before assuming write-shape)
+- **DEC-178** — paired Base44 + code updates (don't ship one without the other)
+- **DEC-215** — `rls.update` absence on entities receiving `asServiceRole` writes
+- This DEC names the wrap-shape rule for object-typed array fields specifically
+
+**Future direction:** the `parseWrappedArray` helper is in place (Phase 2.3 §1). Any new array-shaped object field added to Base44 should use this helper from day one. Phase 2.3 + 2.4 migrationHelpers actions inline the same parser logic in TypeScript (Deno-side cannot share the JS helper); when a fourth or fifth migration involves array-shaped fields and the wrap pattern recurs server-side, codify a Deno-side migration helper at the top of the function file.
+
+---
+
+### DEC-217: shadcn `<Select>` Defaults to `w-full`; Use `w-auto` + `min-w` + `flex-shrink-0` for In-Row Layouts (2026-05-08)
+
+**Date:** 2026-05-08
+**Status:** Active. Promoted from Phase 2.2 fix-3 regression analysis (commit `47e00b8`).
+
+**Context:** shadcn's `<SelectTrigger>` defaults to `w-full` via its base className. In a flex-row parent, this causes the trigger to consume all available flex space — squeezing siblings (text inputs, action buttons) to zero width. Phase 2.2 first instance (`88132a3` — Settings + editor preset pickers, standalone form fields) used `w-full` correctly. Phase 2.2 second instance (`a6f9875` — line-item kind/trade pickers, in-row layout) used `w-full` and clipped the description input to invisibility. Fix landed in commit `47e00b8`: explicit width overrides on the in-row triggers. Phase 2.3 + 2.4 added two more standalone-form Select instances (PersonModal role select + primary_trade_id picker; SubVendorPicker QuickAdd's role + primary_trade_id pickers) — all correctly using `w-full`. The pattern stabilized; promoting to a documented rule.
+
+**Decision:** When converting raw HTML `<select>` to shadcn `<Select>`, branch on parent layout:
+
+**In-row layouts** (line item editors, payment forms, anywhere a Select sits alongside text inputs that have `flex-1` or `flex-grow`):
+
+```jsx
+<SelectTrigger className="w-auto min-w-[110px] flex-shrink-0">
+```
+
+**Standalone form fields** (modal form fields, settings panel rows where the Select fills its own column):
+
+```jsx
+<SelectTrigger className="w-full">
+```
+
+**Why this matters:**
+
+- **`w-auto`** lets the trigger size to its content + chevron icon, instead of greedily filling
+- **`min-w-[110px]` (or similar)** prevents the trigger from collapsing too narrow when content is short
+- **`flex-shrink-0`** ensures sibling inputs with `flex-1` reclaim their row space; the picker stays visible at narrow widths
+
+**Failure mode caught:** Phase 2.2 fix-3 (commit `47e00b8`) — line-item description input vanished after kind/trade pickers were converted to shadcn `<Select>` with default `w-full`. The two pickers consumed the entire flex row; the description input collapsed to zero width. Invisible at standard viewport but caught when description editing stopped responding to clicks. Fix: explicit width overrides on triggers + `flex-shrink-0` to lock the picker widths.
+
+**Operational rule when converting any `<select>` to shadcn:**
+
+1. **Audit the parent layout.** If it's flex-row with siblings that have `flex-1` or `flex-grow`, use `w-auto` + `min-w` + `flex-shrink-0`.
+2. **If it's a standalone form field** (modal form, settings panel), use `w-full` to fill the form's column.
+3. **Test the layout at narrow viewport widths** — the regression Phase 2.2 fix-3 caught was invisible at desktop widths until you saw the description input clipping.
+
+**Evidence — five known instances now in the codebase:**
+
+1. **`88132a3`** (Phase 2.2) — Settings + editor preset pickers; standalone form fields; `w-full` correct
+2. **`a6f9875`** (Phase 2.2) — line-item kind/trade pickers; converted from raw `<select>` with default `w-full`; broke description input
+3. **`47e00b8`** (Phase 2.2 fix-3) — explicit width overrides on the line-item kind/trade triggers; pattern codified
+4. **`b282e88`** (Phase 2.3 §6) — PersonModal role select + primary_trade_id picker; standalone form fields; `w-full` correct
+5. **`ff7e741`** (Phase 2.4 §1+§1b) — SubVendorPicker trigger + QuickAdd role/primary_trade_id pickers; standalone form fields (modal); `w-full` correct
+
+**Companion to design-system patterns:**
+
+- **DEC-132** — semantic token discipline; shadcn Select theming follows the same gold-standard pattern as `INPUT_CLASS`
+- The `47e00b8` fix demonstrates the failure mode and the canonical override
+
+**What this does NOT compromise:**
+
+- Mobile responsiveness preserved by `flex-wrap` at the parent (line items already wrap correctly)
+- Accessibility unchanged (Radix-native keyboard navigation works regardless of width strategy)
+- Theme consistency unchanged (gold-standard pattern remains)
+
+**Future direction:** when a third standalone-form Select consumer that genuinely shares props (label, options-shape, optional sentinel) lands, extract `<FormSelect>` wrapper. Phase 2.4 reached the second standalone-form-field instance; the pattern hasn't crossed the three-instance abstraction threshold yet.
 
 ---

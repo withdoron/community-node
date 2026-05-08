@@ -2036,3 +2036,111 @@ Calibration trend through sessions 1–5: Hyphae stamps appear to track wallcloc
 **Ship-it timestamp:** 2026-05-08, ~08:45 PT. Phase 2.1 complete + verified + restored. Mycelia secret rotated out. Tomorrow's first move: Doron's optional verification of Patricia's in-platform signing now that signEstimate is structurally unblocked.
 
 ---
+
+## Session Log — 2026-05-08 (continued: Phase 2.2 + 2.3 + 2.4 + polish + DEC promotions)
+
+**Wallclock:** 09:30 → ~14:30 PT (~5 hours after morning Phase 2.1 close)
+**Hyphae sessions:** 4 architectural arcs (Phase 2.2 architecture consultation + build, Phase 2.2 polish bundle, Phase 2.3 architecture consultation + build, Phase 2.4 architecture consultation + build) — all run as continuations of the same long Hyphae session that started 11:43 PT
+**Max effort:** on throughout
+**Commits on community-node main (this section):** 17 commits — Phase 2.2 (`f466c07`, `6305063`, `44a3866`, `ff1d6da`, `49c0bfb`, `88132a3`); polish (`a6f9875`, `d02ed1f`, `47e00b8`, `3729bc7`); Phase 2.3 (`fe1415d`, `054e402`, `8236545`, `b282e88`); Phase 2.4 (`2472e39`, `0467db5`, `ff7e741`)
+**Migrations applied (this section):** 4 — `migrate-flat-layout-rename`, `migrate-trade-categories-snapshot-backfill`, `migrate-company-name-to-business-name`, `migrate-add-workers-json-ids`
+**Base44 schema changes (this section):** 4 — `flat_layout` → `group_by_trade` rename + `taxonomy_preset_id` + `trade_categories_snapshot` (Phase 2.2 schema bundle); wrap-shape correction on snapshot field (Phase 2.2 mid-day); `rls.update` re-removed after auto-restore (Phase 2.2 part-2); `FSPayment.party_id` description-only update (Phase 2.4)
+
+### Arc
+
+- 09:30 Mycelia surfaced taxonomy preset architectural concern (workspace-level vs per-estimate); per-estimate snapshot model needed for documents-as-frozen-identity discipline.
+- 09:43 Hyphae Phase 2.2 architecture consultation (~5 min audit) → per-estimate snapshot model recommended (Push 1-6: helper extension, EMPTY_ESTIMATE seam, creation seam, Settings UI, editor picker, migration sequencing).
+- 09:55 Phase 2.2 build prompt to Hyphae; Base44 schema applied via agent prompt with 11/11 checkpoints across rename + new fields + permissions.
+- 10:14 Phase 2.2 architectural commits land: `f466c07` `isEstimateLocked()` extraction (5 inline gates → 1 helper), `6305063` `tradeTaxonomyPresets.js` config (4 locked presets), `44a3866` per-estimate snapshot bundle (helper extension + EMPTY_ESTIMATE + creation seam + Settings preset picker + editor picker), `ff1d6da` migration scripts + `pre-migration-rls-audit.js` Living Feet helper.
+- 10:22 Migration #1 (`migrate-flat-layout-rename`) applied — 6 records, 6 AuditLog rows; idempotency confirmed.
+- 10:24 Migration #2 (`migrate-trade-categories-snapshot-backfill`) applied — initial run failed Base44 validation: snapshot field is `object`-typed; migrationHelpers wrote raw array. Fixed in commit `49c0bfb` by re-wrapping as `{ items: [...] }`. Re-run succeeded — 6 records backfilled, 6 AuditLog rows. **DEC-216 trigger event.**
+- 10:35 Phase 2.2 verification surfaces 4 polish/regression issues from Doron's Act-As-User preview: preset rename (`bari_general_contractor` → `general_contractor`), dropdown shadcn theming inconsistency, save mutation cache race causing preview staleness, line-item description regression (input clipped to zero width by shadcn `w-full` default), print pagination edge case in trade group wrappers.
+- 10:42 Phase 2.2 fix-1 — preset rename + Phase 2.2 dropdowns shadcn-themed (commit `88132a3`).
+- 11:07 Phase 2.2 fix-2 — line-item kind/trade dropdowns converted to shadcn Select (`a6f9875`); save mutation optimistic cache update fix for preview staleness (`d02ed1f`, DEC-130 React Query cache race pattern).
+- 11:13 Phase 2.2 fix-3 — line-item description regression (`47e00b8`); shadcn `<SelectTrigger>` defaults to `w-full` and consumed entire flex row; fix used `w-auto` + `min-w-[110px]` + `flex-shrink-0` on in-row triggers. **DEC-217 trigger event.**
+- 11:24 Phase 2.2 fix-4 — print pagination (`3729bc7`); removed `page-break-inside: avoid` from trade group wrapper that caused page-1 whitespace clipping.
+- 11:33 Hyphae Phase 2.3 architecture consultation (~9 min audit). Findings: (1) `workers_json` schema description out-of-sync with actual write shape; (2) `ROLE_BADGES` + role select duplicated; (3) `parseWorkers` and `parseJSON` near-identical — Living Feet candidates at 3 instances; (4) snapshot interaction Option B (soft derivation with name-bridging) — recommend storing `primary_trade_id` as workspace-current-taxonomy id, deriving by name-match against estimate snapshot; (5) Phase 2.3 should ship schema + Settings UI together (not schema-only) per DEC-183 path-walking.
+- 11:50 Phase 2.3 build prompt with Hyphae corrections: 4 presets locked, vendor fuchsia color, soft derivation Option B name-bridging, schema+UI bundled.
+- 12:04 Phase 2.3 Living Feet pre-work shipped (`fe1415d` — `WORKERS_ROLES` constant + `parseWrappedArray` helper + `useWorkspacePeople` hook + refactor existing consumers as no-op); Migration #3 script shipped (`054e402` — `migrate-company-name-to-business-name.js` + helper action). Paused for Doron migration apply.
+- 12:19 Migration #3 (`migrate-company-name-to-business-name`) applied — 4 FieldServiceProfile records, 2 items renamed, 4 AuditLog rows. Idempotency confirmed.
+- 12:23 Phase 2.3 §5 + §6 shipped: code-side rename `company_name` → `business_name` (`8236545`, 7 line refs across 2 files); UI extension (`b282e88`) — Vendors `<Section>` + role-conditional fields + `primary_trade_id` picker (workspace-current taxonomy reference; sentinel pattern matches LineItemsEditor) + permissions guide entry.
+- 13:46 Hyphae Phase 2.4 architecture consultation (~2 min audit, parallel queries converged fast). **Critical pre-work surfaced:** workers_json items have NO stable `id` field today (Phase 2.3 implementation oversight; architecture proposal Approach A's data shape included `id: string`). Phase 2.4's `<SubVendorPicker>` writes `sub_person_id` (line items) and `party_id` (FSPayment) — both require stable ids. Picker has no reliable reference target without backfill. **Other findings:** (1) `cmdk` (shadcn Command primitive) IS shipped at `src/components/ui/command.jsx` and unused — Phase 2.4 lights it up as first consumer; drop the proposed `<TypeaheadPicker>` primitive abstraction; (2) FSPayment uses `party_id` + `party_name`, NOT `payee_id`/`payee_name` — broaden semantic of existing field, no new field needed; (3) `isChangeOrderLocked()` — 7+ inline gates in FieldServiceProjects.jsx; three-instance threshold massively exceeded; (4) CO line item editor SHARES `LineItemsEditor` — single picker integration covers both estimate + CO surfaces.
+- 14:00 Phase 2.4 build prompt with §0a workers_json id backfill mandatory pre-work + §0b `isChangeOrderLocked()` extraction + §1+§1b+§2+§3 picker bundle.
+- 14:00 Phase 2.4 build session resumed; §0a (workers_json id backfill) shipped (`2472e39` — `add_workers_json_ids` action + runner + EMPTY_PERSON id field + PersonModal id generation via `newWorkerId()` + `claimWorkspaceSpot` dual-match). Paused for Base44 publish (function action sync).
+- 14:01 Doron published Base44.
+- 14:02 Migration §0a dry-run — 4 records scanned, 2 items receiving fresh ids (Doron Fletcher + Bari Wayne Swartz). Sample assignments confirmed sensible.
+- 14:03 Migration §0a applied — 4 profiles migrated, 2 items received fresh ids, 4 AuditLog rows. Idempotency confirmed.
+- 14:06 §0b shipped (`0467db5`) — `isChangeOrderLocked()` extracted to `fsEstimateLifecycle.js`; 5 inline lock-gate sites replaced; 6 status-discrimination sites preserved inline (display labels distinguish 'signed' vs 'accepted' specifically).
+- 14:11 §1+§1b+§2+§3 bundled commit (`ff7e741`) — `<SubVendorPicker>` (cmdk + Popover composition) + `<QuickAddPersonModal>` (slim form: name + role + business_name + primary_trade_id) + LineItemsEditor integration (subcontractor line items render picker when `profile` threaded; legacy fallback to text input preserves backward compat) + FSPayment Sub Payment integration (replaces `payee_name` text input; auto-syncs `party_type` from picked person's role; dual-write `party_id` + `payee_name`).
+- 14:18 Base44 description-only update for `FSPayment.party_id` applied (semantic broadened to also reference workers_json item ids when party_type is sub/vendor; no field-type or permission change).
+- ~14:30 Ship-it cycle drafted.
+
+### Decisions made
+
+- **DEC-216** ratified — Base44 `object`-typed array fields require `{items: [...]}` wrap at write boundary (five-instance evidence: line_items, trade_categories_json, trade_categories_snapshot, workers_json, phase_labels). `parseWrappedArray` helper at `src/utils/wrapShape.js` is the canonical reader.
+- **DEC-217** ratified — shadcn `<Select>` defaults to `w-full`; in-row layouts use `w-auto min-w-[N] flex-shrink-0`, standalone form fields use `w-full`. Failure mode caught in commit `47e00b8`. Five-instance evidence (`88132a3`, `a6f9875`, `47e00b8`, `b282e88`, `ff7e741`).
+- Per-estimate taxonomy snapshot architecture (Phase 2.2) — locked at consultation; documents-are-frozen-identity discipline applied at the trade-categories layer.
+- Vendor role color: fuchsia (`bg-fuchsia-500/20 text-fuchsia-400`).
+- Workers_json items get stable `id` field (Phase 2.4 §0a pre-work); architectural correction of Phase 2.3 implementation gap.
+- `<TypeaheadPicker>` primitive dropped — cmdk IS the primitive; build `<SubVendorPicker>` directly on cmdk + Popover composition.
+- FSPayment.party_id semantic broadened to also reference workers_json item ids when party_type is sub/vendor (description-only update; no field-type change).
+
+### Known Issues affected
+
+- **KI #20 (estimate edit lifecycle gating)** — partial closure via `isEstimateLocked` extraction (Phase 2.2 §0) and `isChangeOrderLocked` extraction (Phase 2.4 §0b). Two of the lifecycle predicates now have shared helpers; KI #20's full closure (when does an estimate become read-only? change order workflow as proper edit path post-signing) remains a deeper architectural conversation.
+- **KI #22 (Patricia signing-flow)** — structurally unblocked (DEC-215, applied 2026-05-08 morning). Verification still pending; PDF + hand-signature workaround can retire after in-platform signing is confirmed working on a non-Patricia test estimate.
+
+### Seedlings flagged for future
+
+1. **CO render parity with Estimates** — Phase 2.6 candidate; visual + architectural inconsistency (LineItemsEditor was shared but COs don't get all the editor improvements). Phase 2.4 partially addresses (picker integration covers both).
+2. **Client-as-Hub architecture** — Phase 3 candidate; spec doc committed in this ship-it cycle at `Spec-Repo/spaces/field-service/CLIENT-AS-HUB-SPEC.md`. Every client/project page surfaces all associated records (estimates, projects, COs, payments, documents, communication, logs). Same "documents are self-contained" pattern as Phase 2.2 snapshot, applied one layer up.
+3. **`migrationRunner` factory at 5-instance threshold** — extract `src/scripts/migrations/lib/migrationRunner.js` factory at the next migration write site. Five runners now share identical shape: env check, `callMigrationHelper`, `--dry-run`/`--apply` arg parsing, banner, dry-run formatting, error handler.
+4. **`appendToWorkersJson(profile, newPerson)` helper at 2-instance threshold** (PersonModal save + Phase 2.4 quick-add). Phase 2.5/2.6 likely brings the third write site.
+5. **`<TradeGroupedItemsTable />` extraction at 3 consumers** (EstimatePreview + ClientPortal + future CO previews if Phase 2.6 ships CO trade-grouped render).
+6. **Native `<select>` consistency pass** — `payment_terms`, `project_id` still use raw HTML `<select>`. Living Feet pass when those surfaces are next touched per DEC-217.
+7. **`applyFSEstimateUpdate(queryClient, profileId, saved)` helper** for the React Query cache race pattern (Hyphae's `d02ed1f` Living Feet flag) — apply to other FSEstimate mutations (markAsSent, sendForSignature, etc.) when next touched.
+8. **`isEstimateEditable(estimate)` extraction** at 1+1 threshold (KI #20 territory).
+9. **`cleanByRoleConfig(formData, config)` helper** for handleSave field clearing in PersonModal — threshold-watch when 5th-6th conditional clear lands.
+10. **`<FormSelect>` wrapper** for shadcn Select standalone-form-field variant — five instances now (preset pickers + line-item dropdowns + PersonModal role/primary_trade_id + SubVendorPicker QuickAdd role/primary_trade_id); abstraction threshold not met because each carries different option-shape semantics; revisit when third standalone-form Select genuinely shares props.
+11. **Phase 2.7+ single-line-entry-point UX redesign** — mocked this morning, deferred to spec doc.
+12. **Pre-migration RLS audit checklist** now formalized as `pre-migration-rls-audit.js` helper. Five migrations ran today; pattern is solid.
+13. **Stable id pattern for workers_json items** (Phase 2.4 §0a) — flagged that this same pattern likely needs to extend to other JSON blob arrays in the codebase if any exist (not yet audited).
+14. **`RADIX_SENTINELS` extraction at 2-instance threshold** — `__no_trade__` (LineItemsEditor) + `__no_primary_trade__` (PersonModal + SubVendorPicker QuickAdd). Defer until 3rd sentinel lands.
+15. **`signEstimate` `sub_name` refresh-on-lock** owed — when an estimate transitions to accepted/signed, `sub_name` text on each line item should refresh from linked workers_json record's CURRENT name before the lock takes effect. Captures visual at sign time. Out of scope for Phase 2.4; flag for `signEstimate` review during dogfood.
+16. **CO surface lock-aware editor gating** — `editingCOId`-keyed lookup against `changeOrders[]` could resolve `co` for `disabled={isChangeOrderLocked(co)}`. Today's UX gates entry into the CO edit form by status outside the editor. Defense in depth.
+
+### Calibration data (DEC-211)
+
+| # | Session | Wallclock | Hyphae stamp | Complexity |
+|---|---------|-----------|---------------|-------------|
+| 1 | Phase 2 sign-off commit | ~3 min | ~3 min | polish |
+| 2 | Phase 2.1 build (rename + Unallocated) | ~11 min | ~29 min | build |
+| 3 | ClientPortal hooks fix | ~5 min | ~18 min | bugfix |
+| 4 | migrationHelpers audit | (auditing only) | ~14 min | investigation |
+| 5 | Phase 2.1 Migration --apply | ~2 min | ~2 min | execution |
+| 6 | Phase 2.1 part-2 restore + secret rotation | ~4 min | (Base44) | cleanup |
+| 7 | Phase 2.2 architecture consultation | ~5 min | ~5 min | investigation |
+| 8 | Phase 2.2 build (initial bundle) | ~30 min | ~22 min | build |
+| 9 | Phase 2.2 wrap-shape fix (DEC-216 trigger) | ~5 min | ~3 min | bugfix |
+| 10 | Phase 2.2 fix-1 (preset name + dropdowns) | ~5 min | ~4 min | polish |
+| 11 | Phase 2.2 fix-2 (line-item dropdown + preview staleness) | ~5 min | ~5 min | polish |
+| 12 | Phase 2.2 fix-3 (description regression — DEC-217 trigger) | ~5 min | ~2 min | bugfix |
+| 13 | Phase 2.2 fix-4 (print pagination) | ~3 min | ~3 min | bugfix |
+| 14 | Phase 2.3 architecture consultation | ~9 min | ~9 min | investigation |
+| 15 | Phase 2.3 LF pre-work + migration script | ~25 min | ~21 min | build |
+| 16 | Phase 2.3 §5 + §6 post-migration | ~6 min | ~6 min | build |
+| 17 | Phase 2.4 architecture consultation | ~2 min | ~2 min | investigation |
+| 18 | Phase 2.4 build (full — §0a + §0b + §1/§1b/§2/§3 bundled) | ~19 min | ~13 min | build (multi-substream + migration) |
+| 19 | Phase 2.4 Base44 description update | ~30 sec | (Base44) | description-only |
+
+Calibration trend through 19 sessions: investigation flavors (consultation audits) consistently 2-9 min wallclock; bugfix and execution flavors track wallclock closely; build flavors with multi-substream scope diverge (Hyphae stamps include audit + verification overhead). Three architecture consultations today (~16 min total wallclock for all three) prevented at least 2-3x the build time that would have been wasted on wrong-shape implementations.
+
+### Next
+
+- **Phase 2.5** — empty-field derivation (line item trade derives from linked sub's `primary_trade_id` via name-bridging Option B per Phase 2 §6 lock-in). Read-time only, no auto-write-back, soft-fail to Unallocated when estimate snapshot doesn't contain a category matching the sub's workspace primary trade by name.
+- **Phase 2.6** polish — mobile, dark theme, CO render parity, edge cases, optional reconciliation script for inline sub_name strings (deferred per Phase 2 §7.8 — natural workflow handles).
+- **Then Phase 2 closes** and the queue picks up: Phase 2.7+ single-line-entry-point UX redesign, Phase 3 candidate (Client-as-Hub), Stewardship + Nursery launches.
+
+**Ship-it timestamp:** 2026-05-08, ~14:30 PT. Phase 2.1-2.4 complete + verified at production-build level. Five migrations applied + idempotent. Two structural DECs ratified (DEC-216 wrap-shape, DEC-217 shadcn Select width). 17 community-node commits + 2 Spec-Repo commits this section. Patricia signing-flow regression check still owed (Doron, optional). Next session: Phase 2.5 architecture consultation or Phase 2.5 build (depending on Doron's read on derivation complexity).
+
+---
