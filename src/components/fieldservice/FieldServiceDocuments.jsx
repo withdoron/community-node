@@ -766,10 +766,15 @@ function DocumentDetail({
 // Create Document Flow (multi-step)
 // ═══════════════════════════════════════════════════
 
-function CreateDocumentFlow({ profile, business, currentUser, templates, clients, projects, estimates, onSave, onCancel, isSaving, onClientCreated, initialTemplate }) {
+function CreateDocumentFlow({ profile, business, currentUser, templates, clients, projects, estimates, onSave, onCancel, isSaving, onClientCreated, initialTemplate, initialClientId, initialProjectId }) {
+  // initialClientId + initialProjectId are seeded from FieldServiceDocuments
+  // when the user enters the create flow via Project Detail's "+ Add
+  // Document" button. The wizard still walks step-by-step (client →
+  // template → content); the seed pre-selects the radios so the user
+  // confirms with a click rather than scrolling the client/project lists.
   const [step, setStep] = useState('client'); // client | template | content
-  const [clientId, setClientId] = useState('');
-  const [projectId, setProjectId] = useState('');
+  const [clientId, setClientId] = useState(initialClientId || '');
+  const [projectId, setProjectId] = useState(initialProjectId || '');
   const [selectedTemplate, setSelectedTemplate] = useState(initialTemplate || null);
   const [previewTemplate, setPreviewTemplate] = useState(null);
   const [content, setContent] = useState('');
@@ -1268,6 +1273,16 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
   const [showTemplates, setShowTemplates] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState(null);
   const [initialTemplate, setInitialTemplate] = useState(null);
+  // Prefill seeds for the create flow when arriving via Project Detail's
+  // "+ Add Document" button. Cleared after consumption per the canonical
+  // localStorage prefill pattern (one-shot, no replays on re-mount).
+  const [initialProjectId, setInitialProjectId] = useState('');
+  const [initialClientId, setInitialClientId] = useState('');
+  // Tracks whether the cross-tab prefill consumer has already run for this
+  // mount. Without this, re-running queries (which legitimately update the
+  // documents/projects arrays) would re-trigger view+state changes and pull
+  // the user back to detail/create when they navigated away mid-session.
+  const prefillConsumedRef = useRef(false);
 
   // ─── Query: Business ────────────────────────────
   // Business holds branding (logo_url, banner_url, name, address) composited into rendered documents.
@@ -1375,6 +1390,53 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     enabled: !!profile?.id,
   });
 
+  // ─── Cross-tab prefill consumer (project detail → documents) ────
+  // Two prefill keys, both one-shot (consume + clear):
+  //   fs-document-prefill-id          → land on detail view of that document
+  //   fs-document-prefill-project-id  → land on create flow with project + derived client pre-selected
+  // Mirrors fs-log-prefill-log-id / fs-estimate-prefill-id pattern. Waits
+  // until the relevant queries are loaded so the lookup resolves; falls
+  // back to the list view if the prefilled record can't be found.
+  useEffect(() => {
+    if (prefillConsumedRef.current) return;
+
+    let docId = '';
+    let projectId = '';
+    try {
+      docId = localStorage.getItem('fs-document-prefill-id') || '';
+      projectId = localStorage.getItem('fs-document-prefill-project-id') || '';
+    } catch { /* ignore localStorage errors */ }
+
+    if (!docId && !projectId) return;
+
+    if (docId) {
+      if (documents.length === 0) return; // wait for query
+      const found = documents.find((d) => d.id === docId);
+      try { localStorage.removeItem('fs-document-prefill-id'); } catch { /* ignore */ }
+      prefillConsumedRef.current = true;
+      if (found) {
+        setSelectedDoc(found);
+        setView('detail');
+      }
+      return;
+    }
+
+    if (projectId) {
+      if (projects.length === 0) return; // wait for query
+      const project = projects.find((p) => p.id === projectId);
+      try { localStorage.removeItem('fs-document-prefill-project-id'); } catch { /* ignore */ }
+      prefillConsumedRef.current = true;
+      if (project) {
+        // Empty-field client derivation (DEC-148): direct field wins, then linked estimate.
+        const projectIdToEstimate = buildProjectIdToEstimateMap(estimates);
+        const derived = deriveProjectClient(project, projectIdToEstimate);
+        setInitialProjectId(project.id);
+        setInitialClientId(project.client_id || derived.clientId || '');
+        setView('create');
+      }
+    }
+  }, [documents, projects, estimates]);
+
   // ─── Initialize workspace via universal server function ─────
   // Only the workspace owner triggers initialization — non-owner members skip this entirely (DEC-015).
   const isOwner = profile?.user_id && currentUser?.id && profile.user_id === currentUser.id;
@@ -1409,6 +1471,9 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     mutationFn: (data) => base44.entities.FSDocument.create(data),
     onSuccess: (newDoc) => {
       queryClient.invalidateQueries({ queryKey: ['fs-documents', profile?.id] });
+      // Bare-prefix invalidation hits every per-project subscriber on
+      // Project Detail's Documents section (DEC-199 list/detail pair).
+      queryClient.invalidateQueries({ queryKey: ['fs-documents-by-project'] });
       toast.success('Document saved as draft');
       setSelectedDoc(newDoc);
       setView('detail');
@@ -1420,6 +1485,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     mutationFn: ({ id, data }) => base44.entities.FSDocument.update(id, data),
     onSuccess: (updatedDoc) => {
       queryClient.invalidateQueries({ queryKey: ['fs-documents', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-documents-by-project'] });
       toast.success('Document updated');
       if (selectedDoc) setSelectedDoc({ ...selectedDoc, ...updatedDoc });
     },
@@ -1430,6 +1496,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
     mutationFn: (id) => base44.entities.FSDocument.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fs-documents', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-documents-by-project'] });
       toast.success('Document deleted');
       setView('list');
       setSelectedDoc(null);
@@ -1486,6 +1553,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
       });
       await navigator.clipboard.writeText(link);
       queryClient.invalidateQueries({ queryKey: ['fs-documents', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-documents-by-project'] });
       toast.success('Link copied! Share it with your client to sign.');
       // Update selected doc if viewing detail
       if (selectedDoc?.id === doc.id) {
@@ -1523,6 +1591,7 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
         recalled_at: new Date().toISOString(),
       });
       queryClient.invalidateQueries({ queryKey: ['fs-documents', profile?.id] });
+      queryClient.invalidateQueries({ queryKey: ['fs-documents-by-project'] });
       toast.success('Document recalled. You can edit and resend.');
       if (selectedDoc?.id === recallDoc.id) {
         setSelectedDoc({
@@ -1645,9 +1714,11 @@ export default function FieldServiceDocuments({ profile, currentUser }) {
         estimates={estimates}
         isSaving={createDocMutation.isPending}
         onSave={(data) => createDocMutation.mutate(data)}
-        onCancel={() => { setView('list'); setInitialTemplate(null); }}
+        onCancel={() => { setView('list'); setInitialTemplate(null); setInitialProjectId(''); setInitialClientId(''); }}
         onClientCreated={() => queryClient.invalidateQueries({ queryKey: ['fs-clients', profile?.id] })}
         initialTemplate={initialTemplate}
+        initialClientId={initialClientId}
+        initialProjectId={initialProjectId}
       />
     );
   }

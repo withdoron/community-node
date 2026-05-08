@@ -446,6 +446,26 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     enabled: !!selectedProject?.id,
   });
 
+  // ─── Query: Documents linked to this project ────
+  // Per-project subscriber under list/detail invalidation pair (DEC-199).
+  // FieldServiceDocuments owns the list-level ['fs-documents', profile.id]
+  // query; this is the project-scoped peer. Document mutations there
+  // invalidate the bare ['fs-documents-by-project'] prefix so every
+  // mounted subscriber refreshes regardless of project id.
+  const { data: projectDocuments = [] } = useQuery({
+    queryKey: ['fs-documents-by-project', selectedProject?.id],
+    queryFn: async () => {
+      if (!selectedProject?.id) return [];
+      try {
+        const list = await base44.entities.FSDocument.filter({ project_id: selectedProject.id });
+        return (Array.isArray(list) ? list : list ? [list] : [])
+          .filter((d) => !d.archived)
+          .sort((a, b) => (b.created_date || '').localeCompare(a.created_date || ''));
+      } catch { return []; }
+    },
+    enabled: !!selectedProject?.id,
+  });
+
   const projectSpent = useMemo(() => {
     const matTotal = projectMaterials.reduce((s, m) => s + (m.total_cost || 0), 0);
     const labTotal = projectLabor.reduce((s, l) => s + (l.total_cost || 0), 0);
@@ -1835,6 +1855,85 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         {features?.permits_enabled !== false && (
           <FieldServicePermits projectId={proj.id} profileId={profile?.id} currentUser={currentUser} />
         )}
+
+        {/* ═══ Documents ═══ */}
+        {/* Documents linked to this project via FSDocument.project_id.
+            Same entity-rollup family as Permits and Change Orders — query by
+            project_id, render as a clickable card list, header with "Add"
+            action. Click navigates to the Documents tab via fs-document-prefill-*
+            keys (canonical localStorage prefill pattern, fourth instance
+            after fs-log-prefill-type, fs-log-prefill-log-id, fs-estimate-prefill-id). */}
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between p-4">
+            <h3 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider">
+              Documents {projectDocuments.length > 0 && <span className="text-muted-foreground/70 ml-1">({projectDocuments.length})</span>}
+            </h3>
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  localStorage.setItem('fs-document-prefill-project-id', String(proj.id));
+                } catch { /* ignore localStorage errors */ }
+                if (onNavigateTab) onNavigateTab('documents');
+              }}
+              className="flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover min-h-[44px]"
+            >
+              <Plus className="h-4 w-4" /> Add Document
+            </button>
+          </div>
+
+          {projectDocuments.length === 0 ? (
+            <div className="px-4 pb-4 text-sm text-muted-foreground/70">
+              No documents linked to this project yet.
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {projectDocuments.map((doc) => {
+                const status = doc.status === 'sent' ? 'awaiting_signature' : doc.status;
+                const statusClass =
+                  status === 'signed'
+                    ? 'bg-emerald-500/20 text-emerald-400'
+                    : status === 'awaiting_signature'
+                      ? 'bg-primary/20 text-primary-hover'
+                      : status === 'archived'
+                        ? 'bg-muted-foreground/20 text-muted-foreground/70'
+                        : 'bg-muted-foreground/20 text-muted-foreground';
+                const statusLabel = status === 'awaiting_signature'
+                  ? 'Awaiting Signature'
+                  : status === 'signed'
+                    ? 'Signed'
+                    : status === 'archived'
+                      ? 'Archived'
+                      : 'Draft';
+                return (
+                  <button
+                    key={doc.id}
+                    type="button"
+                    onClick={() => {
+                      try {
+                        localStorage.setItem('fs-document-prefill-id', String(doc.id));
+                      } catch { /* ignore localStorage errors */ }
+                      if (onNavigateTab) onNavigateTab('documents');
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/50 transition-colors text-left min-h-[44px]"
+                  >
+                    <FileText className="h-4 w-4 text-muted-foreground/70 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{doc.title || 'Untitled document'}</p>
+                      <p className="text-xs text-muted-foreground/70">
+                        {doc.created_date ? fmtDate(doc.created_date) : ''}
+                        {doc.signed_at ? ` · Signed ${fmtDate(doc.signed_at)}` : ''}
+                      </p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${statusClass}`}>
+                      {statusLabel}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Photo Gallery */}
         <FieldServicePhotoGallery
