@@ -17,6 +17,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Settings, Save, Plus, X, Loader2, AlertTriangle, Trash2,
   ChevronDown, ChevronRight, HardHat, Users, FileText, Camera,
   Link2, RefreshCw, Copy, ToggleLeft, SlidersHorizontal, BookOpen,
@@ -404,23 +411,27 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
           <p className="text-sm text-muted-foreground">
             Defaults for new estimates. Each estimate can override.
           </p>
-          <select
-            value={defaultPresetId}
-            onChange={(e) => {
-              const next = e.target.value;
+          <Select
+            value={defaultPresetId || '__none__'}
+            onValueChange={(value) => {
+              const next = value === '__none__' ? '' : value;
               setDefaultPresetId(next);
               saveDefaultPreset.mutate(next);
             }}
             disabled={saveDefaultPreset.isPending}
-            className="w-full bg-secondary border border-border text-foreground rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <option value="">— No default (use Trade Categories list below) —</option>
-            {TRADE_TAXONOMY_PRESETS.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} ({p.trade_count} {p.trade_count === 1 ? 'category' : 'categories'})
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full bg-secondary border-border text-foreground h-auto py-2 text-base focus:ring-ring">
+              <SelectValue placeholder="Select a preset…" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">— No default (use Trade Categories list below) —</SelectItem>
+              {TRADE_TAXONOMY_PRESETS.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name} ({p.trade_count} {p.trade_count === 1 ? 'category' : 'categories'})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <p className="text-xs text-muted-foreground">
             Existing estimates keep their frozen taxonomy. Only new estimates draw from this default.
           </p>

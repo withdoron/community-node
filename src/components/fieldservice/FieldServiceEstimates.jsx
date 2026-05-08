@@ -13,6 +13,13 @@ import { isEstimateLocked } from '@/utils/fsEstimateLifecycle';
 import { printNode } from '@/utils/printNode';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
   Search, Copy, FolderOpen, Send, Eye, Printer, X, DollarSign, Link2,
   Lock, Shield, Check,
@@ -895,19 +902,22 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
       <div className="bg-card border border-border rounded-xl p-4 space-y-4">
         <div>
           <label className={LABEL_CLASS}>Trade taxonomy</label>
-          <select
-            value={formData.taxonomy_preset_id || ''}
-            onChange={(e) => requestPresetChange(e.target.value)}
+          <Select
+            value={formData.taxonomy_preset_id || undefined}
+            onValueChange={(value) => requestPresetChange(value)}
             disabled={isLocked}
-            className={`${INPUT_CLASS} disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            <option value="" disabled>Select a preset…</option>
-            {TRADE_TAXONOMY_PRESETS.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} ({p.trade_count})
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full bg-secondary border-border text-foreground h-auto py-2 text-base focus:ring-ring">
+              <SelectValue placeholder="Select a preset…" />
+            </SelectTrigger>
+            <SelectContent>
+              {TRADE_TAXONOMY_PRESETS.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name} ({p.trade_count})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <p className="text-xs text-muted-foreground mt-1">
             Categories are frozen on this estimate. Each estimate can override the workspace default.
           </p>

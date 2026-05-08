@@ -19,8 +19,8 @@
 
 export const TRADE_TAXONOMY_PRESETS = [
   {
-    id: 'bari_general_contractor',
-    name: 'Bari General Contractor',
+    id: 'general_contractor',
+    name: 'General Contractor',
     description: 'Residential general contracting — permits, framing, plumbing, electrical, finish trades.',
     trade_count: 13,
     categories: [
