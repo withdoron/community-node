@@ -59,7 +59,7 @@
     },
     "party_id": {
       "type": "string",
-      "description": "FK reference to FSClient.id when party_type is 'client' and the client exists in the system. Null for subcontractor/vendor/other or for one-off clients."
+      "description": "FK reference. When party_type is 'client', references FSClient.id. When party_type is 'subcontractor' or 'vendor', references the id of the matching item inside the linked FieldServiceProfile.workers_json blob (Phase 2.4 SubVendorPicker write target). Null for 'other' or one-off cases. Field-type unchanged; semantic broadened."
     },
     "method": {
       "type": "string",
