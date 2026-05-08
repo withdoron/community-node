@@ -1571,8 +1571,8 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{person.name}</p>
-                    {person.company_name && (
-                      <p className="text-xs text-muted-foreground/70">{person.company_name}</p>
+                    {person.business_name && (
+                      <p className="text-xs text-muted-foreground/70">{person.business_name}</p>
                     )}
                   </div>
                   <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${

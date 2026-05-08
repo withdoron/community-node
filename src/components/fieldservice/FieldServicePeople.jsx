@@ -32,7 +32,7 @@ const EMPTY_PERSON = {
   role: 'worker',
   phone: '',
   email: '',
-  company_name: '',
+  business_name: '',
   hourly_rate: '',
   notes: '',
   assigned_projects: [],
@@ -113,8 +113,8 @@ function PersonCard({ person, projectMap, onEdit, onRemove, onShareInvite }) {
               <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-surface text-muted-foreground">Pending</span>
             )}
           </div>
-          {person.company_name && (
-            <p className="text-xs text-muted-foreground mt-0.5">{person.company_name}</p>
+          {person.business_name && (
+            <p className="text-xs text-muted-foreground mt-0.5">{person.business_name}</p>
           )}
           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5">
             {person.phone && (
@@ -253,7 +253,7 @@ function PersonModal({ person, activeProjects, onSave, onCancel, isSaving }) {
       name: form.name.trim(),
       phone: form.phone.trim(),
       email: form.email.trim(),
-      company_name: form.company_name?.trim() || '',
+      business_name: form.business_name?.trim() || '',
       hourly_rate: parseFloat(form.hourly_rate) || 0,
       notes: form.notes?.trim() || '',
       user_id: person?.user_id || null,
@@ -303,16 +303,16 @@ function PersonModal({ person, activeProjects, onSave, onCancel, isSaving }) {
           </select>
         </div>
 
-        {/* Company (subs only) */}
+        {/* Business name (subs only — vendor support comes in Phase 2.3 UI extension) */}
         {form.role === 'subcontractor' && (
           <div>
-            <label className="block text-sm text-muted-foreground mb-1">Company name</label>
+            <label className="block text-sm text-muted-foreground mb-1">Business name</label>
             <input
               type="text"
-              value={form.company_name}
-              onChange={(e) => set('company_name', e.target.value)}
+              value={form.business_name}
+              onChange={(e) => set('business_name', e.target.value)}
               className={INPUT_CLASS}
-              placeholder="Business or company name"
+              placeholder="Business or DBA name"
             />
           </div>
         )}
