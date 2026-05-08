@@ -7,6 +7,7 @@ import { Loader2, Printer, Camera, Shield, X, FileText, ClipboardList } from 'lu
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { getFeatures } from '@/utils/fsFeatures';
 import { getTradeCategories } from '@/utils/fsTradeCategories';
+import { isEstimateLocked } from '@/utils/fsEstimateLifecycle';
 import { toast } from 'sonner';
 
 /**
@@ -215,7 +216,7 @@ function EstimatePortalView({ estimateId, signMode = false }) {
               {estimate.estimate_number && <p className="text-sm text-muted-foreground/70 mt-0.5">#{estimate.estimate_number}</p>}
             </div>
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-              (estimate.status === 'accepted' || estimate.status === 'signed') ? 'bg-emerald-100 text-emerald-700' :
+              isEstimateLocked(estimate) ? 'bg-emerald-100 text-emerald-700' :
               (estimate.status === 'sent' || estimate.status === 'awaiting_signature') ? 'bg-amber-100 text-amber-700' :
               'bg-slate-100 text-muted-foreground/50'
             }`}>

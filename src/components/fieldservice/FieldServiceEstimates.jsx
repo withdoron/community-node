@@ -8,6 +8,7 @@ import CurrencyInput from './CurrencyInput';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { CATEGORY_MAP, makeItem, migrateLineItems, calcTotals } from '@/utils/fsLineItems';
 import { getTradeCategories } from '@/utils/fsTradeCategories';
+import { isEstimateLocked } from '@/utils/fsEstimateLifecycle';
 import { printNode } from '@/utils/printNode';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
@@ -199,7 +200,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
               <FolderOpen className="h-4 w-4" /> Accept & Create Project
             </button>
           )}
-          {(estimate.status === 'accepted' || estimate.status === 'signed') && (
+          {isEstimateLocked(estimate) && (
             <span className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm font-medium min-h-[44px]">
               <Lock className="h-4 w-4" /> {estimate.status === 'signed' ? 'Signed' : 'Approved'}
             </span>
@@ -1466,7 +1467,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 flex items-center gap-1 ${sc.color} ${est.status === 'declined' ? 'line-through' : ''}`}>
                     {sc.pulse && <span className="w-1.5 h-1.5 rounded-full bg-primary-hover animate-pulse" />}
-                    {(est.status === 'accepted' || est.status === 'signed') && <Lock className="h-3 w-3" />}
+                    {isEstimateLocked(est) && <Lock className="h-3 w-3" />}
                     {sc.label}
                     {est.status === 'signed' && est.signed_at && <span className="ml-1 text-xs opacity-70">{fmtDate(est.signed_at)}</span>}
                   </span>
@@ -1531,12 +1532,12 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
                       <FolderOpen className="h-3.5 w-3.5" /> Accept & Create Project
                     </button>
                   )}
-                  {(est.status === 'accepted' || est.status === 'signed') && (
+                  {isEstimateLocked(est) && (
                     <span className="flex items-center gap-1 text-xs text-emerald-400">
                       <Lock className="h-3.5 w-3.5" /> {est.status === 'signed' ? 'Signed' : 'Approved'}
                     </span>
                   )}
-                  {(est.status === 'accepted' || est.status === 'signed') && (
+                  {isEstimateLocked(est) && (
                     <button type="button" onClick={() => reopenEstimate(est)}
                       className="flex items-center gap-1 text-xs text-muted-foreground/70 hover:text-muted-foreground min-h-[44px] transition-colors">
                       Reopen
