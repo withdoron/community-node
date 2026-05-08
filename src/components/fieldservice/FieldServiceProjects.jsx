@@ -14,6 +14,7 @@ import FieldServiceClientPortal from './FieldServiceClientPortal';
 import FieldServiceClientDetail from './FieldServiceClientDetail';
 import ProjectTileDrillIn from './ProjectTileDrillIn';
 import { makeItem, calcTotals } from '@/utils/fsLineItems';
+import { isChangeOrderLocked } from '@/utils/fsEstimateLifecycle';
 import { useFSPayments, summarizePayments } from '@/hooks/useFSPayments';
 import { useProjectLinkedEstimates, deriveProjectClient } from '@/hooks/useProjectLinkedEstimates';
 import {
@@ -703,7 +704,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
   // for legacy records that pre-date the amount field.
   const recomputeProjectBudgetLocal = async (project, cos) => {
     const originalBudget = parseFloat(project.original_budget || project.total_budget) || 0;
-    const counted = cos.filter((c) => c.status === 'signed' || c.status === 'accepted');
+    const counted = cos.filter(isChangeOrderLocked);
     const adjustments = counted.reduce((sum, c) => {
       const adj = c.amount !== undefined && c.amount !== null
         ? parseFloat(c.amount)
@@ -1107,7 +1108,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     // Derivation heals existing bad data without a backfill — every render
     // recomputes from the source of truth (the estimate + signed COs).
     const signedCOs = (changeOrders || []).filter(
-      (co) => co.status === 'signed' || co.status === 'accepted'
+      isChangeOrderLocked
     );
     const signedCOAdjustments = signedCOs.reduce((sum, co) => {
       const adj = co.amount !== undefined && co.amount !== null
@@ -1752,7 +1753,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           // Layer in signed/accepted CO line items by category. Only counted
           // COs (status === signed | accepted) — drafts and awaiting-signature
           // don't move the contract.
-          const countedCOs = changeOrders.filter((co) => co.status === 'signed' || co.status === 'accepted');
+          const countedCOs = changeOrders.filter(isChangeOrderLocked);
           for (const co of countedCOs) {
             for (const it of parseLineItems(co.line_items)) addLine(it);
           }
@@ -2147,7 +2148,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                 const coSc =
                   isVoided
                     ? 'bg-muted-foreground/20 text-muted-foreground/70'
-                    : co.status === 'signed' || co.status === 'accepted'
+                    : isChangeOrderLocked(co)
                       ? 'bg-emerald-500/20 text-emerald-400'
                       : co.status === 'awaiting_signature'
                         ? 'bg-primary/20 text-primary-hover'
@@ -2271,7 +2272,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                             </button>
                           </div>
                         )}
-                        {(co.status === 'signed' || co.status === 'accepted') && (
+                        {isChangeOrderLocked(co) && (
                           <div className="flex flex-wrap gap-3 pt-1 items-center">
                             {co.status === 'signed' && co.signed_at && (
                               <p className="text-xs text-emerald-400">
