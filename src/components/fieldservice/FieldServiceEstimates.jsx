@@ -671,6 +671,24 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
       return base44.entities.FSEstimate.create(payload);
     },
     onSuccess: (saved, vars) => {
+      // Optimistic cache update before invalidate (DEC-130 React Query cache
+      // race pattern). Save → close editor → user immediately clicks Preview
+      // on the row used to capture the OLD est reference because
+      // invalidateQueries fires an async refetch that may not have completed
+      // when the user clicks. Writing `saved` directly into the cache makes
+      // the list reflect truth instantly; the invalidate below stays as
+      // belt-and-braces to catch any field the server may have computed
+      // beyond what `saved` returns.
+      if (saved && profile?.id) {
+        queryClient.setQueryData(['fs-estimates', profile.id], (old) => {
+          if (!Array.isArray(old)) return old;
+          if (editingId) {
+            return old.map((e) => (e.id === saved.id ? saved : e));
+          }
+          // Create path: prepend new record (matches existing date-desc sort).
+          return [saved, ...old];
+        });
+      }
       // FSEstimate subscribers: list ['fs-estimates', profileId] + per-client
       // ['fs-client-estimates', clientId] (Client Detail) + per-estimate
       // ['fs-client-estimate', estimateId] (Client Portal) + per-estimate
