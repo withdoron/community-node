@@ -99,12 +99,19 @@ export default function LineItemsEditor({
           <React.Fragment key={item.id || idx}>
             <div className="bg-secondary/50 rounded-lg p-3 space-y-2">
               <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+                {/* Kind + trade pickers: w-auto overrides shadcn's default
+                    w-full (which would consume the row's flex space and crowd
+                    the description input). Explicit min/max keep the visual
+                    rhythm close to pre-conversion native <select> sizes
+                    (kind: min 110px / no max — sized to label; trade: 110-160px
+                    capped). flex-shrink-0 prevents the description input's
+                    flex-1 from squeezing the pickers below their min. */}
                 <Select
                   value={item.category || 'materials'}
                   onValueChange={(value) => updateItem(idx, 'category', value)}
                   disabled={disabled}
                 >
-                  <SelectTrigger className="bg-secondary border-border text-foreground min-w-[110px] h-auto py-2 text-sm focus:ring-ring">
+                  <SelectTrigger className="w-auto min-w-[110px] flex-shrink-0 bg-secondary border-border text-foreground h-auto py-2 text-sm focus:ring-ring">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -121,7 +128,7 @@ export default function LineItemsEditor({
                     }
                     disabled={disabled}
                   >
-                    <SelectTrigger className="bg-secondary border-border text-foreground min-w-[110px] max-w-[160px] h-auto py-2 text-xs focus:ring-ring">
+                    <SelectTrigger className="w-auto min-w-[110px] max-w-[160px] flex-shrink-0 bg-secondary border-border text-foreground h-auto py-2 text-xs focus:ring-ring">
                       <SelectValue placeholder="Trade" />
                     </SelectTrigger>
                     <SelectContent>
