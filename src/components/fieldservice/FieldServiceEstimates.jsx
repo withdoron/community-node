@@ -7,6 +7,7 @@ import LineItemsEditor from './LineItemsEditor';
 import CurrencyInput from './CurrencyInput';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { CATEGORY_MAP, makeItem, migrateLineItems, calcTotals } from '@/utils/fsLineItems';
+import { getTradeCategories } from '@/utils/fsTradeCategories';
 import { printNode } from '@/utils/printNode';
 import {
   FileText, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save,
@@ -51,21 +52,9 @@ const fmtDate = (d) => {
   } catch { return d; }
 };
 
-// ═══ Trade categories for Xactimate format ═══════
-
-const DEFAULT_TRADE_CATEGORIES = [
-  'General Conditions', 'Demolition', 'Framing', 'Roofing', 'Siding & Exterior',
-  'Windows & Doors', 'Electrical', 'Plumbing', 'HVAC', 'Insulation',
-  'Drywall', 'Painting', 'Flooring', 'Concrete & Foundation',
-  'Cabinetry & Countertops', 'Appliances', 'Cleanup & Hauling', 'Other',
-];
-
-function getTradeCategories(profile) {
-  const tc = profile?.trade_categories_json;
-  if (Array.isArray(tc) && tc.length > 0) return tc;
-  if (tc && typeof tc === 'object' && Array.isArray(tc.items) && tc.items.length > 0) return tc.items;
-  return DEFAULT_TRADE_CATEGORIES.map((name, i) => ({ id: `cat_${i}`, name, order: i }));
-}
+// Trade-category helpers extracted to src/utils/fsTradeCategories.js
+// (Phase 2.1, 2026-05-08) so ClientPortal can read the same taxonomy.
+// Phase 2.2 will replace the default seed with a presets system.
 
 const EMPTY_ESTIMATE = {
   title: '', client_id: '', client_name: '', client_email: '', client_phone: '', client_address: '',
@@ -139,19 +128,30 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
   const tradeCatMap = Object.fromEntries(tradeCategories.map((tc) => [tc.id, tc]));
 
   // Group items by trade category. Renders when flat_layout is false (the
-  // platform default). Untagged items collect into a distinct "Unallocated"
-  // bucket so they don't silently merge with a workspace's actual "Other"
-  // trade — see commit 2 for that logic.
+  // platform default). Untagged items (trade_category_id empty OR pointing
+  // at a deleted trade) collect under a distinct "Unallocated" bucket at
+  // order -1 — floats to the top of the grouped view, prompting the
+  // contractor to tag. The bucket is keyed by tc.id (not tc.name) so a
+  // workspace's actual "Other" trade and untagged items can't collapse
+  // into the same group. The bucket renders only when at least one
+  // untagged item exists.
   const groupedByTrade = useMemo(() => {
     if (isFlatLayout) return null;
+    const UNALLOCATED_ID = '__unallocated__';
+    const UNALLOCATED_TC = { id: UNALLOCATED_ID, name: 'Unallocated', order: -1 };
     const groups = new Map();
     for (const item of items) {
       const tcId = item.trade_category_id || '';
-      const tc = tradeCatMap[tcId] || { id: tcId, name: 'Other', order: 999 };
-      if (!groups.has(tc.name)) groups.set(tc.name, { tc, items: [] });
-      groups.get(tc.name).items.push(item);
+      const realTc = tcId ? tradeCatMap[tcId] : null;
+      if (realTc) {
+        if (!groups.has(realTc.id)) groups.set(realTc.id, { tc: realTc, items: [] });
+        groups.get(realTc.id).items.push(item);
+      } else {
+        if (!groups.has(UNALLOCATED_ID)) groups.set(UNALLOCATED_ID, { tc: UNALLOCATED_TC, items: [] });
+        groups.get(UNALLOCATED_ID).items.push(item);
+      }
     }
-    // Sort by trade category order
+    // Sort by trade category order — Unallocated at order -1 floats to top.
     return Array.from(groups.entries())
       .sort((a, b) => (a[1].tc.order ?? 999) - (b[1].tc.order ?? 999));
   }, [isFlatLayout, items, tradeCatMap]);
@@ -338,12 +338,12 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
             {!isFlatLayout && groupedByTrade ? (
               /* ─── Trade-grouped format (platform default) ─── */
               <div className="space-y-4 overflow-x-auto">
-                {groupedByTrade.map(([tradeName, group]) => {
+                {groupedByTrade.map(([tradeId, group]) => {
                   const catSubtotal = group.items.reduce((s, it) => s + (parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0))), 0);
                   return (
-                    <div key={tradeName} className="print-avoid-break">
+                    <div key={tradeId} className="print-avoid-break">
                       <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-1 pb-1 border-b" style={{ borderColor: brandColor }}>
-                        {tradeName}
+                        {group.tc.name}
                       </h4>
                       <table className="w-full text-sm">
                         <tbody>

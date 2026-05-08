@@ -6,6 +6,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { Loader2, Printer, Camera, Shield, X, FileText, ClipboardList } from 'lucide-react';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { getFeatures } from '@/utils/fsFeatures';
+import { getTradeCategories } from '@/utils/fsTradeCategories';
 import { toast } from 'sonner';
 
 /**
@@ -140,6 +141,38 @@ function EstimatePortalView({ estimateId, signMode = false }) {
 
   const brandColor = profile?.brand_color || '#f59e0b';
   const lineItems = parseJSON(estimate.line_items);
+
+  // Trade-grouped render mirrors EstimatePreview (Phase 2.1, DEC-206 platform
+  // default). When flat_layout=true, the existing flat table renders. When
+  // false (default), line items group by trade with per-group subtotals;
+  // untagged items collect under "Unallocated" at the top. Two-World
+  // Architecture (DEC-203) — clients see the same honest grouping the
+  // contractor sees in EstimatePreview.
+  const isFlatLayout = estimate.flat_layout === true;
+  const tradeCategories = getTradeCategories(profile);
+  const tradeCatMap = useMemo(
+    () => Object.fromEntries(tradeCategories.map((tc) => [tc.id, tc])),
+    [tradeCategories]
+  );
+  const groupedByTrade = useMemo(() => {
+    if (isFlatLayout) return null;
+    const UNALLOCATED_ID = '__unallocated__';
+    const UNALLOCATED_TC = { id: UNALLOCATED_ID, name: 'Unallocated', order: -1 };
+    const groups = new Map();
+    for (const item of lineItems) {
+      const tcId = item.trade_category_id || '';
+      const realTc = tcId ? tradeCatMap[tcId] : null;
+      if (realTc) {
+        if (!groups.has(realTc.id)) groups.set(realTc.id, { tc: realTc, items: [] });
+        groups.get(realTc.id).items.push(item);
+      } else {
+        if (!groups.has(UNALLOCATED_ID)) groups.set(UNALLOCATED_ID, { tc: UNALLOCATED_TC, items: [] });
+        groups.get(UNALLOCATED_ID).items.push(item);
+      }
+    }
+    return Array.from(groups.entries())
+      .sort((a, b) => (a[1].tc.order ?? 999) - (b[1].tc.order ?? 999));
+  }, [isFlatLayout, lineItems, tradeCatMap]);
   const STATUS_LABELS = { draft: 'Draft', sent: 'Sent', awaiting_signature: 'Awaiting Signature', viewed: 'Viewed', accepted: 'Accepted', signed: 'Signed', declined: 'Declined' };
   const features = getFeatures(profile);
   const printRef = estimate.estimate_number || `id-${(estimate.id || '').slice(0, 8)}`;
@@ -201,32 +234,73 @@ function EstimatePortalView({ estimateId, signMode = false }) {
             </div>
           )}
 
-          {/* Line items table */}
+          {/* Line items — trade-grouped (default) or flat per estimate.flat_layout */}
           {lineItems.length > 0 && (
             <div className="mb-6">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left">
-                    <th className="pb-2 text-muted-foreground/70 font-medium">Description</th>
-                    <th className="pb-2 text-muted-foreground/70 font-medium text-right">Qty</th>
-                    <th className="pb-2 text-muted-foreground/70 font-medium text-right">Unit Price</th>
-                    <th className="pb-2 text-muted-foreground/70 font-medium text-right">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lineItems.map((item, i) => {
-                    const amount = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
+              {!isFlatLayout && groupedByTrade ? (
+                /* ─── Trade-grouped format (platform default) ─── */
+                <div className="space-y-4">
+                  {groupedByTrade.map(([tradeId, group]) => {
+                    const catSubtotal = group.items.reduce(
+                      (s, it) => s + ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0)),
+                      0
+                    );
                     return (
-                      <tr key={item.id || i} className="border-b border-slate-100">
-                        <td className="py-2 text-primary-foreground">{item.description || '—'}</td>
-                        <td className="py-2 text-muted-foreground/50 text-right">{item.quantity}</td>
-                        <td className="py-2 text-muted-foreground/50 text-right">{fmt(item.unit_price)}</td>
-                        <td className="py-2 text-primary-foreground font-medium text-right">{fmt(amount)}</td>
-                      </tr>
+                      <div key={tradeId}>
+                        <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-1 pb-1 border-b" style={{ borderColor: brandColor }}>
+                          {group.tc.name}
+                        </h4>
+                        <table className="w-full text-sm">
+                          <tbody>
+                            {group.items.map((item, i) => {
+                              const amount = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
+                              return (
+                                <tr key={item.id || i} className="border-b border-slate-100">
+                                  <td className="py-2 text-primary-foreground">{item.description || '—'}</td>
+                                  <td className="py-2 text-muted-foreground/50 text-right w-16">{item.quantity}</td>
+                                  <td className="py-2 text-muted-foreground/50 text-right w-28">{fmt(item.unit_price)}</td>
+                                  <td className="py-2 text-primary-foreground font-medium text-right w-28">{fmt(amount)}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                          <tfoot>
+                            <tr className="border-t border-border">
+                              <td colSpan={3} className="text-right py-1.5 text-xs text-muted-foreground/70 font-medium pr-2">Subtotal:</td>
+                              <td className="text-right py-1.5 w-28 text-xs font-semibold">{fmt(catSubtotal)}</td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
                     );
                   })}
-                </tbody>
-              </table>
+                </div>
+              ) : (
+                /* ─── Standard flat table (flat_layout=true) ─── */
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left">
+                      <th className="pb-2 text-muted-foreground/70 font-medium">Description</th>
+                      <th className="pb-2 text-muted-foreground/70 font-medium text-right">Qty</th>
+                      <th className="pb-2 text-muted-foreground/70 font-medium text-right">Unit Price</th>
+                      <th className="pb-2 text-muted-foreground/70 font-medium text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lineItems.map((item, i) => {
+                      const amount = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
+                      return (
+                        <tr key={item.id || i} className="border-b border-slate-100">
+                          <td className="py-2 text-primary-foreground">{item.description || '—'}</td>
+                          <td className="py-2 text-muted-foreground/50 text-right">{item.quantity}</td>
+                          <td className="py-2 text-muted-foreground/50 text-right">{fmt(item.unit_price)}</td>
+                          <td className="py-2 text-primary-foreground font-medium text-right">{fmt(amount)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
 
