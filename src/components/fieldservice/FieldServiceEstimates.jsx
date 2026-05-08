@@ -75,7 +75,7 @@ const EMPTY_ESTIMATE = {
   payment_terms: '', prepared_by: '',
   terms: '', notes: '',
   client_show_breakdown: false,
-  is_insurance_estimate: false,
+  flat_layout: false,
 };
 
 const PAYMENT_TERMS_OPTIONS = [
@@ -130,14 +130,20 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
   const totals = calcTotals(items, estimate.overhead_profit_pct, estimate.tax_rate, estimate.other_amount, estimate.management_fee_pct, estimate.insurance_fee_pct);
   const brandColor = profile?.brand_color || '#f59e0b';
   const showBreakdown = estimate.client_show_breakdown === true;
-  const isInsurance = estimate.is_insurance_estimate === true;
+  // flat_layout=false (default for new estimates) → trade-grouped render.
+  // flat_layout=true → single flat table. Renamed from is_insurance_estimate
+  // 2026-05-08 with semantic inversion (Phase 2.1, DEC-206 platform default).
+  const isFlatLayout = estimate.flat_layout === true;
   const tradeCategories = getTradeCategories(profile);
   const hasOwnerSig = !!estimate.owner_signature_data;
   const tradeCatMap = Object.fromEntries(tradeCategories.map((tc) => [tc.id, tc]));
 
-  // Group items by trade category (for insurance format)
+  // Group items by trade category. Renders when flat_layout is false (the
+  // platform default). Untagged items collect into a distinct "Unallocated"
+  // bucket so they don't silently merge with a workspace's actual "Other"
+  // trade — see commit 2 for that logic.
   const groupedByTrade = useMemo(() => {
-    if (!isInsurance) return null;
+    if (isFlatLayout) return null;
     const groups = new Map();
     for (const item of items) {
       const tcId = item.trade_category_id || '';
@@ -148,7 +154,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
     // Sort by trade category order
     return Array.from(groups.entries())
       .sort((a, b) => (a[1].tc.order ?? 999) - (b[1].tc.order ?? 999));
-  }, [isInsurance, items, tradeCatMap]);
+  }, [isFlatLayout, items, tradeCatMap]);
 
   // Live client data from FSClient (source of truth), fallback to inline copies
   const liveClient = estimate.client_id ? (clients || []).find((c) => c.id === estimate.client_id) : null;
@@ -180,7 +186,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
               const ref = estimate.estimate_number || `id-${(estimate.id || '').slice(0, 8)}`;
               const ok = printNode(node, {
                 title: `Estimate-${ref}`,
-                extraCss: `.estimate-print-area { font-size: ${isInsurance ? '9pt' : '10pt'}; }`,
+                extraCss: `.estimate-print-area { font-size: ${isFlatLayout ? '10pt' : '9pt'}; }`,
               });
               if (!ok) toast.error('Could not open print preview.');
             }}
@@ -266,7 +272,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
           /* overflow-x-auto on line item wrappers resolves to overflow:auto on both axes per spec, */
           /* which clips tall tables to a single page in print. Force visible across the print tree. */
           .estimate-print-area, .estimate-print-area * { overflow: visible !important; }
-          .estimate-print-area { font-size: ${isInsurance ? '9pt' : '10pt'}; }
+          .estimate-print-area { font-size: ${isFlatLayout ? '10pt' : '9pt'}; }
           @page { margin: 0.5in; size: letter; }
           .print-avoid-break { page-break-inside: avoid; }
           .print-break-before { page-break-before: auto; }
@@ -298,7 +304,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
         {/* Estimate info + Client — two-column layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
           <div>
-            <h2 className="text-xl font-bold mb-1" style={{ color: brandColor }}>{isInsurance ? 'INSURANCE ESTIMATE' : 'ESTIMATE'}</h2>
+            <h2 className="text-xl font-bold mb-1" style={{ color: brandColor }}>ESTIMATE</h2>
             <div className="text-sm space-y-0.5">
               <p><span className="text-muted-foreground/70">No:</span> {estimate.estimate_number}</p>
               <p><span className="text-muted-foreground/70">Date:</span> {fmtDate(estimate.date)}</p>
@@ -329,8 +335,8 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
         {/* Line items table — only when breakdown visible */}
         {showBreakdown && items.length > 0 && (
           <div className="mb-6">
-            {isInsurance && groupedByTrade ? (
-              /* ─── Xactimate grouped format ─── */
+            {!isFlatLayout && groupedByTrade ? (
+              /* ─── Trade-grouped format (platform default) ─── */
               <div className="space-y-4 overflow-x-auto">
                 {groupedByTrade.map(([tradeName, group]) => {
                   const catSubtotal = group.items.reduce((s, it) => s + (parseFloat(it.amount) || ((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_price) || 0))), 0);
@@ -621,7 +627,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         notes: formData.notes,
         status: status || 'draft',
         client_show_breakdown: formData.client_show_breakdown === true,
-        is_insurance_estimate: formData.is_insurance_estimate === true,
+        flat_layout: formData.flat_layout === true,
       };
       if (status === 'sent') {
         payload.sent_at = new Date().toISOString();
@@ -809,23 +815,29 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
         </div>
       </div>
 
-      {/* ═══ Insurance Estimate Toggle — before line items so user sees trade dropdown ═══ */}
+      {/* ═══ Flat Layout Toggle — render line items as a single flat table ═══
+          Trade-grouped is the platform default (DEC-206, 2026-05-08, Phase 2.1).
+          This toggle lets a contractor opt OUT of grouping for a specific
+          estimate. Gated by xactimate_enabled because workspaces without
+          Xactimate enabled don't have the trade-categories editor surfaced
+          in Settings — even though they still get grouping by default,
+          the per-estimate toggle is reserved for the Xactimate-aware flow. */}
       {features?.xactimate_enabled === true && (
         <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm text-foreground">Insurance Estimate (Xactimate format)</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Groups line items by trade category for adjusters</p>
+              <p className="text-sm text-foreground">Flat layout</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Render line items as a single table, without trade groups</p>
             </div>
             <button
               type="button"
-              onClick={() => set('is_insurance_estimate', !formData.is_insurance_estimate)}
+              onClick={() => set('flat_layout', !formData.flat_layout)}
               className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
-                formData.is_insurance_estimate ? 'bg-primary' : 'bg-surface'
+                formData.flat_layout ? 'bg-primary' : 'bg-surface'
               }`}
             >
               <span className={`inline-block h-4 w-4 rounded-full bg-slate-100 transition-transform ${
-                formData.is_insurance_estimate ? 'translate-x-6' : 'translate-x-1'
+                formData.flat_layout ? 'translate-x-6' : 'translate-x-1'
               }`} />
             </button>
           </div>
@@ -839,7 +851,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           items={formData.line_items}
           onChange={setLineItems}
           tradeCategories={tradeCategories}
-          showTradeCategories={!!formData.is_insurance_estimate}
+          showTradeCategories={!formData.flat_layout}
         />
       </div>
 
@@ -1287,7 +1299,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       prepared_by: est.prepared_by || '',
       terms: est.terms || '', notes: est.notes || '',
       client_show_breakdown: est.client_show_breakdown === true,
-      is_insurance_estimate: est.is_insurance_estimate === true,
+      flat_layout: est.flat_layout === true,
     });
     setEditingId(est.id);
     setView('form');
@@ -1315,7 +1327,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       prepared_by: est.prepared_by || '',
       terms: est.terms || '', notes: est.notes || '',
       client_show_breakdown: false,
-      is_insurance_estimate: est.is_insurance_estimate === true,
+      flat_layout: est.flat_layout === true,
     });
     setEditingId(null);
     setView('form');

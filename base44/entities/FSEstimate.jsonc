@@ -131,10 +131,10 @@
       "type": "string",
       "description": "Name of the person who prepared the estimate"
     },
-    "is_insurance_estimate": {
+    "flat_layout": {
       "type": "boolean",
       "default": false,
-      "description": "Whether this is an insurance-related estimate"
+      "description": "When true, line items render as a single flat table. When false (default), line items render trade-grouped with per-trade subtotals + Unallocated bucket. Renamed from is_insurance_estimate 2026-05-08 with semantic inversion (Phase 2.1 — trade-grouping is platform default, DEC-206)."
     },
     "client_show_breakdown": {
       "type": "boolean",

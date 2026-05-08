@@ -15,6 +15,8 @@
 //   mark_legacy_user                — set is_legacy_user: true on a User
 //   unmark_legacy_user              — clear the flag
 //   create_fs_document_template     — create an FSDocumentTemplate, idempotent on business_id+title
+//   migrate_flat_layout_inversion   — Phase 2.1: invert flat_layout on existing FSEstimate records
+//                                     after the is_insurance_estimate → flat_layout schema rename
 //
 // Actions (read-only, for migration lookups):
 //   find_user_by_email              — returns a User record or null
@@ -443,6 +445,82 @@ Deno.serve(async (req) => {
         template_id: created.id,
         record: created,
         audit_log_id: audit.id,
+      });
+    }
+
+    // ─── migrate_flat_layout_inversion ────────────────────────────
+    // Phase 2.1 schema migration. Pre-rename, FSEstimate.is_insurance_estimate
+    // carried the semantic "this estimate is trade-grouped" (true = grouped).
+    // After Base44 renames the field to flat_layout, the values are preserved
+    // — so flat_layout=true initially still means "was trade-grouped." This
+    // action inverts each record's flat_layout so the new semantic holds:
+    // flat_layout=true → flat render, flat_layout=false → trade-grouped (the
+    // platform default for new estimates per DEC-206 Phase 2.1).
+    //
+    // Idempotency: each inversion writes an AuditLog row with action
+    // 'flat_layout_inverted' and entity_id=<estimate.id>. On re-run, the
+    // action queries AuditLog for those rows and skips records that are
+    // already migrated. Safe to re-run; double-inversion is structurally
+    // prevented.
+    if (action === 'migrate_flat_layout_inversion') {
+      const all = await entities.FSEstimate.list();
+      const records = (Array.isArray(all) ? all : []) as Record<string, unknown>[];
+
+      // Look up prior audits to enforce idempotency.
+      const priorAudits = await entities.AuditLog.filter({
+        action: 'flat_layout_inverted',
+      });
+      const migratedIds = new Set(
+        ((Array.isArray(priorAudits) ? priorAudits : []) as Record<string, unknown>[])
+          .map((a) => a.entity_id as string)
+      );
+
+      const toInvert = records.filter((r) => !migratedIds.has(r.id as string));
+
+      if (dryRun) {
+        return Response.json({
+          success: true,
+          dry_run: true,
+          planned: {
+            entity_type: 'FSEstimate',
+            action: 'flat_layout_inverted',
+            scanned: records.length,
+            already_migrated: records.length - toInvert.length,
+            will_invert: toInvert.length,
+            sample: toInvert.slice(0, 5).map((r) => ({
+              id: r.id,
+              estimate_number: r.estimate_number,
+              title: r.title,
+              old_flat_layout: r.flat_layout ?? false,
+              new_flat_layout: !(r.flat_layout ?? false),
+            })),
+          },
+        });
+      }
+
+      const results: Array<{ id: string; audit_log_id: string }> = [];
+      for (const r of toInvert) {
+        const id = r.id as string;
+        const oldValue = (r.flat_layout as boolean | undefined) ?? false;
+        const newValue = !oldValue;
+        await entities.FSEstimate.update(id, { flat_layout: newValue });
+        const audit = await writeAudit(base44, {
+          entity_type: 'FSEstimate',
+          entity_id: id,
+          action: 'flat_layout_inverted',
+          old_value: { flat_layout: oldValue },
+          new_value: { flat_layout: newValue },
+          source: 'migration',
+        });
+        results.push({ id, audit_log_id: audit.id as string });
+      }
+
+      return Response.json({
+        success: true,
+        scanned: records.length,
+        inverted: results.length,
+        already_migrated_skipped: records.length - toInvert.length,
+        audit_log_ids: results.map((r) => r.audit_log_id),
       });
     }
 
