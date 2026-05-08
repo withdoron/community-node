@@ -201,9 +201,7 @@
     "create": {
       "owner": true
     },
-    "update": {
-      "authenticated": true
-    },
+    "update": true,
     "delete": {
       "owner": true
     }
