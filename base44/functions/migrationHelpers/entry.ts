@@ -524,6 +524,264 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ─── migrate_flat_layout_rename ──────────────────────────────
+    // Phase 2.2 schema migration. Sequence:
+    //   1. Base44 renames flat_layout → group_by_trade (values preserved).
+    //   2. THIS action inverts each record's group_by_trade so the new
+    //      semantic holds (true = trade-grouped, false = flat).
+    // Pre-rename, flat_layout carried "true=flat / false=grouped." After
+    // Base44 rename, group_by_trade still carries the OLD semantic until
+    // this migration runs. Result after --apply: group_by_trade=true →
+    // trade-grouped (the platform default), group_by_trade=false → flat.
+    //
+    // Idempotency: each inversion writes an AuditLog row with action
+    // 'flat_layout_renamed_to_group_by_trade' and entity_id=<estimate.id>.
+    // On re-run, the action skips records already migrated. Safe to re-run.
+    if (action === 'migrate_flat_layout_rename') {
+      const all = await entities.FSEstimate.list();
+      const records = (Array.isArray(all) ? all : []) as Record<string, unknown>[];
+
+      const priorAudits = await entities.AuditLog.filter({
+        action: 'flat_layout_renamed_to_group_by_trade',
+      });
+      const migratedIds = new Set(
+        ((Array.isArray(priorAudits) ? priorAudits : []) as Record<string, unknown>[])
+          .map((a) => a.entity_id as string)
+      );
+
+      const toInvert = records.filter((r) => !migratedIds.has(r.id as string));
+
+      if (dryRun) {
+        return Response.json({
+          success: true,
+          dry_run: true,
+          planned: {
+            entity_type: 'FSEstimate',
+            action: 'flat_layout_renamed_to_group_by_trade',
+            scanned: records.length,
+            already_migrated: records.length - toInvert.length,
+            will_invert: toInvert.length,
+            sample: toInvert.slice(0, 5).map((r) => ({
+              id: r.id,
+              estimate_number: r.estimate_number,
+              title: r.title,
+              old_group_by_trade: r.group_by_trade ?? false,
+              new_group_by_trade: !(r.group_by_trade ?? false),
+            })),
+          },
+        });
+      }
+
+      const results: Array<{ id: string; audit_log_id: string }> = [];
+      for (const r of toInvert) {
+        const id = r.id as string;
+        const oldValue = (r.group_by_trade as boolean | undefined) ?? false;
+        const newValue = !oldValue;
+        await entities.FSEstimate.update(id, { group_by_trade: newValue });
+        const audit = await writeAudit(base44, {
+          entity_type: 'FSEstimate',
+          entity_id: id,
+          action: 'flat_layout_renamed_to_group_by_trade',
+          old_value: { group_by_trade: oldValue, semantic: 'pre_rename_flat_layout_value' },
+          new_value: { group_by_trade: newValue, semantic: 'post_phase_2_2_group_by_trade' },
+          source: 'migration',
+        });
+        results.push({ id, audit_log_id: audit.id as string });
+      }
+
+      return Response.json({
+        success: true,
+        scanned: records.length,
+        inverted: results.length,
+        already_migrated_skipped: records.length - toInvert.length,
+        audit_log_ids: results.map((r) => r.audit_log_id),
+      });
+    }
+
+    // ─── backfill_trade_categories_snapshot ──────────────────────
+    // Phase 2.2 backfill. Each FSEstimate gets its workspace's current
+    // trade_categories_json frozen into trade_categories_snapshot. Run AFTER
+    // migrate_flat_layout_rename has landed (so group_by_trade carries the
+    // correct semantic before snapshots become render-authoritative).
+    //
+    // Resolution: workspace's trade_categories_json → resolved array shape
+    // [{id, name, order}, ...]. Fallback to the platform default 18-trade
+    // seed when the workspace has no list. Counter `backfilled_from_default`
+    // surfaces this case so we know how many records inherited the default.
+    //
+    // Edge cases:
+    //   - Orphaned FSEstimate (no FieldServiceProfile): skipped, counter
+    //     `orphaned_skipped`. Don't block the run.
+    //   - Existing snapshot present: skipped via AuditLog idempotency.
+    //
+    // Idempotency: AuditLog action 'trade_categories_snapshot_backfilled'.
+    if (action === 'backfill_trade_categories_snapshot') {
+      const all = await entities.FSEstimate.list();
+      const records = (Array.isArray(all) ? all : []) as Record<string, unknown>[];
+
+      const priorAudits = await entities.AuditLog.filter({
+        action: 'trade_categories_snapshot_backfilled',
+      });
+      const migratedIds = new Set(
+        ((Array.isArray(priorAudits) ? priorAudits : []) as Record<string, unknown>[])
+          .map((a) => a.entity_id as string)
+      );
+
+      // Default 18-trade seed for fallback. Mirrors DEFAULT_TRADE_CATEGORIES
+      // in src/utils/fsTradeCategories.js — kept in sync at code-review time.
+      const DEFAULT_TRADE_CATEGORIES = [
+        'General Conditions', 'Demolition', 'Framing', 'Roofing', 'Siding & Exterior',
+        'Windows & Doors', 'Electrical', 'Plumbing', 'HVAC', 'Insulation',
+        'Drywall', 'Painting', 'Flooring', 'Concrete & Foundation',
+        'Cabinetry & Countertops', 'Appliances', 'Cleanup & Hauling', 'Other',
+      ];
+
+      // Resolve a profile's trade_categories_json into the canonical
+      // [{id, name, order}, ...] shape used by the snapshot. Handles all three
+      // legacy shapes: plain string array, {items: [...]} wrap, already-resolved.
+      function resolveTradeCategories(rawTC: unknown): {
+        categories: Array<{ id: string; name: string; order: number }>;
+        usedDefault: boolean;
+      } {
+        // Already-resolved object array
+        if (Array.isArray(rawTC) && rawTC.length > 0) {
+          if (typeof rawTC[0] === 'object' && rawTC[0] !== null && 'id' in (rawTC[0] as object)) {
+            return {
+              categories: rawTC as Array<{ id: string; name: string; order: number }>,
+              usedDefault: false,
+            };
+          }
+          // Plain string array (legacy)
+          return {
+            categories: (rawTC as string[]).map((name, i) => ({ id: `cat_${i}`, name, order: i })),
+            usedDefault: false,
+          };
+        }
+        // {items: [...]} wrap
+        if (rawTC && typeof rawTC === 'object' && 'items' in rawTC) {
+          const items = (rawTC as { items?: unknown[] }).items;
+          if (Array.isArray(items) && items.length > 0) {
+            if (typeof items[0] === 'object' && items[0] !== null && 'id' in (items[0] as object)) {
+              return {
+                categories: items as Array<{ id: string; name: string; order: number }>,
+                usedDefault: false,
+              };
+            }
+            return {
+              categories: (items as string[]).map((name, i) => ({ id: `cat_${i}`, name, order: i })),
+              usedDefault: false,
+            };
+          }
+        }
+        // Default fallback
+        return {
+          categories: DEFAULT_TRADE_CATEGORIES.map((name, i) => ({ id: `cat_${i}`, name, order: i })),
+          usedDefault: true,
+        };
+      }
+
+      // Pre-resolve every workspace's snapshot once (avoid N profile reads
+      // when many estimates share a profile).
+      const allProfiles = await entities.FieldServiceProfile.list();
+      const profileById = new Map<string, Record<string, unknown>>();
+      for (const p of (Array.isArray(allProfiles) ? allProfiles : [])) {
+        profileById.set(p.id as string, p as Record<string, unknown>);
+      }
+
+      const toBackfill = records.filter((r) => !migratedIds.has(r.id as string));
+      const planned: Array<{
+        id: string;
+        estimate_number: unknown;
+        title: unknown;
+        profile_id: unknown;
+        snapshot_size: number;
+        used_default: boolean;
+        orphaned: boolean;
+      }> = [];
+      let orphanedCount = 0;
+      let usedDefaultCount = 0;
+
+      for (const r of toBackfill) {
+        const profileId = r.profile_id as string | undefined;
+        const profile = profileId ? profileById.get(profileId) : undefined;
+        if (!profile) {
+          orphanedCount += 1;
+          planned.push({
+            id: r.id as string,
+            estimate_number: r.estimate_number,
+            title: r.title,
+            profile_id: profileId,
+            snapshot_size: 0,
+            used_default: false,
+            orphaned: true,
+          });
+          continue;
+        }
+        const { categories, usedDefault } = resolveTradeCategories(profile.trade_categories_json);
+        if (usedDefault) usedDefaultCount += 1;
+        planned.push({
+          id: r.id as string,
+          estimate_number: r.estimate_number,
+          title: r.title,
+          profile_id: profileId,
+          snapshot_size: categories.length,
+          used_default: usedDefault,
+          orphaned: false,
+        });
+      }
+
+      if (dryRun) {
+        return Response.json({
+          success: true,
+          dry_run: true,
+          planned: {
+            entity_type: 'FSEstimate',
+            action: 'trade_categories_snapshot_backfilled',
+            scanned: records.length,
+            already_migrated: records.length - toBackfill.length,
+            will_backfill: toBackfill.length - orphanedCount,
+            orphaned_skipped: orphanedCount,
+            backfilled_from_default: usedDefaultCount,
+            sample: planned.slice(0, 5),
+          },
+        });
+      }
+
+      const results: Array<{ id: string; audit_log_id: string }> = [];
+      for (let i = 0; i < toBackfill.length; i++) {
+        const r = toBackfill[i];
+        const meta = planned[i];
+        if (meta.orphaned) continue;
+        const profile = profileById.get(r.profile_id as string)!;
+        const { categories, usedDefault } = resolveTradeCategories(profile.trade_categories_json);
+        const id = r.id as string;
+        await entities.FSEstimate.update(id, { trade_categories_snapshot: categories });
+        const audit = await writeAudit(base44, {
+          entity_type: 'FSEstimate',
+          entity_id: id,
+          action: 'trade_categories_snapshot_backfilled',
+          old_value: { trade_categories_snapshot: r.trade_categories_snapshot ?? null },
+          new_value: {
+            trade_categories_snapshot_size: categories.length,
+            used_default: usedDefault,
+            source_profile_id: r.profile_id,
+          },
+          source: 'backfill',
+        });
+        results.push({ id, audit_log_id: audit.id as string });
+      }
+
+      return Response.json({
+        success: true,
+        scanned: records.length,
+        backfilled: results.length,
+        already_migrated_skipped: records.length - toBackfill.length,
+        orphaned_skipped: orphanedCount,
+        backfilled_from_default: usedDefaultCount,
+        audit_log_ids: results.map((r) => r.audit_log_id),
+      });
+    }
+
     return Response.json({ error: `Unknown action: ${String(action)}` }, { status: 400 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
