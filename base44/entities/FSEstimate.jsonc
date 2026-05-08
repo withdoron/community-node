@@ -134,7 +134,7 @@
     "flat_layout": {
       "type": "boolean",
       "default": false,
-      "description": "When true, line items render as a single flat table. When false (default), line items render trade-grouped with per-trade subtotals + Unallocated bucket. Renamed from is_insurance_estimate 2026-05-08 with semantic inversion (Phase 2.1 — trade-grouping is platform default, DEC-206)."
+      "description": "When true, line items render as a single flat table. When false (default), line items render trade-grouped with per-trade subtotals plus an Unallocated bucket for line items without a trade tag. Renamed from is_insurance_estimate on 2026-05-08 with semantic inversion as part of Phase 2.1 \u2014 trade-grouping is now the platform default per DEC-206."
     },
     "client_show_breakdown": {
       "type": "boolean",
