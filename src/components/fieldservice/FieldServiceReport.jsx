@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import {
   ArrowLeft, Cloud, Download, Check, Link2, Loader2,
 } from 'lucide-react';
+import { excludeDeleted } from '@/utils/softDelete';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -64,11 +65,12 @@ export default function FieldServiceReport({ logId, profile, onBack }) {
       ]);
 
       const theLog = Array.isArray(logList) && logList[0] ? logList[0] : null;
-      if (!theLog) { setLoading(false); return; }
+      // Skip soft-deleted logs (commit 2 deletes shouldn't render reports).
+      if (!theLog || theLog.deleted_at) { setLoading(false); return; }
 
       setLog(theLog);
-      setMaterials(Array.isArray(matList) ? matList : []);
-      setLabor(Array.isArray(labList) ? labList : []);
+      setMaterials(excludeDeleted(Array.isArray(matList) ? matList : []));
+      setLabor(excludeDeleted(Array.isArray(labList) ? labList : []));
       setPhotos(Array.isArray(photoList) ? photoList : []);
 
       if (theLog.project_id) {

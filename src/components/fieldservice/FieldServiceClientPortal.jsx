@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Printer, X, Loader2, Camera, Shield, MessageSquare, Send } from 'lucide-react';
+import { excludeDeleted } from '@/utils/softDelete';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -41,7 +42,7 @@ export default function FieldServiceClientPortal({ project, profile, onBack }) {
     queryKey: ['fs-payments', project?.id],
     queryFn: async () => {
       const list = await base44.entities.FSPayment.filter({ project_id: project.id });
-      return (Array.isArray(list) ? list : list ? [list] : [])
+      return excludeDeleted(Array.isArray(list) ? list : list ? [list] : [])
         .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     },
     enabled: !!project?.id,
@@ -70,7 +71,7 @@ export default function FieldServiceClientPortal({ project, profile, onBack }) {
     queryKey: ['fs-client-logs', project?.id],
     queryFn: async () => {
       const list = await base44.entities.FSDailyLog.filter({ project_id: project.id });
-      return (Array.isArray(list) ? list : list ? [list] : [])
+      return excludeDeleted(Array.isArray(list) ? list : list ? [list] : [])
         .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     },
     enabled: !!project?.id,
@@ -92,7 +93,7 @@ export default function FieldServiceClientPortal({ project, profile, onBack }) {
     queryFn: async () => {
       if (!project?.id) return [];
       const list = await base44.entities.FSMaterialEntry.filter({ project_id: project.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []);
     },
     enabled: !!project?.id,
   });
@@ -102,7 +103,7 @@ export default function FieldServiceClientPortal({ project, profile, onBack }) {
     queryFn: async () => {
       if (!project?.id) return [];
       const list = await base44.entities.FSLaborEntry.filter({ project_id: project.id });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []);
     },
     enabled: !!project?.id,
   });

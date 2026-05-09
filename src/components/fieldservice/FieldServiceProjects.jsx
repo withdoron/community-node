@@ -18,6 +18,8 @@ import { isChangeOrderLocked } from '@/utils/fsEstimateLifecycle';
 import { useFSPayments, summarizePayments } from '@/hooks/useFSPayments';
 import { useProjectLinkedEstimates, deriveProjectClient } from '@/hooks/useProjectLinkedEstimates';
 import { useConsumePrefill } from '@/hooks/useConsumePrefill';
+import { useContractLineItems } from '@/hooks/useContractLineItems';
+import { excludeDeleted } from '@/utils/softDelete';
 import {
   FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save, X,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
@@ -238,7 +240,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       if (!profile?.id) return [];
       try {
         const list = await base44.entities.FSDailyLog.filter({ profile_id: profile.id });
-        return Array.isArray(list) ? list : list ? [list] : [];
+        return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []);
       } catch { return []; }
     },
     enabled: !!profile?.id,
@@ -251,7 +253,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       if (!profile?.id) return [];
       try {
         const list = await base44.entities.FSMaterialEntry.filter({ profile_id: profile.id });
-        return Array.isArray(list) ? list : list ? [list] : [];
+        return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []);
       } catch { return []; }
     },
     enabled: !!profile?.id,
@@ -264,7 +266,25 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       if (!profile?.id) return [];
       try {
         const list = await base44.entities.FSLaborEntry.filter({ profile_id: profile.id });
-        return Array.isArray(list) ? list : list ? [list] : [];
+        return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []);
+      } catch { return []; }
+    },
+    enabled: !!profile?.id,
+  });
+
+  // ─── Query: Workspace-wide payments (Phase 1.0 commit 1) ─────────────
+  // Workspace-scoped FSPayment cache, shared with FieldServiceHome's
+  // Desk Home Received tile via the same cache key (DEC-196 / DEC-202
+  // invalidation discipline). Drives spendByProject's new sub-payment
+  // contribution per spec §12 Q3 — projectSpent honesty: sub payments
+  // are Bari's actual costs and should land in the spent rollup.
+  const { data: allPayments = [] } = useQuery({
+    queryKey: ['fs-payments-all', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      try {
+        const list = await base44.entities.FSPayment.filter({ profile_id: profile.id });
+        return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []);
       } catch { return []; }
     },
     enabled: !!profile?.id,
@@ -298,16 +318,31 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     return map;
   }, [dailyLogs]);
 
+  // Phase 1.0 commit 1: spendByProject now includes settled FSPayment(paid)
+  // records grouped by project_id. Per LOG-LINE-ITEM-ATTRIBUTION-PROPOSAL
+  // §12 Q3 lock: sub payments ARE Bari's actual costs; including them in
+  // the spent rollup matches FINANCIAL-WORKFLOW-SPEC §2.4 intent. List-view
+  // Spent column reads through here.
   const spendByProject = useMemo(() => {
     const map = {};
     allMaterials.forEach((m) => {
-      if (m.project_id) map[m.project_id] = (map[m.project_id] || 0) + (m.total_cost || 0);
+      if (m.project_id && !m.deleted_at) map[m.project_id] = (map[m.project_id] || 0) + (m.total_cost || 0);
     });
     allLabor.forEach((l) => {
-      if (l.project_id) map[l.project_id] = (map[l.project_id] || 0) + (l.total_cost || 0);
+      if (l.project_id && !l.deleted_at) map[l.project_id] = (map[l.project_id] || 0) + (l.total_cost || 0);
+    });
+    allPayments.forEach((p) => {
+      // Settled + direction='paid' only (out-going to subs/vendors).
+      // Direction defaults to 'received' per FSPayment.jsonc schema, so
+      // legacy records without direction are NOT counted as paid.
+      if (!p.project_id) return;
+      if (p.deleted_at) return;
+      if (p.direction !== 'paid') return;
+      if (p.status !== 'received' && p.status !== 'cleared') return;
+      map[p.project_id] = (map[p.project_id] || 0) + (parseFloat(p.amount) || 0);
     });
     return map;
-  }, [allMaterials, allLabor]);
+  }, [allMaterials, allLabor, allPayments]);
 
   const filteredProjects = useMemo(() => {
     let list = projects;
@@ -397,7 +432,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       if (!selectedId) return [];
       try {
         const list = await base44.entities.FSMaterialEntry.filter({ project_id: selectedId });
-        return Array.isArray(list) ? list : list ? [list] : [];
+        return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []);
       } catch { return []; }
     },
     enabled: !!selectedId,
@@ -409,7 +444,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       if (!selectedId) return [];
       try {
         const list = await base44.entities.FSLaborEntry.filter({ project_id: selectedId });
-        return Array.isArray(list) ? list : list ? [list] : [];
+        return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []);
       } catch { return []; }
     },
     enabled: !!selectedId,
@@ -433,6 +468,14 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     () => summarizePayments(projectPayments),
     [projectPayments]
   );
+
+  // ─── Phase 1.0 commit 1: line-item attribution ────────────────────────
+  // useContractLineItems returns the chronological union of estimate +
+  // signed/accepted CO line items. Drives the per-line rollup section
+  // below the existing category-level Financial Ledger. Each item carries
+  // _origin / _co_number / _origin_label metadata for display labeling.
+  // Spec §9 + §12 Q5 lock (chronological grouping default).
+  const contractLineItems = useContractLineItems(selectedId);
 
   // ─── Cross-tab prefill consumers (Desk Home tile drill-in → Projects) ──
   // Two paired one-shot keys via useConsumePrefill (DEC-146):
@@ -515,11 +558,27 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     enabled: !!selectedProject?.id,
   });
 
+  // Phase 1.0 commit 1: projectSpent now includes settled FSPayment(paid)
+  // for this project. Same semantic as spendByProject above — sub payments
+  // are real costs per spec §12 Q3 lock. The Project Detail Spent tile
+  // reads this and shows "Materials + labor + sub payments" caption.
+  // Filters exclude soft-deleted records (commit 1 plumbs the schema; the
+  // delete UI ships in commit 2).
   const projectSpent = useMemo(() => {
-    const matTotal = projectMaterials.reduce((s, m) => s + (m.total_cost || 0), 0);
-    const labTotal = projectLabor.reduce((s, l) => s + (l.total_cost || 0), 0);
-    return matTotal + labTotal;
-  }, [projectMaterials, projectLabor]);
+    const matTotal = projectMaterials.reduce(
+      (s, m) => s + (m.deleted_at ? 0 : (m.total_cost || 0)), 0
+    );
+    const labTotal = projectLabor.reduce(
+      (s, l) => s + (l.deleted_at ? 0 : (l.total_cost || 0)), 0
+    );
+    const subPayTotal = projectPayments.reduce((s, p) => {
+      if (p.deleted_at) return s;
+      if (p.direction !== 'paid') return s;
+      if (p.status !== 'received' && p.status !== 'cleared') return s;
+      return s + (parseFloat(p.amount) || 0);
+    }, 0);
+    return matTotal + labTotal + subPayTotal;
+  }, [projectMaterials, projectLabor, projectPayments]);
 
   // ─── People assigned to selected project ─────────
   const assignedTeam = useMemo(() => {
@@ -1328,15 +1387,16 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       onClick: () => goToPaymentRow(p.id),
     }));
 
-    // Spent = materials + labor (cost lines from FSDailyLog children). Per
-    // FINANCIAL-WORKFLOW intent, FSPayment(paid) records may belong here too;
-    // that's a separate architectural conversation (Log-Line-Item Attribution
-    // proposal, awaiting Doron's sign-off). For now mirror the existing tile
-    // math exactly so the drill-in total matches the tile.
-    // Click navigates to the parent FSDailyLog (the canonical edit surface
-    // for materials and labor — they're entered via the daily log form).
+    // Spent = materials + labor + sub payments. Phase 1.0 commit 1 closed
+    // the FSPayment(paid) gap per spec §12 Q3 — sub payments are real costs
+    // and contribute to projectSpent. Drill-in shows all three streams so
+    // the rollup is honest about its sources.
+    // Click navigates to the parent FSDailyLog (materials + labor) or to
+    // the payment's row in the Recent Payments section (sub payments —
+    // FSPayment edit form deferred to commit 2 per DEC-214).
     const spentRows = [];
     projectMaterials.forEach((m) => {
+      if (m.deleted_at) return;
       const qty = parseFloat(m.quantity) || 0;
       const unitCost = parseFloat(m.unit_cost) || 0;
       const cost = parseFloat(m.total_cost) || (qty * unitCost);
@@ -1350,6 +1410,7 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       });
     });
     projectLabor.forEach((l) => {
+      if (l.deleted_at) return;
       const hours = parseFloat(l.hours) || 0;
       const cost = parseFloat(l.total_cost) || 0;
       spentRows.push({
@@ -1359,6 +1420,21 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
         amount: fmt(cost),
         amountClass: 'text-primary',
         onClick: l.daily_log_id ? () => goToLogForRecord(l.daily_log_id) : undefined,
+      });
+    });
+    // Phase 1.0 commit 1: sub payments contribute to Spent. Same row click
+    // pattern as the Paid Out drill-in (goToPaymentRow). Settled-only.
+    projectPayments.forEach((p) => {
+      if (p.deleted_at) return;
+      if (p.direction !== 'paid') return;
+      if (p.status !== 'received' && p.status !== 'cleared') return;
+      spentRows.push({
+        key: `pay-spent-${p.id}`,
+        primary: p.party_name || `Paid to ${p.party_type || 'party'}`,
+        secondary: `Sub payment${p.date ? ` · ${fmtDate(p.date)}` : ''}${p.method ? ` · ${p.method}` : ''}`,
+        amount: fmt(parseFloat(p.amount) || 0),
+        amountClass: 'text-primary',
+        onClick: () => goToPaymentRow(p.id),
       });
     });
 
@@ -1474,10 +1550,11 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       },
       spent: {
         title: 'Spent',
-        subtitle: `${drillContext} · Materials and labor logged against this project`,
+        subtitle: `${drillContext} · Materials, labor, and sub payments logged against this project`,
         total: fmt(spent),
         rows: spentRows,
-        emptyMessage: 'No materials or labor logged yet.',
+        emptyMessage: 'No materials, labor, or sub payments logged yet.',
+        footer: 'Spent = sum of materials, labor cost lines, and settled sub/vendor payments. Per LOG-LINE-ITEM-ATTRIBUTION-PROPOSAL §12 Q3.',
       },
       remaining: {
         title: 'Remaining',
@@ -1732,6 +1809,9 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           >
             <p className="text-xs text-muted-foreground mb-1">Spent</p>
             <p className="text-lg font-bold text-primary">{fmt(spent)}</p>
+            {/* Phase 1.0 commit 1: caption explains the new math.
+                Spent now includes settled sub payments per spec §12 Q3. */}
+            <p className="text-xs text-muted-foreground/70 mt-1">Materials + labor + sub payments</p>
           </button>
           <button
             type="button"
@@ -1886,6 +1966,171 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
                             {totalVariance >= 0 ? '+' : ''}{fmt(totalVariance)}
                           </td>
                         )}
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Per-line rollup view (Phase 1.0 commit 1, Thread 2)
+            Per LOG-LINE-ITEM-ATTRIBUTION-PROPOSAL.md §5.2 / §12 Q3 / §14.4.
+            Shows Estimated / Billed / Cost / Variance per contract line item
+            (estimate + signed COs, chronological), plus an Unallocated row
+            at the bottom for FSPayment with line_item_id IS NULL.
+
+            Orphaned references (line_item_id pointing to a now-deleted line)
+            auto-shift to Unallocated visually so the rollup totals balance
+            against total Received / Paid Out — the picker exposes the
+            "Detached" hint on edit (commit 2) for the contractor to re-pick.
+
+            Sits below the category-level Ledger above — the category roll
+            stays for at-a-glance read; this section gives the line-level
+            audit when the contractor wants to see per-line detail.
+
+            Renders only when there's something to show: contract line items
+            exist OR there are payments (allocated or not) on the project. */}
+        {(() => {
+          // Settled + by-direction grouping mirrors useFSPayments
+          // summarizePayments helper. Only counts settled rows (received /
+          // cleared); pending doesn't move the gauge.
+          const settled = projectPayments.filter(
+            (p) => p.status === 'received' || p.status === 'cleared'
+          );
+
+          // Group by line_item_id (null bucket = Unallocated).
+          const byLine = {};
+          for (const p of settled) {
+            const key = p.line_item_id || '__unallocated__';
+            if (!byLine[key]) byLine[key] = { received: 0, paid: 0 };
+            const amt = parseFloat(p.amount) || 0;
+            if (p.direction === 'paid') byLine[key].paid += amt;
+            else if ((p.direction || 'received') === 'received') byLine[key].received += amt;
+          }
+
+          // Orphan handling (spec §5.3 — auto-shift to Unallocated visually).
+          // Any line_item_id that doesn't appear in the current contract gets
+          // its totals folded into the Unallocated bucket so the rollup totals
+          // stay consistent with the project header's Received / Paid Out.
+          const lineIds = new Set(contractLineItems.map((it) => it.id));
+          const unalloc = byLine.__unallocated__ || { received: 0, paid: 0 };
+          for (const [key, v] of Object.entries(byLine)) {
+            if (key !== '__unallocated__' && !lineIds.has(key)) {
+              unalloc.received += v.received;
+              unalloc.paid += v.paid;
+            }
+          }
+          byLine.__unallocated__ = unalloc;
+
+          const hasLineItems = contractLineItems.length > 0;
+          const hasAnyPayments = settled.length > 0;
+
+          // Skip if neither lines nor payments exist (avoids empty card on
+          // brand-new projects). Empty-state for projects WITH lines but no
+          // payments yet renders em-dashes per spec §4.6.
+          if (!hasLineItems && !hasAnyPayments) return null;
+
+          const variancColor = (v) => {
+            if (v > 0) return 'text-emerald-400';
+            if (v < 0) return 'text-red-400';
+            return 'text-muted-foreground';
+          };
+
+          // Totals row math
+          const totalEstimated = contractLineItems.reduce(
+            (s, it) => s + (parseFloat(it.amount) || 0), 0
+          );
+          let totalBilled = 0;
+          let totalCost = 0;
+          for (const v of Object.values(byLine)) {
+            totalBilled += v.received;
+            totalCost += v.paid;
+          }
+          const totalVariance = totalEstimated - totalCost;
+
+          return (
+            <div className="bg-card border border-border rounded-xl overflow-hidden">
+              <div className="p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <LayoutList className="h-4 w-4 text-primary" />
+                  <h3 className="text-sm font-bold text-foreground">Per-line rollup</h3>
+                </div>
+                <p className="text-xs text-muted-foreground/70 mb-3">
+                  Each line: Estimated from contract; Billed from settled
+                  client payments attributed to that line; Cost from settled
+                  sub/vendor payments attributed to that line. Unattributed
+                  payments fall into the Unallocated row.
+                </p>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-2 text-muted-foreground font-medium text-xs">Line item</th>
+                        <th className="text-right py-2 text-muted-foreground font-medium text-xs">Estimated</th>
+                        <th className="text-right py-2 text-muted-foreground font-medium text-xs">Billed</th>
+                        <th className="text-right py-2 text-muted-foreground font-medium text-xs">Cost</th>
+                        <th className="text-right py-2 text-muted-foreground font-medium text-xs">Variance</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {contractLineItems.map((it) => {
+                        const row = byLine[it.id] || { received: 0, paid: 0 };
+                        const est = parseFloat(it.amount) || 0;
+                        const v = est - row.paid;
+                        const desc = it.description || `${it.category || 'Line'} item`;
+                        return (
+                          <tr key={it.id} className="border-b border-border/50">
+                            <td className="py-2 pr-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-xs px-1.5 py-0.5 rounded bg-secondary text-muted-foreground flex-shrink-0">
+                                  {it._origin_label}
+                                </span>
+                                <span className="text-foreground-soft truncate">{desc}</span>
+                              </div>
+                            </td>
+                            <td className="py-2 text-right text-muted-foreground">{fmt(est)}</td>
+                            <td className="py-2 text-right text-emerald-400">{row.received > 0 ? fmt(row.received) : '—'}</td>
+                            <td className="py-2 text-right text-primary">{row.paid > 0 ? fmt(row.paid) : '—'}</td>
+                            <td className={`py-2 text-right font-medium ${variancColor(v)}`}>
+                              {est > 0 ? `${v >= 0 ? '+' : ''}${fmt(v)}` : '—'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {/* Unallocated row — always render when there's any
+                          unattributed activity OR contract has lines (so the
+                          contractor sees the bucket exists even at $0). */}
+                      {(byLine.__unallocated__.received > 0 || byLine.__unallocated__.paid > 0 || hasLineItems) && (
+                        <tr className="border-b border-border/50 bg-secondary/30">
+                          <td className="py-2 pr-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-muted-foreground/20 text-muted-foreground flex-shrink-0">
+                                Unallocated
+                              </span>
+                              <span className="text-muted-foreground italic truncate">
+                                Payments not tied to a specific line
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-2 text-right text-muted-foreground">—</td>
+                          <td className="py-2 text-right text-emerald-400">{byLine.__unallocated__.received > 0 ? fmt(byLine.__unallocated__.received) : '—'}</td>
+                          <td className="py-2 text-right text-primary">{byLine.__unallocated__.paid > 0 ? fmt(byLine.__unallocated__.paid) : '—'}</td>
+                          <td className="py-2 text-right text-muted-foreground">—</td>
+                        </tr>
+                      )}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t border-border">
+                        <td className="py-2 text-foreground font-bold">Totals</td>
+                        <td className="py-2 text-right text-foreground-soft font-bold">{fmt(totalEstimated)}</td>
+                        <td className="py-2 text-right text-emerald-400 font-bold">{fmt(totalBilled)}</td>
+                        <td className="py-2 text-right text-primary font-bold">{fmt(totalCost)}</td>
+                        <td className={`py-2 text-right font-bold ${variancColor(totalVariance)}`}>
+                          {totalEstimated > 0 ? `${totalVariance >= 0 ? '+' : ''}${fmt(totalVariance)}` : '—'}
+                        </td>
                       </tr>
                     </tfoot>
                   </table>

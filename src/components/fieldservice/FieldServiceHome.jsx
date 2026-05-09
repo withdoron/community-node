@@ -6,6 +6,7 @@ import WorkspaceGuide from '@/components/workspaces/WorkspaceGuide';
 import { invalidateFSProfiles } from '@/utils/fsFeatures';
 import { useWorkspacePeople } from '@/hooks/useWorkspacePeople';
 import ProjectTileDrillIn from './ProjectTileDrillIn';
+import { excludeDeleted } from '@/utils/softDelete';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -57,7 +58,7 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
       if (!profile?.id) return [];
       try {
         const list = await base44.entities.FSMaterialEntry.filter({ profile_id: profile.id });
-        return (Array.isArray(list) ? list : list ? [list] : []).filter((m) => {
+        return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []).filter((m) => {
           const d = (m.created_date || '').split('T')[0];
           return d >= monthStart;
         });
@@ -73,7 +74,7 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
       if (!profile?.id) return [];
       try {
         const list = await base44.entities.FSLaborEntry.filter({ profile_id: profile.id });
-        return (Array.isArray(list) ? list : list ? [list] : []).filter((l) => {
+        return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []).filter((l) => {
           const d = (l.created_date || '').split('T')[0];
           return d >= monthStart;
         });
@@ -89,7 +90,7 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
       if (!profile?.id) return [];
       try {
         const list = await base44.entities.FSDailyLog.filter({ profile_id: profile.id }, '-date', 5);
-        return Array.isArray(list) ? list : list ? [list] : [];
+        return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []);
       } catch { return []; }
     },
     enabled: !!profile?.id,
@@ -115,7 +116,7 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
       if (!profile?.id) return [];
       try {
         const list = await base44.entities.FSPayment.filter({ profile_id: profile.id });
-        return Array.isArray(list) ? list : list ? [list] : [];
+        return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []);
       } catch { return []; }
     },
     enabled: !!profile?.id,

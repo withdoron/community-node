@@ -5,6 +5,7 @@ import FieldServiceReport from './FieldServiceReport';
 import {
   ArrowLeft, MapPin, Cloud, X, Loader2, FileText, Camera,
 } from 'lucide-react';
+import { excludeDeleted } from '@/utils/softDelete';
 
 const STATUS_COLORS = {
   active: 'bg-emerald-500/20 text-emerald-400',
@@ -61,7 +62,7 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
     queryFn: async () => {
       if (!projectId) return [];
       const list = await base44.entities.FSDailyLog.filter({ project_id: projectId });
-      return (Array.isArray(list) ? list : list ? [list] : [])
+      return excludeDeleted(Array.isArray(list) ? list : list ? [list] : [])
         .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     },
     enabled: !!projectId,
@@ -73,7 +74,7 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
     queryFn: async () => {
       if (!projectId) return [];
       const list = await base44.entities.FSMaterialEntry.filter({ project_id: projectId });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []);
     },
     enabled: !!projectId,
   });
@@ -84,7 +85,7 @@ export default function FieldServiceTimeline({ projectId, profile, onBack }) {
     queryFn: async () => {
       if (!projectId) return [];
       const list = await base44.entities.FSLaborEntry.filter({ project_id: projectId });
-      return Array.isArray(list) ? list : list ? [list] : [];
+      return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []);
     },
     enabled: !!projectId,
   });

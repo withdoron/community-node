@@ -8,6 +8,7 @@ import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { getFeatures } from '@/utils/fsFeatures';
 import { getEstimateTradeCategories } from '@/utils/fsTradeCategories';
 import { isEstimateLocked } from '@/utils/fsEstimateLifecycle';
+import { excludeDeleted } from '@/utils/softDelete';
 import { toast } from 'sonner';
 
 /**
@@ -1014,7 +1015,7 @@ function ProjectPortalView({ profileId: pathProfileId, projectId: pathProjectId 
     queryKey: ['fs-public-payments', pathProjectId],
     queryFn: async () => {
       const list = await base44.entities.FSPayment.filter({ project_id: pathProjectId });
-      return (Array.isArray(list) ? list : list ? [list] : [])
+      return excludeDeleted(Array.isArray(list) ? list : list ? [list] : [])
         .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     },
     enabled: !!pathProjectId,
@@ -1043,7 +1044,7 @@ function ProjectPortalView({ profileId: pathProfileId, projectId: pathProjectId 
     queryKey: ['fs-public-logs', pathProjectId],
     queryFn: async () => {
       const list = await base44.entities.FSDailyLog.filter({ project_id: pathProjectId });
-      return (Array.isArray(list) ? list : list ? [list] : [])
+      return excludeDeleted(Array.isArray(list) ? list : list ? [list] : [])
         .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     },
     enabled: !!pathProjectId,

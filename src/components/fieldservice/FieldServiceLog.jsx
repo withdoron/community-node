@@ -6,10 +6,12 @@ import { toast } from 'sonner';
 import VoiceInput from './VoiceInput';
 import CurrencyInput from './CurrencyInput';
 import SubVendorPicker from './SubVendorPicker';
+import LineItemPicker from './LineItemPicker';
 import { scrollToTopOf } from '@/utils/scrollToTop';
 import useBottomInset from '@/hooks/useBottomInset';
 import { useProjectLinkedEstimates, deriveProjectClient } from '@/hooks/useProjectLinkedEstimates';
 import { useConsumePrefill } from '@/hooks/useConsumePrefill';
+import { excludeDeleted } from '@/utils/softDelete';
 import {
   Camera, Plus, X, ClipboardList, Package, Users, Cloud,
   Loader2, Save, Trash2, FolderOpen, Receipt, ChevronDown, Pencil,
@@ -66,6 +68,7 @@ const EMPTY_PAYMENT_FORM = {
   payee_name: '',
   party_id: '',           // Phase 2.4: workers_json id when picker selects a sub/vendor
   party_type: 'subcontractor',
+  line_item_id: null,     // Phase 1.0 commit 1: nullable FK to estimate/CO line item; null = Unallocated
   receipt_file: null,
   receipt_preview: null,
 };
@@ -191,7 +194,8 @@ export default function FieldServiceLog({ profile, currentUser }) {
       try {
         const res = await base44.entities.FSDailyLog.filter({ id: prefillLogId });
         const log = Array.isArray(res) ? res[0] : res;
-        if (!cancelled && log) await loadLogForEditing(log);
+        // Skip soft-deleted logs (commit 2 deletes shouldn't open for editing).
+        if (!cancelled && log && !log.deleted_at) await loadLogForEditing(log);
       } catch {
         // best-effort: if the fetch fails the user lands on the Log home,
         // which is still a reasonable destination.
@@ -207,7 +211,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
       if (!projectId) return [];
       try {
         const list = await base44.entities.FSDailyLog.filter({ project_id: projectId });
-        return Array.isArray(list) ? list : list ? [list] : [];
+        return excludeDeleted(Array.isArray(list) ? list : list ? [list] : []);
       } catch { return []; }
     },
     enabled: !!projectId,
@@ -365,7 +369,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
     // Load associated materials
     try {
       const mats = await base44.entities.FSMaterialEntry.filter({ daily_log_id: log.id });
-      const matList = Array.isArray(mats) ? mats : mats ? [mats] : [];
+      const matList = excludeDeleted(Array.isArray(mats) ? mats : mats ? [mats] : []);
       setMaterials(matList.map((m) => ({
         id: m.id,
         description: m.description || '',
@@ -380,7 +384,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
     // Load associated labor
     try {
       const labs = await base44.entities.FSLaborEntry.filter({ daily_log_id: log.id });
-      const labList = Array.isArray(labs) ? labs : labs ? [labs] : [];
+      const labList = excludeDeleted(Array.isArray(labs) ? labs : labs ? [labs] : []);
       setLabor(labList.map((l) => ({
         id: l.id,
         worker_name: l.worker_name || '',
@@ -522,6 +526,10 @@ export default function FieldServiceLog({ profile, currentUser }) {
           check_number: paymentForm.method === 'check' ? (paymentForm.reference.trim() || null) : null,
           notes: paymentForm.notes.trim() || null,
           status: 'received',
+          // Phase 1.0 commit 1: line-item attribution. Null = Unallocated
+          // (flows into project-level Unallocated bucket per spec §3.2.5).
+          // Optional field on every payment write — picker default empty.
+          line_item_id: paymentForm.line_item_id || null,
         };
 
         if (paymentForm.receipt_file) {
@@ -1027,6 +1035,17 @@ export default function FieldServiceLog({ profile, currentUser }) {
                   placeholder="Check #, ACH ID, etc."
                 />
               </div>
+              {/* Phase 1.0 commit 1: line-item attribution. Picker is optional;
+                  empty selection writes line_item_id: null = Unallocated bucket
+                  per FINANCIAL-WORKFLOW-SPEC §3.2.5. Type-ahead per §12 Q4 lock. */}
+              <div className="sm:col-span-2">
+                <label className={LABEL_CLASS}>Line item</label>
+                <LineItemPicker
+                  projectId={projectId}
+                  value={paymentForm.line_item_id}
+                  onChange={(id) => setPaymentField('line_item_id', id)}
+                />
+              </div>
             </div>
             <div>
               <label className={LABEL_CLASS}>Notes</label>
@@ -1126,6 +1145,19 @@ export default function FieldServiceLog({ profile, currentUser }) {
                   onChange={(e) => setPaymentField('reference', e.target.value)}
                   className={INPUT_CLASS}
                   placeholder="Check #, ACH ID, etc."
+                />
+              </div>
+              {/* Phase 1.0 commit 1: line-item attribution (Client Payment).
+                  Same picker as Sub Payment; client receipts can attribute to
+                  the contract line they're paying for. Empty = Unallocated
+                  (the deposit-style case until allocation_status ships in
+                  the post-migration layer per FINANCIAL-WORKFLOW-SPEC §3.2.5). */}
+              <div className="sm:col-span-2">
+                <label className={LABEL_CLASS}>Line item</label>
+                <LineItemPicker
+                  projectId={projectId}
+                  value={paymentForm.line_item_id}
+                  onChange={(id) => setPaymentField('line_item_id', id)}
                 />
               </div>
             </div>
