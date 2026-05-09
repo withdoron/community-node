@@ -10,7 +10,6 @@ import {
 import CurrencyInput from './CurrencyInput';
 import { invalidateFSProfiles } from '@/utils/fsFeatures';
 import { ROLE_BADGES, WORKERS_ROLES, getRoleConfig, newWorkerId } from '@/utils/fsWorkersRoles';
-import { getTradeCategories } from '@/utils/fsTradeCategories';
 import { useWorkspacePeople } from '@/hooks/useWorkspacePeople';
 import {
   Select,
@@ -19,13 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-// Sentinel for the primary-trade picker's "no primary trade" option.
-// Radix Select disallows empty-string values; round-trip this sentinel to/
-// from '' at the I/O boundary so the underlying workers_json shape is
-// unchanged (primary_trade_id stays '' when no trade is set). Mirrors the
-// NO_TRADE_VALUE pattern in LineItemsEditor.
-const NO_PRIMARY_TRADE_VALUE = '__no_primary_trade__';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
@@ -49,7 +41,6 @@ const EMPTY_PERSON = {
   phone: '',
   email: '',
   business_name: '',
-  primary_trade_id: '',
   hourly_rate: '',
   notes: '',
   assigned_projects: [],
@@ -244,17 +235,10 @@ function PersonModal({ person, activeProjects, profile, onSave, onCancel, isSavi
     ...(person || {}),
     hourly_rate: person?.hourly_rate?.toString() || '',
     assigned_projects: person?.assigned_projects || [],
-    primary_trade_id: person?.primary_trade_id || '',
   }));
   const isEdit = person != null && typeof person._editIndex === 'number' && person._editIndex >= 0;
   const set = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
   const config = getRoleConfig(form.role);
-
-  // Workspace's CURRENT trade_categories_json — primary_trade_id references
-  // this list, NOT a per-estimate snapshot. When the line item's snapshot
-  // doesn't contain a matching category at Phase 2.5 derivation time, the
-  // line soft-fails to Unallocated.
-  const tradeCategories = useMemo(() => getTradeCategories(profile), [profile]);
 
   const toggleProject = (pid) => {
     setForm((prev) => {
@@ -278,11 +262,10 @@ function PersonModal({ person, activeProjects, profile, onSave, onCancel, isSavi
       name: form.name.trim(),
       phone: form.phone.trim(),
       email: form.email.trim(),
-      // Drop business_name / primary_trade_id / hourly_rate / assigned_projects
-      // when the role config disallows them — keeps stored records clean if
-      // a person's role changes worker → vendor (or vice versa) post-save.
+      // Drop business_name / hourly_rate / assigned_projects when the role
+      // config disallows them — keeps stored records clean if a person's
+      // role changes worker → vendor (or vice versa) post-save.
       business_name: config.hasBusinessName ? (form.business_name?.trim() || '') : '',
-      primary_trade_id: config.hasPrimaryTradeId ? (form.primary_trade_id || '') : '',
       hourly_rate: config.hasHourlyRate ? (parseFloat(form.hourly_rate) || 0) : 0,
       assigned_projects: config.hasAssignedProjects ? (form.assigned_projects || []) : [],
       notes: form.notes?.trim() || '',
@@ -346,32 +329,6 @@ function PersonModal({ person, activeProjects, profile, onSave, onCancel, isSavi
               className={INPUT_CLASS}
               placeholder="Business or DBA name"
             />
-          </div>
-        )}
-
-        {/* Primary trade — subs + vendors per config.hasPrimaryTradeId.
-            References workspace's CURRENT trade_categories_json (not snapshot);
-            Phase 2.5 derivation soft-fails when an estimate's snapshot doesn't
-            contain a matching category. Sentinel pattern mirrors LineItemsEditor. */}
-        {config.hasPrimaryTradeId && (
-          <div>
-            <label className="block text-sm text-muted-foreground mb-1">Primary trade</label>
-            <Select
-              value={form.primary_trade_id || NO_PRIMARY_TRADE_VALUE}
-              onValueChange={(value) =>
-                set('primary_trade_id', value === NO_PRIMARY_TRADE_VALUE ? '' : value)
-              }
-            >
-              <SelectTrigger className="w-full bg-secondary border-border text-foreground min-h-[44px] focus:ring-ring">
-                <SelectValue placeholder="— No primary trade —" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_PRIMARY_TRADE_VALUE}>— No primary trade —</SelectItem>
-                {tradeCategories.map((tc) => (
-                  <SelectItem key={tc.id} value={tc.id}>{tc.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         )}
 

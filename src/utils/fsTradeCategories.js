@@ -54,11 +54,20 @@ export function getEstimateTradeCategories(estimate, profile) {
 }
 
 /**
- * Derive a line item's trade category via name-bridging. Phase 2.5
- * empty-field derivation (DEC-206 discipline applied to a fourth surface,
- * after the three project↔estimate derivations in useProjectLinkedEstimates).
+ * Derive a line item's trade category via name-bridging.
  *
- * Resolution order (direct field always wins):
+ * Currently disconnected from the render path — kept as scaffolding after
+ * the Phase 2.5 rollback. The single-trade-per-sub model (one
+ * primary_trade_id per workers_json item, name-bridged into per-estimate
+ * snapshots) collapsed across taxonomies: a sub mapped to "Tile" in the
+ * GC preset has no name match in CSI MasterFormat, so the bridge silently
+ * soft-failed in cross-taxonomy estimates. The user-visible derivation
+ * (italic dropdown styling, info-dot tooltip) was rolled back to avoid
+ * teaching contractors to distrust the visual cue. The primary_trade_id
+ * field was removed from workers_json items via migration. Revisit when
+ * per-taxonomy sub-to-trade mapping is the right shape (Phase 3+).
+ *
+ * Resolution order (direct field always wins, DEC-206):
  *   1. line.trade_category_id set       → { source: 'line' }
  *   2. line.sub_person_id linked sub
  *      with primary_trade_id            → name-bridge:
@@ -68,15 +77,11 @@ export function getEstimateTradeCategories(estimate, profile) {
  *          name match in snapshot)       → { id: '', source: null }
  *   3. Anything else                     → { id: '', source: null }
  *
- * Why name-bridging vs storing snapshot ids on workers_json: workers_json's
- * primary_trade_id references the workspace's CURRENT trade_categories_json
- * (Phase 2.3 lock-in). Estimates carry frozen taxonomy snapshots (Phase 2.2).
- * The bridge resolves at read time so taxonomy changes propagate correctly.
- *
  * Read-time only. Soft-fails to Unallocated when bridging fails — never
- * throws, never blocks render. Pure function (no React state); call from
- * inside the consumer's existing useMemo for grouping or directly in
- * editor render path. Mirrors deriveProjectClient shape.
+ * throws, never blocks render. Pure function (no React state); mirrors
+ * deriveProjectClient shape. After the migration strip, every sub's
+ * primary_trade_id is empty, so step 2 returns null source for every
+ * call until the field is reintroduced.
  *
  * @param {Object} line - Line item (may be undefined)
  * @param {Object} peopleMap - { [person_id]: workers_json item }

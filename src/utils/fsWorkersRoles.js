@@ -8,7 +8,12 @@
  *   hasHourlyRate       — workers only (the only role billed by the hour)
  *   hasBusinessName     — subs and vendors (their DBA / company)
  *   hasAssignedProjects — workers and subs (vendors are reference-only)
- *   hasPrimaryTradeId   — subs and vendors (drives Phase 2.5 trade derivation)
+ *
+ * (Phase 2.5 added a `hasPrimaryTradeId` flag for sub/vendor trade
+ * derivation; rolled back when the single-trade-per-sub model proved
+ * fragile across taxonomy switches. Field stripped from workers_json items
+ * via migration; flag dropped from this config. Revisit when per-taxonomy
+ * sub-to-trade mapping is the right shape.)
  *
  * Three sites consumed the role data before extraction (ROLE_BADGES map,
  * PersonModal <select>, section filter); adding vendor would have made it
@@ -27,7 +32,6 @@ export const WORKERS_ROLES = [
     hasHourlyRate: true,
     hasBusinessName: false,
     hasAssignedProjects: true,
-    hasPrimaryTradeId: false,
   },
   {
     value: 'subcontractor',
@@ -37,7 +41,6 @@ export const WORKERS_ROLES = [
     hasHourlyRate: false,
     hasBusinessName: true,
     hasAssignedProjects: true,
-    hasPrimaryTradeId: true,
   },
   {
     value: 'vendor',
@@ -47,7 +50,6 @@ export const WORKERS_ROLES = [
     hasHourlyRate: false,
     hasBusinessName: true,
     hasAssignedProjects: false,
-    hasPrimaryTradeId: true,
   },
 ];
 

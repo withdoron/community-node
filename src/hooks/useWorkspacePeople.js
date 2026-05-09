@@ -24,9 +24,12 @@ import { parseWrappedArray } from '@/utils/wrapShape';
  * Returns:
  *   people     — role-filtered list (or all if roleFilter undefined)
  *   allPeople  — every workers_json item, unfiltered
- *   peopleMap  — { [id]: person } hash lookup, derived from allPeople
- *                (Phase 2.5: feeds deriveLineTrade for empty-field trade
- *                derivation; replaces O(N) find() at consumer sites)
+ *   peopleMap  — { [id]: person } hash lookup, derived from allPeople.
+ *                Currently no active consumer — added in Phase 2.5 to feed
+ *                deriveLineTrade and kept after the Phase 2.5 rollback as
+ *                pre-built scaffolding for future O(1) lookup needs (e.g.,
+ *                future SubVendorPicker selection lookup, future inline
+ *                parseWorkers consumer migrations).
  */
 export function useWorkspacePeople(profile, roleFilter) {
   const all = useMemo(

@@ -11,7 +11,6 @@ import {
   getRoleConfig,
   newWorkerId,
 } from '@/utils/fsWorkersRoles';
-import { getTradeCategories } from '@/utils/fsTradeCategories';
 import { parseWrappedArray } from '@/utils/wrapShape';
 import { invalidateFSProfiles } from '@/utils/fsFeatures';
 import {
@@ -35,11 +34,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-// Mirrors the NO_PRIMARY_TRADE_VALUE sentinel from FieldServicePeople (Phase 2.3)
-// — Radix Select disallows '' as a value; round-trip the sentinel at the I/O
-// boundary so the underlying primary_trade_id stays '' when no trade is set.
-const NO_PRIMARY_TRADE_VALUE = '__no_primary_trade__';
 
 const TRIGGER_CLASS =
   'w-full bg-secondary border border-border text-foreground placeholder:text-muted-foreground/70 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent min-h-[44px] flex items-center justify-between gap-2 disabled:opacity-50 disabled:cursor-not-allowed';
@@ -265,7 +259,6 @@ export default function SubVendorPicker({
       {quickAddOpen && (
         <QuickAddPersonModal
           seed={quickAddSeed}
-          profile={profile}
           allowedRoles={roleArray}
           onSave={handleQuickAddSave}
           onCancel={() => setQuickAddOpen(false)}
@@ -278,9 +271,9 @@ export default function SubVendorPicker({
 
 /**
  * QuickAddPersonModal — slim form for adding a new sub/vendor without
- * leaving the picker flow. Phase 2 §7.7: name + role + business_name +
- * primary_trade_id only. Phone, email, hourly_rate, notes, assigned_projects
- * stay in the full PersonModal in FieldServicePeople.
+ * leaving the picker flow. Phase 2 §7.7: name + role + business_name only.
+ * Phone, email, hourly_rate, notes, assigned_projects stay in the full
+ * PersonModal in FieldServicePeople.
  *
  * `allowedRoles` constrains which roles the role select offers — for
  * single-role pickers (e.g., LineItemsEditor sub picker), the form
@@ -289,7 +282,6 @@ export default function SubVendorPicker({
  */
 function QuickAddPersonModal({
   seed,
-  profile,
   allowedRoles = ['subcontractor'],
   onSave,
   onCancel,
@@ -299,11 +291,9 @@ function QuickAddPersonModal({
     name: seed.name || '',
     role: allowedRoles.includes(seed.role) ? seed.role : allowedRoles[0],
     business_name: '',
-    primary_trade_id: '',
   }));
   const set = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
   const config = getRoleConfig(form.role);
-  const tradeCategories = useMemo(() => getTradeCategories(profile), [profile]);
   const showRoleSelect = allowedRoles.length > 1;
 
   const handleSave = () => {
@@ -316,7 +306,6 @@ function QuickAddPersonModal({
       name: form.name.trim(),
       role: form.role,
       business_name: config.hasBusinessName ? form.business_name.trim() : '',
-      primary_trade_id: config.hasPrimaryTradeId ? (form.primary_trade_id || '') : '',
       phone: '',
       email: '',
       hourly_rate: 0,
@@ -381,31 +370,6 @@ function QuickAddPersonModal({
               className={INPUT_CLASS}
               placeholder="Business or DBA name"
             />
-          </div>
-        )}
-
-        {/* Primary trade — subs + vendors. References workspace's CURRENT
-            trade_categories_json (not snapshot); same picker pattern as
-            PersonModal in FieldServicePeople. */}
-        {config.hasPrimaryTradeId && (
-          <div>
-            <label className="block text-sm text-muted-foreground mb-1">Primary trade</label>
-            <Select
-              value={form.primary_trade_id || NO_PRIMARY_TRADE_VALUE}
-              onValueChange={(value) =>
-                set('primary_trade_id', value === NO_PRIMARY_TRADE_VALUE ? '' : value)
-              }
-            >
-              <SelectTrigger className="w-full bg-secondary border-border text-foreground min-h-[44px] focus:ring-ring">
-                <SelectValue placeholder="— No primary trade —" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_PRIMARY_TRADE_VALUE}>— No primary trade —</SelectItem>
-                {tradeCategories.map((tc) => (
-                  <SelectItem key={tc.id} value={tc.id}>{tc.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         )}
 
