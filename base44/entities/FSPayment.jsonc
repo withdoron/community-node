@@ -93,6 +93,22 @@
       ],
       "description": "Payment status"
     },
+    "line_item_id": {
+      "type": "string",
+      "description": "Nullable. FK to a line item ID inside the project's FSEstimate.line_items or any signed FSChangeOrder.line_items. No FK enforcement at entity layer (line items live as JSON inside the parent estimate/CO; FK is application-level). When null, payment is 'unallocated' \u2014 flows into the project-level Unallocated bucket."
+    },
+    "parent_payment_id": {
+      "type": "string",
+      "description": "Nullable. FK to another FSPayment record. Used by the cleared-payment Reverse flow \u2014 a reversing payment carries the original payment's ID here. Original record stays intact; net to zero."
+    },
+    "deleted_at": {
+      "type": "string",
+      "description": "Nullable datetime. Stamps when the record was soft-deleted via the softDeleteWithCascade server function. Null means the record is live. Excluded from default reads via .filter() chains in code."
+    },
+    "deleted_by": {
+      "type": "string",
+      "description": "Nullable. User ID (the Users.id value) of the user who soft-deleted the record. Captured for audit trail."
+    },
     "business_id": {
       "type": "string",
       "description": "FK to a Business record. Scopes this record to a specific business inside the new multi-business architecture. Will be backfilled in a separate Hyphae script. Code continues to work with business_id: null (dual-read pattern during backfill)."

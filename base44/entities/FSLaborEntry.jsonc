@@ -29,6 +29,14 @@
     "description": {
       "type": "string"
     },
+    "deleted_at": {
+      "type": "string",
+      "description": "Nullable datetime. Stamps when the record was soft-deleted. Cascade-soft-deleted when the parent FSDailyLog is soft-deleted via softDeleteWithCascade. Null means the record is live."
+    },
+    "deleted_by": {
+      "type": "string",
+      "description": "Nullable. User ID (the Users.id value) of the user who soft-deleted the record. Captured for audit trail."
+    },
     "business_id": {
       "type": "string",
       "description": "FK to a Business record. Scopes this record to a specific business inside the new multi-business architecture. Will be backfilled in a separate Hyphae script. Code continues to work with business_id: null (dual-read pattern during backfill)."
