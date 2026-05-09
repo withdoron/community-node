@@ -15,8 +15,10 @@ import FieldServiceClientDetail from './FieldServiceClientDetail';
 import ProjectTileDrillIn from './ProjectTileDrillIn';
 import { makeItem, calcTotals } from '@/utils/fsLineItems';
 import { isChangeOrderLocked } from '@/utils/fsEstimateLifecycle';
+import { getTradeCategories } from '@/utils/fsTradeCategories';
 import { useFSPayments, summarizePayments } from '@/hooks/useFSPayments';
 import { useProjectLinkedEstimates, deriveProjectClient } from '@/hooks/useProjectLinkedEstimates';
+import { useWorkspacePeople } from '@/hooks/useWorkspacePeople';
 import {
   FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save, X,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
@@ -208,6 +210,12 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     () => calcTotals(coForm.line_items, coForm.overhead_profit_pct, coForm.tax_rate, coForm.other_amount, coForm.management_fee_pct, coForm.insurance_fee_pct),
     [coForm.line_items, coForm.overhead_profit_pct, coForm.tax_rate, coForm.other_amount, coForm.management_fee_pct, coForm.insurance_fee_pct],
   );
+  // Phase 2.5: derivation inputs for the CO editor's LineItemsEditor.
+  // CO editor doesn't currently render the trade picker (showTradeCategories
+  // defaults false), so threading is a no-op visually today. KI #20 / Phase
+  // 2.6 work that lights up CO trade-grouping inherits derivation for free.
+  const coWorkspaceCategories = useMemo(() => getTradeCategories(profile), [profile]);
+  const { peopleMap: coPeopleMap } = useWorkspacePeople(profile);
 
   // ─── Query: All projects ────────────────────────
   const { data: projects = [], isLoading } = useQuery({
@@ -2000,7 +2008,13 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
               {/* Line Items — shared editor (same component used by FSEstimate builder) */}
               <div>
                 <h4 className="text-sm font-semibold text-foreground-soft uppercase tracking-wider mb-2">Line Items</h4>
-                <LineItemsEditor items={coForm.line_items} onChange={setCOLineItems} profile={profile} />
+                <LineItemsEditor
+                  items={coForm.line_items}
+                  onChange={setCOLineItems}
+                  profile={profile}
+                  peopleMap={coPeopleMap}
+                  workspaceCategories={coWorkspaceCategories}
+                />
               </div>
 
               {/* Summary — same math as FSEstimate */}

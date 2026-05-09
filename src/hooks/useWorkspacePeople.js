@@ -20,6 +20,13 @@ import { parseWrappedArray } from '@/utils/wrapShape';
  *
  * Legacy `role === undefined || null` records (pre-Phase 2.3) fold into the
  * 'worker' bucket — same convention as FieldServicePeople.jsx:492.
+ *
+ * Returns:
+ *   people     — role-filtered list (or all if roleFilter undefined)
+ *   allPeople  — every workers_json item, unfiltered
+ *   peopleMap  — { [id]: person } hash lookup, derived from allPeople
+ *                (Phase 2.5: feeds deriveLineTrade for empty-field trade
+ *                derivation; replaces O(N) find() at consumer sites)
  */
 export function useWorkspacePeople(profile, roleFilter) {
   const all = useMemo(
@@ -35,5 +42,10 @@ export function useWorkspacePeople(profile, roleFilter) {
     return all.filter((p) => p.role === roleFilter);
   }, [all, roleFilter]);
 
-  return { people: filtered, allPeople: all };
+  const peopleMap = useMemo(
+    () => Object.fromEntries(all.map((p) => [p.id, p])),
+    [all]
+  );
+
+  return { people: filtered, allPeople: all, peopleMap };
 }

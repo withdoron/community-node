@@ -1,9 +1,10 @@
 import React from 'react';
-import { ChevronUp, ChevronDown, X, Plus } from 'lucide-react';
+import { ChevronUp, ChevronDown, X, Plus, Info } from 'lucide-react';
 import VoiceInput from './VoiceInput';
 import CurrencyInput from './CurrencyInput';
 import SubVendorPicker from './SubVendorPicker';
 import { CATEGORIES, CATEGORY_MAP, makeItem } from '@/utils/fsLineItems';
+import { deriveLineTrade } from '@/utils/fsTradeCategories';
 import {
   Select,
   SelectContent,
@@ -27,12 +28,23 @@ const NO_TRADE_VALUE = '__no_trade__';
  * Props:
  *   items           — array of unified line items
  *   onChange        — (newItems) => void
- *   tradeCategories — array used for the trade category dropdown (insurance only)
+ *   tradeCategories — array used for the trade category dropdown. Caller passes
+ *                     the per-estimate snapshot (via getEstimateTradeCategories)
+ *                     so the editor's picker reflects the same taxonomy the
+ *                     preview groups by.
  *   showTradeCategories — boolean; show the trade dropdown per row
  *   addCategories   — array of category values to render as add buttons (defaults to all four)
  *   profile         — workspace profile (Phase 2.4: required for SubVendorPicker
  *                     subcontractor line items; null on legacy callers degrades
  *                     gracefully — picker hidden, falls back to fallbackText display)
+ *   peopleMap       — Phase 2.5: { [id]: workers_json item } for derivation hint
+ *                     on subcontractor line items. Optional; when omitted the
+ *                     hint is silently disabled (no-op for callers that haven't
+ *                     threaded it yet).
+ *   workspaceCategories — Phase 2.5: workspace's CURRENT trade_categories_json
+ *                     (not the snapshot) — used by deriveLineTrade to look up
+ *                     the linked sub's primary_trade_id. Bridged to snapshot
+ *                     by name. Optional; when omitted, hint disabled.
  *
  * The editor enforces at least one item: removeItem only removes when more
  * than one item is present.
@@ -52,6 +64,8 @@ export default function LineItemsEditor({
   addCategories = ['materials', 'labor', 'subcontractor', 'fee'],
   disabled = false,
   profile = null,
+  peopleMap = null,
+  workspaceCategories = null,
 }) {
   // Multi-field update — required for SubVendorPicker dual-write
   // (sub_person_id + sub_name in one onChange). Single-field updateItem
@@ -103,6 +117,24 @@ export default function LineItemsEditor({
       {items.map((item, idx) => {
         const cat = CATEGORY_MAP[item.category] || CATEGORY_MAP.materials;
         const computedAmt = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
+        // Phase 2.5: derivation hint for subcontractor lines whose trade
+        // is empty but resolvable through the linked sub's primary_trade_id.
+        // Pure read-time — DEC-206 discipline. Hint suppressed when caller
+        // hasn't threaded peopleMap/workspaceCategories (legacy callers).
+        const canDerive =
+          item.category === 'subcontractor' &&
+          peopleMap !== null &&
+          workspaceCategories !== null;
+        const derived = canDerive
+          ? deriveLineTrade(item, peopleMap, tradeCategories, workspaceCategories)
+          : { id: '', name: '', source: null };
+        const isDerived = !item.trade_category_id && derived.source === 'sub_person';
+        const subPerson = isDerived && item.sub_person_id ? peopleMap[item.sub_person_id] : null;
+        // Trigger value: explicit pick wins; otherwise derived id (so the
+        // picker shows the would-be category in italic). Underlying line
+        // item shape unchanged — no auto-write-back.
+        const triggerValue =
+          item.trade_category_id || (isDerived ? derived.id : NO_TRADE_VALUE);
         return (
           <React.Fragment key={item.id || idx}>
             <div className="bg-secondary/50 rounded-lg p-3 space-y-2">
@@ -129,23 +161,50 @@ export default function LineItemsEditor({
                   </SelectContent>
                 </Select>
                 {showTradeCategories && (
-                  <Select
-                    value={item.trade_category_id || NO_TRADE_VALUE}
-                    onValueChange={(value) =>
-                      updateItem(idx, 'trade_category_id', value === NO_TRADE_VALUE ? '' : value)
-                    }
-                    disabled={disabled}
-                  >
-                    <SelectTrigger className="w-auto min-w-[110px] max-w-[160px] flex-shrink-0 bg-secondary border-border text-foreground h-auto py-2 text-xs focus:ring-ring">
-                      <SelectValue placeholder="Trade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={NO_TRADE_VALUE}>Trade — Unallocated</SelectItem>
-                      {tradeCategories.map((tc) => (
-                        <SelectItem key={tc.id} value={tc.id}>{tc.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <Select
+                      value={triggerValue}
+                      onValueChange={(value) =>
+                        updateItem(idx, 'trade_category_id', value === NO_TRADE_VALUE ? '' : value)
+                      }
+                      disabled={disabled}
+                    >
+                      {/* Italic + muted styling when value is derived (Phase
+                          2.5). Picking explicitly writes trade_category_id,
+                          isDerived flips to false next render, styling
+                          returns to foreground. No literal "(derived)"
+                          suffix — the italic carries the signal without
+                          nagging the contractor to commit (proposal §11.2
+                          mitigation against primary_trade_id pressure). */}
+                      <SelectTrigger
+                        className={`w-auto min-w-[110px] max-w-[160px] bg-secondary border-border h-auto py-2 text-xs focus:ring-ring ${
+                          isDerived ? 'italic text-muted-foreground' : 'text-foreground'
+                        }`}
+                      >
+                        <SelectValue placeholder="Trade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={NO_TRADE_VALUE}>Trade — Unallocated</SelectItem>
+                        {tradeCategories.map((tc) => (
+                          <SelectItem key={tc.id} value={tc.id}>{tc.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {/* Info-dot tap target — surfaces the derivation source.
+                        Native title attribute works on hover (desktop) and
+                        long-press (mobile). Renders only when derivation
+                        is active; absent when the value is explicit or
+                        when no derivation is possible. */}
+                    {isDerived && subPerson && (
+                      <span
+                        className="text-muted-foreground/60"
+                        title={`From ${subPerson.name}'s primary trade`}
+                        aria-label={`Derived from ${subPerson.name}'s primary trade`}
+                      >
+                        <Info className="h-3 w-3" />
+                      </span>
+                    )}
+                  </div>
                 )}
                 <div className="flex-1">
                   <input type="text" data-line-item-desc className={INPUT_CLASS} value={item.description}

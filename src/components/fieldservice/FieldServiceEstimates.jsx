@@ -7,7 +7,8 @@ import LineItemsEditor from './LineItemsEditor';
 import CurrencyInput from './CurrencyInput';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { CATEGORY_MAP, makeItem, migrateLineItems, calcTotals } from '@/utils/fsLineItems';
-import { getTradeCategories, getEstimateTradeCategories } from '@/utils/fsTradeCategories';
+import { getTradeCategories, getEstimateTradeCategories, deriveLineTrade } from '@/utils/fsTradeCategories';
+import { useWorkspacePeople } from '@/hooks/useWorkspacePeople';
 import { TRADE_TAXONOMY_PRESETS, resolvePresetById } from '@/utils/tradeTaxonomyPresets';
 import { isEstimateLocked } from '@/utils/fsEstimateLifecycle';
 import { printNode } from '@/utils/printNode';
@@ -143,6 +144,11 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
   // Snapshot first (per-estimate frozen taxonomy), workspace fallback for
   // legacy estimates pre-backfill (Phase 2.2 architecture).
   const tradeCategories = getEstimateTradeCategories(estimate, profile);
+  // Workspace-current taxonomy — used by Phase 2.5 derivation to look up
+  // the linked sub's primary_trade_id (which references workspace ids, not
+  // snapshot ids per Phase 2.3 lock-in). Bridged to snapshot by name match.
+  const workspaceCategories = useMemo(() => getTradeCategories(profile), [profile]);
+  const { peopleMap } = useWorkspacePeople(profile);
   const hasOwnerSig = !!estimate.owner_signature_data;
   const tradeCatMap = Object.fromEntries(tradeCategories.map((tc) => [tc.id, tc]));
 
@@ -154,13 +160,20 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
   // workspace's actual "Other" trade and untagged items can't collapse
   // into the same group. The bucket renders only when at least one
   // untagged item exists.
+  //
+  // Phase 2.5: empty trade_category_id falls through deriveLineTrade before
+  // falling to Unallocated. When the line item carries sub_person_id and
+  // the linked sub has a primary_trade_id whose workspace name matches a
+  // snapshot category name, the line buckets into the derived category
+  // instead. Soft-fails to Unallocated on any bridge step (DEC-206).
   const groupedByTrade = useMemo(() => {
     if (isFlatLayout) return null;
     const UNALLOCATED_ID = '__unallocated__';
     const UNALLOCATED_TC = { id: UNALLOCATED_ID, name: 'Unallocated', order: -1 };
     const groups = new Map();
     for (const item of items) {
-      const tcId = item.trade_category_id || '';
+      const derived = deriveLineTrade(item, peopleMap, tradeCategories, workspaceCategories);
+      const tcId = derived.id || '';
       const realTc = tcId ? tradeCatMap[tcId] : null;
       if (realTc) {
         if (!groups.has(realTc.id)) groups.set(realTc.id, { tc: realTc, items: [] });
@@ -173,7 +186,7 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
     // Sort by trade category order — Unallocated at order -1 floats to top.
     return Array.from(groups.entries())
       .sort((a, b) => (a[1].tc.order ?? 999) - (b[1].tc.order ?? 999));
-  }, [isFlatLayout, items, tradeCatMap]);
+  }, [isFlatLayout, items, tradeCatMap, peopleMap, tradeCategories, workspaceCategories]);
 
   // Live client data from FSClient (source of truth), fallback to inline copies
   const liveClient = estimate.client_id ? (clients || []).find((c) => c.id === estimate.client_id) : null;
@@ -737,6 +750,11 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
   // formData.trade_categories_snapshot, so the picker takes effect immediately
   // for the LineItemsEditor's category dropdown without waiting for save.
   const tradeCategories = getEstimateTradeCategories(formData, profile);
+  // Phase 2.5: workspace-current taxonomy + peopleMap power the editor's
+  // derivation hint (italic + muted styling on subcontractor line items
+  // whose trade derives from the linked sub's primary_trade_id).
+  const workspaceCategories = useMemo(() => getTradeCategories(profile), [profile]);
+  const { peopleMap } = useWorkspacePeople(profile);
   const setLineItems = (items) => setFormData((prev) => ({ ...prev, line_items: items }));
 
   // Source estimate (for status-derived lock check). Editor is normally
@@ -988,6 +1006,8 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           showTradeCategories={formData.group_by_trade !== false}
           disabled={isLocked}
           profile={profile}
+          peopleMap={peopleMap}
+          workspaceCategories={workspaceCategories}
         />
       </div>
 

@@ -6,7 +6,8 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { Loader2, Printer, Camera, Shield, X, FileText, ClipboardList } from 'lucide-react';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { getFeatures } from '@/utils/fsFeatures';
-import { getEstimateTradeCategories } from '@/utils/fsTradeCategories';
+import { getEstimateTradeCategories, getTradeCategories, deriveLineTrade } from '@/utils/fsTradeCategories';
+import { useWorkspacePeople } from '@/hooks/useWorkspacePeople';
 import { isEstimateLocked } from '@/utils/fsEstimateLifecycle';
 import { toast } from 'sonner';
 
@@ -153,17 +154,25 @@ function EstimatePortalView({ estimateId, signMode = false }) {
   const lineItems = estimate ? parseJSON(estimate.line_items) : [];
   const isFlatLayout = estimate?.group_by_trade === false;
   const tradeCategories = getEstimateTradeCategories(estimate, profile);
+  // Phase 2.5: workspace-current taxonomy + peopleMap power derivation. The
+  // public profile read at line 134 already returns the full FieldServiceProfile
+  // (including workers_json + trade_categories_json), so no new fetch needed.
+  const workspaceCategories = useMemo(() => getTradeCategories(profile), [profile]);
+  const { peopleMap } = useWorkspacePeople(profile);
   const tradeCatMap = useMemo(
     () => Object.fromEntries(tradeCategories.map((tc) => [tc.id, tc])),
     [tradeCategories]
   );
+  // Phase 2.5: empty trade_category_id falls through deriveLineTrade before
+  // falling to Unallocated. Mirrors EstimatePreview grouping shape exactly.
   const groupedByTrade = useMemo(() => {
     if (isFlatLayout) return null;
     const UNALLOCATED_ID = '__unallocated__';
     const UNALLOCATED_TC = { id: UNALLOCATED_ID, name: 'Unallocated', order: -1 };
     const groups = new Map();
     for (const item of lineItems) {
-      const tcId = item.trade_category_id || '';
+      const derived = deriveLineTrade(item, peopleMap, tradeCategories, workspaceCategories);
+      const tcId = derived.id || '';
       const realTc = tcId ? tradeCatMap[tcId] : null;
       if (realTc) {
         if (!groups.has(realTc.id)) groups.set(realTc.id, { tc: realTc, items: [] });
@@ -175,7 +184,7 @@ function EstimatePortalView({ estimateId, signMode = false }) {
     }
     return Array.from(groups.entries())
       .sort((a, b) => (a[1].tc.order ?? 999) - (b[1].tc.order ?? 999));
-  }, [isFlatLayout, lineItems, tradeCatMap]);
+  }, [isFlatLayout, lineItems, tradeCatMap, peopleMap, tradeCategories, workspaceCategories]);
 
   if (estLoading || profLoading) return <PortalLoading />;
   if (!estimate) return <PortalNotFound message="This estimate link may be invalid or expired." />;
