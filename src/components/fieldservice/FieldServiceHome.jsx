@@ -528,6 +528,14 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
 
   return (
     <div className="space-y-6">
+      {/* DIAG-PING #2 — temporary marker to verify Base44 deploy pipeline still
+          healthy after the 16:11 PT schema agent error. If this badge appears
+          after publish + hard refresh, the deploy pipeline is uninvolved in
+          today's schema agent failure (failure contained to that surface).
+          REVERT after diagnostic confirms — single-block delete. */}
+      <div className="text-xs font-mono text-sky-400 bg-sky-500/10 border border-sky-500/40 rounded px-3 py-2 inline-block">
+        deploy-check #2 · post-schema-error · revert after verify
+      </div>
       {/* Workspace Guide — inline walkthrough for new users.
           Auto-dismisses once all five steps are complete (see useEffect above).
           Manually re-enable from Settings → Workspace Guide toggle. */}
