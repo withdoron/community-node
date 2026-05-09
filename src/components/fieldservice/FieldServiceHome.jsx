@@ -1,12 +1,22 @@
-import React, { useMemo, useCallback, useEffect } from 'react';
+import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { HardHat, FolderOpen, ClipboardList, FileText, DollarSign, Users, Briefcase } from 'lucide-react';
 import WorkspaceGuide from '@/components/workspaces/WorkspaceGuide';
 import { invalidateFSProfiles } from '@/utils/fsFeatures';
+import { useWorkspacePeople } from '@/hooks/useWorkspacePeople';
+import ProjectTileDrillIn from './ProjectTileDrillIn';
 
 const fmt = (n) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
+
+const fmtDate = (d) => {
+  if (!d) return '';
+  try {
+    return new Date(d + (d.includes('T') ? '' : 'T12:00:00'))
+      .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch { return d; }
+};
 
 const fmtShortDate = (d) => {
   if (!d) return '';
@@ -17,6 +27,15 @@ const fmtShortDate = (d) => {
 export default function FieldServiceHome({ profile, currentUser, onNavigateTab }) {
   const now = new Date();
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+
+  // ─── Tile drill-in state (Seedling A) ────────────
+  // Mirrors Project Detail's setDrillIn pattern (FieldServiceProjects.jsx:145).
+  // null = closed; otherwise one of: 'clients' | 'projects' | 'estimates' |
+  // 'spent_month' | 'received' | 'team'. The drillConfig dispatch lower
+  // builds the popup contents per active tile. Clicking a tile sets the
+  // drill-in instead of (previously) navigating away — honest audit-the-
+  // number behavior matches Project Detail.
+  const [drillIn, setDrillIn] = useState(null);
 
   // ─── Query: Projects ─────────────────────────────
   const { data: projects = [] } = useQuery({
@@ -129,11 +148,11 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
   });
 
   // ─── Derived Stats ──────────────────────────────
-  const teamCount = useMemo(() => {
-    const w = profile?.workers_json;
-    const arr = Array.isArray(w) ? w : (w && typeof w === 'object' && Array.isArray(w.items)) ? w.items : [];
-    return arr.length;
-  }, [profile?.workers_json]);
+  // Team count + roster pull from useWorkspacePeople (canonical workers_json
+  // parser) instead of inline parseWrappedArray. Living Feet (DEC-146) — same
+  // helper FieldServicePeople uses; no duplicate parsing path.
+  const { allPeople: teamPeople } = useWorkspacePeople(profile);
+  const teamCount = teamPeople.length;
 
   const activeClients = useMemo(
     () => fsClients.filter((c) => c.status === 'active'),
@@ -145,8 +164,15 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     [projects]
   );
 
+  // Outstanding = sent or viewed by client (un-actioned). Excludes draft
+  // (still being authored) and accepted/declined/signed (terminal states).
   const outstandingEstimates = useMemo(
     () => estimates.filter((e) => e.status === 'sent' || e.status === 'viewed'),
+    [estimates]
+  );
+
+  const closedEstimates = useMemo(
+    () => estimates.filter((e) => e.status !== 'sent' && e.status !== 'viewed'),
     [estimates]
   );
 
@@ -181,6 +207,244 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     projects.forEach((p) => { map[p.id] = p; });
     return map;
   }, [projects]);
+
+  // ─── Drill-in row builders (Seedling A) ──────────
+  // Six tile breakdowns, one row builder each. Each row's onClick navigates
+  // to the source record's actual context via the localStorage prefill
+  // pattern (DEC-209 honest navigation; DEC-146 useConsumePrefill consumed
+  // by the destination tab). Setting drillIn = null on click closes the
+  // popup before the tab switch so the user lands clean.
+  //
+  // Five existing prefill keys + four new (added this commit):
+  //   existing: fs-estimate-prefill-id, fs-log-prefill-log-id,
+  //             fs-log-prefill-type, fs-document-prefill-id,
+  //             fs-document-prefill-project-id
+  //   new:      fs-people-prefill-client-id, fs-people-prefill-worker-id,
+  //             fs-projects-prefill-project-id,
+  //             fs-projects-prefill-payment-id
+  // All consumed via useConsumePrefill in their respective destination tabs.
+  const goToClient = useCallback((clientId) => {
+    if (clientId) localStorage.setItem('fs-people-prefill-client-id', clientId);
+    setDrillIn(null);
+    onNavigateTab?.('people');
+  }, [onNavigateTab]);
+
+  const goToWorker = useCallback((workerId) => {
+    if (workerId) localStorage.setItem('fs-people-prefill-worker-id', workerId);
+    setDrillIn(null);
+    onNavigateTab?.('people');
+  }, [onNavigateTab]);
+
+  const goToProject = useCallback((projectId) => {
+    if (projectId) localStorage.setItem('fs-projects-prefill-project-id', projectId);
+    setDrillIn(null);
+    onNavigateTab?.('projects');
+  }, [onNavigateTab]);
+
+  const goToProjectWithPayment = useCallback((projectId, paymentId) => {
+    if (projectId) localStorage.setItem('fs-projects-prefill-project-id', projectId);
+    if (paymentId) localStorage.setItem('fs-projects-prefill-payment-id', paymentId);
+    setDrillIn(null);
+    onNavigateTab?.('projects');
+  }, [onNavigateTab]);
+
+  const goToEstimatePreview = useCallback((estimateId) => {
+    if (estimateId) localStorage.setItem('fs-estimate-prefill-id', estimateId);
+    setDrillIn(null);
+    onNavigateTab?.('estimates');
+  }, [onNavigateTab]);
+
+  const goToLogForRecord = useCallback((dailyLogId) => {
+    if (dailyLogId) localStorage.setItem('fs-log-prefill-log-id', dailyLogId);
+    setDrillIn(null);
+    onNavigateTab?.('log');
+  }, [onNavigateTab]);
+
+  const workspaceLabel = profile?.workspace_name?.trim() || 'Workspace';
+
+  const ESTIMATE_STATUS_LABEL = {
+    draft: 'Draft', sent: 'Sent', viewed: 'Viewed',
+    accepted: 'Accepted', signed: 'Signed', declined: 'Declined',
+  };
+  const ROLE_LABEL = {
+    worker: 'Worker', subcontractor: 'Subcontractor', vendor: 'Vendor',
+  };
+
+  // Clients tile rows — active clients, sorted by name.
+  const clientRows = useMemo(
+    () => [...activeClients]
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      .map((c) => ({
+        key: `client-${c.id}`,
+        primary: c.name || c.company_name || 'Unnamed client',
+        secondary: c.company_name && c.name
+          ? c.company_name
+          : (c.email || c.phone || ''),
+        amount: '',  // count tile — no per-row currency
+        onClick: () => goToClient(c.id),
+      })),
+    [activeClients, goToClient]
+  );
+
+  // Active Projects tile rows — sorted by name; budget context inline.
+  const activeProjectRows = useMemo(
+    () => [...activeProjects]
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      .map((p) => {
+        const budget = parseFloat(p.total_budget) || 0;
+        const spent = parseFloat(p.total_spent) || 0;
+        return {
+          key: `proj-${p.id}`,
+          primary: p.name || 'Untitled project',
+          secondary: p.client_name || '',
+          amount: budget > 0 ? fmt(budget) : '',
+          trailing: budget > 0 && spent > 0 ? `${fmt(spent)} spent` : undefined,
+          onClick: () => goToProject(p.id),
+        };
+      }),
+    [activeProjects, goToProject]
+  );
+
+  // Estimates tile rows — outstanding first, then closed/signed/declined.
+  // Both groups click to Estimates tab via existing fs-estimate-prefill-id.
+  const buildEstimateRow = (e, group) => ({
+    key: `est-${e.id}`,
+    primary: e.title || `Estimate ${e.estimate_number || ''}`.trim() || 'Estimate',
+    secondary: `${e.estimate_number || 'EST'}${e.client_name ? ` · ${e.client_name}` : ''}${e.date ? ` · ${fmtDate(e.date)}` : ''}`,
+    amount: fmt(parseFloat(e.total) || 0),
+    amountClass: group === 'outstanding' ? 'text-primary-hover' : 'text-foreground',
+    trailing: ESTIMATE_STATUS_LABEL[e.status] || e.status || '',
+    onClick: () => goToEstimatePreview(e.id),
+  });
+  const estimateRows = useMemo(() => {
+    const out = [...outstandingEstimates]
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+      .map((e) => buildEstimateRow(e, 'outstanding'));
+    const closed = [...closedEstimates]
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+      .map((e) => buildEstimateRow(e, 'closed'));
+    return [...out, ...closed];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outstandingEstimates, closedEstimates, goToEstimatePreview]);
+
+  // Spent This Month tile rows — combined materials + labor for the current
+  // month, sorted by created_date desc. Click navigates to parent FSDailyLog
+  // for editing via fs-log-prefill-log-id.
+  const monthSpentRows = useMemo(() => {
+    const all = [
+      ...monthMaterials.map((m) => ({ kind: 'Materials', entry: m })),
+      ...monthLabor.map((l) => ({ kind: 'Labor', entry: l })),
+    ].sort((a, b) =>
+      (b.entry.created_date || '').localeCompare(a.entry.created_date || '')
+    );
+    return all.map(({ kind, entry }) => ({
+      key: `${kind.toLowerCase()}-${entry.id}`,
+      primary: entry.description || kind,
+      secondary: `${kind}${entry.created_date ? ` · ${fmtDate(entry.created_date)}` : ''}`,
+      amount: fmt(parseFloat(entry.total_cost) || 0),
+      amountClass: 'text-primary',
+      onClick: entry.daily_log_id
+        ? () => goToLogForRecord(entry.daily_log_id)
+        : undefined,
+    }));
+  }, [monthMaterials, monthLabor, goToLogForRecord]);
+
+  // Received tile rows — same filter as paymentsReceived total above (status
+  // settled AND direction received with legacy fallback). Sorted by date
+  // desc. Click navigates to that payment's Project Detail with the row
+  // ring-flashed via paired fs-projects-prefill-project-id +
+  // fs-projects-prefill-payment-id keys (FieldServiceProjects consumes both
+  // and triggers the scroll-flash after detail mounts).
+  const receivedRows = useMemo(
+    () => payments
+      .filter((p) => (p.status === 'received' || p.status === 'cleared')
+                  && (p.direction || 'received') === 'received')
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+      .map((p) => ({
+        key: `pay-${p.id}`,
+        primary: p.party_name || 'Client payment',
+        secondary: `${p.date ? fmtDate(p.date) : ''}${p.method ? ` · ${p.method}` : ''}${p.reference ? ` · #${p.reference}` : ''}`.replace(/^ · /, ''),
+        amount: fmt(parseFloat(p.amount) || 0),
+        amountClass: 'text-emerald-400',
+        onClick: p.project_id
+          ? () => goToProjectWithPayment(p.project_id, p.id)
+          : undefined,
+      })),
+    [payments, goToProjectWithPayment]
+  );
+
+  // Team tile rows — workers + subs + vendors from workers_json. Click opens
+  // the person edit modal via fs-people-prefill-worker-id (no separate
+  // worker detail surface; modal IS the detail surface).
+  const teamRows = useMemo(
+    () => [...teamPeople]
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      .map((w) => ({
+        key: `worker-${w.id}`,
+        primary: w.name || 'Unnamed',
+        secondary: w.business_name || ROLE_LABEL[w.role] || '',
+        amount: '',
+        trailing: ROLE_LABEL[w.role] || '',
+        onClick: w.id ? () => goToWorker(w.id) : undefined,
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [teamPeople, goToWorker]
+  );
+
+  // ─── Drill-in config dispatch ────────────────────
+  // Mirrors FieldServiceProjects.jsx:1396-1447 drillConfig pattern. One
+  // entry per drillable tile. Same shape ProjectTileDrillIn already
+  // accepts — no primitive extension needed.
+  const drillConfig = {
+    clients: {
+      title: 'Clients',
+      subtitle: `${workspaceLabel} · Active client roster`,
+      total: String(activeClients.length),
+      rows: clientRows,
+      emptyMessage: 'No clients yet.',
+    },
+    projects: {
+      title: 'Active Projects',
+      subtitle: `${workspaceLabel} · Projects in progress`,
+      total: String(activeProjects.length),
+      rows: activeProjectRows,
+      emptyMessage: 'No active projects yet. Create your first project or estimate to get started.',
+    },
+    estimates: {
+      title: 'Estimates',
+      subtitle: `${workspaceLabel} · ${outstandingEstimates.length} outstanding · ${estimates.length} total`,
+      total: String(estimates.length),
+      rows: estimateRows,
+      emptyMessage: 'No estimates yet.',
+      footer: outstandingEstimates.length > 0
+        ? 'Outstanding estimates (sent or viewed by client) listed first; signed and closed estimates below.'
+        : undefined,
+    },
+    spent_month: {
+      title: 'Spent This Month',
+      subtitle: `${workspaceLabel} · Materials and labor logged this month`,
+      total: fmt(monthTotal),
+      rows: monthSpentRows,
+      emptyMessage: 'No materials or labor logged this month yet.',
+      footer: 'Spend tracked from materials and labor cost lines. Subcontractor payments tracked separately under Paid Out on Project Detail.',
+    },
+    received: {
+      title: 'Received',
+      subtitle: `${workspaceLabel} · Settled income across all projects`,
+      total: fmt(paymentsReceived),
+      rows: receivedRows,
+      emptyMessage: 'No received payments yet. Once a client pays, log it from the Log tab → Client Payment.',
+      footer: 'Pending payments are not counted until status flips to received or cleared.',
+    },
+    team: {
+      title: 'Team',
+      subtitle: `${workspaceLabel} · Workers, subs, and vendors`,
+      total: String(teamCount),
+      rows: teamRows,
+      emptyMessage: 'No team members yet.',
+    },
+  };
+  const drillCurrent = drillIn ? drillConfig[drillIn] : null;
 
   // ─── Workspace Guide (Activation Protocol Moment 3) ──────────
   const guideDismissed = profile?.guide_dismissed === true;
@@ -275,15 +539,17 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
         />
       )}
 
-      {/* Stats Bar — every tile is a navigation surface. The two existing
-          clickable tiles (Estimates, Team) set the pattern; the four others
-          (Clients, Active Projects, This Month, Received) follow. Money tiles
-          (This Month, Received) route to the Log tab — the universal capture
-          surface where Daily Log + Sub Payment + Client Payment all live. */}
+      {/* Stats Bar — every tile is a drill-through surface (Seedling A).
+          Click opens ProjectTileDrillIn with the constituent records and a
+          clarifying note about scope/semantics. Row clicks inside each
+          popup navigate to the source record's actual context via
+          localStorage prefill (DEC-209 honest navigation). Replaces the
+          previous bare onNavigateTab handlers — those routed to a generic
+          tab without explaining what the number was made of. */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
         <button
           type="button"
-          onClick={() => onNavigateTab?.('people')}
+          onClick={() => setDrillIn('clients')}
           className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors min-h-[44px]"
         >
           <div className="flex items-center gap-2 mb-2">
@@ -295,7 +561,7 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
 
         <button
           type="button"
-          onClick={() => onNavigateTab?.('projects')}
+          onClick={() => setDrillIn('projects')}
           className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors min-h-[44px]"
         >
           <div className="flex items-center gap-2 mb-2">
@@ -307,7 +573,7 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
 
         <button
           type="button"
-          onClick={() => onNavigateTab?.('estimates')}
+          onClick={() => setDrillIn('estimates')}
           className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors min-h-[44px]"
         >
           <div className="flex items-center gap-2 mb-2">
@@ -322,19 +588,22 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
 
         <button
           type="button"
-          onClick={() => onNavigateTab?.('log')}
+          onClick={() => setDrillIn('spent_month')}
           className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors min-h-[44px]"
         >
           <div className="flex items-center gap-2 mb-2">
             <HardHat className="h-4 w-4 text-primary" />
-            <span className="text-xs text-muted-foreground">This Month</span>
+            {/* Renamed from "This Month" — actual semantic is outgoing
+                materials/labor cost, not income. The previous label sitting
+                next to "Received" invited mental-model confusion. */}
+            <span className="text-xs text-muted-foreground">Spent This Month</span>
           </div>
           <p className="text-2xl font-bold text-primary">{fmt(monthTotal)}</p>
         </button>
 
         <button
           type="button"
-          onClick={() => onNavigateTab?.('log')}
+          onClick={() => setDrillIn('received')}
           className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors min-h-[44px]"
         >
           <div className="flex items-center gap-2 mb-2">
@@ -346,7 +615,7 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
 
         <button
           type="button"
-          onClick={() => onNavigateTab?.('people')}
+          onClick={() => setDrillIn('team')}
           className="bg-card border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors min-h-[44px]"
         >
           <div className="flex items-center gap-2 mb-2">
@@ -498,6 +767,21 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
           <p className="text-sm text-muted-foreground text-center">Financial summary coming soon</p>
         </div>
       )}
+
+      {/* Tile drill-in modal — single component for every tile, mounted at
+          the FieldServiceHome root so it overlays the whole Desk page.
+          Mirrors FieldServiceProjects.jsx:2545. */}
+      <ProjectTileDrillIn
+        open={!!drillIn}
+        onClose={() => setDrillIn(null)}
+        title={drillCurrent?.title}
+        subtitle={drillCurrent?.subtitle}
+        total={drillCurrent?.total}
+        rows={drillCurrent?.rows}
+        math={drillCurrent?.math}
+        emptyMessage={drillCurrent?.emptyMessage}
+        footer={drillCurrent?.footer}
+      />
     </div>
   );
 }

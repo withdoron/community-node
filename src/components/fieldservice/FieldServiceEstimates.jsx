@@ -12,6 +12,7 @@ import { TRADE_TAXONOMY_PRESETS, resolvePresetById } from '@/utils/tradeTaxonomy
 import { isEstimateLocked } from '@/utils/fsEstimateLifecycle';
 import { printNode } from '@/utils/printNode';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { useConsumePrefill } from '@/hooks/useConsumePrefill';
 import {
   Select,
   SelectContent,
@@ -1224,20 +1225,20 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
     enabled: !!profile?.id,
   });
 
-  // One-shot prefill: tile drill-in row click on a Contract Total estimate
-  // row (Project Detail) writes the target estimate id here, navigates to
-  // the Estimates tab, and we open that estimate's preview on mount.
-  // Same consume-and-clear semantics as PREFILL_TYPE_KEY in FieldServiceLog.
+  // One-shot prefill via useConsumePrefill (DEC-146): tile drill-in row
+  // click on Project Detail's Contract Total / Project Detail estimate row /
+  // Desk Home Estimates tile row writes 'fs-estimate-prefill-id'. Hook reads
+  // and clears on first mount; the effect waits for estimates to load before
+  // resolving the lookup.
+  const prefillEstimateId = useConsumePrefill('fs-estimate-prefill-id');
   useEffect(() => {
-    const prefillId = localStorage.getItem('fs-estimate-prefill-id');
-    if (!prefillId) return;
-    localStorage.removeItem('fs-estimate-prefill-id');
-    const found = estimates.find((e) => e.id === prefillId);
+    if (!prefillEstimateId) return;
+    const found = estimates.find((e) => e.id === prefillEstimateId);
     if (found) {
       setPreviewEstimate(found);
       setView('preview');
     }
-  }, [estimates]);
+  }, [prefillEstimateId, estimates]);
 
   // ─── Query: Projects for linking ────────────────
   const { data: projects = [] } = useQuery({

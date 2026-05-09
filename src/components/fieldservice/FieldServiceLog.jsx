@@ -9,6 +9,7 @@ import SubVendorPicker from './SubVendorPicker';
 import { scrollToTopOf } from '@/utils/scrollToTop';
 import useBottomInset from '@/hooks/useBottomInset';
 import { useProjectLinkedEstimates, deriveProjectClient } from '@/hooks/useProjectLinkedEstimates';
+import { useConsumePrefill } from '@/hooks/useConsumePrefill';
 import {
   Camera, Plus, X, ClipboardList, Package, Users, Cloud,
   Loader2, Save, Trash2, FolderOpen, Receipt, ChevronDown, Pencil,
@@ -165,29 +166,30 @@ export default function FieldServiceLog({ profile, currentUser }) {
     }
   }, [projects]);
 
-  // One-shot prefill: Project Detail's "Log a payment" button writes a type
-  // hint here so the user lands on the right form. Consume and clear so the
-  // hint can't outlive its trigger.
-  useEffect(() => {
-    const prefill = localStorage.getItem(PREFILL_TYPE_KEY);
-    if (prefill && LOG_TYPES.some((t) => t.id === prefill)) {
-      setLogType(prefill);
-      localStorage.removeItem(PREFILL_TYPE_KEY);
-    }
-  }, []);
+  // One-shot prefills via useConsumePrefill (DEC-146):
+  //   PREFILL_TYPE_KEY    → Project Detail "Log a payment" button drops a
+  //                         type hint so Log opens on the right entry form.
+  //   PREFILL_LOG_ID_KEY  → Tile drill-in row click (Project Detail Daily
+  //                         Log / Material / Labor; Desk Home Spent This
+  //                         Month) writes the parent FSDailyLog id; we
+  //                         fetch fresh and open it for editing.
+  // Hook reads + clears on first mount; effects act on the captured value
+  // once any data dependency resolves.
+  const prefillLogType = useConsumePrefill(PREFILL_TYPE_KEY);
+  const prefillLogId = useConsumePrefill(PREFILL_LOG_ID_KEY);
 
-  // One-shot prefill: tile drill-in row click (Daily Log / Material / Labor)
-  // writes the parent FSDailyLog id here. Fetch fresh and load into the form
-  // so the user lands on edit, not create. Consume-and-clear so a stale id
-  // can't outlive its trigger across tab switches.
   useEffect(() => {
-    const logId = localStorage.getItem(PREFILL_LOG_ID_KEY);
-    if (!logId) return;
-    localStorage.removeItem(PREFILL_LOG_ID_KEY);
+    if (prefillLogType && LOG_TYPES.some((t) => t.id === prefillLogType)) {
+      setLogType(prefillLogType);
+    }
+  }, [prefillLogType]);
+
+  useEffect(() => {
+    if (!prefillLogId) return;
     let cancelled = false;
     (async () => {
       try {
-        const res = await base44.entities.FSDailyLog.filter({ id: logId });
+        const res = await base44.entities.FSDailyLog.filter({ id: prefillLogId });
         const log = Array.isArray(res) ? res[0] : res;
         if (!cancelled && log) await loadLogForEditing(log);
       } catch {
@@ -196,7 +198,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
       }
     })();
     return () => { cancelled = true; };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [prefillLogId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto day number
   const { data: existingLogs = [] } = useQuery({

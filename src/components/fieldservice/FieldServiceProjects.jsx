@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -17,6 +17,7 @@ import { makeItem, calcTotals } from '@/utils/fsLineItems';
 import { isChangeOrderLocked } from '@/utils/fsEstimateLifecycle';
 import { useFSPayments, summarizePayments } from '@/hooks/useFSPayments';
 import { useProjectLinkedEstimates, deriveProjectClient } from '@/hooks/useProjectLinkedEstimates';
+import { useConsumePrefill } from '@/hooks/useConsumePrefill';
 import {
   FolderOpen, Plus, ArrowLeft, Pencil, Trash2, Loader2, Save, X,
   MapPin, Calendar, DollarSign, Clock, Search, GitBranch, FileText,
@@ -432,6 +433,53 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     () => summarizePayments(projectPayments),
     [projectPayments]
   );
+
+  // ─── Cross-tab prefill consumers (Desk Home tile drill-in → Projects) ──
+  // Two paired one-shot keys via useConsumePrefill (DEC-146):
+  //   fs-projects-prefill-project-id  → open that project's detail surface
+  //   fs-projects-prefill-payment-id  → after detail mounts and payments
+  //                                      load, scroll-flash the matching
+  //                                      Recent Payments row (mirrors the
+  //                                      same-component goToPaymentRow
+  //                                      pattern further down per DEC-209
+  //                                      honest-navigation discipline —
+  //                                      FSPayment has no edit form yet, so
+  //                                      we land the user on the payment's
+  //                                      actual context instead).
+  // Payment-id without project-id is a no-op guard; in practice they're
+  // always paired from Desk Home's Received tile.
+  const prefillProjectId = useConsumePrefill('fs-projects-prefill-project-id');
+  const prefillPaymentId = useConsumePrefill('fs-projects-prefill-payment-id');
+  const paymentFlashConsumedRef = useRef(false);
+
+  useEffect(() => {
+    if (!prefillProjectId) return;
+    setSelectedId(prefillProjectId);
+    setView('detail');
+  }, [prefillProjectId]);
+
+  useEffect(() => {
+    if (paymentFlashConsumedRef.current) return;
+    if (!prefillPaymentId) return;
+    if (selectedId !== prefillProjectId) return; // wait for project open
+    if (view !== 'detail') return;
+    if (projectPayments.length === 0) return;    // wait for payments query
+    paymentFlashConsumedRef.current = true;
+    // Two RAFs to let the Recent Payments DOM settle, then scroll + ring.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      try {
+        const section = document.getElementById('fs-project-payments');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const row = document.querySelector(`[data-payment-id="${prefillPaymentId}"]`);
+        if (row) {
+          row.classList.add('ring-2', 'ring-primary', 'shadow-lg');
+          setTimeout(() => {
+            try { row.classList.remove('ring-2', 'ring-primary', 'shadow-lg'); } catch { /* unmounted */ }
+          }, 1500);
+        }
+      } catch { /* DOM not ready or selector escape failed — silent no-op */ }
+    }));
+  }, [prefillPaymentId, prefillProjectId, selectedId, view, projectPayments.length]);
 
   // ─── Query: Change Orders ──────────────────────
   const { data: changeOrders = [] } = useQuery({

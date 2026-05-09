@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -11,6 +11,7 @@ import CurrencyInput from './CurrencyInput';
 import { invalidateFSProfiles } from '@/utils/fsFeatures';
 import { ROLE_BADGES, WORKERS_ROLES, getRoleConfig, newWorkerId } from '@/utils/fsWorkersRoles';
 import { useWorkspacePeople } from '@/hooks/useWorkspacePeople';
+import { useConsumePrefill } from '@/hooks/useConsumePrefill';
 import {
   Select,
   SelectContent,
@@ -633,6 +634,29 @@ export default function FieldServicePeople({ profile, currentUser, onNavigateTab
     setEditingPerson({ ...person, _editIndex: idx });
     setShowModal(true);
   };
+
+  // ─── Cross-tab prefill consumers (Desk Home tile drill-in → People) ──
+  // Two one-shot keys, both via useConsumePrefill (DEC-146):
+  //   fs-people-prefill-client-id  → open the client's detail view
+  //   fs-people-prefill-worker-id  → open the worker/sub/vendor edit modal
+  // Reads + clears on first mount; effects act on the captured value once
+  // the underlying data (clients query, workers_json from profile prop) is
+  // available. Workers come from profile prop synchronously so the lookup
+  // resolves first render; clients await the query.
+  const prefillClientId = useConsumePrefill('fs-people-prefill-client-id');
+  const prefillWorkerId = useConsumePrefill('fs-people-prefill-worker-id');
+
+  useEffect(() => {
+    if (prefillClientId) setClientDetailId(prefillClientId);
+  }, [prefillClientId]);
+
+  useEffect(() => {
+    if (!prefillWorkerId || people.length === 0) return;
+    const person = people.find((p) => p.id === prefillWorkerId);
+    if (person) openEdit(person);
+    // openEdit closure captures the latest people array via people.indexOf;
+    // safe to re-run if people changes before the lookup resolves.
+  }, [prefillWorkerId, people]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Client Detail View ──────────────────────────
   if (clientDetailId) {
