@@ -1136,6 +1136,168 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ─── strip_primary_trade_id ─────────────────────────────────
+    // Phase 2.5 rollback: remove the `primary_trade_id` field from every
+    // item in every FieldServiceProfile.workers_json blob. The field was
+    // added in Phase 2.3 to drive Phase 2.5's name-bridged trade derivation;
+    // both shipped together and were rolled back together when the single-
+    // trade-per-sub model proved fragile across taxonomy switching.
+    //
+    // Per item: if `primary_trade_id` key exists at all (regardless of value
+    // — empty string, populated, undefined), strip it via destructuring +
+    // rest. Items without the key untouched. Other fields unchanged.
+    //
+    // Idempotency: each profile gets one AuditLog row with action
+    // 'workers_json_primary_trade_id_stripped'. Re-runs skip profiles
+    // already migrated. Profiles with no workers_json or empty arrays still
+    // write an AuditLog row to mark them migrated.
+    if (action === 'strip_primary_trade_id') {
+      const all = await entities.FieldServiceProfile.list();
+      const records = (Array.isArray(all) ? all : []) as Record<string, unknown>[];
+
+      const priorAudits = await entities.AuditLog.filter({
+        action: 'workers_json_primary_trade_id_stripped',
+      });
+      const migratedIds = new Set(
+        ((Array.isArray(priorAudits) ? priorAudits : []) as Record<string, unknown>[])
+          .map((a) => a.entity_id as string)
+      );
+
+      const toMigrate = records.filter((r) => !migratedIds.has(r.id as string));
+
+      // Inline parser — mirrors src/utils/wrapShape.js parseWrappedArray.
+      function parseItems(value: unknown): Record<string, unknown>[] {
+        if (Array.isArray(value)) return value as Record<string, unknown>[];
+        if (typeof value === 'string') {
+          try {
+            return parseItems(JSON.parse(value));
+          } catch {
+            return [];
+          }
+        }
+        if (
+          value &&
+          typeof value === 'object' &&
+          Array.isArray((value as { items?: unknown[] }).items)
+        ) {
+          return (value as { items: Record<string, unknown>[] }).items;
+        }
+        return [];
+      }
+
+      function stripItems(items: Record<string, unknown>[]): {
+        next: Record<string, unknown>[];
+        strippedCount: number;
+        populatedCount: number;
+      } {
+        let strippedCount = 0;
+        let populatedCount = 0;
+        const next = items.map((item) => {
+          if (!('primary_trade_id' in item)) {
+            return item;
+          }
+          strippedCount += 1;
+          const value = item.primary_trade_id;
+          if (typeof value === 'string' && value.trim() !== '') {
+            populatedCount += 1;
+          }
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { primary_trade_id, ...rest } = item;
+          return rest;
+        });
+        return { next, strippedCount, populatedCount };
+      }
+
+      const planned: Array<{
+        profile_id: string;
+        workspace_name: unknown;
+        items_count: number;
+        stripped_count: number;
+        populated_count: number;
+      }> = [];
+      let totalStripped = 0;
+      let totalPopulated = 0;
+
+      for (const r of toMigrate) {
+        const items = parseItems(r.workers_json);
+        const { strippedCount, populatedCount } = stripItems(items);
+        totalStripped += strippedCount;
+        totalPopulated += populatedCount;
+        planned.push({
+          profile_id: r.id as string,
+          workspace_name: r.workspace_name,
+          items_count: items.length,
+          stripped_count: strippedCount,
+          populated_count: populatedCount,
+        });
+      }
+
+      if (dryRun) {
+        return Response.json({
+          success: true,
+          dry_run: true,
+          planned: {
+            entity_type: 'FieldServiceProfile',
+            action: 'workers_json_primary_trade_id_stripped',
+            scanned: records.length,
+            already_migrated: records.length - toMigrate.length,
+            will_migrate: toMigrate.length,
+            total_items_with_field: totalStripped,
+            total_items_with_populated_value: totalPopulated,
+            sample: planned.slice(0, 10),
+          },
+        });
+      }
+
+      const results: Array<{
+        id: string;
+        audit_log_id: string;
+        stripped: number;
+        populated: number;
+      }> = [];
+      for (let i = 0; i < toMigrate.length; i++) {
+        const r = toMigrate[i];
+        const meta = planned[i];
+        const items = parseItems(r.workers_json);
+        const { next, strippedCount, populatedCount } = stripItems(items);
+        const id = r.id as string;
+        await entities.FieldServiceProfile.update(id, {
+          workers_json: { items: next },
+        });
+        const audit = await writeAudit(base44, {
+          entity_type: 'FieldServiceProfile',
+          entity_id: id,
+          action: 'workers_json_primary_trade_id_stripped',
+          old_value: {
+            workers_json_size: meta.items_count,
+            items_with_field: strippedCount,
+            items_with_populated_value: populatedCount,
+          },
+          new_value: {
+            workers_json_size: meta.items_count,
+            items_with_field: 0,
+          },
+          source: 'migration',
+        });
+        results.push({
+          id,
+          audit_log_id: audit.id as string,
+          stripped: strippedCount,
+          populated: populatedCount,
+        });
+      }
+
+      return Response.json({
+        success: true,
+        scanned: records.length,
+        migrated: results.length,
+        already_migrated_skipped: records.length - toMigrate.length,
+        total_items_with_field: results.reduce((s, r) => s + r.stripped, 0),
+        total_items_with_populated_value: results.reduce((s, r) => s + r.populated, 0),
+        audit_log_ids: results.map((r) => r.audit_log_id),
+      });
+    }
+
     return Response.json({ error: `Unknown action: ${String(action)}` }, { status: 400 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
