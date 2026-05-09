@@ -796,14 +796,6 @@ export default function FieldServiceLog({ profile, currentUser }) {
     // song is loaded + station enabled, 0 otherwise) adds extra space so
     // content scrolls above the mini-player too.
     <div ref={rootRef} className="space-y-0" style={{ paddingBottom: 96 + bottomInset }}>
-      {/* DIAG-PING: temporary marker to verify Base44 deploy pipeline propagated
-          commit 04162a8. If you see this badge after publish + hard refresh,
-          the deploy pipeline is healthy and any remaining issue (e.g.,
-          LineItemPicker not rendering) is integration-side, not deploy-side.
-          REVERT after diagnostic confirms — single-block delete. */}
-      <div className="text-xs font-mono text-amber-400 bg-amber-500/10 border border-amber-500/40 rounded px-3 py-2 mb-3 inline-block">
-        diag-ping · 04162a8 reached production · revert after verify
-      </div>
       {editingLogId && logType === 'daily' && (
         <div className="bg-primary/10 border border-primary/30 rounded-xl p-3 mb-4 flex items-center justify-between">
           <span className="text-sm text-primary font-medium">Editing log — {date}</span>
