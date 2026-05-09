@@ -1581,3 +1581,80 @@ This DEC names the structural rule that emerges from the combination — for wri
 **Future direction:** when a third standalone-form Select consumer that genuinely shares props (label, options-shape, optional sentinel) lands, extract `<FormSelect>` wrapper. Phase 2.4 reached the second standalone-form-field instance; the pattern hasn't crossed the three-instance abstraction threshold yet.
 
 ---
+
+### DEC-218: Half-Done Isn't Done — Feature-Evaluation Discipline (2026-05-09)
+
+**Date:** 2026-05-09
+**Status:** Active. Promoted from session principle to formal DEC + foundational PROJECT-BRAIN principle in same ship-it cycle.
+
+**Context:** Phase 2.5 (empty-field trade derivation via name-bridging) shipped at `95ccfb1` morning of 2026-05-09. ~2 hours later, Doron's screen-walk through Mycelia's mockup surfaced two architectural realities the spec hadn't accounted for: (1) single `primary_trade_id` per sub couldn't survive taxonomy switching — Tony Tile maps to "Tile" in GC but no exact name match in CSI MasterFormat, so the bridge silently soft-fails cross-taxonomy estimates; (2) the line item creation flow has the trade dropdown visually before the sub picker, so users fill left-to-right and pick the trade manually before the sub picker fires — auto-derivation never has a chance. Combined, the feature works only when both conditions align, which Doron's actual workflow rarely satisfied. Doron's framing of the rollback decision: **"Half-done isn't done."** Rolled back at `197805e` + `cc0f845` (data strip migration) + idempotent confirm. Round-trip ~2.5 hours wallclock.
+
+**Decision:** When a feature works ~30% of the time and fails silently the other 70%, the right move is **removal**, not iteration. Half-done creates noise in user mental models that compounds across the platform — contractors learn to distrust visual cues, mental models drift from system behavior, "is this thing working today?" becomes a per-session question. Better to revert the surface entirely and keep the workflow honest than leave a confusing partial that requires the user to mentally model when it works and when it doesn't. Apply at every feature-evaluation gate:
+
+- **Before shipping:** does the feature work reliably across the realistic input space, or only across a narrow happy path? If the latter, ship behind a flag, gather evidence, OR don't ship.
+- **After shipping:** if real-user reports show the feature works X% of the time, the question isn't "how do we boost X to 100%?" — it's "is half-done worse than no-thing?" If yes, remove first, design properly second.
+- **Scaffolding allowed.** Pure functions, helpers, hooks that anchor the disconnected surface MAY remain in the codebase as documented scaffolding when the work is genuinely deferred (not abandoned). See Phase 2.5 rollback's `deriveLineTrade` + `peopleMap` extension — both kept with rollback-context docstrings explaining the deferral and pointing at the proper future revisit (per-taxonomy mapping work, Phase 3+).
+- **Migration cost is part of the rollback.** A feature that wrote data to user records earns a paired migration to strip that data on rollback (single secret protocol, idempotent, audit-logged). Phase 2.5's `migrate-strip-primary-trade-id` is the reference shape.
+
+**Rationale:** Mission-driven platforms fail when "good enough" features accumulate without rigorous removal — the mental-model debt compounds faster than the maintenance debt. LocalLane's "Dark Until Explored" (DEC-117) is the user-facing companion: spaces dim when unused but never lie about working. Phase 2.5's auto-derivation lit up confidently in 30% of conditions and went dark in 70%, breaking the contract. The rollback honors the user's right to a coherent mental model: trade picker is empty until you pick a trade, period. When auto-derivation comes back (Phase 3+ per-taxonomy mapping), it'll be honest across the input space or it won't ship.
+
+**Operational rule when evaluating a partial feature:**
+
+1. **Quantify the success rate.** If the feature works under specific input conditions, name those conditions explicitly and measure how often they hold in real usage.
+2. **If the success rate is high enough to be worth half-done, ship behind a feature flag** — gates the surface to users for whom it works, lets you collect data without imposing the noise platform-wide.
+3. **If the success rate is low enough that the feature creates more confusion than value, remove the user-visible surface** — keep the implementation as scaffolding, ship the data-strip migration if the feature wrote to user records, document the deferral with explicit "Phase X revisit" pointer.
+4. **Never leave a half-done feature live with the framing "we'll iterate later."** Iteration on a noisy surface compounds the user-mental-model debt. The next pass starts with a confused baseline.
+
+**Companion principles:**
+- **DEC-117** — Dark Until Explored (user-facing companion to "honest about what's working")
+- **DEC-148** — Two instances coincidence, three pattern (reverse-direction discipline: at three instances of "this kind of pattern fails," promote the failure mode to a structural rule)
+- **DEC-151** — Spec Review Protocol (before designing the rollback, audit the existing surface; Phase 2.5's audit caught the right scope)
+- **DEC-206** — Read-time derivation only, no auto-write-back (the principle Phase 2.5 was applying; the rollback removes a specific implementation, not the principle itself)
+
+**Evidence:** Phase 2.5 rollback (commits `95ccfb1` → `197805e` → `cc0f845` + migration `--apply` 2026-05-09 ~11:35 PT). 4 records scanned, 1 actual data strip (Doron's test data only — Patricia and Bari untouched), idempotent re-run confirmed.
+
+---
+
+### DEC-219: DEC Citation Verification Before Locking Spec Text — Mycelia Hygiene (2026-05-09)
+
+**Date:** 2026-05-09
+**Status:** Active. Mycelia self-improvement discipline; not user-facing.
+
+**Context:** Phase 2.6 spec committed at `abb3916` (2026-05-09 ~12:30 PT) cited three DEC numbers incorrectly:
+1. **DEC-148** cited as "Living Feet design principle" — actually DEC-146. DEC-148 is "Mylane Shell Containment via Overlay Expansion" with a side-note "two instances coincidence, three is a pattern" that gets referenced colloquially across the codebase, but the title is unrelated.
+2. **DEC-CD-018** cited at §3.8.4 — does not exist in any DECISIONS.md or spec doc. Hallucinated reference.
+3. **DEC-217** cited as "Stable identifier discipline" — actually shadcn `<Select>` width discipline. Stable identifiers (workers_json item ids from Phase 2.4 §0a) was never formalized as a DEC.
+
+Hyphae's sign-off audit (~12:30–12:55 PT) caught all three; Mycelia patched at `2b8686d`. The pattern of hallucinated DEC references slipping through the spec-writing pipeline crossed the second instance today (the Phase 2 sign-off doc 2026-05-08 had a similar `[CLIENT-AS-HUB-SPEC.md](http://CLIENT-AS-HUB-SPEC.md)` malformed-link shape that suggested Mycelia's reference-formatting heuristic is leaky).
+
+**Decision:** Mycelia must verify every DEC citation against canonical `DECISIONS.md` before locking spec text. Specifically:
+
+- **At spec-write time**, every `DEC-XXX` reference in the body or references list gets verified against `community-node/DECISIONS.md` (or `Spec-Repo/platform/DECISIONS.md` — they are mirror-synced per DEC-182). The verification confirms the DEC exists AND the gloss in the spec accurately summarizes the DEC's actual title or content.
+- **No citation from memory.** Even DECs Mycelia has cited many times before — DEC-146 vs DEC-148 specifically — get re-checked. The colloquial drift between "the principle from DEC-148" and the actual title of DEC-148 is the failure mode this rule prevents.
+- **Cross-reference-style citations are acceptable** when they accurately summarize the DEC's body (e.g., DEC-148 referenced as "three-instance threshold heuristic" is fine because the body contains "Two instances is coincidence, three is a pattern" even though the title is about overlay expansion). The verification is whether the gloss is supported, not whether it matches the title verbatim.
+- **Spec sign-off audits include DEC-citation spot-checks** — Hyphae's DEC-151 audit pass should verify a few referenced DECs as part of the audit, not just trust Mycelia's prose.
+
+**Rationale:** Spec drift via hallucinated DEC references creates compounding documentation debt — readers follow a citation expecting one thing and find another, the linkage between specs and the canonical decision record erodes, and future-Hyphae's confidence in spec citations drops. Three wrong references in one spec is enough evidence that the heuristic is unreliable; codifying the verification step before lock prevents the next instance.
+
+**Companion to:**
+- **DEC-151** (Spec Review Protocol) — extends to Mycelia's spec-writing pipeline, not just Hyphae's codebase audits
+- **DEC-212** (Spec Citation Re-Verification) — already established the principle for spec citations; this DEC extends it specifically to DEC-number citations (a sub-class that's especially prone to drift because DEC numbers are short, numerous, and similar-looking)
+
+**Operational rule:** Before locking any spec or build prompt that contains DEC citations:
+
+1. **Grep canonical DECISIONS.md for each cited DEC number.** Confirm it exists.
+2. **Read the DEC's title and body.** Confirm the citation gloss in the spec matches what the DEC actually says.
+3. **For cross-reference-style citations** (citing DEC X for principle Y where X's title is about something else), confirm the body contains the principle being cited. If not, find the actual DEC for that principle.
+4. **Add the verified citation to the spec's reference list.** Don't leave verification implicit.
+
+If a citation can't be verified against canonical DECISIONS.md, rewrite the spec to either remove the citation OR find the right DEC. Hallucinated references — DEC numbers that don't exist (e.g., DEC-CD-018) — are immediate signals that the spec-writing pipeline is leaky and need correction before commit.
+
+**Evidence — three citation errors in `abb3916`:**
+
+1. DEC-148 (Living Feet) → should be DEC-146 (DEC-148 is overlay containment with side-note about three-instance threshold)
+2. DEC-CD-018 (client-visibility toggle) → doesn't exist; the `client_show_breakdown` field is documented in code but not formalized as a DEC
+3. DEC-217 (stable identifier discipline) → DEC-217 is shadcn Select width; stable identifiers from Phase 2.4 §0a is never formalized as a DEC
+
+All three corrected in patch `2b8686d` (2026-05-09 ~13:15 PT) per Hyphae's sign-off audit findings.
+
+---

@@ -1,15 +1,17 @@
 # ACTIVE-CONTEXT.md
 
 > What's happening RIGHT NOW. This file gets overwritten each session, not appended.
-> Last updated: 2026-05-08 (Phase 2.1 + 2.2 + 2.3 + 2.4 all closed end-to-end; SubVendorPicker on cmdk integrated; DEC-216 + DEC-217 ratified; Client-as-Hub spec captured)
+> Last updated: 2026-05-09 (Phase 2.5 build → rollback + migration round-trip closed; Phase 2.6 spec authored + sign-off audited + patched; DEC-218 "Half-done isn't done" + DEC-219 DEC citation hygiene ratified; Phase 2.6.1 build queued for tomorrow)
 
 ## Current Focus
 
-**Phase 2.1, 2.2, 2.3, and 2.4 all closed end-to-end today.** Trade-grouping is the platform default with per-estimate taxonomy snapshot architecture; workers_json carries vendor role + primary_trade_id + business_name + stable id field; `<SubVendorPicker>` on cmdk replaces three free-text/select inputs across LineItemsEditor (estimate + CO surfaces) and FSPayment Sub Payment. Five migrations applied today, all idempotent. Two structural DECs ratified (DEC-216 wrap-shape, DEC-217 shadcn Select width).
+**Phase 2.5 round-trip closed end-to-end today.** Phase 2.5 (empty-field trade derivation via name-bridging) shipped at `95ccfb1` and rolled back at `197805e` + `cc0f845` after Doron's screen-walk surfaced two architectural realities the spec didn't account for: single `primary_trade_id` per sub couldn't survive taxonomy switching (Tony Tile maps to "Tile" in GC but no name match in CSI MasterFormat — exact-name-match bridge silently soft-fails cross-taxonomy), AND the line item creation flow has the trade dropdown visually before the sub picker (users pick the trade manually before derivation has a chance to fire). The auto-derivation feature isn't a priority right now and the single-trade-per-sub model collapses across taxonomies; pulled cleanly until per-taxonomy mapping work in Phase 3+. Doron's framing of the rollback decision: **"Half-done isn't done."** Promoted to DEC-218 + foundational PROJECT-BRAIN principle.
 
-**Phase 2.4 specifically:** `<SubVendorPicker>` is the first consumer of `cmdk` (shadcn `Command` primitive) in the codebase. Architecture consultation found cmdk shipped at `src/components/ui/command.jsx` and unused — drop the proposed `<TypeaheadPicker>` primitive abstraction, build `<SubVendorPicker>` directly. Workers_json items now carry stable `id` field (Phase 2.3 implementation oversight closed by §0a backfill migration). FSPayment.party_id semantic broadened to also reference workers_json item ids when party_type is sub/vendor — description-only update, no field-type change.
+**`primary_trade_id` field stripped from workers_json items via migration** (`migrate-strip-primary-trade-id`, 4 records scanned, 1 actual data strip — Doron's "Cabinetry & Countertops" test data on Consulting with Doron — 4 AuditLog rows, idempotent re-run confirmed). Patricia's data and Bari's Red Umbrella record completely untouched. **Two scaffolding pieces preserved** with rollback-context docstrings: `deriveLineTrade` pure function (now disconnected from render path but documented for future revisit), `peopleMap` extension on `useWorkspacePeople` (independently valuable Phase 2.6 polish target).
 
-**Tomorrow's first move:** Phase 2.5 — empty-field trade derivation from linked sub's `primary_trade_id` via name-bridging Option B (Phase 2 §6 lock-in). Read-time only, no auto-write-back. Architectural pattern is the same shape as DEC-206 derivation through links — applied to a fourth surface.
+**Phase 2.6 spec authored, sign-off audited, and patched.** New file at `Spec-Repo/spaces/field-service/PHASE-2-6-LINE-ITEM-ENTRY-REDESIGN.md` (`abb3916` + patch 001 at `2b8686d`). 13 locked design decisions covering an entry-form-plus-groups workflow redesign — replaces stacked editable rows with single entry-point at top + collapsible trade groups below + drag-and-drop reorder + inline edit + signed-doc lockdown UX. Three-component decomposition (`<LineItemForm>` + `<LineItemsByTrade>` + `<LineItemRow>`). **Phase 2.6.1 / 2.6.2 split** per Hyphae audit: 2.6.1 ships entry-form-plus-groups on FSEstimate alone (~3-4.5h focused build), 2.6.2 follows with FSChangeOrder schema additions (`group_by_trade`, `taxonomy_preset_id`, `trade_categories_snapshot`, `trade_group_order`) + backfill migration (~2-3h). @dnd-kit selected for drag-and-drop. CSI MasterFormat uses preset-defined order; all other presets default to insertion order; user drag overrides per-estimate.
+
+**Tomorrow's first move:** Phase 2.6.1 build kicks off from the build-ready spec at `2b8686d`. Single commit, single ship.
 
 ## Active Architecture
 
@@ -178,15 +180,19 @@ Bari is the first external paying user; Phase 2.1-2.4 dogfood-verified at produc
 5. **Phase 2.4 isChangeOrderLocked refactor regression check** — locked CO badges still render emerald; counted-COs filter still works on Project Detail Contract Total.
 6. **Patricia signing-flow regression check (still owed)** — with `rls.update` removed from FSEstimate (DEC-215), signEstimate should now succeed. Verify in-platform signing on a non-Patricia test estimate before retiring KI #22 workaround. Optional but valuable.
 
-## Phase 2.5 Up Next
+## Phase 2.6.1 Up Next
 
-Build prompt forthcoming for empty-field trade derivation:
+Build kicks off tomorrow from spec at `2b8686d`:
 
-- When a line item has `sub_person_id` set and `trade_category_id` empty, derive the trade from `workers_json[sub_person_id].primary_trade_id` via name-bridging (Phase 2 §6 lock-in Option B).
-- Resolution path: sub.primary_trade_id (workspace-current id) → look up workspace category NAME → find category in estimate's trade_categories_snapshot with same NAME → return snapshot id (or null → Unallocated).
-- Read-time only. No auto-write-back. Soft-fail to Unallocated when snapshot doesn't contain a matching name.
-- Subtle inline hint on rendered line item: "(derived from sub)" — small italic on hover.
-- Same shape as DEC-206 derivation through links — applied to a fourth surface. The `useDeriveLineTrade(line, peopleMap, workspaceCategories, snapshotCategories)` hook signature was already sketched in Phase 2.4 architecture consultation §6.
+- **Replace LineItemsEditor with three new components** — `<LineItemForm>` (shared field set: category, trade, description with voice, sub picker conditional, qty, unit price, computed amount), `<LineItemsByTrade>` (entry form + groups + state + empty state + subtotal strip), `<LineItemRow>` (asymmetric two-line/single-line, click-to-expand into inline edit).
+- **Workflow shape:** single entry form at top, Submit button with sticky "Keep trade for next entry" checkbox, submitted lines drop into trade groups below. Click any row to inline-edit (no modal). Subcontractor rows render two-line (description + sub name); other categories render single-line (description + qty × price + amount). Asymmetry IS the cue — no pills, no color codes.
+- **Drag-and-drop** via `@dnd-kit/core` + `@dnd-kit/sortable` (~30KB). Group-level drag (reorder trade groups), within-group line drag (reorder lines), DragOverlay for visual feedback, keyboard sensor for accessibility. Cross-group movement happens via edit-and-change-trade only — line snaps to new group with brief highlight pulse.
+- **Group ordering:** CSI MasterFormat preset uses preset order; all other presets default to insertion order; user drag overrides per estimate via new `trade_group_order` field on FSEstimate (DEC-216 wrap shape).
+- **Validation discipline (DEC-200):** inline error styling, Submit disabled until valid. Legacy line handling — Patricia's `sub_name`-only items force SubVendorPicker re-pick on inline edit (Phase 2 §7.8 natural-workflow reconciliation, Doron's locked Option C).
+- **Lockdown UX:** confirm dialog on edit click for signed estimates, three buttons (Cancel / Edit anyway / Create change order). "Edit anyway" writes silent markers `edited_after_lock` + `edited_at` + `edited_by` on the line item (DEC-216 wrap shape tolerates without Base44 schema change).
+- **`peopleMap` extension on `useWorkspacePeople`** preserved through Phase 2.5 rollback as scaffolding — Phase 2.6.1 polish target migrates four duplicate `parseWorkers` inline helpers to it.
+
+**Phase 2.6.2 follows after 2.6.1 lands.** FSChangeOrder gets `group_by_trade`, `taxonomy_preset_id`, `trade_categories_snapshot`, `trade_group_order` fields + backfill migration (single-secret protocol — MIGRATION_SECRET kept live from today's rollback) + CO surface turn-on with same UX as Estimates.
 
 ## Known Issues (Carried Forward)
 
@@ -213,22 +219,25 @@ Build prompt forthcoming for empty-field trade derivation:
 21. **Drift visibility question** (2026-05-07).
 22. **Patricia signing-flow bug — STRUCTURALLY UNBLOCKED 2026-05-08** as side-effect of DEC-215. Verification on a non-Patricia test estimate pending; PDF + hand-signature workaround can retire after that confirmation.
 23. Light-theme `--primary-foreground` collision with bg-white wrapper.
-24. **Vite stale dev-server error in `FieldServiceProjects.jsx:331`** — pre-existing stale state from earlier in the day; production build clean. Dev-server restart clears it.
+24. **~~Vite stale dev-server error in `FieldServiceProjects.jsx:331`~~ — RESOLVED 2026-05-09.** Yesterday's `projectIdToEstimate` redeclaration phantom from May 8 4:20 PT cleared on its own when the dev server was restarted after the Phase 2.5 rollback. New Vite dev server compiled cleanly with no errors.
 25. **`subs_enabled` feature flag gates BOTH Subs AND Vendors sections** in FieldServicePeople — sensible default but worth a per-section gate eventually if a contractor wants subs but not vendor records.
 26. **`FSPayment.rls.update` is PRESENT** — DEC-215 prerequisite blocker for any future `asServiceRole` writes targeting FSPayment (e.g., a backfill of `party_id` on existing payments). Phase 2.4 doesn't trigger this (no asServiceRole writes against FSPayment in this build).
+27. **workers_json privacy on public ClientPortal** (NEW 2026-05-09) — ClientPortal reads the full FieldServiceProfile entity which includes `workers_json` (sub names + business_names; `primary_trade_id` stripped post-rollback). FieldServiceProfile has `permissions.read: true`. Anyone with a `portal_token` URL can fetch the contractor's full sub roster — Bari's competitive list of subs is exposed. Phase 2.5 didn't widen this exposure (read was already returning workers_json before Phase 2.5), but the issue is real. Fix is server-side: add a `getPublicFieldServiceProfile` server function that strips `workers_json` and returns only what ClientPortal needs (`business_name`, `brand_color`, `workspace_name`, `trade_categories_json`, `features_json`). Estimated build: ~30-45 min. Defer until directory exposure escalates or Bari complains.
 
 ## Organism Milestones (this window)
 
-- **Phase 2.1, 2.2, 2.3, and 2.4 all closed end-to-end in one day** — most productive single-day arc since DEC-082 garden ratification. Architecture consultations (16 min total wallclock across three phases) prevented multiple-times-that build cost on wrong-shape implementations.
-- **Five migrations applied + idempotent** — `migrate-flat-layout-inversion`, `migrate-flat-layout-rename`, `migrate-trade-categories-snapshot-backfill`, `migrate-company-name-to-business-name`, `migrate-add-workers-json-ids`. All running through the shared `migrationHelpers` Deno function with the `pre-migration-rls-audit.js` Living Feet helper as the discipline gate.
-- **Two structural DECs ratified** — DEC-216 (wrap-shape rule) and DEC-217 (shadcn Select width discipline). Both promoted from accumulated convention to documented rule with five-instance evidence and named failure modes.
-- **First cmdk consumer in the codebase** — `<SubVendorPicker>` lit up the shipped-but-unused Command primitive. `<TypeaheadPicker>` primitive abstraction explicitly rejected — cmdk IS the primitive.
-- **Phase 2.3 implementation gap closed** — workers_json items now have stable `id` field. Architecture-consultation discipline (DEC-151 Spec Review Protocol) caught the gap before Phase 2.4 picker integration.
-- **Client-as-Hub architectural direction captured** — same documents-are-frozen-identity pattern as Phase 2.2 snapshot, applied at client/project level. Phase 3 candidate.
+- **Phase 2.5 round-trip closed end-to-end** — build → ship → rollback → migration → idempotent confirm in ~2.5 hours (~10:00–11:35 PT). First "build then deliberately roll back" cycle on the platform. Promoted "Half-done isn't done" from session principle to formal DEC-218 + foundational PROJECT-BRAIN principle.
+- **Phase 2.6 spec authored + sign-off audited + patched + build-ready** in one session arc. Hyphae's exploratory architecture audit (~45 min) + sign-off audit (~25 min) caught the load-bearing CO parity gap and three hallucinated/wrong DEC references before Phase 2.6.1 build kickoff. DEC-219 ratified as Mycelia hygiene rule for DEC citation verification.
+- **Six migrations applied cumulatively** — `migrate-flat-layout-inversion`, `migrate-flat-layout-rename`, `migrate-trade-categories-snapshot-backfill`, `migrate-company-name-to-business-name`, `migrate-add-workers-json-ids`, `migrate-strip-primary-trade-id` (today). All running through the shared `migrationHelpers` Deno function with the `pre-migration-rls-audit.js` Living Feet helper as the discipline gate. `MIGRATION_SECRET` kept live across rollback → Phase 2.6.2 sequence (single-secret protocol).
+- **Two structural DECs ratified** — DEC-216 (wrap-shape rule) and DEC-217 (shadcn Select width discipline) on 2026-05-08. Today added DEC-218 (Half-done isn't done — feature-evaluation discipline) and DEC-219 (DEC citation verification — Mycelia hygiene).
+- **First cmdk consumer in the codebase (Phase 2.4)** — `<SubVendorPicker>` lit up the shipped-but-unused Command primitive.
+- **Phase 2.3 implementation gap closed (Phase 2.4 §0a)** — workers_json items now have stable `id` field.
+- **Client-as-Hub architectural direction captured** (Phase 3 candidate spec at `Spec-Repo/spaces/field-service/CLIENT-AS-HUB-SPEC.md`).
+- **Phase 2.6 line-item entry redesign spec captured** at `Spec-Repo/spaces/field-service/PHASE-2-6-LINE-ITEM-ENTRY-REDESIGN.md` — supersedes original Phase 2.6 polish scope from Phase 2 sign-off doc §7.8 reconciliation.
 
 ## In Flight
 
-None. Phase 2.1-2.4 complete; Phase 2.5 awaiting build prompt.
+None. Phase 2.5 round-trip closed; Phase 2.6 spec build-ready; Phase 2.6.1 queued for tomorrow.
 
 ## Active Blockers
 
@@ -236,10 +245,10 @@ None.
 
 ## Upcoming Priorities
 
-1. **Phase 2.5 — empty-field trade derivation** from sub's primary trade via name-bridging (Phase 2 §6 lock-in Option B). Read-time only.
-2. **Patricia signing-flow regression check** (Doron, optional) — verify in-platform signing on a non-Patricia test estimate before retiring KI #22 workaround.
-3. **Phase 2.6 — polish** (mobile, dark theme, CO render parity, edge cases). Optional reconciliation script for inline `sub_name` strings explicitly deferred (Phase 2 §7.8 — natural workflow).
-4. **Phase 2 closes** after 2.5 + 2.6.
+1. **Phase 2.6.1 build** (~3-4.5h focused build with @dnd-kit + ~1h Doron-in-loop verification, single commit). Spec at `2b8686d`. Build queued for 2026-05-10. Three-component decomposition (`<LineItemForm>` + `<LineItemsByTrade>` + `<LineItemRow>`); entry-form-plus-groups workflow on FSEstimate alone; @dnd-kit drag-and-drop; confirm dialog for signed-doc edit interception; soft-delete-with-undo. Bundles `parseWorkers` deduplication via `peopleMap` as polish target.
+2. **Phase 2.6.2 build** (~2-3h focused build) — FSChangeOrder schema additions (`group_by_trade`, `taxonomy_preset_id`, `trade_categories_snapshot`, `trade_group_order`) + backfill migration (`migrate-strip-primary-trade-id` MIGRATION_SECRET kept live from today's rollback) + CO surface turn-on with same UX as Estimates. Follows after 2.6.1 lands.
+3. **Patricia signing-flow regression check** (Doron, optional) — verify in-platform signing on a non-Patricia test estimate before retiring KI #22 workaround.
+4. **Phase 2 closes** after 2.6.1 + 2.6.2.
 
 Open queue (carry-forward):
 

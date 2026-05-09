@@ -1,7 +1,7 @@
 # PROJECT-BRAIN.md
 
 > Read this first. This file orients any AI model — Claude, Gemini, GPT, or other — to work effectively on LocalLane. It is the single source of truth for project identity, philosophy, and working style.
-> Last updated: 2026-04-26 (Cursor retired from canonical docs; DEC-182 single-source policy)
+> Last updated: 2026-05-09 (DEC-218 "Half-done isn't done" promoted to foundational principle)
 
 ---
 
@@ -108,6 +108,18 @@ The principle extends LocalLane's surface philosophy: everyone gets to be who th
 When signaling active state on a navigation surface, illuminate the element in place via color, size, or weight. Do not relocate its identity to a separate readout. The primary interaction surface is where the user's attention lives; identity belongs there, not 60px above in a remote chrome row.
 
 Real instruments light up the active position in place rather than renaming it on a legend. The needle meeting the lit word is a single integrated signal; a needle pointing at empty space plus a remote readout is two fragments. Applies to future cockpits and any navigation UI where an active element needs to be distinguished. Companion to Living Feet — identity is one thing, not two places.
+
+## Half-Done Isn't Done (DEC-218)
+
+When a feature works ~30% of the time and fails silently the other 70%, the right move is removal, not iteration. Half-done creates noise in user mental models that compounds across the platform — contractors learn to distrust visual cues, mental models drift from system behavior, "is this thing working today?" becomes a per-session question.
+
+This principle is load-bearing for every feature-evaluation gate. **Before shipping:** does the feature work reliably across the realistic input space, or only across a narrow happy path? **After shipping:** if real-user reports show the feature works X% of the time, the question isn't "how do we boost X to 100%?" — it's "is half-done worse than no-thing?" If yes, remove first, design properly second. **Scaffolding allowed** — pure functions, helpers, and hooks that anchor a disconnected surface may remain in the codebase as documented scaffolding when the work is genuinely deferred (not abandoned). Migration cost is part of the rollback — a feature that wrote data to user records earns a paired migration to strip that data on rollback.
+
+Companion to **Dark Until Explored (DEC-117)**: spaces dim when unused but never lie about working. The user-visible surface either honestly works or honestly stays dark. Companion to **Living Feet (DEC-146)**: pattern-extraction discipline applies inversely — at three instances of "this kind of feature fails," promote the failure mode to a structural rule.
+
+Surfaced through Phase 2.5 rollback decision (2026-05-09): empty-field trade derivation via name-bridging fired correctly only when the sub's primary_trade_id matched a snapshot category by exact name AND the user picked the sub before the trade. Reality made both conditions rare. Doron's framing of the rollback decision: "Half-done isn't done." Promoted from session principle to formal DEC + foundational principle in same ship-it cycle.
+
+*"Half-done isn't done." — Doron, 2026-05-09*
 
 ## $3 Ante (DEC-127)
 
