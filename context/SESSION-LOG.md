@@ -2216,3 +2216,112 @@ Calibration trend through 27 cumulative sessions: today's investigation flavors 
 **Ship-it timestamp:** 2026-05-09, ~13:30 PT. Phase 2.5 round-trip (build → rollback → migration → idempotent confirm) closed end-to-end. Phase 2.6 spec authored + sign-off audited + patched; build-ready baseline at `2b8686d`. 3 community-node commits + 2 Spec-Repo commits this section. Two new DECs (DEC-218 "Half-done isn't done" + DEC-219 DEC citation hygiene). Two new seedlings (Desk Home tile drill-throughs + $1,310 discrepancy audit) + KI #27 captured + KI #24 resolved. **Active paying members: 1 (Bari).**
 
 ---
+
+## 2026-05-09 (Saturday afternoon — drill-through + Phase 1.0 commit 1 + spec patches 002-005 + Base44 incidents)
+
+### Mid-day — drill-through Seedlings A+B (12:23-13:02 PT)
+
+- ~12:23 Doron handed off Seedlings A+B audit prompt — drill-through breakdowns for Desk Home tiles (A) + `$1,310 Received` calculation discrepancy (B).
+- ~12:23–12:30 Hyphae audit (~7 min) of `<ProjectTileDrillIn>` primitive at `src/components/fieldservice/ProjectTileDrillIn.jsx`. Findings: primitive already exists (no extraction owed); `$1,310 Received` bug root cause traced to `FieldServiceHome.jsx:153-158` missing direction filter. Sub Payments paid OUT to subs/vendors written with `direction: 'paid'` AND `status: 'received'` (the lifecycle marker, not "received income"); both directions union into "Received income" inappropriately.
+- ~12:46–12:49 Hotfix commit (`472583c`) — added direction filter `(p.direction || 'received') === 'received'` + `parseFloat` normalization on the `paymentsReceived` aggregation. Mirrors gold-standard `summarizePayments` helper at `useFSPayments.js:27-38` used by Project Detail. ~3 min wallclock.
+- ~12:53–13:02 Drill-through build commit (`14ba199`) — 6 tile drillConfig entries on FieldServiceHome (Clients / Active Projects / Estimates / Spent This Month / Received / Team) reusing existing `<ProjectTileDrillIn>` primitive; `useConsumePrefill` hook extracted to `src/hooks/useConsumePrefill.js` (Living Feet — 5+ inline consumers funneled through one hook); "This Month" tile renamed "Spent This Month" (its actual semantic is outgoing materials/labor cost, not income — sitting next to "Received" with old label invited mental-model confusion); migrated existing inline prefill consumers (Estimates + Log) where 3-line swap was clean; Documents inline consumer left in place (multi-key conditional with shared ref doesn't compose into single-key hook); three new prefill keys wired (`fs-people-prefill-client-id`, `fs-people-prefill-worker-id`, `fs-projects-prefill-project-id`/`payment-id`); Project Detail consumer wired with paired-key guard + ref-based single-fire scroll-flash mirroring same-component `goToPaymentRow` pattern. ~9 min wallclock for full build (Mycelia speculative was 3-5h; Hyphae actual 16-30x faster as expected pattern composition work).
+- Doron published Base44 + reported "still $1,310" — initial diagnosis was correct (filter shape) but $1,310 was actually legitimate `direction: 'received'` test-data records from Test Client; the drill-through itself revealed the truth.
+
+### Afternoon — Phase 1.0 spec evolution + commit 1 build (~13:30–14:47 PT)
+
+- Doron uploaded specs to Mycelia: `LOG-LINE-ITEM-ATTRIBUTION-PROPOSAL.md` (May 5, 330 lines) + `FINANCIAL-WORKFLOW-SPEC.md` (April 29, 817 lines).
+- Doron locked **eight attribution Qs** (all to recommended defaults from May 5 spec): per-line rollup contractor-only on ClientPortal for fixed-price (Q1 → DEC-220); CO void → auto-shift attributed payments to Unallocated (Q2); `projectSpent` redefined to include attributed FSPayment(paid) (Q3); picker = type-ahead searchable from day one (Q4); picker = chronological order, estimate first then signed COs in order (Q5); FSDailyLog "primary line item" concept skipped per-day (Q6); picker label = "Line item" (Q7); FSCostItem library connection = forward-compat flag only (Q8).
+- Doron locked **seven edit/delete Qs**: all four cost-tracking entities get edit/delete; soft delete (`deleted_at` + `deleted_by`); cleared-payment immutability with Reverse flow (`parent_payment_id` forward-compat); three-dot menu UX (`<RowActionsMenu>` composing shadcn DropdownMenu); cascade delete for FSDailyLog (children soft-delete with parent); edit modal reuses existing forms in `mode="edit"`; AuditLog row per edit + per delete.
+- Doron chose **Option Z phasing** — ship attribution + edit/delete together as one architectural piece (rather than splitting commits across phases).
+
+**Spec patches shipped (Spec-Repo, four sequential):**
+
+| Patch | Commit | Content |
+|---|---|---|
+| 002 | (earlier afternoon) | Eight attribution Qs locked + seven edit/delete Qs + Option Z combined phasing — appends §12 (Decisions locked) + §13 (Edit/delete on cost-tracking entities) + §14 (Combined phasing) + §15 (DEC-219 enforcement update) |
+| 003 | `f4e179f` | Citation hygiene fixes (DEC-178/193 misattribution corrections + dropdown-menu primitive reference replacing hallucinated "Recurring Transactions / FrequencyContext" pattern) + cascade atomicity callout (`softDeleteWithCascade` server function) + DEC-219 enforcement update — Hyphae sign-off audit caught two DEC drifts + one hallucinated codebase reference; same DEC-219 hygiene shape applied to non-DEC-citation drift case |
+| 004 | `4d6c0fb` | §13.6 Material/Labor attribution (Phase 1.0 commit 1.5 scope) + §12 Q6 amendment — surfaced during Doron's commit 1 walkthrough; per-row attribution on FSMaterialEntry + FSLaborEntry rather than per-day inheritance on FSDailyLog parent |
+| 005 | `0dbe54e` | §13.6 Pattern A/B/C/D enumeration replacing phantom Pattern 2/4 references — Hyphae's patch 004 sign-off audit observation; future readers can interpret §13.6 standalone without chat-history context. Pattern A (per-row) chosen over Pattern B (FSDailyLog inheritance) / Pattern C (allocation arrays) / Pattern D (FSCostItem auto-suggest) |
+
+**Phase 1.0 commit 1 shipped (community-node) — `04162a8`:**
+
+- 12 files, 746 insertions / 42 deletions
+- New: `src/utils/softDelete.js` (`excludeDeleted` helper), `src/hooks/useContractLineItems.js` (chronological union of estimate + signed CO line items, dev warning on missing ids per spec §10), `src/components/fieldservice/LineItemPicker.jsx` (type-ahead picker composing shadcn Command + Popover; graceful degradation for no-project / no-estimate / orphaned-line cases), `base44-prompts/PHASE-1-0-LINE-ITEM-ATTRIBUTION-AND-SOFT-DELETE.md`
+- Modified: FieldServiceLog.jsx (LineItemPicker integration on Sub Payment + Client Payment forms; `line_item_id` added to FSPayment payload), FieldServiceProjects.jsx (largest — workspace allPayments query, projectSpent + spendByProject semantic update including FSPayment(paid), per-line rollup view section, Spent tile caption, drill-in subtitle/footer/rows update, soft-delete sweep), FieldServiceHome.jsx + FieldServiceClientPortal.jsx + FieldServiceTimeline.jsx + FieldServiceReport.jsx + useFSPayments.js + ClientPortal.jsx (soft-delete read-path filter sweep at 27 sites total)
+- Wallclock: ~13 min Hyphae build (Mycelia speculative 3.5-5h; Hyphae audit estimate 3.5-5h; actual ~16-23x faster — calibration data point #71)
+- Doron verified working in production after publish: LineItemPicker visible on Sub Payment + Client Payment forms; "No line items available — Unallocated" graceful degradation; per-line rollup view renders with Estimated / Billed / Cost / Variance columns + Unallocated row at bottom; Spent tile shows new caption "Materials + labor + sub payments"; drill-in subtitle/footer updated.
+
+### Diag-ping #1 + revert (verifying deploy pipeline)
+
+- After commit 1 shipped, Doron's hard-refresh on Sub Payment form did NOT show LineItemPicker initially. Two hypotheses: (a) Base44 deploy pipeline slow, (b) picker integration bug.
+- Diag-ping commit (`cb7292a`) — tiny visible amber badge at top of Log tab to test deploy pipeline narrowly. Outcome C confirmed: deploy was just slow earlier; both diag marker AND picker landed together.
+- Revert commit (`212be2f`) — single-block delete after Outcome C confirmed.
+
+### Base44 platform incidents (3 in 100 minutes — KI #28)
+
+- **Gate 1 (Phase 1.0 commit 1 schema — FSPayment + soft-delete fields on 4 entities):** APPLIED CLEAN. Auto-commit `22ed68f`. 10 fields added across 4 entities (FSPayment.line_item_id, FSPayment.parent_payment_id, FSPayment.deleted_at, FSPayment.deleted_by; FSMaterialEntry.deleted_at + deleted_by; FSLaborEntry.deleted_at + deleted_by; FSDailyLog.deleted_at + deleted_by). RLS audit confirmed all four entities have `rls.update: {"created_by": "{{user.email}}"}` PRESENT.
+- **Gate 2 (rls.update removal on all four entities):** **BLOCKED by Base44 platform issue.** Security panel won't load, agent approval prompts stuck pending, hard refresh + manual edit both blocked. **KI #28 captured.** Resolution deferred. Critical: gates commit 2's `withAuditLog` + `softDeleteWithCascade` server functions (asServiceRole writes against all four entities require rls.update absence per DEC-215). Commit 2 build deferred until KI #28 resolves.
+- **Commit 1.5 schema gate (FSMaterialEntry.line_item_id + FSLaborEntry.line_item_id):** **FAILED with timeout/error.** Request ID `0432acde-c8e7-42d4-b92d-8d5947f6fb3c`. Both writes rolled back per Doron's entity browser verification. **KI #28 territory expanded — multi-symptom incident.** Commit 1.5 build deferred until Base44 schema agent recovers.
+
+### Diag-ping #2 (verify deploy pipeline post-schema-error)
+
+- After 16:11 PT schema agent error, raised the question: is broader Base44 platform impaired or just the schema agent? Tiny visible commit (`ecdf140`) — sky-blue badge at top of Desk Home, different surface from diag-ping #1 to clearly distinguish as fresh check.
+- Revert bundled into this ship-it cycle.
+
+### Security work
+
+- Two HTTP security headers cleared via Base44 Security panel:
+  - `X-Frame-Options: SAMEORIGIN`
+  - `Permissions-Policy: camera=(self), microphone=(self), geolocation=(), payment=(), usb=(), midi=(), vr=(), gyroscope=(), accelerometer=(), magnetometer=(), interest-cohort=()`
+- Five RLS Issues findings ratified as **deliberate per DEC-095 amendment + DEC-215** — NOT to be "Fixed" via Base44 panel. Architectural state: `asServiceRole` writes require `rls.update` ABSENCE; resolved cleanly post-Supabase migration when RLS layer changes.
+- Two Exposed Secrets findings (hardcoded admin user IDs in `migrationHelpers` + `reparentBusiness` server functions) — captured as **KI #29**. Pre-migration cleanup target.
+- Two Unauthenticated Backend Functions findings (`voidChangeOrder` lacks auth check; `manageNetworkApplication` hardcoded email auth) — captured as **KI #30** (voidChangeOrder) + **KI #31** (manageNetworkApplication). Pre-migration cleanup targets.
+
+### Migration discussion opened
+
+- Doron framing: *"I am getting over base44 and the issues we are having. Perhaps it is time we start to work on migration."* — surfaced after the third Base44 incident in 100 minutes.
+- Mycelia honest recalibration: 30-50 combined hours (Hyphae + Doron) rather than the multi-month framing from the original Phase 5/6 spec. Sequencing: complete "Bari working well" first (Phase 1.0 commit 2 + Phase 2.6.1 + Phase 2.6.2 + polish + KI #27), then migrate. Custody trial 2026-05-19 respected as constraint.
+- Migration audit deferred to dedicated future session — substantive enough to warrant standalone scope.
+
+### Decisions ratified afternoon
+
+- **DEC-220** ratified — **Per-line rollup contractor-only on ClientPortal for fixed-price contracts.** First of eight attribution-decision locks from `LOG-LINE-ITEM-ATTRIBUTION-PROPOSAL.md` §12 row 1; the per-line rollup view (Estimated / Billed / Cost / Variance per contract line item) renders on Project Detail (contractor surface) but NOT on ClientPortal (public-facing client surface) for fixed-price contracts. Two-World Architecture (DEC-203) at the trust boundary: per-line cost data is contractor-internal; client sees only what she contractually needs (high-level Contract / Received / Paid Out / Net Cash banner). Cost-plus / T&M handling deferred to post-migration when Estimate Types ship. Status: Active. Reference: spec §12 row 1.
+- The other seven attribution Q-locks remain captured in `LOG-LINE-ITEM-ATTRIBUTION-PROPOSAL.md` §12 (rows 2-8) — internal to the Phase 1.0 / commit 1.5 build scope, not separately ratified as DECs since they are not platform-wide architectural rules.
+
+### Known Issues affected (afternoon)
+
+- **KI #28 NEW** — Base44 platform incidents (multi-symptom): Security panel won't load (gates Gate 2 rls.update removal across 4 entities — blocks commit 2 build), schema agent timeout/error (rolled back commit 1.5 schema additions — Request ID `0432acde-c8e7-42d4-b92d-8d5947f6fb3c`), deploy pipeline slowness (initial commit 1 publish lag — confirmed via diag-ping cycle). Multiple symptoms suggest broader platform stability issue rather than isolated single surface. Awaiting Base44 recovery.
+- **KI #29 NEW** — Exposed Secrets findings: hardcoded admin user IDs in `migrationHelpers` + `reparentBusiness` server functions. Captured during afternoon Security panel review. Pre-migration cleanup target.
+- **KI #30 NEW** — `voidChangeOrder` server function lacks auth check (Unauthenticated Backend Functions finding). Pre-migration cleanup target.
+- **KI #31 NEW** — `manageNetworkApplication` hardcoded email auth (Unauthenticated Backend Functions finding). Pre-migration cleanup target.
+- **KI #26 (FSPayment.rls.update PRESENT)** — now expanded scope: gates not just future asServiceRole writes against FSPayment but also Phase 1.0 commit 2's `withAuditLog` + `softDeleteWithCascade` server functions across all four cost-tracking entities (FSPayment, FSMaterialEntry, FSLaborEntry, FSDailyLog). Resolution rolled into KI #28's Base44 platform recovery.
+
+### Calibration data afternoon (DEC-211 #64 through #74)
+
+| # | Session | Wallclock | Hyphae stamp | Complexity |
+|---|---------|-----------|---------------|-------------|
+| 64 | Drill-through Seedlings A+B audit | ~7 min | ~7 min | investigation |
+| 65 | Drill-through hotfix (direction filter) | ~3 min | ~3 min | hotfix |
+| 66 | Drill-through build (6 tiles + hook + rename) | ~9 min | ~9 min | build (pattern composition, 16-30x faster than estimate) |
+| 67 | Spec patch 002 sign-off audit + commit | ~25 min | ~25 min | investigation + commit |
+| 68 | Spec patch 003 commit | ~9 min | ~9 min | spec patch |
+| 69 | Spec patch 004 commit | ~5 min | ~5 min | spec patch |
+| 70 | Spec patch 005 commit | ~2 min | ~2 min | spec patch (single edit) |
+| 71 | Phase 1.0 commit 1 build | ~13 min | ~13 min | build (~16-23x faster than 3.5-5h estimate) |
+| 72 | Diag-ping commit + revert | ~3 min | ~3 min | tiny diagnostic |
+| 73 | Diag-ping #2 commit | ~2 min | ~2 min | tiny diagnostic |
+| 74 | Cumulative ship-it cycle | (this session) | (this session) | docs sweep |
+
+Pattern continues: build flavors at familiar-pattern composition compress 16-30x; audits hold at estimated wallclock; spec patches compress to ~minutes once Find/Replace boundaries are clear.
+
+### Next session opens with
+
+1. **Phase 1.0 commit 1.5 build** — when Base44 schema agent recovers from KI #28. Retry of `base44-prompts/PHASE-1-0-COMMIT-1-5-MATERIAL-LABOR-ATTRIBUTION.md` (FSMaterialEntry.line_item_id + FSLaborEntry.line_item_id additions). Build prompt + spec already ready (spec at `0dbe54e`).
+2. **Phase 1.0 commit 2 build** — when KI #28 fully resolves AND Gate 2 (rls.update removal on all four cost-tracking entities) clears. Edit/delete on all four entities + cleared-payment immutability + Reverse minimum-viable + cascade-delete server function.
+3. **Phase 2.6.1 + 2.6.2 builds** — queued; spec at `2b8686d`; CO migration uses MIGRATION_SECRET kept live from Phase 2.5 rollback.
+4. **Migration audit** — dedicated session to scope the 30-50 hour Hyphae+Doron migration to Supabase + Vercel.
+5. **Five-tile drill-through verification** — deferred from morning (Doron walking each of 6 Desk Home tiles in production).
+
+**Ship-it timestamp:** 2026-05-09 ~16:30 PT. Cumulative Saturday: 7 community-node commits + 6 Spec-Repo commits across the day. Three new DECs (DEC-218, DEC-219, DEC-220). Four new KIs (#28, #29, #30, #31). Phase 1.0 commit 1 shipped + verified; commit 1.5 spec-ratified, build deferred on KI #28; commit 2 blocked on KI #28. Drill-through Seedlings A+B closed. Migration discussion opened (audit deferred to future session). **Active paying members: 1 (Bari).**
+
+---

@@ -1658,3 +1658,40 @@ If a citation can't be verified against canonical DECISIONS.md, rewrite the spec
 All three corrected in patch `2b8686d` (2026-05-09 ~13:15 PT) per Hyphae's sign-off audit findings.
 
 ---
+
+### DEC-220: Per-line rollup contractor-only on ClientPortal for fixed-price contracts (2026-05-09)
+
+**Date:** 2026-05-09
+**Status:** Active. First of eight attribution-decision locks from `LOG-LINE-ITEM-ATTRIBUTION-PROPOSAL.md` §12 row 1; ratified during Phase 1.0 commit 1 build-clearance review.
+
+**Context:** Phase 1.0 brings line-item attribution forward into Phase 1 (FSPayment with `line_item_id`). The per-line rollup view on Project Detail Financial Ledger surfaces Estimated / Billed / Cost / Variance per contract line item. Question: should that per-line breakdown also render on ClientPortal (the public-facing client-token URL where Patricia, Bari's homeowner client, sees her project)?
+
+For a fixed-price contract the per-line cost is contractor-internal information — Patricia paid a fixed $182,013.69 for the ADU; she doesn't need (or want) line-by-line cost-vs-estimate variance visibility. Showing per-line Cost on ClientPortal would expose Bari's margins and his sub payment amounts, which is contractor-private data on a fixed-price scope.
+
+For cost-plus / time-and-materials contracts, the math is different — the client IS paying actuals, so per-line transparency is contractually expected. Phase 1 is FSPayment-only on `fixed_price` estimates (Estimate Types expansion is queued); cost-plus / T&M handling is a post-migration concern when Estimate Types ship.
+
+**Decision:** Per-line rollup view (Estimated / Billed / Cost / Variance per contract line item, plus Unallocated row) is **contractor-only** on the Project Detail Financial Ledger surface. **Not rendered on ClientPortal.** Patricia (and any future fixed-price client) sees the high-level Contract / Received / Paid Out / Net Cash banner from Phase 1, plus the existing payments list and project narrative — she does not see per-line Cost, Variance, or sub payment attribution on ClientPortal.
+
+When cost-plus / T&M estimate types ship (post-migration, Phase 3+), revisit ClientPortal per-line visibility for those contract types specifically. The decision is scoped to fixed-price contracts in Phase 1; not a permanent platform decision.
+
+**Rationale:** Two-World Architecture (DEC-203) at the trust boundary — Bari's per-line cost data is contractor-internal (inside the organism); Patricia's public-facing client view exposes only what she contractually needs to see (the bridge layer). For fixed-price scopes, per-line cost breakdown is privacy-sensitive: it exposes both the contractor's margin AND the contractor's sub roster (party_name on each Cost row). Patricia paid $182K; she doesn't need to see "Tony Tile $4,200" attributed to a specific line. The high-level Contract / Received banner is enough at her trust-boundary layer.
+
+For cost-plus / T&M, the dynamic flips — the client is contractually paying actuals, so per-line transparency is the value proposition. That's a separate decision in a separate phase when Estimate Types expansion ships.
+
+**Operational rule:**
+
+- **Project Detail (contractor surface):** per-line rollup view renders. All contract lines + Unallocated row. Estimated / Billed / Cost / Variance per line.
+- **ClientPortal (public client surface):** per-line rollup view does **NOT** render. Phase 1's high-level Contract / Received / Paid Out / Net Cash banner remains. Per-line breakdown is contractor-internal.
+- **Phase 1 scope:** fixed-price estimates only (Estimate Types expansion queued — `flat_fee` / `time_and_materials` enums not yet shipped).
+- **Post-migration revisit:** when cost-plus / T&M ship, design per-line ClientPortal visibility for those contract types specifically; fixed-price stays contractor-only.
+
+**Companion to:**
+- **DEC-203** — Two-World Architecture (inside the organism vs. bridge layer)
+- **DEC-117** — Dark Until Explored (client-facing surface stays minimal until per-line transparency contractually justified)
+- **DEC-214** — FSPayment edit deferred to Phase 2 financial-layer (related boundary decision: FSPayment as create-only via Log; commit 2 reopens with edit/delete behind the contractor surface)
+
+**Reference:** LOG-LINE-ITEM-ATTRIBUTION-PROPOSAL.md §12 row 1 — first of eight attribution decisions locked during Doron's Phase 1.0 review session (2026-05-09 ~13:09–13:30 PT). The eight Q-locks together became the Phase 1.0 build-clearance gate.
+
+**Other seven Q-locks** (per spec §12, summarized — not separately ratified as DECs since they are scope decisions internal to the Phase 1.0 / commit 1.5 build, not platform-wide architectural rules): CO void → auto-shift attributed payments to Unallocated (Q2); `projectSpent` redefined to include attributed FSPayment(paid) (Q3); picker = type-ahead searchable from day one (Q4); picker = chronological order, estimate first then signed COs in order (Q5); FSDailyLog "primary line item" concept skipped per-day in favor of per-row attribution on FSMaterialEntry + FSLaborEntry (Q6, ships in commit 1.5); picker label = "Line item" (Q7); FSCostItem library connection = forward-compat flag only, post-migration concern (Q8). These remain captured in the spec; only Q1 (this DEC) is platform-wide enough to merit a DEC.
+
+---
