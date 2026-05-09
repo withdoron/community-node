@@ -150,10 +150,22 @@ export default function FieldServiceHome({ profile, currentUser, onNavigateTab }
     [estimates]
   );
 
+  // Direction filter is load-bearing: FSPayment carries both Sub Payments
+  // (direction: 'paid', money OUT to subs/vendors) and Client Payments
+  // (direction: 'received', money IN from clients), and the Log writes
+  // status: 'received' for ALL of them — `status` is the lifecycle marker
+  // (vs pending/cleared), not "received income". Without the direction
+  // filter, paid-out sub payments leak into the Received tile and the
+  // contractor sees a fake income number. Mirrors summarizePayments() in
+  // useFSPayments.js — gold-standard helper used by Project Detail's
+  // matching tile. The (p.direction || 'received') default tolerates pre-
+  // Item-4 legacy records that pre-date the field; schema default is
+  // 'received' so this is belt-and-suspenders.
   const paymentsReceived = useMemo(
     () => payments
-      .filter((p) => p.status === 'received' || p.status === 'cleared')
-      .reduce((s, p) => s + (p.amount || 0), 0),
+      .filter((p) => (p.status === 'received' || p.status === 'cleared')
+                  && (p.direction || 'received') === 'received')
+      .reduce((s, p) => s + (parseFloat(p.amount) || 0), 0),
     [payments]
   );
 
