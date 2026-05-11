@@ -150,27 +150,63 @@ export function printNode(node, { title, extraCss = '' } = {}) {
   };
 
   // document.write doesn't reliably fire iframe onload, and <link rel="stylesheet">
-  // copies need network. Wait for fonts.ready (proxy for "stylesheets applied")
-  // with a hard cap so we don't hang if no fonts are pending.
+  // copies need network. Three resource classes must be ready before print fires:
+  // (1) fonts — via doc.fonts.ready, (2) stylesheets — link.sheet populated once
+  // CSS parses, (3) images — img.complete && naturalHeight > 0. fonts.ready alone
+  // is NOT a sufficient proxy: it resolves immediately when no fonts are pending,
+  // even if stylesheets and images are still mid-fetch. First-attempt symptom
+  // when an unwaited <img> hits the print pipeline mid-load: layout uses the
+  // image's intrinsic dimensions instead of CSS-constrained ones, oversizing
+  // the logo and breaking pagination (Bari's PDF, 2026-05-11). Second attempt
+  // works because the browser image cache holds the logo.
   //
   // Idempotency guard: when readyState !== 'complete' we set BOTH iframe.onload
   // AND a 1s belt-and-suspenders setTimeout. In production both paths reliably
   // fire — onload typically resolves within a few hundred ms, then the timeout
   // arrives a second time and calls trigger() twice, surfacing two print
-  // dialogs back-to-back (Bari + Patricia would each see the dialog open,
-  // close, then immediately reopen — confusing especially on mobile). The
-  // fallback was added because document.write doesn't reliably fire onload,
-  // but in the cases where onload DOES fire it doesn't suppress the timeout.
-  // `triggered` flips on the first arrival; whichever scheduling path arrives
-  // second is a no-op.
+  // dialogs back-to-back. `triggered` flips on the first arrival; whichever
+  // scheduling path arrives second is a no-op.
   let triggered = false;
+
+  const imagesReady = () => {
+    const imgs = Array.from(doc.images || []);
+    if (imgs.length === 0) return Promise.resolve();
+    return Promise.all(
+      imgs.map((img) => {
+        if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+        return new Promise((resolve) => {
+          img.addEventListener('load', resolve, { once: true });
+          img.addEventListener('error', resolve, { once: true });
+        });
+      })
+    );
+  };
+
+  const stylesheetsReady = () => {
+    const links = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
+    if (links.length === 0) return Promise.resolve();
+    return Promise.all(
+      links.map((link) => {
+        // link.sheet is non-null once the stylesheet has parsed.
+        if (link.sheet) return Promise.resolve();
+        return new Promise((resolve) => {
+          link.addEventListener('load', resolve, { once: true });
+          link.addEventListener('error', resolve, { once: true });
+        });
+      })
+    );
+  };
+
   const waitAndPrint = () => {
     if (triggered) return;
     triggered = true;
     const fontsReady = doc.fonts ? doc.fonts.ready : Promise.resolve();
+    // Hard cap at 3s so a stalled CDN can't hang the print dialog indefinitely.
+    // Resources served from the parent's HTTP cache typically resolve in <500ms;
+    // a cold-fetched logo over a slow connection lives at the upper end.
     Promise.race([
-      fontsReady,
-      new Promise((r) => setTimeout(r, 600)),
+      Promise.all([fontsReady, stylesheetsReady(), imagesReady()]),
+      new Promise((r) => setTimeout(r, 3000)),
     ]).then(() => setTimeout(trigger, 50));
   };
 
