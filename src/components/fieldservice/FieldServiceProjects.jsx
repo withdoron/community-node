@@ -13,6 +13,8 @@ import FieldServicePhotoGallery from './FieldServicePhotoGallery';
 import FieldServiceClientPortal from './FieldServiceClientPortal';
 import FieldServiceClientDetail from './FieldServiceClientDetail';
 import ProjectTileDrillIn from './ProjectTileDrillIn';
+import ConfirmDeleteWithDependents from './ConfirmDeleteWithDependents';
+import { softDeleteProjectWithCascade } from '@/utils/softDeleteProjectWithCascade';
 import { makeItem, calcTotals } from '@/utils/fsLineItems';
 import { isChangeOrderLocked } from '@/utils/fsEstimateLifecycle';
 import { useFSPayments, summarizePayments } from '@/hooks/useFSPayments';
@@ -219,7 +221,11 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       if (!profile?.id) return [];
       try {
         const list = await base44.entities.FSProject.filter({ profile_id: profile.id });
-        return Array.isArray(list) ? list : list ? [list] : [];
+        const arr = Array.isArray(list) ? list : list ? [list] : [];
+        // IF-008 Session 1: hide soft-deleted projects and the Unassigned
+        // sentinel from the project list. Session 2 sweeps the remaining
+        // consumer surfaces (Home tab, pickers, drill-ins).
+        return arr.filter((p) => !p.deleted_at && p.is_unassigned !== true);
       } catch { return []; }
     },
     enabled: !!profile?.id,
@@ -656,13 +662,36 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     onError: (err) => toast.error(err?.message || 'Failed to update project'),
   });
 
+  // IF-008 Session 1: replaces the prior hard-delete with the cascade flow.
+  // Mutation accepts { projectId, mode, reassignTo? }. The user's choice
+  // surfaces through ConfirmDeleteWithDependents; this mutation just runs it.
   const deleteProject = useMutation({
-    mutationFn: (id) => base44.entities.FSProject.delete(id),
-    onSuccess: () => {
+    mutationFn: ({ projectId, mode, reassignTo }) =>
+      softDeleteProjectWithCascade(projectId, mode, {
+        reassignTo,
+        actingUserId: currentUser?.id,
+      }),
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['fs-projects'] });
       queryClient.invalidateQueries({ queryKey: ['fs-project-detail'] });
       queryClient.invalidateQueries({ queryKey: ['fs-client-projects'] });
-      toast.success('Project deleted');
+      queryClient.invalidateQueries({ queryKey: ['fs-payments-all'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-estimates'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-daily-logs-all'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-change-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-materials-all'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-labor-all'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-documents'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-permits'] });
+      queryClient.invalidateQueries({ queryKey: ['fs-project-dependents'] });
+      const total = result?.dependentsAffected
+        ? Object.values(result.dependentsAffected).reduce((s, n) => s + n, 0)
+        : 0;
+      toast.success(
+        total > 0
+          ? `Project deleted (${total} attached record${total === 1 ? '' : 's'} handled)`
+          : 'Project deleted',
+      );
       setView('list');
       setSelectedId(null);
       setDeleteConfirm(null);
@@ -2721,29 +2750,18 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
           </button>
         </div>
 
-        {/* Delete confirmation */}
-        {deleteConfirm === proj.id && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-center space-y-3">
-            <p className="text-sm text-red-400">Delete this project? This cannot be undone.</p>
-            <div className="flex gap-3 justify-center">
-              <button
-                type="button"
-                onClick={() => deleteProject.mutate(proj.id)}
-                disabled={deleteProject.isPending}
-                className="px-6 py-2 bg-red-600 hover:bg-red-500 text-foreground rounded-lg font-medium transition-colors min-h-[44px] disabled:opacity-50"
-              >
-                {deleteProject.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Yes, Delete'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeleteConfirm(null)}
-                className="px-6 py-2 bg-secondary text-muted-foreground rounded-lg transition-colors min-h-[44px]"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Delete with dependents — IF-008 Session 1 */}
+        <ConfirmDeleteWithDependents
+          open={deleteConfirm === proj.id}
+          onOpenChange={(open) => { if (!open) setDeleteConfirm(null); }}
+          projectId={proj.id}
+          projectName={proj.name}
+          profileId={profile?.id}
+          onConfirm={({ mode, reassignTo }) =>
+            deleteProject.mutate({ projectId: proj.id, mode, reassignTo })
+          }
+          onCancel={() => setDeleteConfirm(null)}
+        />
 
         {/* Photo Lightbox */}
         {lightboxPhoto && (
