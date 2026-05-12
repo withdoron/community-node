@@ -85,6 +85,19 @@
     "business_id": {
       "type": "string",
       "description": "FK to a Business record. Scopes this record to a specific business inside the new multi-business architecture. Will be backfilled in a separate Hyphae script. Code continues to work with business_id: null (dual-read pattern during backfill)."
+    },
+    "deleted_at": {
+      "type": "string",
+      "description": "Nullable datetime. Stamps when the project was soft-deleted via the softDeleteProjectWithCascade cascade. Null means the record is live. Excluded from default reads via client-side excludeDeleted() filter, matching the convention established for FSPayment / FSDailyLog / FSMaterialEntry / FSLaborEntry in Phase 1.0 commit 1."
+    },
+    "deleted_by": {
+      "type": "string",
+      "description": "Nullable. User ID (Users.id) of the user who soft-deleted the project. Captured for audit trail. Mirrors the FSPayment.deleted_by shape."
+    },
+    "is_unassigned": {
+      "type": "boolean",
+      "default": false,
+      "description": "Flags the per-workspace Unassigned sentinel project. Exactly one row per workspace carries is_unassigned: true; the cascade creates it lazily on first need. The sentinel holds orphaned dependents from 'proceed anyway' deletes. Project pickers and normal list views filter these rows OUT so they don't pollute regular project selection."
     }
   },
   "required": [
