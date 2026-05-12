@@ -662,15 +662,22 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
     onError: (err) => toast.error(err?.message || 'Failed to update project'),
   });
 
-  // IF-008 Session 1: replaces the prior hard-delete with the cascade flow.
-  // Mutation accepts { projectId, mode, reassignTo? }. The user's choice
-  // surfaces through ConfirmDeleteWithDependents; this mutation just runs it.
+  // IF-008 Session 1 + rate-limit fix: replaces the prior hard-delete with
+  // the cascade flow. Mutation accepts { projectId, mode, reassignTo? }.
+  // The user's choice surfaces through ConfirmDeleteWithDependents.
+  //
+  // retry:false — the cascade has its own bounded retry-on-429 inside
+  // withRetry; the mutation must not multiply that with React Query's
+  // default mutation-retry behavior. Honesty over optimism: the toast
+  // fires only when the cascade returns success (cascade now throws on
+  // any persistent failure instead of swallowing as empty).
   const deleteProject = useMutation({
     mutationFn: ({ projectId, mode, reassignTo }) =>
       softDeleteProjectWithCascade(projectId, mode, {
         reassignTo,
         actingUserId: currentUser?.id,
       }),
+    retry: false,
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['fs-projects'] });
       queryClient.invalidateQueries({ queryKey: ['fs-project-detail'] });
@@ -687,16 +694,27 @@ export default function FieldServiceProjects({ profile, currentUser, onNavigateT
       const total = result?.dependentsAffected
         ? Object.values(result.dependentsAffected).reduce((s, n) => s + n, 0)
         : 0;
-      toast.success(
-        total > 0
-          ? `Project deleted (${total} attached record${total === 1 ? '' : 's'} handled)`
-          : 'Project deleted',
-      );
+      if (result?.alreadyDeleted) {
+        toast.success('Project already deleted');
+      } else {
+        toast.success(
+          total > 0
+            ? `Project deleted (${total} attached record${total === 1 ? '' : 's'} handled)`
+            : 'Project deleted',
+        );
+      }
       setView('list');
       setSelectedId(null);
       setDeleteConfirm(null);
     },
-    onError: (err) => toast.error(err?.message || 'Failed to delete project'),
+    onError: (err) => {
+      // Close the modal so the user isn't stuck on the "Deleting…" loader.
+      // NO query invalidation on error — invalidating the same keys that
+      // are mid-failure compounds the rate-limit storm. The user retries
+      // from a clean state.
+      setDeleteConfirm(null);
+      toast.error(`Could not delete project — please try again: ${err?.message || 'request failed'}`);
+    },
   });
 
   const updateStatus = useMutation({

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle, Trash2, ArrowRightLeft, Inbox, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
@@ -64,29 +64,47 @@ export default function ConfirmDeleteWithDependents({
   const [mode, setMode] = useState('warning'); // 'warning' | 'reassign-picker'
   const [reassignTo, setReassignTo] = useState('');
 
+  // Fire-once ref guard for auto-confirm. Without this, `onConfirm` being
+  // a new function reference on every parent render re-fires the useEffect
+  // and triggers `mutate()` again — which produced React error #185
+  // (max update depth exceeded) on 2026-05-11 production attempt.
+  const autoConfirmedRef = useRef(false);
+
   // Reset internal state when the modal closes.
   useEffect(() => {
     if (!open) {
       setMode('warning');
       setReassignTo('');
+      autoConfirmedRef.current = false;
     }
   }, [open]);
 
   // Count dependents on open. countDependents() returns { entityType: n, _total: total }.
-  const { data: counts, isLoading: countsLoading } = useQuery({
+  // retry:false — 429s should bubble immediately so the modal can surface
+  // the failure instead of compounding it; the cascade's withRetry handles
+  // legitimate retry semantics with bounded backoff.
+  const {
+    data: counts,
+    isLoading: countsLoading,
+    error: countsError,
+  } = useQuery({
     queryKey: ['fs-project-dependents', projectId],
     queryFn: () => countDependents(projectId),
     enabled: !!projectId && !!open,
     staleTime: 0,
+    retry: false,
   });
 
   // Auto-confirm with delete when there are zero dependents. The modal stays
   // open just long enough to read the count; this skips the warning UI and
-  // matches the existing "no records attached → just delete" behavior.
+  // matches the existing "no records attached → just delete" behavior. Ref
+  // guard ensures the effect fires at most once per modal-open session.
   useEffect(() => {
     if (!open) return;
     if (!counts) return;
+    if (autoConfirmedRef.current) return;
     if (counts._total === 0) {
+      autoConfirmedRef.current = true;
       onConfirm({ mode: 'delete' });
     }
   }, [open, counts, onConfirm]);
@@ -125,7 +143,28 @@ export default function ConfirmDeleteWithDependents({
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="bg-card border-border">
-        {countsLoading || (counts && totalDependents === 0) ? (
+        {countsError ? (
+          <>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-foreground flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-red-400" />
+                Could not check for attached records
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                {countsError?.message || 'A request to the server failed.'} Try again in a moment.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex justify-end mt-2">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-4 py-2 rounded-lg border border-border text-foreground-soft hover:bg-secondary transition-colors min-h-[44px]"
+              >
+                Close
+              </button>
+            </div>
+          </>
+        ) : countsLoading || (counts && totalDependents === 0) ? (
           <div className="flex flex-col items-center justify-center py-6 gap-3">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
