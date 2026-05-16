@@ -186,7 +186,15 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
     return () => clearTimeout(t);
   }, [tradeCategoriesDeepLink]);
 
-  // Sync from profile if it changes
+  // Sync from profile on identity change (workspace switch, initial mount).
+  // Dep is `[profile?.id]` rather than `[profile]` so that refetches of the
+  // SAME record (cache invalidation from sibling saves anywhere in the app:
+  // SubVendorPicker, FieldServicePeople, BusinessSettings, FS Home's
+  // guide-dismissed, etc.) do not clobber the user's in-progress edits.
+  // Re-syncing on every refetch was a state-loss race — the user's typed
+  // changes were silently overwritten with server state mid-edit. The
+  // current pattern preserves edits across refetches and re-syncs only
+  // when the underlying record actually changes.
   useEffect(() => {
     if (profile) {
       setBusinessName(profile.business_name || '');
@@ -209,7 +217,8 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
       setFeatures(getFeatures(profile));
       setTradeCategories(getTradeCategories(profile));
     }
-  }, [profile]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id]);
 
   // ─── Save Business Profile ───────────────────────
   const saveProfile = useMutation({
@@ -294,10 +303,14 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
   });
 
   // ─── Save Trade Categories ────────────────────
+  // Mutation accepts the list to save as an arg so the caller can commit
+  // pending typed input from `newTradeCat` into the save payload (closes
+  // the UX gap where users typed a name then clicked Save without first
+  // clicking the now-removed "+ Add" — the typed text was lost on save).
   const saveTradeCategories = useMutation({
-    mutationFn: () =>
+    mutationFn: (listToSave) =>
       base44.entities.FieldServiceProfile.update(profile.id, {
-        trade_categories_json: { items: tradeCategories },
+        trade_categories_json: { items: listToSave },
       }),
     onSuccess: () => {
       afterSave();
@@ -305,6 +318,35 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
     },
     onError: (err) => toast.error(err?.message || 'Failed to save trade categories'),
   });
+
+  // Save handler: commits any pending typed input in `newTradeCat` into the
+  // save payload before persisting. Updates local state in lockstep so the
+  // list re-renders immediately (instead of waiting for refetch). Clears
+  // the input on success.
+  const handleSaveCategories = () => {
+    const trimmed = newTradeCat.trim();
+    const finalList = trimmed
+      ? [
+          ...tradeCategories,
+          { id: `cat_${Date.now()}`, name: trimmed, order: tradeCategories.length },
+        ]
+      : tradeCategories;
+    if (trimmed) {
+      setTradeCategories(finalList);
+      setNewTradeCat('');
+    }
+    saveTradeCategories.mutate(finalList);
+  };
+
+  // Dirty-check: Save Categories is disabled when there's no pending typed
+  // input AND the local list matches the server state. Prevents accidental
+  // empty/no-op saves and gives clear UX feedback that there's nothing to
+  // save (DEC-218 honest accounting). Cheap stringify is fine for the
+  // expected size (a handful to a few dozen short objects).
+  const serverTradeCategories = getTradeCategories(profile);
+  const tradeCategoriesDirty =
+    newTradeCat.trim() !== '' ||
+    JSON.stringify(tradeCategories) !== JSON.stringify(serverTradeCategories);
 
   // ─── Save Workspace Name ─────────────────────────
   const saveWorkspaceName = useMutation({
@@ -474,46 +516,29 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
               </div>
             )}
 
-            <div className="flex items-center gap-3">
-              <Input
-                ref={newTradeCatInputRef}
-                value={newTradeCat}
-                onChange={(e) => setNewTradeCat(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && newTradeCat.trim()) {
-                    e.preventDefault();
-                    setTradeCategories((prev) => [
-                      ...prev,
-                      { id: `cat_${Date.now()}`, name: newTradeCat.trim(), order: prev.length },
-                    ]);
-                    setNewTradeCat('');
-                  }
-                }}
-                className="flex-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
-                placeholder={tradeCategories.length === 0 ? 'First category name…' : 'New category name'}
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  if (!newTradeCat.trim()) return;
+            <Input
+              ref={newTradeCatInputRef}
+              value={newTradeCat}
+              onChange={(e) => setNewTradeCat(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newTradeCat.trim()) {
+                  e.preventDefault();
                   setTradeCategories((prev) => [
                     ...prev,
                     { id: `cat_${Date.now()}`, name: newTradeCat.trim(), order: prev.length },
                   ]);
                   setNewTradeCat('');
-                }}
-                disabled={!newTradeCat.trim()}
-                className="flex items-center gap-1 text-sm text-primary hover:text-primary-hover disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
-              >
-                <Plus className="h-4 w-4" /> Add
-              </button>
-            </div>
+                }
+              }}
+              className="w-full bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
+              placeholder={tradeCategories.length === 0 ? 'First category name… (press Enter or click Save)' : 'New category name… (press Enter or click Save)'}
+            />
 
             <div className="flex justify-end">
               <Button
-                onClick={() => saveTradeCategories.mutate()}
-                disabled={saveTradeCategories.isPending}
-                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold min-h-[44px]"
+                onClick={handleSaveCategories}
+                disabled={!tradeCategoriesDirty || saveTradeCategories.isPending}
+                className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold min-h-[44px] disabled:opacity-50 disabled:pointer-events-none"
               >
                 {saveTradeCategories.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-2" /> Save Categories</>}
               </Button>
