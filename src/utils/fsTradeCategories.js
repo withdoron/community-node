@@ -4,17 +4,20 @@
  * Trade categories drive the trade-grouped estimate render (DEC-206 platform
  * default). Two layers, two helpers:
  *
- *   getTradeCategories(profile) — reads the workspace's editable working list
- *     from FieldServiceProfile.trade_categories_json. Falls back to the
- *     18-default seed when the profile has no list. Used by Settings UI
- *     (workspace-level edits).
+ *   getTradeCategories(profile) — reads the workspace's authored categories
+ *     from FieldServiceProfile.trade_categories_json. Returns [] when the
+ *     user has not authored any. NO seed fallback — Custom means custom;
+ *     empty until the user adds something (Doron call 2026-05-16,
+ *     DEC-218 honest accounting). The four built-in presets in
+ *     tradeTaxonomyPresets.js are the alternative when a user wants
+ *     out-of-the-box categories.
  *
  *   getEstimateTradeCategories(estimate, profile) — reads the per-estimate
  *     frozen snapshot first (FSEstimate.trade_categories_snapshot, written
- *     at preset-pick time per Phase 2.2). Falls back to workspace's working
- *     list only if the snapshot is null (legacy estimates pre-backfill).
- *     Used by EstimatePreview, EstimateForm, ClientPortal — every render
- *     surface that shows an estimate's line items.
+ *     at preset-pick time per Phase 2.2). Falls back to the workspace's
+ *     authored list only if the snapshot is null (legacy estimates
+ *     pre-backfill). Returns [] when both are empty — consumers must
+ *     handle empty arrays gracefully.
  *
  * Phase 2.2 architecture: the snapshot freezes the estimate's identity at
  * preset-pick time. Workspace mutations (Settings → Trade Categories edit)
@@ -27,31 +30,20 @@
  * variants) plug in via the same call.
  */
 
-export const DEFAULT_TRADE_CATEGORIES = [
-  'General Conditions', 'Demolition', 'Framing', 'Roofing', 'Siding & Exterior',
-  'Windows & Doors', 'Electrical', 'Plumbing', 'HVAC', 'Insulation',
-  'Drywall', 'Painting', 'Flooring', 'Concrete & Foundation',
-  'Cabinetry & Countertops', 'Appliances', 'Cleanup & Hauling', 'Other',
-];
-
 export function getTradeCategories(profile) {
   const tc = profile?.trade_categories_json;
-  if (Array.isArray(tc) && tc.length > 0) return tc;
-  if (tc && typeof tc === 'object' && Array.isArray(tc.items) && tc.items.length > 0) return tc.items;
-  return DEFAULT_TRADE_CATEGORIES.map((name, i) => ({ id: `cat_${i}`, name, order: i }));
+  if (Array.isArray(tc)) return tc;
+  if (tc && typeof tc === 'object' && Array.isArray(tc.items)) return tc.items;
+  return [];
 }
 
-// Has the workspace explicitly populated trade_categories_json? Distinct from
-// getTradeCategories — that helper falls back to the 18-default seed when the
-// field is empty, which is the right shape for render-time consumers (always
-// return something to render). For "is Custom available as a preset choice?",
-// the answer is NO when the field is empty — the user hasn't authored
-// anything, the seed is platform fallback, not their custom list.
+// Has the workspace explicitly populated trade_categories_json with items?
+// True only when there's at least one authored category. hasCustomTradeCategories
+// + getTradeCategories now agree perfectly: the predicate is `getTradeCategories(profile).length > 0`.
+// Kept as a named helper so consumers read intent rather than predicate
+// arithmetic, and so future shape changes update one place.
 export function hasCustomTradeCategories(profile) {
-  const tc = profile?.trade_categories_json;
-  if (Array.isArray(tc) && tc.length > 0) return true;
-  if (tc && typeof tc === 'object' && Array.isArray(tc.items) && tc.items.length > 0) return true;
-  return false;
+  return getTradeCategories(profile).length > 0;
 }
 
 // Per-estimate trade categories. Snapshot first (frozen at preset-pick time,

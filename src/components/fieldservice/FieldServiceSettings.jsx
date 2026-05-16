@@ -29,6 +29,7 @@ import {
   Link2, RefreshCw, Copy, ToggleLeft, SlidersHorizontal, BookOpen,
 } from 'lucide-react';
 import { getFeatures, invalidateFSProfiles } from '@/utils/fsFeatures';
+import { getTradeCategories } from '@/utils/fsTradeCategories';
 import { scrollToTopOf } from '@/utils/scrollToTop';
 import CurrencyInput from './CurrencyInput';
 
@@ -55,27 +56,10 @@ function generateInviteCode() {
 
 // Feature defaults + getFeatures live in @/utils/fsFeatures (Living Feet) so
 // the mount point in MyLaneDrillView and Settings share one derivation.
-
-const DEFAULT_TRADE_CATEGORIES = [
-  'General Conditions', 'Demolition', 'Framing', 'Roofing', 'Siding & Exterior',
-  'Windows & Doors', 'Electrical', 'Plumbing', 'HVAC', 'Insulation',
-  'Drywall', 'Painting', 'Flooring', 'Concrete & Foundation',
-  'Cabinetry & Countertops', 'Appliances', 'Cleanup & Hauling', 'Other',
-];
-
-function parseTradeCategories(val) {
-  if (Array.isArray(val)) return val;
-  if (val && typeof val === 'object' && Array.isArray(val.items)) return val.items;
-  return [];
-}
-
-function seedTradeCategories() {
-  return DEFAULT_TRADE_CATEGORIES.map((name, i) => ({
-    id: `cat_${Date.now()}_${i}`,
-    name,
-    order: i,
-  }));
-}
+// Trade-category parsing lives in @/utils/fsTradeCategories — both the
+// editor here and the estimate dropdown's Custom path read through the
+// same helper (Living Feet DEC-146; eliminates the predicate drift that
+// Parts 2 and 3 worked around).
 
 // ═══ Collapsible Section ═══
 
@@ -167,11 +151,13 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
   const [features, setFeatures] = useState(() => getFeatures(profile));
 
   // ─── Trade Categories state ────────────────────
-  const [tradeCategories, setTradeCategories] = useState(() => {
-    const existing = parseTradeCategories(profile?.trade_categories_json);
-    return existing.length > 0 ? existing : seedTradeCategories();
-  });
+  // Empty until the user authors something (Doron call 2026-05-16, DEC-218).
+  // No seed fallback — Custom means custom; the four built-in presets in
+  // tradeTaxonomyPresets.js are the alternative when a user wants
+  // out-of-the-box categories.
+  const [tradeCategories, setTradeCategories] = useState(() => getTradeCategories(profile));
   const [newTradeCat, setNewTradeCat] = useState('');
+  const newTradeCatInputRef = useRef(null);
 
   // Deep-link signal from the Trade Taxonomy dropdown's Custom tooltip.
   // The tooltip's "Edit in Settings →" / "Create custom trades →" links set
@@ -221,8 +207,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
       setPhases(Array.isArray(p) ? p : (p && typeof p === 'object' && Array.isArray(p.items)) ? p.items : ['Before', 'Demo', 'Framing', 'Rough-in', 'Finish', 'Final']);
       setWorkspaceName(profile.workspace_name || '');
       setFeatures(getFeatures(profile));
-      const tc = parseTradeCategories(profile.trade_categories_json);
-      setTradeCategories(tc.length > 0 ? tc : seedTradeCategories());
+      setTradeCategories(getTradeCategories(profile));
     }
   }, [profile]);
 
@@ -413,8 +398,24 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
       <Section id="section-trade-categories" icon={FileText} title="Trade Categories" defaultOpen={tradeCategoriesDeepLink}>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Workspace working list. Used for legacy estimates without a preset snapshot, and as the fallback when no default taxonomy is set above. Drag to reorder.
+              Define the categories that appear under <span className="text-foreground">Custom</span> in the estimate Trade Taxonomy dropdown. Add as few or as many as you need. Use ▲ ▼ to reorder.
             </p>
+
+            {tradeCategories.length === 0 && (
+              <div className="rounded-lg border border-dashed border-border bg-secondary/30 p-6 text-center space-y-3">
+                <p className="text-base text-foreground">You haven't added any custom trade categories yet.</p>
+                <p className="text-sm text-muted-foreground">
+                  Custom is empty until you author it. The four built-in taxonomies (General Contractor, CSI MasterFormat, Simple Three-Bucket, Service Provider — Hourly) remain available on every estimate.
+                </p>
+                <Button
+                  type="button"
+                  onClick={() => newTradeCatInputRef.current?.focus()}
+                  className="bg-primary hover:bg-primary-hover text-primary-foreground font-semibold min-h-[44px]"
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Add Your First Category
+                </Button>
+              </div>
+            )}
 
             {tradeCategories.length > 0 && (
               <div className="space-y-2">
@@ -475,6 +476,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
 
             <div className="flex items-center gap-3">
               <Input
+                ref={newTradeCatInputRef}
                 value={newTradeCat}
                 onChange={(e) => setNewTradeCat(e.target.value)}
                 onKeyDown={(e) => {
@@ -488,7 +490,7 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
                   }
                 }}
                 className="flex-1 bg-secondary border-border text-foreground placeholder-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-ring"
-                placeholder="New category name"
+                placeholder={tradeCategories.length === 0 ? 'First category name…' : 'New category name'}
               />
               <button
                 type="button"
