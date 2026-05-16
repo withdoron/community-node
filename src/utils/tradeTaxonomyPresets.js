@@ -1,10 +1,12 @@
 // tradeTaxonomyPresets — hardcoded trade-taxonomy preset config (Phase 2.2).
 //
-// Each FieldServiceProfile picks a default preset (`default_taxonomy_preset_id`).
-// New estimates seed `taxonomy_preset_id` from the workspace default and freeze
-// `trade_categories_snapshot` from the preset's `categories` array at creation
-// time. The snapshot is the load-bearing render shape (per Phase 2.2 architecture
-// consultation §2 — Push 2 normalization).
+// New estimates pick their preset per-estimate via the dropdown in the
+// estimate form (no workspace default — the "Default Trade Taxonomy" setting
+// was removed; FieldServiceProfile.default_taxonomy_preset_id is orphaned in
+// code and will be dropped from the migration target schema per IF-011).
+// On selection, the estimate freezes `trade_categories_snapshot` from the
+// preset's `categories` array. The snapshot is the load-bearing render shape
+// (per Phase 2.2 architecture consultation §2 — Push 2 normalization).
 //
 // Future direction (NOT building in 2.2): platform-admin-managed presets will
 // move from this config file into an admin-editable surface. Architecture is
@@ -95,10 +97,9 @@ export const TRADE_TAXONOMY_PRESETS = [
 ];
 
 // Resolve a preset by its id slug. Returns the preset object or null. Used at
-// estimate-creation time (read profile.default_taxonomy_preset_id, resolve,
-// freeze the preset's categories into the new estimate's snapshot) and at
-// preset-pick time (editor picker swaps the snapshot to a new preset's
-// categories on user confirm).
+// preset-pick time inside the estimate form — both for first-time selection
+// on a new estimate (no confirmation) and for changing between presets on
+// an existing estimate (confirmation dialog surfaces stale-line count).
 //
 // 'custom' is a synthetic preset id sourced from the workspace's
 // trade_categories_json (the editable working list managed in Settings →

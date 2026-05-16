@@ -9,6 +9,7 @@ import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { CATEGORY_MAP, makeItem, migrateLineItems, calcTotals } from '@/utils/fsLineItems';
 import { getTradeCategories, getEstimateTradeCategories, hasCustomTradeCategories } from '@/utils/fsTradeCategories';
 import { TRADE_TAXONOMY_PRESETS, resolvePresetById } from '@/utils/tradeTaxonomyPresets';
+import TaxonomyOptionTooltip from './TaxonomyOptionTooltip';
 import { isEstimateLocked } from '@/utils/fsEstimateLifecycle';
 import { printNode } from '@/utils/printNode';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -759,6 +760,29 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
   const [pendingPreset, setPendingPreset] = useState(null);
   const requestPresetChange = (newPresetId) => {
     if (!newPresetId || newPresetId === formData.taxonomy_preset_id) return;
+    // Custom is always visible in the dropdown to invite discovery, but
+    // selecting it with no custom categories defined would freeze an empty
+    // snapshot. The tooltip already surfaces the "Create custom trades →"
+    // link; toast as a safety net for users who click the option directly.
+    if (newPresetId === 'custom' && !hasCustomTradeCategories(profile)) {
+      toast.error('Custom has no categories yet. Add some in Settings → Trade Categories first.');
+      return;
+    }
+    // First-time selection on a new estimate: apply directly. No existing
+    // taxonomy means no line items carry stale trade tags, so the
+    // confirmation dialog is awkward (would say "No items will move to
+    // Unallocated" for an empty estimate). Confirmation is meaningful
+    // only when CHANGING between two non-null taxonomies.
+    if (!formData.taxonomy_preset_id) {
+      const preset = resolvePresetById(newPresetId, profile);
+      if (!preset) return;
+      setFormData((prev) => ({
+        ...prev,
+        taxonomy_preset_id: preset.id,
+        trade_categories_snapshot: preset.categories,
+      }));
+      return;
+    }
     setPendingPreset(newPresetId);
   };
   const applyPresetChange = () => {
@@ -788,10 +812,17 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
   // FSEstimate.title is required at the entity level. The save buttons are
   // disabled when title is empty, but autofill or programmatic submission
   // could bypass that — toast a human message instead of letting Base44's
-  // raw schema error reach the user.
+  // raw schema error reach the user. Trade taxonomy is also required —
+  // new estimates open with no preset selected (Default Trade Taxonomy
+  // setting was removed; users pick per-estimate, which is the natural
+  // decision point per DEC-218 honest accounting — no silent defaults).
   const handleSave = (status, opts = {}) => {
     if (!formData.title.trim()) {
       toast.error('Please enter an estimate title');
+      return;
+    }
+    if (!formData.taxonomy_preset_id) {
+      toast.error('Please choose a trade taxonomy');
       return;
     }
     saveMutation.mutate({ status, ...opts });
@@ -946,19 +977,29 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
             </SelectTrigger>
             <SelectContent>
               {TRADE_TAXONOMY_PRESETS.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name} ({p.trade_count})
+                <SelectItem key={p.id} value={p.id} className="pr-2">
+                  <div className="flex items-center justify-between gap-3 w-full">
+                    <span>{p.name} ({p.trade_count})</span>
+                    <TaxonomyOptionTooltip preset={p} />
+                  </div>
                 </SelectItem>
               ))}
-              {hasCustomTradeCategories(profile) && (
-                <SelectItem key="custom" value="custom">
-                  Custom ({getTradeCategories(profile).length})
-                </SelectItem>
-              )}
+              {(() => {
+                const customItems = hasCustomTradeCategories(profile) ? getTradeCategories(profile) : [];
+                const customPreset = { id: 'custom', name: 'Custom', categories: customItems };
+                return (
+                  <SelectItem key="custom" value="custom" className="pr-2">
+                    <div className="flex items-center justify-between gap-3 w-full">
+                      <span>Custom{customItems.length > 0 ? ` (${customItems.length})` : ''}</span>
+                      <TaxonomyOptionTooltip preset={customPreset} isCustom />
+                    </div>
+                  </SelectItem>
+                );
+              })()}
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground mt-1">
-            Categories are frozen on this estimate. Each estimate can override the workspace default.
+            Categories are frozen on this estimate.
           </p>
         </div>
 
@@ -1165,14 +1206,14 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
           Cancel
         </button>
         <button type="button"
-          disabled={!formData.title.trim() || saveMutation.isPending}
+          disabled={!formData.title.trim() || !formData.taxonomy_preset_id || saveMutation.isPending}
           onClick={() => handleSave('draft')}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-primary text-primary hover:bg-primary/10 transition-colors text-sm font-medium min-h-[44px] disabled:opacity-50 disabled:pointer-events-none">
           {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save Draft
         </button>
         <button type="button"
-          disabled={!formData.title.trim() || saveMutation.isPending}
+          disabled={!formData.title.trim() || !formData.taxonomy_preset_id || saveMutation.isPending}
           onClick={() => handleSave('sent', { _copyLink: true })}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold transition-colors text-sm min-h-[44px] disabled:opacity-50 disabled:pointer-events-none">
           {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
@@ -1426,21 +1467,12 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
 
   // ─── Navigation helpers ─────────────────────────
   const openNewEstimate = useCallback(() => {
-    // Empty-state guard: workspace default is 'custom' but the Trade Categories
-    // list is empty. Block estimate creation honestly rather than silently
-    // falling back to no-preset — the user's saved default is no longer
-    // valid, force them to fix Settings or pick a built-in.
-    if (profile?.default_taxonomy_preset_id === 'custom' && !hasCustomTradeCategories(profile)) {
-      toast.error('Your default taxonomy is "Custom", but your Trade Categories list is empty. Add categories in Settings → Trade Categories, or pick a built-in preset.');
-      return;
-    }
     const validUntil = new Date();
     validUntil.setDate(validUntil.getDate() + 30);
-    // Resolve workspace's default taxonomy preset (Phase 2.2). When set, the
-    // estimate freezes its categories at creation time — the snapshot is the
-    // load-bearing render shape, so workspace setting changes after this point
-    // do not retroactively touch the estimate.
-    const defaultPreset = resolvePresetById(profile?.default_taxonomy_preset_id, profile);
+    // Trade taxonomy starts unset — user picks per-estimate via the dropdown
+    // (Default Trade Taxonomy setting was removed; per-estimate is the
+    // natural decision point, DEC-218 honest accounting — no silent defaults).
+    // Save is gated until the user picks one.
     setFormInitial({
       ...EMPTY_ESTIMATE,
       line_items: [makeItem()],
@@ -1448,12 +1480,12 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
       prepared_by: profile?.owner_name || '',
       date: new Date().toISOString().split('T')[0],
       valid_until: validUntil.toISOString().split('T')[0],
-      taxonomy_preset_id: defaultPreset?.id || null,
-      trade_categories_snapshot: defaultPreset ? defaultPreset.categories : null,
+      taxonomy_preset_id: null,
+      trade_categories_snapshot: null,
     });
     setEditingId(null);
     setView('form');
-  }, [profile?.default_terms, profile?.owner_name, profile?.default_taxonomy_preset_id, profile?.trade_categories_json]);
+  }, [profile?.default_terms, profile?.owner_name]);
 
   const openEditEstimate = useCallback((est) => {
     const items = migrateLineItems(est.line_items, est.labor_estimate);
