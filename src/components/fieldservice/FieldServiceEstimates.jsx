@@ -7,7 +7,7 @@ import LineItemsEditor from './LineItemsEditor';
 import CurrencyInput from './CurrencyInput';
 import SigningFlow, { SignatureDisplay } from '@/components/shared/SigningFlow';
 import { CATEGORY_MAP, makeItem, migrateLineItems, calcTotals } from '@/utils/fsLineItems';
-import { getTradeCategories, getEstimateTradeCategories } from '@/utils/fsTradeCategories';
+import { getTradeCategories, getEstimateTradeCategories, hasCustomTradeCategories } from '@/utils/fsTradeCategories';
 import { TRADE_TAXONOMY_PRESETS, resolvePresetById } from '@/utils/tradeTaxonomyPresets';
 import { isEstimateLocked } from '@/utils/fsEstimateLifecycle';
 import { printNode } from '@/utils/printNode';
@@ -762,7 +762,7 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
     setPendingPreset(newPresetId);
   };
   const applyPresetChange = () => {
-    const preset = resolvePresetById(pendingPreset);
+    const preset = resolvePresetById(pendingPreset, profile);
     if (!preset) {
       setPendingPreset(null);
       return;
@@ -776,14 +776,14 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
   };
   const pendingPresetMeta = useMemo(() => {
     if (!pendingPreset) return null;
-    const newPreset = resolvePresetById(pendingPreset);
+    const newPreset = resolvePresetById(pendingPreset, profile);
     if (!newPreset) return null;
     const newIds = new Set(newPreset.categories.map((c) => c.id));
     const staleCount = (formData.line_items || [])
       .filter((it) => it.trade_category_id && !newIds.has(it.trade_category_id))
       .length;
     return { preset: newPreset, staleCount };
-  }, [pendingPreset, formData.line_items]);
+  }, [pendingPreset, formData.line_items, profile]);
 
   // FSEstimate.title is required at the entity level. The save buttons are
   // disabled when title is empty, but autofill or programmatic submission
@@ -950,6 +950,11 @@ function EstimateForm({ profile, currentUser, estimates, projects, clients, edit
                   {p.name} ({p.trade_count})
                 </SelectItem>
               ))}
+              {hasCustomTradeCategories(profile) && (
+                <SelectItem key="custom" value="custom">
+                  Custom ({getTradeCategories(profile).length})
+                </SelectItem>
+              )}
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground mt-1">
@@ -1421,13 +1426,21 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
 
   // ─── Navigation helpers ─────────────────────────
   const openNewEstimate = useCallback(() => {
+    // Empty-state guard: workspace default is 'custom' but the Trade Categories
+    // list is empty. Block estimate creation honestly rather than silently
+    // falling back to no-preset — the user's saved default is no longer
+    // valid, force them to fix Settings or pick a built-in.
+    if (profile?.default_taxonomy_preset_id === 'custom' && !hasCustomTradeCategories(profile)) {
+      toast.error('Your default taxonomy is "Custom", but your Trade Categories list is empty. Add categories in Settings → Trade Categories, or pick a built-in preset.');
+      return;
+    }
     const validUntil = new Date();
     validUntil.setDate(validUntil.getDate() + 30);
     // Resolve workspace's default taxonomy preset (Phase 2.2). When set, the
     // estimate freezes its categories at creation time — the snapshot is the
     // load-bearing render shape, so workspace setting changes after this point
     // do not retroactively touch the estimate.
-    const defaultPreset = resolvePresetById(profile?.default_taxonomy_preset_id);
+    const defaultPreset = resolvePresetById(profile?.default_taxonomy_preset_id, profile);
     setFormInitial({
       ...EMPTY_ESTIMATE,
       line_items: [makeItem()],
@@ -1440,7 +1453,7 @@ export default function FieldServiceEstimates({ profile, currentUser, features }
     });
     setEditingId(null);
     setView('form');
-  }, [profile?.default_terms, profile?.owner_name, profile?.default_taxonomy_preset_id]);
+  }, [profile?.default_terms, profile?.owner_name, profile?.default_taxonomy_preset_id, profile?.trade_categories_json]);
 
   const openEditEstimate = useCallback((est) => {
     const items = migrateLineItems(est.line_items, est.labor_estimate);

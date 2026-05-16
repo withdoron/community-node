@@ -430,6 +430,11 @@ export default function FieldServiceSettings({ profile, currentUser, onNavigateT
                   {p.name} ({p.trade_count} {p.trade_count === 1 ? 'category' : 'categories'})
                 </SelectItem>
               ))}
+              {tradeCategories.length > 0 && (
+                <SelectItem key="custom" value="custom">
+                  Custom ({tradeCategories.length} {tradeCategories.length === 1 ? 'category' : 'categories'})
+                </SelectItem>
+              )}
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">

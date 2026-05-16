@@ -41,6 +41,19 @@ export function getTradeCategories(profile) {
   return DEFAULT_TRADE_CATEGORIES.map((name, i) => ({ id: `cat_${i}`, name, order: i }));
 }
 
+// Has the workspace explicitly populated trade_categories_json? Distinct from
+// getTradeCategories — that helper falls back to the 18-default seed when the
+// field is empty, which is the right shape for render-time consumers (always
+// return something to render). For "is Custom available as a preset choice?",
+// the answer is NO when the field is empty — the user hasn't authored
+// anything, the seed is platform fallback, not their custom list.
+export function hasCustomTradeCategories(profile) {
+  const tc = profile?.trade_categories_json;
+  if (Array.isArray(tc) && tc.length > 0) return true;
+  if (tc && typeof tc === 'object' && Array.isArray(tc.items) && tc.items.length > 0) return true;
+  return false;
+}
+
 // Per-estimate trade categories. Snapshot first (frozen at preset-pick time,
 // survives workspace mutations); workspace working list as fallback for legacy
 // estimates pre-backfill. Both shapes — plain array and {items: [...]} wrap —

@@ -17,6 +17,8 @@
 // referenced the old name. Names and descriptions are display strings and may
 // be polished without breaking references.
 
+import { getTradeCategories, hasCustomTradeCategories } from './fsTradeCategories';
+
 export const TRADE_TAXONOMY_PRESETS = [
   {
     id: 'general_contractor',
@@ -97,7 +99,24 @@ export const TRADE_TAXONOMY_PRESETS = [
 // freeze the preset's categories into the new estimate's snapshot) and at
 // preset-pick time (editor picker swaps the snapshot to a new preset's
 // categories on user confirm).
-export function resolvePresetById(id) {
+//
+// 'custom' is a synthetic preset id sourced from the workspace's
+// trade_categories_json (the editable working list managed in Settings →
+// Trade Categories). When id === 'custom', profile must be passed and must
+// have explicit items; otherwise returns null (empty Custom is not a valid
+// preset choice). Pass-through for the four built-in slugs ignores profile.
+export function resolvePresetById(id, profile) {
   if (!id) return null;
+  if (id === 'custom') {
+    if (!hasCustomTradeCategories(profile)) return null;
+    const items = getTradeCategories(profile);
+    return {
+      id: 'custom',
+      name: 'Custom',
+      description: "Workspace's custom trade categories (Settings → Trade Categories).",
+      trade_count: items.length,
+      categories: items,
+    };
+  }
   return TRADE_TAXONOMY_PRESETS.find((p) => p.id === id) || null;
 }
