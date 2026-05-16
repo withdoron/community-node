@@ -612,6 +612,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
             unit: mat.unit || 'each',
             unit_cost: unitCost,
             total_cost: qty * unitCost,
+            project_id: projectId,
           };
           if (mat.id) {
             await base44.entities.FSMaterialEntry.update(mat.id, matData);
@@ -637,6 +638,7 @@ export default function FieldServiceLog({ profile, currentUser }) {
             hourly_rate: rate,
             total_cost: hrs * rate,
             description: lab.description || null,
+            project_id: projectId,
           };
           if (lab.id) {
             await base44.entities.FSLaborEntry.update(lab.id, labData);
