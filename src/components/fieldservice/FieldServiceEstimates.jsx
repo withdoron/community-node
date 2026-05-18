@@ -303,6 +303,19 @@ function EstimatePreview({ estimate, profile, currentUser, onBack, onEdit, onCon
              like Patricia's 30-item UNALLOCATED would otherwise force the
              entire group onto page 2, eating page 1's available space). */
           .estimate-print-area h4 { page-break-after: avoid; break-after: avoid; }
+          /* Prevent rows from splitting across page boundaries. Multi-line
+             rows (description + italic subcontractor name stacked) would
+             otherwise have description on page N and sub_name continuation
+             on page N+1 — looks like duplication at the boundary. */
+          .estimate-print-area tr { page-break-inside: avoid; break-inside: avoid; }
+          /* Override default <tfoot> "running footer" semantics: by HTML spec,
+             <tfoot> repeats at the bottom of every page where a spanning
+             table appears (mirror of <thead>'s page-top repeat). For
+             per-trade subtotal rows that's a duplication artifact. Treating
+             tfoot as a regular row-group renders it inline at the section's
+             actual end, exactly once. (Patricia EST-2026-005, Electrical
+             section page 1/2 boundary, 2026-05-18.) */
+          .estimate-print-area tfoot { display: table-row-group; }
         }`}</style>
 
         {/* Contractor header — bg-slate-50 carries through print thanks to

@@ -1335,6 +1335,16 @@ function PortalShell({ children, printTitle = null }) {
       <style>{`@media print {
         body { background: white !important; }
         .print\\:hidden { display: none !important; }
+        /* Match FieldServiceEstimates print fix: prevent rows from splitting
+           across page boundaries (description + sub_name stack continuation)
+           and strip <tfoot> running-footer semantics so per-trade Subtotal
+           renders once at section end. Patricia's portal-view print path
+           shares the same trade-grouped table structure as the internal
+           preview. Unscoped within @media print since ClientPortal has no
+           .estimate-print-area wrapper — the print scope inherently limits
+           reach to the printable estimate content. */
+        tr { page-break-inside: avoid; break-inside: avoid; }
+        tfoot { display: table-row-group; }
       }`}</style>
 
       {/* Print button */}
