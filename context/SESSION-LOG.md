@@ -2325,3 +2325,38 @@ Pattern continues: build flavors at familiar-pattern composition compress 16-30x
 **Ship-it timestamp:** 2026-05-09 ~16:30 PT. Cumulative Saturday: 7 community-node commits + 6 Spec-Repo commits across the day. Three new DECs (DEC-218, DEC-219, DEC-220). Four new KIs (#28, #29, #30, #31). Phase 1.0 commit 1 shipped + verified; commit 1.5 spec-ratified, build deferred on KI #28; commit 2 blocked on KI #28. Drill-through Seedlings A+B closed. Migration discussion opened (audit deferred to future session). **Active paying members: 1 (Bari).**
 
 ---
+
+## 2026-05-23 — Plant 1 Day One: community-node enters maintenance mode for Bari
+
+Scoped community-node mirror entry. **The full Day One narrative — Sessions 1 + 2, scaffold details, external services, live deploy, credentials secured, open items — lives at `~/Documents/GitHub/Spec-Repo/context/SESSION-LOG.md` under the 2026-05-23 entry.** This entry captures what changed in community-node specifically and what the pivot means for this repo going forward.
+
+### What changed in community-node
+
+| Commit | Content |
+|---|---|
+| `3787ccd` | **DEC-223 mirror appended** — Pivot from migration to rebuild. DEC-175 marked superseded. DEC-207 marked updated (gates moot in original migration form; reliability concern carries forward to the Plant 1 cutover decision). A drift note acknowledges DEC-221 + DEC-222 missing from this mirror; focused reconciliation session owed but explicitly deferred per the Session 2 brief. Numbering jumps 220 → 223 by design. |
+
+### What this means for community-node going forward
+
+- **Maintenance mode for Bari.** No new feature work lands in community-node going forward. Bari continues using `locallane.app` (this Base44 codebase) as before; cutover is a deliberate future event at the end of the Plant 1 session sequence per DEC-223. Until cutover, this repo accepts bug fixes for Bari only.
+- **Plant 1 is the active development frontier.** New feature work happens in `withdoron/locallane` (Next.js 15 + Supabase + Vercel). Live at `locallane.vercel.app` as of today.
+- **Phase 1.0 commit 1.5 + commit 2 + Phase 2.6.1 + Phase 2.6.2 are paused.** What was queued on KI #28 (Base44 platform recovery) is now moot — the migration framing those gates protected has been replaced by the rebuild. The features themselves reappear in Plant 1's session sequence: line-item attribution everywhere lands in Plant 1 Session 8 from day one; trade-grouped estimates ship as default-from-day-one in Plant 1 Session 7.
+- **Phase 1.0 commit 1 (`04162a8`, 2026-05-09)** — line-item attribution + per-line rollup + `projectSpent` honest math + soft-delete schema — stays live as Bari's most recent Field Service feature. This is the last shipped community-node feature commit.
+
+### Active blockers for community-node
+
+- **None.** KI #28 (Base44 platform recovery) is moot per the rebuild pivot. No active development; bug-fix-only mode.
+
+### Known mirror drift (not reconciled in this commit)
+
+- community-node DECISIONS.md missing **DEC-221** and **DEC-222**. Both exist in Spec-Repo canonical. Acknowledged in the DEC-223 mirror commit. Reconciliation requires a focused future pass — not bundled with the Plant 1 Day One close-out.
+
+### What's next for community-node
+
+- Bug-fix-only mode until Bari's cutover (Plant 1 Session 10 or later).
+- No new DECs land here as primary commits — they land in Spec-Repo and mirror to community-node only as part of explicit drift-reconciliation passes.
+- DEC-182 (Single-Source Documentation, Scheduled Drift Sync) remains the operating policy but its cadence shifts: mirror updates happen as deliberate focused passes, not on every Spec-Repo edit.
+
+**Active paying members: 1 (Bari, on this Base44 codebase).**
+
+---
