@@ -1989,7 +1989,7 @@ Doron named the principle: "A city needs a hospital, fire department, police dep
 - `Spec-Repo/platform/SESSION-CLOSE.md` — born Session 4.6.
 - `Spec-Repo/platform/MWP-PROTOCOL.md` — gains PRE-FLIGHT (Step 0) + CLOSE (Step 11).
 - `Spec-Repo/platform/BUILD-PROTOCOL.md` — gains Five Questions block.
-- Spec-Repo commit `{TBD}` (2026-05-23, Plant 1 Session 4.6).
+- Spec-Repo commit `1352c0e` (2026-05-23, Plant 1 Session 4.6).
 
 **Cross-references:** DEC-146, DEC-167, DEC-182, DEC-203, DEC-208, DEC-218, DEC-219.
 
@@ -2016,7 +2016,7 @@ Doron named the principle: "A city needs a hospital, fire department, police dep
 - `Spec-Repo/context/PROJECT-BRAIN.md` — five new sections (The City Has Variety; Skin, Not Police; Roles in the Garden; Authority Grows With Reliability; Defensible in Both Worlds) with Doron's verbatim framing.
 - `Spec-Repo/context/SECURITY-PRACTICES.md` + `SECURITY-INCIDENTS.md` + `SECURITY-AUDITS.md` — born Session 4.6.
 - `locallane/CLAUDE.md` + `locallane/AGENTS.md` — four new sections each (Roles in the Garden, Authority Grows With Reliability, Mycelia's Role in the Protocol, Diagnostic Vocabulary).
-- Spec-Repo commit `{TBD}` + locallane commit `{TBD}` (2026-05-23, Plant 1 Session 4.6).
+- Spec-Repo commit `1352c0e` + locallane commit `cc6b9ae` (2026-05-23, Plant 1 Session 4.6).
 
 **Cross-references:** DEC-203, DEC-136, DEC-146, DEC-181, DEC-218, DEC-226.
 
