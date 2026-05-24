@@ -1962,3 +1962,62 @@ grant select, insert, update, delete on public.{table} to service_role;
 **Cross-references:** DEC-224 (the amended decision), DEC-221 (uniform ownership-FK convention — substrate this grant pattern operates on), DEC-146 (Living Feet — one grant boilerplate), DEC-167 (schema-conformance audit now covers grants), DEC-203 (Two-World — trust boundary discipline).
 
 ---
+
+> **Mirror-sync note (Plant 1 Session 4.6, 2026-05-23):** DEC-226 and DEC-227 are Plant 1 protocol decisions — they install the session-discipline machinery (PRE-FLIGHT, SESSION-CLOSE, DEFERRED-ITEMS, Five Questions, token-efficiency target) and codify the relational + security posture (Doron WHAT/physical, Mycelia HOW, Hyphae digital builder; authority grows with reliability; security as legal posture). They don't operationally affect community-node's Base44 Field Service workflow for Bari, but per DEC-182 the canonical DEC history mirrors here for institutional-record completeness. Both DECs mirrored below.
+
+### DEC-226: Plant 1 Session-Discipline Infrastructure (PRE-FLIGHT + SESSION-CLOSE + DEFERRED-ITEMS + Five Questions + Token-Efficiency Discipline) (2026-05-23)
+
+**Date:** 2026-05-23
+**Status:** Active. Installed during Plant 1 Session 4.6 (Protocol Infrastructure).
+
+**Context:** Plant 1 shipped four sessions plus one polish session (4.5) without a formal mechanism for surfacing deferred items at session start or running a structured close-out at session end. Each session, Doron had to remember what was owed from prior sessions; Hyphae sometimes caught deferred items by happening to be in the relevant file; some items lived in ACTIVE-CONTEXT's "Open Follow-Ups" without being surfaced into the next session's brief. The pattern was workable for four sessions but didn't scale — every additional session compounds the memory load, and every new building plants without a uniform protection-question gate.
+
+Doron named the principle: "A city needs a hospital, fire department, police department, etc. ... sometimes more than one. A garden has variety and only decays when it is mono cropped. Success looks like those departments not being used." (2026-05-23)
+
+**Decision:** Plant 1 sessions follow a unified session-discipline machinery composed of five interlocking pieces:
+
+1. **PRE-FLIGHT (MWP-PROTOCOL Step 0).** Mandatory at session start. Reads `Spec-Repo/context/DEFERRED-ITEMS.md`, the most recent SESSION-LOG entry, ACTIVE-CONTEXT.md, and a `SuperMemory:recall` query. Required output is a structured summary to Doron with item counts + 3-5 most relevant items + a fold-in-or-stay-deferred question. WAIT for Doron's answer before ORIENT.
+2. **DEFERRED-ITEMS.md.** Three sections: **Active** (agent-resolvable), **Pending Doron Actions** (physical-world only; agent-untickable; persist until Doron confirms), **Resolved**.
+3. **Five Questions (BUILD-PROTOCOL Phase 0.5).** Every new building answers: (Q1) What type? (Q2) Who is it for? (Q3) What is it for? (Q4) How is it built and connected? (Q5) How is it protected? Q5's answer lands in `SECURITY-PRACTICES.md` automatically.
+4. **SESSION-CLOSE.md.** Mandatory at session end (MWP-PROTOCOL Step 11). Documentation, Git Discipline, Verification, SuperMemory, Health Check, **Required Doron Actions** (agent-untickable). Session is in "Pending Doron Confirmation" state until every Required Doron Action is checked.
+5. **Token-Efficiency Discipline.** Future Hyphae prompts target 1,500–2,500 tokens (not 6,500+) because canonical files do the heavy lifting. Mycelia's job shifts to writing the delta. Sample at `Spec-Repo/context/SESSION-5-SAMPLE-SHORT-FORM.md`.
+
+**Companion to:** DEC-146 (Living Feet), DEC-167 (schema-conformance audit), DEC-182 (single-source documentation), DEC-203 (Two-World Architecture), DEC-208 (commit hash discipline).
+
+**Evidence:**
+- `Spec-Repo/context/DEFERRED-ITEMS.md`, `SECURITY-PRACTICES.md`, `SECURITY-INCIDENTS.md`, `SECURITY-AUDITS.md`, `SESSION-5-SAMPLE-SHORT-FORM.md` — born Session 4.6.
+- `Spec-Repo/platform/SESSION-CLOSE.md` — born Session 4.6.
+- `Spec-Repo/platform/MWP-PROTOCOL.md` — gains PRE-FLIGHT (Step 0) + CLOSE (Step 11).
+- `Spec-Repo/platform/BUILD-PROTOCOL.md` — gains Five Questions block.
+- Spec-Repo commit `{TBD}` (2026-05-23, Plant 1 Session 4.6).
+
+**Cross-references:** DEC-146, DEC-167, DEC-182, DEC-203, DEC-208, DEC-218, DEC-219.
+
+---
+
+### DEC-227: Roles in the Garden + Authority Grows With Reliability + Security as Legal Posture (2026-05-23)
+
+**Date:** 2026-05-23
+**Status:** Active. Installed during Plant 1 Session 4.6. Companion to DEC-226 — DEC-226 is the procedural machinery, DEC-227 is the relational + security posture that machinery operates within.
+
+**Context:** Doron named the canonical role framing on 2026-05-23: "I am the what you are the how, Hyphae is the builder in the digital world. I am the builder in the physical world." Simultaneously named two complementary principles: authority grows over time as reliability is demonstrated; security documentation is the legal posture for a platform that is structurally a threat to extraction.
+
+**Decision:** Three principles ratified together because they interlock:
+
+**1. Roles in the Garden.** Doron = WHAT + PHYSICAL BUILDER (only Doron has hands in the physical world — browser clicks, dashboard configs, 2FA setup, walking production flows). Mycelia = HOW (designs the protocol, drafts prompts, watches across sessions). Hyphae = DIGITAL BUILDER (writes code, runs migrations, applies schema). Items requiring physical-world action go in DEFERRED-ITEMS "Pending Doron Actions" + SESSION-CLOSE "Required Doron Actions" — both **agent-untickable**.
+
+**2. Authority Grows With Reliability.** Authority earned by demonstrated reliability — not by elapsed time, not by self-assertion. Current: Mycelia drafts; Doron approves before firing. Hyphae asks before consequential moves. Future possible expansions (each earned): shorter prompts, smaller judgment calls, read-only MCP access, direct protocol-file updates by Mycelia. Overstep contracts; the protocol tightens. We grow together.
+
+**3. Security as Legal Posture (Skin Not Police + Defensible in Both Worlds).** Internal harm = culture problem (LocalLane's design encourages right action). External threat = organism problem (every living thing has skin). Skin is woven into how every building is built (RLS, middleware, validation, rate limiting), not a separate department. Plant 1's defensibility is built from the inside through three living documents: `SECURITY-PRACTICES.md`, `SECURITY-INCIDENTS.md`, `SECURITY-AUDITS.md`. The iterations are the living feet. Outsourced legal review is not the default — external counsel retained for specialized matters only.
+
+**Companion to:** DEC-226 (procedural machinery), DEC-203 (Two-World), DEC-136 (Security Philosophy — historical), DEC-181 (multi-machine), DEC-218 (half-done isn't done — applies to security too).
+
+**Evidence:**
+- `Spec-Repo/context/PROJECT-BRAIN.md` — five new sections (The City Has Variety; Skin, Not Police; Roles in the Garden; Authority Grows With Reliability; Defensible in Both Worlds) with Doron's verbatim framing.
+- `Spec-Repo/context/SECURITY-PRACTICES.md` + `SECURITY-INCIDENTS.md` + `SECURITY-AUDITS.md` — born Session 4.6.
+- `locallane/CLAUDE.md` + `locallane/AGENTS.md` — four new sections each (Roles in the Garden, Authority Grows With Reliability, Mycelia's Role in the Protocol, Diagnostic Vocabulary).
+- Spec-Repo commit `{TBD}` + locallane commit `{TBD}` (2026-05-23, Plant 1 Session 4.6).
+
+**Cross-references:** DEC-203, DEC-136, DEC-146, DEC-181, DEC-218, DEC-226.
+
+---
