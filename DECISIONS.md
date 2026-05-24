@@ -1696,7 +1696,121 @@ For cost-plus / T&M, the dynamic flips — the client is contractually paying ac
 
 ---
 
-> **Mirror-drift note (2026-05-23):** DEC-221 and DEC-222 exist in Spec-Repo (canonical) but not in this community-node mirror as of DEC-223's commit. Per DEC-182, this drift is acknowledged but not reconciled in this commit; the Session 2 rebuild brief explicitly defers mirror reconciliation to a focused future pass. DEC-223 lands here so the community-node mirror captures the pivot from migration to rebuild in step with Spec-Repo, even though two preceding DECs remain absent. The numbering jumps 220 → 223 by design.
+> **Mirror-drift reconciled (Plant 1 Session 4.5, 2026-05-23):** DEC-221 and DEC-222 are mirrored verbatim below, restoring numbering continuity 220 → 221 → 222 → 223. The original 220 → 223 jump (with this drift note acknowledging it) lasted from the DEC-223 mirror commit through Session 4 close and was reconciled in Session 4.5. Per DEC-182, community-node mirrors from Spec-Repo (canonical) unidirectionally; this restoration is the cadence working as intended (acknowledge, then catch up in a focused pass).
+
+### DEC-221: Uniform Ownership-FK Convention — workspace_id + user_id Across Workspace-Scoped Entities (2026-05-10)
+
+**Date:** 2026-05-10
+**Status:** Active. Ratified during MIGRATION-AUDIT-RLS.md §5a (the first RLS-writing session of the Base44 → Supabase migration); satisfies PLATFORM.md §3 collapse candidate #7's "to be ratified during §5" note.
+
+**Context:** Today's Base44 entities use heterogeneous ownership-FK patterns. FieldServiceProfile uses `profile_id`. PMProperty uses `workspace_id`. Transaction uses `user_id`. FSClient uses `created_by`. The variance creates friction in three places:
+
+1. **agentScopedQuery / agentScopedWrite (DEC-107).** The server-side scoping function has to special-case each entity's ownership column. Adding a new entity requires extending the special-case map.
+2. **RLS policy uniformity.** Each entity needs hand-written policies that read its specific ownership column. Helper functions (e.g., is_workspace_owner) become entity-scoped rather than universal.
+3. **Migration / audit hygiene.** Reviewers can't predict where to look for ownership data without checking per-entity definitions; the lack of a single rule makes drift easy and detection hard.
+
+The destination Postgres schema (Spec-Repo/spaces/migration/MIGRATION-AUDIT-SCHEMA.md §4a) already established a uniform convention; MIGRATION-AUDIT-RLS.md §5a is the first session that builds RLS policies against it. This DEC formalizes the convention as a single principle so future entities inherit without negotiation.
+
+**Decision:** Every workspace-scoped child entity in the destination Postgres schema carries two ownership FKs:
+
+- `workspace_id uuid not null references workspaces(id) on delete cascade` — for workspace ownership traversal. Required on every workspace-scoped entity.
+- `user_id uuid references auth.users(id)` — for user attribution where action-attribution matters (transactions, recipes, debt_payments, etc.). Nullable when the workspace owner is the implicit actor and per-row attribution adds no value.
+
+Direct user-owned entities (those that don't belong to a workspace; rare — primarily `public.users` extending `auth.users`) use `user_id uuid not null references auth.users(id)` (or `id uuid references auth.users(id)` for 1:1 extension tables).
+
+RLS predicates uniformly read these two columns:
+
+- **Workspace-scoped:** `public.is_workspace_owner(workspace_id)` helper for the §5a baseline; §5b extends with `public.is_workspace_member(workspace_id, role_filter)` when workspace_membership-based predicates land.
+- **User-scoped:** `id = (SELECT auth.uid())` (for `users`) or `user_id = (SELECT auth.uid())` (for cross-cutting user-scoped tables like `mylane_notes` per §4c.6).
+- **Admin bypass:** `public.is_admin()` reads JWT `app_metadata.is_admin` claim (CATH-published per RLS.md §7.1).
+- **Service-role bypass:** Postgres-native (BYPASSRLS); no policy text required.
+
+`agentScopedQuery` / `agentScopedWrite` collapse to two predicates (the FK pair); helpers work uniformly across all entities; new entities inherit by following the convention rather than designing per-entity scoping.
+
+**Rationale:** Living Feet (DEC-146) — anything that exists in more than one place should exist as one thing. The Base44 era's heterogeneous ownership-FK pattern was the kind of "many ways to do the same thing" the destination architecture explicitly collapses (PLATFORM.md §3 collapse candidate #7).
+
+Predicate uniformity is the load-bearing benefit:
+
+- Single helper function library (`is_workspace_owner`, `is_workspace_member`, `is_admin`) covers every workspace-scoped table without per-entity branching.
+- RLS policy text is short and parallel across tables (same shape; substitute the table name).
+- Reviewers audit ownership by checking the FK columns; no entity-specific lookup needed.
+- Adding a new entity costs one schema-convention adherence + one repeating policy block; no new helper, no new pattern.
+
+This DEC formalizes what the following predecessor decisions implied but did not lock as a single principle:
+
+- **DEC-107 (agentScopedQuery — Server-Side Data Scoping).** Established server-side scoping as the security boundary; this DEC makes the FK convention universal so the server function is uniform.
+- **DEC-140 (readTeamData as Security Boundary — Membrane Moves to Function Level).** Established the function-level membrane pattern; this DEC makes the predicate substrate uniform so functions are interchangeable across entities.
+- **DEC-095 (asServiceRole Does NOT Bypass Creator Only).** Established the creator-only restriction even under service-role; this DEC makes the creator FK uniform (`user_id`) so the restriction is enforceable through one predicate.
+- **DEC-215 (`rls.update` Must Be Absent on Entities Receiving `asServiceRole` Writes).** Established the structural rule for service-role writes; this DEC makes the substrate that rule operates against uniform.
+
+**Operational rule:**
+
+1. **Every new workspace-scoped table includes `workspace_id uuid not null references workspaces(id) on delete cascade`.** Non-negotiable.
+2. **Every new workspace-scoped table includes `user_id uuid references auth.users(id)` if action attribution is needed.** Nullable; populated server-side via agentScopedWrite per DEC-139.
+3. **Every direct user-owned table uses `user_id uuid not null references auth.users(id)` (or `id` 1:1 extension pattern).** No alternative ownership-FK shapes — no `created_by` text column, no `profile_id`, no per-entity invented variants.
+4. **Helper functions consume the FK pair only.** Don't add helpers that read non-standard ownership columns.
+5. **RLS policies use the helpers.** Don't inline ownership predicates that bypass the helper layer.
+
+**Migration application (Base44 → Postgres):**
+
+- `FieldServiceProfile.profile_id` → `workspace_field_service.workspace_id` (per §4a workspace anchor pattern).
+- `PMProperty.workspace_id` → `pm_properties.workspace_id` (already uniform in Base44).
+- `Transaction.user_id` → `transactions.user_id` + `transactions.workspace_id` (Personal-scope: the user IS the workspace owner; both columns populated for predicate uniformity).
+- `FSClient.created_by` → `fs_clients.user_id` (rename to the convention).
+- Other Base44 entity ownership columns rename to `workspace_id` + `user_id` per the convention; OPS.md §6 server function porting plan applies the rename mechanically.
+
+**Status:** Active 2026-05-10. Inherited by all destination Postgres entities (MIGRATION-AUDIT-SCHEMA.md §4a + §4b + §4c) and all RLS policies (MIGRATION-AUDIT-RLS.md §5a + §5b + §5c).
+
+**Companion to:**
+
+- **DEC-107** (agentScopedQuery — Server-Side Data Scoping)
+- **DEC-140** (readTeamData as Security Boundary — Membrane Moves to Function Level)
+- **DEC-095** (asServiceRole Does NOT Bypass Creator Only)
+- **DEC-215** (`rls.update` Must Be Absent on Entities Receiving `asServiceRole` Writes — Structural Rule)
+- **DEC-146** (Living Feet Design Principle)
+
+**Reference:** MIGRATION-AUDIT-RLS.md §5a.7 (the §5a session that ratified this DEC); MIGRATION-AUDIT-SCHEMA.md §4a.1 (the schema-substrate convention); PLATFORM.md §3 collapse candidate #7 (the collapse candidate this DEC formalizes).
+
+---
+
+### DEC-222: Monitoring-First Capacity Posture (2026-05-10)
+
+**Date:** 2026-05-10
+**Status:** Active. Promoted from MIGRATION-AUDIT-EXECUTION.md §14.1 (Living Feet Consolidation) at audit-close PR merge 2026-05-10; AU-023 §11-to-DEC promotion criteria reached resolution at this DEC.
+
+Promoted from migration audit §14.1 at audit close 2026-05-10. Six §11 entries (DQ-006 + DQ-046 + DQ-050 + DQ-051 + DQ-052 + DQ-054 — all RATIFIED 2026-05-10) clustered as input → one canonical DEC drafted at §14.1.3 → five operational triggers specified (six entries collapse to five triggers because DQ-006 + DQ-050 share a single compute-upgrade trigger; DQ-050 amends DQ-006).
+
+**Decision.** For all capacity-shaped decisions — compute provisioning, performance-optimization materialization, cohort communication channel, alert routing target, replication architecture — provision the minimum at launch and upgrade on monitoring evidence rather than pre-building for forecast scale.
+
+**Reasoning.** Doron's framing: "I wanted us to plan for large numbers, but I don't want to buy a house we don't need yet." Cost discipline is part of the organism's immune system. DEC-218 ("half-done isn't done") cuts both ways — it also says don't push work into a state that's structurally fragile by overprovisioning unproven capacity, because that's its own kind of half-done (built but not validated against actual load). Forecast-scale capacity that sits idle is dead weight; capacity that ramps with measured signal is alive.
+
+The principle requires three things to be in place before a decision qualifies for monitoring-first treatment:
+
+(a) A measurable trigger. The signal that justifies escalation must be specifiable in advance — a metric, a threshold, a window. Without a measurable trigger, monitoring-first becomes monitoring-nothing.
+(b) An escalation path that's cheap to take. The upgrade should be achievable within ordinary operational rhythm, not require a new architectural decision. Compute-tier change (one config), cache addition (one migration), channel-routing change (one webhook). Not "rewrite the auth provider."
+(c) An acceptable degradation if the trigger fires before escalation completes. The launch posture must be safe enough that detection-to-mitigation lag doesn't cause data loss or user-visible outage. Performance degradation is acceptable; correctness degradation is not.
+
+**Five operational triggers** (six entries; DQ-006 + DQ-050 share a single compute-upgrade trigger because DQ-050 amends DQ-006):
+
+1. Compute upgrade (Pro Micro → Pro Small). Trigger: sustained CPU contention on Supabase Query Performance dashboard (D1 per CUTOVER.md §9.7) OR p95 query latency drift past acceptable thresholds, measured on rolling 30-day window. Cost: +$110/mo addon. Per DQ-006 (AMENDED) + DQ-050.
+
+2. CATH cache materialization (live PL/pgSQL → `auth_user_claims_cache(user_id, claims_jsonb, refreshed_at)`). Trigger: p95 CATH hook latency > 100ms on rolling 30-day window (well below Supabase Postgres Hook 2,000ms hard timeout; above 50ms soft UX target). Cost: incremental Postgres function complexity + cache-invalidation discipline on three membership tables. Per DQ-046.
+
+3. Cohort communication channel (email blast + in-app banner → dedicated Slack/Discord cohort surface). Trigger: 100K MAU reached. Cost: dedicated channel infrastructure + ongoing cohort moderation. Per DQ-051.
+
+4. Alert routing escalation. Trigger: 1K MAU → add Slack webhook alongside Sentry mobile app phone-push; 10K MAU → migrate to PagerDuty (~$25/user/mo). Cost stepped per threshold. Per DQ-052.
+
+5. Replication architecture upgrade (snapshot + delta → cron-polling Option (a)). Trigger: ≥500 MAU at the moment a future migration-style staging-window or analytics replication architecture decision revisits dual-write. Note: post-cutover, Base44 is no longer authoritative, so DQ-054's Option (a) does not directly apply to live production architecture; the trigger applies to future migration-style decisions (Base44 was the originating shape; Phase 7+ analytics replication or future platform migrations face the same dual-write trade). Per DQ-054.
+
+**Predecessors.** AU-023 §11-to-DEC promotion criteria reaches resolution at this DEC. Six §11 entries (DQ-006 + DQ-046 + DQ-050 + DQ-051 + DQ-052 + DQ-054 — all RATIFIED 2026-05-10) cluster as input.
+
+**Companions.** DEC-218 (Half-Done Isn't Done): both are cost discipline as immune system; both name a default that resists the temptation to build for hypothetical state. DEC-146 (Living Feet Design Principle): both are "avoid scaffolding without need."
+
+**Status.** ACTIVE. Promoted from §11 cluster at audit-close PR merge 2026-05-10.
+
+**Reference:** MIGRATION-AUDIT-EXECUTION.md §14.1.3 (the §14.1 audit section that drafted this DEC; AU-023 RESOLVED here); MIGRATION-AUDIT-EXECUTION.md §11 entries DQ-006 + DQ-046 + DQ-050 + DQ-051 + DQ-052 + DQ-054 (the six entries clustered as input).
+
+---
 
 ### DEC-223: Pivot from Migration to Rebuild — Plant 1 (2026-05-23)
 
@@ -1731,5 +1845,120 @@ This is also the path that honors what's actually true. The blueprints — DECs,
 **Status:** Active. Plant 1 in progress. Session 1 (The Read) shipped 2026-05-23 as REBUILD-SCOPE.md at `Spec-Repo/platform/REBUILD-SCOPE.md`. Session 2 (Repo Scaffold + Pivot DEC commit) is next.
 
 **Related:** Supersedes DEC-175. Updates DEC-207 (gates moot in original form). References REBUILD-SCOPE.md as the operational document. Carries forward DEC-146 (Living Feet), DEC-167 (schema-conformance audit protocol), DEC-203 (Two-World Architecture), DEC-220 (per-line rollup contractor-only), and all blueprint-level decisions that don't depend on the underlying platform.
+
+---
+
+> **Mirror-sync note (Plant 1 Session 4.5, 2026-05-23):** DEC-224 and DEC-225 are Plant 1 (Supabase) decisions that don't apply to community-node's Base44 entity-permission system operationally — but per DEC-182, community-node mirrors `DECISIONS.md` from Spec-Repo (canonical) for institutional-record completeness. Both DECs mirrored below.
+
+### DEC-224: Explicit Privilege Grants on Every New Plant 1 Table (2026-05-23)
+
+**Date:** 2026-05-23
+**Status:** Active. Surfaced during Session 3 (Auth + User Schema) when the first migration shipped, then a follow-up migration was required minutes later because PostgREST returned `42501 permission denied for table users` to the dashboard's first authenticated query.
+
+**Context:** Plant 1's first migration created `public.users` per the canonical RLS-by-default-deny pattern — table + policies + trigger + comments. Migration applied cleanly to the remote project via `supabase db push`. But the dashboard's `supabase.from("users").select("display_name")` call returned silently null on every load because PostgREST rejected the query at the role-grant layer before RLS even ran. Probe via curl as anon confirmed: `{"code":"42501","details":null,"hint":"Grant the required privileges to the current role with: GRANT SELECT ON public.users TO anon;","message":"permission denied for table users"}`.
+
+Root cause: when a table is created via raw SQL migration (`create table public.users ...` applied via `supabase db push`), it does NOT auto-receive the privilege grants that Supabase's dashboard table-editor adds. The dashboard's "create table" UI runs `GRANT SELECT, INSERT, UPDATE, DELETE ON {table} TO anon, authenticated` behind the scenes. Raw-SQL migrations don't. RLS then has nothing to filter against because the role can't reach the table at all.
+
+A follow-up migration (`20260524002110_grant_users.sql`) was authored and pushed minutes later. The dashboard then rendered Doron's display_name correctly on the next refresh. The gap is structural; left unaddressed it would recur on every future Plant 1 table.
+
+**Decision:** Every Plant 1 migration that creates a new table MUST include explicit privilege grants in the same migration (not a follow-up). The canonical pattern:
+
+```sql
+-- After the create table + policies + triggers block:
+revoke all on public.{table} from anon;
+revoke all on public.{table} from authenticated;
+
+grant select, update on public.{table} to authenticated;
+-- Add insert and/or delete only when the client legitimately writes
+-- directly to the table; otherwise route writes through SECURITY DEFINER
+-- triggers (per public.users handle_new_user pattern) or server functions.
+```
+
+**Specific rules:**
+
+1. **`anon` role gets nothing** by default. Public surfaces that need to read data for unauthenticated visitors (Directory, Events list, Business profile when viewed not-as-owner) are explicit exceptions — `grant select on public.{table} to anon` in the same migration that creates the table, justified in a comment. This makes the default-deny posture visible at the grant layer above RLS, returning 401 to anonymous misuse rather than `[]` (more honest signal; no rows to leak even if RLS were ever misconfigured).
+2. **`authenticated` role gets the narrow grant the feature needs.** Read-only entities (e.g., system catalogs the user only displays) get `select` only. Read-write own-record entities get `select, update`. Insert is granted only when the client legitimately performs direct inserts. Delete is granted only when the entity's account-deletion / soft-delete flow is designed.
+3. **`service_role` needs no grants.** Postgres `BYPASSRLS` and full access apply automatically (per DEC-221 / Plant 1 CLAUDE.md "Server functions as trust boundary"). Don't grant.
+4. **No `grant all`.** Even for authenticated, enumerate the operations explicitly. Future readers should be able to see at a glance which client paths can touch which entity.
+5. **REVOKE first, then GRANT.** Defensive against any default-privileges drift in the Supabase project's config.
+
+**Rationale:** Two layers of access control are stronger than one. RLS alone gates which rows; grants gate whether the role can even ask. Anon getting 401 instead of `[]` is a stronger contract — `[]` could mask an RLS misconfiguration (hiding rows that should be visible to that role); 401 is unambiguous. This also matches the long-standing Supabase guidance for tables that have no anonymous use case (most of them).
+
+The structural rule prevents the failure mode from recurring on Session 4's businesses table, Session 7's fs_projects/fs_estimates/fs_clients tables, Session 8's fs_payments/fs_daily_logs/fs_material_entries/fs_labor_entries, Session 9's fs_documents/fs_document_templates, and every subsequent entity. Without the rule, each new table is one more "why is this null in the dashboard" cycle.
+
+**Companion to DEC-221** (uniform ownership-FK convention) — DEC-221 defines what columns every workspace-scoped table carries; DEC-224 defines what privileges every table grants to the canonical roles. Together they define the substrate every Plant 1 table inherits.
+
+**Companion to DEC-146** (Living Feet) — the grants-pattern block is part of the migration template every new-table migration follows; if the same five lines appear in three places, extract a `grants(table_name, ...)` helper. The cost of typing them by hand is small for the first few tables; the cost of forgetting them is a "permission denied" cycle every time.
+
+**Operational rule:** Every Plant 1 migration that creates a new table MUST end with a `-- Privileges` section containing the appropriate `revoke` + `grant` block. The Plant 1 audit pass before any commit grep-checks for this section's presence on any new `create table public.*` it sees.
+
+**Evidence:**
+- `20260523233504_create_users.sql` — initial migration, NO grants, broke the dashboard query (42501).
+- `20260524002110_grant_users.sql` — follow-up that added the grants, fixed the dashboard immediately.
+- Both committed in Plant 1 commit `c936787` (2026-05-23, Session 3 close). Pattern locked in `community-node-style` discipline as it carries forward.
+
+**Cross-references:** DEC-221 (uniform ownership-FK convention), DEC-146 (Living Feet), DEC-167 (schema-conformance audit), DEC-203 (Two-World Architecture — trust boundary discipline at the grant + RLS layers).
+
+### DEC-224 amendment (2026-05-23, Session 4) — service_role grants are explicit too
+
+DEC-224 stated: "`service_role` needs no grants (BYPASSRLS handles it)." Plant 1 Session 4's first walkthrough surfaced that this is wrong on the `locallane-plant-1` Supabase project. Every service_role read against `public.users` and `public.user_preferences` returned `42501 permission denied for table {name}; Grant the required privileges to the current role with: GRANT SELECT ON public.{name} TO service_role` — i.e. PostgREST enforces table-level privilege checks BEFORE the role's BYPASSRLS attribute applies. BYPASSRLS only skips the row-filter step, not the role's table-level grants.
+
+**Amendment:** every Plant 1 migration that creates a table MUST grant the full DML set to `service_role` in the same migration. The corrected pattern (also captured in DEC-225 below as the structural-rule entry):
+
+```sql
+-- Privileges (DEC-224 + DEC-225)
+revoke all on public.{table} from anon;
+revoke all on public.{table} from authenticated;
+
+grant select, update on public.{table} to authenticated;  -- narrow per feature
+grant select, insert, update, delete on public.{table} to service_role;
+-- (anon grants only for genuinely-public surfaces, justified inline)
+```
+
+Companion fix-up migration: `20260524030000_grant_service_role.sql` retroactively grants service_role on the two pre-existing Plant 1 tables (`public.users` from Session 3 and `public.user_preferences` from Session 4). Going forward, the grant block above is the boilerplate every new-table migration carries.
+
+**Status of the original DEC-224 amendment:** Still active in its other points (anon revoked, authenticated narrow grant per feature, REVOKE first then GRANT, no `grant all`). Only the "service_role needs no grants" line is corrected.
+
+---
+
+### DEC-225: Service Role Grants Are Explicit Too (Plant 1 Session 4 amendment of DEC-224) (2026-05-23)
+
+**Date:** 2026-05-23
+**Status:** Active. Drafted at Session 4 close (2026-05-23 evening); **explicitly ratified by Doron at Session 4.5 open (2026-05-23, same day)** — confirmed framing: "Service role gets full DML; the trust boundary is the function, not the grant." Amends DEC-224.
+
+**Context:** Plant 1 Session 4's golden-path walkthrough used the service role (via `SUPABASE_SERVICE_ROLE_KEY` from a one-shot Node script) to verify Doron's preferences row was backfilled correctly. The query returned 42501 with the hint `Grant the required privileges to the current role with: GRANT SELECT ON public.user_preferences TO service_role`. Probing `public.users` showed the same shape — both tables were inaccessible to service_role despite the role having BYPASSRLS. The DEC-224 assumption that "service_role needs no grants (BYPASSRLS handles it)" did not hold on the `locallane-plant-1` Supabase project.
+
+**Investigation:** Read the PostgREST error hint at face value. The role has BYPASSRLS (skips row-level filtering) AND requires explicit table-level grants (PostgREST enforces grants before invoking BYPASSRLS). Both layers must be open for service_role to query the table. Confirmed empirically across both Plant 1 tables, both directions (SELECT and write).
+
+**Decision:** Every Plant 1 migration that creates a new table MUST grant `select, insert, update, delete` to `service_role` in the same migration, alongside the existing DEC-224 grant block for anon and authenticated. The pattern is structural going forward — no per-table exceptions. Service role is the trust-boundary layer (DEC-203 + Plant 1 CLAUDE.md "Server functions as trust boundary"); the role IS where the trust boundary lives, so withholding privileges inside the role adds friction without adding security. Anything the role might need (Stripe webhook handlers, scheduled jobs, account-deletion server functions, Edge Functions that verify caller identity themselves) gets full DML access.
+
+**Operational rule:** Append to the DEC-224 grant block. The complete privilege boilerplate for every new Plant 1 table:
+
+```sql
+-- Privileges (DEC-224 + DEC-225)
+revoke all on public.{table} from anon;
+revoke all on public.{table} from authenticated;
+
+grant select, update on public.{table} to authenticated;  -- narrow per feature
+grant select, insert, update, delete on public.{table} to service_role;
+-- Insert/delete for authenticated only when client legitimately writes directly;
+-- otherwise route through SECURITY DEFINER triggers or server functions.
+-- anon gets nothing unless the surface is genuinely public (justify inline).
+```
+
+**Rationale:** Pattern uniformity reduces cognitive load — every new-table migration ends with the same grant block. Service role's BYPASSRLS only handles row filtering, not table reachability. The Plant 1 trust model already places service-role access behind server-only code paths (no client ever sees `SUPABASE_SERVICE_ROLE_KEY`); making the role functional inside those paths is what the role is for.
+
+**Companion to:**
+- **DEC-224** — explicit grants on every new Plant 1 table (this DEC amends the service_role line specifically).
+- **DEC-146** — Living Feet (one grant boilerplate every migration follows; future "grants helper" function is a candidate when the third or fourth Plant 1 table ships).
+- **DEC-203** — Two-World Architecture (service role IS the bridge between inside-organism trust and outside-world privileged operations; grants inside that role match the documented intent).
+- **DEC-167** — schema-conformance audit protocol (the audit now includes "did this migration grant service_role full DML?" as a checklist item).
+
+**Evidence:**
+- `20260524020000_create_user_preferences.sql` — Session 4 migration that initially shipped without service_role grants (followed DEC-224 verbatim). Triggered the 42501 discovery during walkthrough.
+- `20260524030000_grant_service_role.sql` — Session 4 retroactive fix granting service_role full DML on both pre-existing Plant 1 tables. Pattern locked.
+- Plant 1 commit `3391f87` (2026-05-23, Session 4 close).
+
+**Cross-references:** DEC-224 (the amended decision), DEC-221 (uniform ownership-FK convention — substrate this grant pattern operates on), DEC-146 (Living Feet — one grant boilerplate), DEC-167 (schema-conformance audit now covers grants), DEC-203 (Two-World — trust boundary discipline).
 
 ---
