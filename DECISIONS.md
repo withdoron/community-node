@@ -2021,3 +2021,156 @@ Doron named the principle: "A city needs a hospital, fire department, police dep
 **Cross-references:** DEC-203, DEC-136, DEC-146, DEC-181, DEC-218, DEC-226.
 
 ---
+
+### DEC-228: Planning Department — Canonical Records System for Plant 1 Organisms + SuperMemory Symmetry + Optional Related Section (2026-05-24)
+
+**Status:** Active. Installed Plant 1 Session 4.6.5 (records folder + self-referential PLANNING-DEPARTMENT.md); amended 4.6.6 (SuperMemory symmetry + optional eighth Related section + first non-self-referential record `security_measures.md`).
+
+**Context:** DEC-226 installed the Five Questions (Q5 → SECURITY-PRACTICES.md); Q1–Q4 had no canonical home, scattering across SESSION-LOG / DECISIONS / ACTIVE-CONTEXT / the codebase. Doron (2026-05-24): "The city has a planning department where everything is documented. When things are worked on they go through the build process but put back in the city planner's office. Both in SuperMemory and in the repo as md files."
+
+**1. Folder structure + record shape.** `Spec-Repo/context/records/` with five subfolders (systems / surfaces / buildings / protocols / agents). Each record has seven required sections — Q1 type, Q2 audience, Q3 purpose incl. non-use, Q4 how built/connected, Q5 how protected, Status, Change log — plus an optional Related section; Title + one-liner is the header.
+
+**2. Build-flow integration.** Records co-evolve through MWP steps, not as a clean-up afterthought: SCOPE names + pre-selects the subfolder; PLAN drafts the record; BUILD updates it in the same commit on deviation; AUDIT verifies it matches what shipped; LOG appends a change-log entry; CLOSE verifies the shape.
+
+**3. SuperMemory symmetry.** Records live on two surfaces (repo + SuperMemory), both every material change. Mycelia writes planner-voice, Hyphae builder-voice; neither rewrites the other. Same act as the commit, not batched. The session debrief lists the SuperMemory entry IDs (debrief-as-audit).
+
+**Companion to:** DEC-226 (procedural machinery), DEC-227 (two-voice symmetry = the role distinction operationalized), DEC-146 (one canonical home per concept), DEC-203, DEC-208 (debrief-as-audit extends the commit-hash rule), DEC-218 (both surfaces or it's half-done).
+
+**Evidence:**
+- Spec-Repo `records/` folder + self-referential `PLANNING-DEPARTMENT.md` born commit `20de632`; `security_measures.md` second record (4.6.6).
+- MWP-PROTOCOL records threading + BUILD-PROTOCOL Five-Questions block; locallane `CLAUDE.md` + `AGENTS.md` Planning Department section (`87f8315`).
+
+**Cross-references:** DEC-226, DEC-227, DEC-146, DEC-203, DEC-208, DEC-218.
+
+---
+
+### DEC-229: Grammar-Flexible Trade Sets + Mutable Taxonomy with Acceptance-Boundary Lock (2026-06-02)
+
+**Status:** Active. Ratified at the Plant 1 Insurance Restoration build (locallane `92ff10d`, migration `20260602120000`). Two decisions in one DEC (shipped as one build, both govern a Desk estimate's trade taxonomy).
+
+**Context:** The Desk's five flat trade sets needed (a) a two-level Category→Subcategory grammar with a phase band per category (the new Insurance Restoration set, for carrier-facing estimates), and (b) the set switchable on an in-progress estimate without silently shifting an accepted contract. The audit found the jsonb snapshot + text key already absorb the richer grammar (no migration); estimates had no finalize/lock or duplicate (built fresh).
+
+**Decision (a) — Grammar-flexible sets.** A set declares grammar (`flat` | `category_phase`). category_phase carries optional `kind` / `parent_id` / `phase` on snapshot entries (absent on flat sets → identical serialization, no migration). A line tags a single `trade_id`; grouping rolls subcategory→category and bands by phase. A new industry is a new set definition, not a rebuild. Seed sets stay one source in `lib/desk/trade-sets.ts` (DEC-146).
+
+**Decision (b) — Mutable taxonomy, lock at acceptance.** While open (draft/sent/viewed) the owner may switch the set behind a confirm that clears every line's trade tag (lines preserved, re-tagged). Once accepted/declined the taxonomy is frozen; rework by duplicating into a fresh draft. The status gate is server-enforced (`update_fs_estimate`) + UI. No new lock state machine — existing status is the lock; e-sign formalizes the same boundary later.
+
+**Companion to:** DEC-146 (one set registry/shape), DEC-173 (resurface-before-rebuild — the schema already held it), DEC-209 (Duplicate lands on a real draft), DEC-218 (status-as-lock over a premature state machine), DEC-220, DEC-228.
+
+**Evidence:** locallane `92ff10d`; migration `20260602120000_insurance_restoration_set.sql` (flag rename `xactimate_mode → insurance_restoration_mode`; 3 SD helpers replaced; acceptance gate; new `duplicate_fs_estimate`; SD count 44→45). Insurance Restoration taxonomy + CSI plain-name conversion in `lib/desk/trade-sets.ts`; spec `docs/INSURANCE-RESTORATION-TRADE-SET-SPEC.md`.
+
+**Cross-references:** DEC-146, DEC-173, DEC-209, DEC-218, DEC-220, DEC-228.
+
+---
+
+### DEC-230: Estimate Lifecycle — Sent/Viewed Live-Disable (Kept in Enum), Save Respects Selected Status, Accept→Project One-Click Offer, One-Project-Per-Estimate (2026-06-03)
+
+**Status:** Active. Ratified at the Plant 1 Estimate Lifecycle Refinements A+B build (locallane `685624e` + `804f8bd`; Spec-Repo `59f724f`). No migration, no new write path. (Workstream C — drag-and-drop — split to DEC-231.)
+
+**Context:** Sent/Viewed weren't real (nothing sends an estimate yet), yet the Save button silently auto-promoted draft→sent; accept→project lived as a separate manual card. The audit confirmed the conversion seam (`convert_estimate_to_project`), its filing, and its one-per-estimate duplicate guard were ALL already built (6.4a) — B was a surfacing job, not a new build.
+
+**Decision:**
+- **(a) Sent/Viewed live-disable, kept in the enum.** Disabled in the picker ("(soon)") until client sending is wired; both stay in the `EstimateStatus` union + column. Live flow: Draft → Accepted/Declined. The real thread (send / print / portal + e-sign) is tracked in DEFERRED-ITEMS.
+- **(b) Save respects the selected status.** No more draft→sent auto-promotion (the actual integrity hole).
+- **(c) Accept → one-click offer.** At the accept transition (not already linked), the form OFFERS Cancel/Create a project via the existing convert seam, then routes to it. Offers, not silent auto.
+- **(d) One project per estimate.** `convert_estimate_to_project` raises if `project_id` set; duplicate resets it; the server raise is the load-bearing guard.
+
+**Companion to:** DEC-229 (the acceptance boundary — Sent/Viewed disable collapses open→Draft; accept→offer fires at the same boundary), DEC-209 (honest navigation), DEC-218 (disabled not half-true), DEC-146 (kept in enum; rode the existing seam), DEC-096, DEC-220, DEC-193 (convert writes original_budget).
+
+**Evidence:** locallane `685624e` (A — status picker disable + Save-promotion removal) + `804f8bd` (B — accept→project offer); Spec-Repo `59f724f` (DEFERRED-ITEMS client-send thread). No migration.
+
+**Cross-references:** DEC-229, DEC-209, DEC-218, DEC-146, DEC-096, DEC-220, DEC-193, DEC-227, DEC-228.
+
+---
+
+### DEC-231: Desk Estimate Drag-and-Drop Reorder — Array-Order Persistence, Draft/Open-Only, One Mechanism Across Both Grammars (2026-06-03)
+
+**Status:** Active. Ratified at the Plant 1 Workstream C build (locallane `72a6f5e`). Split from DEC-230's A+B at the STEP-1 audit (the one large piece — a new interaction + a client dependency).
+
+**Context:** The estimate builder grouped lines by trade (and phase-banded for category_phase) but had no manual reorder. Storage already held order: line order = `line_items` array; group order = `trade_categories_snapshot` category order; both persist through `update_fs_estimate` (snapshot writes gated to open by DEC-229). No new column.
+
+**Decision:**
+- **(a) Reorder persists as ARRAY ORDER through the existing path — no migration.** Line reorder rewrites `line_items`; group reorder rewrites the snapshot category order (subcategories travel with their parent).
+- **(b) Draft/open-only.** Group reorder server-gated (DEC-229) + UI-gated; line reorder **UI-gated only** — `update_fs_estimate` can't distinguish a reorder from any other line edit, so a line-reorder server gate would have to gate ALL line edits on accepted estimates (deferred as a Pending Doron DECISION: full read-only past acceptance).
+- **(c) Within phase bands for category_phase, free for flat — one mechanism.** Per-context `DndContext` makes cross-band/cross-group moves structurally impossible; the same helpers serve both grammars (DEC-146).
+- **(d) `@dnd-kit`** — touch-first (Bari is mobile/field); first client runtime dependency beyond the framework; zero vulnerabilities.
+- **(e) Opt-in;** the Change Order editor (shared `LineItemEditor`) is unchanged.
+- **(f) `line_no` not renumbered** (stays a stable struck-gap address).
+
+**Companion to:** DEC-229, DEC-230, DEC-146 (one mechanism, both grammars), DEC-173 (array order already persisted), DEC-218 (UI-gate + flag the decision over a partial server gate), DEC-154 (iterate on the live mobile surface), DEC-220, DEC-227.
+
+**Evidence:** locallane `72a6f5e`; `lib/desk/estimates.ts` `reorderLineItems` + `reorderSnapshotCategories`; `_components/sortable.tsx`; `scripts/verify-reorder.mjs` (14 checks). Deps `@dnd-kit/core` + `/sortable` + `/utilities` (zero vulns). No migration; no SECURITY-PRACTICES change (no server gate added).
+
+**Cross-references:** DEC-229, DEC-230, DEC-146, DEC-173, DEC-218, DEC-154, DEC-220, DEC-227, DEC-228.
+
+---
+
+### DEC-232: The Permissions / Client-Visibility Model — A Dial Per Section (Owner Decides), Three-Layer Defaults, Subsume Not Parallel (2026-06-04)
+
+**Status:** Active. Ratified at the Plant 1 Permissions Section v1 build (locallane `d5613c1` + `1576fc7`; migration `20260604120000`). v1 = the Client tab on the estimate edit surface; Workers/Subs/Vendors greyed "coming."
+
+**Context:** The estimate needed a "who sees what" control. The footer carried one coarse `show_cost_breakdown_to_client` boolean (the DEC-220 seam) + two arrangement toggles. The plan reframed visibility as a named, reusable Permissions section — a dial per section, a tab per viewer; the verify-first read confirmed only the cost boolean was a *visibility* flag (the other two are *layout*), and `field_service_profiles` is the owner-level store.
+
+**Decision:**
+- **(a)** A dial per section; the owner decides; a tab per viewer (Client built; Workers/Subs/Vendors derive from People/selection later).
+- **(b)** Safe defaults (SHIP layer): money/cost OFF, client-facing ON.
+- **(c)** Internal notes NOT dialable — a fixed "— never" row (the hard membrane).
+- **(d)** Three-layer stack SHIP → owner-saved (`field_service_profiles.default_client_visibility`) → per-estimate (`fs_estimates.client_visibility`), one merge helper `getClientVisibility()` (mirrors `getFeatures`, DEC-194).
+- **(e)** Per-estimate stores the COMPLETE resolved object (a later owner-default change doesn't mutate existing estimates).
+- **(f) Subsume, not parallel:** `show_cost_breakdown_to_client` → the `fee_overhead` dial (backfilled; old column superseded-not-dropped per DEC-218; `financials.ts` repointed, prior default preserved).
+- **(g)** Arrangement (`group_by_trade`, `insurance_restoration_mode`) stays out — visibility ≠ layout.
+- **(h)** Payments/Photos omitted (project-level; plant on the Project-surface Permissions section).
+- **(i)** No client render here; "Preview as client" disabled "coming" (the dials are settings the future render reads).
+
+**Companion to:** DEC-203 (the inside/outside membrane), DEC-194 (one jsonb shape per concern — the `getFeatures` pattern mirrored), DEC-220 (per-line Cost/Variance stays contractor-only — the resolver invariant the subsume preserves), DEC-218 (column superseded, not dropped), DEC-146, DEC-173, DEC-229, DEC-227, DEC-228.
+
+**Evidence:** locallane `d5613c1` + `1576fc7`; migration `20260604120000_client_visibility_dials.sql` (two jsonb columns + subsume-backfill + owner-default SD helper + three estimate helpers re-issued; SD count 45→46). `lib/desk/estimates.ts` `ClientVisibility`/`CLIENT_VISIBILITY_DEFAULTS`/`getClientVisibility`; `financials.ts` repoint; `_components/permissions-section.tsx`; probe `verify-client-visibility.mjs` green.
+
+**Cross-references:** DEC-203, DEC-194, DEC-220, DEC-218, DEC-146, DEC-173, DEC-229, DEC-227, DEC-228.
+
+---
+
+### DEC-233: Business Identity as One Source of Truth — Private 1:1 Table, Public/Private Split at the Table Boundary; + the Per-Industry Legal-Pass Principle (2026-06-06)
+
+**Status:** Active. Ratified at the Plant 1 Assembler Foundation build (locallane `d441a2d`; migrations `20260606120000_business_identity` + `20260606130000_storage_branding`, applied to remote).
+
+**Context:** The Assembler (estimate → client document) needs a letterhead `businesses` never held — legal name distinct from display, address/phone/email/tax_id/EIN/structure, and a license-ish field (the dormant `field_service_profiles.license_number`). Verify-first surfaced a privacy fact: the planned anon Directory read on `businesses` (Postgres RLS is row-level, not column-level) would expose every column of `businesses` to the public — so legal identity cannot live there.
+
+**Decision:**
+- **(a) One source of truth** — each identity fact lives once (DEC-146).
+- **(b) Public/private line at the TABLE boundary.** Public face stays on `public.businesses` (name/tagline/category/subdomain + new `logo_path`); private legal identity on a NEW 1:1 `public.business_identity` (legal_name, address, phone, email, tax_id, business_structure, regulatory_license) — member-read, owner-write, **NO anon grant**. A separate private table keeps legal data structurally unreachable by the future anon Directory read.
+- **(c) `legal_name` distinct from the display name** (the letterhead falls back to `businesses.name`).
+- **(d) Owner-gated SD write** `upsert_business_identity` (auth.uid()+is_business_owner; full-replace; audit-logs `business_id` only — tax_id/EIN never logged).
+- **(e) The regulatory license is optional, single-value, industry-neutral; the TEMPLATE supplies the label.** Relocated from the dormant `field_service_profiles.license_number` (backfill-then-drop, DEC-218).
+- **(f) Logo on `businesses`** (public-safe `logo_path`); first Supabase Storage in Plant 1 — a private `branding` bucket with owner/member `storage.objects` RLS keyed on the path's business id.
+- **(g) Per-industry legal-pass principle:** one signing/render engine, many per-industry templates; each new industry's templates need their own legal-research pass before they ship (construction/CCB done; others not).
+
+**Companion to:** DEC-203 (two-world made structural at the schema layer), DEC-146 (one source of truth), DEC-139 (server-authoritative writes), DEC-224/225 (grants), DEC-218 (no vestigial column), DEC-227, DEC-228, DEC-232 (the *visibility* half of the Assembler — this is the *identity* half).
+
+**Evidence:** locallane `d441a2d`; migrations `20260606120000_business_identity.sql` + `20260606130000_storage_branding.sql` (applied to remote, exit 0). New `business_identity` table + `upsert_business_identity` SD helper + private `branding` bucket + `businesses.logo_path`; "Business Identity & Letterhead" card on the business Profile page (`app/(authenticated)/businesses/[id]/profile/`).
+
+**Cross-references:** DEC-203, DEC-146, DEC-139, DEC-224, DEC-225, DEC-218, DEC-227, DEC-228, DEC-232.
+
+---
+
+### DEC-234: Assembler Core Render — the Estimate as the Branded Client Document; Route-Agnostic Engine + Snapshot-on-Send (2026-06-06)
+
+**Status:** Active. Ratified at the Plant 1 Assembler Phase core-render build (locallane `dc4cc92`; migration `20260606140000_assembler_send_document.sql`, applied to remote).
+
+**Context:** On top of the Foundation (DEC-233 letterhead + logo) and the dials (DEC-232), this is the *render* — the estimate assembled into the client-facing document — plus the snapshot that freezes a copy on send. The dormant 6.1 `fs_documents` e-sign columns (`content`/`merge_data`/`signature_token`/`signed_at`/`template_id`) absorb the snapshot: one SD helper, no table/column change.
+
+**Decision:**
+- **(a) One document, four deliveries, one engine.** A single inline-styled `ClientDocument` drives the on-screen preview, the snapshot HTML, the future PDF + email; it renders as a white printed-paper document, not the dark app theme.
+- **(b) Route-agnostic engine; the route is a thin mount.** `assembleClientDocument` (pure) + `ClientDocument` + loader + `send_estimate_document` (RPC) know nothing about where they're mounted; v1 mounts at the estimate-scoped `/desk/estimates/[id]/document`. A future Assembler business-container peer tile reuses the engine + RPC with zero changes — the only coupling is to "an estimate" as the data source (data, not navigation).
+- **(c) The dials govern the render; the client never sees the dials.** Each section shows/hides per `client_visibility` via `getClientVisibility()` (the `fee_overhead` dial — DEC-232). The scope-of-work band ALWAYS renders; internal notes never.
+- **(d) Recompute, never trust stored.** Totals via `computeSummary()`; groups via `groupLinesByTrade()`; client from `fs_clients`. Tax line only when `> 0` (Oregon has none); license only if present.
+- **(e) No LocalLane branding** — the document is wholly the contractor's (DEC-203 made literal on the letterhead).
+- **(f) Snapshot-on-send (soft-freeze).** `send_estimate_document` writes one non-sealed `fs_documents` row per estimate (a `signed` row is never overwritten) — `content` + `merge_data` + status='sent', logo inlined as a data-URI (self-contained, no expiring URL), estimate marked draft→sent + `sent_at`.
+- **(g) Scope boundary v1 = render + snapshot-on-send.** The e-sign signing flow (the in-document Accept/Sign button is staged "coming"), email/Resend delivery, and the client portal route are the next arc.
+
+**Companion to:** DEC-233 (the identity half — the letterhead this reads), DEC-232 (the visibility half — the dials this honors), DEC-203 (two-world — soft-freeze + membrane), DEC-213 (documents live where used — estimate_id context + has-context CHECK), DEC-146 (one engine, recompute through shared helpers), DEC-209 (the "Preview as client" button now lands), DEC-163 (template_id legitimately null — rendered-from-estimate), DEC-139, DEC-224/225, DEC-227, DEC-228.
+
+**Evidence:** locallane `dc4cc92` (`lib/desk/client-document.ts` + `client-document-source.ts` + `components/desk/client-document.tsx` + `_actions/send-estimate-document.tsx` + the `[estimateId]/document/` route + entry-point edits to the estimate edit page / form / permissions section); migration `20260606140000_assembler_send_document.sql` (one SD helper; no table/column/GRANT change; SD count 46→47). The same commit carries Part 1 (identity-card polish). tsc + next lint + next build clean.
+
+**Cross-references:** DEC-233, DEC-232, DEC-203, DEC-213, DEC-146, DEC-209, DEC-163, DEC-139, DEC-224, DEC-225, DEC-227, DEC-228.
+
+---
