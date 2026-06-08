@@ -2174,3 +2174,27 @@ Doron named the principle: "A city needs a hospital, fire department, police dep
 **Cross-references:** DEC-233, DEC-232, DEC-203, DEC-213, DEC-146, DEC-209, DEC-163, DEC-139, DEC-224, DEC-225, DEC-227, DEC-228.
 
 ---
+
+### DEC-235: Assembler Server-Side PDF — the Estimate's Clean PDF via PDFShift (Rented Hosted Chromium) Behind a Route-Agnostic Engine Boundary; the Route's Read Path (2026-06-08)
+
+**Status:** Active. Ratified at the Plant 1 server-side PDF build (locallane `4e6cf35` + one-page compactness `3cb350b`, merged to `main` at `91b2db2`); live-in-sandbox on Vercel production (`PDFSHIFT_API_KEY` + `PDFSHIFT_SANDBOX=true` — watermarked, free, real credits not yet flowing).
+
+**Context:** The render's last mile (DEC-234 → this). The only way to get the client document out was `window.print()`, which leaked the LocalLane wordmark. Hyphae's verify-first audit was GREEN on route/vendor wiring, YELLOW on the document's print-CSS — so print-CSS came first.
+
+**Decision:**
+- **(a) Server-side PDF by rendering the frozen `fs_documents.content` through PDFShift** — rented hosted Chromium (`POST /v3/convert/pdf`, `X-API-Key`, `format: Letter`, `use_print: true`, bytes inline). NOT `@react-pdf/renderer` (drift from the signed copy), NOT in-function Chromium (Vercel ~50MB). Rent-first; Gotenberg is a later swap.
+- **(b) Engine behind a route-agnostic boundary.** A GET Route Handler at `…/document/pdf` (not a Server Action — returns a real downloadable file) takes `(businessId, estimateId)`; swapping the vendor touches only the engine call. Node runtime.
+- **(c) Read path — sealed-when-sent, live-render-when-not.** For a sent estimate it returns the frozen `content` verbatim (seal parity); for an unsent one it live-renders the same HTML (shared `lib/desk/client-document-html`). Snapshot discriminator: `estimate_id` set AND `project_id IS NULL` AND `content IS NOT NULL` (excludes project link-doc rows).
+- **(d) Filename app-side from `estimate_number`** (already `EST-YYYY-NNN` → the route composes nothing).
+- **(e) Print-CSS first.** `break-inside: avoid` on trade groups / rows / totals / signature; `@page { size: Letter; margin: 0.5in 0 }` (document owns horizontal insets, `@page` owns vertical — resolves the doc-vs-printable collision); print-color-adjust exact. One-page compactness (`3cb350b`) tightened the vertical rhythm so a short estimate fits one page; long estimates still break cleanly.
+- **(f) Don't ship the wordmark leak.** The dedicated route renders only the bare document; `print:hidden` on the ShellHeader + Desk chrome + a global `@media print` keep Ctrl-P clean too. Primary control = PDF download; `window.print()` a clean secondary.
+- **(g) Graceful + capped.** `PDFSHIFT_API_KEY` unset → a clean 503; a 4.5MB response-cap guard (storage-URL fallback deferred — no docs bucket). `sandbox` defaults on outside production.
+- **(h) Scope = render only.** E-sign signing, Resend email, the client portal are the next arc; the route is kept structured to read the signed row + POST under a service-role context when e-sign lands.
+
+**Companion to:** DEC-234 (the render + snapshot this exports), DEC-233, DEC-232, DEC-203 (the engine is plumbing; the sealed copy crosses to the client), DEC-213, DEC-146 (one engine / one HTML shell), DEC-209, DEC-218, DEC-224/225 (no schema/grant change — a read path), DEC-227.
+
+**Evidence:** locallane `4e6cf35` (route + `lib/desk/client-document-html.tsx` + print-CSS + leak fix) + `3cb350b` (one-page compactness), merged `91b2db2`. No migration (read path). Verified tsc/lint/build clean + the real engine→component→shell pipeline asserted in Chromium (42 break-inside elements, `@page` Letter, gray band, no LocalLane branding); adversarially reviewed. Live-in-sandbox; the watermarked-off flip is gated on a long-estimate walk. Mirrored from Spec-Repo `platform/DECISIONS-200-249.md` per DEC-182.
+
+**Cross-references:** DEC-234, DEC-233, DEC-232, DEC-203, DEC-213, DEC-146, DEC-209, DEC-218, DEC-224, DEC-225, DEC-227, DEC-228.
+
+---
