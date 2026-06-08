@@ -5,6 +5,7 @@ import BusinessProfile from './pages/BusinessProfile';
 // CategoryPage deleted (containment session B — 2026-04-15, no live references)
 import Directory from './pages/Directory';
 import Events from './pages/Events';
+import EventsManager from './pages/EventsManager';
 import Home from './pages/Home';
 import MyLane from './pages/MyLane';
 import Philosophy from './pages/Philosophy';
@@ -33,6 +34,7 @@ export const PAGES = {
     // CategoryPage: deleted
     "Directory": Directory,
     "Events": Events,
+    "EventsManager": EventsManager,
     "Home": Home,
     "MyLane": MyLane,
     "Philosophy": Philosophy,
